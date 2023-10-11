@@ -63,6 +63,7 @@ function AddPaymentMethodMenu(props) {
                 {
                     text: props.translate('common.bankAccount'),
                     icon: Expensicons.Bank,
+                    iconName: 'Bank',
                     onSelected: () => {
                         props.onItemSelected(CONST.PAYMENT_METHODS.BANK_ACCOUNT);
                     },
@@ -72,6 +73,7 @@ function AddPaymentMethodMenu(props) {
                           {
                               text: props.translate('common.debitCard'),
                               icon: Expensicons.CreditCard,
+                              iconName: 'Creditcard',
                               onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
                           },
                       ]

@@ -211,7 +211,10 @@ function AttachmentPickerWithMenuItems({
                                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.collapse')}
                                     >
-                                        <Icon src={Expensicons.Collapse} />
+                                        <Icon
+                                            name="Collapse"
+                                            src={Expensicons.Collapse}
+                                        />
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
@@ -230,7 +233,10 @@ function AttachmentPickerWithMenuItems({
                                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.expand')}
                                     >
-                                        <Icon src={Expensicons.Expand} />
+                                        <Icon
+                                            name="Expand"
+                                            src={Expensicons.Expand}
+                                        />
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
@@ -250,7 +256,10 @@ function AttachmentPickerWithMenuItems({
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={translate('reportActionCompose.addAction')}
                                 >
-                                    <Icon src={Expensicons.Plus} />
+                                    <Icon
+                                        name="Plus"
+                                        src={Expensicons.Plus}
+                                    />
                                 </PressableWithFeedback>
                             </Tooltip>
                         </View>

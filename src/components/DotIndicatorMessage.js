@@ -64,6 +64,7 @@ function DotIndicatorMessage(props) {
         <View style={[styles.dotIndicatorMessage, ...props.style]}>
             <View style={styles.offlineFeedback.errorDot}>
                 <Icon
+                    name="DotIndicator"
                     src={Expensicons.DotIndicator}
                     fill={isErrorMessage ? themeColors.danger : themeColors.success}
                 />

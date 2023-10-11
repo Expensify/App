@@ -177,7 +177,10 @@ class SidebarLinks extends React.PureComponent {
                             style={[styles.flexRow, styles.ph5]}
                             onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
                         >
-                            <Icon src={Expensicons.MagnifyingGlass} />
+                            <Icon
+                                name="MagnifyingGlass"
+                                src={Expensicons.MagnifyingGlass}
+                            />
                         </PressableWithoutFeedback>
                     </Tooltip>
                     <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={this.props.isCreateMenuOpen} />

@@ -45,11 +45,14 @@ const defaultProps = {
     descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
+    iconName: '',
     secondaryIcon: undefined,
+    secondaryIconName: '',
     iconWidth: undefined,
     iconHeight: undefined,
     description: undefined,
     iconRight: Expensicons.ArrowRight,
+    iconRightName: 'ArrowRight',
     iconStyles: [],
     iconFill: undefined,
     secondaryIconFill: undefined,
@@ -62,6 +65,7 @@ const defaultProps = {
     onSecondaryInteraction: undefined,
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
+    fallbackIconName: 'FallbackAvatar',
     brickRoadIndicator: '',
     floatRightAvatars: [],
     shouldStackHorizontally: false,
@@ -220,6 +224,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     hovered={isHovered}
                                                     pressed={pressed}
                                                     src={props.icon}
+                                                    name={props.iconName}
                                                     width={props.iconWidth}
                                                     height={props.iconHeight}
                                                     displayInDefaultIconColor={props.displayInDefaultIconColor}
@@ -257,6 +262,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             <Icon
                                                 contentFit={props.contentFit}
                                                 src={props.secondaryIcon}
+                                                name={props.secondaryIconName}
                                                 width={props.iconWidth}
                                                 height={props.iconHeight}
                                                 fill={
@@ -363,6 +369,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 {Boolean(props.brickRoadIndicator) && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                         <Icon
+                                            name="DotIndicator"
                                             src={Expensicons.DotIndicator}
                                             fill={props.brickRoadIndicator === 'error' ? themeColors.danger : themeColors.success}
                                         />
@@ -372,6 +379,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
                                         <Icon
                                             src={props.iconRight}
+                                            name={props.iconRightName}
                                             fill={StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive))}
                                         />
                                     </View>

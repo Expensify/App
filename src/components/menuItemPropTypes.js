@@ -26,8 +26,14 @@ const propTypes = {
     /** Icon to display on the left side of component */
     icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, imagePropTypes.source, PropTypes.arrayOf(avatarPropTypes)]),
 
+    /** Icon name required to create the icon test ID  */
+    iconName: PropTypes.string,
+
     /** Secondary icon to display on the left side of component, right of the icon */
     secondaryIcon: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]),
+
+    /** Secondary icon name required to create the icon test ID  */
+    secondaryIconName: PropTypes.string,
 
     /** Icon Width */
     iconWidth: PropTypes.number,
@@ -68,6 +74,8 @@ const propTypes = {
     /** Overrides the icon for shouldShowRightIcon */
     iconRight: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]),
 
+    iconRightName: PropTypes.string,
+
     /** A description text to show under the title */
     description: PropTypes.string,
 
@@ -97,6 +105,9 @@ const propTypes = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string, imagePropTypes.source]),
+
+    /** Fallback icon name required to create the icon test ID  */
+    fallbackIconName: PropTypes.string,
 
     /** Avatars to show on the right of the menu item */
     floatRightAvatars: PropTypes.arrayOf(avatarPropTypes),
@@ -130,6 +141,9 @@ const propTypes = {
 
     /** An icon to display under the main item */
     furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
+
+    /** Further details icon name required to create the icon test ID  */
+    furtherDetailsIconName: PropTypes.string,
 
     /** The action accept for anonymous user or not */
     isAnonymousAction: PropTypes.bool,

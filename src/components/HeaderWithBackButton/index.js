@@ -81,6 +81,7 @@ function HeaderWithBackButton({
                         >
                             <Icon
                                 src={Expensicons.BackArrow}
+                                name="BackLeft"
                                 fill={iconFill}
                             />
                         </PressableWithoutFeedback>
@@ -123,6 +124,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.Download}
+                                    name="Download"
                                     fill={iconFill || StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
                                 />
                             </PressableWithoutFeedback>
@@ -139,6 +141,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.QuestionMark}
+                                    name="QuestionMark"
                                     fill={iconFill}
                                 />
                             </PressableWithoutFeedback>
@@ -164,6 +167,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.Close}
+                                    name="Close"
                                     fill={iconFill}
                                 />
                             </PressableWithoutFeedback>

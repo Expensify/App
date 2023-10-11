@@ -32,6 +32,7 @@ function PinButton(props) {
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Icon
+                    name="Pin"
                     src={Expensicons.Pin}
                     fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
                 />

@@ -35,7 +35,10 @@ function ReportHeaderSkeletonView(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.translate('common.back')}
                     >
-                        <Icon src={Expensicons.BackArrow} />
+                        <Icon
+                            name="BackLeft"
+                            src={Expensicons.BackArrow}
+                        />
                     </PressableWithFeedback>
                 )}
                 <SkeletonViewContentLoader

@@ -286,6 +286,7 @@ class AvatarWithImagePicker extends React.Component {
                                 </View>
                                 <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                     <Icon
+                                        name="Camera"
                                         src={Expensicons.Camera}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
@@ -307,6 +308,7 @@ class AvatarWithImagePicker extends React.Component {
                                     const menuItems = [
                                         {
                                             icon: Expensicons.Upload,
+                                            iconName: 'Upload',
                                             text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
                                             onSelected: () => {
                                                 if (Browser.isSafari()) {
@@ -323,6 +325,7 @@ class AvatarWithImagePicker extends React.Component {
                                     if (!this.props.isUsingDefaultAvatar) {
                                         menuItems.push({
                                             icon: Expensicons.Trashcan,
+                                            iconName: 'Trashcan',
                                             text: this.props.translate('avatarWithImagePicker.removePhoto'),
                                             onSelected: () => {
                                                 this.setError(null, {});

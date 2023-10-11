@@ -112,6 +112,7 @@ class ShareCodePage extends React.Component {
                                 isAnonymousAction
                                 title={this.props.translate('common.download')}
                                 icon={Expensicons.Download}
+                                iconName="Download"
                                 // eslint-disable-next-line es/no-optional-chaining
                                 onPress={() => this.qrCodeRef.current?.download()}
                             />

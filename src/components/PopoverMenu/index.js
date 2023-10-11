@@ -101,6 +101,7 @@ function PopoverMenu(props) {
                     <MenuItem
                         key={item.text}
                         icon={item.icon}
+                        iconName={item.iconName}
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
                         iconFill={item.iconFill}

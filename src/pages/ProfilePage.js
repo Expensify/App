@@ -258,6 +258,7 @@ function ProfilePage(props) {
                                 title={`${props.translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
+                                iconName="Pencil"
                                 onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID))}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon

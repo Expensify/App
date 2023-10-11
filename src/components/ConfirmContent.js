@@ -46,6 +46,9 @@ const propTypes = {
     /** Icon to display above the title */
     iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
 
+    /** Icon name required to create the icon test ID  */
+    iconName: PropTypes.string,
+
     /** Whether to center the icon / text content */
     shouldCenterContent: PropTypes.bool,
 
@@ -80,6 +83,7 @@ const defaultProps = {
     shouldShowCancelButton: true,
     contentStyles: [],
     iconSource: null,
+    iconName: '',
     shouldCenterContent: false,
     shouldStackButtons: true,
     titleStyles: [],
@@ -101,6 +105,7 @@ function ConfirmContent(props) {
                         <View style={[styles.flexRow, styles.mb3]}>
                             <Icon
                                 src={props.iconSource}
+                                name={props.iconName}
                                 width={variables.appModalAppIconSize}
                                 height={variables.appModalAppIconSize}
                                 additionalStyles={[...props.iconAdditionalStyles]}

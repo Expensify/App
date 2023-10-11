@@ -15,11 +15,17 @@ const propTypes = {
     /** Icon Component */
     icon: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]).isRequired,
 
+    /** Icon name required to create the icon test ID  */
+    iconName: PropTypes.string,
+
     /** Text to display */
     text: PropTypes.string.isRequired,
 
     /** Icon to show when interaction was successful */
     successIcon: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]),
+
+    /** Success icon name required to create the icon test ID  */
+    successIconName: PropTypes.string,
 
     /** Text to show when interaction was successful */
     successText: PropTypes.string,
@@ -46,6 +52,7 @@ const propTypes = {
 const defaultProps = {
     isMini: false,
     successIcon: null,
+    successIconName: '',
     successText: '',
     description: '',
     isAnonymousAction: false,

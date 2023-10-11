@@ -36,6 +36,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     additionalStyles: PropTypes.arrayOf(PropTypes.object),
 
+    //** Icon name required to create the icon test ID */
+    name: PropTypes.string,
+
     /** Is icon displayed in its own color */
     displayInDefaultIconColor: PropTypes.bool,
 };
@@ -50,6 +53,7 @@ const defaultProps = {
     hovered: false,
     pressed: false,
     contentFit: 'cover',
+    name: '',
     displayInDefaultIconColor: false,
 };
 
@@ -63,7 +67,7 @@ class Icon extends PureComponent {
         if (this.props.inline) {
             return (
                 <View
-                    testID={`${this.props.src.name} Icon`}
+                    testID={`Svg${this.props.name} Icon`}
                     style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
                 >
                     <View style={iconStyles}>
@@ -80,7 +84,7 @@ class Icon extends PureComponent {
 
         return (
             <View
-                testID={`${this.props.src.name} Icon`}
+                testID={`Svg${this.props.name} Icon`}
                 style={this.props.additionalStyles}
             >
                 <Image

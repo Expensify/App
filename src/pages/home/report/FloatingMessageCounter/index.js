@@ -70,6 +70,7 @@ function FloatingMessageCounter(props) {
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <Icon
+                                name="Down"
                                 small
                                 src={Expensicons.DownArrow}
                                 fill={themeColors.textLight}

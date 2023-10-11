@@ -14,22 +14,27 @@ const socialsList = [
     {
         iconURL: Expensicons.Podcast,
         link: CONST.SOCIALS.PODCAST,
+        iconName: 'SocialPodcast',
     },
     {
         iconURL: Expensicons.Twitter,
         link: CONST.SOCIALS.TWITTER,
+        iconName: 'SocialTwitter',
     },
     {
         iconURL: Expensicons.Instagram,
         link: CONST.SOCIALS.INSTAGRAM,
+        iconName: 'SocialInstagram',
     },
     {
         iconURL: Expensicons.Facebook,
         link: CONST.SOCIALS.FACEBOOK,
+        iconName: 'SocialFacebook',
     },
     {
         iconURL: Expensicons.Linkedin,
         link: CONST.SOCIALS.LINKEDIN,
+        iconName: 'SocialLinkedin',
     },
 ];
 
@@ -50,6 +55,7 @@ function Socials() {
                 >
                     {({hovered, pressed}) => (
                         <Icon
+                            name={social.iconName}
                             src={social.iconURL}
                             height={variables.iconSizeLarge}
                             width={variables.iconSizeLarge}

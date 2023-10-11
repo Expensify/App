@@ -41,6 +41,7 @@ function RadioButton(props) {
         >
             <View style={[styles.radioButtonContainer, props.isChecked && styles.checkedContainer, props.hasError && styles.borderColorDanger, props.disabled && styles.cursorDisabled]}>
                 <Icon
+                    name="Checkmark"
                     src={Expensicons.Checkmark}
                     fill="white"
                     height={14}

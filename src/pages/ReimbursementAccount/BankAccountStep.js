@@ -156,6 +156,7 @@ function BankAccountStep(props) {
                     {!props.user.validated && (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                             <Icon
+                                name="Exclamation"
                                 src={Expensicons.Exclamation}
                                 fill={themeColors.danger}
                             />
@@ -174,6 +175,7 @@ function BankAccountStep(props) {
                             </TextLink>
                             <View style={[styles.ml1]}>
                                 <Icon
+                                    name="Lock"
                                     src={Expensicons.Lock}
                                     fill={themeColors.link}
                                 />

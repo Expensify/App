@@ -170,14 +170,20 @@ function AttachmentView({
     return (
         <View style={[styles.defaultAttachmentView, ...containerStyles]}>
             <View style={styles.mr2}>
-                <Icon src={Expensicons.Paperclip} />
+                <Icon
+                    name="Paperclip"
+                    src={Expensicons.Paperclip}
+                />
             </View>
 
             <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file && file.name}</Text>
             {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
                 <Tooltip text={translate('common.download')}>
                     <View style={styles.ml2}>
-                        <Icon src={Expensicons.Download} />
+                        <Icon
+                            name="Download"
+                            src={Expensicons.Download}
+                        />
                     </View>
                 </Tooltip>
             )}

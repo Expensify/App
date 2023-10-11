@@ -47,6 +47,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
                     >
                         {({pressed}) => (
                             <Icon
+                                name="Send"
                                 src={Expensicons.Send}
                                 fill={isDisabledProp || pressed ? themeColors.icon : themeColors.textLight}
                             />

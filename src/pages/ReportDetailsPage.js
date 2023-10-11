@@ -86,6 +86,7 @@ function ReportDetailsPage(props) {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
+                iconName: 'QrCode',
                 isAnonymousAction: true,
                 action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(props.report.reportID)),
             });
@@ -244,6 +245,7 @@ function ReportDetailsPage(props) {
                                 title={props.translate(item.translationKey)}
                                 subtitle={item.subtitle}
                                 icon={item.icon}
+                                name={item.iconName}
                                 onPress={item.action}
                                 isAnonymousAction={item.isAnonymousAction}
                                 shouldShowRightIcon

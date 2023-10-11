@@ -385,7 +385,10 @@ function ReportActionItemMessageEdit(props) {
                                 // Keep focus on the composer when cancel button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
                             >
-                                <Icon src={Expensicons.Close} />
+                                <Icon
+                                    name="Close"
+                                    src={Expensicons.Close}
+                                />
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>
@@ -453,6 +456,7 @@ function ReportActionItemMessageEdit(props) {
                                 onMouseDown={(e) => e.preventDefault()}
                             >
                                 <Icon
+                                    name="Checkmark"
                                     src={Expensicons.Checkmark}
                                     fill={hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
                                 />

@@ -402,6 +402,7 @@ function AvatarCropModal(props) {
                             />
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                 <Icon
+                                    name="Zoom"
                                     src={Expensicons.Zoom}
                                     fill={themeColors.icons}
                                 />
