@@ -12,7 +12,7 @@ jobs:
     outputs:
       isValid: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}
     steps:
-      - uses: ./.github/actions/composite/setupGitForOSBotifyApp
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
         id: setupGitForOSBotify
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
@@ -78,7 +78,7 @@ jobs:
 
       - name: Setup Git for OSBotify
         id: setupGitForOSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
@@ -119,7 +119,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup Git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
