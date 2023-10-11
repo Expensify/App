@@ -26,6 +26,7 @@ import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+import objectFit from './utilities/objectFit';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
@@ -174,6 +175,7 @@ const styles = (theme) => ({
     ...userSelect,
     ...textUnderline,
     ...theme, // TODO: Should we do this?
+    ...objectFit,
 
     autoCompleteSuggestionsContainer: {
         backgroundColor: theme.appBG,
@@ -779,12 +781,14 @@ const styles = (theme) => ({
     cameraView: {
         flex: 1,
         overflow: 'hidden',
-        padding: 10,
         borderRadius: 28,
         borderStyle: 'solid',
         borderWidth: 8,
         backgroundColor: theme.highlightBG,
         borderColor: theme.appBG,
+        display: 'flex',
+        justifyContent: 'center',
+        justifyItems: 'center',
     },
 
     permissionView: {
@@ -1234,6 +1238,20 @@ const styles = (theme) => ({
         height: '100%',
     },
 
+    sidebarHeaderContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingVertical: 19,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+
+    subNavigationContainer: {
+        backgroundColor: theme.sidebar,
+        flex: 1,
+        borderTopLeftRadius: variables.componentBorderRadiusRounded,
+    },
+
     sidebarAnimatedWrapperContainer: {
         height: '100%',
         position: 'absolute',
@@ -1269,8 +1287,7 @@ const styles = (theme) => ({
 
     floatingActionButtonContainer: {
         position: 'absolute',
-        right: 20,
-
+        left: 16,
         // The bottom of the floating action button should align with the bottom of the compose box.
         // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
         bottom: 25,
@@ -1278,8 +1295,8 @@ const styles = (theme) => ({
 
     floatingActionButton: {
         backgroundColor: theme.success,
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
+        height: variables.componentSizeNormal,
+        width: variables.componentSizeNormal,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
@@ -1331,7 +1348,7 @@ const styles = (theme) => ({
 
     createMenuPositionSidebar: (windowHeight) => ({
         horizontal: 18,
-        vertical: windowHeight - 100,
+        vertical: windowHeight - 75,
     }),
 
     createMenuPositionProfile: (windowWidth) => ({
@@ -1399,11 +1416,25 @@ const styles = (theme) => ({
         textDecorationLine: 'none',
     },
 
+    sidebarLinkLHN: {
+        textDecorationLine: 'none',
+        marginLeft: 12,
+        marginRight: 12,
+        borderRadius: 8,
+    },
+
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
         paddingLeft: 20,
         paddingRight: 20,
+    },
+
+    sidebarLinkInnerLHN: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        paddingLeft: 8,
+        paddingRight: 8,
     },
 
     sidebarLinkText: {
@@ -1417,8 +1448,17 @@ const styles = (theme) => ({
         backgroundColor: theme.sidebarHover,
     },
 
+    sidebarLinkHoverLHN: {
+        backgroundColor: theme.highlightBG,
+    },
+
     sidebarLinkActive: {
         backgroundColor: theme.border,
+        textDecorationLine: 'none',
+    },
+
+    sidebarLinkActiveLHN: {
+        backgroundColor: theme.highlightBG,
         textDecorationLine: 'none',
     },
 
@@ -1743,7 +1783,6 @@ const styles = (theme) => ({
     },
 
     emojiSkinToneTitle: {
-        width: '100%',
         ...spacing.pv1,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
@@ -2494,6 +2533,7 @@ const styles = (theme) => ({
                   // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
                   // Therefore, the transition effect needs to be delayed.
                   transitionDelay: '99999s',
+                  transitionProperty: 'background-color',
               }
             : {}),
     },
@@ -2778,6 +2818,11 @@ const styles = (theme) => ({
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
+    },
+
+    locationErrorLinkText: {
+        textAlignVertical: 'center',
+        fontSize: variables.fontSizeLabel,
     },
 
     sidebarPopover: {
@@ -3445,10 +3490,16 @@ const styles = (theme) => ({
 
     tabText: (isSelected) => ({
         marginLeft: 8,
-        fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
-        fontWeight: isSelected ? fontWeightBold : 400,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
         color: isSelected ? theme.textLight : theme.textSupporting,
     }),
+
+    tabBackground: (hovered, isFocused, background) => ({
+        backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+    }),
+
+    tabOpacity: (hovered, isFocused, activeOpacityValue, inactiveOpacityValue) => (hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue),
 
     /**
      * @param {String} backgroundColor
@@ -3687,6 +3738,40 @@ const styles = (theme) => ({
         height: 30,
         width: '100%',
     },
+    videoContainer: {
+        ...flex.flex1,
+        ...flex.alignItemsCenter,
+        ...flex.justifyContentCenter,
+        ...objectFit.oFCover,
+    },
+
+    globalNavigation: {
+        width: variables.globalNavigationWidth,
+        backgroundColor: theme.highlightBG,
+    },
+
+    globalNavigationMenuContainer: {
+        marginTop: 13,
+    },
+
+    globalAndSubNavigationContainer: {
+        backgroundColor: theme.highlightBG,
+    },
+
+    globalNavigationSelectionIndicator: (isFocused) => ({
+        width: 4,
+        height: 52,
+        borderTopRightRadius: variables.componentBorderRadiusRounded,
+        borderBottomRightRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: isFocused ? theme.iconMenu : theme.transparent,
+    }),
+
+    globalNavigationMenuItem: (isFocused) => (isFocused ? {color: theme.text, fontWeight: fontWeightBold, fontFamily: fontFamily.EXP_NEUE_BOLD} : {color: theme.icon}),
+
+    globalNavigationItemContainer: {
+        width: variables.globalNavigationWidth,
+        height: variables.globalNavigationWidth,
+    },
 
     walletCard: {
         borderRadius: variables.componentBorderRadiusLarge,
@@ -3695,7 +3780,7 @@ const styles = (theme) => ({
         overflow: 'hidden',
     },
 
-    walletCardNumber: {
+    walletCardMenuItem: {
         color: theme.text,
         fontSize: variables.fontSizeNormal,
     },
@@ -3710,8 +3795,19 @@ const styles = (theme) => ({
         lineHeight: variables.lineHeightLarge,
     },
 
+    aspectRatioLottie: (source) => {
+        if (!source.uri && typeof source === 'object' && source.w && source.h) {
+            return {aspectRatio: source.w / source.h};
+        }
+        return {};
+    },
+
     receiptDropHeaderGap: {
         backgroundColor: theme.receiptDropUIBG,
+    },
+
+    checkboxWithLabelCheckboxStyle: {
+        marginLeft: -2,
     },
 });
 

@@ -9,6 +9,7 @@ import themeColors from '../styles/themes/default';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import variables from '../styles/variables';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
@@ -100,6 +101,8 @@ class FloatingActionButton extends PureComponent {
                         style={[styles.floatingActionButton, StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
                     >
                         <AnimatedIcon
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
                             src={Expensicons.Plus}
                             fill={fill}
                         />
