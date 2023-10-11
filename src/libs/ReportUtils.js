@@ -1517,7 +1517,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
         const {amount, currency, comment} = getTransactionDetails(linkedTransaction);
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
-        return Localize.translateLocal('iou.splitAmount', {amount: formattedAmount, comment});
+        return Localize.translateLocal('iou.didSplitAmount', {amount: formattedAmount, comment});
     }
 
     const totalAmount = getMoneyRequestTotal(report);
