@@ -86,12 +86,12 @@ function SplitBillDetailsPage(props) {
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    const isEdittingSplitBill =
+    const isEditingSplitBill =
         props.session.accountID === reportAction.actorAccountID && (isScanning || (TransactionUtils.hasReceipt(transaction) && transaction.receipt.state === CONST.IOU.RECEIPT_STATE.FAILED));
 
     const draftSplitTransaction = props.draftSplitTransactions && props.draftSplitTransactions[`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`];
 
-    if (isEdittingSplitBill && !draftSplitTransaction) {
+    if (isEditingSplitBill && !draftSplitTransaction) {
         IOU.setDraftSplitTransaction(transaction.transactionID);
     }
 
@@ -102,7 +102,7 @@ function SplitBillDetailsPage(props) {
         merchant: splitMerchant,
         created: splitCreated,
         category: splitCategory,
-    } = isEdittingSplitBill && draftSplitTransaction ? ReportUtils.getTransactionDetails(draftSplitTransaction) : ReportUtils.getTransactionDetails(transaction);
+    } = isEditingSplitBill && draftSplitTransaction ? ReportUtils.getTransactionDetails(draftSplitTransaction) : ReportUtils.getTransactionDetails(transaction);
 
     const onConfirm = useCallback(
         () => IOU.completeSplitBill(props.report.reportID, reportAction, draftSplitTransaction, props.session.accountID, props.session.email),
@@ -130,13 +130,13 @@ function SplitBillDetailsPage(props) {
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
-                            isReadOnly={!isEdittingSplitBill}
+                            isReadOnly={!isEditingSplitBill}
                             shouldShowSmartScanFields
                             receiptPath={transaction.receipt && transaction.receipt.source}
                             receiptFilename={transaction.filename}
                             shouldShowFooter={false}
                             isScanning={isScanning}
-                            isEdittingSplitBill={isEdittingSplitBill}
+                            isEditingSplitBill={isEditingSplitBill}
                             reportActionID={reportAction.reportActionID}
                             reportID={lodashGet(props.report, 'reportID', '')}
                             onConfirm={onConfirm}
