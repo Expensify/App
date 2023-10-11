@@ -197,6 +197,7 @@ function MoneyRequestConfirmationList(props) {
     const {translate, toLocaleDigit} = useLocalize();
 
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
+    const isSplitBill = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
 
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
@@ -266,21 +267,21 @@ function MoneyRequestConfirmationList(props) {
 
     const splitOrRequestOptions = useMemo(() => {
         let text;
-        if (props.receiptPath && props.hasMultipleParticipants && props.isScanning && props.iouAmount === 0) {
+        if (isSplitBill && props.iouAmount === 0) {
             text = translate('iou.split');
-        } else if ((props.receiptPath && props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST) || isDistanceRequestWithoutRoute) {
+        } else if ((props.receiptPath && isTypeRequest) || isDistanceRequestWithoutRoute) {
             text = translate('iou.request');
         } else {
-            const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
+            const translationKey = isSplitBill ? 'iou.splitAmount' : 'iou.requestAmount';
             text = translate(translationKey, {amount: formattedAmount});
         }
         return [
             {
                 text: text[0].toUpperCase() + text.slice(1),
-                value: props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+                value: props.iouType,
             },
         ];
-    }, [props.hasMultipleParticipants, props.iouType, props.iouAmount, props.receiptPath, props.isScanning, translate, formattedAmount, isDistanceRequestWithoutRoute]);
+    }, [isSplitBill, isTypeRequest, props.iouAmount, props.receiptPathtranslate, formattedAmount, isDistanceRequestWithoutRoute]);
 
     const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
