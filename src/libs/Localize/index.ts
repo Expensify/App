@@ -61,7 +61,7 @@ function translate(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: 
 
     // Phrase is not translated, search it in default language (en)
     const defaultLanguageDictionary = translations[CONST.LOCALES.DEFAULT] || {};
-    translatedPhrase = defaultLanguageDictionary[phraseKey];
+    translatedPhrase = defaultLanguageDictionary[phraseKey as keyof typeof defaultLanguageDictionary] ?? '';
     if (translatedPhrase) {
         // console.log('3translatedPhrase=', translatedPhrase);
         // console.log('3phraseParameters=', phraseParameters);
