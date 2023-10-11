@@ -1,8 +1,8 @@
 const {INTERACTION_TIMEOUT} = require('../config');
 
-const TIMEOUT = process.env.INTERACTION_TIMEOUT || INTERACTION_TIMEOUT;
+const TIMEOUT: number = process.env.INTERACTION_TIMEOUT ?? INTERACTION_TIMEOUT;
 
-const withFailTimeout = (promise, name) =>
+const withFailTimeout = (promise: Promise<void>, name: string) =>
     new Promise((resolve, reject) => {
         const timeoutId = setTimeout(() => {
             reject(new Error(`[${name}] Interaction timed out after ${(TIMEOUT / 1000).toFixed(0)}s`));
