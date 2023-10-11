@@ -426,7 +426,7 @@ function MoneyRequestConfirmationList(props) {
 
                 if (props.isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
                     // TODO in this PR: also show errors next to the fields if user confirms while transaction has missing fields
-                    setFormError('iou.receiptScanningFailed');
+                    setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
                 }
 
@@ -434,7 +434,18 @@ function MoneyRequestConfirmationList(props) {
                 onConfirm(selectedParticipants);
             }
         },
-        [selectedParticipants, onSendMoney, onConfirm, props.iouType, props.isDistanceRequest, isDistanceRequestWithoutRoute, props.iouCurrencyCode, props.iouAmount],
+        [
+            selectedParticipants,
+            onSendMoney,
+            onConfirm,
+            props.isEditingSplitBill,
+            props.iouType,
+            props.isDistanceRequest,
+            isDistanceRequestWithoutRoute,
+            props.iouCurrencyCode,
+            props.iouAmount,
+            transaction,
+        ],
     );
 
     const footerContent = useMemo(() => {
