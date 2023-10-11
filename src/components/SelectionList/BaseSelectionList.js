@@ -145,10 +145,7 @@ function BaseSelectionList({
     const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedOnSelectRow = useCallback(shouldDebounceRowSelect ? _.debounce((item) => onSelectRow(item), 1000, {leading: true}) : (item) => onSelectRow(item), [
-        shouldDebounceRowSelect,
-        onSelectRow,
-    ]);
+    const debouncedOnSelectRow = useCallback(_.debounce(onSelectRow, 1000, {leading: true}), [onSelectRow]);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
@@ -216,7 +213,11 @@ function BaseSelectionList({
             }
         }
 
-        debouncedOnSelectRow(item);
+        if (shouldDebounceRowSelect) {
+            debouncedOnSelectRow(item);
+        } else {
+            onSelectRow(item);
+        }
 
         if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
@@ -243,7 +244,7 @@ function BaseSelectionList({
     // This debounce happens on the trailing edge because on repeated enter presses, rapid component state update cancels the existing debounce and the redundant
     // enter presses runs the debounced function again. This is solved by running the debounce on trailing edge.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedSelectFocusedOption = useCallback(shouldDebounceRowSelect ? _.debounce(selectFocusedOption, 50) : selectFocusedOption, [shouldDebounceRowSelect, selectFocusedOption]);
+    const debouncedSelectFocusedOption = useCallback(_.debounce(selectFocusedOption, 50), [selectFocusedOption]);
 
     /**
      * This function is used to compute the layout of any given item in our list.
@@ -367,7 +368,7 @@ function BaseSelectionList({
     );
 
     /** Selects row when pressing Enter */
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, debouncedSelectFocusedOption, {
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
@@ -410,7 +411,7 @@ function BaseSelectionList({
                                     keyboardType={keyboardType}
                                     selectTextOnFocus
                                     spellCheck={false}
-                                    onSubmitEditing={debouncedSelectFocusedOption}
+                                    onSubmitEditing={shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption}
                                     blurOnSubmit={Boolean(flattenedSections.allOptions.length)}
                                 />
                             </View>
