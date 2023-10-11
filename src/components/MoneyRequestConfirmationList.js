@@ -209,7 +209,7 @@ function MoneyRequestConfirmationList(props) {
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
-    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || props.isEdittingSplitBill || !props.shouldShowSmartScanFields;
+    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || props.isEditingSplitBill || !props.shouldShowSmartScanFields;
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(props.policyTags);
@@ -520,7 +520,7 @@ function MoneyRequestConfirmationList(props) {
                         if (props.isDistanceRequest) {
                             return;
                         }
-                        if (props.isEdittingSplitBill) {
+                        if (props.isEditingSplitBill) {
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
@@ -537,7 +537,7 @@ function MoneyRequestConfirmationList(props) {
                 title={props.iouComment}
                 description={translate('common.description')}
                 onPress={() => {
-                    if (props.isEdittingSplitBill) {
+                    if (props.isEditingSplitBill) {
                         Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
                         return;
                     }
@@ -573,7 +573,7 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (props.isEdittingSplitBill) {
+                                if (props.isEditingSplitBill) {
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
                                     return;
                                 }
@@ -601,7 +601,7 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (props.isEdittingSplitBill) {
+                                if (props.isEditingSplitBill) {
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
                                     return;
                                 }
