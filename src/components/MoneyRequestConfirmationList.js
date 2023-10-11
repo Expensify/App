@@ -168,6 +168,8 @@ const defaultProps = {
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     iouCategory: '',
     iouTag: '',
+    iouIsBillable: false,
+    onToggleBillable: () => {},
     payeePersonalDetails: null,
     canModifyParticipants: false,
     isReadOnly: false,
