@@ -114,8 +114,8 @@ function ReimbursementAccountPage({
 
     const achData = lodashGet(reimbursementAccount, 'achData', {});
     const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-    const policyName = lodashGet(policy, 'name');
-    const policyID = lodashGet(route.params, 'policyID');
+    const policyName = lodashGet(policy, 'name', '');
+    const policyID = lodashGet(route.params, 'policyID', '');
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const prevIsOfflineRef = useRef(isOffline);
@@ -125,6 +125,16 @@ function ReimbursementAccountPage({
         setShouldShowContinueSetupButton(false);
         fetchData(true);
     };
+
+    const ROUTE_NAMES = {
+        COMPANY: 'company',
+        PERSONAL_INFORMATION: 'personal-information',
+        CONTRACT: 'contract',
+        VALIDATE: 'validate',
+        ENABLE: 'enable',
+        NEW: 'new',
+    };
+    
 
     /**
     * @param {String} fieldName
@@ -142,6 +152,7 @@ function ReimbursementAccountPage({
         const subStep = achData.subStep;
         const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
         const backTo = lodashGet(route.params, 'backTo', ROUTES.HOME);
+
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 if (hasInProgressVBBA()) {
@@ -153,9 +164,11 @@ function ReimbursementAccountPage({
                     Navigation.goBack(backTo);
                 }
                 break;
+
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
                 BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, { subStep: CONST.BANK_ACCOUNT.SUBSTEP.MANUAL });
                 break;
+
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
                 if (shouldShowOnfido) {
                     BankAccounts.clearOnfidoToken();
@@ -163,10 +176,12 @@ function ReimbursementAccountPage({
                     BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
                 }
                 break;
+
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
                 BankAccounts.clearOnfidoToken();
                 BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                 break;
+
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                 if (_.contains([BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP], achData.state)) {
                     BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
@@ -176,6 +191,7 @@ function ReimbursementAccountPage({
                     Navigation.goBack(backTo);
                 }
                 break;
+
             default:
                 Navigation.goBack(backTo);
         }
@@ -308,20 +324,21 @@ function ReimbursementAccountPage({
     function getRouteForCurrentStep(currentStep) {
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                return 'company';
+                return ROUTE_NAMES.COMPANY;
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                return 'personal-information';
+                return ROUTE_NAMES.PERSONAL_INFORMATION;
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
-                return 'contract';
+                return ROUTE_NAMES.CONTRACT;
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-                return 'validate';
+                return ROUTE_NAMES.VALIDATE;
             case CONST.BANK_ACCOUNT.STEP.ENABLE:
-                return 'enable';
+                return ROUTE_NAMES.ENABLE;
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
             default:
-                return 'new';
+                return ROUTE_NAMES.NEW;
         }
     }
+    
 
     // Rendering
 
@@ -359,7 +376,7 @@ function ReimbursementAccountPage({
 
     let errorText;
     const userHasPhonePrimaryEmail = Str.endsWith(session.email, CONST.SMS.DOMAIN);
-    const throttledDate = lodashGet(reimbursementAccount, 'throttledDate');
+    const throttledDate = lodashGet(reimbursementAccount, 'throttledDate', '');
     const hasUnsupportedCurrency = lodashGet(policy, 'outputCurrency', '') !== CONST.CURRENCY.USD;
 
     if (userHasPhonePrimaryEmail) {
