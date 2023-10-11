@@ -1,73 +1,103 @@
 import _ from 'underscore';
-import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
+import React, {Component} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import {propTypes, defaultProps} from './hoverablePropTypes';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import CONST from '../../CONST';
-
-function mapChildren(children, callbackParam) {
-    if (_.isArray(children) && children.length === 1) {
-        return children[0];
-    }
-
-    if (_.isFunction(children)) {
-        return children(callbackParam);
-    }
-
-    return children;
-}
 
 /**
  * It is necessary to create a Hoverable component instead of relying solely on Pressable support for hover state,
  * because nesting Pressables causes issues where the hovered state of the child cannot be easily propagated to the
  * parent. https://github.com/necolas/react-native-web/issues/1875
  */
+class Hoverable extends Component {
+    constructor(props) {
+        super(props);
 
-function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandleScroll}, outerRef) {
-    const [isHovered, setIsHovered] = useState(false);
+        this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+        this.checkHover = this.checkHover.bind(this);
 
-    const isScrolling = useRef(false);
-    const isHoveredRef = useRef(false);
-    const ref = useRef(null);
+        this.state = {
+            isHovered: false,
+        };
 
-    const updateIsHoveredOnScrolling = useCallback(
-        (hovered) => {
-            if (disabled) {
-                return;
-            }
+        this.isHoveredRef = false;
+        this.isScrollingRef = false;
+        this.wrapperView = null;
+    }
 
-            isHoveredRef.current = hovered;
+    componentDidMount() {
+        document.addEventListener('visibilitychange', this.handleVisibilityChange);
+        document.addEventListener('mouseover', this.checkHover);
 
-            if (shouldHandleScroll && isScrolling.current) {
-                return;
-            }
-            setIsHovered(hovered);
-        },
-        [disabled, shouldHandleScroll],
-    );
+        /**
+         * Only add the scrolling listener if the shouldHandleScroll prop is true
+         * and the scrollingListener is not already set.
+         */
+        if (!this.scrollingListener && this.props.shouldHandleScroll) {
+            this.scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
+                /**
+                 * If user has stopped scrolling and the isHoveredRef is true, then we should update the hover state.
+                 */
+                if (!scrolling && this.isHoveredRef) {
+                    this.setState({isHovered: this.isHoveredRef}, this.props.onHoverIn);
+                } else if (scrolling && this.isHoveredRef) {
+                    /**
+                     * If the user has started scrolling and the isHoveredRef is true, then we should set the hover state to false.
+                     * This is to hide the existing hover and reaction bar.
+                     */
+                    this.setState({isHovered: false}, this.props.onHoverOut);
+                }
+                this.isScrollingRef = scrolling;
+            });
+        }
+    }
 
-    useEffect(() => {
-        const unsetHoveredWhenDocumentIsHidden = () => document.visibilityState === 'hidden' && setIsHovered(false);
-
-        document.addEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
-
-        return () => document.removeEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
-    }, []);
-
-    useEffect(() => {
-        if (!shouldHandleScroll) {
+    componentDidUpdate(prevProps) {
+        if (prevProps.disabled === this.props.disabled) {
             return;
         }
 
-        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
-            isScrolling.current = scrolling;
-            if (!scrolling) {
-                setIsHovered(isHoveredRef.current);
-            }
-        });
+        if (this.props.disabled && this.state.isHovered) {
+            this.setState({isHovered: false});
+        }
+    }
 
-        return () => scrollingListener.remove();
-    }, [shouldHandleScroll]);
+    componentWillUnmount() {
+        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+        document.removeEventListener('mouseover', this.checkHover);
+        if (this.scrollingListener) {
+            this.scrollingListener.remove();
+        }
+    }
+
+    /**
+     * Sets the hover state of this component to true and execute the onHoverIn callback.
+     *
+     * @param {Boolean} isHovered - Whether or not this component is hovered.
+     */
+    setIsHovered(isHovered) {
+        if (this.props.disabled) {
+            return;
+        }
+
+        /**
+         * Capture whther or not the user is hovering over the component.
+         * We will use this to determine if we should update the hover state when the user has stopped scrolling.
+         */
+        this.isHoveredRef = isHovered;
+
+        /**
+         * If the isScrollingRef is true, then the user is scrolling and we should not update the hover state.
+         */
+        if (this.isScrollingRef && this.props.shouldHandleScroll && !this.state.isHovered) {
+            return;
+        }
+
+        if (isHovered !== this.state.isHovered) {
+            this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
+        }
+    }
 
     /**
      * Checks the hover state of a component and updates it based on the event target.
@@ -75,108 +105,85 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children, shouldHandle
      * such as when an element is removed before the mouseleave event is triggered.
      * @param {Event} e - The hover event object.
      */
-    const unsetHoveredIfOutside = useCallback(
-        (e) => {
-            if (!ref.current || !isHovered) {
-                return;
-            }
-
-            if (ref.current.contains(e.target)) {
-                return;
-            }
-
-            setIsHovered(false);
-        },
-        [isHovered],
-    );
-
-    useEffect(() => {
-        if (!DeviceCapabilities.hasHoverSupport()) {
+    checkHover(e) {
+        if (!this.wrapperView || !this.state.isHovered) {
             return;
         }
 
-        document.addEventListener('mouseover', unsetHoveredIfOutside);
-
-        return () => document.removeEventListener('mouseover', unsetHoveredIfOutside);
-    }, [unsetHoveredIfOutside]);
-
-    useEffect(() => {
-        if (!disabled || !isHovered) {
+        if (this.wrapperView.contains(e.target)) {
             return;
         }
-        setIsHovered(false);
-    }, [disabled, isHovered]);
 
-    useEffect(() => {
-        if (disabled) {
-            return;
-        }
-        if (onHoverIn && isHovered) {
-            return onHoverIn();
-        }
-        if (onHoverOut && !isHovered) {
-            return onHoverOut();
-        }
-    }, [disabled, isHovered, onHoverIn, onHoverOut]);
-
-    // Expose inner ref to parent through outerRef. This enable us to use ref both in parent and child.
-    useImperativeHandle(outerRef, () => ref.current, []);
-
-    const child = useMemo(() => React.Children.only(mapChildren(children, isHovered)), [children, isHovered]);
-
-    const onMouseEnter = useCallback(
-        (el) => {
-            updateIsHoveredOnScrolling(true);
-
-            if (_.isFunction(child.props.onMouseEnter)) {
-                child.props.onMouseEnter(el);
-            }
-        },
-        [child.props, updateIsHoveredOnScrolling],
-    );
-
-    const onMouseLeave = useCallback(
-        (el) => {
-            updateIsHoveredOnScrolling(false);
-
-            if (_.isFunction(child.props.onMouseLeave)) {
-                child.props.onMouseLeave(el);
-            }
-        },
-        [child.props, updateIsHoveredOnScrolling],
-    );
-
-    const onBlur = useCallback(
-        (el) => {
-            // Check if the blur event occurred due to clicking outside the element
-            // and the wrapperView contains the element that caused the blur and reset isHovered
-            if (!ref.current.contains(el.target) && !ref.current.contains(el.relatedTarget)) {
-                setIsHovered(false);
-            }
-
-            if (_.isFunction(child.props.onBlur)) {
-                child.props.onBlur(el);
-            }
-        },
-        [child.props],
-    );
-
-    if (!DeviceCapabilities.hasHoverSupport()) {
-        return child;
+        this.setIsHovered(false);
     }
 
-    return React.cloneElement(child, {
-        ref,
-        onMouseEnter,
-        onMouseLeave,
-        onBlur,
-    });
-}
+    handleVisibilityChange() {
+        if (document.visibilityState !== 'hidden') {
+            return;
+        }
 
-const Hoverable = React.forwardRef(InnerHoverable);
+        this.setIsHovered(false);
+    }
+
+    render() {
+        let child = this.props.children;
+        if (_.isArray(this.props.children) && this.props.children.length === 1) {
+            child = this.props.children[0];
+        }
+
+        if (_.isFunction(child)) {
+            child = child(this.state.isHovered);
+        }
+
+        if (!DeviceCapabilities.hasHoverSupport()) {
+            return child;
+        }
+
+        return React.cloneElement(React.Children.only(child), {
+            ref: (el) => {
+                this.wrapperView = el;
+
+                // Call the original ref, if any
+                const {ref} = child;
+                if (_.isFunction(ref)) {
+                    ref(el);
+                    return;
+                }
+
+                if (_.isObject(ref)) {
+                    ref.current = el;
+                }
+            },
+            onMouseEnter: (el) => {
+                this.setIsHovered(true);
+
+                if (_.isFunction(child.props.onMouseEnter)) {
+                    child.props.onMouseEnter(el);
+                }
+            },
+            onMouseLeave: (el) => {
+                this.setIsHovered(false);
+
+                if (_.isFunction(child.props.onMouseLeave)) {
+                    child.props.onMouseLeave(el);
+                }
+            },
+            onBlur: (el) => {
+                // Check if the blur event occurred due to clicking outside the element
+                // and the wrapperView contains the element that caused the blur and reset isHovered
+                if (!this.wrapperView.contains(el.target) && !this.wrapperView.contains(el.relatedTarget)) {
+                    this.setIsHovered(false);
+                }
+
+                if (_.isFunction(child.props.onBlur)) {
+                    child.props.onBlur(el);
+                }
+            },
+        });
+    }
+}
 
 Hoverable.propTypes = propTypes;
 Hoverable.defaultProps = defaultProps;
-Hoverable.displayName = 'Hoverable';
 
 export default Hoverable;

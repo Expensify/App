@@ -15,6 +15,7 @@ const assignedCardPropTypes = PropTypes.shape({
     cardholderFirstName: PropTypes.string,
     cardholderLastName: PropTypes.string,
     errors: PropTypes.objectOf(PropTypes.string),
+    isLoading: PropTypes.bool,
 });
 
 export default assignedCardPropTypes;

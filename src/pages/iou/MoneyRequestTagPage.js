@@ -98,11 +98,18 @@ MoneyRequestTagPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
-        },
         iou: {
             key: ONYXKEYS.IOU,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        report: {
+            key: ({route, iou}) => {
+                const reportID = IOU.getIOUReportID(iou, route);
+
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            },
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
