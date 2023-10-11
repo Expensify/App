@@ -6,5 +6,6 @@ const ReviewingBankInfo = require('../../assets/animations/ReviewingBankInfo.jso
 const WorkspacePlanet = require('../../assets/animations/WorkspacePlanet.json');
 const SaveTheWorld = require('../../assets/animations/SaveTheWorld.json');
 const Safe = require('../../assets/animations/Safe.json');
+const Magician = require('../../assets/animations/Magician.json');
 
-export {ExpensifyLounge, Fireworks, Hands, PreferencesDJ, ReviewingBankInfo, SaveTheWorld, WorkspacePlanet, Safe};
+export {ExpensifyLounge, Fireworks, Hands, PreferencesDJ, ReviewingBankInfo, SaveTheWorld, WorkspacePlanet, Safe, Magician};
