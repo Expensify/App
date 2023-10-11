@@ -22,7 +22,7 @@ const propTypes = {
     route: PropTypes.shape({
         /** Params from the route */
         params: PropTypes.shape({
-            /** Which field we are editing */
+            /** The transaction field we are editing */
             field: PropTypes.string,
 
             /** The chat reportID of the split */
@@ -36,7 +36,7 @@ const propTypes = {
     /** The current transaction */
     transaction: PropTypes.shape(transactionPropTypes).isRequired,
 
-    /** The draft transaction that holds data to be persisited on the current transaction */
+    /** The draft transaction that holds data to be persisted on the current transaction */
     draftTransaction: PropTypes.shape(transactionPropTypes),
 };
 
