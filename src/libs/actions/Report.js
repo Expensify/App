@@ -514,6 +514,13 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
                 [currentReport.parentReportActionID]: null,
             },
         });
+        reportFailureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReport.parentReportID}`,
+            value: {
+                iouReportID: null,
+            },
+        });
     }
 
     const onyxData = {
