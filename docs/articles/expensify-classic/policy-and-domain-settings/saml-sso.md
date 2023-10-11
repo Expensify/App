@@ -71,6 +71,7 @@ Add another rule; this time, we want to *Transform an Incoming Claim*. Click Nex
 Name the rule *Send email address*. The Incoming claim type should be *E-Mail Address*. The outgoing claim type should be *Name ID*, and the outgoing name ID format should be *Email*. Click OK. 
 You should now have two claim rules.
 Assuming you’ve also set up Expensify SAML configuration with your metadata, SAML logins on Expensify.com should now work. For reference, ADFS’ default metadata path is: https://yourservicename.yourdomainname.com/FederationMetadata/2007-06/FederationMetadata.xml.
+
 # FAQ
 ## What should I do if I’m getting an error when trying to set up SSO? 
 You can double check your configuration data for errors using samltool.com. If you’re still having issues, you can reach out to your Account Manager or contact Concierge for assistance.
