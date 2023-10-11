@@ -37,7 +37,6 @@ const PressableWithFeedbackDefaultProps = {
     pressDimmingValue: variables.pressDimValue,
     hoverDimmingValue: variables.hoverDimValue,
     nativeID: '',
-    wrapperStyle: [],
     needsOffscreenAlphaCompositing: false,
 };
 

@@ -24,6 +24,12 @@ const pressablePropTypes = {
     onPress: PropTypes.func,
 
     /**
+     * Whether the pressable is disabled or not
+     * @default false
+     */
+    disabled: PropTypes.bool,
+
+    /**
      * Specifies keyboard shortcut to trigger onPressHandler
      * @example {shortcutKey: 'a', modifiers: ['ctrl', 'shift'], descriptionKey: 'keyboardShortcut.description'}
      */
@@ -78,6 +84,12 @@ const pressablePropTypes = {
     pressStyle: stylePropTypeWithFunction,
 
     /**
+     * style for the pressable view wrapper
+     * @default []
+     */
+    wrapperStyle: stylePropTypeWithFunction,
+
+    /**
      * style for when the component is active and the screen reader is on.
      * Can be a function that receives the component's state (active, disabled, hover, focus, pressed, isScreenReaderActive)
      * @default {}
@@ -122,6 +134,7 @@ const pressablePropTypes = {
 
 const defaultProps = {
     onPress: () => {},
+    disabled: false,
     keyboardShortcut: undefined,
     shouldUseHapticsOnPress: false,
     shouldUseHapticsOnLongPress: false,
@@ -129,6 +142,7 @@ const defaultProps = {
     hoverStyle: {},
     focusStyle: {},
     pressStyle: {},
+    wrapperStyle: [],
     screenReaderActiveStyle: {},
     enableInScreenReaderStates: CONST.SCREEN_READER_STATES.ALL,
     nextFocusRef: undefined,

@@ -5,7 +5,6 @@ import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import Text from './Text';
 import CONST from '../CONST';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Is Success type */

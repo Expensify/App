@@ -31,7 +31,7 @@ const PressableWithoutFeedback = React.forwardRef((props, ref) => {
 });
 
 PressableWithoutFeedback.displayName = 'PressableWithoutFeedback';
-PressableWithoutFeedback.propTypes = _.omit(GenericPressableProps.pressablePropTypes, omittedProps);
-PressableWithoutFeedback.defaultProps = _.omit(GenericPressableProps.defaultProps, omittedProps);
+PressableWithoutFeedback.propTypes = GenericPressableProps.pressablePropTypes;
+PressableWithoutFeedback.defaultProps = GenericPressableProps.defaultProps;
 
 export default PressableWithoutFeedback;

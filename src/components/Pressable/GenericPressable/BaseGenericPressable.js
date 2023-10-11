@@ -74,7 +74,7 @@ const GenericPressable = forwardRef((props, ref) => {
 
             Accessibility.moveAccessibilityFocus(nextFocusRef);
         },
-        [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled],
+        [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref],
     );
 
     const onPressHandler = useCallback(
@@ -92,7 +92,7 @@ const GenericPressable = forwardRef((props, ref) => {
 
             Accessibility.moveAccessibilityFocus(nextFocusRef);
         },
-        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled],
+        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref],
     );
 
     const onKeyPressHandler = useCallback(
