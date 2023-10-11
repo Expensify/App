@@ -84,17 +84,13 @@ function WorkspaceInvitePage(props) {
 
     useEffect(() => {
         let emails = searchTerm.replace(/\s,\s/g, ',').split(',');
-        emails = _.map(emails, word => word.trim());
+        emails = _.filter(_.map(emails, word => word.trim()), email => email !== '');
 
         const newUsersToInviteDict = {};
         const newPersonalDetailsDict = {};
         const newSelectedOptionsDict = {};
 
         _.forEach(emails, (email) => {
-            if (email === '') {
-                return;
-            }
-
             const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, email, excludedUsers);
     
             // Update selectedOptions with the latest personalDetails and policyMembers information
