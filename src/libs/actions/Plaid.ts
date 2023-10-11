@@ -1,4 +1,4 @@
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import getPlaidLinkTokenParameters from '../getPlaidLinkTokenParameters';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
