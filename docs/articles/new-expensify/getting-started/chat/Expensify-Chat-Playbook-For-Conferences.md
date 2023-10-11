@@ -1,6 +1,7 @@
 ---
 title: Expensify Chat Playbook for Conferences
 description: Best practices for how to deploy Expensify Chat for your conference
+redirect_from: articles/playbooks/Expensify-Chat-Playbook-for-Conferences/
 ---
 ## Overview
 To help make setting up Expensify Chat for your event and your attendees super simple, we’ve created a guide for all of the technical setup details.

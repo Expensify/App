@@ -1,6 +1,6 @@
 import memoize from 'lodash/memoize';
 import {SvgProps} from 'react-native-svg';
-import moment from 'moment';
+import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
@@ -202,7 +202,8 @@ function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]): FrequentlyUsedEmoji
     let frequentEmojiList = [...frequentlyUsedEmojis];
 
     const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
-    const currentTimestamp = moment().unix();
+
+    const currentTimestamp = getUnixTime(new Date());
     (Array.isArray(newEmoji) ? [...newEmoji] : [newEmoji]).forEach((emoji) => {
         let currentEmojiCount = 1;
         const emojiIndex = frequentEmojiList.findIndex((e) => e.code === emoji.code);
@@ -258,19 +259,33 @@ function extractEmojis(text: string): Emoji[] {
     const emojis = [];
 
     // Text can contain similar emojis as well as their skin tone variants. Create a Set to remove duplicate emojis from the search.
-    const foundEmojiCodes = new Set();
 
     for (const character of parsedEmojis) {
         const emoji = Emojis.emojiCodeTableWithSkinTones[character];
-
-        // Add the parsed emoji to the final emojis if not already present.
-        if (emoji && !foundEmojiCodes.has(emoji.code)) {
-            foundEmojiCodes.add(emoji.code);
+        if (emoji) {
             emojis.push(emoji);
         }
     }
 
     return emojis;
+}
+
+/**
+ * Take the current emojis and the former emojis and return the emojis that were added, if we add an already existing emoji, we also return it
+ * @param currentEmojis The array of current emojis
+ * @param formerEmojis The array of former emojis
+ * @returns The array of added emojis
+ */
+function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] {
+    const newEmojis: Emoji[] = [...currentEmojis];
+    // We are removing the emojis from the newEmojis array if they were already present before.
+    formerEmojis.forEach((formerEmoji) => {
+        const indexOfAlreadyPresentEmoji = newEmojis.findIndex((newEmoji) => newEmoji.code === formerEmoji.code);
+        if (indexOfAlreadyPresentEmoji >= 0) {
+            newEmojis.splice(indexOfAlreadyPresentEmoji, 1);
+        }
+    });
+    return newEmojis;
 }
 
 /**
@@ -439,4 +454,6 @@ export {
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
     replaceAndExtractEmojis,
+    extractEmojis,
+    getAddedEmojis,
 };

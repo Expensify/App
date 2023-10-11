@@ -18,6 +18,7 @@ import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ROUTES from '../../ROUTES';
 import * as PolicyUtils from '../../libs/PolicyUtils';
+import * as Browser from '../../libs/Browser';
 import useNetwork from '../../hooks/useNetwork';
 import useLocalize from '../../hooks/useLocalize';
 import SelectionList from '../../components/SelectionList';
@@ -87,7 +88,7 @@ function WorkspaceInvitePage(props) {
 
         // Update selectedOptions with the latest personalDetails and policyMembers information
         const detailsMap = {};
-        _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail, false)));
+        _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
         const newSelectedOptions = [];
         _.forEach(selectedOptions, (option) => {
             newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
@@ -114,7 +115,7 @@ function WorkspaceInvitePage(props) {
         // Filtering out selected users from the search results
         const selectedLogins = _.map(selectedOptions, ({login}) => login);
         const personalDetailsWithoutSelected = _.filter(personalDetails, ({login}) => !_.contains(selectedLogins, login));
-        const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, false));
+        const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, OptionsListUtils.formatMemberForList);
         const hasUnselectedUserToInvite = userToInvite && !_.contains(selectedLogins, userToInvite.login);
 
         sections.push({
@@ -128,7 +129,7 @@ function WorkspaceInvitePage(props) {
         if (hasUnselectedUserToInvite) {
             sections.push({
                 title: undefined,
-                data: [OptionsListUtils.formatMemberForList(userToInvite, false)],
+                data: [OptionsListUtils.formatMemberForList(userToInvite)],
                 shouldShow: true,
                 indexOffset,
             });
@@ -231,6 +232,7 @@ function WorkspaceInvitePage(props) {
                             onConfirm={inviteUser}
                             showScrollIndicator
                             showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
+                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                         />
                         <View style={[styles.flexShrink0]}>
                             <FormAlertWithSubmitButton

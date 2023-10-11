@@ -94,28 +94,32 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
-    const [permissions, setPermissions] = useState('granted');
-    const isAndroidBlockedPermissionRef = useRef(false);
-    const appState = useRef(AppState.currentState);
+    const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
 
     const iouType = lodashGet(route, 'params.iouType', '');
-    const reportID = lodashGet(route, 'params.reportID', '');
     const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
 
     const CameraComponent = isInTabNavigator ? TabNavigationAwareCamera : NavigationAwareCamera;
 
-    // We want to listen to if the app has come back from background and refresh the permissions status to show camera when permissions were granted
     useEffect(() => {
-        const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-                CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
-                    setPermissions(permissionStatus);
-                });
+        const refreshCameraPermissionStatus = () => {
+            CameraPermission.getCameraPermissionStatus()
+                .then(setCameraPermissionStatus)
+                .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
+        };
+
+        // Check initial camera permission status
+        refreshCameraPermissionStatus();
+
+        // Refresh permission status when app gain focus
+        const subscription = AppState.addEventListener('change', (appState) => {
+            if (appState !== 'active') {
+                return;
             }
 
-            appState.current = nextAppState;
+            refreshCameraPermissionStatus();
         });
 
         return () => {
@@ -155,14 +159,17 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
-        if (permissions === RESULTS.BLOCKED || isAndroidBlockedPermissionRef.current) {
-            Linking.openSettings();
-        } else if (permissions === RESULTS.DENIED) {
-            CameraPermission.requestCameraPermission().then((permissionStatus) => {
-                setPermissions(permissionStatus);
-                isAndroidBlockedPermissionRef.current = permissionStatus === RESULTS.BLOCKED;
+        CameraPermission.requestCameraPermission()
+            .then((status) => {
+                setCameraPermissionStatus(status);
+
+                if (status === RESULTS.BLOCKED) {
+                    showPermissionsAlert();
+                }
+            })
+            .catch(() => {
+                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
             });
-        }
     };
 
     /**
@@ -223,21 +230,22 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     return;
                 }
 
-                IOU.navigateToNextPage(iou, iouType, reportID, report, route.path);
+                IOU.navigateToNextPage(iou, iouType, report, route.path);
             })
             .catch((error) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, iou, report, reportID, translate, transactionID, route.path]);
+    }, [flash, iouType, iou, report, translate, transactionID, route.path]);
 
-    CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
-        setPermissions(permissionStatus);
-    });
+    // Wait for camera permission status to render
+    if (cameraPermissionStatus == null) {
+        return null;
+    }
 
     return (
         <View style={styles.flex1}>
-            {permissions !== RESULTS.GRANTED && (
+            {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView]}>
                     <Hand
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
@@ -249,14 +257,14 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     <Button
                         medium
                         success
-                        text={translate('receipt.givePermission')}
-                        accessibilityLabel={translate('receipt.givePermission')}
+                        text={translate('common.continue')}
+                        accessibilityLabel={translate('common.continue')}
                         style={[styles.p9, styles.pt5]}
                         onPress={askForPermissions}
                     />
                 </View>
             )}
-            {permissions === RESULTS.GRANTED && device == null && (
+            {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
                 <View style={[styles.cameraView]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -265,7 +273,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     />
                 </View>
             )}
-            {permissions === RESULTS.GRANTED && device != null && (
+            {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
                 <CameraComponent
                     ref={camera}
                     device={device}
@@ -323,6 +331,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd]}
+                    disabled={cameraPermissionStatus !== RESULTS.GRANTED}
                     onPress={() => setFlash((prevFlash) => !prevFlash)}
                 >
                     <Icon
