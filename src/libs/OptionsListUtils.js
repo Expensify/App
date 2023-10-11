@@ -644,7 +644,7 @@ function hasEnabledOptions(options) {
  * @returns {Array<Object>}
  */
 function getCategoryOptionTree(options, isOneLine = false) {
-    const optionCollection = {};
+    const optionCollection = new Map();
 
     _.each(options, (option) => {
         if (!option.enabled) {
@@ -652,17 +652,17 @@ function getCategoryOptionTree(options, isOneLine = false) {
         }
 
         if (isOneLine) {
-            if (_.has(optionCollection, option.name)) {
+            if (optionCollection.has(option.name)) {
                 return;
             }
 
-            optionCollection[option.name] = {
+            optionCollection.set(option.name, {
                 text: option.name,
                 keyForList: option.name,
                 searchText: option.name,
                 tooltipText: option.name,
                 isDisabled: !option.enabled,
-            };
+            });
 
             return;
         }
@@ -670,22 +670,23 @@ function getCategoryOptionTree(options, isOneLine = false) {
         option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
             const indents = _.times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
+            const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
 
-            if (_.has(optionCollection, optionName)) {
+            if (optionCollection.has(searchText)) {
                 return;
             }
 
-            optionCollection[optionName] = {
+            optionCollection.set(searchText, {
                 text: `${indents}${optionName}`,
                 keyForList: optionName,
-                searchText: array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR),
+                searchText,
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled : true,
-            };
+            });
         });
     });
 
-    return _.values(optionCollection);
+    return Array.from(optionCollection.values());
 }
 
 /**

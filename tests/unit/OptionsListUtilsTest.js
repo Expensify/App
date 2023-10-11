@@ -1342,6 +1342,10 @@ describe('OptionsListUtils', () => {
 
     it('getCategoryOptionTree()', () => {
         const categories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+            },
             Taxi: {
                 enabled: false,
                 name: 'Taxi',
@@ -1402,6 +1406,10 @@ describe('OptionsListUtils', () => {
                 enabled: true,
                 name: 'Plain',
             },
+            Audi: {
+                enabled: true,
+                name: 'Audi',
+            },
             Health: {
                 enabled: true,
                 name: 'Health',
@@ -1416,6 +1424,13 @@ describe('OptionsListUtils', () => {
             },
         };
         const result = [
+            {
+                text: 'Meals',
+                keyForList: 'Meals',
+                searchText: 'Meals',
+                tooltipText: 'Meals',
+                isDisabled: false,
+            },
             {
                 text: 'Restaurant',
                 keyForList: 'Restaurant',
@@ -1498,6 +1513,13 @@ describe('OptionsListUtils', () => {
                 keyForList: 'Plain',
                 searchText: 'Plain',
                 tooltipText: 'Plain',
+                isDisabled: false,
+            },
+            {
+                text: 'Audi',
+                keyForList: 'Audi',
+                searchText: 'Audi',
+                tooltipText: 'Audi',
                 isDisabled: false,
             },
             {
