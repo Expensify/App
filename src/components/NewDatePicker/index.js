@@ -44,22 +44,22 @@ const datePickerDefaultProps = {
     value: undefined,
 };
 
-function NewDatePicker(props) {
-    const [selectedDate, setSelectedDate] = useState(props.value || props.defaultValue || undefined);
+function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
+    const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
     useEffect(() => {
-        if (selectedDate === props.value || _.isUndefined(props.value)) {
+        if (selectedDate === value || _.isUndefined(value)) {
             return;
         }
-        setSelectedDate(props.value);
-    }, [selectedDate, props.value]);
+        setSelectedDate(value);
+    }, [selectedDate, value]);
 
     useEffect(() => {
-        if (_.isFunction(props.onTouched)) {
-            props.onTouched();
+        if (_.isFunction(onTouched)) {
+            onTouched();
         }
-        if (_.isFunction(props.onInputChange)) {
-            props.onInputChange(selectedDate);
+        if (_.isFunction(onInputChange)) {
+            onInputChange(selectedDate);
         }
         // To keep behavior from class component state update callback, we want to run effect only when the selected date is changed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -67,29 +67,29 @@ function NewDatePicker(props) {
 
     return (
         <View style={styles.datePickerRoot}>
-            <View style={[props.isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
+            <View style={[isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID={props.inputID}
+                    inputID={inputID}
                     forceActiveLabel
                     icon={Expensicons.Calendar}
-                    label={props.label}
-                    accessibilityLabel={props.label}
+                    label={label}
+                    accessibilityLabel={label}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    value={props.value || selectedDate || ''}
-                    placeholder={props.placeholder || props.translate('common.dateFormat')}
-                    errorText={props.errorText}
-                    containerStyles={props.containerStyles}
+                    value={value || selectedDate || ''}
+                    placeholder={placeholder || translate('common.dateFormat')}
+                    errorText={errorText}
+                    containerStyles={containerStyles}
                     textInputContainerStyles={[styles.borderColorFocus]}
                     inputStyle={[styles.pointerEventsNone]}
-                    disabled={props.disabled}
+                    disabled={disabled}
                     editable={false}
                 />
             </View>
             <View style={[styles.datePickerPopover, styles.border]}>
                 <CalendarPicker
-                    minDate={props.minDate}
-                    maxDate={props.maxDate}
+                    minDate={minDate}
+                    maxDate={maxDate}
                     value={selectedDate}
                     onSelected={setSelectedDate}
                 />
