@@ -9,9 +9,11 @@ type EnvironmentProviderProps = {
     children: ReactNode;
 };
 
+type EnvironmentValue = ValueOf<typeof CONST.ENVIRONMENT>;
+
 type EnvironmentContextValue = {
     /** The string value representing the current environment */
-    environment: ValueOf<typeof CONST.ENVIRONMENT>;
+    environment: EnvironmentValue;
 
     /** The string value representing the URL of the current environment */
     environmentURL: string;
@@ -20,7 +22,7 @@ type EnvironmentContextValue = {
 const EnvironmentContext = createContext<EnvironmentContextValue | null>(null);
 
 function EnvironmentProvider({children}: EnvironmentProviderProps) {
-    const [environment, setEnvironment] = useState<ValueOf<typeof CONST.ENVIRONMENT>>(CONST.ENVIRONMENT.PRODUCTION);
+    const [environment, setEnvironment] = useState<EnvironmentValue>(CONST.ENVIRONMENT.PRODUCTION);
     const [environmentURL, setEnvironmentURL] = useState(CONST.NEW_EXPENSIFY_URL);
 
     useEffect(() => {
