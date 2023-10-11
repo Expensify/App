@@ -1513,6 +1513,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     if (!isIOUReport(report) && ReportActionsUtils.isSplitBillAction(reportAction)) {
+        // This covers group chats where the last action is a split bill action
         const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
         const {amount, currency, comment} = getTransactionDetails(linkedTransaction);
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency)
