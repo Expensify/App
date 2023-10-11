@@ -4,17 +4,11 @@ import * as Browser from '../../Browser';
 import ReportActionComposeFocusManager from '../../ReportActionComposeFocusManager';
 
 function inputFocusChange(focus: boolean) {
-    if (Browser.isMobile()) {
-        return;
-    }
     Onyx.set(ONYXKEYS.INPUT_FOCUSED, focus);
 }
 
 let refSave: HTMLElement | undefined;
 function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: {willAlertModalBecomeVisible: boolean; isVisible: boolean}, onyxFocused: boolean) {
-    if (Browser.isMobile()) {
-        return;
-    }
     if (isFocused && !onyxFocused) {
         inputFocusChange(true);
         ref.focus();
