@@ -83,22 +83,33 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }, [parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    const threeDotsMenuItems = [
-        ...(TransactionUtils.hasReceipt(transaction)
-            ? []
-            : [
-                  {
-                      icon: Expensicons.Receipt,
-                      text: translate('receipt.addReceipt'),
-                      onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
-                  },
-              ]),
-        {
-            icon: Expensicons.Trashcan,
-            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-            onSelected: () => setIsDeleteModalVisible(true),
-        },
-    ];
+    const canModifyRequest = isActionOwner && !isSettled && !isApproved;
+
+    useEffect(() => {
+        if (canModifyRequest) {
+            return;
+        }
+
+        setIsDeleteModalVisible(false);
+    }, [canModifyRequest]);
+    const threeDotsMenuItems = canModifyRequest
+        ? [
+              ...(TransactionUtils.hasReceipt(transaction)
+                  ? []
+                  : [
+                        {
+                            icon: Expensicons.Receipt,
+                            text: translate('receipt.addReceipt'),
+                            onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+                        },
+                    ]),
+              {
+                  icon: Expensicons.Trashcan,
+                  text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                  onSelected: () => setIsDeleteModalVisible(true),
+              },
+          ]
+        : [];
 
     if (!report.isPinned) {
         threeDotsMenuItems.unshift({
@@ -116,23 +127,13 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         });
     }
 
-    const canModifyRequest = isActionOwner && !isSettled && !isApproved;
-
-    useEffect(() => {
-        if (canModifyRequest) {
-            return;
-        }
-
-        setIsDeleteModalVisible(false);
-    }, [canModifyRequest]);
-
     return (
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton={canModifyRequest}
+                    shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     report={{
