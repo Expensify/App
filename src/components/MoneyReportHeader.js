@@ -77,15 +77,15 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
     const isPayer = isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isReportDraft(moneyRequestReport);
     const shouldShowPayButtonForFreePlan = useMemo(
-        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
-        [isPayer, isDraft, isSettled, moneyRequestReport, reportTotal, chatReport],
+        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport) && policyType === CONST.POLICY.TYPE.PERSONAL,
+        [isPayer, isDraft, isSettled, moneyRequestReport, reportTotal, chatReport, policyType],
     );
     const shouldShowSubmitButton = isDraft;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
-    const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || nextStepButtons.approve || nextStepButtons.reimburse;
+    const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || !!nextStepButtons.approve || !!nextStepButtons.reimburse;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowSubmitButton;
-    const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || nextStepButtons.reimburse;
+    const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || !!nextStepButtons.reimburse;
 
     return (
         <View style={[styles.pt0]}>
