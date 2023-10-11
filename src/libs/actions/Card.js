@@ -3,6 +3,47 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 
 /**
+ * @param {Number} cardID
+ */
+function reportVirtualExpensifyCardFraud(cardID) {
+    API.write(
+        'ReportVirtualExpensifyCardFraud',
+        {
+            cardID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+                    value: {
+                        isLoading: true,
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
  * Call the API to deactivate the card and request a new one
  * @param {String} cardId - id of the card that is going to be replaced
  * @param {String} reason - reason for replacement ('damaged' | 'stolen')
@@ -105,4 +146,4 @@ function clearCardListErrors(cardID) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
 }
 
-export {requestReplacementExpensifyCard, activatePhysicalExpensifyCard, clearCardListErrors};
+export {requestReplacementExpensifyCard, activatePhysicalExpensifyCard, clearCardListErrors, reportVirtualExpensifyCardFraud};

@@ -110,6 +110,13 @@ function ExpensifyCardPage({
                                         }
                                     />
                                 )}
+                                <MenuItemWithTopDescription
+                                    title={translate('cardPage.reportFraud')}
+                                    titleStyle={styles.walletCardMenuItem}
+                                    icon={Expensicons.Flag}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain))}
+                                />
                             </>
                         )}
                         {!_.isEmpty(physicalCard) && (
@@ -118,7 +125,7 @@ function ExpensifyCardPage({
                                     description={translate('cardPage.physicalCardNumber')}
                                     title={CardUtils.maskCard(physicalCard.lastFourPAN)}
                                     interactive={false}
-                                    titleStyle={styles.walletCardNumber}
+                                    titleStyle={styles.walletCardMenuItem}
                                 />
                                 <MenuItem
                                     title={translate('reportCardLostOrDamaged.report')}

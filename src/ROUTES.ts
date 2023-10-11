@@ -75,6 +75,10 @@ export default {
         route: '/settings/wallet/card/:domain',
         getRoute: (domain: string) => `/settings/wallet/card/${domain}`,
     },
+    SETTINGS_REPORT_FRAUD: {
+        route: '/settings/wallet/cards/:domain/report-virtual-fraud',
+        getRoute: (domain: string) => `/settings/wallet/cards/${domain}/report-virtual-fraud`,
+    },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
