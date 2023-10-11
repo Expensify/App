@@ -9,6 +9,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import getModalStyles from '../../styles/getModalStyles';
 import withWindowDimensions from '../withWindowDimensions';
 
+
 function Popover(props) {
     const {onOpen, close} = React.useContext(PopoverContext);
     const firstRenderRef = useRef(true);
