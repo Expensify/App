@@ -8,7 +8,6 @@ import Str from 'expensify-common/lib/str';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import * as StyleUtils from '../../../styles/StyleUtils';
 import containerComposeStyles from '../../../styles/containerComposeStyles';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
@@ -29,7 +28,6 @@ import refPropTypes from '../../../components/refPropTypes';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as User from '../../../libs/actions/User';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
-import getButtonState from '../../../libs/getButtonState';
 import useLocalize from '../../../hooks/useLocalize';
 import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
@@ -102,8 +100,14 @@ function ReportActionItemMessageEdit(props) {
         const length = getInitialDraft().length;
         return {start: length, end: length};
     };
-
-    const [draft, setDraft] = useState(() => getInitialDraft());
+    const emojisPresentBefore = useRef([]);
+    const [draft, setDraft] = useState(() => {
+        const initialDraft = getInitialDraft();
+        if (initialDraft) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(initialDraft);
+        }
+        return initialDraft;
+    });
     const [selection, setSelection] = useState(getInitialSelection());
     const [isFocused, setIsFocused] = useState(false);
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
@@ -200,9 +204,13 @@ function ReportActionItemMessageEdit(props) {
             const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
-                insertedEmojis.current = [...insertedEmojis.current, ...emojis];
-                debouncedUpdateFrequentlyUsedEmojis();
+                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
+                if (!_.isEmpty(newEmojis)) {
+                    insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
+                    debouncedUpdateFrequentlyUsedEmojis();
+                }
             }
+            emojisPresentBefore.current = emojis;
             setDraft((prevDraft) => {
                 if (newDraftInput !== newDraft) {
                     const remainder = ComposerUtils.getCommonSuffixLength(prevDraft, newDraft);
@@ -313,30 +321,6 @@ function ReportActionItemMessageEdit(props) {
     return (
         <>
             <View style={[styles.chatItemMessage, styles.flexRow]}>
-                <View style={[styles.justifyContentEnd]}>
-                    <Tooltip text={translate('common.cancel')}>
-                        <PressableWithFeedback
-                            onPress={deleteDraft}
-                            style={styles.chatItemSubmitButton}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            accessibilityLabel={translate('common.close')}
-                            // disable dimming
-                            hoverDimmingValue={1}
-                            pressDimmingValue={1}
-                            hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
-                            pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
-                            // Keep focus on the composer when cancel button is clicked.
-                            onMouseDown={(e) => e.preventDefault()}
-                        >
-                            {({hovered, pressed}) => (
-                                <Icon
-                                    src={Expensicons.Close}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                />
-                            )}
-                        </PressableWithFeedback>
-                    </Tooltip>
-                </View>
                 <View
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
@@ -346,7 +330,24 @@ function ReportActionItemMessageEdit(props) {
                         hasExceededMaxCommentLength && styles.borderColorDanger,
                     ]}
                 >
-                    <View style={containerComposeStyles}>
+                    <View style={[styles.justifyContentEnd, styles.mb1]}>
+                        <Tooltip text={translate('common.cancel')}>
+                            <PressableWithFeedback
+                                onPress={deleteDraft}
+                                style={styles.composerSizeButton}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                accessibilityLabel={translate('common.close')}
+                                // disable dimming
+                                hoverDimmingValue={1}
+                                pressDimmingValue={1}
+                                // Keep focus on the composer when cancel button is clicked.
+                                onMouseDown={(e) => e.preventDefault()}
+                            >
+                                <Icon src={Expensicons.Close} />
+                            </PressableWithFeedback>
+                        </Tooltip>
+                    </View>
+                    <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                         <Composer
                             multiline
                             ref={(el) => {
