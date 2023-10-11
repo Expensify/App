@@ -2234,6 +2234,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Pedido eliminado]',
+        reversedTransaction: '[Transacción anulada]',
         deletedTask: '[Tarea eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
