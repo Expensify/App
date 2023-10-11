@@ -4,6 +4,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import CONST from '../CONST';
+import * as DemoActions from '../libs/actions/DemoActions';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
