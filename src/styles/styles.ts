@@ -1836,7 +1836,6 @@ const styles = (theme: ThemeDefault) =>
         },
 
         emojiSkinToneTitle: {
-            width: '100%',
             ...spacing.pv1,
             fontFamily: fontFamily.EXP_NEUE_BOLD,
             fontWeight: fontWeightBold,
@@ -2592,6 +2591,7 @@ const styles = (theme: ThemeDefault) =>
                       // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
                       // Therefore, the transition effect needs to be delayed.
                       transitionDelay: '99999s',
+                      transitionProperty: 'background-color',
                   }
                 : {}),
         },
@@ -3837,7 +3837,7 @@ const styles = (theme: ThemeDefault) =>
             overflow: 'hidden',
         },
 
-        walletCardNumber: {
+        walletCardMenuItem: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
         },
