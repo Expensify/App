@@ -136,7 +136,7 @@ function SplitBillDetailsPage(props) {
                             shouldShowFooter={false}
                             isScanning={isScanning}
                             isEditingSplitBill={isEditingSplitBill}
-                            hasSmartScanFailed
+                            hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
                             reportActionID={reportAction.reportActionID}
                             transactionID={props.transaction.transactionID}
