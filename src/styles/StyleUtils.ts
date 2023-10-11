@@ -464,21 +464,21 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
 /**
  * Generate a style for the background color of the Badge
  */
-function getBadgeColorStyle(success: boolean, error: boolean, isPressed = false, isAdHoc = false): ViewStyle | CSSProperties {
+function getBadgeColorStyle(success: boolean, error: boolean, isAdHoc = false): ViewStyle | CSSProperties {
     if (success) {
         if (isAdHoc) {
             // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            return isPressed ? styles.badgeAdHocSuccessPressed : styles.badgeAdHocSuccess;
+            return styles.badgeAdHocSuccess;
         }
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
+        return styles.badgeSuccess;
     }
     if (error) {
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+        return styles.badgeDanger;
     }
     return {};
 }

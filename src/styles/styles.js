@@ -699,24 +699,12 @@ const styles = (theme) => ({
         backgroundColor: theme.success,
     },
 
-    badgeSuccessPressed: {
-        backgroundColor: theme.successHover,
-    },
-
     badgeAdHocSuccess: {
         backgroundColor: theme.badgeAdHoc,
     },
 
-    badgeAdHocSuccessPressed: {
-        backgroundColor: theme.badgeAdHocHover,
-    },
-
     badgeDanger: {
         backgroundColor: theme.danger,
-    },
-
-    badgeDangerPressed: {
-        backgroundColor: theme.dangerPressed,
     },
 
     badgeText: {

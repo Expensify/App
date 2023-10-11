@@ -14,9 +14,6 @@ const propTypes = {
     /** Is Error type */
     error: PropTypes.bool,
 
-    /** Whether badge is clickable */
-    pressable: PropTypes.bool,
-
     /** Text to display in the Badge */
     text: PropTypes.string.isRequired,
 
@@ -38,7 +35,6 @@ const propTypes = {
 const defaultProps = {
     success: false,
     error: false,
-    pressable: false,
     badgeStyles: [],
     textStyles: [],
     onPress: undefined,
@@ -47,20 +43,12 @@ const defaultProps = {
 
 function Badge(props) {
     const textStyles = props.success || props.error ? styles.textWhite : undefined;
-    const Wrapper = props.pressable ? PressableWithoutFeedback : View;
-    const wrapperStyles = ({pressed}) => [
-        styles.badge,
-        styles.ml2,
-        StyleUtils.getBadgeColorStyle(props.success, props.error, pressed, props.environment === CONST.ENVIRONMENT.ADHOC),
-        ...props.badgeStyles,
-    ];
+    const wrapperStyles = [styles.badge, styles.ml2, StyleUtils.getBadgeColorStyle(props.success, props.error, props.environment === CONST.ENVIRONMENT.ADHOC), ...props.badgeStyles];
 
     return (
-        <Wrapper
-            style={props.pressable ? wrapperStyles : wrapperStyles(false)}
+        <View
+            style={wrapperStyles}
             onPress={props.onPress}
-            accessibilityRole={props.pressable ? CONST.ACCESSIBILITY_ROLE.BUTTON : CONST.ACCESSIBILITY_ROLE.TEXT}
-            accessibilityLabel={props.text}
         >
             <Text
                 style={[styles.badgeText, textStyles, ...props.textStyles]}
@@ -68,7 +56,7 @@ function Badge(props) {
             >
                 {props.text}
             </Text>
-        </Wrapper>
+        </View>
     );
 }
 
