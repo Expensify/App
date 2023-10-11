@@ -834,6 +834,7 @@ export default {
             revealDetails: 'Revelar detalles',
             copyCardNumber: 'Copiar número de la tarjeta',
         },
+        cardDetailsLoadingFailure: 'Ocurrió un error al cargar los detalles de la tarjeta. Por favor, inténtalo de nuevo.',
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,

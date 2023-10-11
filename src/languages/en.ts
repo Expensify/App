@@ -838,6 +838,7 @@ export default {
             revealDetails: 'Reveal details',
             copyCardNumber: 'Copy card number',
         },
+        cardDetailsLoadingFailure: 'An error occurred loading card details, please try again.',
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
