@@ -20,6 +20,7 @@ import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
+import MoneyRequestHeaderStatusBar from '../../components/MoneyRequestHeaderStatusBar';
 
 const propTypes = {
     /* Onyx Props */
@@ -70,7 +71,15 @@ function SplitBillDetailsPage(props) {
     }
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
-    const {amount: splitAmount, currency: splitCurrency, comment: splitComment, category: splitCategory} = ReportUtils.getTransactionDetails(transaction);
+    const {
+        amount: splitAmount,
+        currency: splitCurrency,
+        merchant: splitMerchant,
+        created: splitCreated,
+        comment: splitComment,
+        category: splitCategory,
+    } = ReportUtils.getTransactionDetails(transaction);
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
@@ -80,18 +89,24 @@ function SplitBillDetailsPage(props) {
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
                 >
+                    {isScanning && <MoneyRequestHeaderStatusBar />}
                     {Boolean(participants.length) && (
                         <MoneyRequestConfirmationList
                             hasMultipleParticipants
                             payeePersonalDetails={payeePersonalDetails}
                             selectedParticipants={participantsExcludingPayee}
                             iouAmount={splitAmount}
-                            iouComment={splitComment}
                             iouCurrencyCode={splitCurrency}
+                            iouComment={splitComment}
+                            iouCreated={splitCreated}
+                            iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly
+                            receiptPath={transaction.receipt && transaction.receipt.source}
+                            receiptFilename={transaction.filename}
                             shouldShowFooter={false}
+                            isScanning={isScanning}
                             reportID={lodashGet(props.report, 'reportID', '')}
                         />
                     )}
