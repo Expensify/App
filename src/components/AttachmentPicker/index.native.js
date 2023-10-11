@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {useState, useRef, useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import {View, Alert, Linking} from 'react-native';
+import {View, Alert} from 'react-native';
 import RNDocumentPicker from 'react-native-document-picker';
 import RNFetchBlob from 'react-native-blob-util';
 import lodashCompact from 'lodash/compact';
@@ -111,27 +111,6 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     /**
-     * Inform the users when they need to grant camera access and guide them to settings
-     */
-    const showPermissionsAlert = useCallback(() => {
-        Alert.alert(
-            translate('attachmentPicker.cameraPermissionRequired'),
-            translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
-            [
-                {
-                    text: translate('common.cancel'),
-                    style: 'cancel',
-                },
-                {
-                    text: translate('common.settings'),
-                    onPress: () => Linking.openSettings(),
-                },
-            ],
-            {cancelable: false},
-        );
-    }, [translate]);
-
-    /**
      * A generic handling when we don't know the exact reason for an error
      */
     const showGeneralAlert = useCallback(() => {
@@ -155,7 +134,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                     if (response.errorCode) {
                         switch (response.errorCode) {
                             case 'permission':
-                                showPermissionsAlert();
+                                FileUtils.showCameraPermissionsAlert();
                                 return resolve();
                             default:
                                 showGeneralAlert();
@@ -168,7 +147,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                     return resolve(response.assets);
                 });
             }),
-        [showGeneralAlert, showPermissionsAlert, type],
+        [showGeneralAlert, type],
     );
 
     /**
