@@ -291,7 +291,7 @@ const ONYXKEYS = {
         PRIVATE_NOTES_FORM: 'privateNotesForm',
         I_KNOW_A_TEACHER_FORM: 'iKnowTeacherForm',
         INTRO_SCHOOL_PRINCIPAL_FORM: 'introSchoolPrincipalForm',
-        REPORT_PHYSICAL_CARD_FORM: 'reportPhysicalCardForm',
+        REPORT_PHYSICAL_CARD_FORM: 'requestPhysicalCardForm',
         REPORT_VIRTUAL_CARD_FRAUD: 'reportVirtualCardFraudForm',
     },
 } as const;
