@@ -83,25 +83,26 @@ function WorkspaceInvitePage(props) {
     const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails), [props.policyMembers, props.personalDetails]);
 
     useEffect(() => {
-        let emails = searchTerm.replace(/\s,\s/g, ',').split(',');
-        emails = _.filter(
-            _.map(emails, (word) => word.trim()),
-            (email) => email !== '',
+        const emails = _.compact(
+            searchTerm
+                .trim()
+                .replace(/\s*,\s*/g, ',')
+                .split(','),
         );
 
         const newUsersToInviteDict = {};
         const newPersonalDetailsDict = {};
         const newSelectedOptionsDict = {};
 
-        _.forEach(emails, (email) => {
+        _.each(emails, (email) => {
             const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, email, excludedUsers);
 
             // Update selectedOptions with the latest personalDetails and policyMembers information
             const detailsMap = {};
-            _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
+            _.each(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
 
             const newSelectedOptions = [];
-            _.forEach(selectedOptions, (option) => {
+            _.each(selectedOptions, (option) => {
                 newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
             });
 
@@ -113,12 +114,12 @@ function WorkspaceInvitePage(props) {
             }
 
             // Add all personal details to the new dict
-            _.forEach(inviteOptions.personalDetails, (details) => {
+            _.each(inviteOptions.personalDetails, (details) => {
                 newPersonalDetailsDict[details.accountID] = details;
             });
 
             // Add all selected options to the new dict
-            _.forEach(newSelectedOptions, (option) => {
+            _.each(newSelectedOptions, (option) => {
                 newSelectedOptionsDict[option.accountID] = option;
             });
         });
@@ -156,7 +157,7 @@ function WorkspaceInvitePage(props) {
         });
         indexOffset += personalDetailsFormatted.length;
 
-        _.forEach(usersToInvite, (userToInvite) => {
+        _.each(usersToInvite, (userToInvite) => {
             const hasUnselectedUserToInvite = !_.contains(selectedLogins, userToInvite.login);
 
             if (hasUnselectedUserToInvite) {
