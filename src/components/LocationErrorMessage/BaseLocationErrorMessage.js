@@ -60,7 +60,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                     <PressableWithoutFeedback
                         onPress={onClose}
                         style={[styles.touchableButtonImage]}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                     >
                         <Icon src={Expensicons.Close} />
