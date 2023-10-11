@@ -47,13 +47,6 @@
     src: url('../assets/fonts/web/ExpensifyNewKansas-Medium.woff2') format('woff2'),  url('../assets/fonts/web/ExpensifyNewKansas-Medium.woff') format('woff');
 }
 
-@font-face {
-    font-family: ExpensifyNewKansas-MediumItalic;
-    font-weight: 500;
-    font-style: italic;
-    src: url('../assets/fonts/ExpensifyNewKansas-MediumItalic.woff2') format('woff2'),  url('../assets/fonts/ExpensifyNewKansas-MediumItalic.woff') format('woff');
-}
-
 * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
