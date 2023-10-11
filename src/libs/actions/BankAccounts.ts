@@ -197,7 +197,7 @@ function deletePaymentBankAccount(bankAccountID: number) {
 
     const parameters: DeletePaymentBankAccountParams = {bankAccountID};
 
-    API.write('DeletePaymentBankAccount', parameters, {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -215,7 +215,9 @@ function deletePaymentBankAccount(bankAccountID: number) {
                 value: {[bankAccountID]: null},
             },
         ],
-    });
+    };
+
+    API.write('DeletePaymentBankAccount', parameters, onyxData);
 }
 
 /**
@@ -238,7 +240,7 @@ function validateBankAccount(bankAccountID: number, validateCode: string) {
         validateCode,
     };
 
-    API.write('ValidateBankAccountWithTransactions', parameters, {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -267,7 +269,9 @@ function validateBankAccount(bankAccountID: number, validateCode: string) {
                 },
             },
         ],
-    });
+    };
+
+    API.write('ValidateBankAccountWithTransactions', parameters, onyxData);
 }
 
 function openReimbursementAccountPage(stepToOpen: string, subStep: string, localCurrentStep: string) {
