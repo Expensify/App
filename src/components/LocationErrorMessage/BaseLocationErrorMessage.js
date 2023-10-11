@@ -46,6 +46,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                         <TextLink
                             onPress={onAllowLocationLinkPress}
                             style={styles.locationErrorLinkText}
+                            href={CONST.NEWHELP_URL}
                         >
                             {` ${translate('location.allowPermission')} `}
                         </TextLink>
