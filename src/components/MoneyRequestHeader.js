@@ -92,39 +92,40 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
         setIsDeleteModalVisible(false);
     }, [canModifyRequest]);
-    const threeDotsMenuItems = canModifyRequest
-        ? [
-              ...(TransactionUtils.hasReceipt(transaction)
-                  ? []
-                  : [
-                        {
-                            icon: Expensicons.Receipt,
-                            text: translate('receipt.addReceipt'),
-                            onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
-                        },
-                    ]),
-              {
-                  icon: Expensicons.Trashcan,
-                  text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-                  onSelected: () => setIsDeleteModalVisible(true),
-              },
-          ]
-        : [];
-
+    const threeDotsMenuItems = [];
     if (!report.isPinned) {
-        threeDotsMenuItems.unshift({
+        threeDotsMenuItems.push({
             icon: Expensicons.Pin,
             iconFill: themeColors.icon,
             text: translate('common.pin'),
             onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, report.isPinned)),
         });
     } else {
-        threeDotsMenuItems.unshift({
+        threeDotsMenuItems.push({
             icon: Expensicons.Pin,
             iconFill: themeColors.icon,
             text: translate('common.unPin'),
             onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, report.isPinned)),
         });
+    }
+
+    if (canModifyRequest) {
+        threeDotsMenuItems.push([
+            ...(TransactionUtils.hasReceipt(transaction)
+                ? []
+                : [
+                      {
+                          icon: Expensicons.Receipt,
+                          text: translate('receipt.addReceipt'),
+                          onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+                      },
+                  ]),
+            {
+                icon: Expensicons.Trashcan,
+                text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                onSelected: () => setIsDeleteModalVisible(true),
+            },
+        ]);
     }
 
     return (
