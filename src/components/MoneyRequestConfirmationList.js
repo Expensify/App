@@ -461,8 +461,6 @@ function MoneyRequestConfirmationList(props) {
             transaction,
         ],
     );
-    console.log(transaction);
-    console.log(TransactionUtils.areRequiredFieldsEmpty(transaction));
 
     const footerContent = useMemo(() => {
         if (props.isReadOnly) {
