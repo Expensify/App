@@ -660,7 +660,7 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.category')}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID))}
                             style={[styles.moneyRequestMenuItem]}
-                            disabled={didConfirm}
+                            disabled={didConfirm || props.isReadOnly}
                         />
                     )}
                     {shouldShowTags && (
