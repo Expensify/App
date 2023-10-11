@@ -37,7 +37,7 @@ const propTypes = {
     reportActions: PropTypes.shape(reportActionPropTypes),
 
     /** The current transaction */
-    transaction: PropTypes.shape(transactionPropTypes).isRequired,
+    transaction: transactionPropTypes.isRequired,
 
     /** The draft transaction that holds data to be persisited on the current transaction */
     draftTransaction: PropTypes.shape(transactionPropTypes),
