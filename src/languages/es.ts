@@ -1046,7 +1046,7 @@ export default {
     mobilePlacerHolder: {
         goBackHome: 'Volver a la página principal',
         title: 'Vas a necesitar una pantalla más grande',
-        subTitle: 'Esta página sólo está disponible en navegadores más amplios, como su ordenador portátil o de sobremesa. Inténtelo de nuevo desde allí.',
+        subTitle: 'Esta página sólo está disponible en navegadores más amplios, como su ordenador portátil o de sobremesa. Inténtalo de nuevo desde allí.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
