@@ -77,7 +77,8 @@ const defaultProps = {
 };
 
 function EditRequestPage({betas, report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
-    const parentReportAction = parentReportActions[report.parentReportActionID];
+    const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
+    const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
@@ -311,7 +312,8 @@ export default compose(
     withOnyx({
         transaction: {
             key: ({report, parentReportActions}) => {
-                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
+                const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
+                const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
             },
         },

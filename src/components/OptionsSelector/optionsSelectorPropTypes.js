@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import optionPropTypes from '../optionPropTypes';
 import styles from '../../styles/styles';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Callback to fire when a row is tapped */
@@ -157,7 +158,7 @@ const defaultProps = {
     isDisabled: false,
     shouldHaveOptionSeparator: false,
     initiallyFocusedOptionKey: undefined,
-    maxLength: undefined,
+    maxLength: CONST.SEARCH_MAX_LENGTH,
     shouldShowTextInput: true,
     onChangeText: () => {},
     shouldUseStyleForChildren: true,

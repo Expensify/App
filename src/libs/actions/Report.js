@@ -87,6 +87,19 @@ Onyx.connect({
     },
 });
 
+const draftNoteMap = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT,
+    callback: (value, key) => {
+        if (!key) {
+            return;
+        }
+
+        const reportID = key.replace(ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT, '');
+        draftNoteMap[reportID] = value;
+    },
+});
+
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -2183,6 +2196,21 @@ function clearPrivateNotesError(reportID, accountID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
+function getDraftPrivateNote(reportID) {
+    return draftNoteMap[reportID];
+}
+
+/**
+ * Saves the private notes left by the user as they are typing. By saving this data the user can switch between chats, close
+ * tab, refresh etc without worrying about loosing what they typed out.
+ *
+ * @param {String} reportID
+ * @param {String} note
+ */
+function savePrivateNotesDraft(reportID, note) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${reportID}`, note);
+}
+
 export {
     addComment,
     addAttachment,
@@ -2237,4 +2265,6 @@ export {
     getReportPrivateNote,
     clearPrivateNotesError,
     hasErrorInPrivateNotes,
+    savePrivateNotesDraft,
+    getDraftPrivateNote,
 };
