@@ -22,9 +22,9 @@ const propTypes = {
     }).isRequired,
 };
 
-function WorkspaceResetBankAccountModal(props) {
+function WorkspaceResetBankAccountModal({reimbursementAccount, session}) {
     const {translate} = useLocalize();
-    const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
+    const achData = lodashGet(reimbursementAccount, 'achData') || {};
     const isInOpenState = achData.state === BankAccount.STATE.OPEN;
     const bankAccountID = achData.bankAccountID;
     const bankShortName = `${achData.addressName || ''} ${(achData.accountNumber || '').slice(-4)}`;
@@ -47,7 +47,7 @@ function WorkspaceResetBankAccountModal(props) {
             }
             danger
             onCancel={BankAccounts.cancelResetFreePlanBankAccount}
-            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, props.session)}
+            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, session)}
             shouldShowCancelButton
             isVisible
         />
