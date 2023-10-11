@@ -1,10 +1,10 @@
 import React, {useCallback, useRef} from 'react';
-import {InteractionManager} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
+import CONST from '../CONST';
+import useLocalize from '../hooks/useLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import useLocalize from '../hooks/useLocalize';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
 
 const propTypes = {
@@ -23,25 +23,19 @@ const propTypes = {
 
 function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurrency, onSubmit}) {
     const {translate} = useLocalize();
-    const textInput = useRef(null);
 
-    const focusTextInput = () => {
-        // Component may not be initialized due to navigation transitions
-        // Wait until interactions are complete before trying to focus
-        InteractionManager.runAfterInteractions(() => {
-            // Focus text input
-            if (!textInput.current) {
-                return;
-            }
-            setTimeout(() => {
-                textInput.current.focus();
-            }, 50);
-        });
-    };
+    const textInput = useRef(null);
+    const focusTimeoutRef = useRef(null);
 
     useFocusEffect(
         useCallback(() => {
-            focusTextInput();
+            focusTimeoutRef.current = setTimeout(() => textInput.current && textInput.current.focus(), CONST.ANIMATED_TRANSITION);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
         }, []),
     );
 
