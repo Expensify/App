@@ -69,8 +69,16 @@
                         "comment": "Workspace Details"
                     },
                     {
-                        "/": "/save-the-world/*",
-                        "comment": "Save the World"
+                        "/": "/get-assistance/*",
+                        "comment": "Get Assistance Pages"
+                    },
+                    {
+                        "/": "/teachersunite/*",
+                        "comment": "Teachers Unite!"
+                    },
+                    {
+                        "/": "/search/*",
+                        "comment": "Search"
                     }
                 ]
             }

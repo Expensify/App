@@ -27,8 +27,6 @@ import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import * as UserUtils from '../libs/UserUtils';
 
 const matchType = PropTypes.shape({
@@ -128,12 +126,9 @@ function DetailsPage(props) {
     const isCurrentUser = _.keys(props.loginList).includes(details.login);
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={DetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
-                <HeaderWithBackButton
-                    title={props.translate('common.details')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
-                />
+                <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
@@ -160,6 +155,7 @@ function DetailsPage(props) {
                                                     imageStyles={[styles.avatarLarge]}
                                                     source={UserUtils.getAvatar(details.avatar, details.accountID)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
+                                                    fallbackIcon={details.fallbackIcon}
                                                 />
                                             </OfflineWithFeedback>
                                         </PressableWithoutFocus>

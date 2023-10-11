@@ -137,7 +137,7 @@ function TransferBalancePage(props) {
 
     if (props.walletTransfer.shouldShowSuccess && !props.walletTransfer.loading) {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper testID={TransferBalancePage.displayName}>
                 <HeaderWithBackButton
                     title={props.translate('common.transferBalance')}
                     onBackButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
@@ -170,7 +170,7 @@ function TransferBalancePage(props) {
     const shouldShowTransferView = PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, props.bankAccountList) && props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={TransferBalancePage.displayName}>
             <FullPageNotFoundView
                 shouldShow={!shouldShowTransferView}
                 titleKey="notFound.pageNotFound"

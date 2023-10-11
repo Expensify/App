@@ -54,8 +54,12 @@ function BaseOptionsList({
     showScrollIndicator,
     listContainerStyles,
     shouldDisableRowInnerPadding,
+    shouldPreventDefaultFocusOnSelectRow,
     disableFocusOptions,
     canSelectMultipleOptions,
+    shouldShowMultipleOptionSelectorAsButton,
+    multipleOptionSelectorButtonText,
+    onAddToSelection,
     highlightSelectedOptions,
     onSelectRow,
     boldStyle,
@@ -170,6 +174,22 @@ function BaseOptionsList({
      */
     const renderItem = ({item, index, section}) => {
         const isItemDisabled = isDisabled || section.isDisabled || !!item.isDisabled;
+        const isSelected = _.some(selectedOptions, (option) => {
+            if (option.accountID && option.accountID === item.accountID) {
+                return true;
+            }
+
+            if (option.reportID && option.reportID === item.reportID) {
+                return true;
+            }
+
+            if (_.isEmpty(option.name)) {
+                return false;
+            }
+
+            return option.name === item.searchText;
+        });
+
         return (
             <OptionRow
                 option={item}
@@ -177,13 +197,17 @@ function BaseOptionsList({
                 hoverStyle={optionHoveredStyle}
                 optionIsFocused={!disableFocusOptions && !isItemDisabled && focusedIndex === index + section.indexOffset}
                 onSelectRow={onSelectRow}
-                isSelected={Boolean(_.find(selectedOptions, (option) => option.accountID === item.accountID || option.name === item.searchText))}
+                isSelected={isSelected}
                 showSelectedState={canSelectMultipleOptions}
+                shouldShowSelectedStateAsButton={shouldShowMultipleOptionSelectorAsButton}
+                selectedStateButtonText={multipleOptionSelectorButtonText}
+                onSelectedStatePressed={onAddToSelection}
                 highlightSelected={highlightSelectedOptions}
                 boldStyle={boldStyle}
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 isMultilineSupported={isRowMultilineSupported}
             />
         );
@@ -218,7 +242,7 @@ function BaseOptionsList({
     return (
         <View style={listContainerStyles}>
             {isLoading ? (
-                <OptionsListSkeletonView />
+                <OptionsListSkeletonView shouldAnimate />
             ) : (
                 <>
                     {headerMessage ? (

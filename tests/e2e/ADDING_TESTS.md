@@ -1,4 +1,51 @@
-# Add E2E Tests
+# Adding new E2E Tests
+
+## Running your new test in development mode
+
+Typically you'd run all the tests with `npm run test:e2e` on your machine,
+this will run the tests with some local settings, however that is not
+optimal when you add a new test for which you want to quickly test if it works, as it
+still runs the release version of the app.
+
+I recommend doing the following.
+
+> [!NOTE]
+> All of the steps can be executed at once by running XXX (todo)
+
+1. Rename `./index.js` to `./appIndex.js`
+2. Create a new `./index.js` with the following content:
+```js
+requrire("./src/libs/E2E/reactNativeLaunchingTest.js");
+```
+3. In `./src/libs/E2E/reactNativeLaunchingTest.js` change the main app import to the new `./appIndex.js` file:
+```diff
+- import '../../../index';
++ import '../../../appIndex';
+```
+
+> [!WARNING]
+> Make sure to not commit these changes to the repository!
+
+Now you can start the metro bundler in e2e mode with:
+
+```
+CAPTURE_METRICS=TRUE E2E_Testing=true npm start -- --reset-cache
+```
+
+Then we can execute our test with:
+
+```
+npm run test:e2e -- --development --skipInstallDeps --buildMode skip --includes "My new test name"
+```
+
+> - `--development` will run the tests with a local config, which will run the tests with fewer iterations
+> - `--skipInstallDeps` will skip the `npm install` step, which you probably don't need
+> - `--buildMode skip` will skip rebuilding the app, and just run the existing app
+> - `--includes "MyTestName"` will only run the test with the name "MyTestName"
+
+
+
+## Creating a new test
 
 Tests are executed on device, inside the app code.
 
@@ -37,7 +84,7 @@ that you might need to pass to the test running inside the app:
 
 ### Create the actual test
 
-We created a new test file in `src/libs/E2E/tests/`. Typically, the 
+We created a new test file in `src/libs/E2E/tests/`. Typically, the
 tests ends on `.e2e.js`, so we can distinguish it from the other tests.
 
 Inside this test, we write logic that gets executed in the app. You can basically do
@@ -61,9 +108,9 @@ import E2EClient from "./client.js";
 
 const test = () => {
   const firstReportIDInList = // ... some logic to get a report
-  
+
   performance.markStart("navigateToReport");
-  Navigation.navigate(ROUTES.getReportRoute(firstReportIDInList));
+  Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(firstReportIDInList));
 
   // markEnd will be called in the Screen's implementation
   performance.subscribeToMeasurements("navigateToReport", (measurement) => {
@@ -73,7 +120,7 @@ const test = () => {
           duration: measurement.duration,
       }).then(E2EClient.submitTestDone)
   });
-    
+
 };
 
 export default test;
@@ -97,6 +144,10 @@ Done! When you now start the test runner, your new test will be executed as well
 ## Quickly test your test
 
 To check your new test you can simply run `npm run test:e2e`, which uses the
-`--development` flag. This will run the tests on the branch you are currently on
-and will do fewer iterations.
+`--development` flag. This will run the tests on the branch you are currently on, runs fewer iterations and most importantly, it tries to reuse the existing APK and just patch into the new app bundle, instead of rebuilding the release app from scratch.
+
+## Debugging your test
+
+You can use regular console statements to debug your test. The output will be visible
+in logcat. I recommend opening the android studio logcat window and filter for `ReactNativeJS` to see the output you'd otherwise typically see in your metro bundler instance.
 

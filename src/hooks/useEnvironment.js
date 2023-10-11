@@ -8,5 +8,6 @@ export default function useEnvironment() {
         environment,
         environmentURL,
         isProduction: environment === CONST.ENVIRONMENT.PRODUCTION,
+        isDevelopment: environment === CONST.ENVIRONMENT.DEV,
     };
 }

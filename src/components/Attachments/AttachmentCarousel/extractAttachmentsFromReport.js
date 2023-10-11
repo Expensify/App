@@ -59,6 +59,7 @@ function extractAttachmentsFromReport(report, reportActions) {
                     isAuthTokenRequired: true,
                     file: {name: transaction.filename},
                     isReceipt: true,
+                    transactionID,
                 });
                 return;
             }

@@ -25,7 +25,6 @@ import type {
     ReportArchiveReasonsPolicyDeletedParams,
     RequestCountParams,
     SettleExpensifyCardParams,
-    SettlePaypalMeParams,
     RequestAmountParams,
     SplitAmountParams,
     AmountEachParams,
@@ -37,7 +36,6 @@ import type {
     WaitingOnBankAccountParams,
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
-    PaidUsingPaypalWithAmountParams,
     PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -69,9 +67,15 @@ import type {
     ParentNavigationSummaryParams,
     ManagerApprovedParams,
     SetTheRequestParams,
+    SetTheDistanceParams,
     UpdatedTheRequestParams,
+    UpdatedTheDistanceParams,
     RemovedTheRequestParams,
+    FormattedMaxLengthParams,
+    RequestedAmountMessageParams,
+    TagSelectionParams,
     EnglishTranslation,
+    WalletProgramParams,
 } from './types';
 
 /* eslint-disable max-len */
@@ -94,6 +98,7 @@ export default {
         resend: 'Reenviar',
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
+        submit: 'Enviar',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -164,6 +169,7 @@ export default {
         notifications: 'Notificaciones',
         na: 'N/A',
         noResultsFound: 'No se han encontrado resultados',
+        recentDestinations: 'Destinos recientes',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
         todayAt: 'Hoy a las',
@@ -195,9 +201,9 @@ export default {
         done: 'Listo',
         more: 'Más',
         debitCard: 'Tarjeta de débito',
-        payPalMe: 'PayPal.me',
         bankAccount: 'Cuenta bancaria',
         join: 'Unirse',
+        joinThread: 'Unirse al hilo',
         decline: 'Rechazar',
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
@@ -233,6 +239,9 @@ export default {
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
         category: 'Categoría',
+        billable: 'Facturable',
+        nonBillable: 'No facturable',
+        tag: 'Etiqueta',
         receipt: 'Recibo',
         replace: 'Sustituir',
         distance: 'Distancia',
@@ -242,6 +251,15 @@ export default {
         kilometers: 'kilómetros',
         recent: 'Reciente',
         all: 'Todo',
+        tbd: 'Por determinar',
+    },
+    location: {
+        useCurrent: 'Usar ubicación actual',
+        notFound: 'No pudimos encontrar tu ubicación, inténtalo de nuevo o introduce una dirección manualmente.',
+        permissionDenied: 'Parece que has denegado el permiso a tu ubicación.',
+        please: 'Por favor,',
+        allowPermission: 'habilita el permiso de ubicación en la configuración',
+        tryAgain: 'e inténtalo de nuevo.',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
@@ -270,6 +288,7 @@ export default {
     composer: {
         noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
+        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `El comentario debe tener máximo ${formattedMaxLength} caracteres.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Actualizar app',
@@ -324,6 +343,8 @@ export default {
     phoneCountryCode: '34',
     welcomeText: {
         getStarted: 'Comience a continuación.',
+        anotherLoginPageIsOpen: 'Otra página de inicio de sesión está abierta.',
+        anotherLoginPageIsOpenExplanation: 'Ha abierto la página de inicio de sesión en una pestaña separada, inicie sesión desde esa pestaña específica.',
         welcomeBack: '¡Bienvenido de nuevo!',
         welcome: '¡Bienvenido!',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
@@ -332,11 +353,6 @@ export default {
         newFaceEnterMagicCode: ({login}: NewFaceEnterMagicCodeParams) =>
             `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
-    },
-    DownloadAppModal: {
-        downloadTheApp: 'Descarga la aplicación',
-        keepTheConversationGoing: 'Mantén la conversación en New Expensify, descarga la aplicación para una experiencia mejorada.',
-        noThanks: 'No, gracias',
     },
     login: {
         hero: {
@@ -417,7 +433,7 @@ export default {
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para pedir dinero o asignar una tarea!',
+        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar dinero, pedir dinero, o asignar una tarea!',
     },
     reportAction: {
         asCopilot: 'como copiloto de',
@@ -450,13 +466,10 @@ export default {
         },
     },
     sidebarScreen: {
-        fabAction: 'Nuevo chat',
-        newChat: 'Nuevo chat',
-        newGroup: 'Nuevo grupo',
-        newRoom: 'Nueva sala de chat',
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
-        fabNewChat: 'Nuevo chat',
+        fabNewChat: 'Enviar mensaje',
+        fabNewChatExplained: 'Enviar mensaje',
         chatPinned: 'Chat fijado',
         draftedMessage: 'Mensaje borrador',
         listOfChatMessages: 'Lista de mensajes del chat',
@@ -464,6 +477,8 @@ export default {
         saveTheWorld: 'Salvar el mundo',
     },
     tabSelector: {
+        chat: 'Chat',
+        room: 'Sala',
         manual: 'Manual',
         scan: 'Escanear',
     },
@@ -473,7 +488,6 @@ export default {
         dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
         chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
         chooseFile: 'Elegir archivo',
-        givePermission: 'Permitir',
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
         cameraErrorTitle: 'Error en la cámara',
@@ -483,6 +497,7 @@ export default {
         flash: 'flash',
         shutter: 'obturador',
         gallery: 'galería',
+        addReceipt: 'Añadir recibo',
     },
     iou: {
         amount: 'Importe',
@@ -490,9 +505,10 @@ export default {
         approved: 'Aprobado',
         cash: 'Efectivo',
         split: 'Dividir',
+        addToSplit: 'Añadir para dividir',
+        splitBill: 'Dividir factura',
         request: 'Solicitar',
         participants: 'Participantes',
-        splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
         pay: 'Pagar',
@@ -508,11 +524,10 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
-        settledPaypalMe: 'Pagado con PayPal.me',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount} con Expensify`,
         payElsewhere: 'Pagar de otra forma',
-        settlePaypalMe: ({formattedAmount}: SettlePaypalMeParams) => `Pagar ${formattedAmount} con PayPal.me`,
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
+        requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} debe ${amount}`,
@@ -524,20 +539,25 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
-        paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `pagó ${amount} de otra forma`,
-        paidUsingPaypalWithAmount: ({amount}: PaidUsingPaypalWithAmountParams) => `pagó ${amount} con PayPal.me`,
-        paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `pagó ${amount} con Expensify`,
+        paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer} pagó ${amount} de otra forma`,
+        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer} pagó ${amount} con Expensify`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheRequest: 'cambió la solicitud',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `estableció ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
+        setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) =>
+            `estableció la distancia a ${newDistanceToDisplay}, lo que estableció el importe a ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) =>
             `eliminó ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} (previamente ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
-            `cambío ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
+            `cambió ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
+        updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
+            `cambió la distancia a ${newDistanceToDisplay} (previamente ${oldDistanceToDisplay}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
+        tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero`,
         error: {
+            invalidAmount: 'Por favor ingresa un monto válido antes de continuar.',
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
@@ -563,6 +583,8 @@ export default {
         uploadPhoto: 'Subir foto',
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
+        viewPhoto: 'Ver foto',
+        imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
@@ -582,6 +604,7 @@ export default {
         online: 'En línea',
         offline: 'Desconectado',
         syncing: 'Sincronizando',
+        profileAvatar: 'Perfil avatar',
     },
     loungeAccessPage: {
         loungeAccess: 'Acceso a la sala vip',
@@ -725,6 +748,7 @@ export default {
         keepCodesSafe: '¡Guarda los códigos de recuperación en un lugar seguro!',
         codesLoseAccess:
             'Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta. \n\nNota: Configurar la autenticación de dos factores cerrará la sesión de todas las demás sesiones activas.',
+        errorStepCodes: 'Copia o descarga los códigos antes de continuar.',
         stepVerify: 'Verificar',
         scanCode: 'Escanea el código QR usando tu',
         authenticatorApp: 'aplicación de autenticación',
@@ -736,6 +760,15 @@ export default {
         copy: 'Copiar',
         disable: 'Deshabilitar',
     },
+    recoveryCodeForm: {
+        error: {
+            pleaseFillRecoveryCode: 'Por favor, introduce tu código de recuperación',
+            incorrectRecoveryCode: 'Código de recuperación incorrecto. Por favor, inténtalo de nuevo',
+        },
+        useRecoveryCode: 'Usar código de recuperación',
+        recoveryCode: 'Código de recuperación',
+        use2fa: 'Usar autenticación de dos factores',
+    },
     twoFactorAuthForm: {
         error: {
             pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
@@ -746,17 +779,13 @@ export default {
         passwordUpdated: 'Contraseña actualizada!',
         allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
     },
-    addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Recibe pagos vía PayPal.',
-        payPalMe: 'PayPal.me/',
-        yourPayPalUsername: 'Tu usuario de PayPal',
-        addPayPalAccount: 'Añadir cuenta de PayPal',
-        growlMessageOnSave: 'Tu nombre de usuario de PayPal se añadió correctamente',
-        updatePaypalAccount: 'Guardar cuenta PayPal',
-        growlMessageOnUpdate: 'Su nombre de usuario de PayPal se guardó con éxito',
-        formatError: 'Usuario PayPal.me no válido',
-        checkListOf: 'Consulta la lista de ',
-        supportedCurrencies: 'monedas admitidas',
+    privateNotes: {
+        title: 'Notas privadas',
+        personalNoteMessage: 'Guarda notas sobre este chat aquí. Usted es la única persona que puede añadir, editar o ver estas notas.',
+        sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
+        notesUnavailable: 'No se han encontrado notas para el usuario',
+        composerLabel: 'Notas',
+        myNote: 'Mi notas',
     },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',
@@ -787,7 +816,6 @@ export default {
         setDefaultSuccess: 'Método de pago configurado',
         deleteAccount: 'Eliminar cuenta',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta cuenta?',
-        deletePayPalSuccess: 'PayPal.me eliminada correctamente',
         error: {
             notOwnerOfBankAccount: 'Ha ocurrido un error al establecer esta cuenta bancaria como método de pago predeterminado.',
             invalidBankAccount: 'Esta cuenta bancaria está temporalmente suspendida.',
@@ -795,6 +823,36 @@ export default {
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
+    },
+    cardPage: {
+        expensifyCard: 'Tarjeta Expensify',
+        availableSpend: 'Capacidad de gasto restante',
+        virtualCardNumber: 'Número de la tarjeta virtual',
+        physicalCardNumber: 'Número de la tarjeta física',
+        reportFraud: 'Reportar fraude con la tarjeta virtual',
+        cardDetails: {
+            cardNumber: 'Número de tarjeta virtual',
+            expiration: 'Expiración',
+            cvv: 'CVV',
+            address: 'Dirección',
+            revealDetails: 'Revelar detalles',
+            copyCardNumber: 'Copiar número de la tarjeta',
+        },
+    },
+    reportFraudPage: {
+        title: 'Reportar fraude con la tarjeta virtual',
+        description:
+            'Si los datos de tu tarjeta virtual han sido robados o se han visto comprometidos, desactivaremos permanentemente la tarjeta actual y le proporcionaremos una tarjeta virtual y un número nuevo.',
+        deactivateCard: 'Desactivar tarjeta',
+        reportVirtualCardFraud: 'Reportar fraude con la tarjeta virtual',
+    },
+    activateCardPage: {
+        activateCard: 'Activar tarjeta',
+        pleaseEnterLastFour: 'Introduce los cuatro últimos dígitos de la tarjeta.',
+        activatePhysicalCard: 'Activar tarjeta física',
+        error: {
+            thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
+        },
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,
@@ -889,12 +947,13 @@ export default {
         phrase2: 'Términos de Servicio',
         phrase3: 'y',
         phrase4: 'Privacidad',
-        phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
+        phrase5: `El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus`,
         phrase6: 'licencias',
     },
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
+        enterRecoveryCode: 'Por favor, introduce tu código de recuperación',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         requestNewCode: 'Pedir un código nuevo en ',
         requestNewCodeAfterErrorOccurred: 'Solicitar un nuevo código',
@@ -950,7 +1009,7 @@ export default {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
-            hasInvalidCharacter: 'El nombre sólo puede incluir letras.',
+            hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos.',
         },
     },
     resendValidationForm: {
@@ -983,7 +1042,9 @@ export default {
         localTime: 'Hora local',
     },
     newChatPage: {
+        createChat: 'Crear chat',
         createGroup: 'Crear grupo',
+        addToGroup: 'Añadir al grupo',
     },
     yearPickerPage: {
         year: 'Año',
@@ -1069,7 +1130,7 @@ export default {
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Por favor, introduce un número de identificación fiscal válido',
             website: 'Por favor, introduce un sitio web válido',
-            zipCode: 'Por favor, introduce un código postal válido',
+            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Por favor, introduce un teléfono válido',
             companyName: 'Por favor, introduce un nombre comercial legal válido',
             addressCity: 'Por favor, introduce una ciudad válida',
@@ -1168,7 +1229,7 @@ export default {
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'La billetera Expensify es emitida por The Bancorp Bank.',
+            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
             perPurchase: 'Por compra',
             atmWithdrawal: 'Retiro de cajero automático',
             cashReload: 'Recarga de efectivo',
@@ -1211,10 +1272,10 @@ export default {
                 'transferencia (con una tarifa mínima de $ 0.25). ',
             fdicInsuranceBancorp:
                 'Sus fondos son elegibles para el seguro de la FDIC. Sus fondos se mantendrán en o ' +
-                'transferido a The Bancorp Bank, una institución asegurada por la FDIC. Una vez allí, sus fondos ' +
-                'están asegurados a $ 250,000 por la FDIC en caso de que The Bancorp Bank quiebre. Ver',
+                `transferido a ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, una institución asegurada por la FDIC. Una vez allí, sus fondos ` +
+                `están asegurados a $ 250,000 por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} quiebre. Ver`,
             fdicInsuranceBancorp2: 'para detalles.',
-            contactExpensifyPayments: 'Comuníquese con Expensify Payments llamando al + 1833-400-0904, por correoelectrónico a',
+            contactExpensifyPayments: `Comuníquese con ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} llamando al + 1833-400-0904, por correoelectrónico a`,
             contactExpensifyPayments2: 'o inicie sesión en',
             generalInformation: 'Para obtener información general sobre cuentas prepagas, visite',
             generalInformation2: 'Si tiene una queja sobre una cuenta prepaga, llame al Consumer Financial Oficina de Protección al 1-855-411-2372 o visite',
@@ -1328,6 +1389,8 @@ export default {
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
             notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte al espacio de trabajo? Comunícate con el propietario de este espacio de trabajo para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
+            workspaceAvatar: 'Espacio de trabajo avatar',
+            mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
@@ -1370,7 +1433,6 @@ export default {
         reimburse: {
             captureReceipts: 'Captura recibos',
             fastReimbursementsHappyMembers: '¡Reembolsos rápidos = miembros felices!',
-            kilometers: 'Kilómetros',
             viewAllReceipts: 'Ver todos los recibos',
             reimburseReceipts: 'Reembolsar recibos',
             trackDistance: 'Medir distancia',
@@ -1538,12 +1600,12 @@ export default {
         assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
-            completed: 'tarea completada',
-            canceled: 'tarea cancelada',
-            reopened: 'tarea reabrir',
+            completed: 'marcada como completa',
+            canceled: 'tarea eliminado',
+            reopened: 'marcada como incompleta',
             error: 'No tiene permiso para realizar la acción solicitada.',
         },
-        markAsDone: 'Marcar como completada',
+        markAsComplete: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
         assigneeError: 'Hubo un error al asignar esta tarea, inténtalo con otro usuario.',
     },
@@ -1557,7 +1619,7 @@ export default {
             openShortcutDialog: 'Abre el cuadro de diálogo de métodos abreviados de teclado',
             escape: 'Diálogos de escape',
             search: 'Abrir diálogo de búsqueda',
-            newGroup: 'Nueva pantalla de grupo',
+            newChat: 'Nueva pantalla de chat',
             copy: 'Copiar comentario',
         },
     },
@@ -2171,6 +2233,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Pedido eliminado]',
+        deletedTask: '[Tarea eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
@@ -2230,6 +2293,11 @@ export default {
             tryDifferentEmail: 'Por favor intenta con un e-mail diferente',
         },
     },
+    cardTransactions: {
+        notActivated: 'No activado',
+        outOfPocketSpend: 'Gastos por cuenta propia',
+        companySpend: 'Gastos de empresa',
+    },
     distance: {
         addStop: 'Agregar parada',
         deleteWaypoint: 'Eliminar punto de ruta',
@@ -2246,7 +2314,10 @@ export default {
             onlineSubtitle: 'Un momento mientras configuramos el mapa',
         },
         errors: {
-            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
+            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
     },
 } satisfies EnglishTranslation;

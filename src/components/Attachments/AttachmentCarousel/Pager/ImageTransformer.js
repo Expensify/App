@@ -306,7 +306,9 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
             stopAnimation();
         })
         .onFinalize((evt, success) => {
-            if (!success || !onTap) return;
+            if (!success || !onTap) {
+                return;
+            }
 
             runOnJS(onTap)();
         });
@@ -432,7 +434,9 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     const pinchGesture = Gesture.Pinch()
         .onTouchesDown((evt, state) => {
             // we don't want to activate pinch gesture when we are scrolling pager
-            if (!isScrolling.value) return;
+            if (!isScrolling.value) {
+                return;
+            }
 
             state.fail();
         })

@@ -36,6 +36,8 @@ import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import Permissions from '../libs/Permissions';
+import ROUTES from '../ROUTES';
+import MenuItemWithTopDescription from '../components/MenuItemWithTopDescription';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -98,17 +100,11 @@ const getPhoneNumber = (details) => {
 function ProfilePage(props) {
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (ValidationUtils.isValidAccountRoute(accountID)) {
-            PersonalDetails.openPublicProfilePage(accountID);
-        }
-    }, [accountID]);
-
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
+    const fallbackIcon = lodashGet(details, 'fallbackIcon', '');
     const originalFileName = lodashGet(details, 'originalFileName', '');
     const login = lodashGet(details, 'login', '');
     const timezone = lodashGet(details, 'timezone', {});
@@ -138,10 +134,19 @@ function ProfilePage(props) {
     const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const navigateBackTo = lodashGet(props.route, 'params.backTo', '');
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
+
+    const notificationPreference = !_.isEmpty(props.report) ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (ValidationUtils.isValidAccountRoute(accountID) && !hasMinimumDetails) {
+            PersonalDetails.openPublicProfilePage(accountID);
+        }
+    }, [accountID, hasMinimumDetails]);
 
     return (
-        <ScreenWrapper shouldEnableAutoFocus>
+        <ScreenWrapper testID={ProfilePage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
@@ -158,6 +163,7 @@ function ProfilePage(props) {
                                 source={UserUtils.getFullSizeAvatar(avatar, accountID)}
                                 isAuthTokenRequired
                                 originalFileName={originalFileName}
+                                fallbackSource={fallbackIcon}
                             >
                                 {({show}) => (
                                     <PressableWithoutFocus
@@ -172,6 +178,7 @@ function ProfilePage(props) {
                                                 imageStyles={[styles.avatarLarge]}
                                                 source={UserUtils.getAvatar(avatar, accountID)}
                                                 size={CONST.AVATAR_SIZE.LARGE}
+                                                fallbackIcon={fallbackIcon}
                                             />
                                         </OfflineWithFeedback>
                                     </PressableWithoutFocus>
@@ -225,6 +232,15 @@ function ProfilePage(props) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
+                        {!_.isEmpty(props.report) && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={notificationPreference}
+                                description={props.translate('notificationPreferencesPage.label')}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(props.report.reportID))}
+                                wrapperStyle={[styles.mtn6, styles.mb5]}
+                            />
+                        )}
                         {!isCurrentUser && !Session.isAnonymousUser() && (
                             <MenuItem
                                 title={`${props.translate('common.message')}${displayName}`}
@@ -233,6 +249,17 @@ function ProfilePage(props) {
                                 onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
+                            />
+                        )}
+                        {!_.isEmpty(props.report) && (
+                            <MenuItem
+                                title={`${props.translate('privateNotes.title')}`}
+                                titleStyle={styles.flex1}
+                                icon={Expensicons.Pencil}
+                                onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID))}
+                                wrapperStyle={styles.breakAll}
+                                shouldShowRightIcon
+                                brickRoadIndicator={Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             />
                         )}
                     </ScrollView>
@@ -271,6 +298,21 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        report: {
+            key: ({route, session}) => {
+                const accountID = Number(lodashGet(route.params, 'accountID', 0));
+                if (Number(session.accountID) === accountID || Session.isAnonymousUser()) {
+                    return null;
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(ReportUtils.getChatByParticipants([accountID]), 'reportID', '')}`;
+            },
         },
     }),
 )(ProfilePage);

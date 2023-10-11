@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import Text from './Text';
 import CONST from '../CONST';
@@ -40,9 +41,6 @@ const propTypes = {
      * When this value is false, the suggester will have a height of 2.5 items. When this value is true, the height can be up to 5 items.  */
     isMentionPickerLarge: PropTypes.bool.isRequired,
 
-    /** Show that we should include ReportRecipientLocalTime view height */
-    shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
-
     /** Meaures the parent container's position and dimensions. */
     measureParentContainer: PropTypes.func,
 };
@@ -79,7 +77,8 @@ function MentionSuggestions(props) {
                         size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
                         name={item.icons[0].name}
                         type={item.icons[0].type}
-                        fill={styles.success}
+                        fill={themeColors.success}
+                        fallbackIcon={item.icons[0].fallbackIcon}
                     />
                 </View>
                 <Text
@@ -124,7 +123,6 @@ function MentionSuggestions(props) {
             highlightedSuggestionIndex={props.highlightedMentionIndex}
             onSelect={props.onSelect}
             isSuggestionPickerLarge={props.isMentionPickerLarge}
-            shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
             accessibilityLabelExtractor={keyExtractor}
             measureParentContainer={props.measureParentContainer}
         />

@@ -1,5 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -19,6 +20,7 @@ import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
+import MoneyRequestHeaderStatusBar from '../../components/MoneyRequestHeaderStatusBar';
 
 const propTypes = {
     /* Onyx Props */
@@ -61,38 +63,51 @@ function SplitBillDetailsPage(props) {
     let participants;
     if (ReportUtils.isPolicyExpenseChat(props.report)) {
         participants = [
-            ...OptionsListUtils.getParticipantsOptions([{accountID: participantAccountIDs[0], selected: true}], props.personalDetails),
-            ...OptionsListUtils.getPolicyExpenseReportOptions({...props.report, selected: true}),
+            OptionsListUtils.getParticipantsOption({accountID: participantAccountIDs[0], selected: true}, props.personalDetails),
+            OptionsListUtils.getPolicyExpenseReportOption({...props.report, selected: true}),
         ];
     } else {
-        participants = OptionsListUtils.getParticipantsOptions(
-            _.map(participantAccountIDs, (accountID) => ({accountID, selected: true})),
-            props.personalDetails,
-        );
+        participants = _.map(participantAccountIDs, (accountID) => OptionsListUtils.getParticipantsOption({accountID, selected: true}, props.personalDetails));
     }
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
-    const {amount: splitAmount, currency: splitCurrency, comment: splitComment} = ReportUtils.getTransactionDetails(transaction);
+    const {
+        amount: splitAmount,
+        currency: splitCurrency,
+        merchant: splitMerchant,
+        created: splitCreated,
+        comment: splitComment,
+        category: splitCategory,
+    } = ReportUtils.getTransactionDetails(transaction);
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
                 <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
                 >
+                    {isScanning && <MoneyRequestHeaderStatusBar />}
                     {Boolean(participants.length) && (
                         <MoneyRequestConfirmationList
                             hasMultipleParticipants
                             payeePersonalDetails={payeePersonalDetails}
                             selectedParticipants={participantsExcludingPayee}
                             iouAmount={splitAmount}
-                            iouComment={splitComment}
                             iouCurrencyCode={splitCurrency}
+                            iouComment={splitComment}
+                            iouCreated={splitCreated}
+                            iouMerchant={splitMerchant}
+                            iouCategory={splitCategory}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly
+                            receiptPath={transaction.receipt && transaction.receipt.source}
+                            receiptFilename={transaction.filename}
                             shouldShowFooter={false}
+                            isScanning={isScanning}
+                            reportID={lodashGet(props.report, 'reportID', '')}
                         />
                     )}
                 </View>

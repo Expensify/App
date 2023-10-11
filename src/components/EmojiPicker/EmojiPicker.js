@@ -114,9 +114,11 @@ const EmojiPicker = forwardRef((props, ref) => {
      */
     const isActive = (id) => Boolean(id) && id === activeID;
 
+    const clearActive = () => setActiveID(null);
+
     const resetEmojiPopoverAnchor = () => (emojiPopoverAnchor.current = null);
 
-    useImperativeHandle(ref, () => ({showEmojiPicker, isActive, hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor}));
+    useImperativeHandle(ref, () => ({showEmojiPicker, isActive, clearActive, hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor}));
 
     useEffect(() => {
         const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {

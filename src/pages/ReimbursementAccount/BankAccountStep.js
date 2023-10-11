@@ -11,7 +11,7 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
 import Icon from '../../components/Icon';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 import withLocalize from '../../components/withLocalize';
 import Text from '../../components/Text';
@@ -49,6 +49,9 @@ const propTypes = {
 
     /* The workspace name */
     policyName: PropTypes.string,
+
+    /* The workspace ID */
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -57,6 +60,7 @@ const defaultProps = {
     user: {},
     isPlaidDisabled: false,
     policyName: '',
+    policyID: '',
 };
 
 function BankAccountStep(props) {
@@ -66,7 +70,11 @@ function BankAccountStep(props) {
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
-    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
+    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(
+        'new',
+        props.policyID,
+        ROUTES.WORKSPACE_INITIAL.getRoute(props.policyID),
+    )}`;
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
         return (
@@ -91,7 +99,10 @@ function BankAccountStep(props) {
     }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={BankAccountStep.displayName}
+        >
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.connectBankAccount')}
@@ -146,7 +157,7 @@ function BankAccountStep(props) {
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                             <Icon
                                 src={Expensicons.Exclamation}
-                                fill={colors.red}
+                                fill={themeColors.danger}
                             />
                             <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{props.translate('bankAccount.validateAccountError')}</Text>
                         </View>
@@ -164,7 +175,7 @@ function BankAccountStep(props) {
                             <View style={[styles.ml1]}>
                                 <Icon
                                     src={Expensicons.Lock}
-                                    fill={colors.blue}
+                                    fill={themeColors.link}
                                 />
                             </View>
                         </PressableWithoutFeedback>

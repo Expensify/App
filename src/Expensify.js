@@ -30,7 +30,6 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
-import DownloadAppModal from './components/DownloadAppModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -100,7 +99,9 @@ function Expensify(props) {
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
 
     useEffect(() => {
-        if (props.isCheckingPublicRoom) return;
+        if (props.isCheckingPublicRoom) {
+            return;
+        }
         setAttemptedToOpenPublicRoom(true);
     }, [props.isCheckingPublicRoom]);
 
@@ -193,7 +194,6 @@ function Expensify(props) {
         <DeeplinkWrapper isAuthenticated={isAuthenticated}>
             {shouldInit && (
                 <>
-                    <DownloadAppModal isAuthenticated={isAuthenticated} />
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />

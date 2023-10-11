@@ -25,7 +25,6 @@ import type {
     ReportArchiveReasonsPolicyDeletedParams,
     RequestCountParams,
     SettleExpensifyCardParams,
-    SettlePaypalMeParams,
     RequestAmountParams,
     SplitAmountParams,
     AmountEachParams,
@@ -37,7 +36,6 @@ import type {
     WaitingOnBankAccountParams,
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
-    PaidUsingPaypalWithAmountParams,
     PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -70,8 +68,14 @@ import type {
     ManagerApprovedParams,
     SetTheRequestParams,
     UpdatedTheRequestParams,
+    SetTheDistanceParams,
+    UpdatedTheDistanceParams,
     RemovedTheRequestParams,
+    FormattedMaxLengthParams,
+    RequestedAmountMessageParams,
+    TagSelectionParams,
     TranslationBase,
+    WalletProgramParams,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
@@ -104,6 +108,7 @@ export default {
         resend: 'Resend',
         save: 'Save',
         saveChanges: 'Save changes',
+        submit: 'Submit',
         rotate: 'Rotate',
         zoom: 'Zoom',
         password: 'Password',
@@ -174,6 +179,7 @@ export default {
         notifications: 'Notifications',
         na: 'N/A',
         noResultsFound: 'No results found',
+        recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
         todayAt: 'Today at',
@@ -205,9 +211,9 @@ export default {
         done: 'Done',
         more: 'More',
         debitCard: 'Debit card',
-        payPalMe: 'PayPal.me',
         bankAccount: 'Bank account',
         join: 'Join',
+        joinThread: 'Join thread',
         decline: 'Decline',
         transferBalance: 'Transfer balance',
         cantFindAddress: "Can't find your address? ",
@@ -243,6 +249,9 @@ export default {
         showMore: 'Show more',
         merchant: 'Merchant',
         category: 'Category',
+        billable: 'Billable',
+        nonBillable: 'Non-billable',
+        tag: 'Tag',
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
@@ -252,6 +261,15 @@ export default {
         kilometers: 'kilometers',
         recent: 'Recent',
         all: 'All',
+        tbd: 'TBD',
+    },
+    location: {
+        useCurrent: 'Use current location',
+        notFound: 'We were unable to find your location, please try again or enter an address manually.',
+        permissionDenied: 'It looks like you have denied permission to your location.',
+        please: 'Please',
+        allowPermission: 'allow location permission in settings',
+        tryAgain: 'and then try again.',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -280,6 +298,7 @@ export default {
     composer: {
         noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
+        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum comment length is ${formattedMaxLength} characters.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',
@@ -333,6 +352,8 @@ export default {
     phoneCountryCode: '1',
     welcomeText: {
         getStarted: 'Get started below.',
+        anotherLoginPageIsOpen: 'Another login page is open.',
+        anotherLoginPageIsOpenExplanation: "You've opened the login page in a separate tab, please login from that specific tab.",
         welcomeBack: 'Welcome back!',
         welcome: 'Welcome!',
         phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
@@ -341,11 +362,6 @@ export default {
         newFaceEnterMagicCode: ({login}: NewFaceEnterMagicCodeParams) =>
             `It's always great to see a new face around here! Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
-    },
-    DownloadAppModal: {
-        downloadTheApp: 'Download the app',
-        keepTheConversationGoing: 'Keep the conversation going in New Expensify, download the app for an enhanced experience.',
-        noThanks: 'No thanks',
     },
     login: {
         hero: {
@@ -425,7 +441,7 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
+        usePlusButton: '\n\nYou can also use the + button to send money, request money, or assign a task!',
     },
     reportAction: {
         asCopilot: 'as copilot for',
@@ -458,13 +474,10 @@ export default {
         },
     },
     sidebarScreen: {
-        fabAction: 'New chat',
-        newChat: 'New chat',
-        newGroup: 'New group',
-        newRoom: 'New room',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
-        fabNewChat: 'New chat (Floating action)',
+        fabNewChat: 'Send message',
+        fabNewChatExplained: 'Send message (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -472,6 +485,8 @@ export default {
         saveTheWorld: 'Save the world',
     },
     tabSelector: {
+        chat: 'Chat',
+        room: 'Room',
         manual: 'Manual',
         scan: 'Scan',
     },
@@ -480,8 +495,7 @@ export default {
         dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
         dragReceiptAfterEmail: ' or choose a file to upload below.',
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
-        chooseFile: 'Choose File',
-        givePermission: 'Give permission',
+        chooseFile: 'Choose file',
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         cameraErrorTitle: 'Camera Error',
@@ -491,6 +505,7 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        addReceipt: 'Add receipt',
     },
     iou: {
         amount: 'Amount',
@@ -498,9 +513,10 @@ export default {
         approved: 'Approved',
         cash: 'Cash',
         split: 'Split',
+        addToSplit: 'Add to split',
+        splitBill: 'Split bill',
         request: 'Request',
         participants: 'Participants',
-        splitBill: 'Split bill',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
@@ -516,11 +532,10 @@ export default {
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
-        settledPaypalMe: 'Paid using Paypal.me',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount} with Expensify`,
         payElsewhere: 'Pay elsewhere',
-        settlePaypalMe: ({formattedAmount}: SettlePaypalMeParams) => `Pay ${formattedAmount} with PayPal.me`,
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
+        requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} each`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} owes ${amount}`,
@@ -532,19 +547,23 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
-        paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `paid ${amount} elsewhere`,
-        paidUsingPaypalWithAmount: ({amount}: PaidUsingPaypalWithAmountParams) => `paid ${amount} using Paypal.me`,
-        paidWithExpensifyWithAmount: ({amount}: PaidWithExpensifyWithAmountParams) => `paid ${amount} with Expensify`,
+        paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer} paid ${amount} elsewhere`,
+        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer} paid ${amount} using Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         changedTheRequest: 'changed the request',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `set the ${valueName} to ${newValueToDisplay}`,
+        setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) => `set the distance to ${newDistanceToDisplay}, which set the amount to ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `removed the ${valueName} (previously ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
             `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
+        updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
+            `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
         error: {
+            invalidAmount: 'Please enter a valid amount before continuing.',
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
@@ -570,6 +589,8 @@ export default {
         uploadPhoto: 'Upload photo',
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
+        viewPhoto: 'View photo',
+        imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
@@ -589,6 +610,7 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
+        profileAvatar: 'Profile avatar',
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
@@ -730,6 +752,7 @@ export default {
         keepCodesSafe: 'Keep these recovery codes safe!',
         codesLoseAccess:
             'If you lose access to your authenticator app and don’t have these codes, you will lose access to your account. \n\nNote: Setting up two-factor authentication will log you out of all other active sessions.',
+        errorStepCodes: 'Please copy or download codes before continuing.',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',
@@ -741,6 +764,15 @@ export default {
         copy: 'Copy',
         disable: 'Disable',
     },
+    recoveryCodeForm: {
+        error: {
+            pleaseFillRecoveryCode: 'Please enter your recovery code',
+            incorrectRecoveryCode: 'Incorrect recovery code. Please try again.',
+        },
+        useRecoveryCode: 'Use recovery code',
+        recoveryCode: 'Recovery code',
+        use2fa: 'Use two-factor authentication code',
+    },
     twoFactorAuthForm: {
         error: {
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
@@ -751,17 +783,13 @@ export default {
         passwordUpdated: 'Password updated!',
         allSet: 'You’re all set. Keep your new password safe.',
     },
-    addPayPalMePage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Get paid back via PayPal.',
-        payPalMe: 'PayPal.me/',
-        yourPayPalUsername: 'Your PayPal username',
-        addPayPalAccount: 'Add PayPal account',
-        growlMessageOnSave: 'Your PayPal username was successfully added',
-        updatePaypalAccount: 'Save PayPal account',
-        growlMessageOnUpdate: 'Your PayPal username was successfully saved',
-        formatError: 'Invalid PayPal.me username',
-        checkListOf: 'Check the list of ',
-        supportedCurrencies: 'supported currencies',
+    privateNotes: {
+        title: 'Private notes',
+        personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
+        sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
+        notesUnavailable: 'No notes found for the user',
+        composerLabel: 'Notes',
+        myNote: 'My note',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
@@ -792,7 +820,6 @@ export default {
         setDefaultSuccess: 'Default payment method set!',
         deleteAccount: 'Delete account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
-        deletePayPalSuccess: 'PayPal.me successfully deleted',
         error: {
             notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
             invalidBankAccount: 'This bank account is temporarily suspended.',
@@ -800,6 +827,35 @@ export default {
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
         addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
+    },
+    cardPage: {
+        expensifyCard: 'Expensify Card',
+        availableSpend: 'Remaining spending power',
+        virtualCardNumber: 'Virtual card number',
+        physicalCardNumber: 'Physical card number',
+        reportFraud: 'Report virtual card fraud',
+        cardDetails: {
+            cardNumber: 'Virtual card number',
+            expiration: 'Expiration',
+            cvv: 'CVV',
+            address: 'Address',
+            revealDetails: 'Reveal details',
+            copyCardNumber: 'Copy card number',
+        },
+    },
+    reportFraudPage: {
+        title: 'Report virtual card fraud',
+        description: 'If your virtual card details have been stolen or compromised, we’ll permanently deactivate your existing card and provide you with a new virtual card and number.',
+        deactivateCard: 'Deactivate card',
+        reportVirtualCardFraud: 'Report virtual card fraud',
+    },
+    activateCardPage: {
+        activateCard: 'Activate card',
+        pleaseEnterLastFour: 'Please enter the last four digits of your card.',
+        activatePhysicalCard: 'Activate physical card',
+        error: {
+            thatDidntMatch: "That didn't match the last 4 digits on your card. Please try again.",
+        },
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -893,12 +949,13 @@ export default {
         phrase2: 'Terms of Service',
         phrase3: 'and',
         phrase4: 'Privacy',
-        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
+        phrase5: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its`,
         phrase6: 'licenses',
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
         enterAuthenticatorCode: 'Please enter your authenticator code',
+        enterRecoveryCode: 'Please enter your recovery code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: 'Request a new code in ',
         requestNewCodeAfterErrorOccurred: 'Request a new code',
@@ -953,7 +1010,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include letters.',
+            hasInvalidCharacter: 'Name can only include Latin characters.',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
@@ -985,7 +1042,9 @@ export default {
         localTime: 'Local time',
     },
     newChatPage: {
+        createChat: 'Create chat',
         createGroup: 'Create group',
+        addToGroup: 'Add to group',
     },
     yearPickerPage: {
         year: 'Year',
@@ -1054,7 +1113,7 @@ export default {
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',
             website: 'Please enter a valid website',
-            zipCode: 'Please enter a valid zip code',
+            zipCode: `Incorrect zip code format. Acceptable format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Please enter a valid phone number',
             companyName: 'Please enter a valid legal business name',
             addressCity: 'Please enter a valid city',
@@ -1151,7 +1210,7 @@ export default {
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'The Expensify Wallet is issued by The Bancorp Bank.',
+            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `The Expensify Wallet is issued by ${walletProgram}.`,
             perPurchase: 'Per purchase',
             atmWithdrawal: 'ATM withdrawal',
             cashReload: 'Cash reload',
@@ -1193,10 +1252,10 @@ export default {
                 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
             fdicInsuranceBancorp:
                 'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
-                'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up ' +
-                'to $250,000 by the FDIC in the event The Bancorp Bank fails. See',
+                `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
+                `to $250,000 by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails. See`,
             fdicInsuranceBancorp2: 'for details.',
-            contactExpensifyPayments: 'Contact Expensify Payments by calling +1 833-400-0904, by email at',
+            contactExpensifyPayments: `Contact ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} by calling +1 833-400-0904, by email at`,
             contactExpensifyPayments2: 'or sign in at',
             generalInformation: 'For general information about prepaid accounts, visit',
             generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial Protection Bureau at 1-855-411-2372 or visit',
@@ -1309,6 +1368,8 @@ export default {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
+            workspaceAvatar: 'Workspace avatar',
+            mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1350,7 +1411,6 @@ export default {
         reimburse: {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
-            kilometers: 'Kilometers',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
             trackDistance: 'Track distance',
@@ -1516,12 +1576,12 @@ export default {
         assignee: 'Assignee',
         completed: 'Completed',
         messages: {
-            completed: 'completed task',
-            canceled: 'canceled task',
-            reopened: 'reopened task',
+            completed: 'marked as complete',
+            canceled: 'deleted task',
+            reopened: 'marked as incomplete',
             error: 'You do not have the permission to do the requested action.',
         },
-        markAsDone: 'Mark as done',
+        markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
     },
@@ -1535,7 +1595,7 @@ export default {
             openShortcutDialog: 'Opens the keyboard shortcuts dialog',
             escape: 'Escape dialogs',
             search: 'Open search dialog',
-            newGroup: 'New group screen',
+            newChat: 'New chat screen',
             copy: 'Copy comment',
         },
     },
@@ -1689,6 +1749,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
+        deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {
@@ -1747,6 +1808,11 @@ export default {
             tryDifferentEmail: 'Please try a different email',
         },
     },
+    cardTransactions: {
+        notActivated: 'Not activated',
+        outOfPocketSpend: 'Out-of-pocket spend',
+        companySpend: 'Company spend',
+    },
     distance: {
         addStop: 'Add stop',
         deleteWaypoint: 'Delete waypoint',
@@ -1763,7 +1829,10 @@ export default {
             onlineSubtitle: 'One moment while we set up the map',
         },
         errors: {
-            selectSuggestedAddress: 'Please select a suggested address',
+            selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
     },
 } satisfies TranslationBase;

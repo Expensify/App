@@ -18,6 +18,9 @@ import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import refPropTypes from '../refPropTypes';
 
 const propTypes = {
+    /** Should the press event bubble across multiple instances when Enter key triggers it. */
+    allowBubble: PropTypes.bool,
+
     /** The text for the button label */
     text: PropTypes.string,
 
@@ -123,6 +126,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    allowBubble: false,
     text: '',
     shouldShowRightIcon: false,
     icon: null,
@@ -145,7 +149,7 @@ const defaultProps = {
     style: [],
     innerStyles: [],
     textStyles: [],
-    shouldUseDefaultHover: false,
+    shouldUseDefaultHover: true,
     success: false,
     danger: false,
     children: null,
@@ -183,7 +187,7 @@ class Button extends Component {
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,
             true,
-            false,
+            this.props.allowBubble,
             this.props.enterKeyEventListenerPriority,
             false,
         );
@@ -218,6 +222,7 @@ class Button extends Component {
                     this.props.icon && styles.textAlignLeft,
                     ...this.props.textStyles,
                 ]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {this.props.text}
             </Text>
@@ -305,6 +310,7 @@ class Button extends Component {
                 ]}
                 nativeID={this.props.nativeID}
                 accessibilityLabel={this.props.accessibilityLabel}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 hoverDimmingValue={1}
             >
                 {this.renderContent()}

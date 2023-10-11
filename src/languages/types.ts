@@ -100,9 +100,9 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
-type SettlePaypalMeParams = {formattedAmount: string};
-
 type RequestAmountParams = {amount: number};
+
+type RequestedAmountMessageParams = {formattedAmount: string; comment: string};
 
 type SplitAmountParams = {amount: number};
 
@@ -124,11 +124,9 @@ type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
-type PaidElsewhereWithAmountParams = {amount: string};
+type PaidElsewhereWithAmountParams = {payer: string; amount: string};
 
-type PaidUsingPaypalWithAmountParams = {amount: string};
-
-type PaidWithExpensifyWithAmountParams = {amount: string};
+type PaidWithExpensifyWithAmountParams = {payer: string; amount: string};
 
 type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
@@ -188,9 +186,19 @@ type ParentNavigationSummaryParams = {rootReportName: string; workspaceName: str
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
+type SetTheDistanceParams = {newDistanceToDisplay: string; newAmountToDisplay: string};
+
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
+
+type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisplay: string; newAmountToDisplay: string; oldAmountToDisplay: string};
+
+type FormattedMaxLengthParams = {formattedMaxLength: string};
+
+type TagSelectionParams = {tagName: string};
+
+type WalletProgramParams = {walletProgram: string};
 
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -258,8 +266,8 @@ export type {
     ReportArchiveReasonsPolicyDeletedParams,
     RequestCountParams,
     SettleExpensifyCardParams,
-    SettlePaypalMeParams,
     RequestAmountParams,
+    RequestedAmountMessageParams,
     SplitAmountParams,
     AmountEachParams,
     PayerOwesAmountParams,
@@ -271,7 +279,6 @@ export type {
     WaitingOnBankAccountParams,
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
-    PaidUsingPaypalWithAmountParams,
     PaidWithExpensifyWithAmountParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -304,4 +311,9 @@ export type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    FormattedMaxLengthParams,
+    TagSelectionParams,
+    SetTheDistanceParams,
+    UpdatedTheDistanceParams,
+    WalletProgramParams,
 };

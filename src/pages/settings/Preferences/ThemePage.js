@@ -27,15 +27,18 @@ const defaultProps = {
 };
 
 function ThemePage(props) {
-    const localesToThemes = _.map(props.translate('themePage.themes'), (theme, key) => ({
-        value: key,
-        text: theme.label,
-        keyForList: key,
-        isSelected: (props.preferredTheme || CONST.THEME.DEFAULT) === key,
+    const localesToThemes = _.map(_.values(_.omit(CONST.THEME, 'DEFAULT')), (theme) => ({
+        value: theme,
+        text: props.translate(`themePage.themes.${theme}.label`),
+        keyForList: theme,
+        isSelected: (props.preferredTheme || CONST.THEME.DEFAULT) === theme,
     }));
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ThemePage.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('themePage.theme')}
                 shouldShowBackButton

@@ -2,6 +2,7 @@ import {View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import Mapbox, {MapState, MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import styles from '../../styles/styles';
 
 import responder from './responder';
 import utils from './utils';
@@ -10,7 +11,7 @@ import CONST from '../../CONST';
 
 import {MapViewProps, MapViewHandle} from './MapViewTypes';
 
-const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates}, ref) => {
+const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady}, ref) => {
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
 
@@ -38,14 +39,17 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                         centerCoordinate: waypoints[0].coordinate,
                     });
                 } else {
-                    const {southWest, northEast} = utils.getBounds(waypoints.map((waypoint) => waypoint.coordinate));
+                    const {southWest, northEast} = utils.getBounds(
+                        waypoints.map((waypoint) => waypoint.coordinate),
+                        directionCoordinates,
+                    );
                     cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
                 }
             }
             return () => {
                 setIsIdle(false);
             };
-        }, [mapPadding, waypoints, isIdle]),
+        }, [mapPadding, waypoints, isIdle, directionCoordinates]),
     );
 
     useEffect(() => {
@@ -53,8 +57,13 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
     }, [accessToken]);
 
     const setMapIdle = (e: MapState) => {
-        if (e.gestures.isGestureActive) return;
+        if (e.gestures.isGestureActive) {
+            return;
+        }
         setIsIdle(true);
+        if (onMapReady) {
+            onMapReady();
+        }
     };
 
     return (
@@ -64,6 +73,9 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                 styleURL={styleURL}
                 onMapIdle={setMapIdle}
                 pitchEnabled={pitchEnabled}
+                attributionPosition={{...styles.r2, ...styles.b2}}
+                scaleBarEnabled={false}
+                logoPosition={{...styles.l2, ...styles.b2}}
                 // eslint-disable-next-line
                 {...responder.panHandlers}
             >

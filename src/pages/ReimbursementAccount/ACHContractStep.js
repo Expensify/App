@@ -145,7 +145,10 @@ function ACHContractStep(props) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ACHContractStep.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('beneficialOwnersStep.additionalInformation')}
                 stepCounter={{step: 4, total: 5}}

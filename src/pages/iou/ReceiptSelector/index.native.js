@@ -23,6 +23,9 @@ import Log from '../../../libs/Log';
 import * as CameraPermission from './CameraPermission';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import NavigationAwareCamera from './NavigationAwareCamera';
+import Navigation from '../../../libs/Navigation/Navigation';
+import * as FileUtils from '../../../libs/fileDownload/FileUtils';
+import TabNavigationAwareCamera from './TabNavigationAwareCamera';
 
 const propTypes = {
     /** React Navigation route */
@@ -35,6 +38,9 @@ const propTypes = {
             /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
+
+        /** The current route path */
+        path: PropTypes.string,
     }).isRequired,
 
     /** The report on which the request is initiated on */
@@ -42,11 +48,19 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
+
+    /** The id of the transaction we're editing */
+    transactionID: PropTypes.string,
+
+    /** Whether or not the receipt selector is in a tab navigator for tab animations */
+    isInTabNavigator: PropTypes.bool,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
+    transactionID: '',
+    isInTabNavigator: true,
 };
 
 /**
@@ -74,32 +88,38 @@ function getImagePickerOptions(type) {
     };
 }
 
-function ReceiptSelector(props) {
+function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
-    const [permissions, setPermissions] = useState('granted');
-    const isAndroidBlockedPermissionRef = useRef(false);
-    const appState = useRef(AppState.currentState);
+    const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
 
-    const iouType = lodashGet(props.route, 'params.iouType', '');
-    const reportID = lodashGet(props.route, 'params.reportID', '');
-    const pageIndex = lodashGet(props.route, 'params.pageIndex', 1);
+    const iouType = lodashGet(route, 'params.iouType', '');
+    const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
 
-    // We want to listen to if the app has come back from background and refresh the permissions status to show camera when permissions were granted
+    const CameraComponent = isInTabNavigator ? TabNavigationAwareCamera : NavigationAwareCamera;
+
     useEffect(() => {
-        const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-                CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
-                    setPermissions(permissionStatus);
-                });
+        const refreshCameraPermissionStatus = () => {
+            CameraPermission.getCameraPermissionStatus()
+                .then(setCameraPermissionStatus)
+                .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
+        };
+
+        // Check initial camera permission status
+        refreshCameraPermissionStatus();
+
+        // Refresh permission status when app gain focus
+        const subscription = AppState.addEventListener('change', (appState) => {
+            if (appState !== 'active') {
+                return;
             }
 
-            appState.current = nextAppState;
+            refreshCameraPermissionStatus();
         });
 
         return () => {
@@ -139,14 +159,17 @@ function ReceiptSelector(props) {
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
-        if (permissions === RESULTS.BLOCKED || isAndroidBlockedPermissionRef.current) {
-            Linking.openSettings();
-        } else if (permissions === RESULTS.DENIED) {
-            CameraPermission.requestCameraPermission().then((permissionStatus) => {
-                setPermissions(permissionStatus);
-                isAndroidBlockedPermissionRef.current = permissionStatus === RESULTS.BLOCKED;
+        CameraPermission.requestCameraPermission()
+            .then((status) => {
+                setCameraPermissionStatus(status);
+
+                if (status === RESULTS.BLOCKED) {
+                    showPermissionsAlert();
+                }
+            })
+            .catch(() => {
+                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
             });
-        }
     };
 
     /**
@@ -195,22 +218,34 @@ function ReceiptSelector(props) {
                 flash: flash ? 'on' : 'off',
             })
             .then((photo) => {
-                IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+                const filePath = `file://${photo.path}`;
+                IOU.setMoneyRequestReceipt(filePath, photo.path);
+
+                if (transactionID) {
+                    FileUtils.readFileAsync(filePath, photo.path).then((receipt) => {
+                        IOU.replaceReceipt(transactionID, receipt, filePath);
+                    });
+
+                    Navigation.dismissModal();
+                    return;
+                }
+
+                IOU.navigateToNextPage(iou, iouType, report, route.path);
             })
             .catch((error) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, props.iou, props.report, reportID, translate]);
+    }, [flash, iouType, iou, report, translate, transactionID, route.path]);
 
-    CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
-        setPermissions(permissionStatus);
-    });
+    // Wait for camera permission status to render
+    if (cameraPermissionStatus == null) {
+        return null;
+    }
 
     return (
         <View style={styles.flex1}>
-            {permissions !== RESULTS.GRANTED && (
+            {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView]}>
                     <Hand
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
@@ -219,21 +254,17 @@ function ReceiptSelector(props) {
                     />
                     <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
                     <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
-                    <PressableWithFeedback
-                        accessibilityLabel={translate('receipt.givePermission')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    >
-                        <Button
-                            medium
-                            success
-                            text={translate('receipt.givePermission')}
-                            style={[styles.p9, styles.pt5]}
-                            onPress={askForPermissions}
-                        />
-                    </PressableWithFeedback>
+                    <Button
+                        medium
+                        success
+                        text={translate('common.continue')}
+                        accessibilityLabel={translate('common.continue')}
+                        style={[styles.p9, styles.pt5]}
+                        onPress={askForPermissions}
+                    />
                 </View>
             )}
-            {permissions === RESULTS.GRANTED && device == null && (
+            {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
                 <View style={[styles.cameraView]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -242,8 +273,8 @@ function ReceiptSelector(props) {
                     />
                 </View>
             )}
-            {permissions === RESULTS.GRANTED && device != null && (
-                <NavigationAwareCamera
+            {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
+                <CameraComponent
                     ref={camera}
                     device={device}
                     style={[styles.cameraView]}
@@ -260,8 +291,18 @@ function ReceiptSelector(props) {
                     onPress={() => {
                         showImagePicker(launchImageLibrary)
                             .then((receiptImage) => {
-                                IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+                                const filePath = receiptImage[0].uri;
+                                IOU.setMoneyRequestReceipt(filePath, receiptImage[0].fileName);
+
+                                if (transactionID) {
+                                    FileUtils.readFileAsync(filePath, receiptImage[0].fileName).then((receipt) => {
+                                        IOU.replaceReceipt(transactionID, receipt, filePath);
+                                    });
+                                    Navigation.dismissModal();
+                                    return;
+                                }
+
+                                IOU.navigateToNextPage(iou, iouType, report, route.path);
                             })
                             .catch(() => {
                                 Log.info('User did not select an image from gallery');
@@ -290,6 +331,7 @@ function ReceiptSelector(props) {
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd]}
+                    disabled={cameraPermissionStatus !== RESULTS.GRANTED}
                     onPress={() => setFlash((prevFlash) => !prevFlash)}
                 >
                     <Icon

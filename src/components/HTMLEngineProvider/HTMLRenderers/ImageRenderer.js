@@ -62,7 +62,7 @@ function ImageRenderer(props) {
                 <PressableWithoutFocus
                     style={[styles.noOutline]}
                     onPress={() => {
-                        const route = ROUTES.getReportAttachmentRoute(report.reportID, source);
+                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report.reportID, source);
                         Navigation.navigate(route);
                     }}
                     onLongPress={(event) =>
