@@ -124,9 +124,9 @@ function WorkspaceInvitePage(props) {
         });
 
         // Strip out dictionary keys and update arrays
-        setUsersToInvite(_.map(newUsersToInviteDict, (v) => v));
-        setPersonalDetails(_.map(newPersonalDetailsDict, (v) => v));
-        setSelectedOptions(_.map(newSelectedOptionsDict, (v) => v));
+        setUsersToInvite(_.values(newUsersToInviteDict));
+        setPersonalDetails(_.values(newPersonalDetailsDict));
+        setSelectedOptions(_.values(newSelectedOptionsDict));
 
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [props.personalDetails, props.policyMembers, props.betas, searchTerm, excludedUsers]);
