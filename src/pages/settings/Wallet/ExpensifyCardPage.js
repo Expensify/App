@@ -10,17 +10,20 @@ import CardPreview from '../../../components/CardPreview';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import assignedCardPropTypes from './assignedCardPropTypes';
 import useLocalize from '../../../hooks/useLocalize';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as CardUtils from '../../../libs/CardUtils';
 import Button from '../../../components/Button';
 import CardDetails from './WalletPage/CardDetails';
+import CONST from '../../../CONST';
+import assignedCardPropTypes from './assignedCardPropTypes';
 
 const propTypes = {
     /* Onyx Props */
+    /** The details about the Expensify cards */
     cardList: PropTypes.objectOf(assignedCardPropTypes),
 
     /** Navigation route context info provided by react navigation */
@@ -106,6 +109,13 @@ function ExpensifyCardPage({
                                         }
                                     />
                                 )}
+                                <MenuItemWithTopDescription
+                                    title={translate('cardPage.reportFraud')}
+                                    titleStyle={styles.walletCardMenuItem}
+                                    icon={Expensicons.Flag}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain))}
+                                />
                             </>
                         )}
                         {!_.isEmpty(physicalCard) && (
@@ -113,10 +123,18 @@ function ExpensifyCardPage({
                                 description={translate('cardPage.physicalCardNumber')}
                                 title={CardUtils.maskCard(physicalCard.lastFourPAN)}
                                 interactive={false}
-                                titleStyle={styles.walletCardNumber}
+                                titleStyle={styles.walletCardMenuItem}
                             />
                         )}
                     </ScrollView>
+                    {physicalCard.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED && (
+                        <Button
+                            success
+                            style={[styles.w100, styles.p5]}
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(domain))}
+                            text={translate('activateCardPage.activatePhysicalCard')}
+                        />
+                    )}
                 </>
             )}
         </ScreenWrapper>

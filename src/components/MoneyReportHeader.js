@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import useLocalize from '../hooks/useLocalize';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -15,10 +16,10 @@ import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import SettlementButton from './SettlementButton';
+import Button from './Button';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import reportPropTypes from '../pages/reportPropTypes';
-import * as Policy from '../libs/actions/Policy';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -67,14 +68,24 @@ const defaultProps = {
 };
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, report: moneyRequestReport, isSmallScreenWidth, nextStepButtons}) {
+    const {translate} = useLocalize();
     const reportTotal = ReportUtils.getMoneyRequestTotal(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const isPayer = Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID);
-    const shouldShowPayButtonForFreePlan = !isSettled && isPayer && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0;
-    const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || nextStepButtons.approve || nextStepButtons.reimburse;
-    const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || nextStepButtons.reimburse;
+    const policyType = lodashGet(policy, 'type');
+    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
+    const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
+    const isPayer = isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
+    const isDraft = ReportUtils.isReportDraft(moneyRequestReport);
+    const shouldShowPayButtonForFreePlan = useMemo(
+        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
+        [isPayer, isDraft, isSettled, moneyRequestReport, reportTotal, chatReport],
+    );
+    const shouldShowSubmitButton = isDraft;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
+    const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || nextStepButtons.approve || nextStepButtons.reimburse;
+    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowSubmitButton;
+    const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || nextStepButtons.reimburse;
 
     return (
         <View style={[styles.pt0]}>
@@ -87,10 +98,10 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                 personalDetails={personalDetails}
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                shouldShowBorderBottom={!shouldShowSettlementButton || !isSmallScreenWidth}
+                shouldShowBorderBottom={!shouldShowAnyButton || !isSmallScreenWidth}
             >
                 {shouldShowSettlementButton && !isSmallScreenWidth && (
-                    <View style={[styles.pv2]}>
+                    <View style={styles.pv2}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
@@ -110,6 +121,17 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                         />
                     </View>
                 )}
+                {shouldShowSubmitButton && !isSmallScreenWidth && (
+                    <View style={styles.pv2}>
+                        <Button
+                            medium
+                            success={chatReport.isOwnPolicyExpenseChat}
+                            text={translate('common.submit')}
+                            style={[styles.mnw120, styles.pv2, styles.pr0]}
+                            onPress={() => IOU.submitReport(moneyRequestReport)}
+                        />
+                    </View>
+                )}
             </HeaderWithBackButton>
             {shouldShowSettlementButton && isSmallScreenWidth && (
                 <View style={[styles.ph5, styles.pb2, isSmallScreenWidth && styles.borderBottom]}>
@@ -124,6 +146,17 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                         shouldShowPaymentOptions={shouldShowPaymentOptions}
                         formattedAmount={formattedAmount}
                         nextStepButtons={nextStepButtons}
+                    />
+                </View>
+            )}
+            {shouldShowSubmitButton && isSmallScreenWidth && (
+                <View style={[styles.ph5, styles.pb2, isSmallScreenWidth && styles.borderBottom]}>
+                    <Button
+                        medium
+                        success={chatReport.isOwnPolicyExpenseChat}
+                        text={translate('common.submit')}
+                        style={[styles.w100, styles.pr0]}
+                        onPress={() => IOU.submitReport(moneyRequestReport)}
                     />
                 </View>
             )}
