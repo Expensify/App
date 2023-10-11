@@ -58,8 +58,7 @@ function openPlaidBankAccountSelector(publicToken: string, bankName: string, all
                         bankName,
                     },
                 },
-                // TODO: Remove after https://github.com/Expensify/react-native-onyx/pull/381 is merged
-            ] as unknown[] as OnyxUpdate[],
+            ],
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -69,8 +68,7 @@ function openPlaidBankAccountSelector(publicToken: string, bankName: string, all
                         errors: null,
                     },
                 },
-                // TODO: Remove after https://github.com/Expensify/react-native-onyx/pull/381 is merged
-            ] as unknown[] as OnyxUpdate[],
+            ],
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
