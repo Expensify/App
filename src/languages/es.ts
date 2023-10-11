@@ -498,6 +498,8 @@ export default {
         flash: 'flash',
         shutter: 'obturador',
         gallery: 'galería',
+        deleteReceipt: 'Eliminar recibo',
+        deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
     },
     iou: {
@@ -505,6 +507,7 @@ export default {
         approve: 'Aprobar',
         approved: 'Aprobado',
         cash: 'Efectivo',
+        card: 'Tarjeta',
         split: 'Dividir',
         addToSplit: 'Añadir para dividir',
         splitBill: 'Dividir factura',
@@ -515,6 +518,7 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
         receiptScanning: 'Escaneo de recibo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
@@ -1613,7 +1617,7 @@ export default {
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
-    keyboardShortcutModal: {
+    keyboardShortcutsPage: {
         title: 'Atajos de teclado',
         subtitle: 'Ahorra tiempo con estos atajos de teclado:',
         shortcuts: {

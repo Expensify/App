@@ -43,7 +43,7 @@ const defaultProps = {
 function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, noMargin, showTooltip}) {
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
     const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
-    const containerStyle = isSmall ? styles.emptyAvatarSmall : styles.emptyAvatar;
+    const containerStyle = StyleUtils.getContainerStyles(size);
     // Default the margin style to what is normal for small or normal sized avatars
     let marginStyle = isSmall ? styles.emptyAvatarMarginSmall : styles.emptyAvatarMargin;
 

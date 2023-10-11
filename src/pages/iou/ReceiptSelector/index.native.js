@@ -1,14 +1,14 @@
-import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, Text, View} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import {launchImageLibrary} from 'react-native-image-picker';
 import {withOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
+import AttachmentPicker from '../../../components/AttachmentPicker';
 import styles from '../../../styles/styles';
 import Shutter from '../../../../assets/images/shutter.svg';
 import Hand from '../../../../assets/images/hand.svg';
@@ -63,31 +63,6 @@ const defaultProps = {
     isInTabNavigator: true,
 };
 
-/**
- * See https://github.com/react-native-image-picker/react-native-image-picker/#options
- * for ImagePicker configuration options
- */
-const imagePickerOptions = {
-    includeBase64: false,
-    saveToPhotos: false,
-    selectionLimit: 1,
-    includeExtra: false,
-};
-
-/**
- * Return imagePickerOptions based on the type
- * @param {String} type
- * @returns {Object}
- */
-function getImagePickerOptions(type) {
-    // mediaType property is one of the ImagePicker configuration to restrict types'
-    const mediaType = type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? 'photo' : 'mixed';
-    return {
-        mediaType,
-        ...imagePickerOptions,
-    };
-}
-
 function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
@@ -127,35 +102,6 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
         };
     }, []);
 
-    /**
-     * Inform the users when they need to grant camera access and guide them to settings
-     */
-    const showPermissionsAlert = () => {
-        Alert.alert(
-            translate('attachmentPicker.cameraPermissionRequired'),
-            translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
-            [
-                {
-                    text: translate('common.cancel'),
-                    style: 'cancel',
-                },
-                {
-                    text: translate('common.settings'),
-                    onPress: () => Linking.openSettings(),
-                },
-            ],
-            {cancelable: false},
-        );
-    };
-
-    /**
-     * A generic handling when we don't know the exact reason for an error
-     *
-     */
-    const showGeneralAlert = () => {
-        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
-    };
-
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
@@ -164,43 +110,13 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                 setCameraPermissionStatus(status);
 
                 if (status === RESULTS.BLOCKED) {
-                    showPermissionsAlert();
+                    FileUtils.showCameraPermissionsAlert();
                 }
             })
             .catch(() => {
                 setCameraPermissionStatus(RESULTS.UNAVAILABLE);
             });
     };
-
-    /**
-     * Common image picker handling
-     *
-     * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
-     * @returns {Promise}
-     */
-    const showImagePicker = (imagePickerFunc) =>
-        new Promise((resolve, reject) => {
-            imagePickerFunc(getImagePickerOptions(CONST.ATTACHMENT_PICKER_TYPE.IMAGE), (response) => {
-                if (response.didCancel) {
-                    // When the user cancelled resolve with no attachment
-                    return resolve();
-                }
-                if (response.errorCode) {
-                    switch (response.errorCode) {
-                        case 'permission':
-                            showPermissionsAlert();
-                            return resolve();
-                        default:
-                            showGeneralAlert();
-                            break;
-                    }
-
-                    return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
-                }
-
-                return resolve(response.assets);
-            });
-        });
 
     const takePhoto = useCallback(() => {
         const showCameraAlert = () => {
@@ -284,38 +200,38 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                 />
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    accessibilityLabel={translate('receipt.gallery')}
-                    style={[styles.alignItemsStart]}
-                    onPress={() => {
-                        showImagePicker(launchImageLibrary)
-                            .then((receiptImage) => {
-                                const filePath = receiptImage[0].uri;
-                                IOU.setMoneyRequestReceipt(filePath, receiptImage[0].fileName);
+                <AttachmentPicker shouldHideCameraOption>
+                    {({openPicker}) => (
+                        <PressableWithFeedback
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.gallery')}
+                            style={[styles.alignItemsStart]}
+                            onPress={() => {
+                                openPicker({
+                                    onPicked: (file) => {
+                                        const filePath = file.uri;
+                                        IOU.setMoneyRequestReceipt(filePath, file.name);
 
-                                if (transactionID) {
-                                    FileUtils.readFileAsync(filePath, receiptImage[0].fileName).then((receipt) => {
-                                        IOU.replaceReceipt(transactionID, receipt, filePath);
-                                    });
-                                    Navigation.dismissModal();
-                                    return;
-                                }
+                                        if (transactionID) {
+                                            IOU.replaceReceipt(transactionID, file, filePath);
+                                            Navigation.dismissModal();
+                                            return;
+                                        }
 
-                                IOU.navigateToNextPage(iou, iouType, report, route.path);
-                            })
-                            .catch(() => {
-                                Log.info('User did not select an image from gallery');
-                            });
-                    }}
-                >
-                    <Icon
-                        height={32}
-                        width={32}
-                        src={Expensicons.Gallery}
-                        fill={themeColors.textSupporting}
-                    />
-                </PressableWithFeedback>
+                                        IOU.navigateToNextPage(iou, iouType, report, route.path);
+                                    },
+                                });
+                            }}
+                        >
+                            <Icon
+                                height={32}
+                                width={32}
+                                src={Expensicons.Gallery}
+                                fill={themeColors.textSupporting}
+                            />
+                        </PressableWithFeedback>
+                    )}
+                </AttachmentPicker>
                 <PressableWithFeedback
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
