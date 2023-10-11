@@ -28,7 +28,7 @@ function DemoSetupPage(props) {
             } else {
                 Navigation.goBack(ROUTES.HOME);
             }
-        }, []),
+        }, [props.route.name]),
     );
 
     return <FullScreenLoadingIndicator />;
