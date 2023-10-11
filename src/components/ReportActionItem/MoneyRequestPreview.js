@@ -216,7 +216,7 @@ function MoneyRequestPreview(props) {
             message += ` • ${props.translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
-        } else if (props.iouReport.originalMessage && props.iouReport.originalMessage.reason === CONST.IOU.CANCEL_REASON.PAYMENT_EXPIRED) {
+        } else if (props.action.originalMessage && props.action.originalMessage.reason === CONST.IOU.CANCEL_REASON.PAYMENT_EXPIRED) {
             message += ` • ${props.translate('iou.canceled')}`;
         }
         return message;
