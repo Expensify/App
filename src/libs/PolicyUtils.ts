@@ -13,10 +13,7 @@ type UnitRate = {rate: number};
  * These are policies that we can use to create reports with in NewDot.
  */
 function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefined {
-    if (!policies) {
-        return;
-    }
-    return (Object.values(policies) ?? []).filter<Policy>(
+    return (Object.values(policies ?? {}) ?? []).filter<Policy>(
         (policy): policy is Policy =>
             policy !== null && policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
@@ -91,8 +88,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, policyMemb
  */
 function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolean {
     return (
-        policy !== null &&
-        policy &&
+        !!policy &&
         policy?.isPolicyExpenseChatEnabled &&
         policy?.role === CONST.POLICY.ROLE.ADMIN &&
         (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
@@ -120,7 +116,7 @@ const isPolicyAdmin = (policy: OnyxEntry<Policy>): boolean => policy?.role === C
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
 function getMemberAccountIDsForWorkspace(policyMembers: OnyxEntry<PolicyMembers>, personalDetails: OnyxEntry<PersonalDetailsList>): MemberEmailsToAccountIDs {
-    const memberEmailsToAccountIDs: Record<string, string> = {};
+    const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
     Object.keys(policyMembers ?? {}).forEach((accountID) => {
         const member = policyMembers?.[accountID];
         if (Object.keys(member?.errors ?? {})?.length > 0) {
