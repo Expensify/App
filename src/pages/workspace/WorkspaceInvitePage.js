@@ -84,7 +84,10 @@ function WorkspaceInvitePage(props) {
 
     useEffect(() => {
         let emails = searchTerm.replace(/\s,\s/g, ',').split(',');
-        emails = _.filter(_.map(emails, word => word.trim()), email => email !== '');
+        emails = _.filter(
+            _.map(emails, (word) => word.trim()),
+            (email) => email !== '',
+        );
 
         const newUsersToInviteDict = {};
         const newPersonalDetailsDict = {};
@@ -92,23 +95,23 @@ function WorkspaceInvitePage(props) {
 
         _.forEach(emails, (email) => {
             const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, email, excludedUsers);
-    
+
             // Update selectedOptions with the latest personalDetails and policyMembers information
             const detailsMap = {};
             _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
-            
+
             const newSelectedOptions = [];
             _.forEach(selectedOptions, (option) => {
                 newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
             });
-        
+
             const userToInvite = inviteOptions.userToInvite;
 
             // Only add the user to the invites list if it is valid
-            if (userToInvite) {    
+            if (userToInvite) {
                 newUsersToInviteDict[userToInvite.accountID] = userToInvite;
             }
-      
+
             // Add all personal details to the new dict
             _.forEach(inviteOptions.personalDetails, (details) => {
                 newPersonalDetailsDict[details.accountID] = details;
@@ -119,7 +122,7 @@ function WorkspaceInvitePage(props) {
                 newSelectedOptionsDict[option.accountID] = option;
             });
         });
-        
+
         // Strip out dictionary keys and update arrays
         setUsersToInvite(_.map(newUsersToInviteDict, (v) => v));
         setPersonalDetails(_.map(newPersonalDetailsDict, (v) => v));
