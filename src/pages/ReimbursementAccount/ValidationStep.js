@@ -219,6 +219,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
 
 ValidationStep.propTypes = propTypes;
 ValidationStep.defaultProps = defaultProps;
+ValidationStep.displayName = 'ValidationStep';
 
 export default compose(
     withLocalize,
