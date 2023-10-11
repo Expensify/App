@@ -16,6 +16,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import * as PolicyUtils from '../../../libs/PolicyUtils';
 import {policyPropTypes, policyDefaultProps} from '../../workspace/withPolicy';
+import SelectionList from '../../../components/SelectionList';
 
 const propTypes = {
     ...withLocalizePropTypes,
