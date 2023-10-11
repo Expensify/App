@@ -3,6 +3,7 @@ import {format, parseISO, isValid} from 'date-fns';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
+import {isExpensifyCard} from './CardUtils';
 import * as NumberUtils from './NumberUtils';
 import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
 import {Receipt, Comment, WaypointCollection} from '../types/onyx/Transaction';
@@ -288,6 +289,27 @@ function isDistanceRequest(transaction: Transaction): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
+function isExpensifyCardTransaction(transaction: Transaction): boolean {
+    if (!transaction.cardID) {
+        return false;
+    }
+    return isExpensifyCard(transaction.cardID);
+}
+
+function isPending(transaction: Transaction): boolean {
+    if (!transaction.status) {
+        return false;
+    }
+    return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
+}
+
+function isPosted(transaction: Transaction): boolean {
+    if (!transaction.status) {
+        return false;
+    }
+    return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
+}
+
 function isReceiptBeingScanned(transaction: Transaction): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction.receipt.state);
 }
@@ -415,6 +437,9 @@ export {
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
+    isExpensifyCardTransaction,
+    isPending,
+    isPosted,
     getWaypoints,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,

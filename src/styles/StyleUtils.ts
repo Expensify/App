@@ -1240,6 +1240,29 @@ function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: nu
 }
 
 /**
+ * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
+ */
+function getContainerStyles(size: string, isInReportAction = false): Array<ViewStyle | CSSProperties> {
+    let containerStyles: Array<ViewStyle | CSSProperties>;
+
+    switch (size) {
+        case CONST.AVATAR_SIZE.SMALL:
+            containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
+            break;
+        case CONST.AVATAR_SIZE.SMALLER:
+            containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
+            break;
+        case CONST.AVATAR_SIZE.MEDIUM:
+            containerStyles = [styles.emptyAvatarMedium, styles.emptyAvatarMargin];
+            break;
+        default:
+            containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];
+    }
+
+    return containerStyles;
+}
+
+/**
  * Get transparent color by setting alpha value 0 of the passed hex(#xxxxxx) color code
  */
 function getTransparentColor(color: string) {
@@ -1323,6 +1346,7 @@ export {
     getCheckboxContainerStyle,
     getDropDownButtonHeight,
     getAmountFontSizeAndLineHeight,
+    getContainerStyles,
     getTransparentColor,
     getEReceiptColor,
 };

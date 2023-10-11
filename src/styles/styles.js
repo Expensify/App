@@ -2274,7 +2274,7 @@ const styles = (theme) => ({
             justifyContent: 'space-between',
         }),
         padding: 20,
-        backgroundColor: theme.sidebar,
+        backgroundColor: theme.cardBG,
         borderRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
     }),
