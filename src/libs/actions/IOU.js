@@ -365,6 +365,10 @@ function buildOnyxDataForMoneyRequest(
     return [optimisticData, successData, failureData];
 }
 
+/**
+ * @param {String} iouReportID
+ * @param {Object} iouAction
+ */
 function cleanUpFailedMoneyRequest(iouReportID, iouAction) {
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, null);
