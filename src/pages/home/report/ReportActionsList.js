@@ -278,56 +278,45 @@ function ReportActionsList({
     );
 
     /**
-     * Evaluate new unread marker visibility for each of the report actions.
-     * @returns boolean
+     * @param {Object} args
+     * @param {Number} args.index
+     * @returns {React.Component}
      */
-
-    const shouldDisplayNewMarker = useCallback(
-        (reportAction, index) => {
-            let shouldDisplay = false;
+    const renderItem = useCallback(
+        ({item: reportAction, index}) => {
+            let shouldDisplayNewMarker = false;
 
             if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
-                shouldDisplay = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
+                shouldDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
+
                 if (!messageManuallyMarkedUnread) {
-                    shouldDisplay = shouldDisplay && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
+                    shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
+                }
+                const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
+
+                if (!currentUnreadMarker && shouldDisplayNewMarker && canDisplayMarker) {
+                    setCurrentUnreadMarker(reportAction.reportActionID);
                 }
             } else {
-                shouldDisplay = reportAction.reportActionID === currentUnreadMarker;
+                shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker;
             }
-            return shouldDisplay;
+            return (
+                <ReportActionsListItemRenderer
+                    reportAction={reportAction}
+                    index={index}
+                    report={report}
+                    linkedReportActionID={linkedReportActionID}
+                    hasOutstandingIOU={hasOutstandingIOU}
+                    sortedReportActions={sortedReportActions}
+                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    shouldDisplayNewMarker={shouldDisplayNewMarker}
+                />
+            );
         },
-        [currentUnreadMarker, sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread],
-    );
-
-    useEffect(() => {
-        // Iterate through the report actions and set appropriate unread marker.
-        // This is to avoid a warning of:
-        // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
-        _.each(sortedReportActions, (reportAction, index) => {
-            if (!shouldDisplayNewMarker(reportAction, index)) {
-                return;
-            }
-            setCurrentUnreadMarker(reportAction.reportActionID);
-        });
-    }, [sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread, shouldDisplayNewMarker]);
-
-    const renderItem = useCallback(
-        ({item: reportAction, index}) => (
-            <ReportActionsListItemRenderer
-                reportAction={reportAction}
-                index={index}
-                report={report}
-                linkedReportActionID={linkedReportActionID}
-                hasOutstandingIOU={hasOutstandingIOU}
-                sortedReportActions={sortedReportActions}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
-            />
-        ),
-        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
+        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarkedUnread, shouldHideThreadDividerLine, currentUnreadMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.

@@ -187,17 +187,17 @@ function FloatingActionButtonAndPopover(props) {
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
                     {
-                        icon: Expensicons.Send,
-                        text: props.translate('iou.sendMoney'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
-                    },
-                    {
                         icon: Expensicons.MoneyCircle,
                         text: props.translate('iou.requestMoney'),
                         onSelected: () =>
                             interceptAnonymousUser(() => {
                                 Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, NumberUtils.rand64()));
                             }),
+                    },
+                    {
+                        icon: Expensicons.Send,
+                        text: props.translate('iou.sendMoney'),
+                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                     },
                     ...(Permissions.canUseTasks(props.betas)
                         ? [
@@ -208,6 +208,11 @@ function FloatingActionButtonAndPopover(props) {
                               },
                           ]
                         : []),
+                    {
+                        icon: Expensicons.Heart,
+                        text: props.translate('sidebarScreen.saveTheWorld'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
+                    },
                     ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
                         ? [
                               {
