@@ -29,7 +29,7 @@ import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import refPropTypes from '../refPropTypes';
-import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import transactionPropTypes from '../transactionPropTypes';
@@ -340,7 +340,7 @@ function MoneyRequestPreview(props) {
     }
 
     return (
-        <PressableWithFeedback
+        <PressableWithoutFeedback
             onPress={props.onPreviewPressed}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
@@ -350,7 +350,7 @@ function MoneyRequestPreview(props) {
             style={[styles.moneyRequestPreviewBox, ...props.containerStyles]}
         >
             {childContainer}
-        </PressableWithFeedback>
+        </PressableWithoutFeedback>
     );
 }
 
