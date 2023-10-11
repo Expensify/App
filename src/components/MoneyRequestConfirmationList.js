@@ -553,6 +553,7 @@ function MoneyRequestConfirmationList(props) {
                     shouldShowRightIcon={!props.isReadOnly && !props.isDistanceRequest}
                     title={formattedAmount}
                     description={translate('iou.amount')}
+                    interactive={!props.isReadOnly}
                     onPress={() => {
                         if (props.isDistanceRequest) {
                             return;
@@ -565,7 +566,7 @@ function MoneyRequestConfirmationList(props) {
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
-                    disabled={didConfirm || props.isReadOnly}
+                    disabled={didConfirm}
                     brickRoadIndicator={shouldDisplayFieldError && transaction.modifiedAmount === 0 && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
                     error={shouldDisplayFieldError && transaction.modifiedAmount === 0 && translate('common.error.enterAmount')}
                 />
@@ -584,7 +585,8 @@ function MoneyRequestConfirmationList(props) {
                 }}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
-                disabled={didConfirm || props.isReadOnly}
+                disabled={didConfirm}
+                interactive={!props.isReadOnly}
                 numberOfLinesTitle={2}
             />
             {!shouldShowAllFields && (
@@ -618,7 +620,8 @@ function MoneyRequestConfirmationList(props) {
                                 }
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID));
                             }}
-                            disabled={didConfirm || props.isReadOnly}
+                            disabled={didConfirm}
+                            interactive={!props.isReadOnly}
                             brickRoadIndicator={shouldDisplayFieldError && _.isEmpty(transaction.modifiedCreated) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
                             error={shouldDisplayFieldError && _.isEmpty(transaction.modifiedCreated) && translate('common.error.enterDate')}
                         />
@@ -631,7 +634,8 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(props.iouType, props.reportID))}
-                            disabled={didConfirm || props.isReadOnly || !isTypeRequest}
+                            disabled={didConfirm || !isTypeRequest}
+                            interactive={!props.isReadOnly}
                         />
                     )}
                     {props.shouldShowSmartScanFields && (
@@ -648,7 +652,8 @@ function MoneyRequestConfirmationList(props) {
                                 }
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(props.iouType, props.reportID));
                             }}
-                            disabled={didConfirm || props.isReadOnly}
+                            disabled={didConfirm}
+                            interactive={!props.isReadOnly}
                             brickRoadIndicator={shouldDisplayFieldError && _.isEmpty(transaction.modifiedMerchant) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
                             error={shouldDisplayFieldError && _.isEmpty(transaction.modifiedMerchant) && translate('common.error.enterMerchant')}
                         />
@@ -660,7 +665,8 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.category')}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID))}
                             style={[styles.moneyRequestMenuItem]}
-                            disabled={didConfirm || props.isReadOnly}
+                            disabled={didConfirm}
+                            interactive={!props.isReadOnly}
                         />
                     )}
                     {shouldShowTags && (
@@ -670,7 +676,8 @@ function MoneyRequestConfirmationList(props) {
                             description={policyTagListName}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID))}
                             style={[styles.moneyRequestMenuItem]}
-                            disabled={didConfirm || props.isReadOnly}
+                            disabled={didConfirm}
+                            interactive={!props.isReadOnly}
                         />
                     )}
                     {shouldShowBillable && (
