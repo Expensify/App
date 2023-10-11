@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {useFocusEffect} from '@react-navigation/native';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
@@ -21,15 +21,15 @@ const propTypes = {
  * don't show them a "Hmm... It's not here" message (which looks broken).
  */
 function DemoSetupPage(props) {
-    useFocusEffect(() => {
-        Navigation.isNavigationReady().then(() => {
+    useFocusEffect(
+        useCallback(() => {
             if (props.route.name === CONST.DEMO_PAGES.MONEY2020) {
                 DemoActions.runMoney2020Demo();
             } else {
                 Navigation.goBack(ROUTES.HOME);
             }
-        });
-    });
+        }, []),
+    );
 
     return <FullScreenLoadingIndicator />;
 }
