@@ -80,7 +80,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
         }
         return isManager && !isDraft && !isApproved && !isSettled;
     }, [policyType, isManager, isDraft, isApproved, isSettled]);
-    const shouldShowSubmitButton = isDraft;
+    const shouldShowSubmitButton = isDraft && reportTotal !== 0;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
