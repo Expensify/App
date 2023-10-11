@@ -3363,10 +3363,9 @@ function canRequestMoney(report, participants) {
  *
  * @param {Object} report
  * @param {Array<Number>} reportParticipants
- * @param {Array} betas
  * @returns {Array}
  */
-function getMoneyRequestOptions(report, reportParticipants, betas) {
+function getMoneyRequestOptions(report, reportParticipants) {
     // In any thread or task report, we do not allow any new money requests yet
     if (isChatThread(report) || isTaskReport(report)) {
         return [];
@@ -3398,7 +3397,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         ...(canRequestMoney(report, participants) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
 
         // Send money option should be visible only in DMs
-        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 
