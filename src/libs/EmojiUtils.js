@@ -278,22 +278,33 @@ function extractEmojis(text) {
     }
 
     const emojis = [];
-
-    // Text can contain similar emojis as well as their skin tone variants. Create a Set to remove duplicate emojis from the search.
-    const foundEmojiCodes = new Set();
-
     for (let i = 0; i < parsedEmojis.length; i++) {
         const character = parsedEmojis[i];
         const emoji = Emojis.emojiCodeTableWithSkinTones[character];
-
-        // Add the parsed emoji to the final emojis if not already present.
-        if (emoji && !foundEmojiCodes.has(emoji.code)) {
-            foundEmojiCodes.add(emoji.code);
+        if (emoji) {
             emojis.push(emoji);
         }
     }
 
     return emojis;
+}
+
+/**
+ * Take the current emojis and the former emojis and return the emojis that were added, if we add an already existing emoji, we also return it
+ * @param {Object[]} currentEmojis The array of current emojis
+ * @param {Object[]} formerEmojis The array of former emojis
+ * @returns {Object[]} The array of added emojis
+ */
+function getAddedEmojis(currentEmojis, formerEmojis) {
+    const newEmojis = [...currentEmojis];
+    // We are removing the emojis from the newEmojis array if they were already present before.
+    formerEmojis.forEach((formerEmoji) => {
+        const indexOfAlreadyPresentEmoji = _.findIndex(newEmojis, (newEmoji) => newEmoji.code === formerEmoji.code);
+        if (indexOfAlreadyPresentEmoji >= 0) {
+            newEmojis.splice(indexOfAlreadyPresentEmoji, 1);
+        }
+    });
+    return newEmojis;
 }
 
 /**
@@ -484,4 +495,6 @@ export {
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
     replaceAndExtractEmojis,
+    extractEmojis,
+    getAddedEmojis,
 };

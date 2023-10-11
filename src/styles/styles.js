@@ -1779,7 +1779,6 @@ const styles = (theme) => ({
     },
 
     emojiSkinToneTitle: {
-        width: '100%',
         ...spacing.pv1,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
@@ -3770,7 +3769,7 @@ const styles = (theme) => ({
         overflow: 'hidden',
     },
 
-    walletCardNumber: {
+    walletCardMenuItem: {
         color: theme.text,
         fontSize: variables.fontSizeNormal,
     },
