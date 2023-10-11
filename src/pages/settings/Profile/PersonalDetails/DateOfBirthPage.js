@@ -6,7 +6,6 @@ import lodashGet from 'lodash/get';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
-import Form from '../../../../components/Form';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
@@ -18,7 +17,7 @@ import compose from '../../../../libs/compose';
 import styles from '../../../../styles/styles';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import FormProvider from "../../../../components/Form/FormProvider";
+import FormProvider from '../../../../components/Form/FormProvider';
 
 const propTypes = {
     /* Onyx Props */

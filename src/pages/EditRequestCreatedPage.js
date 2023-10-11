@@ -6,7 +6,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import useLocalize from '../hooks/useLocalize';
 import NewDatePicker from '../components/NewDatePicker';
-import FormProvider from "../components/Form/FormProvider";
+import FormProvider from '../components/Form/FormProvider';
 
 const propTypes = {
     /** Transaction defailt created value */

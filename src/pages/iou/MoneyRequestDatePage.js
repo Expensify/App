@@ -15,7 +15,7 @@ import NewDatePicker from '../../components/NewDatePicker';
 import useLocalize from '../../hooks/useLocalize';
 import CONST from '../../CONST';
 import {iouPropTypes, iouDefaultProps} from './propTypes';
-import FormProvider from "../../components/Form/FormProvider";
+import FormProvider from '../../components/Form/FormProvider';
 
 const propTypes = {
     /** Onyx Props */
