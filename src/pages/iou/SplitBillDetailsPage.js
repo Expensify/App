@@ -182,7 +182,7 @@ export default compose(
         draftTransaction: {
             key: ({route, reportActions}) => {
                 const reportAction = reportActions[`${route.params.reportActionID.toString()}`];
-                return `${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${lodashGet(reportAction, 'originalMessage.IOUTransactionID', 0)}`;
+                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${lodashGet(reportAction, 'originalMessage.IOUTransactionID', 0)}`;
             },
         },
     }),

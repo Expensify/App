@@ -681,7 +681,7 @@ export default compose(
             selector: DistanceRequestUtils.getDefaultMileageRate,
         },
         draftTransaction: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`,
+            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
         },
         transaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,

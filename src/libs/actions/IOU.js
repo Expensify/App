@@ -55,7 +55,7 @@ Onyx.connect({
 
 let allDraftSplitTransactions;
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION,
+    key: ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
     callback: (val) => {
         allDraftSplitTransactions = val || {};
@@ -1543,7 +1543,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
             value: null,
         },
     ];
@@ -1708,7 +1708,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
  * @param {Object} transactionChanges
  */
 function setDraftSplitTransaction(transactionID, transactionChanges = {}) {
-    let draftSplitTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`];
+    let draftSplitTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`];
 
     if (!draftSplitTransaction) {
         draftSplitTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -1716,7 +1716,7 @@ function setDraftSplitTransaction(transactionID, transactionChanges = {}) {
 
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(draftSplitTransaction, transactionChanges, false, false);
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`, updatedTransaction);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, updatedTransaction);
 }
 
 /**
