@@ -25,4 +25,7 @@ function getPinFunctionality(report) {
     };
 }
 
-export default getPinFunctionality;
+export {
+    // eslint-disable-next-line import/prefer-default-export
+    getPinFunctionality
+}
