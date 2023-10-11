@@ -31,7 +31,7 @@ export default PropTypes.shape({
     nextReceiver: PropTypes.string,
 
     /** An array of buttons to be displayed next to the next step */
-    buttons: PropTypes.objectOf(
+    buttons: PropTypes.arrayOf(
         PropTypes.shape({
             text: PropTypes.string,
             tooltip: PropTypes.string,

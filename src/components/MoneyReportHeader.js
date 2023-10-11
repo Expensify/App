@@ -150,14 +150,14 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     </View>
                 )}
             </HeaderWithBackButton>
+            <View style={[styles.dFlex, styles.flexColumn, styles.borderBottom]}>
             {shouldShowNextSteps && (
-                <MoneyReportHeaderStatusBar
-                    nextStep={nextStep}
-                    showBorderBottom={!shouldShowAnyButton || !isSmallScreenWidth}
-                />
+                    <View style={[styles.ph5, styles.pb2]}>
+                        <MoneyReportHeaderStatusBar nextStep={nextStep} />
+                    </View>
             )}
             {shouldShowSettlementButton && isSmallScreenWidth && (
-                <View style={[styles.ph5, styles.pb2, isSmallScreenWidth && styles.borderBottom]}>
+                    <View style={[styles.ph5, styles.pb2]}>
                     <SettlementButton
                         currency={moneyRequestReport.currency}
                         policyID={moneyRequestReport.policyID}
@@ -172,7 +172,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 </View>
             )}
             {shouldShowApproveButton && isSmallScreenWidth && (
-                <View style={[styles.ph5, styles.pb2, isSmallScreenWidth && styles.borderBottom]}>
+                    <View style={[styles.ph5, styles.pb2]}>
                     <Button
                         success
                         medium
@@ -183,7 +183,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 </View>
             )}
             {shouldShowSubmitButton && isSmallScreenWidth && (
-                <View style={[styles.ph5, styles.pb2, isSmallScreenWidth && styles.borderBottom]}>
+                    <View style={[styles.ph5, styles.pb2]}>
                     <Button
                         medium
                         success={chatReport.isOwnPolicyExpenseChat}
@@ -193,6 +193,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     />
                 </View>
             )}
+            </View>
         </View>
     );
 }
