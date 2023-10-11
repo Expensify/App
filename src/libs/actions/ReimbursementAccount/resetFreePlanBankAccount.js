@@ -7,8 +7,8 @@ import * as ReimbursementAccountProps from '../../../pages/ReimbursementAccount/
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.
- * @param {number} bankAccountID
- * @param {object} session
+ * @param {Number} bankAccountID
+ * @param {Object} session
  */
 function resetFreePlanBankAccount(bankAccountID, session) {
     if (!bankAccountID) {
