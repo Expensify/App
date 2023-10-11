@@ -110,16 +110,23 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
     // A flag for showing the tags page
     const shouldShowTags = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
 
-    // Dismiss the modal when the request is paid or deleted
+    // Decides whether to allow or disallow editing a money request
     useEffect(() => {
         const isEditingAmount = fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT;
         const isEditingCreatedDate = fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE;
         const isNonEditableFieldWhenSettled = isEditingAmount || isEditingCreatedDate;
 
+        /**
+         * Do not dismiss the modal, when a current user can edit a money request.
+         * To satisfy the condition below:
+         * 1. "canEdit" must be "true". It checks common rules like if the user is a requestor or admin, etc.
+         * 2. When the current edit field is the "amount" or "date" (created date), the money request shouldn't be settled yet.
+         * */
         if (canEdit && (!isNonEditableFieldWhenSettled || !isSettled)) {
             return;
         }
 
+        // Dismiss the modal when a current user cannot edit a money request.
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });

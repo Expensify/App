@@ -78,8 +78,9 @@ function IOUCurrencySelection(props) {
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const threadReportID = lodashGet(props.route, 'params.threadReportID', '');
 
-    // Dismiss the modal when the request is paid or deleted
+    // Decides whether to allow or disallow editing a money request
     useEffect(() => {
+        // Do not dismiss the modal, when it is not the edit flow.
         if (!threadReportID) {
             return;
         }
@@ -89,10 +90,17 @@ function IOUCurrencySelection(props) {
         const isSettled = ReportUtils.isSettled(report.parentReportID);
         const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
 
+        /**
+         * Do not dismiss the modal, when a current user can edit a money request.
+         * To satisfy the condition below:
+         * 1. "canEdit" must be "true". It checks common rules like if the user is a requestor or admin, etc.
+         * 2. When the current edit field is the "currency", the money request shouldn't be settled yet.
+         * */
         if (canEdit && !isSettled) {
             return;
         }
 
+        // Dismiss the modal when a current user cannot edit a money request.
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
