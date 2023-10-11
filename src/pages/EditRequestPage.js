@@ -96,7 +96,8 @@ const defaultProps = {
 };
 
 function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags, parentReportActions, transaction}) {
-    const parentReportAction = lodashGet(parentReportActions, [report ? report.parentReportActionID : '0']);
+    const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
+    const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
