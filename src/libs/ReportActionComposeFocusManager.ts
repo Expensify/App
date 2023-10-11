@@ -30,6 +30,7 @@ function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
  * Request focus on the ReportActionComposer
  */
 function focus() {
+    /** Do not trigger the refocusing when the active route is not the report route, */
     if (!Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(Navigation.getTopmostReportId() ?? ''))) {
         return;
     }
