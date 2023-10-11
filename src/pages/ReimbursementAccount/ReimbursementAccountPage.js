@@ -107,19 +107,6 @@ function ReimbursementAccountPage({
     reimbursementAccountDraft,
 
 }) {
-    const [prevProps, setPrevProps] = useState({
-        current: {
-            reimbursementAccount,
-            route,
-            onfidoToken,
-            policy,
-            account,
-            isLoadingReportData,
-            session,
-            plaidLinkToken,
-            reimbursementAccountDraft,
-        }
-    });
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(
         hasACHDataBeenLoaded ? getShouldShowContinueSetupButtonInitialValue() : false
     );
@@ -131,39 +118,13 @@ function ReimbursementAccountPage({
     const policyID = lodashGet(route.params, 'policyID');
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-
+    const prevIsOfflineRef = useRef(isOffline);
+    const prevReimbursementAccountRef = useRef(reimbursementAccount);
+    
     const continueFunction = () => {
         setShouldShowContinueSetupButton(false);
         fetchData(true);
     };
-
-    useEffect(() => {
-        // If it's a subsequent render, compare the current props with prevProps if needed.
-        // At the end of the useEffect, update the prevProps to the current props for the next render cycle.
-        setPrevProps({
-            current: {
-                reimbursementAccount,
-                route,
-                onfidoToken,
-                policy,
-                account,
-                isLoadingReportData,
-                session,
-                plaidLinkToken,
-                reimbursementAccountDraft,
-            }
-        });
-    }, [
-        reimbursementAccount,
-        route,
-        onfidoToken,
-        policy,
-        account,
-        isLoadingReportData,
-        session,
-        plaidLinkToken,
-        reimbursementAccountDraft,
-    ]);
 
     /**
     * @param {String} fieldName
@@ -298,7 +259,7 @@ function ReimbursementAccountPage({
 
     useEffect(() => {
         // Check for network change from offline to online
-        if (prevProps.current.isOffline && !isOffline && prevProps.current.reimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (prevIsOfflineRef.current && !isOffline && prevReimbursementAccountRef.current.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             fetchData();
         }
 
@@ -311,8 +272,8 @@ function ReimbursementAccountPage({
         }
 
         if (
-            prevProps.current.reimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            reimbursementAccount.pendingAction !== prevProps.current.reimbursementAccount.pendingAction
+            prevReimbursementAccountRef.current.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            reimbursementAccount.pendingAction !== prevReimbursementAccountRef.current.pendingAction
         ) {
             setShouldShowContinueSetupButton(hasInProgressVBBA());
         }
@@ -335,19 +296,10 @@ function ReimbursementAccountPage({
         const policyId = lodashGet(route.params, 'policyID');
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyId, backTo));
 
-        // At the end, update the prevProps ref to the current values
-        prevProps.current = {
-            reimbursementAccount,
-            route,
-            onfidoToken,
-            policy,
-            account,
-            isLoadingReportData,
-            session,
-            plaidLinkToken,
-            reimbursementAccountDraft,
-        };
-    }, [reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton]);
+        // Update refs with current values
+        prevIsOfflineRef.current = isOffline;
+        prevReimbursementAccountRef.current = reimbursementAccount;
+    }, [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton]);
 
     /**
      * @param {String} currentStep
