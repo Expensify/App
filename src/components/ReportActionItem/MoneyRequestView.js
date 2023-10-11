@@ -111,7 +111,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (ReportUtils.isReportApproved(report)) {
-        description += ` • ${props.translate('iou.approved')}`;
+        description += ` • ${translate('iou.approved')}`;
     } else if (isSettled) {
         description += ` • ${translate('iou.settledExpensify')}`;
     } else if (report.isWaitingOnBankAccount) {
