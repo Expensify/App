@@ -209,7 +209,9 @@ function MoneyRequestConfirmationList(props) {
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
-    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields;
+
+    // Do not hide fields in case of send money request
+    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend;
 
     // In Send Money flow, we don't allow the Merchant or Date to be edited.
     const shouldShowDate = shouldShowAllFields && !isTypeSend;
