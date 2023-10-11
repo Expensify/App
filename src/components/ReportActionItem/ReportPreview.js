@@ -165,7 +165,7 @@ function ReportPreview(props) {
         }
         const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
         let paymentVerb = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
-        if (iouSettled || props.iouReport.isWaitingOnBankAccount){
+        if (iouSettled || props.iouReport.isWaitingOnBankAccount) {
             paymentVerb = 'iou.payerPaid';
         }
         return props.translate(paymentVerb, {payer: managerName});

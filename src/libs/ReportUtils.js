@@ -1278,7 +1278,6 @@ function hasNonReimbursableTransactions(iouReportID) {
     return _.filter(allTransactions, (transaction) => transaction.reimbursable === false).length > 0;
 }
 
-
 /**
  * @param {Object} report
  * @param {Object} allReportsDict
@@ -1358,7 +1357,6 @@ function getMoneyRequestReportName(report, policy = undefined) {
 
     if (hasNonReimbursableTransactions(report)) {
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
-
     }
 
     if (report.hasOutstandingIOU) {
