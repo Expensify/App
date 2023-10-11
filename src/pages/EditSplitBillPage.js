@@ -61,9 +61,13 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
 
+    function navigateBackToSplitDetails() {
+        Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(reportID, reportActionID));
+    }
+
     function setDraftSplitTransaction(transactionChanges) {
         IOU.setDraftSplitTransaction(transaction.transactionID, transactionChanges);
-        Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(reportID, reportActionID));
+        navigateBackToSplitDetails();
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
@@ -72,7 +76,7 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
                 defaultDescription={transactionDescription}
                 onSubmit={(transactionChanges) => {
                     if (transactionChanges.comment.trim() === transactionDescription) {
-                        Navigation.dismissModal();
+                        navigateBackToSplitDetails();
                         return;
                     }
                     setDraftSplitTransaction({
@@ -91,7 +95,7 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
                 reportID={reportID}
                 onSubmit={(transactionChanges) => {
                     if (transactionChanges.created === transactionCreated) {
-                        Navigation.dismissModal();
+                        navigateBackToSplitDetails();
                         return;
                     }
                     setDraftSplitTransaction({
@@ -113,7 +117,7 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
                     const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
 
                     if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
-                        Navigation.goBack();
+                        Navigation.dismissModal();
                         return;
                     }
 
@@ -136,7 +140,7 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
                 defaultMerchant={transactionMerchant}
                 onSubmit={(transactionChanges) => {
                     if (transactionChanges.merchant.trim() === transactionMerchant) {
-                        Navigation.goBack();
+                        navigateBackToSplitDetails();
                         return;
                     }
                     setDraftSplitTransaction({merchant: transactionChanges.merchant.trim()});
