@@ -80,7 +80,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
         () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport) && policyType === CONST.POLICY.TYPE.PERSONAL,
         [isPayer, isDraft, isSettled, moneyRequestReport, reportTotal, chatReport, policyType],
     );
-    const shouldShowSubmitButton = isDraft;
+    const shouldShowSubmitButton = isDraft && reportTotal !== 0;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
     const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || !!nextStepButtons.approve || !!nextStepButtons.reimburse;

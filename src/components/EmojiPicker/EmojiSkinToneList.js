@@ -46,11 +46,11 @@ function EmojiSkinToneList(props) {
             {!isSkinToneListVisible && (
                 <PressableWithoutFeedback
                     onPress={toggleIsSkinToneListVisible}
-                    style={[styles.flex1, styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
+                    style={[styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
                     accessibilityLabel={props.translate('emojiPicker.skinTonePickerLabel')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 >
-                    <View style={[styles.emojiItem, styles.justifyContentCenter]}>
+                    <View style={[styles.emojiItem, styles.wAuto, styles.justifyContentCenter]}>
                         <Text style={[styles.emojiText, styles.ph2, styles.textNoWrap]}>{currentSkinTone.code}</Text>
                     </View>
                     <Text style={[styles.emojiSkinToneTitle]}>{props.translate('emojiPicker.skinTonePickerLabel')}</Text>
