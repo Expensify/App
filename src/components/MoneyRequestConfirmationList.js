@@ -193,8 +193,9 @@ const defaultProps = {
 function MoneyRequestConfirmationList(props) {
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
-    const {onSendMoney, onConfirm, onSelectParticipant, transaction} = props;
+    const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
+    const transaction = props.isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction;
 
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
     const isSplitBill = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
@@ -534,6 +535,8 @@ function MoneyRequestConfirmationList(props) {
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm || props.isReadOnly}
+                    brickRoadIndicator={props.hasSmartScanFailed && transaction.modifiedAmount === 0 && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                    error={props.hasSmartScanFailed && transaction.modifiedAmount === 0 && translate('common.error.enterAmount')}
                 />
             )}
             <MenuItemWithTopDescription
@@ -585,6 +588,8 @@ function MoneyRequestConfirmationList(props) {
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID));
                             }}
                             disabled={didConfirm || props.isReadOnly}
+                            brickRoadIndicator={props.hasSmartScanFailed && _.isEmpty(transaction.modifiedCreated) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                            error={props.hasSmartScanFailed && _.isEmpty(transaction.modifiedCreated) && translate('common.error.enterDate')}
                         />
                     )}
                     {props.isDistanceRequest && (
@@ -613,6 +618,8 @@ function MoneyRequestConfirmationList(props) {
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(props.iouType, props.reportID));
                             }}
                             disabled={didConfirm || props.isReadOnly}
+                            brickRoadIndicator={props.hasSmartScanFailed && _.isEmpty(transaction.modifiedMerchant) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                            error={props.hasSmartScanFailed && _.isEmpty(transaction.modifiedMerchant) && translate('common.error.enterMerchant')}
                         />
                     )}
                     {shouldShowCategories && (
@@ -672,6 +679,9 @@ export default compose(
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             selector: DistanceRequestUtils.getDefaultMileageRate,
+        },
+        draftTransaction: {
+            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`,
         },
         transaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,

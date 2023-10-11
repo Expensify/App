@@ -75,10 +75,6 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
             <EditRequestDescriptionPage
                 defaultDescription={transactionDescription}
                 onSubmit={(transactionChanges) => {
-                    if (transactionChanges.comment.trim() === transactionDescription) {
-                        navigateBackToSplitDetails();
-                        return;
-                    }
                     setDraftSplitTransaction({
                         comment: transactionChanges.comment.trim(),
                     });
@@ -94,10 +90,6 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
                 defaultAmount={transactionAmount}
                 reportID={reportID}
                 onSubmit={(transactionChanges) => {
-                    if (transactionChanges.created === transactionCreated) {
-                        navigateBackToSplitDetails();
-                        return;
-                    }
                     setDraftSplitTransaction({
                         created: transactionChanges.created,
                     });
@@ -115,11 +107,6 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
                 isEdittingSplitBill
                 onSubmit={(transactionChanges) => {
                     const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
-
-                    if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
-                        Navigation.dismissModal();
-                        return;
-                    }
 
                     setDraftSplitTransaction({
                         amount,
@@ -139,10 +126,6 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
             <EditRequestMerchantPage
                 defaultMerchant={transactionMerchant}
                 onSubmit={(transactionChanges) => {
-                    if (transactionChanges.merchant.trim() === transactionMerchant) {
-                        navigateBackToSplitDetails();
-                        return;
-                    }
                     setDraftSplitTransaction({merchant: transactionChanges.merchant.trim()});
                 }}
             />
