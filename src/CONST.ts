@@ -1120,7 +1120,7 @@ const CONST = {
             SVG: 'svg',
         },
         CANCEL_REASON: {
-            PAYMENT_EXPIRED: 'CANCEL_REASON_PAYMENT_EXPIRED'
+            PAYMENT_EXPIRED: 'CANCEL_REASON_PAYMENT_EXPIRED',
         },
     },
 

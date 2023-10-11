@@ -547,7 +547,8 @@ export default {
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} approved:`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
-        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) => `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
+        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
+            `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer} paid ${amount} elsewhere`,

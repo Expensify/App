@@ -122,7 +122,7 @@ type PayerSettledParams = {amount: number};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
-type CanceledRequestParams = {amount: string, submitterDisplayName: string}
+type CanceledRequestParams = {amount: string; submitterDisplayName: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 

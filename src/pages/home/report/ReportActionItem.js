@@ -70,7 +70,7 @@ import themeColors from '../../../styles/themes/default';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import RenderHTML from '../../../components/RenderHTML';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import * as CurrencyUtils from "../../../libs/CurrencyUtils";
+import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -362,7 +362,7 @@ function ReportActionItem(props) {
                     ) : null}
                 </ReportActionItemBasicMessage>
             );
-        } else if(props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.iouReport.ownerAccountID, 'displayName'], props.iouReport.ownerEmail);
             const amount = CurrencyUtils.convertToDisplayString(props.iouReport.total, props.iouReport.currency);
 
