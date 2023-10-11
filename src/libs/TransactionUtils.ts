@@ -385,6 +385,15 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
     }, {});
 }
 
+/**
+ * Returns the most recent transactions in an object
+ */
+function getRecentTransactions(transactions: Record<string, string>, size = 2): string[] {
+    return Object.keys(transactions)
+        .sort((transactionID1, transactionID2) => (new Date(transactions[transactionID1]) < new Date(transactions[transactionID2]) ? 1 : -1))
+        .slice(0, size);
+}
+
 export {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -411,4 +420,5 @@ export {
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
+    getRecentTransactions,
 };

@@ -302,6 +302,10 @@ export default {
         route: 'workspace/:policyID/settings',
         getRoute: (policyID: string) => `workspace/${policyID}/settings`,
     },
+    WORKSPACE_SETTINGS_CURRENCY: {
+        route: 'workspace/:policyID/settings/currency',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/currency`,
+    },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
         getRoute: (policyID: string) => `workspace/${policyID}/card`,

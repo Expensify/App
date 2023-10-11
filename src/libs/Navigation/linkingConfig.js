@@ -185,6 +185,9 @@ export default {
                             Workspace_Settings: {
                                 path: ROUTES.WORKSPACE_SETTINGS.route,
                             },
+                            Workspace_Settings_Currency: {
+                                path: ROUTES.WORKSPACE_SETTINGS_CURRENCY.route,
+                            },
                             Workspace_Card: {
                                 path: ROUTES.WORKSPACE_CARD.route,
                             },
