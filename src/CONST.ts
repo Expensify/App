@@ -486,6 +486,7 @@ const CONST = {
                 IOU: 'IOU',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
+                REIMBURSEMENTDEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 RENAMED: 'RENAMED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
                 SUBMITTED: 'SUBMITTED',
@@ -1117,6 +1118,9 @@ const CONST = {
             DOC: 'doc',
             DOCX: 'docx',
             SVG: 'svg',
+        },
+        CANCEL_REASON: {
+            PAYMENT_EXPIRED: 'CANCEL_REASON_PAYMENT_EXPIRED'
         },
     },
 

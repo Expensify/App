@@ -206,6 +206,8 @@ function MoneyRequestPreview(props) {
             message += ` • ${props.translate('iou.pending')}`;
         } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
             message += ` • ${props.translate('iou.settledExpensify')}`;
+        } else if(props.iouReport.originalMessage.reason === CONST.IOU.CANCEL_REASON.PAYMENT_EXPIRED) {
+            message += ` • ${props.translate('iou.canceled')}`;
         }
         return message;
     };
