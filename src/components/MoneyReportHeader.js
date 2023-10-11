@@ -69,16 +69,19 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
     const isPayer = policyType === CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
+    const isDraft = ReportUtils.isReportDraft(moneyRequestReport);
     const shouldShowSettlementButton = useMemo(
-        () => isPayer && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
-        [isPayer, isSettled, moneyRequestReport, reportTotal, chatReport],
+        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
+        [isPayer, isDraft, isSettled, moneyRequestReport, reportTotal, chatReport],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (policyType !== CONST.POLICY.TYPE.CORPORATE) {
             return false;
         }
-        return isManager && !isApproved && !isSettled;
-    }, [policyType, isManager, isApproved, isSettled]);
+        return isManager && !isDraft && !isApproved && !isSettled;
+    }, [policyType, isManager, isDraft, isApproved, isSettled]);
+    const shouldShowSubmitButton = isDraft && reportTotal !== 0;
+    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
 
@@ -93,10 +96,10 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                 personalDetails={personalDetails}
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                shouldShowBorderBottom={!shouldShowSettlementButton || !isSmallScreenWidth}
+                shouldShowBorderBottom={!shouldShowAnyButton || !isSmallScreenWidth}
             >
                 {shouldShowSettlementButton && !isSmallScreenWidth && (
-                    <View style={[styles.pv2]}>
+                    <View style={styles.pv2}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
@@ -116,13 +119,24 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                     </View>
                 )}
                 {shouldShowApproveButton && !isSmallScreenWidth && (
-                    <View style={[styles.pv2]}>
+                    <View style={styles.pv2}>
                         <Button
                             success
                             medium
                             text={translate('iou.approve')}
                             style={[styles.mnw120, styles.pv2, styles.pr0]}
                             onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
+                        />
+                    </View>
+                )}
+                {shouldShowSubmitButton && !isSmallScreenWidth && (
+                    <View style={styles.pv2}>
+                        <Button
+                            medium
+                            success={chatReport.isOwnPolicyExpenseChat}
+                            text={translate('common.submit')}
+                            style={[styles.mnw120, styles.pv2, styles.pr0]}
+                            onPress={() => IOU.submitReport(moneyRequestReport)}
                         />
                     </View>
                 )}
@@ -150,6 +164,17 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                         text={translate('iou.approve')}
                         style={[styles.w100, styles.pr0]}
                         onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
+                    />
+                </View>
+            )}
+            {shouldShowSubmitButton && isSmallScreenWidth && (
+                <View style={[styles.ph5, styles.pb2, isSmallScreenWidth && styles.borderBottom]}>
+                    <Button
+                        medium
+                        success={chatReport.isOwnPolicyExpenseChat}
+                        text={translate('common.submit')}
+                        style={[styles.w100, styles.pr0]}
+                        onPress={() => IOU.submitReport(moneyRequestReport)}
                     />
                 </View>
             )}

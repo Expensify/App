@@ -60,7 +60,7 @@ const defaultProps = {
     isLoadingReportData: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
-    policies: [],
+    policies: {},
 };
 
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode}) {
