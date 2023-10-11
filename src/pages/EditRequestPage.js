@@ -115,9 +115,9 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
 
     // Dismiss the modal when the request is paid or deleted
     useEffect(() => {
-        const isAmountToEdit = fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT;
-        const isCreatedDateToEdit = fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE;
-        const isNonEditableFieldWhenSettled = isAmountToEdit || isCreatedDateToEdit;
+        const isEditingAmount = fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT;
+        const isEditingCreatedDate = fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE;
+        const isNonEditableFieldWhenSettled = isEditingAmount || isEditingCreatedDate;
 
         if (canEdit && !isDeleted && (!isNonEditableFieldWhenSettled || !isSettled)) {
             return;
