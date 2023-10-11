@@ -1055,7 +1055,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         let oneOnOneChatReport;
         let isNewOneOnOneChatReport = false;
         let shouldCreateOptimisticPersonalDetails = false;
-
+        const personalDetailExists = _.has(allPersonalDetails, accountID);
         // If this is a split between two people only and the function
         // wasn't provided with an existing group chat report id
         // or, if the split is being made from the workspace chat, then the oneOnOneChatReport is the same as the splitChatReport
@@ -1063,11 +1063,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // entering code that creates optimistic personal details
         if ((!hasMultipleParticipants && !existingSplitChatReportID) || isOwnPolicyExpenseChat) {
             oneOnOneChatReport = splitChatReport;
-            shouldCreateOptimisticPersonalDetails = !existingSplitChatReport;
+            shouldCreateOptimisticPersonalDetails = !existingSplitChatReport && !personalDetailExists;
         } else {
             const existingChatReport = ReportUtils.getChatByParticipants([accountID]);
             isNewOneOnOneChatReport = !existingChatReport;
-            shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport;
+            shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport && !personalDetailExists;
             oneOnOneChatReport = existingChatReport || ReportUtils.buildOptimisticChatReport([accountID]);
         }
 
