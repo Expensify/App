@@ -175,7 +175,7 @@ function MoneyRequestPreview(props) {
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || '')] : [];
 
     const getSettledMessage = () => {
-        if (isExpensifyCardTransaction) {
+        if (isExpensifyCardTransaction || isDistanceRequest) {
             return props.translate('common.done');
         }
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -216,8 +216,6 @@ function MoneyRequestPreview(props) {
             message += ` • ${props.translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
-        } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
-            message += ` • ${props.translate('iou.settledExpensify')}`;
         }
         return message;
     };
