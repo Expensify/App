@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {Animated} from 'react-native';
 import {BoundsObserver} from '@react-ng/bounds-observer';
+import Str from 'expensify-common/lib/str';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
 import * as tooltipPropTypes from './tooltipPropTypes';
@@ -53,9 +54,7 @@ function chooseBoundingBox(target, clientX, clientY) {
     return bbs[0];
 }
 
-function Tooltip(props) {
-    const {children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll} = props;
-
+function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal, shiftVertical}) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -183,8 +182,8 @@ function Tooltip(props) {
                     yOffset={yOffset}
                     targetWidth={wrapperWidth}
                     targetHeight={wrapperHeight}
-                    shiftHorizontal={_.result(props, 'shiftHorizontal')}
-                    shiftVertical={_.result(props, 'shiftVertical')}
+                    shiftHorizontal={Str.result(shiftHorizontal)}
+                    shiftVertical={Str.result(shiftVertical)}
                     text={text}
                     maxWidth={maxWidth}
                     numberOfLines={numberOfLines}
