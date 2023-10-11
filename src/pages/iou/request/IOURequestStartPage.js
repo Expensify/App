@@ -96,7 +96,7 @@ function IOURequestStartPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
+            headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
             testID={IOURequestStartPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
