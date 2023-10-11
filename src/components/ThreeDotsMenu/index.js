@@ -11,6 +11,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 import CONST from '../../CONST';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** Tooltip for the popup icon */
@@ -70,10 +71,17 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
 
     const showPopoverMenu = () => {
         setPopupMenuVisible(true);
+        ReportActionComposeFocusManager.blur();
     };
 
     const hidePopoverMenu = () => {
         setPopupMenuVisible(false);
+        ReportActionComposeFocusManager.restoreFocusState();
+    };
+
+    const onItemSelected = () => {
+        setPopupMenuVisible(false);
+        ReportActionComposeFocusManager.isKeyboardVisibleWhenShowingModal = false;
     };
 
     return (
@@ -108,7 +116,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                 isVisible={isPopupMenuVisible}
                 anchorPosition={anchorPosition}
                 anchorAlignment={anchorAlignment}
-                onItemSelected={hidePopoverMenu}
+                onItemSelected={onItemSelected}
                 menuItems={menuItems}
                 withoutOverlay={!shouldOverlay}
                 anchorRef={buttonRef}

@@ -22,6 +22,7 @@ import * as TransactionUtils from '../libs/TransactionUtils';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import transactionPropTypes from './transactionPropTypes';
 import useWindowDimensions from '../hooks/useWindowDimensions';
+import ReportActionComposeFocusManager from '../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -132,6 +133,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 isVisible={isDeleteModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteModalVisible(false)}
+                onModalHide={ReportActionComposeFocusManager.restoreFocusState}
                 prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
