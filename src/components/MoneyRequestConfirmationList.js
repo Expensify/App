@@ -567,8 +567,8 @@ function MoneyRequestConfirmationList(props) {
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && transaction.modifiedAmount === 0 && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
-                    error={shouldDisplayFieldError && transaction.modifiedAmount === 0 && translate('common.error.enterAmount')}
+                    brickRoadIndicator={shouldDisplayFieldError && _.isEmpty(transaction.modifiedAmount) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    error={shouldDisplayFieldError && _.isEmpty(transaction.modifiedAmount) ? translate('common.error.enterAmount') : ''}
                 />
             )}
             <MenuItemWithTopDescription
@@ -622,8 +622,8 @@ function MoneyRequestConfirmationList(props) {
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && _.isEmpty(transaction.modifiedCreated) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
-                            error={shouldDisplayFieldError && _.isEmpty(transaction.modifiedCreated) && translate('common.error.enterDate')}
+                            brickRoadIndicator={shouldDisplayFieldError && _.isEmpty(transaction.modifiedCreated) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayFieldError && _.isEmpty(transaction.modifiedCreated) ? translate('common.error.enterDate') : ''}
                         />
                     )}
                     {props.isDistanceRequest && (
@@ -654,8 +654,8 @@ function MoneyRequestConfirmationList(props) {
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && _.isEmpty(transaction.modifiedMerchant) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
-                            error={shouldDisplayFieldError && _.isEmpty(transaction.modifiedMerchant) && translate('common.error.enterMerchant')}
+                            brickRoadIndicator={shouldDisplayFieldError && _.isEmpty(transaction.modifiedMerchant) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayFieldError && _.isEmpty(transaction.modifiedMerchant) ? translate('common.error.enterMerchant') : ''}
                         />
                     )}
                     {shouldShowCategories && (
