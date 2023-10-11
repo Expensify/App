@@ -21,11 +21,11 @@ Onyx.connect({
 function runMoney2020Demo() {
     // Try to navigate to existing demo chat if it exists in Onyx
     const money2020AccountID = Number(Config?.EXPENSIFY_ACCOUNT_ID_MONEY2020 ?? 15864555);
-    const chatReportID = ReportUtils.getChatByParticipants([money2020AccountID]);
-    if (chatReportID) {
+    const existingChatReport = ReportUtils.getChatByParticipants([money2020AccountID]);
+    if (existingChatReport) {
         // We must call goBack() to remove the demo route from nav history
         Navigation.goBack();
-        Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(existingChatReport.reportID));
         return;
     }
 
