@@ -87,7 +87,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         }
         return isManager && !isDraft && !isApproved && !isSettled;
     }, [policyType, isManager, isDraft, isApproved, isSettled]);
-    const shouldShowSubmitButton = isDraft;
+    const shouldShowSubmitButton = isDraft && reportTotal !== 0;
     const shouldShowNextSteps = isDraft && nextStep && (!_.isEmpty(nextStep.message) || !_.isEmpty(nextStep.expenseMessage));
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
