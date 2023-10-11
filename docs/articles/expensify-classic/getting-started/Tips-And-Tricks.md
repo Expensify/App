@@ -31,7 +31,7 @@ If you prefer, you can create a standard template for certain expenses:
 2. Click "New Report."
 3. Assign an easily searchable name to the report.
 4. Click the green '+' button to add an expense.
-5. Choose "New Expense".
+5. Choose "New Expense."
 6. Select the type of expense (e.g., regular expense, distance, time, etc.).
 7. Enter the expense details, code, and any relevant description.
 8. Click "Save."
