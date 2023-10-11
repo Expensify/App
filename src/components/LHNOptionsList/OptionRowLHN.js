@@ -179,6 +179,7 @@ function OptionRowLHN(props) {
                             // Prevent composer blur on left click
                             e.preventDefault();
                         }}
+                        testID={optionItem.reportID}
                         onSecondaryInteraction={(e) => showPopover(e)}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
