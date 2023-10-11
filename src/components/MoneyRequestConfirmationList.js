@@ -230,14 +230,30 @@ function MoneyRequestConfirmationList(props) {
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
+
+    const [didConfirm, setDidConfirm] = useState(false);
+    const [didConfirmSplit, setDidConfirmSplit] = useState(false);
+
+    const shouldDisplayFieldError = useMemo(() => {
+        if (!props.isEditingSplitBill) {
+            return false;
+        }
+
+        return (props.hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
+    }, [props.isEditingSplitBill, props.hasSmartScanFailed, transaction, didConfirmSplit]);
+
     useEffect(() => {
-        if (props.isEditingSplitBill && props.hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) {
+        if (shouldDisplayFieldError && props.hasSmartScanFailed) {
             setFormError('iou.receiptScanningFailed');
+            return;
+        }
+        if (shouldDisplayFieldError && didConfirmSplit) {
+            setFormError('iou.error.genericSmartscanFailureMessage');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
-    }, [isFocused, transaction, props.isEditingSplitBill, props.hasSmartScanFailed]);
+    }, [isFocused, transaction, shouldDisplayFieldError, props.hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -263,8 +279,6 @@ function MoneyRequestConfirmationList(props) {
         },
         [props.iouAmount, props.iouCurrencyCode],
     );
-
-    const [didConfirm, setDidConfirm] = useState(false);
 
     // If completing a split bill fails, set didConfirm to false to allow the user to edit the fields again
     if (props.isEditingSplitBill && didConfirm) {
@@ -425,7 +439,7 @@ function MoneyRequestConfirmationList(props) {
                 }
 
                 if (props.isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
-                    // TODO in this PR: also show errors next to the fields if user confirms while transaction has missing fields
+                    setDidConfirmSplit(true);
                     setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
                 }
@@ -447,6 +461,8 @@ function MoneyRequestConfirmationList(props) {
             transaction,
         ],
     );
+    console.log(transaction);
+    console.log(TransactionUtils.areRequiredFieldsEmpty(transaction));
 
     const footerContent = useMemo(() => {
         if (props.isReadOnly) {
@@ -552,8 +568,8 @@ function MoneyRequestConfirmationList(props) {
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm || props.isReadOnly}
-                    brickRoadIndicator={props.hasSmartScanFailed && transaction.modifiedAmount === 0 && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
-                    error={props.hasSmartScanFailed && transaction.modifiedAmount === 0 && translate('common.error.enterAmount')}
+                    brickRoadIndicator={shouldDisplayFieldError && transaction.modifiedAmount === 0 && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                    error={shouldDisplayFieldError && transaction.modifiedAmount === 0 && translate('common.error.enterAmount')}
                 />
             )}
             <MenuItemWithTopDescription
@@ -605,8 +621,8 @@ function MoneyRequestConfirmationList(props) {
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID));
                             }}
                             disabled={didConfirm || props.isReadOnly}
-                            brickRoadIndicator={props.hasSmartScanFailed && _.isEmpty(transaction.modifiedCreated) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
-                            error={props.hasSmartScanFailed && _.isEmpty(transaction.modifiedCreated) && translate('common.error.enterDate')}
+                            brickRoadIndicator={shouldDisplayFieldError && _.isEmpty(transaction.modifiedCreated) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                            error={shouldDisplayFieldError && _.isEmpty(transaction.modifiedCreated) && translate('common.error.enterDate')}
                         />
                     )}
                     {props.isDistanceRequest && (
@@ -635,8 +651,8 @@ function MoneyRequestConfirmationList(props) {
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(props.iouType, props.reportID));
                             }}
                             disabled={didConfirm || props.isReadOnly}
-                            brickRoadIndicator={props.hasSmartScanFailed && _.isEmpty(transaction.modifiedMerchant) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
-                            error={props.hasSmartScanFailed && _.isEmpty(transaction.modifiedMerchant) && translate('common.error.enterMerchant')}
+                            brickRoadIndicator={shouldDisplayFieldError && _.isEmpty(transaction.modifiedMerchant) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                            error={shouldDisplayFieldError && _.isEmpty(transaction.modifiedMerchant) && translate('common.error.enterMerchant')}
                         />
                     )}
                     {shouldShowCategories && (
