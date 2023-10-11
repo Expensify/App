@@ -1505,19 +1505,30 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     Report.notifyNewAction(splitChatReport.chatReportID, currentUserAccountID);
 }
 
+/** Used for editing a split bill while it's still scanning or when SmartScan fails, it completes a split bill started by startSplitBill above.
+ *
+ * @param {number} chatReportID - The group chat or workspace reportID
+ * @param {Object} reportAction - The split action that lives in the chatReport above
+ * @param {Object} updatedTransaction - The updated **draft** split transaction
+ * @param {Number} currentUserAccountID
+ * @param {String} currentUserEmail
+ */
 function completeSplitBill(chatReportID, reportAction, updatedTransaction, currentUserAccountID, currentUserEmail) {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserEmail);
+    const {transactionID} = updatedTransaction;
+    const unmodifiedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     // Save optimistic updated transaction and action
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${updatedTransaction.transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 ...updatedTransaction,
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.OPEN,
                 },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
         {
@@ -1527,6 +1538,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
                 [reportAction.reportActionID]: {
                     lastModified: DateUtils.getDBTime(),
                     whisperedToAccountIDs: [],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
@@ -1535,7 +1547,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${updatedTransaction.transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {pendingAction: null},
         },
     ];
@@ -1543,9 +1555,20 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${updatedTransaction.transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                ...unmodifiedTransaction,
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    ...reportAction,
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                },
             },
         },
     ];
@@ -1610,7 +1633,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
             updatedTransaction.comment.comment,
             updatedTransaction.modifiedCreated,
             CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
-            updatedTransaction.transactionID,
+            transactionID,
             updatedTransaction.modifiedMerchant,
             {...updatedTransaction.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
             updatedTransaction.filename,
@@ -1672,7 +1695,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
     API.write(
         'CompleteSplitBill',
         {
-            transactionID: updatedTransaction.transactionID,
+            transactionID,
             amount: updatedTransaction.modifiedAmount,
             currency: updatedTransaction.modifiedCurrency,
             created: updatedTransaction.modifiedCreated,

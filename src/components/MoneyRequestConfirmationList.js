@@ -265,6 +265,11 @@ function MoneyRequestConfirmationList(props) {
 
     const [didConfirm, setDidConfirm] = useState(false);
 
+    // If completing a split bill fails, set didConfirm to false to allow the user to edit the fields again
+    if (props.isEditingSplitBill && didConfirm) {
+        setDidConfirm(false);
+    }
+
     const splitOrRequestOptions = useMemo(() => {
         let text;
         if (isSplitBill && props.iouAmount === 0) {
