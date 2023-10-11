@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/staging'
     steps:
-      - uses: ./.github/actions/composite/setupGitForOSBotify
+      - uses: ./.github/actions/composite/setupGitForOSBotifyApp
         id: setupGitForOSBotify
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/production'
     steps:
-      - uses: ./.github/actions/composite/setupGitForOSBotify
+      - uses: ./.github/actions/composite/setupGitForOSBotifyApp
         id: setupGitForOSBotify
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
