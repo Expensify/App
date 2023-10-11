@@ -21,32 +21,6 @@ const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
  */
 
 /**
- * Choose the correct bounding box from the given list.
- * This is a helper function for chooseBoundingBox below.
- *
- * @param {Element} bbs The bounding boxes of DOM element being hovered over.
- * @param {number} clientX The X position from the MouseEvent.
- * @param {number} clientY The Y position from the MouseEvent.
- * @param {number} slop An allowed slop factor when searching for the bounding
- * box. If the user is moving the mouse quickly we can end up getting a
- * hover event with the position outside any of our bounding boxes. We retry
- * with a small slop factor in that case, so if we have a bounding box close
- * enough then we go with that.
- * @return {DOMRect | null} The chosen bounding box. null if we failed to find
- * a matching one, which can happen if the user is moving the mouse quickly
- * and the onHoverOver event actually fires outside the element bounding box.
- */
-function chooseBoundingBoxWithSlop(bbs, clientX, clientY, slop) {
-    for (let i = 0; i < bbs.length; i++) {
-        const bb = bbs[i];
-        if (bb.x - slop <= clientX && bb.x + bb.width + slop >= clientX && bb.y - slop <= clientY && bb.y + bb.height + slop >= clientY) {
-            return bb;
-        }
-    }
-    return null;
-}
-
-/**
  * Choose the correct bounding box for the tooltip to be positioned against.
  * This handles the case where the target is wrapped across two lines, and
  * so we need to find the correct part (the one that the user is hovering
@@ -59,23 +33,24 @@ function chooseBoundingBoxWithSlop(bbs, clientX, clientY, slop) {
  */
 
 function chooseBoundingBox(target, clientX, clientY) {
+    const slop = 5;
     const bbs = target.getClientRects();
-    if (bbs.length === 1) {
-        return bbs[0];
+    const clientXMin = clientX - slop;
+    const clientXMax = clientX + slop;
+    const clientYMin = clientY - slop;
+    const clientYMax = clientY + slop;
+
+    for (let i = 0; i < bbs.length; i++) {
+        const bb = bbs[i];
+        if (clientXMin <= bb.right && clientXMax >= bb.left && clientYMin <= bb.bottom && clientYMax >= bb.top) {
+            return bb;
+        }
     }
-    let bb = chooseBoundingBoxWithSlop(bbs, clientX, clientY, 0);
-    if (bb) {
-        return bb;
-    }
-    // Retry with a slop factor, in case the user is moving the mouse quickly.
-    bb = chooseBoundingBoxWithSlop(bbs, clientX, clientY, 5);
-    if (bb) {
-        return bb;
-    }
-    // Fall back to the full bounding box if we failed to find a matching one.
-    // This could only happen if the user is moving the mouse very quickly
-    // and they got it outside our slop above.
-    return target.getBoundingClientRect();
+    
+    // If no matching bounding box is found, fall back to the first one.
+ // This could only happen if the user is moving the mouse very quickly
+ // and they got it outside our slop above.
+    return bbs[0];
 }
 
 function Tooltip(props) {
