@@ -1,4 +1,4 @@
-import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, Text, View, Linking} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
@@ -101,6 +101,27 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
             subscription.remove();
         };
     }, []);
+
+    /**
+     * Inform the users when they need to grant camera access and guide them to settings
+     */
+    const showPermissionsAlert = useCallback(() => {
+        Alert.alert(
+            translate('attachmentPicker.cameraPermissionRequired'),
+            translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+            [
+                {
+                    text: translate('common.cancel'),
+                    style: 'cancel',
+                },
+                {
+                    text: translate('common.settings'),
+                    onPress: () => Linking.openSettings(),
+                },
+            ],
+            {cancelable: false},
+        );
+    }, [translate]);
 
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
