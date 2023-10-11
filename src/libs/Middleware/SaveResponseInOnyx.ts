@@ -13,10 +13,16 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
         .then((response = {}) => {
             const onyxUpdates = response?.onyxData ?? [];
 
-            // Sometimes we call requests that are successfull but they don't have any response or any success/failure data to set. Let's return early since
-            // we don't need to store anything here.
-            if (!onyxUpdates && !request.successData && !request.failureData) {
-                return Promise.resolve(response);
+        // Sometimes we call requests that are successfull but they don't have any response or any success/failure data to set. Let's return early since
+        // we don't need to store anything here.
+        if (!onyxUpdates && !request.successData && !request.failureData) {
+            return Promise.resolve(response);
+        }
+
+        // If there is an OnyxUpdate for using memory only keys, enable them
+        _.find(onyxUpdates, ({key, value}) => {
+            if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS || !value) {
+                return false;
             }
 
             // If there is an OnyxUpdate for using memory only keys, enable them
@@ -50,8 +56,6 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
                 shouldPauseQueue: true,
             });
         })
-        .catch((err) => {
-            console.error('Got exception while saving response in Onyx', err);
-        });
+   
 
 export default SaveResponseInOnyx;
