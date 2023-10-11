@@ -145,9 +145,15 @@ function ReportActionItem(props) {
     }, [isActiveReportActionForMenu]);
 
     useEffect(() => {
-        if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED  && !_.isEmpty(props.action.errors) && props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED) {            
-            ReportActions.clearReportActionErrors(props.report.reportID, props.action)
+        if (
+            props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+            _.isEmpty(props.action.errors) ||
+            props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED ||
+            props.report.statusNum !== CONST.REPORT.STATUS.APPROVED
+        ) {
+            return;
         }
+        ReportActions.clearReportActionErrors(props.report.reportID, props.action);
     }, [props]);
 
     const updateHiddenState = useCallback(
