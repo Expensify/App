@@ -1565,8 +1565,116 @@ describe('OptionsListUtils', () => {
                 isDisabled: false,
             },
         ];
+        const resultOneLine = [
+            {
+                text: 'Meals',
+                keyForList: 'Meals',
+                searchText: 'Meals',
+                tooltipText: 'Meals',
+                isDisabled: false,
+            },
+            {
+                text: 'Restaurant',
+                keyForList: 'Restaurant',
+                searchText: 'Restaurant',
+                tooltipText: 'Restaurant',
+                isDisabled: false,
+            },
+            {
+                text: 'Food',
+                keyForList: 'Food',
+                searchText: 'Food',
+                tooltipText: 'Food',
+                isDisabled: false,
+            },
+            {
+                text: 'Food: Meat',
+                keyForList: 'Food: Meat',
+                searchText: 'Food: Meat',
+                tooltipText: 'Food: Meat',
+                isDisabled: false,
+            },
+            {
+                text: 'Food: Milk',
+                keyForList: 'Food: Milk',
+                searchText: 'Food: Milk',
+                tooltipText: 'Food: Milk',
+                isDisabled: false,
+            },
+            {
+                text: 'Cars: Audi',
+                keyForList: 'Cars: Audi',
+                searchText: 'Cars: Audi',
+                tooltipText: 'Cars: Audi',
+                isDisabled: false,
+            },
+            {
+                text: 'Cars: Mercedes-Benz',
+                keyForList: 'Cars: Mercedes-Benz',
+                searchText: 'Cars: Mercedes-Benz',
+                tooltipText: 'Cars: Mercedes-Benz',
+                isDisabled: false,
+            },
+            {
+                text: 'Travel: Meals',
+                keyForList: 'Travel: Meals',
+                searchText: 'Travel: Meals',
+                tooltipText: 'Travel: Meals',
+                isDisabled: false,
+            },
+            {
+                text: 'Travel: Meals: Breakfast',
+                keyForList: 'Travel: Meals: Breakfast',
+                searchText: 'Travel: Meals: Breakfast',
+                tooltipText: 'Travel: Meals: Breakfast',
+                isDisabled: false,
+            },
+            {
+                text: 'Travel: Meals: Lunch',
+                keyForList: 'Travel: Meals: Lunch',
+                searchText: 'Travel: Meals: Lunch',
+                tooltipText: 'Travel: Meals: Lunch',
+                isDisabled: false,
+            },
+            {
+                text: 'Plain',
+                keyForList: 'Plain',
+                searchText: 'Plain',
+                tooltipText: 'Plain',
+                isDisabled: false,
+            },
+            {
+                text: 'Audi',
+                keyForList: 'Audi',
+                searchText: 'Audi',
+                tooltipText: 'Audi',
+                isDisabled: false,
+            },
+            {
+                text: 'Health',
+                keyForList: 'Health',
+                searchText: 'Health',
+                tooltipText: 'Health',
+                isDisabled: false,
+            },
+            {
+                text: 'A: B: C',
+                keyForList: 'A: B: C',
+                searchText: 'A: B: C',
+                tooltipText: 'A: B: C',
+                isDisabled: false,
+            },
+            {
+                text: 'A: B: C: D: E',
+                keyForList: 'A: B: C: D: E',
+                searchText: 'A: B: C: D: E',
+                tooltipText: 'A: B: C: D: E',
+                isDisabled: false,
+            },
+        ];
 
         expect(OptionsListUtils.getCategoryOptionTree(categories)).toStrictEqual(result);
+        expect(OptionsListUtils.getCategoryOptionTree(categories, true)).toStrictEqual(resultOneLine);
     });
 
     it('formatMemberForList()', () => {
