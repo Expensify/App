@@ -316,7 +316,7 @@ class BaseOptionsSelector extends Component {
      */
     selectRow(option, ref) {
         return new Promise((resolve) => {
-            if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
+            if (this.props.shouldShowTextInput && this.props.shouldPreventDefaultFocusOnSelectRow) {
                 if (this.relatedTarget && ref === this.relatedTarget) {
                     this.textInput.focus();
                     this.relatedTarget = null;
@@ -344,7 +344,7 @@ class BaseOptionsSelector extends Component {
      * @param {Object} option
      */
     addToSelection(option) {
-        if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
+        if (this.props.shouldShowTextInput && this.props.shouldPreventDefaultFocusOnSelectRow) {
             this.textInput.focus();
             if (this.textInput.isFocused()) {
                 setSelection(this.textInput, 0, this.props.value.length);
@@ -372,7 +372,7 @@ class BaseOptionsSelector extends Component {
                 maxLength={this.props.maxLength}
                 keyboardType={this.props.keyboardType}
                 onBlur={(e) => {
-                    if (!this.props.shouldFocusOnSelectRow) {
+                    if (!this.props.shouldPreventDefaultFocusOnSelectRow) {
                         return;
                     }
                     this.relatedTarget = e.relatedTarget;
@@ -417,6 +417,7 @@ class BaseOptionsSelector extends Component {
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
                 isRowMultilineSupported={this.props.isRowMultilineSupported}
+                shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
             />
         );
         return (
