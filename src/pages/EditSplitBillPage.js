@@ -135,11 +135,11 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
             <EditRequestMerchantPage
                 defaultMerchant={transactionMerchant}
                 onSubmit={(transactionChanges) => {
-                    if (transactionMerchant === transactionChanges.merchant) {
+                    if (transactionChanges.merchant.trim() === transactionMerchant) {
                         Navigation.goBack();
                         return;
                     }
-                    setDraftSplitTransaction({merchant: transactionChanges.merchant});
+                    setDraftSplitTransaction({merchant: transactionChanges.merchant.trim()});
                 }}
             />
         );
