@@ -238,8 +238,12 @@ function ReportPreview(props) {
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
                                 style={[styles.requestPreviewBox]}
-                                anchorAlignment={{
+                                kycWallAnchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                }}
+                                paymentMethodDropdownAnchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                 }}
                             />
