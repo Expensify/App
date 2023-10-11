@@ -654,8 +654,16 @@ function MoneyRequestConfirmationList(props) {
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && _.isEmpty(transaction.modifiedMerchant) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayFieldError && _.isEmpty(transaction.modifiedMerchant) ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={
+                                shouldDisplayFieldError && (transaction.modifiedMerchant === '' || transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)
+                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                    : ''
+                            }
+                            error={
+                                shouldDisplayFieldError && (transaction.modifiedMerchant === '' || transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)
+                                    ? translate('common.error.enterMerchant')
+                                    : ''
+                            }
                         />
                     )}
                     {shouldShowCategories && (
