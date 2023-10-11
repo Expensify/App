@@ -138,6 +138,8 @@ function ReportPreview(props) {
               scanningReceipts: numberOfScanningReceipts,
           });
 
+    const shouldShowSubmitButton = isReportDraft && reportTotal !== 0;
+
     const getDisplayAmount = () => {
         if (reportTotal) {
             return CurrencyUtils.convertToDisplayString(reportTotal, props.iouReport.currency);
@@ -205,17 +207,6 @@ function ReportPreview(props) {
                         <View style={styles.reportPreviewBoxBody}>
                             <View style={styles.flexRow}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
-                                </View>
-                                {hasErrors && (
-                                    <Icon
-                                        src={Expensicons.DotIndicator}
-                                        fill={themeColors.danger}
-                                    />
-                                )}
-                            </View>
-                            <View style={styles.flexRow}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                     <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
                                     {ReportUtils.isSettled(props.iouReportID) && (
                                         <View style={styles.defaultCheckmarkWrapper}>
@@ -250,7 +241,7 @@ function ReportPreview(props) {
                                     }}
                                 />
                             )}
-                            {isReportDraft && (
+                            {shouldShowSubmitButton && (
                                 <Button
                                     medium
                                     success={props.chatReport.isOwnPolicyExpenseChat}

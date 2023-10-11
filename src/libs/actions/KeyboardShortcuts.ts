@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-let isShortcutsModalOpen;
+let isShortcutsModalOpen: boolean | null;
 Onyx.connect({
     key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN,
     callback: (flag) => (isShortcutsModalOpen = flag),
