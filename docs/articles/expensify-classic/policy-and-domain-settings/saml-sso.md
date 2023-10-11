@@ -30,6 +30,7 @@ To transfer from one Microsoft Azure certificate to another, please follow the b
 3. In Azure Directory, activate the remaining certificate, and get a new IdP for Expensify from it.
 4. In Expensify, replace the previous IdP with the new IdP.
 5. Log in via SSO. If login continues to fails, write into Concierge for assistance.
+
 ## How can I enable deactivating users with the Okta SSO integration?
 Companies using Okta can deactivate users in Expensify using the Okta SCIM API. This means that when a user is deactivated in Okta their access to Expensify will expire and they will be logged out of both the web and mobile apps. Deactivating a user through Okta will not close their account in Expensify, if you are offboarding this employee, you will still want to close the account.
 You will need have a verified domain and SAML fully setup before completing setting up the deactivation feature.
