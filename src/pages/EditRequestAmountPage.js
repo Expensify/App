@@ -33,7 +33,9 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
             if (!textInput.current) {
                 return;
             }
-            textInput.current.focus();
+            setTimeout(() => {
+                textInput.current.focus();
+            }, 50);
         });
     };
 
