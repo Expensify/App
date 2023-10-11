@@ -13,16 +13,11 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import useSingleExecution from '../../../hooks/useSingleExecution';
 
 /**
- * Returns the cursor style based on the state of Pressable
- * @param {Boolean} isDisabled
+ * Returns the cursor style based on the role of Pressable
  * @param {Boolean} isText
  * @returns {Object}
  */
-const getCursorStyle = (isDisabled, isText) => {
-    if (isDisabled) {
-        return styles.cursorDisabled;
-    }
-
+const getCursorStyle = (isText) => {
     if (isText) {
         return styles.cursorText;
     }
@@ -36,7 +31,6 @@ const GenericPressable = forwardRef((props, ref) => {
         onPress,
         onLongPress,
         onKeyPress,
-        onKeyDown,
         disabled,
         style,
         shouldUseHapticsOnLongPress,
@@ -45,8 +39,6 @@ const GenericPressable = forwardRef((props, ref) => {
         keyboardShortcut,
         shouldUseAutoHitSlop,
         enableInScreenReaderStates,
-        onPressIn,
-        onPressOut,
         ...rest
     } = props;
 
@@ -67,13 +59,8 @@ const GenericPressable = forwardRef((props, ref) => {
         return props.disabled || shouldBeDisabledByScreenReader || isExecuting;
     }, [isScreenReaderActive, enableInScreenReaderStates, props.disabled, isExecuting]);
 
-    const shouldUseDisabledCursor = useMemo(() => isDisabled && !isExecuting, [isDisabled, isExecuting]);
-
     const onLongPressHandler = useCallback(
         (event) => {
-            if (isDisabled) {
-                return;
-            }
             if (!onLongPress) {
                 return;
             }
@@ -92,9 +79,6 @@ const GenericPressable = forwardRef((props, ref) => {
 
     const onPressHandler = useCallback(
         (event) => {
-            if (isDisabled) {
-                return;
-            }
             if (!onPress) {
                 return;
             }
@@ -135,15 +119,13 @@ const GenericPressable = forwardRef((props, ref) => {
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref}
-            onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
+            disabled={isDisabled}
+            onPress={singleExecution(onPressHandler)}
             // In order to prevent haptic feedback, pass empty callback as onLongPress props. Please refer https://github.com/necolas/react-native-web/issues/2349#issuecomment-1195564240
-            onLongPress={!isDisabled && onLongPress ? onLongPressHandler : defaultLongPressHandler}
-            onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
-            onKeyDown={!isDisabled ? onKeyDown : undefined}
-            onPressIn={!isDisabled ? onPressIn : undefined}
-            onPressOut={!isDisabled ? onPressOut : undefined}
+            onLongPress={onLongPress ? onLongPressHandler : defaultLongPressHandler}
+            onKeyPress={onKeyPressHandler}
             style={(state) => [
-                getCursorStyle(shouldUseDisabledCursor, [props.accessibilityRole, props.role].includes('text')),
+                getCursorStyle([props.accessibilityRole, props.role].includes('text')),
                 StyleUtils.parseStyleFromFunction(props.style, state),
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(props.screenReaderActiveStyle, state),
                 state.focused && StyleUtils.parseStyleFromFunction(props.focusStyle, state),
@@ -159,8 +141,8 @@ const GenericPressable = forwardRef((props, ref) => {
             aria-disabled={isDisabled}
             aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs
-            onMagicTap={!isDisabled && onPressHandler}
-            onAccessibilityTap={!isDisabled && onPressHandler}
+            onMagicTap={onPressHandler}
+            onAccessibilityTap={onPressHandler}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
