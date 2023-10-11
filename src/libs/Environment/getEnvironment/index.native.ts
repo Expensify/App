@@ -1,13 +1,14 @@
 import Config from 'react-native-config';
 import betaChecker from '../betaChecker';
 import CONST from '../../../CONST';
+import Environment from './types';
 
-let environment: string | null = null;
+let environment: Environment | null = null;
 
 /**
  * Returns a promise that resolves with the current environment string value
  */
-function getEnvironment(): Promise<string> {
+function getEnvironment(): Promise<Environment> {
     return new Promise((resolve) => {
         // If we've already set the environment, use the current value
         if (environment) {

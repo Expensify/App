@@ -17,9 +17,6 @@ const OLDDOT_ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.ADHOC]: CONST.STAGING_EXPENSIFY_URL,
 };
 
-type EnvironmentUrlsKeys = keyof typeof ENVIRONMENT_URLS;
-type OldDotEnvironmentUrlsKeys = keyof typeof OLDDOT_ENVIRONMENT_URLS;
-
 /**
  * Are we running the app in development?
  */
@@ -39,7 +36,7 @@ function isInternalTestBuild(): boolean {
  */
 function getEnvironmentURL(): Promise<string> {
     return new Promise((resolve) => {
-        getEnvironment().then((environment) => resolve(ENVIRONMENT_URLS[environment as EnvironmentUrlsKeys]));
+        getEnvironment().then((environment) => resolve(ENVIRONMENT_URLS[environment]));
     });
 }
 
@@ -47,7 +44,7 @@ function getEnvironmentURL(): Promise<string> {
  * Get the corresponding oldDot URL based on the environment we are in
  */
 function getOldDotEnvironmentURL(): Promise<string> {
-    return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment as OldDotEnvironmentUrlsKeys]);
+    return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
 export {getEnvironment, isInternalTestBuild, isDevelopment, getEnvironmentURL, getOldDotEnvironmentURL};
