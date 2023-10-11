@@ -1575,7 +1575,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
     // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
     const splitAmount = IOUUtils.calculateAmount(splitParticipants.length - 1, amount, currency, false);
 
-    const splits = [];
+    const splits = [{email: currentUserEmailForIOUSplit}];
     _.each(splitParticipants, (participant) => {
         // Skip creating the transaction for the current user
         if (participant.email === currentUserEmailForIOUSplit) {
