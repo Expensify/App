@@ -10,7 +10,7 @@ This can be useful if you start off with an account of your own but your organiz
 
 # How to merge accounts
 Merging two accounts together is fairly straightforward. Let’s go over how to do that below:
-1. Navigate to expensify.com. 
+1. Navigate to [expensify.com](https://www.expensify.com). 
 2. Log into the account you want to set as the Primary account.
 3. Navigate to Settings > Account > Account Details
 4. Scroll down to the Merge Accounts section and fill in the fields. Once you click Merge, a magic code link will be sent to you via email and you'll be prompted to enter the magic code
