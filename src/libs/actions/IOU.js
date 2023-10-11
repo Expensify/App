@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import lodashHas from 'lodash/has';
 import Str from 'expensify-common/lib/str';
 import {format} from 'date-fns';
 import CONST from '../../CONST';
@@ -1055,7 +1056,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         let oneOnOneChatReport;
         let isNewOneOnOneChatReport = false;
         let shouldCreateOptimisticPersonalDetails = false;
-        const personalDetailExists = _.has(allPersonalDetails, accountID);
+        const personalDetailExists = lodashHas(allPersonalDetails, accountID);
         // If this is a split between two people only and the function
         // wasn't provided with an existing group chat report id
         // or, if the split is being made from the workspace chat, then the oneOnOneChatReport is the same as the splitChatReport
