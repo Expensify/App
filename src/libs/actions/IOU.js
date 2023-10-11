@@ -1701,6 +1701,8 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
         },
         {optimisticData, successData, failureData},
     );
+    Navigation.dismissModal(chatReportID);
+    Report.notifyNewAction(chatReportID, sessionAccountID);
 }
 
 /**
