@@ -70,7 +70,7 @@ function RoomHeaderAvatars(props) {
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(iconsToDisplay, (icon, index) => (
                     <View
-                        key={`${icon.source}${index}`}
+                        key={`${icon.id}${index}`}
                         style={[styles.justifyContentCenter, styles.alignItemsCenter]}
                     >
                         <AttachmentModal
