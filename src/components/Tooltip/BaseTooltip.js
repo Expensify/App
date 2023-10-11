@@ -79,7 +79,7 @@ function chooseBoundingBox(target, clientX, clientY) {
 }
 
 function Tooltip(props) {
-    const {children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey} = props;
+    const {children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll} = props;
 
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -227,7 +227,7 @@ function Tooltip(props) {
                     onMouseEnter={updateTargetAndMousePosition}
                     onHoverIn={showTooltip}
                     onHoverOut={hideTooltip}
-                    shouldHandleScroll={props.shouldHandleScroll}
+                    shouldHandleScroll={shouldHandleScroll}
                 >
                     {children}
                 </Hoverable>
