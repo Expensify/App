@@ -47,7 +47,7 @@ const PressableWithFeedback = forwardRef((props, ref) => {
 
     return (
         <OpacityView
-            shouldDim={Boolean(!props.disabled && (isPressed || isHovered))}
+            shouldDim={Boolean(isPressed || isHovered)}
             dimmingValue={isPressed ? props.pressDimmingValue : props.hoverDimmingValue}
             style={props.wrapperStyle}
             needsOffscreenAlphaCompositing={props.needsOffscreenAlphaCompositing}
