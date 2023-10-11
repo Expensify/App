@@ -54,6 +54,7 @@ class BaseOptionsSelector extends Component {
         this.selectRow = this.selectRow.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
+        this.updateSearchValue = this.updateSearchValue.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
@@ -63,6 +64,7 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
+            errorMessage: '',
         };
     }
 
@@ -165,6 +167,14 @@ class BaseOptionsSelector extends Component {
         }
 
         return defaultIndex;
+    }
+
+    updateSearchValue(value) {
+        this.setState({
+            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+        });
+
+        this.props.onChangeText(value);
     }
 
     subscribeToKeyboardShortcut() {
@@ -366,10 +376,11 @@ class BaseOptionsSelector extends Component {
                 label={this.props.textInputLabel}
                 accessibilityLabel={this.props.textInputLabel}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                onChangeText={this.props.onChangeText}
+                onChangeText={this.updateSearchValue}
+                errorText={this.state.errorMessage}
                 onSubmitEditing={this.selectFocusedOption}
                 placeholder={this.props.placeholderText}
-                maxLength={this.props.maxLength}
+                maxLength={this.props.maxLength + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
                 keyboardType={this.props.keyboardType}
                 onBlur={(e) => {
                     if (!this.props.shouldPreventDefaultFocusOnSelectRow) {
@@ -396,7 +407,7 @@ class BaseOptionsSelector extends Component {
                 multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
                 onAddToSelection={this.addToSelection}
                 hideSectionHeaders={this.props.hideSectionHeaders}
-                headerMessage={this.props.headerMessage}
+                headerMessage={this.state.errorMessage ? '' : this.props.headerMessage}
                 boldStyle={this.props.boldStyle}
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}

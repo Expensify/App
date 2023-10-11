@@ -2737,6 +2737,12 @@ const CONST = {
     },
 
     MISSING_TRANSLATION: 'MISSING TRANSLATION',
+    SEARCH_MAX_LENGTH: 500,
+
+    /**
+     * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
+     */
+    ADDITIONAL_ALLOWED_CHARACTERS: 20,
 } as const;
 
 export default CONST;

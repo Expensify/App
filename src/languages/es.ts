@@ -183,6 +183,7 @@ export default {
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}: CharacterLimitParams) => `Supera el límite de ${limit} caracteres`,
+            characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
             invalidCharacter: 'Carácter invalido',
             enterMerchant: 'Introduce un comerciante',
