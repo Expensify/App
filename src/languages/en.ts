@@ -506,6 +506,8 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        deleteReceipt: 'Delete receipt',
+        deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
     },
     iou: {
@@ -513,6 +515,7 @@ export default {
         approve: 'Approve',
         approved: 'Approved',
         cash: 'Cash',
+        card: 'Card',
         split: 'Split',
         addToSplit: 'Add to split',
         splitBill: 'Split bill',
@@ -523,6 +526,7 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         pending: 'Pending',
+        posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         receiptScanning: 'Receipt scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
@@ -1589,7 +1593,7 @@ export default {
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
     },
-    keyboardShortcutModal: {
+    keyboardShortcutsPage: {
         title: 'Keyboard shortcuts',
         subtitle: 'Save time with these handy keyboard shortcuts:',
         shortcuts: {

@@ -1,4 +1,4 @@
-import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, Text, View} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
@@ -110,7 +110,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                 setCameraPermissionStatus(status);
 
                 if (status === RESULTS.BLOCKED) {
-                    showPermissionsAlert();
+                    FileUtils.showCameraPermissionsAlert();
                 }
             })
             .catch(() => {
