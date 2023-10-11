@@ -88,8 +88,6 @@ function UserCurrentLocationButton({onLocationFetched, onLocationError, onClick,
                 onPress={getUserLocation}
                 accessibilityLabel={translate('location.useCurrent')}
                 disabled={isDisabled}
-                onMouseDown={e => e.preventDefault()}
-                onTouchStart={e => e.preventDefault()}
             >
                 <Icon
                     src={Expensicons.Location}
