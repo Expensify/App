@@ -571,7 +571,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}
-                    {shouldShowSmartScanFields && (
+                    {shouldShowSmartScanFields && !props.isDistanceRequest && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouMerchant}
