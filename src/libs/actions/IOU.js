@@ -1057,7 +1057,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         let isNewOneOnOneChatReport = false;
         let shouldCreateOptimisticPersonalDetails = false;
         const personalDetailExists = lodashHas(allPersonalDetails, accountID);
-        
+
         // If this is a split between two people only and the function
         // wasn't provided with an existing group chat report id
         // or, if the split is being made from the workspace chat, then the oneOnOneChatReport is the same as the splitChatReport
