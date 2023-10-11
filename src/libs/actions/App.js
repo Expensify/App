@@ -351,7 +351,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
         .then(endSignOnTransition);
 }
 
-function savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail = '', makeMeAdmin = false, transitionFromOldDot = false, shouldNavigateToAdminChat = true) {
+function savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail = '', makeMeAdmin = false) {
     Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
 }
 
