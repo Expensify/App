@@ -9,9 +9,8 @@ import Middleware from './types';
 const requestsToIgnoreLastUpdateID = ['OpenApp', 'ReconnectApp', 'GetMissingOnyxMessages'];
 
 const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
-    requestResponse
-        .then((response = {}) => {
-            const onyxUpdates = response?.onyxData ?? [];
+    requestResponse.then((response = {}) => {
+        const onyxUpdates = response?.onyxData ?? [];
 
         // Sometimes we call requests that are successfull but they don't have any response or any success/failure data to set. Let's return early since
         // we don't need to store anything here.
@@ -20,42 +19,35 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
         }
 
         // If there is an OnyxUpdate for using memory only keys, enable them
-        _.find(onyxUpdates, ({key, value}) => {
+        onyxUpdates?.find(({key, value}) => {
             if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS || !value) {
                 return false;
             }
 
-            // If there is an OnyxUpdate for using memory only keys, enable them
-            onyxUpdates?.find(({key, value}) => {
-                if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS || !value) {
-                    return false;
-                }
+            MemoryOnlyKeys.enable();
+            return true;
+        });
 
-                MemoryOnlyKeys.enable();
-                return true;
-            });
+        const responseToApply = {
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            lastUpdateID: Number(response?.lastUpdateID ?? 0),
+            previousUpdateID: Number(response?.previousUpdateID ?? 0),
+            request,
+            response: response ?? {},
+        };
 
-            const responseToApply = {
-                type: CONST.ONYX_UPDATE_TYPES.HTTPS,
-                lastUpdateID: Number(response?.lastUpdateID ?? 0),
-                previousUpdateID: Number(response?.previousUpdateID ?? 0),
-                request,
-                response: response ?? {},
-            };
+        if (requestsToIgnoreLastUpdateID.includes(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response?.previousUpdateID ?? 0))) {
+            return OnyxUpdates.apply(responseToApply);
+        }
 
-            if (requestsToIgnoreLastUpdateID.includes(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response?.previousUpdateID ?? 0))) {
-                return OnyxUpdates.apply(responseToApply);
-            }
+        // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
+        OnyxUpdates.saveUpdateInformation(responseToApply);
 
-            // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
-            OnyxUpdates.saveUpdateInformation(responseToApply);
-
-            // Ensure the queue is paused while the client resolves the gap in onyx updates so that updates are guaranteed to happen in a specific order.
-            return Promise.resolve({
-                ...response,
-                shouldPauseQueue: true,
-            });
-        })
-   
+        // Ensure the queue is paused while the client resolves the gap in onyx updates so that updates are guaranteed to happen in a specific order.
+        return Promise.resolve({
+            ...response,
+            shouldPauseQueue: true,
+        });
+    });
 
 export default SaveResponseInOnyx;
