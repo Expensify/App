@@ -3291,7 +3291,7 @@ const styles = (theme) => ({
     eReceiptAmountLarge: {
         ...headlineFont,
         fontSize: variables.fontSizeEReceiptLarge,
-        lineHeight: 'normal',
+        lineHeight: variables.lineHeightXXsLarge,
         wordBreak: 'break-word',
         textAlign: 'center',
     },
@@ -3299,7 +3299,7 @@ const styles = (theme) => ({
     eReceiptCurrency: {
         ...headlineFont,
         fontSize: variables.fontSizeXXLarge,
-        lineHeight: 'normal',
+        lineHeight: variables.lineHeightXXLarge,
         wordBreak: 'break-all',
     },
 
