@@ -33,7 +33,6 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
-import * as LottieAnimations from '../components/LottieAnimations';
 
 type AnchorPosition = {
     horizontal: number;
@@ -73,7 +72,6 @@ type Styles = Record<
 >;
 type ValueStructure<T> = T[keyof T];
 
-type LottieAnimation = ValueStructure<typeof LottieAnimations>;
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
@@ -3855,7 +3853,7 @@ const styles = (theme: ThemeDefault) =>
             lineHeight: variables.lineHeightLarge,
         },
 
-        aspectRatioLottie: (source: LottieAnimation & {uri?: string}) => {
+        aspectRatioLottie: (source) => {
             if (!source.uri && typeof source === 'object' && source.w && source.h) {
                 return {aspectRatio: source.w / source.h};
             }
