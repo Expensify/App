@@ -6,7 +6,7 @@ description: How to merge two Expensify accounts and why this is useful.
 # Overview
 
 Merging accounts allows you to combine two accounts. When you combine two accounts, all receipts, expenses, expense reports, invoices, bills, imported cards, secondary logins, co-pilots, and group policy settings will be combined into one account. 
-This can be useful if you start off with an account of your own but your organization creates a separate account for you. You can the track both personal and business expenses via one account. 
+This can be useful if you start off with an account of your own but your organization creates a separate account for you. You can then track both personal and business expenses via one account. 
 
 # How to merge accounts
 Merging two accounts together is fairly straightforward. Let’s go over how to do that below:
