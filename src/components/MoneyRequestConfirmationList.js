@@ -231,9 +231,13 @@ function MoneyRequestConfirmationList(props) {
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
     useEffect(() => {
+        if (props.isEditingSplitBill && props.hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) {
+            setFormError('iou.receiptScanningFailed');
+            return;
+        }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
-    }, [isFocused]);
+    }, [isFocused, transaction, props.isEditingSplitBill, props.hasSmartScanFailed]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
