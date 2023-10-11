@@ -206,45 +206,14 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
 //  * @param {Object} reportActions
 //  * @returns {Array}
 //  */
-// function processReportActions(reportActions) {
-//     // TODO:
+// function processReportActions(reportActions) { //TODO: remove after previousReportActionID is stable
 //     // Separate new and sorted reportActions
 //     const newReportActions = _.filter(reportActions, (action) => !action.previousReportActionID);
 //     const sortedReportActions = _.filter(reportActions, (action) => action.previousReportActionID);
 
-//     // console.log(
-//     //     'getChat.Sort.N.0',
-//     //     newReportActions.length,
-//     //     newReportActions.map(({message}) => message[0].text),
-//     // );
-//     // console.log(
-//     //     'getChat.Sort.N.0.0',
-//     //     newReportActions.length,
-//     //     newReportActions.map(({previousReportActionID}) => previousReportActionID),
-//     // );
-//     // console.log(
-//     //     'getChat.Sort.S.0',
-//     //     sortedReportActions.length,
-//     //     sortedReportActions.map(({message}) => message[0].text),
-//     // );
-//     // console.log(
-//     //     'getChat.Sort.S.0.0',
-//     //     sortedReportActions.length,
-//     //     sortedReportActions.map(({previousReportActionID}) => previousReportActionID),
-//     // );
 //     // Sort the new reportActions
 //     const sortedNewReportActions = getSortedReportActionsForDisplay(newReportActions);
 
-//     // console.log(
-//     //     'getChat.SORT.SS',
-//     //     JSON.stringify(
-//     //         sortedNewReportActions.map(({message, reportActionID, previousReportActionID}) => ({
-//     //             message: message[0].text,
-//     //             reportActionID,
-//     //             previousReportActionID,
-//     //         })),
-//     //     ),
-//     // );
 
 //     // Then, iterate through the sorted new reportActions and add the previousReportActionID to each item except the first
 //     const processedReportActions = sortedNewReportActions.map((action, index) => {
@@ -257,59 +226,22 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
 //         };
 //     });
 
-//     // console.log(
-//     //     'getChat.SORT.BEFORE',
-//     //     JSON.stringify(
-//     //         processedReportActions.map(({message, reportActionID, previousReportActionID}) => ({
-//     //             message: message[0].text,
-//     //             reportActionID,
-//     //             previousReportActionID,
-//     //         })),
-//     //     ),
-//     // );
 //     if (processedReportActions[processedReportActions.length - 1]?.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
 //         processedReportActions.pop();
 //     }
-//     // console.log(
-//     //     'getChat.SORT.AFTER',
-//     //     JSON.stringify(
-//     //         processedReportActions.map(({message, reportActionID, previousReportActionID}) => ({
-//     //             message: message[0].text,
-//     //             reportActionID,
-//     //             previousReportActionID,
-//     //         })),
-//     //     ),
-//     // );
 
 //     // Determine the order of merging based on reportActionID values
 //     const lastSortedReportActionID = _.last(sortedReportActions)?.reportActionTimestamp || 0;
 //     const firstProcessedReportActionID = _.first(processedReportActions)?.reportActionTimestamp || Infinity;
 
-//     // console.log('getChat.Sort.1', getSortedReportActionsForDisplay(reportActions).length, [...sortedReportActions, ...processedReportActions].length);
-//     // console.log('getChat.Sort.1.1', _.last(sortedReportActions), _.first(processedReportActions));
 //     if (firstProcessedReportActionID > lastSortedReportActionID) {
-//         // console.log(
-//         //     'getChat.Sort.2',
-//         //     [...sortedReportActions, ...processedReportActions].map(({message}) => message[0].text),
-//         // );
 //         return [...sortedReportActions, ...processedReportActions];
 //     } else {
-//         // console.log(
-//         //     'getChat.Sort.3',
-//         //     [...processedReportActions, ...sortedReportActions].map(({message}) => message[0].text),
-//         // );
 //         return [...processedReportActions, ...sortedReportActions];
 //     }
 // }
 
-// Usage:
-// const reportActions = [
-//   { reportActionID: '1' },
-//   { reportActionID: '2', previousReportActionID: '1' },
-//   { reportActionID: '3' }
-// ];
-// const updatedActions = processReportActions(reportActions);
-// console.log(updatedActions);
+
 
 /**
  * Returns the range of report actions from the given array which include current id
@@ -320,7 +252,6 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
  * @returns {Array}
  */
 function getRangeFromArrayByID(array, id) {
-    // without gaps
     let index;
 
     if (id) {
@@ -347,7 +278,6 @@ function getRangeFromArrayByID(array, id) {
     }
 
     return array.slice(startIndex, endIndex + 1);
-    // return array.slice(startIndex, endIndex);
 }
 
 
@@ -874,7 +804,6 @@ export {
     getAllReportActions,
     isReportActionAttachment,
     isNotifiableReportAction,
-    // processReportActions,
     getRangeFromArrayByID,
     getSlicedRangeFromArrayByID,
 };

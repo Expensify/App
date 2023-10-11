@@ -84,13 +84,11 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const {reportActionID} = getReportActionID(route);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
-
+    const isFirstRender = useRef(true);
     const [isLinkingToCattedMessage, setLinkingToCattedMessage] = useState(false);
     const [isLinkingToExtendedMessage, setLinkingToExtendedMessage] = useState(false);
     const isLoadingLinkedMessage = !!reportActionID && props.isLoadingInitialReportActions;
 
-    const isFirstRender = useRef(true); //TODO: 
-    // const hasCachedActions = useRef(_.size(props.reportActions) > 0); //TODO: 
 
 
     useEffect(() => {
@@ -183,7 +181,6 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     useEffect(() => {
         openReportIfNecessary();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        // isFirstRender.current = false;
     }, []);
 
     useEffect(() => {
@@ -269,21 +266,15 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
                 //
                 // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
                 // This should be removed once the issue of frequent re-renders is resolved.
-
-                // if (!isLinkingToExtendedMessage || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) { // TODO:
                 //
                 // onStartReached is triggered during the first render. Since we use OpenReport on the first render and are confident about the message ordering, we can safely skip this call
-                if (isFirstRender.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
+                if (isFirstRender.current || isLinkingToExtendedMessage || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
                     isFirstRender.current = false;
                     return;
                 }
 
                 const newestReportAction = reportActions[0];
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
-
-                // const newestReportAction = _.first(props.reportActions);
-                // Report.getNewerActions(reportID, newestReportAction.reportActionID);
-                // Report.getNewerActions(reportID, '1134531619271003224');
             }, 500),
         [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, isLinkingToExtendedMessage, reportID, reportActions],
     );
