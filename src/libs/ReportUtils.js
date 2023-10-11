@@ -2118,6 +2118,7 @@ function buildOptimisticIOUReport(payeeAccountID, payerAccountID, total, chatRep
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.PROCESSING,
+        statusNum: isSendingMoney ? CONST.REPORT.STATUS.REIMBURSED : CONST.REPORT.STATE_NUM.PROCESSING,
         total,
 
         // We don't translate reportName because the server response is always in English
