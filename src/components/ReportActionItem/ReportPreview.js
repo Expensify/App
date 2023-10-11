@@ -92,10 +92,10 @@ const propTypes = {
     isWhisper: PropTypes.bool,
 
     /** Next steps buttons to take action for an expense report */
-    nextStepButtons: PropTypes.objectOf({
+    nextStepButtons: PropTypes.objectOf(PropTypes.shape({
         /** Text of the next step button */
         text: PropTypes.string,
-    }),
+    })),
 
     ...withLocalizePropTypes,
 };
