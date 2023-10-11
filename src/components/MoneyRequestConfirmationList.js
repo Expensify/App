@@ -424,7 +424,7 @@ function MoneyRequestConfirmationList(props) {
                     return;
                 }
 
-                if (isEditingSplitBill && TransactionUtils.hasMissingSmartscanFields(transaction)) {
+                if (props.isEditingSplitBill && TransactionUtils.hasMissingSmartscanFields(transaction)) {
                     // TODO in this PR: also show errors next to the fields if user confirms while transaction has missing fields
                     setFormError('iou.receiptScanningFailed');
                     return;
