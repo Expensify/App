@@ -53,6 +53,7 @@ To enable deactivating users in Okta, follow these steps:
 15. Select Enable API Integration and paste the Okta SCIM Token in API Token field and then click Save.
 15. Go to To App, click Edit Provisioning Users, select Enable Deactivate Users and then Save. (You may also need to set up the Expensify Attribute Mappings if you have not previously in steps 9-11).
 Successful activation of this function will be indicated by the green Push User Deactivation icon being enabled at the top of the app page.
+
 ## How can I set up SAML authentication with Microsoft ADFS?
 Before getting started, you will need have a verified domain and Control plan in order to setup SSO with Microsoft ADFS.
 To enable SSO with Microsoft ADFS follow these steps:
