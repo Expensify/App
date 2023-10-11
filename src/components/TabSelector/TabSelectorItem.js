@@ -1,4 +1,4 @@
-import {Animated} from 'react-native';
+import {Animated, StyleSheet} from 'react-native';
 import React from 'react';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -27,6 +27,9 @@ const propTypes = {
     /** Animated opacity value while the label is in active state */
     // eslint-disable-next-line
     activeOpacity: PropTypes.any,
+
+    /** Whether this tab is active */
+    isFocused: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -36,29 +39,32 @@ const defaultProps = {
     backgroundColor: '',
     inactiveOpacity: 1,
     activeOpacity: 0,
+    isFocused: false,
 };
 
-const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
-
-function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, inactiveOpacity}) {
+function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, inactiveOpacity, isFocused}) {
     return (
-        <AnimatedPressableWithFeedback
+        <PressableWithFeedback
             accessibilityLabel={title}
-            style={[styles.tabSelectorButton, {backgroundColor}]}
+            style={[styles.tabSelectorButton]}
             wrapperStyle={[styles.flex1]}
             onPress={onPress}
         >
-            <TabIcon
-                icon={icon}
-                activeOpacity={activeOpacity}
-                inactiveOpacity={inactiveOpacity}
-            />
-            <TabLabel
-                title={title}
-                activeOpacity={activeOpacity}
-                inactiveOpacity={inactiveOpacity}
-            />
-        </AnimatedPressableWithFeedback>
+            {({hovered}) => (
+                <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, styles.tabBackground(hovered, isFocused, backgroundColor)]}>
+                    <TabIcon
+                        icon={icon}
+                        activeOpacity={styles.tabOpacity(hovered, isFocused, activeOpacity, inactiveOpacity)}
+                        inactiveOpacity={styles.tabOpacity(hovered, isFocused, inactiveOpacity, activeOpacity)}
+                    />
+                    <TabLabel
+                        title={title}
+                        activeOpacity={styles.tabOpacity(hovered, isFocused, activeOpacity, inactiveOpacity)}
+                        inactiveOpacity={styles.tabOpacity(hovered, isFocused, inactiveOpacity, activeOpacity)}
+                    />
+                </Animated.View>
+            )}
+        </PressableWithFeedback>
     );
 }
 

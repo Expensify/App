@@ -114,7 +114,7 @@ function PressableWithDelayToggle(props) {
                         tabIndex={-1}
                         accessible={false}
                         onPress={updatePressState}
-                        style={[styles.flexRow, ...props.styles]}
+                        style={[styles.flexRow, ...props.styles, !isActive && styles.cursorDefault]}
                     >
                         {({hovered, pressed}) => (
                             <>

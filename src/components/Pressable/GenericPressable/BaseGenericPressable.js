@@ -10,6 +10,7 @@ import styles from '../../../styles/styles';
 import genericPressablePropTypes from './PropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import useSingleExecution from '../../../hooks/useSingleExecution';
 
 /**
  * Returns the cursor style based on the state of Pressable
@@ -44,12 +45,12 @@ const GenericPressable = forwardRef((props, ref) => {
         keyboardShortcut,
         shouldUseAutoHitSlop,
         enableInScreenReaderStates,
-        isExecuting,
         onPressIn,
         onPressOut,
         ...rest
     } = props;
 
+    const {isExecuting, singleExecution} = useSingleExecution();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
 
@@ -63,8 +64,8 @@ const GenericPressable = forwardRef((props, ref) => {
             shouldBeDisabledByScreenReader = isScreenReaderActive;
         }
 
-        return props.disabled || shouldBeDisabledByScreenReader;
-    }, [isScreenReaderActive, enableInScreenReaderStates, props.disabled]);
+        return props.disabled || shouldBeDisabledByScreenReader || isExecuting;
+    }, [isScreenReaderActive, enableInScreenReaderStates, props.disabled, isExecuting]);
 
     const shouldUseDisabledCursor = useMemo(() => isDisabled && !isExecuting, [isDisabled, isExecuting]);
 
@@ -134,7 +135,7 @@ const GenericPressable = forwardRef((props, ref) => {
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref}
-            onPress={!isDisabled ? onPressHandler : undefined}
+            onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             // In order to prevent haptic feedback, pass empty callback as onLongPress props. Please refer https://github.com/necolas/react-native-web/issues/2349#issuecomment-1195564240
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : defaultLongPressHandler}
             onKeyPress={!isDisabled ? onKeyPressHandler : undefined}

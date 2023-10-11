@@ -90,6 +90,7 @@ const radioListItemPropTypes = {
 const baseListItemPropTypes = {
     ...commonListItemPropTypes,
     item: PropTypes.oneOfType([PropTypes.shape(userListItemPropTypes.item), PropTypes.shape(radioListItemPropTypes.item)]),
+    shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,
 };
 
 const propTypes = {
@@ -167,8 +168,8 @@ const propTypes = {
     /** Whether to show the default confirm button */
     showConfirmButton: PropTypes.bool,
 
-    /** Whether to focus the textinput after an option is selected */
-    shouldFocusOnSelectRow: PropTypes.bool,
+    /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
+    shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,
 
     /** A ref to forward to the TextInput */
     inputRef: PropTypes.oneOfType([PropTypes.object]),

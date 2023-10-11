@@ -13,7 +13,16 @@ import RadioListItem from './RadioListItem';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import CONST from '../../CONST';
 
-function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip, canSelectMultiple = false, onSelectRow, onDismissError = () => {}}) {
+function BaseListItem({
+    item,
+    isFocused = false,
+    isDisabled = false,
+    showTooltip,
+    shouldPreventDefaultFocusOnSelectRow = false,
+    canSelectMultiple = false,
+    onSelectRow,
+    onDismissError = () => {},
+}) {
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
 
@@ -32,6 +41,7 @@ function BaseListItem({item, isFocused = false, isDisabled = false, showTooltip,
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
             >
                 <View
                     style={[
