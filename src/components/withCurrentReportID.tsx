@@ -4,7 +4,6 @@ import {NavigationState} from '@react-navigation/native';
 
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import Navigation from '../libs/Navigation/Navigation';
-import {type} from 'os';
 
 type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;
