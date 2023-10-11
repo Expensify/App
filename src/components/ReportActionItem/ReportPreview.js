@@ -207,6 +207,17 @@ function ReportPreview(props) {
                         <View style={styles.reportPreviewBoxBody}>
                             <View style={styles.flexRow}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
+                                </View>
+                                {hasErrors && (
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={themeColors.danger}
+                                    />
+                                )}
+                            </View>
+                            <View style={styles.flexRow}>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                     <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
                                     {ReportUtils.isSettled(props.iouReportID) && (
                                         <View style={styles.defaultCheckmarkWrapper}>
