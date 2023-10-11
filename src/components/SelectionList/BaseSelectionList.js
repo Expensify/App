@@ -52,7 +52,7 @@ function BaseSelectionList({
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
     showConfirmButton = false,
-    shouldFocusOnSelectRow = false,
+    shouldPreventDefaultFocusOnSelectRow = false,
     isKeyboardShown = false,
     wrapperStyle = {},
     disableInitialFocusOptionStyle = false,
@@ -214,14 +214,14 @@ function BaseSelectionList({
 
         onSelectRow(item);
 
-        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };
 
     const selectAllRow = () => {
         onSelectAll();
-        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };
@@ -303,6 +303,7 @@ function BaseSelectionList({
                 onSelectRow={() => selectRow(item, true)}
                 disableIsFocusStyle={disableInitialFocusOptionStyle}
                 onDismissError={onDismissError}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             />
         );
     };
@@ -405,6 +406,7 @@ function BaseSelectionList({
                                         accessibilityState={{checked: flattenedSections.allSelected}}
                                         disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                                     >
                                         <Checkbox
                                             accessibilityLabel={translate('workspace.people.selectAll')}

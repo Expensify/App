@@ -336,7 +336,7 @@ const Form = forwardRef((props, forwardedRef) => {
 
                 // We want to initialize the input value if it's undefined
                 if (_.isUndefined(inputValues[inputID])) {
-                    inputValues[inputID] = defaultValue || '';
+                    inputValues[inputID] = _.isBoolean(defaultValue) ? defaultValue : defaultValue || '';
                 }
 
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value

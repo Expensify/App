@@ -81,7 +81,7 @@ function setLocale(localeString: string) {
 
 /**
  * Gets the user's stored time zone NVP and returns a localized
- * Moment object for the given ISO-formatted datetime string
+ * Date object for the given ISO-formatted datetime string
  */
 function getLocalDateFromDatetime(locale: string, datetime: string, currentSelectedTimezone = timezone.selected): Date {
     setLocale(locale);
@@ -615,6 +615,7 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
+    setLocale,
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
     getThirtyMinutesFromNow,
