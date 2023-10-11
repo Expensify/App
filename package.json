@@ -100,7 +100,7 @@
     "idb-keyval": "^6.2.1",
     "jest-when": "^3.5.2",
     "lodash": "4.17.21",
-    "lottie-react-native": "^5.1.6",
+    "lottie-react-native": "^6.3.1",
     "mapbox-gl": "^2.15.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.31",

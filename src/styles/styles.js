@@ -3785,6 +3785,13 @@ const styles = (theme) => ({
         lineHeight: variables.lineHeightLarge,
     },
 
+    aspectRatioLottie: (source) => {
+        if (!source.uri && typeof source === 'object' && source.w && source.h) {
+            return {aspectRatio: source.w / source.h};
+        }
+        return {};
+    },
+
     receiptDropHeaderGap: {
         backgroundColor: theme.receiptDropUIBG,
     },
