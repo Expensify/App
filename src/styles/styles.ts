@@ -70,7 +70,6 @@ type Styles = Record<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     | ((...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomAnimation | CustomPickerStyle)
 >;
-type ValueStructure<T> = T[keyof T];
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
