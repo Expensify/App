@@ -25,7 +25,7 @@ export default function useCopySelectionHelper() {
             copyShortcutConfig.shortcutKey,
             copySelectionToClipboard,
             copyShortcutConfig.descriptionKey,
-            copyShortcutConfig.modifiers,
+            [...copyShortcutConfig.modifiers],
             false,
         );
 
