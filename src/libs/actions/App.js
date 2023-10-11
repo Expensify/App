@@ -336,6 +336,25 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
         .then(endSignOnTransition);
 }
 
+function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false) {
+    const policyID = Policy.generatePolicyID();
+    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID);
+
+    Navigation.isNavigationReady()
+        .then(() => {
+            if (transitionFromOldDot) {
+                // We must call goBack() to remove the /transition route from history
+                Navigation.goBack(ROUTES.HOME);
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        })
+        .then(endSignOnTransition);
+}
+
+function savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail = '', makeMeAdmin = false, transitionFromOldDot = false, shouldNavigateToAdminChat = true) {
+    Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
+}
+
 /**
  * This action runs when the Navigator is ready and the current route changes
  *
@@ -513,4 +532,6 @@ export {
     createWorkspaceAndNavigateToIt,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,
+    savePolicyDraftByNewWorkspace,
+    createWorkspaceWithPolicyDraftAndNavigateToIt,
 };

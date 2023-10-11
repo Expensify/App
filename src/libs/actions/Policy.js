@@ -909,6 +909,40 @@ function buildOptimisticCustomUnits() {
     };
 }
 
+function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID()) {
+    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
+    const {customUnits} = buildOptimisticCustomUnits();
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+            value: {
+                id: policyID,
+                type: CONST.POLICY.TYPE.FREE,
+                name: workspaceName,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: sessionEmail,
+                isPolicyExpenseChatEnabled: true,
+                outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                customUnits,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
+            value: {
+                [sessionAccountID]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    errors: {},
+                },
+            },
+        },
+    ];
+    Onyx.update(optimisticData);
+}
+
 /**
  * Optimistically creates a new workspace and default workspace chats
  *
@@ -957,6 +991,16 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         },
         {
             optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+                    value: null,
+                },
                 {
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1131,6 +1175,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             ],
         },
     );
+
     return adminsChatReportID;
 }
 
@@ -1259,4 +1304,5 @@ export {
     clearErrors,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
+    createDraftInitialWorkspace,
 };
