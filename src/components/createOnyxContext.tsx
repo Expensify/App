@@ -17,22 +17,23 @@ type ProviderProps = {
 type ProviderPropsWithOnyx<TOnyxKey extends OnyxKeys> = ProviderProps & ProviderOnyxProps<TOnyxKey>;
 
 // withOnyxKey types
-type WrappedComponentProps<TOnyxKey extends OnyxKeys, TNewOnyxKey extends string = TOnyxKey, TTransformedValue = OnyxKeyValue<TOnyxKey>> = Omit<ProviderPropsWithOnyx<TOnyxKey>, TOnyxKey> &
-    Record<TNewOnyxKey, TTransformedValue>;
-
-type WithOnyxKeyProps<TOnyxKey extends OnyxKeys, TNewOnyxKey extends string = TOnyxKey, TTransformedValue = OnyxKeyValue<TOnyxKey>> = {
+type WithOnyxKeyProps<TOnyxKey extends OnyxKeys, TNewOnyxKey extends string, TTransformedValue> = {
     propName?: TOnyxKey | TNewOnyxKey;
-    transformValue?: (value: OnyxKeyValue<TOnyxKey>, props: ProviderProps) => TTransformedValue;
+    // It's not possible to infer the type of props of the wrapped component, so we have to use `any` here
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    transformValue?: (value: OnyxKeyValue<TOnyxKey>, props: any) => TTransformedValue;
 };
+
+type WrapComponentWithConsumer<TNewOnyxKey extends string, TTransformedValue> = <TComponentProps extends Record<TNewOnyxKey, TTransformedValue>>(
+    WrappedComponent: ComponentType<TComponentProps>,
+) => ForwardRefExoticComponent<Omit<TComponentProps, TNewOnyxKey> & RefAttributes<ComponentType<TComponentProps>>>;
 
 type WithOnyxKey<TOnyxKey extends OnyxKeys> = <TNewOnyxKey extends string = TOnyxKey, TTransformedValue = OnyxKeyValue<TOnyxKey>>(
     props?: WithOnyxKeyProps<TOnyxKey, TNewOnyxKey, TTransformedValue>,
-) => (
-    WrappedComponent: ComponentType<WrappedComponentProps<TOnyxKey, TNewOnyxKey, TTransformedValue>>,
-) => ForwardRefExoticComponent<ProviderProps & RefAttributes<ComponentType<WrappedComponentProps<TOnyxKey, TNewOnyxKey, TTransformedValue>>>>;
+) => WrapComponentWithConsumer<TNewOnyxKey, TTransformedValue>;
 
 // createOnyxContext return type
-type CreateOnyxContext<TOnyxKey extends OnyxKeys> = [WithOnyxKey<TOnyxKey>, ComponentType<Omit<ProviderPropsWithOnyx<TOnyxKey>, TOnyxKey>>, React.Context<OnyxKeyValue<TOnyxKey>>];
+type CreateOnyxContext<TOnyxKey extends OnyxKeys> = [WithOnyxKey<TOnyxKey>, ComponentType<Omit<ProviderPropsWithOnyx<TOnyxKey>, TOnyxKey>>, Context<OnyxKeyValue<TOnyxKey>>];
 
 export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey, defaultValue: OnyxKeyValue<TOnyxKey> = null): CreateOnyxContext<TOnyxKey> => {
     const Context = createContext(defaultValue);
@@ -53,12 +54,12 @@ export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey, defaultValue: 
         propName,
         transformValue,
     }: WithOnyxKeyProps<TOnyxKey, TNewOnyxKey, TTransformedValue> = {}) {
-        return (WrappedComponent: ComponentType<WrappedComponentProps<TOnyxKey, TNewOnyxKey, TTransformedValue>>) => {
-            function Consumer(props: ProviderProps, ref: ForwardedRef<ComponentType<WrappedComponentProps<TOnyxKey, TNewOnyxKey, TTransformedValue>>>): ReactNode {
+        return <TComponentProps extends Record<TNewOnyxKey, TTransformedValue>>(WrappedComponent: ComponentType<TComponentProps>) => {
+            function Consumer(props: TComponentProps, ref: ForwardedRef<ComponentType<TComponentProps>>): ReactNode {
                 return (
                     <Context.Consumer>
                         {(value) => {
-                            const propsToPass = {
+                            const propsToPass: TComponentProps = {
                                 ...props,
                                 [propName ?? onyxKeyName]: (transformValue ? transformValue(value, props) : value) ?? defaultValue,
                             };
@@ -76,7 +77,7 @@ export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey, defaultValue: 
             }
 
             Consumer.displayName = `with${Str.UCFirst(onyxKeyName)}(${getComponentDisplayName(WrappedComponent)})`;
-            return forwardRef(Consumer);
+            return forwardRef(Consumer) as ForwardRefExoticComponent<Omit<TComponentProps, TNewOnyxKey> & RefAttributes<ComponentType<TComponentProps>>>;
         };
     }
 
