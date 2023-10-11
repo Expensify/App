@@ -73,6 +73,10 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET_DOMAINCARDS.route,
                                 exact: true,
                             },
+                            Settings_Wallet_ReportVirtualCardFraud: {
+                                path: ROUTES.SETTINGS_REPORT_FRAUD.route,
+                                exact: true,
+                            },
                             Settings_Wallet_EnablePayments: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
@@ -180,6 +184,9 @@ export default {
                             },
                             Workspace_Settings: {
                                 path: ROUTES.WORKSPACE_SETTINGS.route,
+                            },
+                            Workspace_Settings_Currency: {
+                                path: ROUTES.WORKSPACE_SETTINGS_CURRENCY.route,
                             },
                             Workspace_Card: {
                                 path: ROUTES.WORKSPACE_CARD.route,

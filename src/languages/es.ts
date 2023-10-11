@@ -183,6 +183,7 @@ export default {
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}: CharacterLimitParams) => `Supera el límite de ${limit} caracteres`,
+            characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
             invalidCharacter: 'Carácter invalido',
             enterMerchant: 'Introduce un comerciante',
@@ -497,6 +498,8 @@ export default {
         flash: 'flash',
         shutter: 'obturador',
         gallery: 'galería',
+        deleteReceipt: 'Eliminar recibo',
+        deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
     },
     iou: {
@@ -504,6 +507,7 @@ export default {
         approve: 'Aprobar',
         approved: 'Aprobado',
         cash: 'Efectivo',
+        card: 'Tarjeta',
         split: 'Dividir',
         addToSplit: 'Añadir para dividir',
         splitBill: 'Dividir factura',
@@ -514,6 +518,7 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
         receiptScanning: 'Escaneo de recibo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
@@ -829,6 +834,7 @@ export default {
         availableSpend: 'Capacidad de gasto restante',
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
+        reportFraud: 'Reportar fraude con la tarjeta virtual',
         cardDetails: {
             cardNumber: 'Número de tarjeta virtual',
             expiration: 'Expiración',
@@ -837,6 +843,13 @@ export default {
             revealDetails: 'Revelar detalles',
             copyCardNumber: 'Copiar número de la tarjeta',
         },
+    },
+    reportFraudPage: {
+        title: 'Reportar fraude con la tarjeta virtual',
+        description:
+            'Si los datos de tu tarjeta virtual han sido robados o se han visto comprometidos, desactivaremos permanentemente la tarjeta actual y le proporcionaremos una tarjeta virtual y un número nuevo.',
+        deactivateCard: 'Desactivar tarjeta',
+        reportVirtualCardFraud: 'Reportar fraude con la tarjeta virtual',
     },
     activateCardPage: {
         activateCard: 'Activar tarjeta',

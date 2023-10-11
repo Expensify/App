@@ -26,6 +26,7 @@ import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+import objectFit from './utilities/objectFit';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
@@ -174,6 +175,7 @@ const styles = (theme) => ({
     ...userSelect,
     ...textUnderline,
     ...theme, // TODO: Should we do this?
+    ...objectFit,
 
     autoCompleteSuggestionsContainer: {
         backgroundColor: theme.appBG,
@@ -779,12 +781,14 @@ const styles = (theme) => ({
     cameraView: {
         flex: 1,
         overflow: 'hidden',
-        padding: 10,
         borderRadius: 28,
         borderStyle: 'solid',
         borderWidth: 8,
         backgroundColor: theme.highlightBG,
         borderColor: theme.appBG,
+        display: 'flex',
+        justifyContent: 'center',
+        justifyItems: 'center',
     },
 
     permissionView: {
@@ -1779,7 +1783,6 @@ const styles = (theme) => ({
     },
 
     emojiSkinToneTitle: {
-        width: '100%',
         ...spacing.pv1,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
@@ -2271,7 +2274,7 @@ const styles = (theme) => ({
             justifyContent: 'space-between',
         }),
         padding: 20,
-        backgroundColor: theme.sidebar,
+        backgroundColor: theme.cardBG,
         borderRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
     }),
@@ -2530,6 +2533,7 @@ const styles = (theme) => ({
                   // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
                   // Therefore, the transition effect needs to be delayed.
                   transitionDelay: '99999s',
+                  transitionProperty: 'background-color',
               }
             : {}),
     },
@@ -3734,6 +3738,12 @@ const styles = (theme) => ({
         height: 30,
         width: '100%',
     },
+    videoContainer: {
+        ...flex.flex1,
+        ...flex.alignItemsCenter,
+        ...flex.justifyContentCenter,
+        ...objectFit.oFCover,
+    },
 
     globalNavigation: {
         width: variables.globalNavigationWidth,
@@ -3770,7 +3780,7 @@ const styles = (theme) => ({
         overflow: 'hidden',
     },
 
-    walletCardNumber: {
+    walletCardMenuItem: {
         color: theme.text,
         fontSize: variables.fontSizeNormal,
     },
@@ -3783,6 +3793,13 @@ const styles = (theme) => ({
         color: theme.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightLarge,
+    },
+
+    aspectRatioLottie: (source) => {
+        if (!source.uri && typeof source === 'object' && source.w && source.h) {
+            return {aspectRatio: source.w / source.h};
+        }
+        return {};
     },
 
     receiptDropHeaderGap: {
