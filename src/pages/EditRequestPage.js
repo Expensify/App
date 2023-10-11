@@ -126,7 +126,7 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
     const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
-    const shouldShowTags = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
+    const shouldShowTags = true;
 
     // Dismiss the modal when the request is paid or deleted
     useEffect(() => {
