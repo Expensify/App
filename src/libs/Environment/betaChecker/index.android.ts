@@ -4,6 +4,7 @@ import CONST from '../../../CONST';
 import pkg from '../../../../package.json';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as AppUpdate from '../../actions/AppUpdate';
+import IsBetaBuild from './types';
 
 let isLastSavedBeta = false;
 Onyx.connect({
@@ -19,7 +20,7 @@ Onyx.connect({
 /**
  * Check the GitHub releases to see if the current build is a beta build or production build
  */
-function isBetaBuild(): Promise<boolean> {
+function isBetaBuild(): IsBetaBuild {
     return new Promise((resolve) => {
         fetch(CONST.GITHUB_RELEASE_URL)
             .then((res) => res.json())
