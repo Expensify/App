@@ -1,27 +1,30 @@
 import {useContext, useCallback} from 'react';
-import {ActionListContext} from '../../pages/home/ReportScreenContext';
+import {ActionListContext, ActionListContextType} from '../../pages/home/ReportScreenContext';
 
-function useReportScrollManager() {
+function useReportScrollManager(): {
+    ref: ActionListContextType;
+    scrollToIndex: (index: number) => void;
+    scrollToBottom: () => void;
+} {
     const flatListRef = useContext(ActionListContext);
 
     /**
      * Scroll to the provided index.
      *
-     * @param {Object} index
      */
-    const scrollToIndex = (index) => {
-        if (!flatListRef.current) {
+    const scrollToIndex = (index: number) => {
+        if (!flatListRef?.current) {
             return;
         }
 
-        flatListRef.current.scrollToIndex(index);
+        flatListRef.current.scrollToIndex({index});
     };
 
     /**
      * Scroll to the bottom of the flatlist.
      */
     const scrollToBottom = useCallback(() => {
-        if (!flatListRef.current) {
+        if (!flatListRef?.current) {
             return;
         }
 
