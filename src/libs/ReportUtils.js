@@ -3959,5 +3959,5 @@ export {
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
     isReportDraft,
-    parseReportRouteParams
+    parseReportRouteParams,
 };
