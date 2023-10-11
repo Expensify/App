@@ -58,12 +58,7 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION,
     waitForCollectionCallback: true,
     callback: (val) => {
-        if (!val) {
-            allDraftSplitTransactions = {};
-            return;
-        }
-
-        allDraftSplitTransactions = val;
+        allDraftSplitTransactions = val || {};
     },
 });
 
@@ -1564,7 +1559,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
     const splits = [];
     _.each(splitParticipants, (participant) => {
         // Skip creating the transaction for the current user
-        if (participant.email && participant.email === currentUserEmail) {
+        if (participant.email === currentUserEmailForIOUSplit) {
             return;
         }
         const isPolicyExpenseChat = !_.isEmpty(participant.policyID);
@@ -1612,7 +1607,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
             isPolicyExpenseChat ? -splitAmount : splitAmount,
             currency,
             oneOnOneIOUReport.reportID,
-            updatedTransaction.comment,
+            updatedTransaction.comment.comment,
             updatedTransaction.modifiedCreated,
             CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
             updatedTransaction.transactionID,
@@ -1627,7 +1622,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
             currency,
-            updatedTransaction.modifiedComment,
+            updatedTransaction.comment.comment,
             [participant],
             oneOnOneTransaction.transactionID,
             '',

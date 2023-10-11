@@ -29,7 +29,7 @@ const propTypes = {
             field: PropTypes.string,
 
             /** reportID for the "transaction thread" */
-            threadReportID: PropTypes.string,
+            reportActionID: PropTypes.string,
         }),
     }).isRequired,
 
@@ -88,12 +88,12 @@ function EditSplitBillPage({report, route, transactions, draftSplitTransactions}
             <EditRequestDescriptionPage
                 defaultDescription={transactionDescription}
                 onSubmit={(transactionChanges) => {
-                    if (transactionChanges.comment === transactionDescription) {
+                    if (transactionChanges.comment.trim() === transactionDescription) {
                         Navigation.dismissModal();
                         return;
                     }
                     setDraftSplitTransaction({
-                        comment: transactionChanges.comment,
+                        comment: transactionChanges.comment.trim(),
                     });
                 }}
             />
