@@ -678,7 +678,7 @@ function getCategoryOptionTree(options, isOneLine = false) {
 
             optionCollection.set(searchText, {
                 text: `${indents}${optionName}`,
-                keyForList: optionName,
+                keyForList: searchText,
                 searchText,
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled : true,
