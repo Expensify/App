@@ -1,10 +1,18 @@
 import React, {createContext, forwardRef, useCallback, useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
+import {NavigationState} from '@react-navigation/native';
 
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import Navigation from '../libs/Navigation/Navigation';
 
-const CurrentReportIDContext = createContext(null);
+type CurrentReportIDContextType = {
+    updateCurrentReportID: (state: NavigationState) => void;
+    currentReportID: string;
+};
+type CurrentReportIDContextProviderProps = {
+    children: React.ReactNode;
+};
+const CurrentReportIDContext = createContext<CurrentReportIDContextType | null>(null);
 
 const withCurrentReportIDPropTypes = {
     /** Function to update the state */
@@ -18,23 +26,23 @@ const withCurrentReportIDDefaultProps = {
     currentReportID: '',
 };
 
-function CurrentReportIDContextProvider(props) {
+function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
     const [currentReportID, setCurrentReportID] = useState('');
 
     /**
      * This function is used to update the currentReportID
-     * @param {Object} state root navigation state
+     * @param state root navigation state
      */
     const updateCurrentReportID = useCallback(
-        (state) => {
-            setCurrentReportID(Navigation.getTopmostReportId(state));
+        (state: NavigationState) => {
+            setCurrentReportID(Navigation.getTopmostReportId(state) ?? '');
         },
         [setCurrentReportID],
     );
 
     /**
      * The context this component exposes to child components
-     * @returns {Object} currentReportID to share between central pane and LHN
+     * @returns  currentReportID to share between central pane and LHN
      */
     const contextValue = useMemo(
         () => ({
@@ -53,7 +61,8 @@ CurrentReportIDContextProvider.propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-export default function withCurrentReportID(WrappedComponent) {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export default function withCurrentReportID(WrappedComponent: React.ComponentType) {
     const WithCurrentReportID = forwardRef((props, ref) => (
         <CurrentReportIDContext.Consumer>
             {(currentReportIDUtils) => (
@@ -68,7 +77,7 @@ export default function withCurrentReportID(WrappedComponent) {
         </CurrentReportIDContext.Consumer>
     ));
 
-    WithCurrentReportID.displayName = `withCurrentReportID(${getComponentDisplayName(WrappedComponent)})`;
+    (WithCurrentReportID as React.FC).displayName = `withCurrentReportID(${getComponentDisplayName(WrappedComponent)})`;
 
     return WithCurrentReportID;
 }
