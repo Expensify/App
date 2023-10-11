@@ -1,6 +1,7 @@
 import React, {forwardRef, useState} from 'react';
 import _ from 'underscore';
 import propTypes from 'prop-types';
+import styles from '../../styles/styles';
 import GenericPressable from './GenericPressable';
 import GenericPressablePropTypes from './GenericPressable/PropTypes';
 import OpacityView from '../OpacityView';
@@ -49,7 +50,7 @@ const PressableWithFeedback = forwardRef((props, ref) => {
         <OpacityView
             shouldDim={Boolean(isPressed || isHovered)}
             dimmingValue={isPressed ? props.pressDimmingValue : props.hoverDimmingValue}
-            style={props.wrapperStyle}
+            style={[props.disabled && styles.cursorDisabled, props.wrapperStyle]}
             needsOffscreenAlphaCompositing={props.needsOffscreenAlphaCompositing}
         >
             <GenericPressable

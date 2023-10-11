@@ -1,18 +1,32 @@
 import React from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
+import styles from '../../styles/styles';
 import GenericPressable from './GenericPressable';
 import GenericPressableProps from './GenericPressable/PropTypes';
 
-const omittedProps = ['pressStyle', 'hoverStyle', 'focusStyle', 'activeStyle', 'disabledStyle', 'screenReaderActiveStyle', 'shouldUseHapticsOnPress', 'shouldUseHapticsOnLongPress'];
+const omittedProps = [
+    'wrapperStyle',
+    'pressStyle',
+    'hoverStyle',
+    'focusStyle',
+    'activeStyle',
+    'disabledStyle',
+    'screenReaderActiveStyle',
+    'shouldUseHapticsOnPress',
+    'shouldUseHapticsOnLongPress',
+];
 
 const PressableWithoutFeedback = React.forwardRef((props, ref) => {
     const propsWithoutStyling = _.omit(props, omittedProps);
     return (
-        <GenericPressable
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...propsWithoutStyling}
-            ref={ref}
-        />
+        <View style={[props.disabled && styles.cursorDisabled, props.wrapperStyle]}>
+            <GenericPressable
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...propsWithoutStyling}
+                ref={ref}
+            />
+        </View>
     );
 });
 
