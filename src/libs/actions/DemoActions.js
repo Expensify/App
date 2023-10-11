@@ -68,4 +68,3 @@ function runDemoByURL(url = '') {
 }
 
 export {runMoney2020Demo, runDemoByURL};
-
