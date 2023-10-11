@@ -286,7 +286,7 @@ function MoneyRequestConfirmationList(props) {
                 value: props.iouType,
             },
         ];
-    }, [isSplitBill, isTypeRequest, props.iouAmount, props.receiptPathtranslate, formattedAmount, isDistanceRequestWithoutRoute]);
+    }, [isSplitBill, isTypeRequest, props.iouType, props.iouAmount, props.receiptPath, formattedAmount, isDistanceRequestWithoutRoute, translate, props.receiptPathtranslate]);
 
     const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);

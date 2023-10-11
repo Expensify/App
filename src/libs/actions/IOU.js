@@ -62,13 +62,6 @@ Onyx.connect({
     },
 });
 
-let allRecentlyUsedCategories = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
-    waitForCollectionCallback: true,
-    callback: (val) => (allRecentlyUsedCategories = val),
-});
-
 let allRecentlyUsedTags = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
@@ -1510,11 +1503,11 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
  * @param {number} chatReportID - The group chat or workspace reportID
  * @param {Object} reportAction - The split action that lives in the chatReport above
  * @param {Object} updatedTransaction - The updated **draft** split transaction
- * @param {Number} currentUserAccountID
- * @param {String} currentUserEmail
+ * @param {Number} sessionAccountID - accountID of the current user
+ * @param {String} sessionEmail - email of the current user
  */
-function completeSplitBill(chatReportID, reportAction, updatedTransaction, currentUserAccountID, currentUserEmail) {
-    const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserEmail);
+function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessionAccountID, sessionEmail) {
+    const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);
     const {transactionID} = updatedTransaction;
     const unmodifiedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
@@ -1528,7 +1521,6 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.OPEN,
                 },
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
         {
@@ -1538,7 +1530,6 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
                 [reportAction.reportActionID]: {
                     lastModified: DateUtils.getDBTime(),
                     whisperedToAccountIDs: [],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
@@ -1606,7 +1597,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
             // The workspace chat reportID is saved in the splits array when starting a split bill with a workspace
             oneOnOneChatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`];
         } else {
-            let existingChatReport = ReportUtils.getChatByParticipants([participant.accountID]);
+            const existingChatReport = ReportUtils.getChatByParticipants([participant.accountID]);
             isNewOneOnOneChatReport = !existingChatReport;
             oneOnOneChatReport = existingChatReport || ReportUtils.buildOptimisticChatReport([participant.accountID]);
         }
@@ -1617,13 +1608,13 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, curre
 
         if (shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isPolicyExpenseChat
-                ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport.reportID, participant.policyID, currentUserAccountID, splitAmount, currency)
-                : ReportUtils.buildOptimisticIOUReport(currentUserAccountID, participant.accountID, splitAmount, oneOnOneChatReport.reportID, currency);
-        } else if (isOwnPolicyExpenseChat) {
+                ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport.reportID, participant.policyID, sessionAccountID, splitAmount, currency)
+                : ReportUtils.buildOptimisticIOUReport(sessionAccountID, participant.accountID, splitAmount, oneOnOneChatReport.reportID, currency);
+        } else if (isPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
             oneOnOneIOUReport.total -= splitAmount;
         } else {
-            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency);
         }
 
         const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(

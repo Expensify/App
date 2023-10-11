@@ -4,10 +4,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Navigation from '../libs/Navigation/Navigation';
 import useLocalize from '../hooks/useLocalize';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
-import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Transaction default amount value */
@@ -21,9 +19,6 @@ const propTypes = {
 
     /** Callback to fire when we press on the currency  */
     onNavigateToCurrency: PropTypes.func.isRequired,
-
-    /** reportID for the transaction thread */
-    reportID: PropTypes.string.isRequired,
 };
 
 function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurrency, onSubmit}) {

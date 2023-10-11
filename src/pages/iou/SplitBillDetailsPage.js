@@ -36,8 +36,11 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.shape(reportActionPropTypes),
 
-    /** Used for retrieving the draft transaction of the split bill being edited */
-    draftSplitTransactions: PropTypes.shape(transactionPropTypes),
+    /** The current transaction */
+    transaction: PropTypes.shape(transactionPropTypes),
+
+    /** The draft transaction that holds data to be persisited on the current transaction */
+    draftTransaction: PropTypes.shape(transactionPropTypes),
 
     /** Route params */
     route: PropTypes.shape({
@@ -54,6 +57,9 @@ const propTypes = {
     session: PropTypes.shape({
         /** Currently logged in user accountID */
         accountID: PropTypes.number,
+
+        /** Currently logged in user email */
+        email: PropTypes.string,
     }).isRequired,
 
     ...withLocalizePropTypes,
@@ -62,13 +68,13 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     reportActions: {},
-    draftSplitTransactions: {},
+    draftTransaction: undefined,
 };
 
 function SplitBillDetailsPage(props) {
+    const {reportID} = props.report;
+    console.log(props.route);
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-    const transactionID = reportAction.originalMessage.IOUTransactionID;
-    const transaction = props.allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
 
     // In case this is workspace split bill, we manually add the workspace as the second participant of the split bill
@@ -85,15 +91,10 @@ function SplitBillDetailsPage(props) {
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
 
-    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isScanning = TransactionUtils.hasReceipt(props.transaction) && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const isEditingSplitBill =
-        props.session.accountID === reportAction.actorAccountID && (isScanning || (TransactionUtils.hasReceipt(transaction) && transaction.receipt.state === CONST.IOU.RECEIPT_STATE.FAILED));
-
-    const draftSplitTransaction = props.draftSplitTransactions && props.draftSplitTransactions[`${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${transactionID}`];
-
-    if (isEditingSplitBill && !draftSplitTransaction) {
-        IOU.setDraftSplitTransaction(transaction.transactionID);
-    }
+        props.session.accountID === reportAction.actorAccountID &&
+        (isScanning || (TransactionUtils.hasReceipt(props.transaction) && props.transaction.receipt.state === CONST.IOU.RECEIPT_STATE.FAILED));
 
     const {
         amount: splitAmount,
@@ -102,16 +103,16 @@ function SplitBillDetailsPage(props) {
         merchant: splitMerchant,
         created: splitCreated,
         category: splitCategory,
-    } = isEditingSplitBill && draftSplitTransaction ? ReportUtils.getTransactionDetails(draftSplitTransaction) : ReportUtils.getTransactionDetails(transaction);
+    } = isEditingSplitBill && props.draftTransaction ? ReportUtils.getTransactionDetails(props.draftTransaction) : ReportUtils.getTransactionDetails(props.transaction);
 
     const onConfirm = useCallback(
-        () => IOU.completeSplitBill(props.report.reportID, reportAction, draftSplitTransaction, props.session.accountID, props.session.email),
-        [props.report.reportID, reportAction, draftSplitTransaction, props.session.accountID, props.session.email],
+        () => IOU.completeSplitBill(reportID, reportAction, props.draftTransaction, props.session.accountID, props.session.email),
+        [reportID, reportAction, props.draftTransaction, props.session.accountID, props.session.email],
     );
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
-            <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
+            <FullPageNotFoundView shouldShow={_.isEmpty(reportID) || _.isEmpty(reportAction) || _.isEmpty(props.transaction)}>
                 <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
                     pointerEvents="box-none"
@@ -132,13 +133,13 @@ function SplitBillDetailsPage(props) {
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}
                             shouldShowSmartScanFields
-                            receiptPath={transaction.receipt && transaction.receipt.source}
-                            receiptFilename={transaction.filename}
+                            receiptPath={props.transaction.receipt && props.transaction.receipt.source}
+                            receiptFilename={props.transaction.filename}
                             shouldShowFooter={false}
                             isScanning={isScanning}
                             isEditingSplitBill={isEditingSplitBill}
+                            reportID={reportID}
                             reportActionID={reportAction.reportActionID}
-                            reportID={lodashGet(props.report, 'reportID', '')}
                             onConfirm={onConfirm}
                         />
                     )}
@@ -156,17 +157,33 @@ export default compose(
     withLocalize,
     withReportAndReportActionOrNotFound,
     withOnyx({
-        allTransactions: {
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
-        draftSplitTransactions: {
-            key: ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION,
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
+            canEvict: false,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        transaction: {
+            key: ({route, reportActions}) => {
+                const reportAction = reportActions[`${route.params.reportActionID.toString()}`];
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(reportAction, 'originalMessage.IOUTransactionID', 0)}`;
+            },
+        },
+        draftTransaction: {
+            key: ({route, reportActions}) => {
+                const reportAction = reportActions[`${route.params.reportActionID.toString()}`];
+                return `${ONYXKEYS.COLLECTION.DRAFT_SPLIT_TRANSACTION}${lodashGet(reportAction, 'originalMessage.IOUTransactionID', 0)}`;
+            },
         },
     }),
 )(SplitBillDetailsPage);

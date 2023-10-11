@@ -51,10 +51,6 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
     const reportID = lodashGet(route, ['params', 'reportID'], '');
     const reportActionID = lodashGet(route, ['params', 'reportActionID'], '');
 
-    if (!draftTransaction) {
-        IOU.setDraftSplitTransaction(transaction.transactionID);
-    }
-
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
