@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as ReportActionUtils from '../ReportActionsUtils';
-import * as IOU from './IOU';
 import * as ReportUtils from '../ReportUtils';
 import ReportAction from '../../types/onyx/ReportAction';
 
