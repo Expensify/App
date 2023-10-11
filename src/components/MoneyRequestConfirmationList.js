@@ -80,6 +80,12 @@ const propTypes = {
     /** IOU Tag */
     iouTag: PropTypes.string,
 
+    /** IOU isBillable */
+    iouIsBillable: PropTypes.bool,
+
+    /** IOU Callback toggle billable state */
+    onToggleBillable: PropTypes.func,
+
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
