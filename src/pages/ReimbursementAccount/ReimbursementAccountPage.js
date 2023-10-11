@@ -34,7 +34,7 @@ import withPolicy from '../workspace/withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import shouldReopenOnfido from '../../libs/shouldReopenOnfido';
-import useLocalize from '../hooks/useLocalize';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
