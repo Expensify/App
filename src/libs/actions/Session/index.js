@@ -787,6 +787,20 @@ function waitForUserSignIn() {
     });
 }
 
+/**
+ * check if the route can be accessed by anonymous user
+ *
+ * @param {string} route
+ */
+
+const canAccessRouteByAnonymousUser = (route) => {
+    const reportID = ReportUtils.getReportIDFromLink(route);
+    if (reportID) {
+        return true;
+    }
+    return false;
+};
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -815,4 +829,5 @@ export {
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
     waitForUserSignIn,
+    canAccessRouteByAnonymousUser,
 };
