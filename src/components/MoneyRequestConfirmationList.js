@@ -441,6 +441,7 @@ function MoneyRequestConfirmationList(props) {
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
+                pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
