@@ -7,8 +7,8 @@ import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import ROUTES from '../../ROUTES';
-import {PaymentMethod} from '../PaymentUtils';
 import {FilterMethodPaymentType} from '../../types/onyx/WalletTransfer';
+import PaymentMethod from '../../types/onyx/PaymentMethod';
 
 type KYCWallRef = {
     continue?: () => void;
@@ -176,28 +176,34 @@ function addPaymentCard(params: PaymentCardParams) {
         isP2PDebitCard: true,
     };
 
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: true},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
     API.write('AddPaymentCard', parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-                value: {isLoading: true},
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-                value: {isLoading: false},
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-                value: {isLoading: false},
-            },
-        ],
+        optimisticData,
+        successData,
+        failureData,
     });
 }
 
@@ -225,38 +231,44 @@ function transferWalletBalance(paymentMethod: PaymentMethod) {
         [paymentMethodIDKey]: paymentMethod.methodID,
     };
 
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.WALLET_TRANSFER,
+            value: {
+                loading: true,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.WALLET_TRANSFER,
+            value: {
+                loading: false,
+                shouldShowSuccess: true,
+                paymentMethodType: paymentMethod.accountType,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.WALLET_TRANSFER,
+            value: {
+                loading: false,
+                shouldShowSuccess: false,
+            },
+        },
+    ];
+
     API.write('TransferWalletBalance', parameters, {
-        optimisticData: [
-            {
-                onyxMethod: 'merge',
-                key: ONYXKEYS.WALLET_TRANSFER,
-                value: {
-                    loading: true,
-                    errors: null,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: 'merge',
-                key: ONYXKEYS.WALLET_TRANSFER,
-                value: {
-                    loading: false,
-                    shouldShowSuccess: true,
-                    paymentMethodType: paymentMethod.accountType,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: 'merge',
-                key: ONYXKEYS.WALLET_TRANSFER,
-                value: {
-                    loading: false,
-                    shouldShowSuccess: false,
-                },
-            },
-        ],
+        optimisticData,
+        successData,
+        failureData,
     });
 }
 
@@ -347,14 +359,16 @@ function deletePaymentCard(fundID: number) {
         fundID,
     };
 
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.FUND_LIST}`,
+            value: {[fundID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+        },
+    ];
+
     API.write('DeletePaymentCard', parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.FUND_LIST}`,
-                value: {[fundID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
-            },
-        ],
+        optimisticData,
     });
 }
 
