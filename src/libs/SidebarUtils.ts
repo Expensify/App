@@ -401,7 +401,7 @@ function getOptionData(
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
-    let lastActorDetails: ActorDetails | null = report.lastActorAccountID ? personalDetails[report.lastActorAccountID] : null;
+    let lastActorDetails: ActorDetails | null = report.lastActorAccountID && personalDetails?.[report.lastActorAccountID] ? personalDetails[report.lastActorAccountID] : null;
     if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
         const lastActorDisplayName = visibleReportActionItems[report.reportID]?.person?.[0]?.text;
         lastActorDetails = lastActorDisplayName
@@ -411,11 +411,10 @@ function getOptionData(
               }
             : null;
     }
-    const lastActorDisplayName =
-        hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? lastActorDetails.displayName : '';
+    const lastActorDisplayName = hasMultipleParticipants && lastActorDetails?.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? lastActorDetails.displayName : '';
     let lastMessageText = lastMessageTextFromReport;
 
-    const reportAction = lastReportActions[report.reportID];
+    const reportAction = lastReportActions?.[report.reportID];
     if (result.isArchivedRoom && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         const archiveReason = reportAction?.originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
 
@@ -435,7 +434,7 @@ function getOptionData(
             result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}: ${report.reportName}`;
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
             result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}: ${report.reportName}`;
-        } else if (lastAction?.actionName  !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
+        } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
