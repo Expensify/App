@@ -83,7 +83,7 @@ const propTypes = {
     /** IOU isBillable */
     iouIsBillable: PropTypes.bool,
 
-    /** IOU Callback toggle billable state */
+    /** Callback to toggle the billable state */
     onToggleBillable: PropTypes.func,
 
     /** Selected participants from MoneyRequestModal with login / accountID */
