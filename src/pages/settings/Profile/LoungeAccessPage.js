@@ -69,11 +69,12 @@ function LoungeAccessPage(props) {
             colors={[`${themeColors.loungeAccessOverlay}00`, themeColors.loungeAccessOverlay]}
             style={[styles.pAbsolute, styles.w100, styles.h100]}
         >
-            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pt5]}>
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pt5, styles.ph5]}>
                 <Avatar
                     imageStyles={[styles.avatarLarge]}
                     source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
                     size={CONST.AVATAR_SIZE.LARGE}
+                    fallbackIcon={props.currentUserPersonalDetails.fallbackIcon}
                 />
                 <Text
                     style={[styles.textHeadline, styles.pre, styles.mt2]}

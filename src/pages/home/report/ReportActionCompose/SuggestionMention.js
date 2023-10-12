@@ -51,7 +51,6 @@ function SuggestionMention({
     personalDetails,
     updateComment,
     composerHeight,
-    shouldShowReportRecipientLocalTime,
     forwardedRef,
     isAutoSuggestionPickerLarge,
     measureParentContainer,
@@ -169,6 +168,7 @@ function SuggestionMention({
                             name: detail.login,
                             source: UserUtils.getAvatar(detail.avatar, detail.accountID),
                             type: 'avatar',
+                            fallbackIcon: detail.fallbackIcon,
                         },
                     ],
                 });
@@ -199,7 +199,7 @@ function SuggestionMention({
             }
 
             const leftString = value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
-            const words = leftString.split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
+            const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord = _.last(words);
 
             let atSignIndex;
@@ -256,6 +256,8 @@ function SuggestionMention({
         setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}));
     }, []);
 
+    const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+
     useImperativeHandle(
         forwardedRef,
         () => ({
@@ -263,8 +265,9 @@ function SuggestionMention({
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
+            getSuggestions,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     if (!isMentionSuggestionsMenuVisible) {
@@ -284,7 +287,6 @@ function SuggestionMention({
             isComposerFullSize={isComposerFullSize}
             isMentionPickerLarge={isAutoSuggestionPickerLarge}
             composerHeight={composerHeight}
-            shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
             measureParentContainer={measureParentContainer}
         />
     );

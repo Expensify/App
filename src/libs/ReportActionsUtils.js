@@ -76,6 +76,14 @@ function isDeletedParentAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isReversedTransaction(reportAction) {
+    return lodashGet(reportAction, ['message', 0, 'isReversedTransaction'], false) && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isPendingRemove(reportAction) {
     return lodashGet(reportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
@@ -133,17 +141,6 @@ function getParentReportAction(report, allReportActionsParam = undefined) {
         return {};
     }
     return lodashGet(allReportActionsParam || allReportActions, [report.parentReportID, report.parentReportActionID], {});
-}
-
-/**
- * Find the reportAction having the given childReportID in parent report actions
- *
- * @param {String} childReportID
- * @param {String} parentReportID
- * @returns {Object}
- */
-function getParentReportActionInReport(childReportID, parentReportID) {
-    return _.find(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
 }
 
 /**
@@ -371,7 +368,7 @@ function shouldReportActionBeVisible(reportAction, key) {
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
-    return !isDeleted || isPending || isDeletedParentAction(reportAction);
+    return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
 /**
@@ -392,7 +389,9 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
 
     // If a whisper action is the REPORTPREVIEW action, we are displaying it.
     return (
-        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction)) && !isDeletedAction(reportAction)
+        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
+        !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
+        !isDeletedAction(reportAction)
     );
 }
 
@@ -677,6 +676,11 @@ function isReportActionAttachment(reportAction) {
     return _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : isReportMessageAttachment(message);
 }
 
+// eslint-disable-next-line rulesdir/no-negated-variables
+function isNotifiableReportAction(reportAction) {
+    return reportAction && _.contains([CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE], reportAction.actionName);
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -699,10 +703,10 @@ export {
     getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,
-    getParentReportActionInReport,
     isTransactionThread,
     isSentMoneyReportAction,
     isDeletedParentAction,
+    isReversedTransaction,
     isReportPreviewAction,
     isModifiedExpenseAction,
     getIOUReportIDFromReportActionPreview,
@@ -715,4 +719,5 @@ export {
     isTaskAction,
     getAllReportActions,
     isReportActionAttachment,
+    isNotifiableReportAction,
 };

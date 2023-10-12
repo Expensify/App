@@ -1,10 +1,11 @@
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useState, useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
 import * as Report from '../../libs/actions/Report';
+import * as App from '../../libs/actions/App';
 import useLocalize from '../../hooks/useLocalize';
 import styles from '../../styles/styles';
 import RoomNameInput from '../../components/RoomNameInput';
@@ -24,6 +25,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
+import useDelayedInputFocus from '../../hooks/useDelayedInputFocus';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -143,8 +145,18 @@ function WorkspaceNewRoomPage(props) {
         [translate],
     );
 
+    const roomNameInputRef = useRef(null);
+
+    // use a 600ms delay for delayed focus on the room name input field so that it works consistently on native iOS / Android
+    useDelayedInputFocus(roomNameInputRef, 600);
+
     return (
-        <FullPageNotFoundView shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}>
+        <FullPageNotFoundView
+            shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}
+            shouldShowBackButton={false}
+            linkKey="workspace.emptyWorkspace.title"
+            onLinkPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, false)}
+        >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 includeSafeAreaPaddingBottom={false}
@@ -171,6 +183,7 @@ function WorkspaceNewRoomPage(props) {
                         >
                             <View style={styles.mb5}>
                                 <RoomNameInput
+                                    ref={(el) => (roomNameInputRef.current = el)}
                                     inputID="roomName"
                                     isFocused={props.isFocused}
                                     shouldDelayFocus

@@ -1,6 +1,7 @@
 ---
 title: Expensify Chat for Conference Attendees
 description: Best Practices for Conference Attendees
+redirect_from: articles/other/Expensify-Chat-For-Conference-Attendees/
 ---
 
 ## Overview

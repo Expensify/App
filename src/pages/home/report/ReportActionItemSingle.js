@@ -88,9 +88,9 @@ const showWorkspaceDetails = (reportID) => {
 };
 
 function ReportActionItemSingle(props) {
-    const actorAccountID = props.action.actorAccountID;
+    const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
     let {displayName} = props.personalDetailsList[actorAccountID] || {};
-    const {avatar, login, pendingFields, status} = props.personalDetailsList[actorAccountID] || {};
+    const {avatar, login, pendingFields, status, fallbackIcon} = props.personalDetailsList[actorAccountID] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && (!actorAccountID || displayAllActors);
@@ -200,6 +200,7 @@ function ReportActionItemSingle(props) {
                         source={icon.source}
                         type={icon.type}
                         name={icon.name}
+                        fallbackIcon={fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -240,8 +241,6 @@ function ReportActionItemSingle(props) {
                                     key={`person-${props.action.reportActionID}-${index}`}
                                     accountID={actorAccountID}
                                     fragment={fragment}
-                                    isAttachment={props.action.isAttachment}
-                                    isLoading={props.action.isLoading}
                                     delegateAccountID={props.action.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}

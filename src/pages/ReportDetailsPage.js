@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
-import lodashGet from 'lodash/get';
 import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
@@ -28,6 +27,8 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
 import Permissions from '../libs/Permissions';
+import ParentNavigationSubtitle from '../components/ParentNavigationSubtitle';
+import MultipleAvatars from '../components/MultipleAvatars';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -68,26 +69,33 @@ function ReportDetailsPage(props) {
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
     const shouldDisableSettings = useMemo(() => ReportUtils.shouldDisableSettings(props.report), [props.report]);
     const shouldUseFullTitle = !shouldDisableSettings || ReportUtils.isTaskReport(props.report);
+    const shouldUseFullTitle = ReportUtils.isTaskReport(props.report);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
     const isThread = useMemo(() => ReportUtils.isChatThread(props.report), [props.report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(props.report), [props.report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
+    const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(props.report), [props.report]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
+    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
     const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
-    const participants = useMemo(() => lodashGet(props.report, 'participantAccountIDs', []), [props.report]);
+    const participants = useMemo(() => ReportUtils.getParticipantsIDs(props.report), [props.report]);
+
+    const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
 
     const menuItems = useMemo(() => {
-        const items = [
-            {
+        const items = [];
+
+        if (!isGroupDMChat) {
+            items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
                 isAnonymousAction: true,
                 action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(props.report.reportID)),
-            },
-        ];
+            });
+        }
 
         if (isArchivedRoom) {
             return items;
@@ -120,20 +128,18 @@ function ReportDetailsPage(props) {
             });
         }
 
-        if (!shouldDisableSettings) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
-                translationKey: 'common.settings',
-                icon: Expensicons.Gear,
-                isAnonymousAction: false,
-                action: () => {
-                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID));
-                },
-            });
-        }
+        items.push({
+            key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
+            translationKey: 'common.settings',
+            icon: Expensicons.Gear,
+            isAnonymousAction: false,
+            action: () => {
+                Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID));
+            },
+        });
 
         // Prevent displaying private notes option for threads and task reports
-        if (!isThread && !ReportUtils.isTaskReport(props.report)) {
+        if (!isThread && !isMoneyRequestReport && !ReportUtils.isTaskReport(props.report)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
@@ -144,7 +150,7 @@ function ReportDetailsPage(props) {
             });
         }
 
-        if (isUserCreatedPolicyRoom || canLeaveRoom || isThread) {
+        if (isUserCreatedPolicyRoom || canLeaveRoom ) {
             const isWorkspaceMemberLeavingWorkspaceRoom = lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && PolicyUtils.isPolicyMember(props.report.policyID, props.policies);
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
@@ -156,12 +162,14 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [props.report, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom, isPolicyMember, props.betas, props.policies]);
+    }, [props.report, isMoneyRequestReport, participants.length, isArchivedRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom, isPolicyMember, props.betas, props.policies, isGroupDMChat]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
         return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails), hasMultipleParticipants);
     }, [participants, props.personalDetails]);
+
+    const icons = useMemo(() => ReportUtils.getIcons(props.report, props.personalDetails, props.policies), [props.report, props.personalDetails, props.policies]);
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (
         <Text
@@ -179,7 +187,14 @@ function ReportDetailsPage(props) {
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
                         <View style={styles.mb3}>
-                            <RoomHeaderAvatars icons={ReportUtils.getIcons(props.report, props.personalDetails, props.policies)} />
+                            {isMoneyRequestReport ? (
+                                <MultipleAvatars
+                                    icons={icons}
+                                    size={CONST.AVATAR_SIZE.LARGE}
+                                />
+                            ) : (
+                                <RoomHeaderAvatars icons={icons} />
+                            )}
                         </View>
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                             <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
@@ -205,6 +220,13 @@ function ReportDetailsPage(props) {
                                 </PressableWithoutFeedback>
                             ) : (
                                 chatRoomSubtitleText
+                            )}
+                            {!_.isEmpty(parentNavigationSubtitleData) && isMoneyRequestReport && (
+                                <ParentNavigationSubtitle
+                                    parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                    parentReportID={props.report.parentReportID}
+                                    pressableStyles={[styles.mt1, styles.mw100]}
+                                />
                             )}
                         </View>
                     </View>

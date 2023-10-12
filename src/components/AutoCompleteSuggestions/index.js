@@ -14,7 +14,7 @@ import useWindowDimensions from '../../hooks/useWindowDimensions';
  * On the native platform, tapping on auto-complete suggestions will not blur the main input.
  */
 
-function AutoCompleteSuggestions({parentContainerRef, ...props}) {
+function AutoCompleteSuggestions({measureParentContainer, ...props}) {
     const containerRef = React.useRef(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const [{width, left, bottom}, setContainerState] = React.useState({
@@ -37,11 +37,11 @@ function AutoCompleteSuggestions({parentContainerRef, ...props}) {
     }, []);
 
     React.useEffect(() => {
-        if (!parentContainerRef || !parentContainerRef.current) {
+        if (!measureParentContainer) {
             return;
         }
-        parentContainerRef.current.measureInWindow((x, y, w) => setContainerState({left: x, bottom: windowHeight - y, width: w}));
-    }, [parentContainerRef, windowHeight, windowWidth]);
+        measureParentContainer((x, y, w) => setContainerState({left: x, bottom: windowHeight - y, width: w}));
+    }, [measureParentContainer, windowHeight, windowWidth]);
 
     const componentToRender = (
         <BaseAutoCompleteSuggestions
@@ -51,11 +51,10 @@ function AutoCompleteSuggestions({parentContainerRef, ...props}) {
         />
     );
 
-    if (!width) {
-        return componentToRender;
-    }
-
-    return ReactDOM.createPortal(<View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom})}>{componentToRender}</View>, document.querySelector('body'));
+    return (
+        Boolean(width) &&
+        ReactDOM.createPortal(<View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom})}>{componentToRender}</View>, document.querySelector('body'))
+    );
 }
 
 AutoCompleteSuggestions.propTypes = propTypes;

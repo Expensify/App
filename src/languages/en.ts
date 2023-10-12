@@ -68,11 +68,14 @@ import type {
     ManagerApprovedParams,
     SetTheRequestParams,
     UpdatedTheRequestParams,
+    SetTheDistanceParams,
+    UpdatedTheDistanceParams,
     RemovedTheRequestParams,
     FormattedMaxLengthParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
     TranslationBase,
+    WalletProgramParams,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
@@ -105,6 +108,7 @@ export default {
         resend: 'Resend',
         save: 'Save',
         saveChanges: 'Save changes',
+        submit: 'Submit',
         rotate: 'Rotate',
         zoom: 'Zoom',
         password: 'Password',
@@ -175,6 +179,7 @@ export default {
         notifications: 'Notifications',
         na: 'N/A',
         noResultsFound: 'No results found',
+        recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
         todayAt: 'Today at',
@@ -188,6 +193,7 @@ export default {
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
             characterLimit: ({limit}: CharacterLimitParams) => `Exceeds the maximum length of ${limit} characters`,
+            characterLimitExceedCounter: ({length, limit}) => `Character limit exceeded (${length}/${limit})`,
             dateInvalid: 'Please select a valid date',
             invalidCharacter: 'Invalid character',
             enterMerchant: 'Enter a merchant name',
@@ -208,6 +214,7 @@ export default {
         debitCard: 'Debit card',
         bankAccount: 'Bank account',
         join: 'Join',
+        joinThread: 'Join thread',
         decline: 'Decline',
         transferBalance: 'Transfer balance',
         cantFindAddress: "Can't find your address? ",
@@ -244,6 +251,7 @@ export default {
         merchant: 'Merchant',
         category: 'Category',
         billable: 'Billable',
+        nonBillable: 'Non-billable',
         tag: 'Tag',
         receipt: 'Receipt',
         replace: 'Replace',
@@ -255,6 +263,15 @@ export default {
         recent: 'Recent',
         all: 'All',
         tbd: 'TBD',
+        card: 'Card',
+    },
+    location: {
+        useCurrent: 'Use current location',
+        notFound: 'We were unable to find your location, please try again or enter an address manually.',
+        permissionDenied: 'It looks like you have denied permission to your location.',
+        please: 'Please',
+        allowPermission: 'allow location permission in settings',
+        tryAgain: 'and then try again.',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -337,6 +354,8 @@ export default {
     phoneCountryCode: '1',
     welcomeText: {
         getStarted: 'Get started below.',
+        anotherLoginPageIsOpen: 'Another login page is open.',
+        anotherLoginPageIsOpenExplanation: "You've opened the login page in a separate tab, please login from that specific tab.",
         welcomeBack: 'Welcome back!',
         welcome: 'Welcome!',
         phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
@@ -424,7 +443,7 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
+        usePlusButton: '\n\nYou can also use the + button to send money, request money, or assign a task!',
     },
     reportAction: {
         asCopilot: 'as copilot for',
@@ -478,8 +497,7 @@ export default {
         dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
         dragReceiptAfterEmail: ' or choose a file to upload below.',
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
-        chooseFile: 'Choose File',
-        givePermission: 'Give permission',
+        chooseFile: 'Choose file',
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         cameraErrorTitle: 'Camera Error',
@@ -489,6 +507,8 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        deleteReceipt: 'Delete receipt',
+        deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
     },
     iou: {
@@ -496,6 +516,7 @@ export default {
         approve: 'Approve',
         approved: 'Approved',
         cash: 'Cash',
+        card: 'Card',
         split: 'Split',
         addToSplit: 'Add to split',
         splitBill: 'Split bill',
@@ -506,11 +527,13 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         pending: 'Pending',
+        posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         receiptScanning: 'Receipt scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
+        receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',
@@ -537,9 +560,12 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         changedTheRequest: 'changed the request',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `set the ${valueName} to ${newValueToDisplay}`,
+        setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) => `set the distance to ${newDistanceToDisplay}, which set the amount to ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `removed the ${valueName} (previously ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
             `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
+        updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
+            `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
@@ -551,6 +577,8 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
+            duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
+            emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
         },
     },
     notificationPreferencesPage: {
@@ -814,6 +842,29 @@ export default {
         availableSpend: 'Remaining spending power',
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
+        reportFraud: 'Report virtual card fraud',
+        cardDetails: {
+            cardNumber: 'Virtual card number',
+            expiration: 'Expiration',
+            cvv: 'CVV',
+            address: 'Address',
+            revealDetails: 'Reveal details',
+            copyCardNumber: 'Copy card number',
+        },
+    },
+    reportFraudPage: {
+        title: 'Report virtual card fraud',
+        description: 'If your virtual card details have been stolen or compromised, we’ll permanently deactivate your existing card and provide you with a new virtual card and number.',
+        deactivateCard: 'Deactivate card',
+        reportVirtualCardFraud: 'Report virtual card fraud',
+    },
+    activateCardPage: {
+        activateCard: 'Activate card',
+        pleaseEnterLastFour: 'Please enter the last four digits of your card.',
+        activatePhysicalCard: 'Activate physical card',
+        error: {
+            thatDidntMatch: "That didn't match the last 4 digits on your card. Please try again.",
+        },
     },
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -907,7 +958,7 @@ export default {
         phrase2: 'Terms of Service',
         phrase3: 'and',
         phrase4: 'Privacy',
-        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
+        phrase5: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its`,
         phrase6: 'licenses',
     },
     validateCodeForm: {
@@ -968,7 +1019,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include letters.',
+            hasInvalidCharacter: 'Name can only include Latin characters.',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
@@ -1071,7 +1122,7 @@ export default {
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',
             website: 'Please enter a valid website',
-            zipCode: 'Please enter a valid zip code',
+            zipCode: `Incorrect zip code format. Acceptable format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Please enter a valid phone number',
             companyName: 'Please enter a valid legal business name',
             addressCity: 'Please enter a valid city',
@@ -1168,7 +1219,7 @@ export default {
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'The Expensify Wallet is issued by The Bancorp Bank.',
+            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `The Expensify Wallet is issued by ${walletProgram}.`,
             perPurchase: 'Per purchase',
             atmWithdrawal: 'ATM withdrawal',
             cashReload: 'Cash reload',
@@ -1210,10 +1261,10 @@ export default {
                 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
             fdicInsuranceBancorp:
                 'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
-                'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up ' +
-                'to $250,000 by the FDIC in the event The Bancorp Bank fails. See',
+                `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
+                `to $250,000 by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails. See`,
             fdicInsuranceBancorp2: 'for details.',
-            contactExpensifyPayments: 'Contact Expensify Payments by calling +1 833-400-0904, by email at',
+            contactExpensifyPayments: `Contact ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} by calling +1 833-400-0904, by email at`,
             contactExpensifyPayments2: 'or sign in at',
             generalInformation: 'For general information about prepaid accounts, visit',
             generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial Protection Bureau at 1-855-411-2372 or visit',
@@ -1327,6 +1378,7 @@ export default {
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
             workspaceAvatar: 'Workspace avatar',
+            mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1538,19 +1590,19 @@ export default {
         assignee: 'Assignee',
         completed: 'Completed',
         messages: {
-            completed: 'completed task',
+            completed: 'marked as complete',
             canceled: 'deleted task',
-            reopened: 'reopened task',
+            reopened: 'marked as incomplete',
             error: 'You do not have the permission to do the requested action.',
         },
-        markAsDone: 'Mark as done',
+        markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
     },
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
     },
-    keyboardShortcutModal: {
+    keyboardShortcutsPage: {
         title: 'Keyboard shortcuts',
         subtitle: 'Save time with these handy keyboard shortcuts:',
         shortcuts: {
@@ -1712,6 +1764,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
+        reversedTransaction: '[Reversed transaction]',
         deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
     },
@@ -1771,6 +1824,11 @@ export default {
             tryDifferentEmail: 'Please try a different email',
         },
     },
+    cardTransactions: {
+        notActivated: 'Not activated',
+        outOfPocketSpend: 'Out-of-pocket spend',
+        companySpend: 'Company spend',
+    },
     distance: {
         addStop: 'Add stop',
         deleteWaypoint: 'Delete waypoint',
@@ -1787,7 +1845,14 @@ export default {
             onlineSubtitle: 'One moment while we set up the map',
         },
         errors: {
-            selectSuggestedAddress: 'Please select a suggested address',
+            selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
+    },
+    eReceipt: {
+        guaranteed: 'Guaranteed eReceipt',
+        transactionDate: 'Transaction date',
     },
 } satisfies TranslationBase;
