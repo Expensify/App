@@ -84,20 +84,25 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
 }
 
 function areRequiredFieldsEmpty(transaction: Transaction): boolean {
-    return (
+    const isMerchantEmpty =
+        transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
+
+    const isModifiedMerchantEmpty =
+        !transaction.modifiedMerchant ||
         transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
         transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
-        (transaction.modifiedMerchant === '' &&
-            (transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === '' || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) ||
-        (transaction.modifiedAmount === 0 && transaction.amount === 0) ||
-        (transaction.modifiedCreated === '' && transaction.created === '')
-    );
+        transaction.modifiedMerchant === '';
+
+    const isModifiedAmountEmpty = !transaction.modifiedAmount || transaction.modifiedAmount === 0;
+    const isModifiedCreatedEmpty = !transaction.modifiedCreated || transaction.modifiedCreated === '';
+
+    return (isModifiedMerchantEmpty && isMerchantEmpty) || (isModifiedAmountEmpty && transaction.amount === 0) || (isModifiedCreatedEmpty && transaction.created === '');
 }
 
 /**
  * Given the edit made to the money request, return an updated transaction object.
  */
-function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean): Transaction {
+function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean, shouldUpdateReceiptState = true): Transaction {
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = {...transaction};
     let shouldStopSmartscan = false;
@@ -144,7 +149,13 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         updatedTransaction.tag = transactionChanges.tag;
     }
 
-    if (shouldStopSmartscan && transaction?.receipt && Object.keys(transaction.receipt).length > 0 && transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.OPEN) {
+    if (
+        shouldUpdateReceiptState &&
+        shouldStopSmartscan &&
+        transaction?.receipt &&
+        Object.keys(transaction.receipt).length > 0 &&
+        transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.OPEN
+    ) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
 
@@ -438,6 +449,7 @@ export {
     isPending,
     isPosted,
     getWaypoints,
+    areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
