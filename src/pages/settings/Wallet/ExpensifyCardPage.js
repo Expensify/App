@@ -51,7 +51,6 @@ function ExpensifyCardPage({
     const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
     const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
 
-    // card details state
     const [isLoading, setIsLoading] = useState(false);
     const [details, setDetails] = useState({});
     const [errorMessage, setErrorMessage] = useState('');
