@@ -1161,16 +1161,16 @@ const removeLinksFromHtml = (html, links) => {
  * This function will handle removing only links that were purposely removed by the user while editing.
  *
  * @param {String} newCommentText text of the comment after editing.
- * @param {String} markdownOriginalComment original markdown of the comment before editing.
+ * @param {String} originalCommentMarkdown original markdown of the comment before editing.
  * @returns {String}
  */
-const handleUserDeletedLinksInHtml = (newCommentText, markdownOriginalComment) => {
+const handleUserDeletedLinksInHtml = (newCommentText, originalCommentMarkdown) => {
     const parser = new ExpensiMark();
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
     const htmlForNewComment = parser.replace(newCommentText);
-    const removedLinks = parser.getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
+    const removedLinks = parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 };
 
@@ -1189,14 +1189,14 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
-    const markdownOriginalComment = parser.htmlToMarkdown(originalCommentHTML).trim();
+    const originalCommentMarkdown = parser.htmlToMarkdown(originalCommentHTML).trim();
 
     // Skip the Edit if draft is not changed
-    if (markdownOriginalComment === textForNewComment) {
+    if (originalCommentMarkdown === textForNewComment) {
         return;
     }
 
-    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, markdownOriginalComment);
+    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown);
     const reportComment = parser.htmlToText(htmlForNewComment);
 
     // For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
@@ -1204,7 +1204,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     let parsedOriginalCommentHTML = originalCommentHTML;
     if (textForNewComment.length <= CONST.MAX_MARKUP_LENGTH) {
         const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), (name) => name !== 'autolink')};
-        parsedOriginalCommentHTML = parser.replace(markdownOriginalComment, autolinkFilter);
+        parsedOriginalCommentHTML = parser.replace(originalCommentMarkdown, autolinkFilter);
     }
 
     //  Delete the comment if it's empty
