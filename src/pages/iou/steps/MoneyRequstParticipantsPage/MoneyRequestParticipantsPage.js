@@ -35,11 +35,12 @@ const propTypes = {
     iou: iouPropTypes,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
     iou: iouDefaultProps,
+    selectedTab: undefined,
 };
 
 function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
@@ -49,6 +50,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, selectedTab);
+    const isSendRequest = iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
@@ -59,8 +61,13 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
             return;
         }
 
+        if (isSendRequest) {
+            setHeaderTitle(translate('common.send'));
+            return;
+        }
+
         setHeaderTitle(_.isEmpty(iou.participants) ? translate('tabSelector.manual') : translate('iou.split'));
-    }, [iou.participants, isDistanceRequest, translate]);
+    }, [iou.participants, isDistanceRequest, isSendRequest, translate]);
 
     const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
@@ -113,7 +120,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                         ref={(el) => (optionsSelectorRef.current = el)}
                         participants={iou.participants}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
-                        navigateToRequest={() => navigateToConfirmationStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)}
+                        navigateToRequest={() => navigateToConfirmationStep(iouType.current)}
                         navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         iouType={iouType.current}
@@ -126,7 +133,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     );
 }
 
-MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
+MoneyRequestParticipantsPage.displayName = 'MoneyRequestParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 

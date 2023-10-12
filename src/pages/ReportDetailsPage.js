@@ -1,33 +1,33 @@
-import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import React, { useMemo } from 'react';
+import { ScrollView, View } from 'react-native';
+import { withOnyx } from 'react-native-onyx';
 import _ from 'underscore';
-import {View, ScrollView} from 'react-native';
-import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
-import compose from '../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import ONYXKEYS from '../ONYXKEYS';
-import ScreenWrapper from '../components/ScreenWrapper';
-import Navigation from '../libs/Navigation/Navigation';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import styles from '../styles/styles';
-import DisplayNames from '../components/DisplayNames';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as PolicyUtils from '../libs/PolicyUtils';
-import * as Report from '../libs/actions/Report';
-import participantPropTypes from '../components/participantPropTypes';
-import * as Expensicons from '../components/Icon/Expensicons';
-import ROUTES from '../ROUTES';
-import MenuItem from '../components/MenuItem';
-import Text from '../components/Text';
 import CONST from '../CONST';
-import reportPropTypes from './reportPropTypes';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
+import ONYXKEYS from '../ONYXKEYS';
+import ROUTES from '../ROUTES';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
-import ParentNavigationSubtitle from '../components/ParentNavigationSubtitle';
+import DisplayNames from '../components/DisplayNames';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
+import * as Expensicons from '../components/Icon/Expensicons';
+import MenuItem from '../components/MenuItem';
 import MultipleAvatars from '../components/MultipleAvatars';
+import ParentNavigationSubtitle from '../components/ParentNavigationSubtitle';
+import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
+import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
+import ScreenWrapper from '../components/ScreenWrapper';
+import Text from '../components/Text';
+import participantPropTypes from '../components/participantPropTypes';
+import withLocalize, { withLocalizePropTypes } from '../components/withLocalize';
+import Navigation from '../libs/Navigation/Navigation';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as PolicyUtils from '../libs/PolicyUtils';
+import * as ReportUtils from '../libs/ReportUtils';
+import * as Report from '../libs/actions/Report';
+import compose from '../libs/compose';
+import styles from '../styles/styles';
+import withReportOrNotFound from './home/report/withReportOrNotFound';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -61,8 +61,7 @@ const defaultProps = {
 function ReportDetailsPage(props) {
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
-    const shouldDisableSettings = useMemo(() => ReportUtils.shouldDisableSettings(props.report), [props.report]);
-    const shouldUseFullTitle = !shouldDisableSettings || ReportUtils.isTaskReport(props.report);
+    const shouldUseFullTitle = ReportUtils.isTaskReport(props.report);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
     const isThread = useMemo(() => ReportUtils.isChatThread(props.report), [props.report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
@@ -73,16 +72,20 @@ function ReportDetailsPage(props) {
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
     const participants = useMemo(() => ReportUtils.getParticipantsIDs(props.report), [props.report]);
 
+    const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
+
     const menuItems = useMemo(() => {
-        const items = [
-            {
+        const items = [];
+
+        if (!isGroupDMChat) {
+            items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
                 isAnonymousAction: true,
                 action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(props.report.reportID)),
-            },
-        ];
+            });
+        }
 
         if (isArchivedRoom) {
             return items;
@@ -101,17 +104,15 @@ function ReportDetailsPage(props) {
             });
         }
 
-        if (!shouldDisableSettings) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
-                translationKey: 'common.settings',
-                icon: Expensicons.Gear,
-                isAnonymousAction: false,
-                action: () => {
-                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID));
-                },
-            });
-        }
+        items.push({
+            key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
+            translationKey: 'common.settings',
+            icon: Expensicons.Gear,
+            isAnonymousAction: false,
+            action: () => {
+                Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID));
+            },
+        });
 
         // Prevent displaying private notes option for threads and task reports
         if (!isThread && !isMoneyRequestReport && !ReportUtils.isTaskReport(props.report)) {
@@ -126,7 +127,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, shouldDisableSettings, isThread, isMoneyRequestReport, props.report]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isUserCreatedPolicyRoom, canLeaveRoom, isGroupDMChat]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;

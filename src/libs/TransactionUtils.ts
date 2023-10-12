@@ -3,6 +3,7 @@ import {format, parseISO, isValid} from 'date-fns';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
+import {isExpensifyCard} from './CardUtils';
 import * as NumberUtils from './NumberUtils';
 import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
 import {Receipt, Comment, WaypointCollection} from '../types/onyx/Transaction';
@@ -245,6 +246,13 @@ function getCategory(transaction: Transaction): string {
 }
 
 /**
+ * Return the cardID from the transaction.
+ */
+function getCardID(transaction: Transaction): number {
+    return transaction?.cardID ?? 0;
+}
+
+/**
  * Return the billable field from the transaction. This "billable" field has no "modified" complement.
  */
 function getBillable(transaction: Transaction): boolean {
@@ -261,11 +269,11 @@ function getTag(transaction: Transaction): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getCreated(transaction: Transaction): string {
+function getCreated(transaction: Transaction, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
     const createdDate = parseISO(created);
     if (isValid(createdDate)) {
-        return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
+        return format(createdDate, dateFormat);
     }
 
     return '';
@@ -275,6 +283,27 @@ function isDistanceRequest(transaction: Transaction): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+function isExpensifyCardTransaction(transaction: Transaction): boolean {
+    if (!transaction.cardID) {
+        return false;
+    }
+    return isExpensifyCard(transaction.cardID);
+}
+
+function isPending(transaction: Transaction): boolean {
+    if (!transaction.status) {
+        return false;
+    }
+    return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
+}
+
+function isPosted(transaction: Transaction): boolean {
+    if (!transaction.status) {
+        return false;
+    }
+    return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
 }
 
 function isReceiptBeingScanned(transaction: Transaction): boolean {
@@ -374,6 +403,15 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
     }, {});
 }
 
+/**
+ * Returns the most recent transactions in an object
+ */
+function getRecentTransactions(transactions: Record<string, string>, size = 2): string[] {
+    return Object.keys(transactions)
+        .sort((transactionID1, transactionID2) => (new Date(transactions[transactionID1]) < new Date(transactions[transactionID2]) ? 1 : -1))
+        .slice(0, size);
+}
+
 export {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -381,6 +419,7 @@ export {
     getDescription,
     getAmount,
     getCurrency,
+    getCardID,
     getMerchant,
     getMCCGroup,
     getCreated,
@@ -395,8 +434,12 @@ export {
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
+    isExpensifyCardTransaction,
+    isPending,
+    isPosted,
     getWaypoints,
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
+    getRecentTransactions,
 };

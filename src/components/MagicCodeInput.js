@@ -30,7 +30,7 @@ const propTypes = {
     errorText: PropTypes.string,
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
-    autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code']).isRequired,
+    autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code', 'off']).isRequired,
 
     /* Should submit when the input is complete */
     shouldSubmitOnComplete: PropTypes.bool,
@@ -48,6 +48,12 @@ const propTypes = {
 
     /** Specifies the max length of the input */
     maxLength: PropTypes.number,
+
+    /** Specifies if the keyboard should be disabled */
+    isDisableKeyboard: PropTypes.bool,
+
+    /** Last pressed digit on BigDigitPad */
+    lastPressedDigit: PropTypes.string,
 };
 
 const defaultProps = {
@@ -61,6 +67,8 @@ const defaultProps = {
     onFulfill: () => {},
     hasError: false,
     maxLength: CONST.MAGIC_CODE_LENGTH,
+    isDisableKeyboard: false,
+    lastPressedDigit: '',
 };
 
 /**
@@ -190,8 +198,20 @@ function MagicCodeInput(props) {
      * @param {Object} event
      */
     const onKeyPress = ({nativeEvent: {key: keyValue}}) => {
-        if (keyValue === 'Backspace') {
+        if (keyValue === 'Backspace' || keyValue === '<') {
             let numbers = decomposeString(props.value, props.maxLength);
+
+            // If keyboard is disabled and no input is focused we need to remove
+            // the last entered digit and focus on the correct input
+            if (props.isDisableKeyboard && focusedIndex === undefined) {
+                const indexBeforeLastEditIndex = editIndex === 0 ? editIndex : editIndex - 1;
+
+                const indexToFocus = numbers[editIndex] === CONST.MAGIC_CODE_EMPTY_CHAR ? indexBeforeLastEditIndex : editIndex;
+                inputRefs.current[indexToFocus].focus();
+                props.onChangeText(props.value.substring(0, indexToFocus));
+
+                return;
+            }
 
             // If the currently focused index already has a value, it will delete
             // that value but maintain the focus on the same input.
@@ -237,13 +257,34 @@ function MagicCodeInput(props) {
         }
     };
 
+    /**
+     *  If isDisableKeyboard is true we will have to call onKeyPress and onChangeText manually
+     *  as the press on digit pad will not trigger native events. We take lastPressedDigit from props
+     *  as it stores the last pressed digit pressed on digit pad. We take only the first character
+     *  as anything after that is added to differentiate between two same digits passed in a row.
+     */
+
+    useEffect(() => {
+        if (!props.isDisableKeyboard) {
+            return;
+        }
+
+        const value = props.lastPressedDigit.charAt(0);
+        onKeyPress({nativeEvent: {key: value}});
+        onChangeText(value);
+
+        // We have not added:
+        // + the onChangeText and onKeyPress as the dependencies because we only want to run this when lastPressedDigit changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.lastPressedDigit, props.isDisableKeyboard]);
+
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
                 {_.map(getInputPlaceholderSlots(props.maxLength), (index) => (
                     <View
                         key={index}
-                        style={[styles.w15]}
+                        style={props.maxLength === CONST.MAGIC_CODE_LENGTH ? [styles.w15] : [styles.flex1, index !== 0 && styles.ml3]}
                     >
                         <View
                             style={[
@@ -265,8 +306,9 @@ function MagicCodeInput(props) {
                                         ref.setAttribute('type', 'search');
                                     }
                                 }}
+                                disableKeyboard={props.isDisableKeyboard}
                                 autoFocus={index === 0 && props.autoFocus}
-                                inputMode="numeric"
+                                inputMode={props.isDisableKeyboard ? 'none' : 'numeric'}
                                 textContentType="oneTimeCode"
                                 name={props.name}
                                 maxLength={props.maxLength}
