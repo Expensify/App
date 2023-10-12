@@ -80,6 +80,10 @@ function IOURequestStartPage({
         return <FullPageNotFoundView shouldShow />;
     }
 
+    const isFromGlobalCreate = _.isEmpty(report.reportID);
+    const isExpenseRequest = ReportUtils.isPolicyExpenseChat(report);
+    const shouldDisplayDistanceRequest = isExpenseRequest || isFromGlobalCreate;
+
     const navigateBack = () => {
         Navigation.dismissModal();
     };
@@ -109,7 +113,7 @@ function IOURequestStartPage({
 
                         <OnyxTabNavigator
                             id={CONST.TAB.IOU_REQUEST_TYPE}
-                            selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.MANUAL}
+                            selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
                             onTabSelected={resetIouTypeIfChanged}
                             tabBar={({state, navigation, position}) => (
                                 <TabSelector
@@ -121,7 +125,7 @@ function IOURequestStartPage({
                         >
                             <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
                             <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
-                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>
+                            {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>}
                         </OnyxTabNavigator>
                     </View>
                 </DragAndDropProvider>

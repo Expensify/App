@@ -58,7 +58,7 @@ function IOURequestStepParticipants({
 
     const goToNextStep = () => {
         const nextStepIOUType = numberOfParticipants.current === 1 ? iouType : CONST.IOU.TYPE.SPLIT;
-        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(nextStepIOUType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current), true);
+        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(nextStepIOUType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current || reportID), true);
     };
 
     const navigateBack = () => {

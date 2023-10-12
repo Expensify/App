@@ -2827,9 +2827,10 @@ function setMoneyRequestAmount(amount) {
 /**
  * @param {String} transactionID
  * @param {Number} amount
+ * @param {String} currency
  */
-function setMoneeRequestAmount(transactionID, amount) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount});
+function setMoneeRequestAmount(transactionID, amount, currency) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount, currency});
 }
 
 /**

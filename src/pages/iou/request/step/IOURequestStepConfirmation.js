@@ -127,7 +127,23 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            // Split request
+            // IOUs created from a group report will have a reportID param in the route.
+            // Since the user is already viewing the report, we don't need to navigate them to the report
+            if (iouType === CONST.IOU.TYPE.SPLIT && !_.isEmpty(report.reportID)) {
+                IOU.splitBill(
+                    selectedParticipants,
+                    currentUserPersonalDetails.login,
+                    currentUserPersonalDetails.accountID,
+                    transaction.amount,
+                    trimmedComment,
+                    transaction.currency,
+                    transaction.category,
+                    report.reportID,
+                );
+                return;
+            }
+
+            // If the request is created from the global create menu, we also navigate the user to the group report
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 IOU.splitBillAndOpenReport(
                     selectedParticipants,
@@ -275,7 +291,7 @@ function IOURequestStepConfirmation({
                             contentContainerStyle={[styles.flex1, styles.flexColumn]}
                         >
                             <MoneyRequestConfirmationList
-                                transactionID={transaction.transactionID}
+                                transactionID={transactionID}
                                 hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                                 selectedParticipants={participants}
                                 iouAmount={transaction.amount}
