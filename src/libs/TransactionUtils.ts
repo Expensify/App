@@ -59,16 +59,13 @@ function buildOptimisticTransaction(
         commentJSON.originalTransactionID = originalTransactionID;
     }
 
-    // For the SmartScan to run successfully, we need to pass the merchant field empty to the API
-    const defaultMerchant = !receipt || Object.keys(receipt).length === 0 ? CONST.TRANSACTION.DEFAULT_MERCHANT : '';
-
     return {
         transactionID,
         amount,
         currency,
         reportID,
         comment: commentJSON,
-        merchant: merchant || defaultMerchant,
+        merchant: merchant || CONST.TRANSACTION.DEFAULT_MERCHANT,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
