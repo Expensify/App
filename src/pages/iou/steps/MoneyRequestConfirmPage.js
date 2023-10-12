@@ -75,7 +75,13 @@ function MoneyRequestConfirmPage(props) {
             }),
         [props.iou.participants, props.personalDetails],
     );
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
     const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
+
+    useEffect(() => {
+        IOU.resetMoneyRequestCategory();
+        IOU.resetMoneyRequestTag();
+    }, []);
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
@@ -188,6 +194,22 @@ function MoneyRequestConfirmPage(props) {
         (selectedParticipants) => {
             const trimmedComment = props.iou.comment.trim();
 
+            // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
+            if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && props.iou.receiptPath) {
+                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID.current) ? reportID.current : '';
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((receipt) => {
+                    IOU.startSplitBill(
+                        selectedParticipants,
+                        props.currentUserPersonalDetails.login,
+                        props.currentUserPersonalDetails.accountID,
+                        trimmedComment,
+                        receipt,
+                        existingSplitChatReportID,
+                    );
+                });
+                return;
+            }
+
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
@@ -198,6 +220,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.amount,
                     trimmedComment,
                     props.iou.currency,
+                    props.iou.category,
                     reportID.current,
                 );
                 return;
@@ -212,12 +235,13 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.amount,
                     trimmedComment,
                     props.iou.currency,
+                    props.iou.category,
                 );
                 return;
             }
 
-            if (props.iou.receiptPath && props.iou.receiptSource) {
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
+            if (props.iou.receiptPath && props.iou.receiptFilename) {
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((file) => {
                     const receipt = file;
                     receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
                     requestMoney(selectedParticipants, trimmedComment, receipt);
@@ -238,8 +262,9 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.login,
             props.currentUserPersonalDetails.accountID,
             props.iou.currency,
+            props.iou.category,
             props.iou.receiptPath,
-            props.iou.receiptSource,
+            props.iou.receiptFilename,
             isDistanceRequest,
             requestMoney,
             createDistanceRequest,
@@ -277,6 +302,10 @@ function MoneyRequestConfirmPage(props) {
 
         if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
             return props.translate('iou.split');
+        }
+
+        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+            return props.translate('common.send');
         }
 
         return props.translate('tabSelector.manual');
@@ -335,9 +364,10 @@ function MoneyRequestConfirmPage(props) {
                                     IOU.setMoneyRequestParticipants(newParticipants);
                                 }}
                                 receiptPath={props.iou.receiptPath}
-                                receiptSource={props.iou.receiptSource}
+                                receiptFilename={props.iou.receiptFilename}
                                 iouType={iouType.current}
                                 reportID={reportID.current}
+                                isPolicyExpenseChat={isPolicyExpenseChat}
                                 // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
                                 // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
                                 // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
@@ -350,6 +380,7 @@ function MoneyRequestConfirmPage(props) {
                                 iouCreated={props.iou.created}
                                 isDistanceRequest={isDistanceRequest}
                                 listStyles={[StyleUtils.getMaximumHeight(windowHeight / 3)]}
+                                shouldShowSmartScanFields={_.isEmpty(props.iou.receiptPath)}
                             />
                         </ScrollView>
                     </ScrollView>
@@ -375,12 +406,8 @@ export default compose(
     withOnyx({
         report: {
             key: ({route, iou}) => {
-                let reportID = lodashGet(route, 'params.reportID', '');
-                if (!reportID) {
-                    // When the money request creation flow is initialized on Global Create, the reportID is not passed as a navigation parameter.
-                    // Get the report id from the participants list on the IOU object stored in Onyx.
-                    reportID = lodashGet(iou, 'participants.0.reportID', '');
-                }
+                const reportID = IOU.getIOUReportID(iou, route);
+
                 return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
             },
         },
