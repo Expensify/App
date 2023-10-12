@@ -6,9 +6,9 @@ import * as Expensicons from '../components/Icon/Expensicons';
 
 /**
  * @param {Object} report
- * @returns {Object}
+ * @returns {Object} pin/unpin object
  */
-function getPinOptions(report) {
+function getPinMenuItem(report) {
     if (!report.isPinned) {
         return {
             icon: Expensicons.Pin,
@@ -27,5 +27,5 @@ function getPinOptions(report) {
 
 export {
     // eslint-disable-next-line import/prefer-default-export
-    getPinOptions,
+    getPinMenuItem,
 };
