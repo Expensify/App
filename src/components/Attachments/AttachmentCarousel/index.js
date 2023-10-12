@@ -190,8 +190,11 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             bounces={false}
                             // Scroll only one image at a time no matter how fast the user swipes
                             disableIntervalMomentum
+                            pagingEnabled
                             snapToAlignment="start"
-                            snapToInterval={containerWidth}
+                            contentInset={{ top: 0, left: 0, bottom: 0, right: 0 }}
+                            contentInsetAdjustmentBehavior="automatic"
+                            snapToOffsets={attachments.map((_, index) => index * containerWidth)}
                             // Enable scrolling by swiping on mobile (touch) devices only
                             // disable scroll for desktop/browsers because they add their scrollbars
                             // Enable scrolling FlatList only when PDF is not in a zoomed state
@@ -199,8 +202,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             ref={scrollRef}
                             initialScrollIndex={page}
                             initialNumToRender={1}
-                            windowSize={5}
-                            maxToRenderPerBatch={3}
+                            windowSize={1}
                             data={attachments}
                             CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
