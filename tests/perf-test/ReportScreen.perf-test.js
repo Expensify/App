@@ -18,7 +18,7 @@ const ONYXKEYS = {
 
 jest.mock('../../src/hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: jest.fn(),
+        translate: (text) => text,
     })),
 );
 jest.mock('../../src/hooks/useNetwork', () =>
@@ -26,6 +26,14 @@ jest.mock('../../src/hooks/useNetwork', () =>
         isOffline: false,
     })),
 );
+
+jest.mock('../../src/components/withLocalize', () => (Component) => (props) => (
+    <Component
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        translate={(text) => text}
+    />
+));
 
 jest.mock('../../src/hooks/useEnvironment', () =>
     jest.fn(() => ({
@@ -36,12 +44,32 @@ jest.mock('../../src/hooks/useEnvironment', () =>
     })),
 );
 
-jest.mock('../../src/libs/Permissions');
+jest.mock('../../src/libs/Permissions', () => ({
+    canUseTasks: jest.fn(() => true),
+}));
+
 jest.mock('../../src/libs/Navigation/Navigation');
 jest.mock('../../src/components/Icon/Expensicons');
 
-// TODO: there are still some problems with navigation mocking
-jest.mock('@react-navigation/native');
+const mockedNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual('@react-navigation/native');
+    return {
+        ...actualNav,
+        useFocusEffect: jest.fn(),
+        useIsFocused: () => ({
+            navigate: mockedNavigate,
+        }),
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            addListener: jest.fn(),
+        }),
+        createNavigationContainerRef: jest.fn(),
+    };
+});
+
+// mock PortalStateContext
+jest.mock('@gorhom/portal');
 
 beforeAll(() =>
     Onyx.init({
