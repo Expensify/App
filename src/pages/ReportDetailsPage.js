@@ -61,8 +61,7 @@ const defaultProps = {
 function ReportDetailsPage(props) {
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
-    const shouldDisableSettings = useMemo(() => ReportUtils.shouldDisableSettings(props.report), [props.report]);
-    const shouldUseFullTitle = !shouldDisableSettings || ReportUtils.isTaskReport(props.report);
+    const shouldUseFullTitle = ReportUtils.isTaskReport(props.report);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
     const isThread = useMemo(() => ReportUtils.isChatThread(props.report), [props.report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
@@ -73,16 +72,20 @@ function ReportDetailsPage(props) {
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
     const participants = useMemo(() => ReportUtils.getParticipantsIDs(props.report), [props.report]);
 
+    const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
+
     const menuItems = useMemo(() => {
-        const items = [
-            {
+        const items = [];
+
+        if (!isGroupDMChat) {
+            items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
                 isAnonymousAction: true,
                 action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(props.report.reportID)),
-            },
-        ];
+            });
+        }
 
         if (isArchivedRoom) {
             return items;
@@ -101,17 +104,15 @@ function ReportDetailsPage(props) {
             });
         }
 
-        if (!shouldDisableSettings) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
-                translationKey: 'common.settings',
-                icon: Expensicons.Gear,
-                isAnonymousAction: false,
-                action: () => {
-                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID));
-                },
-            });
-        }
+        items.push({
+            key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
+            translationKey: 'common.settings',
+            icon: Expensicons.Gear,
+            isAnonymousAction: false,
+            action: () => {
+                Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID));
+            },
+        });
 
         // Prevent displaying private notes option for threads and task reports
         if (!isThread && !isMoneyRequestReport && !ReportUtils.isTaskReport(props.report)) {
@@ -126,7 +127,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, shouldDisableSettings, isThread, isMoneyRequestReport, props.report]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isUserCreatedPolicyRoom, canLeaveRoom, isGroupDMChat]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
