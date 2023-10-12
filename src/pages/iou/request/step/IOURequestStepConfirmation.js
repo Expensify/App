@@ -281,8 +281,7 @@ function IOURequestStepConfirmation({
                             contentContainerStyle={[styles.flex1, styles.flexColumn]}
                         >
                             <MoneyRequestConfirmationList
-                                route={route}
-                                transactionID={transactionID}
+                                transactionID={transaction.transactionID}
                                 hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                                 selectedParticipants={participants}
                                 iouAmount={transaction.amount}
@@ -312,6 +311,7 @@ function IOURequestStepConfirmation({
                                 iouCreated={transaction.created}
                                 isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                                 listStyles={[StyleUtils.getMaximumHeight(windowHeight / 3)]}
+                                shouldShowSmartScanFields={_.isEmpty(transaction.receiptPath)}
                             />
                         </ScrollView>
                     </ScrollView>
