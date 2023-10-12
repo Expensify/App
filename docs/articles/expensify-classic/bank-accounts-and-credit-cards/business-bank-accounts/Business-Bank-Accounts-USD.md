@@ -9,6 +9,7 @@ Once you connect your business bank account, you can:
 - Settle company bills via direct transfer
 - Accept invoice payments through direct transfer
 - Access the Expensify Card
+
 # How to add a verified business bank account
 To connect a business bank account to Expensify, follow the below steps:
 1. Go to **Settings > Account > Payments**
