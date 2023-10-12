@@ -36,5 +36,8 @@ export default {
     // Workspaces tab
     INDIVIDUAL_WORKSPACES_OLDDOT: 'IndividualWorkspaces_OLDDOT',
     GROUPS_WORKSPACES_OLDDOT: 'GroupWorkspaces_OLDDOT',
-    CARDS_AND_DOMAINS_OLDDOT: 'CardsAndDomains_OLDDOT',
+    DOMAINS_OLDDOT: 'Domains_OLDDOT',
+    DOMAIN_OLDDOT: 'Domain_OLDDOT',
+
+    WORKSPACE_OLDDOT: 'Workspace_OLDDOT',
 } as const;

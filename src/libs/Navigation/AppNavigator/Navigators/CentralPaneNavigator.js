@@ -1,11 +1,11 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
+import _ from 'underscore';
 import SCREENS from '../../../../SCREENS';
 import ReportScreenWrapper from '../ReportScreenWrapper';
 import getCurrentUrl from '../../currentUrl';
 import styles from '../../../../styles/styles';
 import FreezeWrapper from '../../FreezeWrapper';
-import IframeTest from '../IframeTest';
 
 const Stack = createStackNavigator();
 
@@ -20,6 +20,21 @@ const commonOptions = {
     cardStyle: styles.cardStyleNavigator,
 };
 
+function DummyScreen() {
+    return null;
+}
+
+const iframeScreens = [
+    SCREENS.HOME_OLDDOT,
+    SCREENS.EXPENSES_OLDDOT,
+    SCREENS.REPORTS_OLDDOT,
+    SCREENS.INSIGHTS_OLDDOT,
+    SCREENS.INDIVIDUAL_WORKSPACES_OLDDOT,
+    SCREENS.GROUPS_WORKSPACES_OLDDOT,
+    SCREENS.DOMAINS_OLDDOT,
+    SCREENS.WORKSPACE_OLDDOT,
+];
+
 function CentralPaneNavigator() {
     return (
         <FreezeWrapper>
@@ -30,36 +45,13 @@ function CentralPaneNavigator() {
                     initialParams={{openOnAdminRoom: openOnAdminRoom ? 'true' : undefined}}
                     component={ReportScreenWrapper}
                 />
-
-                {/* Iframe screens */}
-                <Stack.Screen
-                    name={SCREENS.HOME_OLDDOT}
-                    component={IframeTest}
-                />
-                <Stack.Screen
-                    name={SCREENS.EXPENSES_OLDDOT}
-                    component={IframeTest}
-                />
-                <Stack.Screen
-                    name={SCREENS.REPORTS_OLDDOT}
-                    component={IframeTest}
-                />
-                <Stack.Screen
-                    name={SCREENS.INSIGHTS_OLDDOT}
-                    component={IframeTest}
-                />
-                <Stack.Screen
-                    name={SCREENS.INDIVIDUAL_WORKSPACES_OLDDOT}
-                    component={IframeTest}
-                />
-                <Stack.Screen
-                    name={SCREENS.GROUPS_WORKSPACES_OLDDOT}
-                    component={IframeTest}
-                />
-                <Stack.Screen
-                    name={SCREENS.CARDS_AND_DOMAINS_OLDDOT}
-                    component={IframeTest}
-                />
+                {_.map(iframeScreens, (screen) => (
+                    <Stack.Screen
+                        key={screen}
+                        name={screen}
+                        component={DummyScreen}
+                    />
+                ))}
             </Stack.Navigator>
         </FreezeWrapper>
     );

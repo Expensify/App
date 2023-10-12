@@ -330,5 +330,16 @@ export default {
     // Workspaces tab
     INDIVIDUALS_OLDDOT: 'individual_workspaces',
     GROUPS_OLDDOT: 'group_workspaces',
-    CARDS_AND_DOMAINS_OLDDOT: 'cards-and-domains',
+
+    DOMAINS_OLDDOT: 'domains',
+
+    DOMAIN_OLDDOT: {
+        route: 'domain/:section',
+        getRoute: (section: string) => `domain/${section}`,
+    },
+
+    WORKSPACE_OLDDOT: {
+        route: 'workspace-classic/:workspaceID/:section',
+        getRoute: (workspaceID: string, section: string) => `workspace-classic/${workspaceID}/${section}`,
+    },
 } as const;

@@ -95,9 +95,9 @@ function SubNavigation({onLinkClick, insets}) {
                         {
                             icon: Expensicons.CardsDomains,
                             text: translate('subNavigation.cardsAndDomains'),
-                            value: SCREENS.CARDS_AND_DOMAINS_OLDDOT,
+                            value: SCREENS.DOMAINS_OLDDOT,
                             onSelected: () => {
-                                Navigation.navigate(ROUTES.CARDS_AND_DOMAINS_OLDDOT);
+                                Navigation.navigate(ROUTES.DOMAINS_OLDDOT);
                             },
                         },
                     ]}
