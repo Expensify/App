@@ -38,7 +38,7 @@ If you prefer, you can create a standard template for certain expenses:
 **Pro Tip:** If you use Scheduled Submit, place the template report under your individual workspace to avoid accidental submission. When you're ready to use it, check the report box, copy it, and make necessary changes to the name and workspace.
 
 # How to Enable Location Access on Web
-If you’d like to use features that rely on your current location you will need to enable location permissions for Expensify. You can find instructions for how to enable location settings on the three most common web browsers below. If your browser is not in the list then please do a web search for your browser and “enable location settings”.
+If you’d like to use features that rely on your current location, you will need to enable location permissions for Expensify. You can find instructions for enabling location settings on the three most common web browsers below. If your browser is not on the list, then please do a web search for your browser and “enable location settings”.
 
 ## Chrome
 1. Open Chrome
