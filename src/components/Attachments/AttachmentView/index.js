@@ -17,6 +17,7 @@ import AttachmentViewPdf from './AttachmentViewPdf';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
+import useNetwork from '../../../hooks/useNetwork';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -62,8 +63,13 @@ function AttachmentView({
     translate,
     isFocused,
     isWorkspaceAvatar,
+    fallbackSource,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
+
+    const [imageError, setImageError] = useState(false);
+
+    useNetwork({onReconnect: () => setImageError(false)});
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(source)) {
@@ -86,9 +92,9 @@ function AttachmentView({
         );
     }
 
-    // Check both source and file.name since PDFs dragged into the the text field
+    // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
-    if (Str.isPDF(source) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
+    if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         return (
@@ -108,12 +114,13 @@ function AttachmentView({
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
-    // both PDFs and images will appear as images when pasted into the the text field
-    const isImage = Str.isImage(source);
+    // both PDFs and images will appear as images when pasted into the text field.
+    // We also check for numeric source since this is how static images (used for preview) are represented in RN.
+    const isImage = typeof source === 'number' || Str.isImage(source);
     if (isImage || (file && Str.isImage(file.name))) {
         return (
             <AttachmentViewImage
-                source={source}
+                source={imageError ? fallbackSource : source}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 isUsedInCarousel={isUsedInCarousel}
@@ -122,6 +129,9 @@ function AttachmentView({
                 isImage={isImage}
                 onPress={onPress}
                 onScaleChanged={onScaleChanged}
+                onError={() => {
+                    setImageError(true);
+                }}
             />
         );
     }

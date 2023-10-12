@@ -6,6 +6,7 @@ import htmlRenderers from './HTMLRenderers';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import styles from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
+import convertToLTR from '../../libs/convertToLTR';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -57,7 +58,7 @@ const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]
 // costly invalidations and commits.
 function BaseHTMLEngineProvider(props) {
     // We need to memoize this prop to make it referentially stable.
-    const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false}), [props.textSelectable]);
+    const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [props.textSelectable]);
 
     // We need to pass multiple system-specific fonts for emojis but
     // we can't apply multiple fonts at once so we need to pass fallback fonts.
@@ -71,6 +72,10 @@ function BaseHTMLEngineProvider(props) {
             enableCSSInlineProcessing={false}
             systemFonts={_.values(fontFamily)}
             fallbackFonts={fallbackFonts}
+            domVisitors={{
+                // eslint-disable-next-line no-param-reassign
+                onText: (text) => (text.data = convertToLTR(text.data)),
+            }}
         >
             <RenderHTMLConfigProvider
                 defaultTextProps={defaultTextProps}

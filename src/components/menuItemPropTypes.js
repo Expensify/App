@@ -88,9 +88,6 @@ const propTypes = {
     /** A right-aligned subtitle for this menu option */
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
-    /** Style for the subtitle */
-    subtitleTextStyle: stylePropTypes,
-
     /** Flag to choose between avatar image or an icon */
     iconType: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_ICON, CONST.ICON_TYPE_WORKSPACE]),
 
@@ -98,7 +95,7 @@ const propTypes = {
     interactive: PropTypes.bool,
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.func,
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
 
     /** Avatars to show on the right of the menu item */
     floatRightAvatars: PropTypes.arrayOf(avatarPropTypes),
@@ -145,8 +142,17 @@ const propTypes = {
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled: PropTypes.bool,
 
+    /** Error to display below the title */
+    error: PropTypes.string,
+
     /** Should render the content in HTML format */
     shouldRenderAsHTML: PropTypes.bool,
+
+    /** Component to be displayed on the right */
+    rightComponent: PropTypes.node,
+
+    /** Should render component on the right */
+    shouldShowRightComponent: PropTypes.bool,
 };
 
 export default propTypes;

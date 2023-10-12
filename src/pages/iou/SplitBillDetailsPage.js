@@ -1,5 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -61,21 +62,18 @@ function SplitBillDetailsPage(props) {
     let participants;
     if (ReportUtils.isPolicyExpenseChat(props.report)) {
         participants = [
-            ...OptionsListUtils.getParticipantsOptions([{accountID: participantAccountIDs[0], selected: true}], props.personalDetails),
-            ...OptionsListUtils.getPolicyExpenseReportOptions({...props.report, selected: true}),
+            OptionsListUtils.getParticipantsOption({accountID: participantAccountIDs[0], selected: true}, props.personalDetails),
+            OptionsListUtils.getPolicyExpenseReportOption({...props.report, selected: true}),
         ];
     } else {
-        participants = OptionsListUtils.getParticipantsOptions(
-            _.map(participantAccountIDs, (accountID) => ({accountID, selected: true})),
-            props.personalDetails,
-        );
+        participants = _.map(participantAccountIDs, (accountID) => OptionsListUtils.getParticipantsOption({accountID, selected: true}, props.personalDetails));
     }
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
-    const {amount: splitAmount, currency: splitCurrency, comment: splitComment} = ReportUtils.getTransactionDetails(transaction);
+    const {amount: splitAmount, currency: splitCurrency, comment: splitComment, category: splitCategory} = ReportUtils.getTransactionDetails(transaction);
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
                 <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
@@ -90,9 +88,11 @@ function SplitBillDetailsPage(props) {
                             iouAmount={splitAmount}
                             iouComment={splitComment}
                             iouCurrencyCode={splitCurrency}
+                            iouCategory={splitCategory}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly
                             shouldShowFooter={false}
+                            reportID={lodashGet(props.report, 'reportID', '')}
                         />
                     )}
                 </View>

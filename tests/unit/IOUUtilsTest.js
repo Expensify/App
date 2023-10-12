@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import * as IOUUtils from '../../src/libs/IOUUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import currencyList from './currencyList.json';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 
@@ -13,7 +13,7 @@ function initCurrencyList() {
             [ONYXKEYS.CURRENCY_LIST]: currencyList,
         },
     });
-    return waitForPromisesToResolve();
+    return waitForBatchedUpdates();
 }
 
 describe('IOUUtils', () => {

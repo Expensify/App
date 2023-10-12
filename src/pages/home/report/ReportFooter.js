@@ -11,6 +11,7 @@ import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import useNetwork from '../../../hooks/useNetwork';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -25,9 +26,6 @@ const propTypes = {
     /** Report actions for the current report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
-    /** Offline status */
-    isOffline: PropTypes.bool.isRequired,
-
     /** Callback fired when the comment is submitted */
     onSubmitComment: PropTypes.func,
 
@@ -40,6 +38,9 @@ const propTypes = {
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
 
+    /** Whetjer the report is ready for display */
+    isReportReadyForDisplay: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -50,10 +51,12 @@ const defaultProps = {
     pendingAction: null,
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
+    isReportReadyForDisplay: true,
 };
 
 function ReportFooter(props) {
-    const chatFooterStyles = {...styles.chatFooter, minHeight: !props.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+    const {isOffline} = useNetwork();
+    const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const isAnonymousUser = Session.isAnonymousUser();
 
@@ -87,6 +90,7 @@ function ReportFooter(props) {
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
                             disabled={props.shouldDisableCompose}
+                            isReportReadyForDisplay={props.isReportReadyForDisplay}
                         />
                     </SwipeableView>
                 </View>
@@ -102,5 +106,6 @@ export default compose(
     withWindowDimensions,
     withOnyx({
         shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
+        initialValue: false,
     }),
 )(ReportFooter);

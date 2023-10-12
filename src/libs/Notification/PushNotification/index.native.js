@@ -6,7 +6,7 @@ import Log from '../../Log';
 import NotificationType from './NotificationType';
 import * as PushNotification from '../../actions/PushNotification';
 import ONYXKEYS from '../../../ONYXKEYS';
-import configureForegroundNotifications from './configureForegroundNotifications';
+import ForegroundNotifications from './ForegroundNotifications';
 
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({
@@ -96,7 +96,7 @@ function init() {
     // Keep track of which users have enabled push notifications via an NVP.
     Airship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
 
-    configureForegroundNotifications();
+    ForegroundNotifications.configureForegroundNotifications();
 }
 
 /**
@@ -136,6 +136,7 @@ function deregister() {
     Airship.contact.reset();
     Airship.removeAllListeners(EventType.PushReceived);
     Airship.removeAllListeners(EventType.NotificationResponse);
+    ForegroundNotifications.disableForegroundNotifications();
 }
 
 /**

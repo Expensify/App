@@ -1,0 +1,30 @@
+diff --git a/node_modules/react-native-webview/android/build.gradle b/node_modules/react-native-webview/android/build.gradle
+index f68fa80..1687ba0 100644
+--- a/node_modules/react-native-webview/android/build.gradle
++++ b/node_modules/react-native-webview/android/build.gradle
+@@ -105,13 +105,3 @@ dependencies {
+     implementation "org.jetbrains.kotlin:kotlin-stdlib:${safeExtGet('kotlinVersion')}"
+     implementation "androidx.webkit:webkit:${safeExtGet('webkitVersion')}"
+ }
+-
+-if (isNewArchitectureEnabled()) {
+-    react {
+-        jsRootDir = file("../src/")
+-        libraryName = "rncwebview"
+-        codegenJavaPackageName = "com.reactnativecommunity.webview"
+-        codegenDir = new File(codegenPath)
+-        reactNativeDir = new File(reactNativePath)
+-    }
+-}
+diff --git a/node_modules/react-native-webview/react-native-webview.podspec b/node_modules/react-native-webview/react-native-webview.podspec
+index b6f164a..368ef53 100644
+--- a/node_modules/react-native-webview/react-native-webview.podspec
++++ b/node_modules/react-native-webview/react-native-webview.podspec
+@@ -21,6 +21,7 @@ Pod::Spec.new do |s|
+   s.dependency "React-Core"
+ 
+   if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
++    s.platforms    = { :ios => "10.0", :osx => "10.13" }
+     s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
+     s.pod_target_xcconfig    = {
+         "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",

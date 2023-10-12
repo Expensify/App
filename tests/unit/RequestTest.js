@@ -1,5 +1,5 @@
 import * as Request from '../../src/libs/Request';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as TestHelper from '../utils/TestHelper';
 
 beforeAll(() => {
@@ -19,7 +19,7 @@ test('Request.use() can register a middleware and it will run', () => {
     };
 
     Request.processWithMiddleware(request, true);
-    return waitForPromisesToResolve().then(() => {
+    return waitForBatchedUpdates().then(() => {
         const [promise, returnedRequest, isFromSequentialQueue] = testMiddleware.mock.calls[0];
         expect(testMiddleware).toHaveBeenCalled();
         expect(returnedRequest).toEqual(request);
@@ -57,7 +57,7 @@ test('Request.use() can register two middlewares. They can pass a response to th
 
     const catchHandler = jest.fn();
     Request.processWithMiddleware(request).catch(catchHandler);
-    return waitForPromisesToResolve().then(() => {
+    return waitForBatchedUpdates().then(() => {
         expect(catchHandler).toHaveBeenCalled();
         expect(catchHandler).toHaveBeenCalledWith(new Error('Oops'));
     });

@@ -41,7 +41,7 @@ function TimezoneInitialPage(props) {
     };
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={TimezoneInitialPage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}

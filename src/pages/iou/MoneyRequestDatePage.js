@@ -61,13 +61,13 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (!isDistanceRequest && (_.isEmpty(iou.participantAccountIDs) || (iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+        if (!isDistanceRequest && (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
         }
-    }, [iou.id, iou.participantAccountIDs, iou.amount, iou.receiptPath, iouType, reportID, isDistanceRequest]);
+    }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID, isDistanceRequest]);
 
     function navigateBack() {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     }
 
     /**
@@ -85,6 +85,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={MoneyRequestDatePage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.date')}
@@ -110,6 +111,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
 
 MoneyRequestDatePage.propTypes = propTypes;
 MoneyRequestDatePage.defaultProps = defaultProps;
+MoneyRequestDatePage.displayName = 'MoneyRequestDatePage';
 
 export default withOnyx({
     iou: {

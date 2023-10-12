@@ -36,7 +36,6 @@ function Suggestions({
     setSelection,
     updateComment,
     composerHeight,
-    shouldShowReportRecipientLocalTime,
     forwardedRef,
     onInsertedEmoji,
     resetKeyboardInput,
@@ -66,8 +65,7 @@ function Suggestions({
 
     const onSelectionChange = useCallback((e) => {
         const emojiHandler = suggestionEmojiRef.current.onSelectionChange(e);
-        const mentionHandler = suggestionMentionRef.current.onSelectionChange(e);
-        return emojiHandler || mentionHandler;
+        return emojiHandler;
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -102,10 +100,10 @@ function Suggestions({
         value,
         setValue,
         setSelection,
+        selection,
         isComposerFullSize,
         updateComment,
         composerHeight,
-        shouldShowReportRecipientLocalTime,
         isAutoSuggestionPickerLarge,
         measureParentContainer,
     };
@@ -116,7 +114,6 @@ function Suggestions({
                 ref={suggestionEmojiRef}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
-                selection={selection}
                 onInsertedEmoji={onInsertedEmoji}
                 resetKeyboardInput={resetKeyboardInput}
             />

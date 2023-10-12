@@ -4,14 +4,12 @@ import PropTypes from 'prop-types';
 import Lottie from 'lottie-react-native';
 import * as LottieAnimations from './LottieAnimations';
 import styles from '../styles/styles';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import useLocalize from '../hooks/useLocalize';
 import Text from './Text';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
-import compose from '../libs/compose';
-import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
     /** Whether the user is submitting verifications data */
@@ -19,17 +17,18 @@ const propTypes = {
 
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress: PropTypes.func.isRequired,
-    ...withLocalizePropTypes,
 };
 
 function ReimbursementAccountLoadingIndicator(props) {
+    const {translate} = useLocalize();
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}
+            testID={ReimbursementAccountLoadingIndicator.displayName}
         >
             <HeaderWithBackButton
-                title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
+                title={translate('reimbursementAccountLoadingAnimation.oneMoment')}
                 onBackButtonPress={props.onBackButtonPress}
             />
             <FullPageOfflineBlockingView>
@@ -42,7 +41,7 @@ function ReimbursementAccountLoadingIndicator(props) {
                             style={styles.loadingVBAAnimation}
                         />
                         <View style={[styles.ph6]}>
-                            <Text style={[styles.textAlignCenter]}>{props.translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
+                            <Text style={[styles.textAlignCenter]}>{translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
                         </View>
                     </View>
                 ) : (
@@ -56,4 +55,4 @@ function ReimbursementAccountLoadingIndicator(props) {
 ReimbursementAccountLoadingIndicator.propTypes = propTypes;
 ReimbursementAccountLoadingIndicator.displayName = 'ReimbursementAccountLoadingIndicator';
 
-export default compose(withLocalize, withNetwork())(ReimbursementAccountLoadingIndicator);
+export default ReimbursementAccountLoadingIndicator;

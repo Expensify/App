@@ -102,7 +102,7 @@ function ReportWelcomeText(props) {
                         {roomWelcomeMessage.showReportName && (
                             <Text
                                 style={[styles.textStrong]}
-                                onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID))}
                                 suppressHighlighting
                             >
                                 {ReportUtils.getReportName(props.report)}
@@ -122,7 +122,7 @@ function ReportWelcomeText(props) {
                                     ) : (
                                         <Text
                                             style={[styles.textStrong]}
-                                            onPress={() => Navigation.navigate(ROUTES.getProfileRoute(accountID))}
+                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID))}
                                             suppressHighlighting
                                         >
                                             {displayName}

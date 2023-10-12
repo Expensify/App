@@ -42,12 +42,6 @@ const propTypes = {
     /** Callback when a emoji was inserted */
     onInsertedEmoji: PropTypes.func.isRequired,
 
-    /** The current selection */
-    selection: PropTypes.shape({
-        start: PropTypes.number.isRequired,
-        end: PropTypes.number.isRequired,
-    }).isRequired,
-
     ...SuggestionProps.baseProps,
 };
 
@@ -64,7 +58,6 @@ function SuggestionEmoji({
     setSelection,
     updateComment,
     isComposerFullSize,
-    shouldShowReportRecipientLocalTime,
     isAutoSuggestionPickerLarge,
     forwardedRef,
     resetKeyboardInput,
@@ -241,7 +234,6 @@ function SuggestionEmoji({
             isComposerFullSize={isComposerFullSize}
             preferredSkinToneIndex={preferredSkinTone}
             isEmojiPickerLarge={isAutoSuggestionPickerLarge}
-            shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
             measureParentContainer={measureParentContainer}
         />
     );
