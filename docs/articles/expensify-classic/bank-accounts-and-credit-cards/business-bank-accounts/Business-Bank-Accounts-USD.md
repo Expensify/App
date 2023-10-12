@@ -55,6 +55,7 @@ After entering your personal details, you’ll be prompted to click a link or sc
 It’s required that your ID is:
 - Issued in the US
 - Unexpired
+
 ## Additional Information
 Check the appropriate box under **Additional Information**, accept the agreement terms, and verify that all of the information is true and accurate:
 - A Beneficial Owner refers to an **individual** who owns 25% or more of the business. 
