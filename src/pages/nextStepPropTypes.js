@@ -1,6 +1,10 @@
 import PropTypes from 'prop-types';
 
-const messagePropType = PropTypes.shape({text: PropTypes.string, type: PropTypes.string, action: PropTypes.string});
+const messagePropType = PropTypes.shape({
+    text: PropTypes.string,
+    type: PropTypes.string,
+    action: PropTypes.string,
+});
 
 export default PropTypes.shape({
     /** The message parts of the next step */
