@@ -2729,7 +2729,7 @@ const styles = (theme) => ({
 
     noSelect: {
         boxShadow: 'none',
-        outline: 'none',
+        outlineStyle: 'none',
     },
 
     cardStyleNavigator: {
