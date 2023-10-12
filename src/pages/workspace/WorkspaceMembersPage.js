@@ -314,7 +314,7 @@ function WorkspaceMembersPage(props) {
             const isAdmin = props.session.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
 
             result.push({
-                keyForList: accountID,
+                keyForList: accountIDKey,
                 accountID: accountID,
                 isSelected: _.contains(selectedEmployees, accountID),
                 isDisabled:
