@@ -1,8 +1,6 @@
 import _ from 'underscore';
-import React, {useMemo, useRef} from 'react';
+import React, {useRef, useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -11,13 +9,10 @@ import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import useWaitForNavigation from '../../../hooks/useWaitForNavigation';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import MenuItemList from '../../../components/MenuItemList';
 import Logo from '../../../../assets/images/new-expensify.svg';
 import pkg from '../../../../package.json';
 import * as Report from '../../../libs/actions/Report';
@@ -25,17 +20,13 @@ import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
-import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
 import * as Environment from '../../../libs/Environment/Environment';
+import MenuItemList from '../../../components/MenuItemList';
+import useWaitForNavigation from '../../../hooks/useWaitForNavigation';
 
 const propTypes = {
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
-    isShortcutsModalOpen: PropTypes.bool,
-};
-
-const defaultProps = {
-    isShortcutsModalOpen: false,
 };
 
 function getFlavor() {
@@ -64,7 +55,7 @@ function AboutPage(props) {
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
                 icon: Expensicons.Keyboard,
-                action: KeyboardShortcuts.showKeyboardShortcutModal,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS)),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
@@ -87,7 +78,7 @@ function AboutPage(props) {
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: Expensicons.Bug,
-                action: Report.navigateToConciergeChat,
+                action: waitForNavigate(Report.navigateToConciergeChat),
             },
         ];
         return _.map(baseMenuItems, (item) => ({
@@ -112,7 +103,7 @@ function AboutPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title={translate('initialSettingsPage.about')}
+                        title={props.translate('initialSettingsPage.about')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
@@ -129,7 +120,7 @@ function AboutPage(props) {
                                     >
                                         v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                                     </Text>
-                                    <Text style={[styles.baseFontStyle, styles.mv5]}>{translate('initialSettingsPage.aboutPage.description')}</Text>
+                                    <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
                                 </View>
                             </View>
                             <MenuItemList
@@ -142,19 +133,19 @@ function AboutPage(props) {
                                 style={[styles.chatItemMessageHeaderTimestamp]}
                                 numberOfLines={1}
                             >
-                                {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
+                                {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
                                 <TextLink
                                     style={[styles.textMicroSupporting, styles.link]}
                                     href={CONST.TERMS_URL}
                                 >
-                                    {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
+                                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
                                 </TextLink>{' '}
-                                {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
+                                {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
                                 <TextLink
                                     style={[styles.textMicroSupporting, styles.link]}
                                     href={CONST.PRIVACY_URL}
                                 >
-                                    {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
+                                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
                                 </TextLink>
                                 .
                             </Text>
@@ -167,15 +158,6 @@ function AboutPage(props) {
 }
 
 AboutPage.propTypes = propTypes;
-AboutPage.defaultProps = defaultProps;
 AboutPage.displayName = 'AboutPage';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        isShortcutsModalOpen: {
-            key: ONYXKEYS.IS_SHORTCUTS_MODAL_OPEN,
-        },
-    }),
-)(AboutPage);
+export default compose(withLocalize, withWindowDimensions)(AboutPage);
