@@ -25,7 +25,7 @@ type ReportScreenIDSetterProps = ReportScreenIDSetterComponentProps & ReportScre
  * Get the most recently accessed report for the user
  */
 const getLastAccessedReportID = (
-    reports: OnyxCollection<Report> | Report[],
+    reports: OnyxCollection<Report>,
     ignoreDefaultRooms: boolean,
     policies: OnyxCollection<Policy>,
     isFirstTimeNewExpensifyUser: OnyxEntry<boolean>,

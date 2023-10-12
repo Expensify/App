@@ -5,13 +5,13 @@ import variables from '../../../styles/variables';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 import CONFIG from '../../../CONFIG';
 
-const commonScreenOptions = {
+const commonScreenOptions: StackNavigationOptions = {
     headerShown: false,
     gestureDirection: 'horizontal',
     animationEnabled: true,
     cardOverlayEnabled: true,
     animationTypeForReplace: 'push',
-} as StackNavigationOptions;
+};
 
 export default (isSmallScreenWidth: boolean) => ({
     rightModalNavigator: {

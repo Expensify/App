@@ -159,7 +159,7 @@ function setParams(params, routeKey) {
 /**
  * Dismisses the last modal stack if there is any
  *
- * @param {String | undefined} targetReportID - The reportID to navigate to after dismissing the modal
+ * @param {String | undefined} [targetReportID] - The reportID to navigate to after dismissing the modal
  */
 function dismissModal(targetReportID) {
     if (!canNavigate('dismissModal')) {

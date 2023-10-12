@@ -9,7 +9,7 @@ import useLocalize from '../../../../hooks/useLocalize';
 import CONST from '../../../../CONST';
 
 type OverlayProps = {
-    onPress: () => unknown;
+    onPress: () => void;
 };
 
 function Overlay(props: OverlayProps) {

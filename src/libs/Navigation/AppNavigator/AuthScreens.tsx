@@ -35,6 +35,7 @@ import DemoSetupPage from '../../../pages/DemoSetupPage';
 import * as OnyxTypes from '../../../types/onyx';
 import type {WindowDimensions} from '../../../styles/getModalStyles';
 import type {AuthScreensStackParamList} from './types';
+import type {Timezone} from '../../../types/onyx/PersonalDetails';
 
 type AuthScreensOnyxProps = {
     /** Session of currently logged in user */
@@ -51,11 +52,6 @@ type AuthScreensOnyxProps = {
 };
 
 type AuthScreensProps = WindowDimensions & AuthScreensOnyxProps;
-
-type Timezone = {
-    automatic?: boolean;
-    selected?: string;
-};
 
 type UnsubscribeChatShortcut = () => void;
 type UnsubscribeSearchShortcut = () => void;
@@ -76,7 +72,7 @@ Onyx.connect({
         currentAccountID = val.accountID;
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             // This means sign in in RHP was successful, so we can dismiss the modal and subscribe to user events
-            Navigation.dismissModal(undefined);
+            Navigation.dismissModal();
             User.subscribeToUserEvents();
         }
     },
@@ -94,7 +90,7 @@ Onyx.connect({
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
-        if (timezone !== null && timezone.automatic && timezone.selected !== currentTimezone) {
+        if (timezone?.automatic && timezone?.selected !== currentTimezone) {
             timezone.selected = currentTimezone;
             PersonalDetails.updateAutomaticTimezone({
                 automatic: true,
@@ -200,6 +196,7 @@ class AuthScreens extends React.Component<AuthScreensProps> {
             searchShortcutConfig.descriptionKey,
             [...searchShortcutConfig.modifiers],
             true,
+            // TODO: remove type assertion when KeyboardShortcut is migrated
         ) as UnsubscribeSearchShortcut;
         this.unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
@@ -214,6 +211,7 @@ class AuthScreens extends React.Component<AuthScreensProps> {
             chatShortcutConfig.descriptionKey,
             [...chatShortcutConfig.modifiers],
             true,
+            // TODO: remove type assertion when KeyboardShortcut is migrated
         ) as UnsubscribeChatShortcut;
     }
 
