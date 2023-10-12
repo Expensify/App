@@ -2275,7 +2275,7 @@ const styles = (theme) => ({
             justifyContent: 'space-between',
         }),
         padding: 20,
-        backgroundColor: theme.sidebar,
+        backgroundColor: theme.cardBG,
         borderRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
     }),
@@ -2970,47 +2970,6 @@ const styles = (theme) => ({
         transform: [{scaleX: -1}, {scaleY: -1}],
     },
 
-    keyboardShortcutModalContainer: {
-        maxHeight: '100%',
-        flex: 0,
-        flexBasis: 'auto',
-    },
-
-    keyboardShortcutTableWrapper: {
-        alignItems: 'center',
-        flex: 1,
-        height: 'auto',
-        maxHeight: '100%',
-    },
-
-    keyboardShortcutTableContainer: {
-        display: 'flex',
-        width: '100%',
-        borderColor: theme.border,
-        height: 'auto',
-        borderRadius: variables.componentBorderRadius,
-        borderWidth: 1,
-    },
-
-    keyboardShortcutTableRow: {
-        flex: 1,
-        flexDirection: 'row',
-        borderColor: theme.border,
-        flexBasis: 'auto',
-        alignSelf: 'stretch',
-        borderTopWidth: 1,
-    },
-
-    keyboardShortcutTablePrefix: {
-        width: '30%',
-        borderRightWidth: 1,
-        borderColor: theme.border,
-    },
-
-    keyboardShortcutTableFirstRow: {
-        borderTopWidth: 0,
-    },
-
     iPhoneXSafeArea: {
         backgroundColor: theme.inverse,
         flex: 1,
@@ -3301,6 +3260,21 @@ const styles = (theme) => ({
         color: colors.green400,
     },
 
+    eReceiptAmountLarge: {
+        ...headlineFont,
+        fontSize: variables.fontSizeEReceiptLarge,
+        lineHeight: variables.lineHeightXXsLarge,
+        wordBreak: 'break-word',
+        textAlign: 'center',
+    },
+
+    eReceiptCurrency: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXXLarge,
+        lineHeight: variables.lineHeightXXLarge,
+        wordBreak: 'break-all',
+    },
+
     eReceiptMerchant: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeXLarge,
@@ -3345,6 +3319,22 @@ const styles = (theme) => ({
         backgroundColor: colors.green800,
         borderRadius: 20,
         width: 335,
+    },
+
+    eReceiptBackgroundThumbnail: {
+        ...sizing.w100,
+        position: 'absolute',
+        aspectRatio: 335 / 540,
+        top: 0,
+        minWidth: 217,
+    },
+
+    eReceiptContainer: {
+        flex: 1,
+        width: 335,
+        minHeight: 540,
+        borderRadius: 20,
+        overflow: 'hidden',
     },
 
     loginHeroBody: {

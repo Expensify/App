@@ -465,6 +465,10 @@ export default {
         paddingTop: 24,
     },
 
+    pt8: {
+        paddingTop: 32,
+    },
+
     pt10: {
         paddingTop: 40,
     },
@@ -499,6 +503,10 @@ export default {
 
     pb8: {
         paddingBottom: 32,
+    },
+
+    pb14: {
+        paddingBottom: 56,
     },
 
     pb20: {
