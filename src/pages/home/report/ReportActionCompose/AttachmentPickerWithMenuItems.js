@@ -140,11 +140,11 @@ function AttachmentPickerWithMenuItems({
             },
         };
 
-        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs, betas), (option) => ({
+        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs), (option) => ({
             ...options[option],
             onSelected: () => IOU.startMoneyRequest(option, report.reportID),
         }));
-    }, [betas, report, reportParticipantIDs, translate]);
+    }, [report, reportParticipantIDs, translate]);
 
     /**
      * Determines if we can show the task option

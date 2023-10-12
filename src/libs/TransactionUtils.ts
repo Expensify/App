@@ -3,6 +3,7 @@ import {format, parseISO, isValid} from 'date-fns';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
+import {isExpensifyCard} from './CardUtils';
 import * as NumberUtils from './NumberUtils';
 import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
 import {Receipt, Comment, WaypointCollection} from '../types/onyx/Transaction';
@@ -83,20 +84,25 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
 }
 
 function areRequiredFieldsEmpty(transaction: Transaction): boolean {
-    return (
+    const isMerchantEmpty =
+        transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
+
+    const isModifiedMerchantEmpty =
+        !transaction.modifiedMerchant ||
         transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
         transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
-        (transaction.modifiedMerchant === '' &&
-            (transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === '' || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) ||
-        (transaction.modifiedAmount === 0 && transaction.amount === 0) ||
-        (transaction.modifiedCreated === '' && transaction.created === '')
-    );
+        transaction.modifiedMerchant === '';
+
+    const isModifiedAmountEmpty = !transaction.modifiedAmount || transaction.modifiedAmount === 0;
+    const isModifiedCreatedEmpty = !transaction.modifiedCreated || transaction.modifiedCreated === '';
+
+    return (isModifiedMerchantEmpty && isMerchantEmpty) || (isModifiedAmountEmpty && transaction.amount === 0) || (isModifiedCreatedEmpty && transaction.created === '');
 }
 
 /**
  * Given the edit made to the money request, return an updated transaction object.
  */
-function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean): Transaction {
+function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean, shouldUpdateReceiptState = true): Transaction {
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = {...transaction};
     let shouldStopSmartscan = false;
@@ -143,7 +149,13 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         updatedTransaction.tag = transactionChanges.tag;
     }
 
-    if (shouldStopSmartscan && transaction?.receipt && Object.keys(transaction.receipt).length > 0 && transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.OPEN) {
+    if (
+        shouldUpdateReceiptState &&
+        shouldStopSmartscan &&
+        transaction?.receipt &&
+        Object.keys(transaction.receipt).length > 0 &&
+        transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.OPEN
+    ) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
 
@@ -245,6 +257,13 @@ function getCategory(transaction: Transaction): string {
 }
 
 /**
+ * Return the cardID from the transaction.
+ */
+function getCardID(transaction: Transaction): number {
+    return transaction?.cardID ?? 0;
+}
+
+/**
  * Return the billable field from the transaction. This "billable" field has no "modified" complement.
  */
 function getBillable(transaction: Transaction): boolean {
@@ -261,11 +280,11 @@ function getTag(transaction: Transaction): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getCreated(transaction: Transaction): string {
+function getCreated(transaction: Transaction, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
     const createdDate = parseISO(created);
     if (isValid(createdDate)) {
-        return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
+        return format(createdDate, dateFormat);
     }
 
     return '';
@@ -275,6 +294,27 @@ function isDistanceRequest(transaction: Transaction): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+function isExpensifyCardTransaction(transaction: Transaction): boolean {
+    if (!transaction.cardID) {
+        return false;
+    }
+    return isExpensifyCard(transaction.cardID);
+}
+
+function isPending(transaction: Transaction): boolean {
+    if (!transaction.status) {
+        return false;
+    }
+    return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
+}
+
+function isPosted(transaction: Transaction): boolean {
+    if (!transaction.status) {
+        return false;
+    }
+    return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
 }
 
 function isReceiptBeingScanned(transaction: Transaction): boolean {
@@ -374,6 +414,15 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
     }, {});
 }
 
+/**
+ * Returns the most recent transactions in an object
+ */
+function getRecentTransactions(transactions: Record<string, string>, size = 2): string[] {
+    return Object.keys(transactions)
+        .sort((transactionID1, transactionID2) => (new Date(transactions[transactionID1]) < new Date(transactions[transactionID2]) ? 1 : -1))
+        .slice(0, size);
+}
+
 export {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -381,6 +430,7 @@ export {
     getDescription,
     getAmount,
     getCurrency,
+    getCardID,
     getMerchant,
     getMCCGroup,
     getCreated,
@@ -395,8 +445,13 @@ export {
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
+    isExpensifyCardTransaction,
+    isPending,
+    isPosted,
     getWaypoints,
+    areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
+    getRecentTransactions,
 };
