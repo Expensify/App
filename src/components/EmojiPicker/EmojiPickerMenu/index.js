@@ -49,7 +49,7 @@ const defaultProps = {
 };
 
 function EmojiPickerMenu(props) {
-    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, isSmallScreenWidth, windowWidth, windowHeight, translate} = props;
+    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, isSmallScreenWidth, windowHeight, translate} = props;
 
     // Ref for the emoji search input
     const searchInputRef = useRef(null);
@@ -386,15 +386,6 @@ function EmojiPickerMenu(props) {
         }, 300),
         [preferredLocale],
     );
-
-    /**
-     * Check if its a landscape mode of mobile device
-     *
-     * @returns {Boolean}
-     */
-    function isMobileLandscape() {
-        return isSmallScreenWidth && windowWidth >= windowHeight;
-    }
 
     /**
      * @param {Number} skinTone
