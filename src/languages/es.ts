@@ -2327,12 +2327,9 @@ export default {
     },
     eReceipt: {
         guaranteed: 'eRecibo garantizado',
+        transactionDate: 'Fecha de transacción',
     },
     globalNavigationOptions: {
         chats: 'Chats',
-    },
-    eReceipt: {
-        guaranteed: 'eRecibo garantizado',
-        transactionDate: 'Fecha de transacción',
     },
 } satisfies EnglishTranslation;

@@ -1842,12 +1842,9 @@ export default {
     },
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',
+        transactionDate: 'Transaction date',
     },
     globalNavigationOptions: {
         chats: 'Chats',
-    },
-    eReceipt: {
-        guaranteed: 'Guaranteed eReceipt',
-        transactionDate: 'Transaction date',
     },
 } satisfies TranslationBase;
