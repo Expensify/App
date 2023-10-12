@@ -3324,7 +3324,7 @@ const styles = (theme: ThemeDefault) =>
         eReceiptAmountLarge: {
             ...headlineFont,
             fontSize: variables.fontSizeEReceiptLarge,
-            lineHeight: variables.lineHeightXXsLarge,
+            lineHeight: variables.lineHeightXXLarge,
             wordBreak: 'break-word',
             textAlign: 'center',
         },
