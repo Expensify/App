@@ -80,7 +80,7 @@ const defaultProps = {
 
 function EditRequestPage({betas, report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
-    const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
+    const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
