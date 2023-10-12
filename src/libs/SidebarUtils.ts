@@ -415,7 +415,7 @@ function getOptionData(
     let lastMessageText = lastMessageTextFromReport;
 
     const reportAction = lastReportActions?.[report.reportID];
-    if (result.isArchivedRoom && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+    if (result.isArchivedRoom && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         const archiveReason = reportAction?.originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
 
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
