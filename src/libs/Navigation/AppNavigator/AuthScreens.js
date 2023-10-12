@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {memo, useEffect, useRef} from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -341,6 +341,8 @@ AuthScreens.displayName = 'AuthScreens';
 AuthScreens.propTypes = propTypes;
 AuthScreens.defaultProps = defaultProps;
 
+const AuthScreensMemoized = memo(AuthScreens, () => true);
+
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
@@ -357,4 +359,4 @@ export default withOnyx({
 demoInfo: {
                 key: ONYXKEYS.DEMO_INFO,
             },
-        })(AuthScreens);
+        })(AuthScreensMemoized);
