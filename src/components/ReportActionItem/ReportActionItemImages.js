@@ -14,7 +14,7 @@ const propTypes = {
     images: PropTypes.arrayOf(
         PropTypes.shape({
             thumbnail: PropTypes.string,
-            image: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.node]),
+            image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         }),
     ).isRequired,
 
@@ -52,11 +52,8 @@ function ReportActionItemImages({images, size, total, isHovered}) {
     const shownImages = images.slice(0, size);
     const remaining = (total || images.length) - size;
 
-    console.log('>>>',{images});
-
     // The height varies depending on the number of images we are displaying.
     let heightStyle = {};
-
     if(numberOfShownImages === 1){
         heightStyle = StyleUtils.getHeight(variables.reportActionImagesSingleImageHeight);
     } else if(numberOfShownImages === 2) {
@@ -67,11 +64,9 @@ function ReportActionItemImages({images, size, total, isHovered}) {
 
     const hoverStyle = isHovered ? styles.reportPreviewBoxHoverBorder : undefined;
 
-    console.log({isHovered, hoverStyle});
     return (
         <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
             {_.map(shownImages, ({thumbnail, image}, index) => {
-                console.log('>>>', {image});
                 const isLastImage = index === numberOfShownImages - 1;
 
                 // Show a border to separate multiple images. Shown to the right for each except the last.

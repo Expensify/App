@@ -9,7 +9,7 @@ import ReceiptSVG from '../../assets/images/receipt-svg.png';
 
 
 type ThumbnailAndImageURI = {
-    image: ImageSourcePropType | string | Node;
+    image: ImageSourcePropType | string;
     thumbnail: string | null;
 };
 
@@ -17,17 +17,6 @@ type FileNameAndExtension = {
     fileExtension?: string;
     fileName?: string;
 };
-
-// /**
-//  * Grab the appropriate receipt image and thumbnail URIs based on file type
-//  *
-//  * @param transaction 
-//  */
-// function getThumbnailAndImageForEReceipts(transaction: Transaction): ThumbnailAndImageURI {
-
-//     const eReceipt = <EReceiptThumbnail transactionID={transaction.transactionID}/>; 
-//     return {thumbnail: null, image: ()};
-// }
 
 /**
  * Grab the appropriate receipt image and thumbnail URIs based on file type

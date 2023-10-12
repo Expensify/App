@@ -36,7 +36,7 @@ const defaultProps = {
 
 function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
     const {translate} = useLocalize();
-    const imageSource = ''; // tryResolveUrlFromApiRoot(image || '');
+    const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
 
     let receiptImageComponent = thumbnail ? (
@@ -52,9 +52,6 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
             style={[styles.w100, styles.h100]}
         />
     );
-
-    console.log('>>>', {image, isFunc: _.isFunction(image)});
-    receiptImageComponent = !_.isString(image) ? (<View style={[styles.w100, styles.h100]}>{image}</View>) : receiptImageComponent;
 
     if (enablePreviewModal) {
         return (
