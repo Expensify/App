@@ -111,6 +111,7 @@ If you need to enable direct debits from your verified bank account, your bank w
 To request to unlock the bank account, click **Fix** on your bank account under **Settings > Account > Payments > Bank Accounts**. 
 This sends a request to our support team to review exactly why the bank account was locked. 
 Please note, unlocking a bank account can take 4-5 business days to process.
+
 ## Error adding ID to Onfido
 Expensify is required by both our sponsor bank and federal law to verify the identity of the individual that is initiating the movement of money. We use Onfido to confirm that the person adding a payment method is genuine and not impersonating someone else.
 
