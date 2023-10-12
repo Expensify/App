@@ -21,6 +21,7 @@ import * as Report from '../../../libs/actions/Report';
 import RoomNameInput from '../../../components/RoomNameInput';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import FormProvider from "../../../components/Form/FormProvider";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -90,7 +91,7 @@ function RoomNamePage(props) {
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID))}
                 />
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
                     onSubmit={(values) => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
@@ -106,7 +107,7 @@ function RoomNamePage(props) {
                             isFocused={isFocused}
                         />
                     </View>
-                </Form>
+                </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
