@@ -32,12 +32,12 @@ function getDocumentedShortcuts(): Shortcut[] {
     return Object.values(documentedShortcuts).sort((a, b) => a.displayName.localeCompare(b.displayName));
 }
 
-const keyInputEnter = KeyCommand?.constants?.keyInputEnter ?? 'keyInputEnter';
-const keyInputEscape = KeyCommand?.constants?.keyInputEscape ?? 'keyInputEscape';
-const keyInputUpArrow = KeyCommand?.constants?.keyInputUpArrow ?? 'keyInputUpArrow';
-const keyInputDownArrow = KeyCommand?.constants?.keyInputDownArrow ?? 'keyInputDownArrow';
-const keyInputLeftArrow = KeyCommand?.constants?.keyInputLeftArrow ?? 'keyInputLeftArrow';
-const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow ?? 'keyInputRightArrow';
+const keyInputEnter = KeyCommand?.constants?.keyInputEnter?.toString() ?? 'keyInputEnter';
+const keyInputEscape = KeyCommand?.constants?.keyInputEscape?.toString() ?? 'keyInputEscape';
+const keyInputUpArrow = KeyCommand?.constants?.keyInputUpArrow?.toString() ?? 'keyInputUpArrow';
+const keyInputDownArrow = KeyCommand?.constants?.keyInputDownArrow?.toString() ?? 'keyInputDownArrow';
+const keyInputLeftArrow = KeyCommand?.constants?.keyInputLeftArrow?.toString() ?? 'keyInputLeftArrow';
+const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow?.toString() ?? 'keyInputRightArrow';
 
 /**
  * Generates the normalized display name for keyboard shortcuts.
