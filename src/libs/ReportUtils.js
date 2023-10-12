@@ -2167,7 +2167,6 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
         total: storedTotal,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         parentReportID: chatReportID,
-        participantAccountIDs: [],
     };
 }
 
