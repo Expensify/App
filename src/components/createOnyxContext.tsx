@@ -1,4 +1,4 @@
-import React, {ComponentType, ForwardRefExoticComponent, ForwardedRef, ReactNode, RefAttributes, createContext, forwardRef} from 'react';
+import React, {ComponentType, ForwardRefExoticComponent, ForwardedRef, PropsWithoutRef, ReactNode, RefAttributes, createContext, forwardRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
@@ -24,9 +24,9 @@ type WithOnyxKeyProps<TOnyxKey extends OnyxKeys, TNewOnyxKey extends string, TTr
     transformValue?: (value: OnyxKeyValue<TOnyxKey>, props: any) => TTransformedValue;
 };
 
-type WrapComponentWithConsumer<TNewOnyxKey extends string, TTransformedValue> = <TComponentProps extends Record<TNewOnyxKey, TTransformedValue>>(
-    WrappedComponent: ComponentType<TComponentProps>,
-) => ForwardRefExoticComponent<Omit<TComponentProps, TNewOnyxKey> & RefAttributes<ComponentType<TComponentProps>>>;
+type WrapComponentWithConsumer<TNewOnyxKey extends string, TTransformedValue> = <TProps extends Record<TNewOnyxKey, TTransformedValue>, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+) => ForwardRefExoticComponent<PropsWithoutRef<Omit<TProps, TNewOnyxKey>> & RefAttributes<TRef>>;
 
 type WithOnyxKey<TOnyxKey extends OnyxKeys> = <TNewOnyxKey extends string = TOnyxKey, TTransformedValue = OnyxKeyValue<TOnyxKey>>(
     props?: WithOnyxKeyProps<TOnyxKey, TNewOnyxKey, TTransformedValue>,
@@ -54,15 +54,15 @@ export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey, defaultValue: 
         propName,
         transformValue,
     }: WithOnyxKeyProps<TOnyxKey, TNewOnyxKey, TTransformedValue> = {}) {
-        return <TComponentProps extends Record<TNewOnyxKey, TTransformedValue>>(WrappedComponent: ComponentType<TComponentProps>) => {
-            function Consumer(props: TComponentProps, ref: ForwardedRef<ComponentType<TComponentProps>>): ReactNode {
+        return <TProps extends Record<TNewOnyxKey, TTransformedValue>, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) => {
+            function Consumer(props: Omit<TProps, TNewOnyxKey>, ref: ForwardedRef<TRef>): ReactNode {
                 return (
                     <Context.Consumer>
                         {(value) => {
-                            const propsToPass: TComponentProps = {
+                            const propsToPass = {
                                 ...props,
                                 [propName ?? onyxKeyName]: (transformValue ? transformValue(value, props) : value) ?? defaultValue,
-                            };
+                            } as TProps;
 
                             return (
                                 <WrappedComponent
@@ -77,7 +77,7 @@ export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey, defaultValue: 
             }
 
             Consumer.displayName = `with${Str.UCFirst(onyxKeyName)}(${getComponentDisplayName(WrappedComponent)})`;
-            return forwardRef(Consumer) as ForwardRefExoticComponent<Omit<TComponentProps, TNewOnyxKey> & RefAttributes<ComponentType<TComponentProps>>>;
+            return forwardRef(Consumer);
         };
     }
 

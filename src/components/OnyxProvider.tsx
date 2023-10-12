@@ -1,7 +1,9 @@
-import React from 'react';
+import React, {ReactNode, forwardRef, useRef} from 'react';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import ONYXKEYS from '../ONYXKEYS';
 import createOnyxContext from './createOnyxContext';
 import ComposeProviders from './ComposeProviders';
+import Network from '../types/onyx/Network';
 
 // Set up any providers for individual keys. This should only be used in cases where many components will subscribe to
 // the same key (e.g. FlatList renderItem components)
@@ -13,6 +15,39 @@ const [withBlockedFromConcierge, BlockedFromConciergeProvider] = createOnyxConte
 const [withBetas, BetasProvider, BetasContext] = createOnyxContext(ONYXKEYS.BETAS);
 const [withReportCommentDrafts, ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
 const [withPreferredTheme, PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
+
+type Props = {
+    network: OnyxEntry<Network>;
+    otherProp: string;
+};
+
+const X = forwardRef((props: Props, ref: React.Ref<HTMLInputElement>) => {
+    const isOffline = props.network?.isOffline;
+    const otherProp = props.otherProp;
+    return <input ref={ref} />;
+});
+
+function Comp1(props: Props): ReactNode {
+    const isOffline = props.network?.isOffline;
+    const otherProp = props.otherProp;
+    return null;
+}
+
+function Test() {
+    const HOC = withNetwork();
+    const Wrapped = HOC(Comp1);
+    const x = <Wrapped otherProp="" />;
+
+    const testRef = useRef<HTMLInputElement>(null);
+
+    const Wrapped2 = HOC(X);
+    const x2 = (
+        <Wrapped2
+            ref={testRef}
+            otherProp=""
+        />
+    );
+}
 
 type OnyxProviderProps = {
     /** Rendered child component */
