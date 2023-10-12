@@ -4,22 +4,22 @@ import CONST from '../CONST';
 
 export default function useAutoFocusInput() {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
-    const [screenTransitionEnd, setScreenTransitionEnd] = useState(false);
+    const [isScreenTransitionEnded, setIsScreenTransitionEnd] = useState(false);
 
     const inputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
 
     useEffect(() => {
-        if (!screenTransitionEnd || !isInputInitialized || !inputRef.current) {
+        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current) {
             return;
         }
         inputRef.current.focus();
-    }, [screenTransitionEnd, isInputInitialized]);
+    }, [isScreenTransitionEnded, isInputInitialized]);
 
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
-                setScreenTransitionEnd(true);
+                setIsScreenTransitionEnd(true);
             }, CONST.ANIMATED_TRANSITION);
             return () => {
                 if (!focusTimeoutRef.current) {
