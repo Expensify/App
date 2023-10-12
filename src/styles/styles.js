@@ -3252,6 +3252,64 @@ const styles = (theme) => ({
         lineHeight: variables.lineHeightXXLarge,
     },
 
+    eReceiptAmountLarge: {
+        ...headlineFont,
+        fontSize: variables.fontSizeEReceiptLarge,
+        lineHeight: variables.lineHeightXXsLarge,
+        wordBreak: 'break-word',
+        textAlign: 'center',
+    },
+
+    eReceiptCurrency: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXXLarge,
+        lineHeight: variables.lineHeightXXLarge,
+        wordBreak: 'break-all',
+    },
+
+    eReceiptMerchant: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
+        color: theme.text,
+    },
+
+    eReceiptWaypointTitle: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
+    },
+
+    eReceiptWaypointAddress: {
+        fontFamily: fontFamily.MONOSPACE,
+        fontSize: variables.fontSizeNormal,
+        lineHeight: variables.lineHeightNormal,
+        color: theme.textColorfulBackground,
+    },
+
+    eReceiptGuaranteed: {
+        fontFamily: fontFamily.MONOSPACE,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
+        color: theme.textColorfulBackground,
+    },
+
+    eReceiptBackgroundThumbnail: {
+        ...sizing.w100,
+        position: 'absolute',
+        aspectRatio: 335 / 540,
+        top: 0,
+        minWidth: 217,
+    },
+
+    eReceiptContainer: {
+        flex: 1,
+        width: 335,
+        minHeight: 540,
+        borderRadius: 20,
+        overflow: 'hidden',
+    },
+
     loginHeroBody: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSignInHeroBody,
