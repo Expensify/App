@@ -79,8 +79,7 @@ function HeaderView(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
-    // Use sorted display names for the title for group chats on native small screen widths
-    const title = isMultipleParticipant ? ReportUtils.getDisplayNamesStringFromTooltips(displayNamesWithTooltips) : ReportUtils.getReportName(reportHeaderData);
+    const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
@@ -89,6 +88,7 @@ function HeaderView(props) {
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
     const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -160,7 +160,7 @@ function HeaderView(props) {
                 Link.openExternalLink(props.guideCalendarLink);
             },
         });
-    } else if (!isAutomatedExpensifyAccount && !isTaskReport) {
+    } else if (!isAutomatedExpensifyAccount && !isTaskReport && !isArchivedRoom) {
         threeDotMenuItems.push({
             icon: ZoomIcon,
             iconFill: themeColors.icon,

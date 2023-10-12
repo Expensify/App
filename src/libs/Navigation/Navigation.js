@@ -3,13 +3,13 @@ import lodashGet from 'lodash/get';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import {getActionFromState} from '@react-navigation/core';
 import Log from '../Log';
-import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
+import originalGetTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import getStateFromPath from './getStateFromPath';
 import SCREENS from '../../SCREENS';
@@ -46,6 +46,9 @@ function canNavigate(methodName, params = {}) {
 
 // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
+
+// Re-exporting the getTopMostCentralPaneRouteName here to fill in default value for state. The getTopMostCentralPaneRouteName isn't defined in this file to avoid cyclic dependencies.
+const getTopMostCentralPaneRouteName = (state = navigationRef.getState()) => originalGetTopMostCentralPaneRouteName(state);
 
 // Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
@@ -87,11 +90,6 @@ function navigate(route = ROUTES.HOME, type) {
         pendingRoute = route;
         return;
     }
-
-    // A pressed navigation button will remain focused, keeping its tooltip visible, even if it's supposed to be out of view.
-    // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is missing).
-    // More info: https://github.com/Expensify/App/issues/13146
-    DomUtils.blurActiveElement();
 
     linkTo(navigationRef.current, route, type);
 }
@@ -272,6 +270,7 @@ export default {
     setIsNavigationReady,
     getTopmostReportId,
     getRouteNameFromStateEvent,
+    getTopMostCentralPaneRouteName,
     getTopmostReportActionId,
 };
 
