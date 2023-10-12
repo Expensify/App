@@ -190,6 +190,7 @@ function KYCWall({
 
 KYCWall.propTypes = propTypes;
 KYCWall.defaultProps = defaultProps;
+KYCWall.displayName = 'BaseKYCWall';
 
 export default withOnyx({
     userWallet: {
