@@ -21,7 +21,7 @@ const iouPropTypes = PropTypes.shape({
     /** The category name */
     category: PropTypes.string,
 
-    /** The Billable */
+    /** Whether the request is billable */
     billable: PropTypes.bool,
 
     /** The tag */
