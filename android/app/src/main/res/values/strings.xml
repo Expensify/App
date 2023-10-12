@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">New Expensify</string>
+
+    <string name="asset_statements">
+        <string name="asset_statements">
+            [{
+            \"relation\": [\"delegate_permission/common.handle_all_urls\"],
+            \"target\": {
+            \"namespace\": \"web\",
+            \"site\": \"https://new.expensify.com\"
+            }
+            }]
+        </string>
+    </string>
 </resources>

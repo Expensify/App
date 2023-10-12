@@ -1,0 +1,25 @@
+{
+  "short_name": "New Expensify",
+  "name": "New Expensify",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "prefer_related_applications": true,
+  "related_applications": [
+    {
+      "platform": "play",
+      "id": "com.expensify.chat"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone"
+}
