@@ -1477,6 +1477,10 @@ function hasMissingSmartscanFields(iouReportID) {
  * @returns {String}
  */
 function getTransactionReportName(reportAction) {
+    if (ReportActionsUtils.isReversedTransaction(reportAction)) {
+        return Localize.translateLocal('parentReportAction.reversedTransaction');
+    }
+
     if (ReportActionsUtils.isDeletedParentAction(reportAction)) {
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
@@ -2833,6 +2837,7 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
         policyID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS.OPEN,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     };
 }
 
