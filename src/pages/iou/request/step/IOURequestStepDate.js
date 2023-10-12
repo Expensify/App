@@ -2,7 +2,6 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import moment from 'moment';
-import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';

@@ -217,7 +217,7 @@ function MoneeRequestParticipantsSelector({
                 userToInvite: chatOptions.userToInvite,
             });
         },
-        [participants, onParticipantsAdded, reports, personalDetails, betas, searchTerm, iouType, iouRequestType],
+        [participants, onParticipantsAdded, reports, personalDetails, betas, searchTerm, iouType],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(
