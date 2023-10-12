@@ -10,7 +10,7 @@
     "configure-mapbox": "scripts/setup-mapbox-sdk-walkthrough.sh",
     "postinstall": "scripts/postInstall.sh",
     "clean": "npx react-native clean-project-auto",
-    "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --variant=developmentDebug --appId=com.expensify.chat.dev",
+    "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --mode=developmentDebug --appId=com.expensify.chat.dev",
     "ios": "scripts/set-pusher-suffix.sh && npx react-native run-ios --list-devices --configuration=\"DebugDevelopment\" --scheme=\"New Expensify Dev\"",
     "pod-install": "cd ios && bundle exec pod install",
     "ipad": "concurrently \"npx react-native run-ios --simulator=\\\"iPad Pro (12.9-inch) (6th generation)\\\" --configuration=\\\"DebugDevelopment\\\" --scheme=\\\"New Expensify Dev\\\"\"",
