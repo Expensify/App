@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo} from 'react';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
@@ -114,9 +115,7 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
-        const isEditingAmount = fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT;
-        const isEditingCreatedDate = fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE;
-        const isNonEditableFieldWhenSettled = isEditingAmount || isEditingCreatedDate;
+        const isNonEditableFieldWhenSettled = _.includes([CONST.EDIT_REQUEST_FIELD.AMOUNT, CONST.EDIT_REQUEST_FIELD.DATE], fieldToEdit);
 
         /**
          * Do not dismiss the modal, when a current user can edit a money request.
