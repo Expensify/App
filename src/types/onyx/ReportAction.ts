@@ -66,8 +66,8 @@ type ReportActionBase = {
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
 
-    /** Error message that's come back from the server. */
-    error?: string;
+    /** An error message to display to the user */
+    errors?: OnyxCommon.Errors;
 
     /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
     whisperedToAccountIDs?: number[];
