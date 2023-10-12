@@ -7,7 +7,7 @@ description: How to get started with setup tips for your Expensify account
 In this article, we'll outline helpful tips for using Expensify, such as keyboard shortcuts and text formatting.
 
 # How to Format Text in Expensify
-You can use basic markdown in report comments to emphasize or clarify your sentiments. This includes italicizing, bolding, and strikethrough for text, as well as adding basic hyperlinks.
+You can use a basic markdown in report comments to emphasize or clarify your sentiments. This includes italicizing, bolding, and strikethrough for text, as well as adding basic hyperlinks.
 Formatting is consistent across both web and mobile applications, with three markdown options available for your report comments:
 - **Bold:** Place an asterisk on either side (*bold*)
 - **Italicize:** Place an underscore on either side (_italic_)
