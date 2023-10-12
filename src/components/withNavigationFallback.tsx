@@ -5,7 +5,7 @@ import {ParamListBase} from '@react-navigation/routers';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 type NavigationContextValue = {
-    isFocused: () => true;
+    isFocused: () => boolean;
     addListener: () => () => void;
     removeListener: () => () => void;
 };
