@@ -13,14 +13,14 @@ const story = {
 };
 
 function Template(args) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <PressableWithoutFeedback
-            accessibilityLabel="ReportActionItemImages Story"
-            style={{flex: 1}}
+        accessibilityLabel="ReportActionItemImages Story"
+        style={{flex: 1}}
         >
             {({hovered}) => (
                 <ReportActionItemImages
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...args}
                     isHovered={hovered}
                 />
