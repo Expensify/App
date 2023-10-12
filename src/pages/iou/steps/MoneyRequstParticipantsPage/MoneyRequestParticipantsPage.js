@@ -53,6 +53,8 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
+    const [selected, setSelected] = useState([]);
+
 
     useEffect(() => {
         if (isDistanceRequest) {
@@ -60,9 +62,13 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
             return;
         }
 
-        setHeaderTitle(_.isEmpty(iou.participants) ? translate('tabSelector.manual') : translate('iou.split'));
-    }, [iou.participants, isDistanceRequest, translate]);
+        if (isScanRequest) {
+            setHeaderTitle(translate('tabSelector.scan'));
+            return;
+        }
 
+        setHeaderTitle(_.isEmpty(iou.participants) ? translate('tabSelector.manual') : translate('iou.split'));
+    }, [iou.participants, isDistanceRequest, translate, isScanRequest]);
     const navigateToRequestStep = (moneyRequestType, option) => {
         if (option.reportID) {
             isNewReportIDSelectedLocally.current = true;
@@ -74,7 +80,6 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
         IOU.setMoneyRequestId(moneyRequestType);
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID.current));
     };
-
     const navigateToSplitStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID.current));
@@ -124,7 +129,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                     />
                     <MoneyRequestParticipantsSelector
                         ref={(el) => (optionsSelectorRef.current = el)}
-                        participants={iou.participants}
+                        participants={selected}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={(option) => navigateToRequestStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, option)}
                         navigateToSplit={() => navigateToSplitStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
@@ -132,6 +137,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                         iouType={iouType.current}
                         isDistanceRequest={isDistanceRequest}
                         isScanRequest={isScanRequest}
+                        setSelected={setSelected}
                     />
                 </View>
             )}

@@ -25,6 +25,9 @@ const propTypes = {
     navigateToRequest: PropTypes.func.isRequired,
 
     /** Callback to request parent modal to go to next step, which should be split */
+    setSelected: PropTypes.func.isRequired,
+
+    /** Callback to request parent modal to go to next step, which should be split */
     navigateToSplit: PropTypes.func.isRequired,
 
     /** A ref to forward to options selector's text input */
@@ -90,6 +93,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     isDistanceRequest,
     isScanRequest,
+    setSelected
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
@@ -202,10 +206,11 @@ function MoneyRequestParticipantsSelector({
                     },
                 ];
             }
+            setSelected(newSelectedOptions)
 
             onAddParticipants(newSelectedOptions);
         },
-        [participants, onAddParticipants],
+        [participants, onAddParticipants, setSelected],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(
