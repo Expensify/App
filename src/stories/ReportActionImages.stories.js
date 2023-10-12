@@ -118,6 +118,26 @@ ThreePlusTwoImages.args = {
     total: 5,
 };
 
+const ThreePlusTenImages = Template.bind({});
+ThreePlusTenImages.args = {
+    images: [
+        {
+            image: 'https://c02.purpledshub.com/uploads/sites/41/2021/05/sleeping-cat-27126ee.jpg',
+            thumbnail: '',
+        },
+        {
+            image: 'https://i.guim.co.uk/img/media/7d04c4cb7510a4bd9a8bec449f53425aeccee895/298_266_1150_690/master/1150.jpg?width=1200&quality=85&auto=format&fit=max&s=4ae508ecb99c15ec04610b617efb3fa7',
+            thumbnail: '',
+        },
+        {
+            image: 'https://cdn.theatlantic.com/thumbor/d8lh_KAZuOgBYslMOP4T0iu9Fks=/0x62:2000x1187/1600x900/media/img/mt/2018/03/AP_325360162607/original.jpg',
+            thumbnail: '',
+        },
+    ],
+    size: 3,
+    total: 13,
+};
+
 const TooManyImages = Template.bind({});
 TooManyImages.args = {
     images: [
@@ -139,4 +159,4 @@ TooManyImages.args = {
 };
 
 export default story;
-export {Default, TwoImages, ThreeImages, FourImages, ThreePlusTwoImages, TooManyImages};
+export {Default, TwoImages, ThreeImages, FourImages, ThreePlusTwoImages, ThreePlusTenImages, TooManyImages};
