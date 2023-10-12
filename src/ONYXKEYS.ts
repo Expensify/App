@@ -247,7 +247,6 @@ const ONYXKEYS = {
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
-        REPORT_LOST_ACCESS: 'reportLostAccess_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
