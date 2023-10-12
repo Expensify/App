@@ -15,8 +15,8 @@ const story = {
 function Template(args) {
     return (
         <PressableWithoutFeedback
-        accessibilityLabel="ReportActionItemImages Story"
-        style={{flex: 1}}
+            accessibilityLabel="ReportActionItemImages Story"
+            style={{flex: 1}}
         >
             {({hovered}) => (
                 <ReportActionItemImages
