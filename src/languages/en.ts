@@ -265,6 +265,7 @@ export default {
         tbd: 'TBD',
         selectCurrency: 'Select a currency',
         allCurrencies: 'All currencies',
+        card: 'Card',
     },
     location: {
         useCurrent: 'Use current location',
@@ -505,6 +506,8 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        deleteReceipt: 'Delete receipt',
+        deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
     },
     iou: {
@@ -512,6 +515,7 @@ export default {
         approve: 'Approve',
         approved: 'Approved',
         cash: 'Cash',
+        card: 'Card',
         split: 'Split',
         addToSplit: 'Add to split',
         splitBill: 'Split bill',
@@ -522,11 +526,13 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         pending: 'Pending',
+        posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         receiptScanning: 'Receipt scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
+        receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',
@@ -1588,7 +1594,7 @@ export default {
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
     },
-    keyboardShortcutModal: {
+    keyboardShortcutsPage: {
         title: 'Keyboard shortcuts',
         subtitle: 'Save time with these handy keyboard shortcuts:',
         shortcuts: {
@@ -1834,5 +1840,9 @@ export default {
     },
     globalNavigationOptions: {
         chats: 'Chats',
+    },
+    eReceipt: {
+        guaranteed: 'Guaranteed eReceipt',
+        transactionDate: 'Transaction date',
     },
 } satisfies TranslationBase;

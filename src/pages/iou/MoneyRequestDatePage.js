@@ -5,7 +5,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -16,6 +15,7 @@ import NewDatePicker from '../../components/NewDatePicker';
 import useLocalize from '../../hooks/useLocalize';
 import CONST from '../../CONST';
 import {iouPropTypes, iouDefaultProps} from './propTypes';
+import FormProvider from '../../components/Form/FormProvider';
 
 const propTypes = {
     /** Onyx Props */
@@ -91,7 +91,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
                 title={translate('common.date')}
                 onBackButtonPress={() => navigateBack()}
             />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
                 onSubmit={(value) => updateDate(value)}
@@ -104,7 +104,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
                     defaultValue={iou.created}
                     maxDate={new Date()}
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
