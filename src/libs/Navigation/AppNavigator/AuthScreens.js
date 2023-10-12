@@ -198,12 +198,7 @@ class AuthScreens extends React.Component {
         this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
-                        return;
-                    }
-                    return Navigation.navigate(ROUTES.SEARCH);
-                });
+                Modal.close(() => Navigation.navigate(ROUTES.SEARCH));
             },
             searchShortcutConfig.descriptionKey,
             searchShortcutConfig.modifiers,
@@ -212,12 +207,7 @@ class AuthScreens extends React.Component {
         this.unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
-                Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.NEW)) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.NEW);
-                });
+                Modal.close(() => Navigation.navigate(ROUTES.NEW));
             },
             chatShortcutConfig.descriptionKey,
             chatShortcutConfig.modifiers,
