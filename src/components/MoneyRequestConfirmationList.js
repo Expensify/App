@@ -195,6 +195,7 @@ function MoneyRequestConfirmationList(props) {
 
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
     const isSplitBill = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
+    const isTypeSend = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
 
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
@@ -206,7 +207,13 @@ function MoneyRequestConfirmationList(props) {
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
-    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || props.isEditingSplitBill || !props.shouldShowSmartScanFields;
+
+    // Do not hide fields in case of send money request
+    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || !props.shouldShowSmartScanFields || isTypeSend || props.isEditingSplitBill;
+
+    // In Send Money flow, we don't allow the Merchant or Date to be edited.
+    const shouldShowDate = shouldShowAllFields && !isTypeSend;
+    const shouldShowMerchant = shouldShowAllFields && !isTypeSend;
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(props.policyTags);
@@ -472,6 +479,7 @@ function MoneyRequestConfirmationList(props) {
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
+                pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
@@ -606,7 +614,7 @@ function MoneyRequestConfirmationList(props) {
             )}
             {shouldShowAllFields && (
                 <>
-                    {props.shouldShowSmartScanFields && (
+                    {shouldShowDate && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
@@ -638,7 +646,7 @@ function MoneyRequestConfirmationList(props) {
                             interactive={!props.isReadOnly}
                         />
                     )}
-                    {props.shouldShowSmartScanFields && (
+                    {shouldShowMerchant && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouMerchant}

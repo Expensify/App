@@ -304,6 +304,10 @@ function MoneyRequestConfirmPage(props) {
             return props.translate('iou.split');
         }
 
+        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+            return props.translate('common.send');
+        }
+
         return props.translate('tabSelector.manual');
     };
 
