@@ -24,7 +24,7 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import AttachmentModal from './AttachmentModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as Browser from '../libs/Browser';
-import withNavigationFocus, {withNavigationFocusPropTypes} from './withNavigationFocus';
+import withNavigationFocus from './withNavigationFocus';
 import compose from '../libs/compose';
 
 const propTypes = {
@@ -91,8 +91,9 @@ const propTypes = {
     /** File name of the avatar */
     originalFileName: PropTypes.string,
 
+    isFocused: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
-    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {

@@ -9,7 +9,7 @@ import OptionsList from '../OptionsList';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../withNavigationFocus';
+import withNavigationFocus from '../withNavigationFocus';
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
@@ -30,10 +30,10 @@ const propTypes = {
 
     /** List styles for OptionsList */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    isFocused: PropTypes.bool.isRequired,
 
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
-    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
