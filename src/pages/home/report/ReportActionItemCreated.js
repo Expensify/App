@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {View, Image} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -11,7 +11,6 @@ import styles from '../../../styles/styles';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
-import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
@@ -19,6 +18,7 @@ import withLocalize from '../../../components/withLocalize';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import CONST from '../../../CONST';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 const propTypes = {
     /** The id of the report */
@@ -64,11 +64,7 @@ function ReportActionItemCreated(props) {
             needsOffscreenAlphaCompositing
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <Image
-                    pointerEvents="none"
-                    source={EmptyStateBackgroundImage}
-                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
-                />
+                <AnimatedEmptyStateBackground />
                 <View
                     accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
