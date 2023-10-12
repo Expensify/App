@@ -90,6 +90,7 @@ If you need to delete a bank account from Expensify, run through the following s
 Be cautious, as if it hasn't been shared with someone else, the next user will need to set it up from the beginning. 
 
 If the bank account is set as the settlement account for your Expensify Cards, you’ll need to designate another bank account as your settlement account under **Settings > Domains > Company Cards > Settings** before this account can be deleted. 
+
 # Deep Dive
 
 ## Verified bank account requirements
