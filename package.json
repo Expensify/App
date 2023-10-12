@@ -8,6 +8,8 @@
   "private": true,
   "scripts": {
     "configure-mapbox": "scripts/setup-mapbox-sdk-walkthrough.sh",
+    "setupNewDotWebForEmulators": "scripts/setup-newdot-web-emulators.sh",
+    "startAndroidEmulator": "scripts/start-android.sh",
     "postinstall": "scripts/postInstall.sh",
     "clean": "npx react-native clean-project-auto",
     "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --variant=developmentDebug --appId=com.expensify.chat.dev",
