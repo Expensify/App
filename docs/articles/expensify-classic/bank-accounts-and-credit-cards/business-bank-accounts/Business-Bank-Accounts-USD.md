@@ -25,6 +25,7 @@ To connect a business bank account to Expensify, follow the below steps:
 - If your bank requires additional security measures, you will be directed to obtain and enter a security code
 - If you have more than one account available to choose from, you will be directed to choose the desired account
 Next, to verify the bank account, you’ll enter some details about the business as well as some personal information. 
+
 ## Enter company information
 This is where you’ll add the legal business name as well as several other company details. 
 ### Company address
