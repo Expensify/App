@@ -457,7 +457,7 @@ function Composer({
                 placeholderTextColor={themeColors.placeholderText}
                 ref={(el) => (textInput.current = el)}
                 selection={selection}
-                style={inputStyleMemo}
+                style={(Browser.isMobileSafari() || Browser.isSafari()) ? [inputStyleMemo, styles.rtlTextRenderForSafari] : [inputStyleMemo]}
                 value={value}
                 forwardedRef={forwardedRef}
                 defaultValue={defaultValue}

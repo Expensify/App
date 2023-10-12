@@ -1,5 +1,5 @@
 import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
-import {View, NativeModules, findNodeHandle} from 'react-native';
+import {View, NativeModules, findNodeHandle, Platform} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -33,6 +33,7 @@ import withKeyboardState from '../../../../components/withKeyboardState';
 import {propTypes, defaultProps} from './composerWithSuggestionsProps';
 import focusWithDelay from '../../../../libs/focusWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
+import convertToLTR from '../../../../libs/convertToLTR';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -212,7 +213,7 @@ function ComposerWithSuggestions({
             }
             emojisPresentBefore.current = emojis;
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
-            setValue(newComment);
+            setValue(Platform.OS === 'android' ?newComment : convertToLTR(newComment));
             if (commentValue !== newComment) {
                 // Ensure emoji suggestions are hidden even when the selection is not changed (so calculateEmojiSuggestion would not be called).
                 if (suggestionsRef.current) {

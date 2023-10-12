@@ -195,6 +195,10 @@ const styles = (theme) => ({
         alignItems: 'center',
     },
 
+    rtlTextRenderForSafari: {
+        textAlign:"left",
+    },
+
     emojiSuggestionsEmoji: {
         fontSize: variables.fontSizeMedium,
         width: 51,
