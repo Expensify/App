@@ -19,6 +19,7 @@ import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 import CONST from '../../CONST';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -55,26 +56,38 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
     const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
     const privateNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
 
+    const getFallbackRoute = () => {
+        const privateNotes = lodashGet(report, 'privateNotes', {});
+
+        if (_.keys(privateNotes).length === 1) {
+            return ROUTES.HOME;
+        }
+
+        return ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID);
+    };
+
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={PrivateNotesViewPage.displayName}
+        >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note'])}
+                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || ReportUtils.isArchivedRoom(report)}
                 subtitleKey="privateNotes.notesUnavailable"
-                onBackButtonPress={() => Navigation.goBack()}
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
-                    subtitle={isCurrentUserNote ? 'My note' : `${lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')} note`}
+                    onBackButtonPress={() => Navigation.goBack(getFallbackRoute())}
+                    subtitle={isCurrentUserNote ? translate('privateNotes.myNote') : `${lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')} note`}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <ScrollView style={[styles.flexGrow1]}>
                     <OfflineWithFeedback pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], null)}>
                         <MenuItemWithTopDescription
                             description={translate('privateNotes.composerLabel')}
                             title={privateNote}
-                            onPress={() => isCurrentUserNote && Navigation.navigate(ROUTES.getPrivateNotesEditRoute(report.reportID, route.params.accountID))}
+                            onPress={() => isCurrentUserNote && Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, route.params.accountID))}
                             shouldShowRightIcon={isCurrentUserNote}
                             numberOfLinesTitle={0}
                             shouldRenderAsHTML

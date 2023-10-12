@@ -4,7 +4,8 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import {useAnimatedRef} from 'react-native-reanimated';
+import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
+import {PortalHost} from '@gorhom/portal';
 import styles from '../../../../styles/styles';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as Report from '../../../../libs/actions/Report';
@@ -30,12 +31,13 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import reportActionPropTypes from '../reportActionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import getModalState from '../../../../libs/getModalState';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
+import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
+import updatePropsPaperWorklet from '../../../../libs/updatePropsPaperWorklet';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -71,6 +73,8 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
+    /** /** Whetjer the report is ready for display */
+    isReportReadyForDisplay: PropTypes.bool,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -82,6 +86,7 @@ const defaultProps = {
     isComposerFullSize: false,
     pendingAction: null,
     shouldShowComposeInput: true,
+    isReportReadyForDisplay: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -104,7 +109,7 @@ function ReportActionCompose({
     reportID,
     reportActions,
     shouldShowComposeInput,
-    isCommentEmpty: isCommentEmptyProp,
+    isReportReadyForDisplay,
 }) {
     const {translate} = useLocalize();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -124,7 +129,10 @@ function ReportActionCompose({
      * Updates the should clear state of the composer
      */
     const [textInputShouldClear, setTextInputShouldClear] = useState(false);
-    const [isCommentEmpty, setIsCommentEmpty] = useState(isCommentEmptyProp);
+    const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
+        const draftComment = getDraftComment(reportID);
+        return !draftComment || !!draftComment.match(/^(\s)*$/);
+    });
 
     /**
      * Updates the visibility state of the menu
@@ -220,10 +228,6 @@ function ReportActionCompose({
      */
     const addAttachment = useCallback(
         (file) => {
-            // Since we're submitting the form here which should clear the composer
-            // We don't really care about saving the draft the user was typing
-            // We need to make sure an empty draft gets saved instead
-            debouncedSaveReportComment.cancel();
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
@@ -251,11 +255,6 @@ function ReportActionCompose({
                 e.preventDefault();
             }
 
-            // Since we're submitting the form here which should clear the composer
-            // We don't really care about saving the draft the user was typing
-            // We need to make sure an empty draft gets saved instead
-            debouncedSaveReportComment.cancel();
-
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             if (!newComment) {
                 return;
@@ -279,7 +278,9 @@ function ReportActionCompose({
 
     const onBlur = useCallback((e) => {
         setIsFocused(false);
-        suggestionsRef.current.resetSuggestions();
+        if (suggestionsRef.current) {
+            suggestionsRef.current.resetSuggestions();
+        }
         if (e.relatedTarget && e.relatedTarget === actionButtonRef.current) {
             isKeyboardVisibleWhenShowingModalRef.current = true;
         }
@@ -318,11 +319,29 @@ function ReportActionCompose({
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
 
+    const handleSendMessage = useCallback(() => {
+        'worklet';
+
+        if (isSendDisabled || !isReportReadyForDisplay) {
+            return;
+        }
+
+        const viewTag = animatedRef();
+        const viewName = 'RCTMultilineTextInputView';
+        const updates = {text: ''};
+        // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
+        runOnJS(setIsCommentEmpty)(true);
+        runOnJS(resetFullComposerSize)();
+        updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
+        runOnJS(submitForm)();
+    }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
+
     return (
         <View
             ref={containerRef}
             style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}
         >
+            <PortalHost name="suggestions" />
             <OfflineWithFeedback
                 pendingAction={pendingAction}
                 style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
@@ -351,7 +370,7 @@ function ReportActionCompose({
                                     reportID={reportID}
                                     report={report}
                                     reportParticipantIDs={reportParticipantIDs}
-                                    isFullComposerAvailable={isFullComposerAvailable && !isCommentEmpty}
+                                    isFullComposerAvailable={isFullComposerAvailable}
                                     isComposerFullSize={isComposerFullSize}
                                     updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
                                     isBlockedFromConcierge={isBlockedFromConcierge}
@@ -384,8 +403,7 @@ function ReportActionCompose({
                                     isFullComposerAvailable={isFullComposerAvailable}
                                     setIsFullComposerAvailable={setIsFullComposerAvailable}
                                     setIsCommentEmpty={setIsCommentEmpty}
-                                    submitForm={submitForm}
-                                    shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
+                                    handleSendMessage={handleSendMessage}
                                     shouldShowComposeInput={shouldShowComposeInput}
                                     onFocus={onFocus}
                                     onBlur={onBlur}
@@ -413,10 +431,7 @@ function ReportActionCompose({
                     )}
                     <SendButton
                         isDisabled={isSendDisabled}
-                        setIsCommentEmpty={setIsCommentEmpty}
-                        resetFullComposerSize={resetFullComposerSize}
-                        submitForm={submitForm}
-                        animatedRef={animatedRef}
+                        handleSendMessage={handleSendMessage}
                     />
                 </View>
                 <View
@@ -446,10 +461,6 @@ export default compose(
     withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
-        isCommentEmpty: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-            selector: (comment) => _.isEmpty(comment),
-        },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },

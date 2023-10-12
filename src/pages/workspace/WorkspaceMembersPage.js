@@ -1,7 +1,7 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState, useMemo, useRef} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
@@ -31,6 +31,7 @@ import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import SelectionList from '../../components/SelectionList';
 import Text from '../../components/Text';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -75,7 +76,10 @@ function WorkspaceMembersPage(props) {
     const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState('');
     const prevIsOffline = usePrevious(props.network.isOffline);
-
+    const accountIDs = useMemo(() => _.keys(props.policyMembers), [props.policyMembers]);
+    const prevAccountIDs = usePrevious(accountIDs);
+    const textInputRef = useRef(null);
+    const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
     /**
      * Get members for the current workspace
      */
@@ -109,6 +113,9 @@ function WorkspaceMembersPage(props) {
     }, [props.preferredLocale, validateSelection]);
 
     useEffect(() => {
+        if (removeMembersConfirmModalVisible && !_.isEqual(accountIDs, prevAccountIDs)) {
+            setRemoveMembersConfirmModalVisible(false);
+        }
         setSelectedEmployees((prevSelected) =>
             _.intersection(
                 prevSelected,
@@ -131,7 +138,7 @@ function WorkspaceMembersPage(props) {
      */
     const inviteUser = () => {
         setSearchValue('');
-        Navigation.navigate(ROUTES.getWorkspaceInviteRoute(props.route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID));
     };
 
     /**
@@ -309,7 +316,11 @@ function WorkspaceMembersPage(props) {
                 keyForList: accountID,
                 accountID: Number(accountID),
                 isSelected: _.contains(selectedEmployees, Number(accountID)),
-                isDisabled: accountID === props.session.accountID || details.login === props.policy.owner || policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                isDisabled:
+                    accountID === props.session.accountID ||
+                    details.login === props.policy.owner ||
+                    policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                    !_.isEmpty(policyMember.errors),
                 text: props.formatPhoneNumber(details.displayName),
                 alternateText: props.formatPhoneNumber(details.login),
                 rightElement: isAdmin ? (
@@ -317,11 +328,13 @@ function WorkspaceMembersPage(props) {
                         <Text style={styles.peopleBadgeText}>{props.translate('common.admin')}</Text>
                     </View>
                 ) : null,
-                avatar: {
-                    source: UserUtils.getAvatar(details.avatar, accountID),
-                    name: details.login,
-                    type: CONST.ICON_TYPE_AVATAR,
-                },
+                icons: [
+                    {
+                        source: UserUtils.getAvatar(details.avatar, accountID),
+                        name: details.login,
+                        type: CONST.ICON_TYPE_AVATAR,
+                    },
+                ],
                 errors: policyMember.errors,
                 pendingAction: policyMember.pendingAction,
             });
@@ -331,17 +344,23 @@ function WorkspaceMembersPage(props) {
 
         return result;
     };
-
     const data = getMemberOptions();
-    const headerMessage = searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
+
+    const getHeaderMessage = () => {
+        if (isOfflineAndNoMemberDataAvailable) {
+            return props.translate('workspace.common.mustBeOnlineToViewMembers');
+        }
+        return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
+    };
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
+            testID={WorkspaceMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}
+                shouldShow={((_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                 subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
@@ -350,7 +369,7 @@ function WorkspaceMembersPage(props) {
                     subtitle={policyName}
                     onBackButtonPress={() => {
                         setSearchValue('');
-                        Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policyID));
+                        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
                     }}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
@@ -364,6 +383,14 @@ function WorkspaceMembersPage(props) {
                     prompt={props.translate('workspace.people.removeMembersPrompt')}
                     confirmText={props.translate('common.remove')}
                     cancelText={props.translate('common.cancel')}
+                    onModalHide={() =>
+                        InteractionManager.runAfterInteractions(() => {
+                            if (!textInputRef.current) {
+                                return;
+                            }
+                            textInputRef.current.focus();
+                        })
+                    }
                 />
                 <View style={[styles.w100, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow, styles.pt3, styles.ph5]}>
@@ -389,12 +416,14 @@ function WorkspaceMembersPage(props) {
                             textInputLabel={props.translate('optionsSelector.findMember')}
                             textInputValue={searchValue}
                             onChangeText={setSearchValue}
-                            headerMessage={headerMessage}
+                            headerMessage={getHeaderMessage()}
                             onSelectRow={(item) => toggleUser(item.keyForList)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
-                            showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
+                            showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers))}
                             showScrollIndicator
+                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
+                            inputRef={textInputRef}
                         />
                     </View>
                 </View>

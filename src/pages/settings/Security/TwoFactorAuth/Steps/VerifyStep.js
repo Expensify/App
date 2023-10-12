@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ScrollView, View} from 'react-native';
+import PropTypes from 'prop-types';
 import * as Session from '../../../../../libs/actions/Session';
 import styles from '../../../../../styles/styles';
 import Button from '../../../../../components/Button';
@@ -22,7 +23,14 @@ import {defaultAccount, TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes'
 
 const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
-function VerifyStep({account = defaultAccount}) {
+const defaultProps = {
+    account: defaultAccount,
+    session: {
+        email: null,
+    },
+};
+
+function VerifyStep({account, session}) {
     const {translate} = useLocalize();
 
     const formRef = React.useRef(null);
@@ -61,7 +69,7 @@ function VerifyStep({account = defaultAccount}) {
      * @returns {string}
      */
     function buildAuthenticatorUrl() {
-        return `otpauth://totp/Expensify:${account.primaryLogin}?secret=${account.twoFactorAuthSecretKey}&issuer=Expensify`;
+        return `otpauth://totp/Expensify:${account.primaryLogin || session.email}?secret=${account.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
     return (
@@ -76,8 +84,8 @@ function VerifyStep({account = defaultAccount}) {
             onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
         >
             <ScrollView
-                style={styles.mb5}
                 keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.flexGrow1}
             >
                 <View style={[styles.ph5, styles.mt3]}>
                     <Text>
@@ -110,27 +118,38 @@ function VerifyStep({account = defaultAccount}) {
                 <View style={[styles.mt3, styles.mh5]}>
                     <TwoFactorAuthForm innerRef={formRef} />
                 </View>
+                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                    <Button
+                        success
+                        text={translate('common.next')}
+                        isLoading={account.isLoading}
+                        onPress={() => {
+                            if (!formRef.current) {
+                                return;
+                            }
+                            formRef.current.validateAndSubmitForm();
+                        }}
+                    />
+                </FixedFooter>
             </ScrollView>
-            <FixedFooter style={[styles.mtAuto, styles.pt2]}>
-                <Button
-                    success
-                    text={translate('common.next')}
-                    isLoading={account.isLoading}
-                    onPress={() => {
-                        if (!formRef.current) {
-                            return;
-                        }
-                        formRef.current.validateAndSubmitForm();
-                    }}
-                />
-            </FixedFooter>
         </StepWrapper>
     );
 }
 
-VerifyStep.propTypes = TwoFactorAuthPropTypes;
+VerifyStep.propTypes = {
+    /** Information about the users account that is logging in */
+    account: TwoFactorAuthPropTypes.account,
+
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        /** Email address */
+        email: PropTypes.string.isRequired,
+    }),
+};
+VerifyStep.defaultProps = defaultProps;
 
 // eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
+    session: {key: ONYXKEYS.SESSION},
 })(VerifyStep);

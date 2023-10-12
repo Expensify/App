@@ -1,7 +1,6 @@
 import _ from 'underscore';
-import React, {useEffect, useRef, useCallback, useMemo} from 'react';
+import React, {useEffect, useRef, useCallback} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -39,9 +38,6 @@ const propTypes = {
     /** Fired when the user exits the Plaid flow */
     onExitPlaid: PropTypes.func,
 
-    /** Fired when the screen is blurred */
-    onBlurPlaid: PropTypes.func,
-
     /** Fired when the user selects an account */
     onSelect: PropTypes.func,
 
@@ -65,7 +61,6 @@ const defaultProps = {
     selectedPlaidAccountID: '',
     plaidLinkToken: '',
     onExitPlaid: () => {},
-    onBlurPlaid: () => {},
     onSelect: () => {},
     text: '',
     receivedRedirectURI: null,
@@ -80,7 +75,6 @@ function AddPlaidBankAccount({
     selectedPlaidAccountID,
     plaidLinkToken,
     onExitPlaid,
-    onBlurPlaid,
     onSelect,
     text,
     receivedRedirectURI,
@@ -94,7 +88,6 @@ function AddPlaidBankAccount({
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const isFocused = useIsFocused();
 
     /**
      * @returns {String}
@@ -108,11 +101,6 @@ function AddPlaidBankAccount({
             return plaidLinkOAuthToken;
         }
     };
-
-    /**
-     * @returns {Array}
-     */
-    const plaidBankAccounts = useMemo(() => lodashGet(plaidData, 'bankAccounts') || [], [plaidData]);
 
     /**
      * @returns {Boolean}
@@ -164,13 +152,6 @@ function AddPlaidBankAccount({
     }, []);
 
     useEffect(() => {
-        if (isFocused || plaidBankAccounts.length) {
-            return;
-        }
-        onBlurPlaid();
-    }, [isFocused, onBlurPlaid, plaidBankAccounts.length]);
-
-    useEffect(() => {
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
         if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid()) {
@@ -179,6 +160,7 @@ function AddPlaidBankAccount({
         previousNetworkState.current = isOffline;
     }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
 
+    const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts') || [];
     const token = getPlaidLinkToken();
     const options = _.map(plaidBankAccounts, (account) => ({
         value: account.plaidAccountID,

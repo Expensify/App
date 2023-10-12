@@ -17,7 +17,7 @@ const googleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL
  */
 function GoogleSignIn() {
     return (
-        <View style={styles.appleButtonContainer}>
+        <View style={styles.desktopSignInButtonContainer}>
             <IconButton
                 onPress={() => {
                     window.open(googleSignInWebRouteForDesktopFlow);

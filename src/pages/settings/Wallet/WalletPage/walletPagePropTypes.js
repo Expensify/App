@@ -5,7 +5,6 @@ import bankAccountPropTypes from '../../../../components/bankAccountPropTypes';
 import cardPropTypes from '../../../../components/cardPropTypes';
 import userWalletPropTypes from '../../../EnablePayments/userWalletPropTypes';
 import walletTermsPropTypes from '../../../EnablePayments/walletTermsPropTypes';
-import paypalMeDataPropTypes from '../../../../components/paypalMeDataPropTypes';
 
 const propTypes = {
     /** Wallet balance transfer props */
@@ -34,9 +33,6 @@ const propTypes = {
 
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
-
-    /** Account details for PayPal.Me */
-    payPalMeData: paypalMeDataPropTypes,
 };
 
 const defaultProps = {
@@ -50,7 +46,6 @@ const defaultProps = {
     bankAccountList: {},
     fundList: null,
     walletTerms: {},
-    payPalMeData: {},
 };
 
 export {propTypes, defaultProps};

@@ -16,6 +16,7 @@ import * as Illustrations from '../../Icon/Illustrations';
 import variables from '../../../styles/variables';
 import compose from '../../../libs/compose';
 import withLocalize from '../../withLocalize';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 function AttachmentCarousel({report, reportActions, source, onNavigate, onClose, setDownloadButtonVisibility, translate}) {
     const pagerRef = useRef(null);
@@ -27,13 +28,25 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
 
+    const compareImage = useCallback(
+        (attachment) => {
+            if (attachment.isReceipt) {
+                const action = ReportActionsUtils.getParentReportAction(report);
+                const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
+                return attachment.transactionID === transactionID;
+            }
+            return attachment.source === source;
+        },
+        [source, report],
+    );
+
     useEffect(() => {
         const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
 
-        const initialPage = _.findIndex(attachmentsFromReport, (a) => a.source === source);
+        const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
         // Dismiss the modal when deleting an attachment during its display in preview.
-        if (initialPage === -1 && _.find(attachments, (a) => a.source === source)) {
+        if (initialPage === -1 && _.find(attachments, compareImage)) {
             Navigation.dismissModal();
         } else {
             setPage(initialPage);
@@ -43,10 +56,12 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
             setDownloadButtonVisibility(initialPage !== -1);
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (!_.isUndefined(attachmentsFromReport[initialPage])) onNavigate(attachmentsFromReport[initialPage]);
+            if (!_.isUndefined(attachmentsFromReport[initialPage])) {
+                onNavigate(attachmentsFromReport[initialPage]);
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report, reportActions, source]);
+    }, [reportActions, compareImage]);
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -135,7 +150,9 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
                             onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                             onPinchGestureChange={(newIsPinchGestureRunning) => {
                                 setIsPinchGestureRunning(newIsPinchGestureRunning);
-                                if (!newIsPinchGestureRunning && !shouldShowArrows) setShouldShowArrows(true);
+                                if (!newIsPinchGestureRunning && !shouldShowArrows) {
+                                    setShouldShowArrows(true);
+                                }
                             }}
                             onSwipeDown={onClose}
                             containerWidth={containerDimensions.width}

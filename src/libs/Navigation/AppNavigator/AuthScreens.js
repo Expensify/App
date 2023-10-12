@@ -38,6 +38,8 @@ import DemoSetupPage from '../../../pages/DemoSetupPage';
 
 let timezone;
 let currentAccountID;
+let isLoadingApp;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -70,8 +72,18 @@ Onyx.connect({
         // then update their timezone.
         if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
             timezone.selected = currentTimezone;
-            PersonalDetails.updateAutomaticTimezone(timezone);
+            PersonalDetails.updateAutomaticTimezone({
+                automatic: true,
+                selected: currentTimezone,
+            });
         }
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (val) => {
+        isLoadingApp = val;
     },
 });
 
@@ -126,7 +138,13 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => App.reconnectApp(this.props.lastUpdateIDAppliedToClient));
+        NetworkConnection.onReconnect(() => {
+            if (isLoadingApp) {
+                App.openApp();
+            } else {
+                App.reconnectApp(this.props.lastUpdateIDAppliedToClient);
+            }
+        });
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -158,21 +176,29 @@ class AuthScreens extends React.Component {
         Download.clearDownloads();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
+        const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
 
-        // Listen for the key K being pressed so that focus can be given to
-        // the chat switcher, or new group chat
-        // based on the key modifiers pressed and the operating system
+        // Listen to keyboard shortcuts for opening certain pages
+        this.unsubscribeShortcutsOverviewShortcut = KeyboardShortcut.subscribe(
+            shortcutsOverviewShortcutConfig.shortcutKey,
+            () => {
+                Modal.close(() => {
+                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
+                        return;
+                    }
+                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+                });
+            },
+            shortcutsOverviewShortcutConfig.descriptionKey,
+            shortcutsOverviewShortcutConfig.modifiers,
+            true,
+        );
         this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
-                        return;
-                    }
-                    return Navigation.navigate(ROUTES.SEARCH);
-                });
+                Modal.close(() => Navigation.navigate(ROUTES.SEARCH));
             },
             searchShortcutConfig.descriptionKey,
             searchShortcutConfig.modifiers,
@@ -181,12 +207,7 @@ class AuthScreens extends React.Component {
         this.unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
-                Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.NEW_CHAT)) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.NEW_CHAT);
-                });
+                Modal.close(() => Navigation.navigate(ROUTES.NEW));
             },
             chatShortcutConfig.descriptionKey,
             chatShortcutConfig.modifiers,
@@ -199,6 +220,9 @@ class AuthScreens extends React.Component {
     }
 
     componentWillUnmount() {
+        if (this.unsubscribeShortcutsOverviewShortcut) {
+            this.unsubscribeShortcutsOverviewShortcut();
+        }
         if (this.unsubscribeSearchShortcut) {
             this.unsubscribeSearchShortcut();
         }

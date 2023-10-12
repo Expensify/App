@@ -20,11 +20,11 @@ const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
     onPress: PropTypes.func.isRequired,
 
+    /** Call the onPress function on main button when Enter key is pressed */
+    pressOnEnter: PropTypes.bool,
+
     /** Settlement currency type */
     currency: PropTypes.string,
-
-    /** Should we show paypal option */
-    shouldShowPaypal: PropTypes.bool,
 
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID: PropTypes.string,
@@ -78,10 +78,10 @@ const propTypes = {
 const defaultProps = {
     isLoading: false,
     isDisabled: false,
+    pressOnEnter: false,
     addBankAccountRoute: '',
     addDebitCardRoute: '',
     currency: CONST.CURRENCY.USD,
-    shouldShowPaypal: false,
     chatReportID: '',
 
     // The "betas" array, "iouReport" and "nvp_lastPaymentMethod" objects needs to be stable to prevent the "useMemo"
@@ -115,9 +115,9 @@ function SettlementButton({
     formattedAmount,
     nvp_lastPaymentMethod,
     onPress,
+    pressOnEnter,
     policyID,
     shouldShowPaymentOptions,
-    shouldShowPaypal,
     style,
 }) {
     const {translate} = useLocalize();
@@ -140,11 +140,6 @@ function SettlementButton({
                 text: translate('iou.settleExpensify', {formattedAmount}),
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
-            },
-            [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: {
-                text: translate('iou.settlePaypalMe', {formattedAmount}),
-                icon: Expensicons.PayPal,
-                value: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere'),
@@ -170,11 +165,6 @@ function SettlementButton({
                 }
             }
 
-            // In case the last payment method has been PayPal, but this request is made in currency unsupported by Paypal, default to Elsewhere
-            if (paymentMethod === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME && !_.includes(CONST.PAYPAL_SUPPORTED_CURRENCIES, currency)) {
-                paymentMethod = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-            }
-
             // In case of the settlement button in the report preview component, we do not show payment options and the label for Wallet and ACH type is simply "Pay".
             return [
                 {
@@ -189,9 +179,6 @@ function SettlementButton({
         if (isExpenseReport) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
-        if (shouldShowPaypal && _.includes(CONST.PAYPAL_SUPPORTED_CURRENCIES, currency)) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]);
-        }
         buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
 
         // Put the preferred payment method to the front of the array so its shown as default
@@ -199,7 +186,7 @@ function SettlementButton({
             return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
         }
         return buttonOptions;
-    }, [betas, currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, shouldShowPaymentOptions, shouldShowPaypal, translate]);
+    }, [betas, currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, shouldShowPaymentOptions, translate]);
 
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
@@ -219,6 +206,7 @@ function SettlementButton({
             isDisabled={isOffline}
             chatReportID={chatReportID}
             iouReport={iouReport}
+            anchorAlignment={anchorAlignment}
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
@@ -226,6 +214,7 @@ function SettlementButton({
                     isDisabled={isDisabled}
                     isLoading={isLoading}
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
+                    pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
                     style={style}
                     buttonSize={buttonSize}

@@ -10,6 +10,7 @@ import GrowlNotificationContainer from './GrowlNotificationContainer';
 import CONST from '../../CONST';
 import * as Growl from '../../libs/Growl';
 import * as Pressables from '../Pressable';
+import useNativeDriver from '../../libs/useNativeDriver';
 
 const types = {
     [CONST.GROWL.SUCCESS]: {
@@ -59,7 +60,7 @@ function GrowlNotification(_, ref) {
             Animated.spring(translateY, {
                 toValue: val,
                 duration: 80,
-                useNativeDriver: true,
+                useNativeDriver,
             }).start();
         },
         [translateY],
