@@ -41,3 +41,46 @@ function join_by_string {
   shift
   printf "%s" "$first" "${@/#/$separator}"
 }
+
+# Usage: get_abs_path <path>
+# Will make a path absolute, resolving any relative paths
+# example: get_abs_path "./foo/bar"
+get_abs_path() {
+    local the_path=$1
+    local -a path_elements
+    IFS='/' read -ra path_elements <<< "$the_path"
+
+    # If the path is already absolute, start with an empty string.
+    # We'll prepend the / later when reconstructing the path.
+    if [[ "$the_path" = /* ]]; then
+        abs_path=""
+    else
+        abs_path="$(pwd)"
+    fi
+
+    # Handle each path element
+    for element in "${path_elements[@]}"; do
+        if [ "$element" = "." ] || [ -z "$element" ]; then
+            continue
+        elif [ "$element" = ".." ]; then
+            # Remove the last element from abs_path
+            abs_path=$(dirname "$abs_path")
+        else
+            # Append element to the absolute path
+            abs_path="${abs_path}/${element}"
+        fi
+    done
+
+    # Remove any trailing '/'
+    while [[ $abs_path == */ ]]; do
+        abs_path=${abs_path%/}
+    done
+
+    # Special case for root
+    [ -z "$abs_path" ] && abs_path="/"
+
+    # Special case to remove any starting '//' when the input path was absolute
+    abs_path=${abs_path/#\/\//\/}
+
+    echo "$abs_path"
+}

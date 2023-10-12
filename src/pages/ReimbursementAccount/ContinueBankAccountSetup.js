@@ -41,7 +41,10 @@ function ContinueBankAccountSetup(props) {
     const errors = lodashGet(props.reimbursementAccount, 'errors', {});
     const pendingAction = lodashGet(props.reimbursementAccount, 'pendingAction', null);
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ContinueBankAccountSetup.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('workspace.common.connectBankAccount')}
                 subtitle={props.policyName}

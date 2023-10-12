@@ -91,7 +91,10 @@ function KnowATeacherPage(props) {
     );
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={KnowATeacherPage.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iKnowATeacher')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}

@@ -108,6 +108,7 @@ function DebitCardPage(props) {
         <ScreenWrapper
             onEntryTransitionEnd={() => nameOnCardRef.current && nameOnCardRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
+            testID={DebitCardPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('addDebitCardPage.addADebitCard')}
@@ -201,6 +202,7 @@ function DebitCardPage(props) {
 
 DebitCardPage.propTypes = propTypes;
 DebitCardPage.defaultProps = defaultProps;
+DebitCardPage.displayName = 'DebitCardPage';
 
 export default withOnyx({
     formData: {

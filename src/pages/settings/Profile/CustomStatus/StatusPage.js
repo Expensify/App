@@ -4,12 +4,12 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import StaticHeaderPageLayout from '../../../../components/StaticHeaderPageLayout';
+import HeaderPageLayout from '../../../../components/HeaderPageLayout';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import withLocalize from '../../../../components/withLocalize';
-import MenuItem from '../../../../components/MenuItem';
 import Button from '../../../../components/Button';
 import Text from '../../../../components/Text';
+import MenuItem from '../../../../components/MenuItem';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as User from '../../../../libs/actions/User';
 import MobileBackgroundImage from '../../../../../assets/images/money-stack.svg';
@@ -19,6 +19,7 @@ import styles from '../../../../styles/styles';
 import compose from '../../../../libs/compose';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
+import SCREENS from '../../../../SCREENS';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -33,8 +34,16 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
     const defaultText = draftEmojiCode ? draftText : currentUserStatusText;
-    const customStatus = draftEmojiCode ? `${draftEmojiCode} ${draftText}` : `${currentUserEmojiCode || ''} ${currentUserStatusText || ''}`;
     const hasDraftStatus = !!draftEmojiCode || !!draftText;
+    const customStatus = useMemo(() => {
+        if (draftEmojiCode) {
+            return `${draftEmojiCode} ${draftText}`;
+        }
+        if (currentUserEmojiCode || currentUserStatusText) {
+            return `${currentUserEmojiCode || ''} ${currentUserStatusText || ''}`;
+        }
+        return '';
+    }, [draftEmojiCode, draftText, currentUserEmojiCode, currentUserStatusText]);
 
     const clearStatus = () => {
         User.clearCustomStatus();
@@ -63,14 +72,20 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     useEffect(() => () => User.clearDraftCustomStatus(), []);
 
     return (
-        <StaticHeaderPageLayout
+        <HeaderPageLayout
             title={localize.translate('statusPage.status')}
             onBackButtonPress={navigateBackToSettingsPage}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.SETTINGS_STATUS]}
-            image={MobileBackgroundImage}
+            headerContent={
+                <MobileBackgroundImage
+                    pointerEvents="none"
+                    style={styles.staticHeaderImage}
+                />
+            }
+            headerContainerStyles={[styles.staticHeaderImage]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS]}
             footer={footerComponent}
         >
-            <View style={styles.m5}>
+            <View style={[styles.mh5, styles.mb5]}>
                 <Text style={[styles.textHeadline]}>{localize.translate('statusPage.setStatusTitle')}</Text>
                 <Text style={[styles.textNormal, styles.mt2]}>{localize.translate('statusPage.statusExplanation')}</Text>
             </View>
@@ -85,13 +100,14 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                 <MenuItem
                     title={localize.translate('statusPage.clearStatus')}
+                    titleStyle={styles.ml0}
                     icon={Expensicons.Close}
                     onPress={clearStatus}
                     iconFill={themeColors.danger}
-                    wrapperStyle={[styles.cardMenuItem]}
+                    wrapperStyle={[styles.pl2]}
                 />
             )}
-        </StaticHeaderPageLayout>
+        </HeaderPageLayout>
     );
 }
 

@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import SCREENS from '../../../SCREENS';
 import styles from '../../../styles/styles';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import themeColors from '../../../styles/themes/default';
@@ -52,9 +53,8 @@ function SecuritySettingsPage(props) {
             title={props.translate('initialSettingsPage.security')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             shouldShowBackButton
-            shouldShowCloseButton
             illustration={LottieAnimations.Safe}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.SETTINGS_SECURITY]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.SECURITY]}
         >
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>

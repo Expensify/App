@@ -1,8 +1,8 @@
-import React, {useRef, useEffect} from 'react';
+import React, {useRef, useEffect, useContext} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
-import {useFlipper} from '@react-navigation/devtools';
 import {useSharedValue, useAnimatedReaction, interpolateColor, withTiming, withDelay, Easing, runOnJS} from 'react-native-reanimated';
+import useFlipper from '../../hooks/useFlipper';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
@@ -11,8 +11,7 @@ import Log from '../Log';
 import StatusBar from '../StatusBar';
 import useCurrentReportID from '../../hooks/useCurrentReportID';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as EmojiPickerAction from '../actions/EmojiPickerAction';
+import {SidebarNavigationContext} from '../../pages/home/sidebar/SidebarNavigationContext';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -55,6 +54,7 @@ function parseAndLogRoute(state) {
 function NavigationRoot(props) {
     useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
+    const globalNavigation = useContext(SidebarNavigationContext);
 
     const {updateCurrentReportID} = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -105,7 +105,8 @@ function NavigationRoot(props) {
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
-        if (prevStatusBarBackgroundColor.current === statusBarBackgroundColor.current) {
+
+        if (currentScreenBackgroundColor === themeColors.appBG && prevStatusBarBackgroundColor.current === themeColors.appBG) {
             return;
         }
 
@@ -123,13 +124,15 @@ function NavigationRoot(props) {
         if (!state) {
             return;
         }
-        ReportActionContextMenu.hideContextMenu();
-        ReportActionContextMenu.hideDeleteModal();
-        EmojiPickerAction.hideEmojiPicker(true);
-
-        updateCurrentReportID(state);
+        // Performance optimization to avoid context consumers to delay first render
+        setTimeout(() => {
+            updateCurrentReportID(state);
+        }, 0);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
+
+        // Update the global navigation to show the correct selected menu items.
+        globalNavigation.updateFromNavigationState(state);
     };
 
     return (

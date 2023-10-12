@@ -26,7 +26,6 @@ import Navigation from './libs/Navigation/Navigation';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import SplashScreenHider from './components/SplashScreenHider';
-import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
@@ -99,7 +98,9 @@ function Expensify(props) {
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
 
     useEffect(() => {
-        if (props.isCheckingPublicRoom) return;
+        if (props.isCheckingPublicRoom) {
+            return;
+        }
         setAttemptedToOpenPublicRoom(true);
     }, [props.isCheckingPublicRoom]);
 
@@ -192,7 +193,6 @@ function Expensify(props) {
         <DeeplinkWrapper isAuthenticated={isAuthenticated}>
             {shouldInit && (
                 <>
-                    <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
