@@ -3670,16 +3670,16 @@ const styles = (theme) => ({
     },
 
     emojiStatusLHN: {
-        fontSize: 22,
+        fontSize: 22
     },
     sidebarStatusAvatarContainer: {
         height: 44,
-        width: 84,
+        width: 44,
         backgroundColor: theme.componentBG,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderRadius: 42,
+        borderRadius: 22,
         paddingHorizontal: 2,
         marginVertical: -2,
         marginRight: -2,
@@ -3688,6 +3688,14 @@ const styles = (theme) => ({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: 1,
+        position: 'absolute',
+        right: '-4px',
+        bottom: '-4px',
+        height: '25px',
+        width: '25px',
+        borderRadius: '13px',
+        backgroundColor: theme.sidebar,
     },
 
     moneyRequestViewImage: {
