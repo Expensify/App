@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {Animated} from 'react-native';
 import {BoundsObserver} from '@react-ng/bounds-observer';
+import Str from 'expensify-common/lib/str';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
 import * as tooltipPropTypes from './tooltipPropTypes';
@@ -19,9 +20,41 @@ const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
  * @param {propTypes} props
  * @returns {ReactNodeLike}
  */
-function Tooltip(props) {
-    const {children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey} = props;
 
+/**
+ * Choose the correct bounding box for the tooltip to be positioned against.
+ * This handles the case where the target is wrapped across two lines, and
+ * so we need to find the correct part (the one that the user is hovering
+ * over) and show the tooltip there.
+ *
+ * @param {Element} target The DOM element being hovered over.
+ * @param {number} clientX The X position from the MouseEvent.
+ * @param {number} clientY The Y position from the MouseEvent.
+ * @return {DOMRect} The chosen bounding box.
+ */
+
+function chooseBoundingBox(target, clientX, clientY) {
+    const slop = 5;
+    const bbs = target.getClientRects();
+    const clientXMin = clientX - slop;
+    const clientXMax = clientX + slop;
+    const clientYMin = clientY - slop;
+    const clientYMax = clientY + slop;
+
+    for (let i = 0; i < bbs.length; i++) {
+        const bb = bbs[i];
+        if (clientXMin <= bb.right && clientXMax >= bb.left && clientYMin <= bb.bottom && clientYMax >= bb.top) {
+            return bb;
+        }
+    }
+
+    // If no matching bounding box is found, fall back to the first one.
+    // This could only happen if the user is moving the mouse very quickly
+    // and they got it outside our slop above.
+    return bbs[0];
+}
+
+function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal, shiftVertical}) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -42,6 +75,14 @@ function Tooltip(props) {
     const animation = useRef(new Animated.Value(0));
     const isAnimationCanceled = useRef(false);
     const prevText = usePrevious(text);
+
+    const target = useRef(null);
+    const initialMousePosition = useRef({x: 0, y: 0});
+
+    const updateTargetAndMousePosition = useCallback((e) => {
+        target.current = e.target;
+        initialMousePosition.current = {x: e.clientX, y: e.clientY};
+    }, []);
 
     /**
      * Display the tooltip in an animation.
@@ -91,10 +132,15 @@ function Tooltip(props) {
         if (bounds.width === 0) {
             setIsRendered(false);
         }
-        setWrapperWidth(bounds.width);
-        setWrapperHeight(bounds.height);
-        setXOffset(bounds.x);
-        setYOffset(bounds.y);
+        // Choose a bounding box for the tooltip to target.
+        // In the case when the target is a link that has wrapped onto
+        // multiple lines, we want to show the tooltip over the part
+        // of the link that the user is hovering over.
+        const betterBounds = chooseBoundingBox(target.current, initialMousePosition.current.x, initialMousePosition.current.y);
+        setWrapperWidth(betterBounds.width);
+        setWrapperHeight(betterBounds.height);
+        setXOffset(betterBounds.x);
+        setYOffset(betterBounds.y);
     };
 
     /**
@@ -136,8 +182,8 @@ function Tooltip(props) {
                     yOffset={yOffset}
                     targetWidth={wrapperWidth}
                     targetHeight={wrapperHeight}
-                    shiftHorizontal={_.result(props, 'shiftHorizontal')}
-                    shiftVertical={_.result(props, 'shiftVertical')}
+                    shiftHorizontal={Str.result(shiftHorizontal)}
+                    shiftVertical={Str.result(shiftVertical)}
                     text={text}
                     maxWidth={maxWidth}
                     numberOfLines={numberOfLines}
@@ -152,9 +198,10 @@ function Tooltip(props) {
                 onBoundsChange={updateBounds}
             >
                 <Hoverable
+                    onMouseEnter={updateTargetAndMousePosition}
                     onHoverIn={showTooltip}
                     onHoverOut={hideTooltip}
-                    shouldHandleScroll={props.shouldHandleScroll}
+                    shouldHandleScroll={shouldHandleScroll}
                 >
                     {children}
                 </Hoverable>
@@ -165,4 +212,6 @@ function Tooltip(props) {
 
 Tooltip.propTypes = tooltipPropTypes.propTypes;
 Tooltip.defaultProps = tooltipPropTypes.defaultProps;
+Tooltip.displayName = 'Tooltip';
+
 export default memo(Tooltip);
