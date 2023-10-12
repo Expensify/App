@@ -1,6 +1,6 @@
 import React from 'react';
 import ReportActionItemImages from '../components/ReportActionItem/ReportActionItemImages';
-import PressableWithFeedback from '../components/Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -15,11 +15,11 @@ const story = {
 function Template(args) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return (
-        <PressableWithFeedback accessibilityLabel="ReportActionItemImages Story">
+        <PressableWithoutFeedback accessibilityLabel="ReportActionItemImages Story" style={{flex: 1}}>
             {({hovered}) => (
                 <ReportActionItemImages {...args} isHovered={hovered} />
             )}
-        </PressableWithFeedback>
+        </PressableWithoutFeedback>
     );
 }
 
@@ -92,8 +92,8 @@ FourImages.args = {
     total: 4,
 };
 
-const AdditionalImages = Template.bind({});
-AdditionalImages.args = {
+const ThreePlusTwoImages = Template.bind({});
+ThreePlusTwoImages.args = {
     images: [
     {
         image: 'https://c02.purpledshub.com/uploads/sites/41/2021/05/sleeping-cat-27126ee.jpg',
@@ -130,8 +130,8 @@ TooManyImages.args = {
     },
     ],
     size: 3,
-    total: 100,
+    total: 103,
 };
 
 export default story;
-export {Default, TwoImages, ThreeImages, FourImages, AdditionalImages, TooManyImages};
+export {Default, TwoImages, ThreeImages, FourImages, ThreePlusTwoImages, TooManyImages};

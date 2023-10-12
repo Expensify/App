@@ -5,6 +5,9 @@ import _ from 'underscore';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import ReportActionItemImage from './ReportActionItemImage';
+import * as StyleUtils from '../../styles/StyleUtils';
+import * as variables from '../../styles/variables';
+
 
 const propTypes = {
     /** array of image and thumbnail URIs */
@@ -51,16 +54,20 @@ function ReportActionItemImages({images, size, total, isHovered}) {
 
     console.log('>>>',{images});
 
-    const heights = {
-        0: 0,
-        1: 147,
-        2: 138,
-        3: 110,
-    };
+    // The height varies depending on the number of images we are displaying.
+    let heightStyle = StyleUtils.getHeight(0);
 
-    const heightStyle = {height: heights[numberOfShownImages]};
+    if(numberOfShownImages === 1){
+        heightStyle = StyleUtils.getHeight(variables.reportActionImagesSingleImageHeight);
+    } else if(numberOfShownImages === 2) {
+        heightStyle = StyleUtils.getHeight(variables.reportActionImagesDoubleImageHeight);
+    } else if(numberOfShownImages > 2) {
+        heightStyle = StyleUtils.getHeight(variables.reportActionImagesMultipleImageHeight);
+    }
 
     const hoverStyle = isHovered ? styles.reportPreviewBoxHoverBorder : undefined;
+
+    console.log({isHovered, hoverStyle});
     return (
         <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
             {_.map(shownImages, ({thumbnail, image}, index) => {
