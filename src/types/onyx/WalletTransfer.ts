@@ -21,4 +21,8 @@ type WalletTransfer = {
     loading?: boolean;
 };
 
+type FilterMethodPaymentType = typeof CONST.PAYMENT_METHODS.DEBIT_CARD | typeof CONST.PAYMENT_METHODS.BANK_ACCOUNT | null;
+
 export default WalletTransfer;
+
+export type {FilterMethodPaymentType};
