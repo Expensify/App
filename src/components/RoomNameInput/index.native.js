@@ -6,8 +6,9 @@ import TextInput from '../TextInput';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
 import getOperatingSystem from '../../libs/getOperatingSystem';
+import InputWrapper from "../Form/InputWrapper";
 
-function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
+function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus, inputID}) {
     const {translate} = useLocalize();
 
     /**
@@ -28,7 +29,9 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
     const keyboardType = getOperatingSystem() === CONST.OS.IOS ? CONST.KEYBOARD_TYPE.ASCII_CAPABLE : CONST.KEYBOARD_TYPE.VISIBLE_PASSWORD;
 
     return (
-        <TextInput
+        <InputWrapper
+            InputComponent={TextInput}
+            inputID={inputID}
             ref={forwardedRef}
             disabled={disabled}
             label={translate('newRoomPage.roomName')}

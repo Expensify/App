@@ -18,7 +18,7 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     /** The ID used to uniquely identify the input in a Form */
-    inputID: PropTypes.string,
+    inputID: PropTypes.string.isRequired,
 
     /** Callback that is called when the text input is blurred */
     onBlur: PropTypes.func,
@@ -28,6 +28,7 @@ const propTypes = {
 
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
     shouldDelayFocus: PropTypes.bool,
+
 
     ...withNavigationFocusPropTypes,
 };
@@ -39,7 +40,6 @@ const defaultProps = {
     errorText: '',
     forwardedRef: () => {},
 
-    inputID: undefined,
     onBlur: () => {},
     autoFocus: false,
     shouldDelayFocus: false,
