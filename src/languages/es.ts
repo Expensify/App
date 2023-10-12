@@ -572,6 +572,8 @@ export default {
             genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
         },
+        waitingOnEnableWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `nicio el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
+        enableWallet: 'Habilitar Billetera',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',

@@ -578,6 +578,8 @@ export default {
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
         },
+        waitingOnEnableWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
+        enableWallet: 'Enable Wallet',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',

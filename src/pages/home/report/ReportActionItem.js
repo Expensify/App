@@ -347,10 +347,20 @@ function ReportActionItem(props) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
             const shouldShowAddCreditBankAccountButton =
                 ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !store.hasCreditBankAccount() && !ReportUtils.isSettled(props.report.reportID);
+            const shouldShowEnableWalletButton =
+                ReportUtils.isCurrentUserSubmitter(props.report.reportID) &&
+                lodashGet(props.action, 'paymentType', '') === CONST.IOU.PAYMENT_TYPE.EXPENSIFY &&
+                !ReportUtils.isSettled(props.report.reportID);
 
             children = (
-                <ReportActionItemBasicMessage message={props.translate('iou.waitingOnBankAccount', {submitterDisplayName})}>
-                    {shouldShowAddCreditBankAccountButton ? (
+                <ReportActionItemBasicMessage
+                    message={
+                        shouldShowEnableWalletButton
+                            ? props.translate('iou.waitingOnEnableWallet', {submitterDisplayName})
+                            : props.translate('iou.waitingOnBankAccount', {submitterDisplayName})
+                    }
+                >
+                    {shouldShowAddCreditBankAccountButton && (
                         <Button
                             success
                             style={[styles.w100, styles.requestPreviewBox]}
@@ -358,7 +368,16 @@ function ReportActionItem(props) {
                             onPress={() => BankAccounts.openPersonalBankAccountSetupView(props.report.reportID)}
                             pressOnEnter
                         />
-                    ) : null}
+                    )}
+                    {shouldShowEnableWalletButton && (
+                        <Button
+                            success
+                            style={[styles.w100, styles.requestPreviewBox]}
+                            text={props.translate('iou.enableWallet')}
+                            onPress={() => BankAccounts.openPersonalBankAccountSetupView(props.report.reportID)}
+                            pressOnEnter
+                        />
+                    )}
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
