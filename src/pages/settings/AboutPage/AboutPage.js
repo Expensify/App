@@ -1,6 +1,6 @@
 import _ from 'underscore';
-import React, {useRef, useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import React, { useRef, useMemo } from 'react';
+import { ScrollView, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -11,15 +11,15 @@ import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, { withLocalizePropTypes } from '../../../components/withLocalize';
+import withWindowDimensions, { windowDimensionsPropTypes } from '../../../components/withWindowDimensions';
 import Logo from '../../../../assets/images/new-expensify.svg';
 import pkg from '../../../../package.json';
 import * as Report from '../../../libs/actions/Report';
 import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
+import { CONTEXT_MENU_TYPES } from '../../home/report/ContextMenu/ContextMenuActions';
 import * as Environment from '../../../libs/Environment/Environment';
 import MenuItemList from '../../../components/MenuItemList';
 import useWaitForNavigation from '../../../hooks/useWaitForNavigation';
@@ -41,7 +41,7 @@ function getFlavor() {
 }
 
 function AboutPage(props) {
-    const {translate, isShortcutsModalOpen} = props;
+    const { translate, isShortcutsModalOpen } = props;
     const popoverAnchor = useRef(null);
     const waitForNavigate = useWaitForNavigation();
 
@@ -52,10 +52,19 @@ function AboutPage(props) {
                 icon: Expensicons.Link,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
             },
+
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
                 icon: Expensicons.Keyboard,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS)),
+            },
+            {
+                translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
+                icon: Expensicons.Eye,
+                iconRight: Expensicons.NewWindow,
+                action: () => {
+                    Link.openExternalLink(CONST.GITHUB_URL);
+                },
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
@@ -100,7 +109,7 @@ function AboutPage(props) {
             includeSafeAreaPaddingBottom={false}
             testID={AboutPage.displayName}
         >
-            {({safeAreaPaddingBottomStyle}) => (
+            {({ safeAreaPaddingBottomStyle }) => (
                 <>
                     <HeaderWithBackButton
                         title={props.translate('initialSettingsPage.about')}

@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -19,6 +19,7 @@ import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import * as TransactionUtils from '../libs/TransactionUtils';
+import * as HeaderUtils from '../libs/HeaderUtils';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import transactionPropTypes from './transactionPropTypes';
 import useWindowDimensions from '../hooks/useWindowDimensions';
@@ -80,6 +81,30 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }, [parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+    const canModifyRequest = isActionOwner && !isSettled && !isApproved;
+
+    useEffect(() => {
+        if (canModifyRequest) {
+            return;
+        }
+
+        setIsDeleteModalVisible(false);
+    }, [canModifyRequest]);
+    const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
+    if (canModifyRequest) {
+        if (!TransactionUtils.hasReceipt(transaction)) {
+            threeDotsMenuItems.push({
+                icon: Expensicons.Receipt,
+                text: translate('receipt.addReceipt'),
+                onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+            });
+        }
+        threeDotsMenuItems.push({
+            icon: Expensicons.Trashcan,
+            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+            onSelected: () => setIsDeleteModalVisible(true),
+        });
+    }
 
     return (
         <>
@@ -87,23 +112,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 <HeaderWithBackButton
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton={isActionOwner && !isSettled && !isApproved}
-                    threeDotsMenuItems={[
-                        ...(TransactionUtils.hasReceipt(transaction)
-                            ? []
-                            : [
-                                  {
-                                      icon: Expensicons.Receipt,
-                                      text: translate('receipt.addReceipt'),
-                                      onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
-                                  },
-                              ]),
-                        {
-                            icon: Expensicons.Trashcan,
-                            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-                            onSelected: () => setIsDeleteModalVisible(true),
-                        },
-                    ]}
+                    shouldShowThreeDotsButton
+                    threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     report={{
                         ...report,

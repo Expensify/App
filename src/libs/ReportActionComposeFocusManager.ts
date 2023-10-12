@@ -1,5 +1,7 @@
 import React from 'react';
 import {TextInput} from 'react-native';
+import ROUTES from '../ROUTES';
+import Navigation from './Navigation/Navigation';
 
 type FocusCallback = () => void;
 
@@ -28,6 +30,11 @@ function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
  * Request focus on the ReportActionComposer
  */
 function focus() {
+    /** Do not trigger the refocusing when the active route is not the report route, */
+    if (!Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(Navigation.getTopmostReportId() ?? ''))) {
+        return;
+    }
+
     if (typeof focusCallback !== 'function') {
         if (typeof mainComposerFocusCallback !== 'function') {
             return;
