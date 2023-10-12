@@ -345,7 +345,7 @@ function EmojiPickerMenu(props) {
         return () => {
             cleanupEventHandlers();
         };
-    }, []);
+    }, [forwardedRef, shouldFocusInputOnScreenFocus]);
 
     const scrollToHeader = useCallback((headerIndex) => {
         if (!emojiListRef.current) {
@@ -384,7 +384,7 @@ function EmojiPickerMenu(props) {
             setHighlightedIndex(0);
             updateFirstNonHeaderIndex(newFilteredEmojiList);
         }, 300),
-        [],
+        [preferredLocale],
     );
 
     /**
@@ -399,13 +399,16 @@ function EmojiPickerMenu(props) {
     /**
      * @param {Number} skinTone
      */
-    const updatePreferredSkinTone = useCallback((skinTone) => {
-        if (Number(preferredSkinTone) === skinTone) {
-            return;
-        }
+    const updatePreferredSkinTone = useCallback(
+        (skinTone) => {
+            if (Number(preferredSkinTone) === Number(skinTone)) {
+                return;
+            }
 
-        User.updatePreferredSkinTone(skinTone);
-    }, []);
+            User.updatePreferredSkinTone(skinTone);
+        },
+        [preferredSkinTone],
+    );
 
     /**
      * Return a unique key for each emoji item
@@ -425,50 +428,53 @@ function EmojiPickerMenu(props) {
      * @param {Number} index
      * @returns {*}
      */
-    const renderItem = useCallback(({item, index}) => {
-        const {code, header, types} = item;
-        if (item.spacer) {
-            return null;
-        }
+    const renderItem = useCallback(
+        ({item, index}) => {
+            const {code, header, types} = item;
+            if (item.spacer) {
+                return null;
+            }
 
-        if (header) {
+            if (header) {
+                return (
+                    <View style={styles.emojiHeaderContainer}>
+                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
+                    </View>
+                );
+            }
+
+            const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
+
+            const isEmojiFocused = index === highlightedIndex && isUsingKeyboardMovement;
+
             return (
-                <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
-                </View>
-            );
-        }
-
-        const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
-
-        const isEmojiFocused = index === highlightedIndex && isUsingKeyboardMovement;
-
-        return (
-            <EmojiPickerMenuItem
-                onPress={(emoji) => onEmojiSelected(emoji, item)}
-                onHoverIn={() => {
-                    setHighlightedIndex(index);
-                    setIsUsingKeyboardMovement(false);
-                }}
-                onHoverOut={() => {
-                    if (arePointerEventsDisabled) {
-                        return;
+                <EmojiPickerMenuItem
+                    onPress={(emoji) => onEmojiSelected(emoji, item)}
+                    onHoverIn={() => {
+                        setHighlightedIndex(index);
+                        setIsUsingKeyboardMovement(false);
+                    }}
+                    onHoverOut={() => {
+                        if (arePointerEventsDisabled) {
+                            return;
+                        }
+                        setHighlightedIndex(-1);
+                    }}
+                    emoji={emojiCode}
+                    onFocus={() => setHighlightedIndex(index)}
+                    onBlur={() =>
+                        // Only clear the highlighted index if the highlighted index is the same,
+                        // meaning that the focus changed to an element that is not an emoji item.
+                        setHighlightedIndex((prevState) => (prevState === index ? -1 : prevState))
                     }
-                    setHighlightedIndex(-1);
-                }}
-                emoji={emojiCode}
-                onFocus={() => setHighlightedIndex(index)}
-                onBlur={() =>
-                    // Only clear the highlighted index if the highlighted index is the same,
-                    // meaning that the focus changed to an element that is not an emoji item.
-                    setHighlightedIndex((prevState) => (prevState === index ? -1 : prevState))
-                }
-                isFocused={isEmojiFocused}
-                isHighlighted={index === highlightedIndex}
-                isUsingKeyboardMovement={isUsingKeyboardMovement}
-            />
-        );
-    }, []);
+                    isFocused={isEmojiFocused}
+                    isHighlighted={index === highlightedIndex}
+                    isUsingKeyboardMovement={isUsingKeyboardMovement}
+                />
+            );
+        },
+        [arePointerEventsDisabled, isUsingKeyboardMovement, highlightedIndex, onEmojiSelected, preferredSkinTone, translate],
+    );
 
     const isFiltered = emojis.current.length !== filteredEmojis.length;
     const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, windowHeight);
