@@ -18,6 +18,9 @@ type Policy = {
     /** The email of the policy owner */
     owner: string;
 
+    /** The accountID of the policy owner */
+    ownerAccountID: number;
+
     /** The output currency for the policy */
     outputCurrency: string;
 
