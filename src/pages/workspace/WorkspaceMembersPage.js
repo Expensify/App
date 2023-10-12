@@ -315,7 +315,7 @@ function WorkspaceMembersPage(props) {
 
             result.push({
                 keyForList: accountIDKey,
-                accountID: accountID,
+                accountID,
                 isSelected: _.contains(selectedEmployees, accountID),
                 isDisabled:
                     accountID === props.session.accountID ||
