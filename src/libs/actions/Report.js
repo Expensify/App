@@ -87,6 +87,19 @@ Onyx.connect({
     },
 });
 
+const draftNoteMap = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT,
+    callback: (value, key) => {
+        if (!key) {
+            return;
+        }
+
+        const reportID = key.replace(ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT, '');
+        draftNoteMap[reportID] = value;
+    },
+});
+
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -1388,9 +1401,15 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
 
 /**
  * Navigates to the 1:1 report with Concierge
+ *
+ * @param {Boolean} ignoreConciergeReportID - Flag to ignore conciergeChatReportID during navigation. The default behavior is to not ignore.
  */
-function navigateToConciergeChat() {
-    if (!conciergeChatReportID) {
+function navigateToConciergeChat(ignoreConciergeReportID = false) {
+    // If conciergeChatReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
+    // Otherwise, we would find the concierge chat and navigate to it.
+    // Now, when user performs sign-out and a sign-in again, conciergeChatReportID may contain a stale value.
+    // In order to prevent navigation to a stale value, we use ignoreConciergeReportID to forcefully find and navigate to concierge chat.
+    if (!conciergeChatReportID || ignoreConciergeReportID) {
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
@@ -1884,7 +1903,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
             if (route === ROUTES.CONCIERGE) {
-                navigateToConciergeChat();
+                navigateToConciergeChat(true);
                 return;
             }
             Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
@@ -2183,6 +2202,21 @@ function clearPrivateNotesError(reportID, accountID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
+function getDraftPrivateNote(reportID) {
+    return draftNoteMap[reportID];
+}
+
+/**
+ * Saves the private notes left by the user as they are typing. By saving this data the user can switch between chats, close
+ * tab, refresh etc without worrying about loosing what they typed out.
+ *
+ * @param {String} reportID
+ * @param {String} note
+ */
+function savePrivateNotesDraft(reportID, note) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${reportID}`, note);
+}
+
 export {
     addComment,
     addAttachment,
@@ -2237,4 +2271,6 @@ export {
     getReportPrivateNote,
     clearPrivateNotesError,
     hasErrorInPrivateNotes,
+    savePrivateNotesDraft,
+    getDraftPrivateNote,
 };
