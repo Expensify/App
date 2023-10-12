@@ -98,6 +98,7 @@ export default {
         resend: 'Reenviar',
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
+        submit: 'Enviar',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -182,6 +183,7 @@ export default {
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}: CharacterLimitParams) => `Supera el límite de ${limit} caracteres`,
+            characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
             invalidCharacter: 'Carácter invalido',
             enterMerchant: 'Introduce un comerciante',
@@ -251,6 +253,7 @@ export default {
         recent: 'Reciente',
         all: 'Todo',
         tbd: 'Por determinar',
+        card: 'Tarjeta',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -342,6 +345,8 @@ export default {
     phoneCountryCode: '34',
     welcomeText: {
         getStarted: 'Comience a continuación.',
+        anotherLoginPageIsOpen: 'Otra página de inicio de sesión está abierta.',
+        anotherLoginPageIsOpenExplanation: 'Ha abierto la página de inicio de sesión en una pestaña separada, inicie sesión desde esa pestaña específica.',
         welcomeBack: '¡Bienvenido de nuevo!',
         welcome: '¡Bienvenido!',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
@@ -430,7 +435,7 @@ export default {
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para pedir dinero o asignar una tarea!',
+        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar dinero, pedir dinero, o asignar una tarea!',
     },
     reportAction: {
         asCopilot: 'como copiloto de',
@@ -494,6 +499,8 @@ export default {
         flash: 'flash',
         shutter: 'obturador',
         gallery: 'galería',
+        deleteReceipt: 'Eliminar recibo',
+        deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
     },
     iou: {
@@ -501,6 +508,7 @@ export default {
         approve: 'Aprobar',
         approved: 'Aprobado',
         cash: 'Efectivo',
+        card: 'Tarjeta',
         split: 'Dividir',
         addToSplit: 'Añadir para dividir',
         splitBill: 'Dividir factura',
@@ -511,11 +519,13 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
         receiptScanning: 'Escaneo de recibo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
+        receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
         deleteRequest: 'Eliminar pedido',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
@@ -826,6 +836,7 @@ export default {
         availableSpend: 'Capacidad de gasto restante',
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
+        reportFraud: 'Reportar fraude con la tarjeta virtual',
         cardDetails: {
             cardNumber: 'Número de tarjeta virtual',
             expiration: 'Expiración',
@@ -833,6 +844,21 @@ export default {
             address: 'Dirección',
             revealDetails: 'Revelar detalles',
             copyCardNumber: 'Copiar número de la tarjeta',
+        },
+    },
+    reportFraudPage: {
+        title: 'Reportar fraude con la tarjeta virtual',
+        description:
+            'Si los datos de tu tarjeta virtual han sido robados o se han visto comprometidos, desactivaremos permanentemente la tarjeta actual y le proporcionaremos una tarjeta virtual y un número nuevo.',
+        deactivateCard: 'Desactivar tarjeta',
+        reportVirtualCardFraud: 'Reportar fraude con la tarjeta virtual',
+    },
+    activateCardPage: {
+        activateCard: 'Activar tarjeta',
+        pleaseEnterLastFour: 'Introduce los cuatro últimos dígitos de la tarjeta.',
+        activatePhysicalCard: 'Activar tarjeta física',
+        error: {
+            thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
         },
     },
     transferAmountPage: {
@@ -990,7 +1016,7 @@ export default {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
-            hasInvalidCharacter: 'El nombre sólo puede incluir letras.',
+            hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos.',
         },
     },
     resendValidationForm: {
@@ -1371,6 +1397,7 @@ export default {
             notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte al espacio de trabajo? Comunícate con el propietario de este espacio de trabajo para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
             workspaceAvatar: 'Espacio de trabajo avatar',
+            mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
@@ -1592,7 +1619,7 @@ export default {
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
-    keyboardShortcutModal: {
+    keyboardShortcutsPage: {
         title: 'Atajos de teclado',
         subtitle: 'Ahorra tiempo con estos atajos de teclado:',
         shortcuts: {
@@ -2273,6 +2300,11 @@ export default {
             tryDifferentEmail: 'Por favor intenta con un e-mail diferente',
         },
     },
+    cardTransactions: {
+        notActivated: 'No activado',
+        outOfPocketSpend: 'Gastos por cuenta propia',
+        companySpend: 'Gastos de empresa',
+    },
     distance: {
         addStop: 'Agregar parada',
         deleteWaypoint: 'Eliminar punto de ruta',
@@ -2291,5 +2323,12 @@ export default {
         errors: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
+    },
+    eReceipt: {
+        guaranteed: 'eRecibo garantizado',
+        transactionDate: 'Fecha de transacción',
     },
 } satisfies EnglishTranslation;

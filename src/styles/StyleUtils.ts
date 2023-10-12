@@ -13,9 +13,11 @@ import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
 import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
+import {Transaction} from '../types/onyx';
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
+type EReceiptColorName = ValueOf<typeof CONST.ERECEIPT_COLORS>;
 type AvatarSizeValue = ValueOf<
     Pick<
         typeof variables,
@@ -41,6 +43,7 @@ type AvatarSize = {width: number};
 type ParsableStyle = ViewStyle | CSSProperties | ((state: PressableStateCallbackType) => ViewStyle | CSSProperties);
 
 type WorkspaceColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
+type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue};
 
 type ModalPaddingStylesArgs = {
     shouldAddBottomSafeAreaMargin: boolean;
@@ -84,6 +87,24 @@ const workspaceColorOptions: WorkspaceColorStyle[] = [
     {backgroundColor: colors.ice200, fill: colors.ice700},
     {backgroundColor: colors.ice400, fill: colors.ice800},
     {backgroundColor: colors.ice700, fill: colors.ice200},
+];
+
+const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
+    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow600, color: colors.yellow100},
+    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.blue800, color: colors.ice400},
+    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue400, color: colors.blue100},
+    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400},
+    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400},
+    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400},
+};
+
+const eReceiptColors: EReceiptColorName[] = [
+    CONST.ERECEIPT_COLORS.YELLOW,
+    CONST.ERECEIPT_COLORS.ICE,
+    CONST.ERECEIPT_COLORS.BLUE,
+    CONST.ERECEIPT_COLORS.GREEN,
+    CONST.ERECEIPT_COLORS.TANGERINE,
+    CONST.ERECEIPT_COLORS.PINK,
 ];
 
 const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
@@ -232,12 +253,30 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle | C
 }
 
 /**
- * Helper method to return old dot default avatar associated with login
+ * Helper method to return workspace avatar color styles
  */
 function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle | CSSProperties {
     const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
+}
+
+/**
+ * Helper method to return eReceipt color code
+ */
+function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
+    const transactionID = transaction.parentTransactionID ?? transaction.transactionID ?? '';
+
+    const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
+
+    return eReceiptColors[colorHash];
+}
+
+/**
+ * Helper method to return eReceipt color styles
+ */
+function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyle | undefined {
+    return eReceiptColorStyles[colorCode];
 }
 
 /**
@@ -752,6 +791,15 @@ function getMinimumHeight(minHeight: number): ViewStyle | CSSProperties {
 }
 
 /**
+ * Get minimum width as style
+ */
+function getMinimumWidth(minWidth: number): ViewStyle | CSSProperties {
+    return {
+        minWidth,
+    };
+}
+
+/**
  * Get maximum height as style
  */
 function getMaximumHeight(maxHeight: number): ViewStyle | CSSProperties {
@@ -776,16 +824,6 @@ function fade(fadeAnimation: Animated.Value): Animated.WithAnimatedValue<ViewSty
     return {
         opacity: fadeAnimation,
     };
-}
-
-/**
- * Return width for keyboard shortcuts modal.
- */
-function getKeyboardShortcutsModalWidth(isSmallScreenWidth: boolean): ViewStyle | CSSProperties {
-    if (isSmallScreenWidth) {
-        return {maxWidth: '100%'};
-    }
-    return {maxWidth: 600};
 }
 
 function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}: AvatarBorderStyleArgs): ViewStyle | CSSProperties {
@@ -1148,6 +1186,13 @@ function getDisabledLinkStyles(isDisabled = false): ViewStyle | CSSProperties {
 }
 
 /**
+ * Returns color style
+ */
+function getColorStyle(color: string): ViewStyle | CSSProperties {
+    return {color};
+}
+
+/**
  * Returns the checkbox pressable style
  */
 function getCheckboxPressableStyle(borderRadius = 6): ViewStyle | CSSProperties {
@@ -1221,6 +1266,29 @@ function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: nu
 }
 
 /**
+ * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
+ */
+function getContainerStyles(size: string, isInReportAction = false): Array<ViewStyle | CSSProperties> {
+    let containerStyles: Array<ViewStyle | CSSProperties>;
+
+    switch (size) {
+        case CONST.AVATAR_SIZE.SMALL:
+            containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
+            break;
+        case CONST.AVATAR_SIZE.SMALLER:
+            containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
+            break;
+        case CONST.AVATAR_SIZE.MEDIUM:
+            containerStyles = [styles.emptyAvatarMedium, styles.emptyAvatarMargin];
+            break;
+        default:
+            containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];
+    }
+
+    return containerStyles;
+}
+
+/**
  * Get transparent color by setting alpha value 0 of the passed hex(#xxxxxx) color code
  */
 function getTransparentColor(color: string) {
@@ -1257,7 +1325,6 @@ export {
     getEmojiPickerStyle,
     getReportActionItemStyle,
     getMiniReportActionContextMenuWrapperStyle,
-    getKeyboardShortcutsModalWidth,
     getPaymentMethodMenuWidth,
     getThemeBackgroundColor,
     parseStyleAsArray,
@@ -1267,6 +1334,7 @@ export {
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
+    getMinimumWidth,
     getMaximumHeight,
     getMaximumWidth,
     fade,
@@ -1280,6 +1348,7 @@ export {
     getAutoCompleteSuggestionItemStyle,
     getAutoCompleteSuggestionContainerStyle,
     getColoredBackgroundStyle,
+    getColorStyle,
     getDefaultWorkspaceAvatarColor,
     getAvatarBorderRadius,
     getEmojiReactionBubbleStyle,
@@ -1304,5 +1373,8 @@ export {
     getCheckboxContainerStyle,
     getDropDownButtonHeight,
     getAmountFontSizeAndLineHeight,
+    getContainerStyles,
     getTransparentColor,
+    getEReceiptColorStyles,
+    getEReceiptColorCode,
 };

@@ -1,5 +1,5 @@
-import React, {Component, useCallback, useEffect, useRef, useState} from 'react';
-import {View, FlatList, TextInputSelectionChangeEventData} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View, FlatList} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -22,8 +22,6 @@ import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
 import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import {TextInput as RNTextInput} from 'react-native';
-import {NativeSyntheticEvent} from 'react-native';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -50,7 +48,7 @@ const defaultProps = {
     frequentlyUsedEmojis: [],
 };
 
-const EmojiPickerMenu = (props) => {
+function EmojiPickerMenu(props) {
     const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, isSmallScreenWidth, windowWidth, windowHeight, translate} = props;
 
     // Ref for the emoji search input
@@ -64,60 +62,6 @@ const EmojiPickerMenu = (props) => {
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
     const firstNonHeaderIndex = useRef(0);
-
-    const emojis = useRef([]);
-    if (emojis.current.length === 0) {
-        emojis.current = getEmojisAndHeaderRowIndices().filteredEmojis;
-    }
-    const headerRowIndices = useRef([]);
-    if (headerRowIndices.current.length === 0) {
-        headerRowIndices.current = getEmojisAndHeaderRowIndices().headerRowIndices;
-    }
-    const [headerEmojis, setHeaderEmojis] = useState(() => getEmojisAndHeaderRowIndices().headerEmojis);
-
-    const [filteredEmojis, setFilteredEmojis] = useState(emojis.current);
-    const [headerIndices, setHeaderIndices] = useState(headerRowIndices.current);
-    const [highlightedIndex, setHighlightedIndex] = useState(-1);
-    const [arePointerEventsDisabled, setArePointerEventsDisabled] = useState(false);
-    const [selection, setSelection] = useState({start: 0, end: 0});
-    const [isFocused, setIsFocused] = useState(false);
-    const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
-    const [selectTextOnFocus, setSelectTextOnFocus] = useState(false);
-
-    useEffect(() => {
-        // This callback prop is used by the parent component using the constructor to
-        // get a ref to the inner textInput element e.g. if we do
-        // <constructor ref={el => this.textInput = el} /> this will not
-        // return a ref to the component, but rather the HTML element by default
-        if (shouldFocusInputOnScreenFocus && forwardedRef && _.isFunction(forwardedRef)) {
-            forwardedRef(searchInputRef.current);
-        }
-
-        setupEventHandlers();
-        updateFirstNonHeaderIndex(emojis.current);
-
-        return () => {
-            cleanupEventHandlers();
-        };
-    }, []);
-
-    useEffect(() => {
-        const emojisAndHeaderRowIndices = getEmojisAndHeaderRowIndices();
-        emojis.current = emojisAndHeaderRowIndices.filteredEmojis;
-        headerRowIndices.current = emojisAndHeaderRowIndices.headerRowIndices;
-        setHeaderEmojis(emojisAndHeaderRowIndices.headerEmojis);
-        setFilteredEmojis(emojis.current);
-        setHeaderIndices(headerRowIndices.current);
-    }, [frequentlyUsedEmojis]);
-
-    /**
-     * On text input selection change
-     *
-     * @param {Event} event
-     */
-    function onSelectionChange(event) {
-        setSelection(event.nativeEvent.selection);
-    }
 
     /**
      * Calculate the filtered + header emojis and header row indices
@@ -144,75 +88,57 @@ const EmojiPickerMenu = (props) => {
         return {filteredEmojis, headerEmojis, headerRowIndices};
     }
 
+    const emojis = useRef([]);
+    if (emojis.current.length === 0) {
+        emojis.current = getEmojisAndHeaderRowIndices().filteredEmojis;
+    }
+    const headerRowIndices = useRef([]);
+    if (headerRowIndices.current.length === 0) {
+        headerRowIndices.current = getEmojisAndHeaderRowIndices().headerRowIndices;
+    }
+    const [headerEmojis, setHeaderEmojis] = useState(() => getEmojisAndHeaderRowIndices().headerEmojis);
+
+    const [filteredEmojis, setFilteredEmojis] = useState(emojis.current);
+    const [headerIndices, setHeaderIndices] = useState(headerRowIndices.current);
+    const [highlightedIndex, setHighlightedIndex] = useState(-1);
+    const [arePointerEventsDisabled, setArePointerEventsDisabled] = useState(false);
+    const [selection, setSelection] = useState({start: 0, end: 0});
+    const [isFocused, setIsFocused] = useState(false);
+    const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
+    const [selectTextOnFocus, setSelectTextOnFocus] = useState(false);
+
+    useEffect(() => {
+        const emojisAndHeaderRowIndices = getEmojisAndHeaderRowIndices();
+        emojis.current = emojisAndHeaderRowIndices.filteredEmojis;
+        headerRowIndices.current = emojisAndHeaderRowIndices.headerRowIndices;
+        setHeaderEmojis(emojisAndHeaderRowIndices.headerEmojis);
+        setFilteredEmojis(emojis.current);
+        setHeaderIndices(headerRowIndices.current);
+    }, [frequentlyUsedEmojis]);
+
     /**
-     * Find and store index of the first emoji item
-     * @param {Array} filteredEmojis
+     * On text input selection change
+     *
+     * @param {Event} event
      */
-    function updateFirstNonHeaderIndex(filteredEmojis) {
-        firstNonHeaderIndex.current = _.findIndex(filteredEmojis, (item) => !item.spacer && !item.header);
+    function onSelectionChange(event) {
+        setSelection(event.nativeEvent.selection);
     }
 
-    const keyDownHandler = (keyBoardEvent) => {
-        if (keyBoardEvent.key.startsWith('Arrow')) {
-            if (!isFocused || keyBoardEvent.key === 'ArrowUp' || keyBoardEvent.key === 'ArrowDown') {
-                keyBoardEvent.preventDefault();
-            }
+    /**
+     * Find and store index of the first emoji item
+     * @param {Array} filteredEmojisArr
+     */
+    function updateFirstNonHeaderIndex(filteredEmojisArr) {
+        firstNonHeaderIndex.current = _.findIndex(filteredEmojisArr, (item) => !item.spacer && !item.header);
+    }
 
-            // Move the highlight when arrow keys are pressed
-            highlightAdjacentEmoji(keyBoardEvent.key);
-            return;
-        }
-
-        // Select the currently highlighted emoji if enter is pressed
-        if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && highlightedIndex !== -1) {
-            const item = filteredEmojis[highlightedIndex];
-            if (!item) {
-                return;
-            }
-            const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
-            addToFrequentAndSelectEmoji(emoji, item);
-            return;
-        }
-
-        // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
-        // is not focused, so that the navigation and tab cycling can be done using the keyboard without
-        // interfering with the input behaviour.
-        if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && !searchInputRef.current?.isFocused())) {
-            setIsUsingKeyboardMovement(true);
-            return;
-        }
-
-        // We allow typing in the search box if any key is pressed apart from Arrow keys.
-        if (!searchInputRef.current?.isFocused()) {
-            setSelectTextOnFocus(false);
-            searchInputRef.current?.focus();
-
-            // Re-enable selection on the searchInput
-            setSelectTextOnFocus(true);
-        }
-    };
     const mouseMoveHandler = () => {
         if (!arePointerEventsDisabled) {
             return;
         }
         setArePointerEventsDisabled(false);
     };
-
-    /**
-     * Setup and attach keypress/mouse handlers for highlight navigation.
-     */
-    function setupEventHandlers() {
-        if (!document) {
-            return;
-        }
-
-        // Keyboard events are not bubbling on TextInput in RN-Web, Bubbling was needed for this event to trigger
-        // event handler attached to document root. To fix this, trigger event handler in Capture phase.
-        document.addEventListener('keydown', keyDownHandler, true);
-
-        // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
-        document.addEventListener('mousemove', mouseMoveHandler);
-    }
 
     /**
      * This function will be used with FlatList getItemLayout property for optimization purpose that allows skipping
@@ -226,24 +152,6 @@ const EmojiPickerMenu = (props) => {
      */
     function getItemLayout(data, index) {
         return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
-    }
-
-    /**
-     * Cleanup all mouse/keydown event listeners that we've set up
-     */
-    function cleanupEventHandlers() {
-        document?.removeEventListener('keydown', keyDownHandler, true);
-        document?.removeEventListener('mousemove', mouseMoveHandler);
-    }
-
-    /**
-     * @param {String} emoji
-     * @param {Object} emojiObject
-     */
-    function addToFrequentAndSelectEmoji(emoji, emojiObject) {
-        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-        User.updateFrequentlyUsedEmojis(frequentEmojiList);
-        onEmojiSelected(emoji, emojiObject);
     }
 
     /**
@@ -356,6 +264,87 @@ const EmojiPickerMenu = (props) => {
         }
     }
 
+    const keyDownHandler = (keyBoardEvent) => {
+        if (keyBoardEvent.key.startsWith('Arrow')) {
+            if (!isFocused || keyBoardEvent.key === 'ArrowUp' || keyBoardEvent.key === 'ArrowDown') {
+                keyBoardEvent.preventDefault();
+            }
+
+            // Move the highlight when arrow keys are pressed
+            highlightAdjacentEmoji(keyBoardEvent.key);
+            return;
+        }
+
+        // Select the currently highlighted emoji if enter is pressed
+        if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && highlightedIndex !== -1) {
+            const item = filteredEmojis[highlightedIndex];
+            if (!item) {
+                return;
+            }
+            const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
+            onEmojiSelected(emoji, item);
+            return;
+        }
+
+        // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
+        // is not focused, so that the navigation and tab cycling can be done using the keyboard without
+        // interfering with the input behaviour.
+        if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && !searchInputRef.current?.isFocused())) {
+            setIsUsingKeyboardMovement(true);
+            return;
+        }
+
+        // We allow typing in the search box if any key is pressed apart from Arrow keys.
+        if (!searchInputRef.current?.isFocused()) {
+            setSelectTextOnFocus(false);
+            searchInputRef.current?.focus();
+
+            // Re-enable selection on the searchInput
+            setSelectTextOnFocus(true);
+        }
+    };
+
+    /**
+     * Setup and attach keypress/mouse handlers for highlight navigation.
+     */
+    function setupEventHandlers() {
+        if (!document) {
+            return;
+        }
+
+        // Keyboard events are not bubbling on TextInput in RN-Web, Bubbling was needed for this event to trigger
+        // event handler attached to document root. To fix this, trigger event handler in Capture phase.
+        document.addEventListener('keydown', keyDownHandler, true);
+
+        // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
+        document.addEventListener('mousemove', mouseMoveHandler);
+    }
+
+    /**
+     * Cleanup all mouse/keydown event listeners that we've set up
+     */
+    function cleanupEventHandlers() {
+        document?.removeEventListener('keydown', keyDownHandler, true);
+        document?.removeEventListener('mousemove', mouseMoveHandler);
+    }
+
+    useEffect(() => {
+        // This callback prop is used by the parent component using the constructor to
+        // get a ref to the inner textInput element e.g. if we do
+        // <constructor ref={el => this.textInput = el} /> this will not
+        // return a ref to the component, but rather the HTML element by default
+        if (shouldFocusInputOnScreenFocus && forwardedRef && _.isFunction(forwardedRef)) {
+            forwardedRef(searchInputRef.current);
+        }
+
+        setupEventHandlers();
+        updateFirstNonHeaderIndex(emojis.current);
+
+        return () => {
+            cleanupEventHandlers();
+        };
+    }, []);
+
     function scrollToHeader(headerIndex) {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
         emojiListRef.current?.flashScrollIndicators();
@@ -450,7 +439,7 @@ const EmojiPickerMenu = (props) => {
 
         return (
             <EmojiPickerMenuItem
-                onPress={(emoji) => addToFrequentAndSelectEmoji(emoji, item)}
+                onPress={(emoji) => onEmojiSelected(emoji, item)}
                 onHoverIn={() => {
                     setHighlightedIndex(index);
                     setIsUsingKeyboardMovement(false);
@@ -539,7 +528,7 @@ const EmojiPickerMenu = (props) => {
             />
         </View>
     );
-};
+}
 
 EmojiPickerMenu.propTypes = propTypes;
 EmojiPickerMenu.defaultProps = defaultProps;

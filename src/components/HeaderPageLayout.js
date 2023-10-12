@@ -31,16 +31,26 @@ const propTypes = {
     /** Style to apply to the header image container */
     // eslint-disable-next-line react/forbid-prop-types
     headerContainerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Style to apply to the ScrollView container */
+    // eslint-disable-next-line react/forbid-prop-types
+    scrollViewContainerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Style to apply to the children container */
+    // eslint-disable-next-line react/forbid-prop-types
+    childrenContainerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     backgroundColor: themeColors.appBG,
     header: null,
     headerContainerStyles: [],
+    scrollViewContainerStyles: [],
+    childrenContainerStyles: [],
     footer: null,
 };
 
-function HeaderPageLayout({backgroundColor, children, footer, headerContainerStyles, style, headerContent, ...propsToPassToHeader}) {
+function HeaderPageLayout({backgroundColor, children, footer, headerContainerStyles, scrollViewContainerStyles, childrenContainerStyles, style, headerContent, ...propsToPassToHeader}) {
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const appBGColor = StyleUtils.getBackgroundColorStyle(themeColors.appBG);
@@ -77,14 +87,14 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
                             </View>
                         )}
                         <ScrollView
-                            contentContainerStyle={[safeAreaPaddingBottomStyle, style]}
+                            contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles]}
                             offlineIndicatorStyle={[appBGColor]}
                         >
                             {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />}
                             <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor), ...headerContainerStyles]}>
                                 {headerContent}
                             </View>
-                            <View style={[styles.pt5, appBGColor]}>{children}</View>
+                            <View style={[styles.pt5, appBGColor, childrenContainerStyles]}>{children}</View>
                         </ScrollView>
                         {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
                     </View>
