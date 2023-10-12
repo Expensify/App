@@ -108,6 +108,7 @@ function Checkbox(props) {
                         props.isChecked && styles.checkedContainer,
                         props.hasError && styles.borderColorDanger,
                         props.disabled && styles.cursorDisabled,
+                        props.disabled && styles.buttonOpacityDisabled,
                         props.isChecked && styles.borderColorFocus,
                     ]}
                 >
