@@ -304,6 +304,10 @@ function MoneyRequestConfirmPage(props) {
             return props.translate('iou.split');
         }
 
+        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+            return props.translate('common.send');
+        }
+
         return props.translate('tabSelector.manual');
     };
 
@@ -376,6 +380,7 @@ function MoneyRequestConfirmPage(props) {
                                 iouCreated={props.iou.created}
                                 isDistanceRequest={isDistanceRequest}
                                 listStyles={[StyleUtils.getMaximumHeight(windowHeight / 3)]}
+                                shouldShowSmartScanFields={_.isEmpty(props.iou.receiptPath)}
                             />
                         </ScrollView>
                     </ScrollView>

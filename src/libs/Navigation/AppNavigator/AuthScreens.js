@@ -176,23 +176,29 @@ class AuthScreens extends React.Component {
         Download.clearDownloads();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
+        const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
 
-        // Listen for the key K being pressed so that focus can be given to
-        // the chat switcher, or new group chat
-        // based on the key modifiers pressed and the operating system
+        // Listen to keyboard shortcuts for opening certain pages
+        this.unsubscribeShortcutsOverviewShortcut = KeyboardShortcut.subscribe(
+            shortcutsOverviewShortcutConfig.shortcutKey,
+            () => {
+                Modal.close(() => {
+                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
+                        return;
+                    }
+                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+                });
+            },
+            shortcutsOverviewShortcutConfig.descriptionKey,
+            shortcutsOverviewShortcutConfig.modifiers,
+            true,
+        );
         this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(
-                    Session.checkIfActionIsAllowed(() => {
-                        if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
-                            return;
-                        }
-                        return Navigation.navigate(ROUTES.SEARCH);
-                    }),
-                );
+                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH)));
             },
             searchShortcutConfig.descriptionKey,
             searchShortcutConfig.modifiers,
@@ -201,14 +207,7 @@ class AuthScreens extends React.Component {
         this.unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
-                Modal.close(
-                    Session.checkIfActionIsAllowed(() => {
-                        if (Navigation.isActiveRoute(ROUTES.NEW)) {
-                            return;
-                        }
-                        return Navigation.navigate(ROUTES.NEW);
-                    }),
-                );
+                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
             },
             chatShortcutConfig.descriptionKey,
             chatShortcutConfig.modifiers,
@@ -221,6 +220,9 @@ class AuthScreens extends React.Component {
     }
 
     componentWillUnmount() {
+        if (this.unsubscribeShortcutsOverviewShortcut) {
+            this.unsubscribeShortcutsOverviewShortcut();
+        }
         if (this.unsubscribeSearchShortcut) {
             this.unsubscribeSearchShortcut();
         }
