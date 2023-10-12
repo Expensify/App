@@ -11,6 +11,7 @@ import PreRenderer from './PreRenderer';
  */
 export default {
     // Standard HTML tag renderers
+    video: AnchorRenderer,
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImageRenderer,
