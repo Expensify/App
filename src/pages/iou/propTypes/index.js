@@ -45,6 +45,7 @@ const iouDefaultProps = {
     merchant: '',
     category: '',
     tag: '',
+    billable: false,
     created: '',
     participants: [],
     receiptPath: '',
