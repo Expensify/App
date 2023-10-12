@@ -1,4 +1,3 @@
-import {ValueOf} from 'type-fest';
 import {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import * as Pusher from './Pusher/pusher';
 import * as Session from './actions/Session';
