@@ -22,7 +22,7 @@ Once your physical card arrives in the mail, activate it in Expensify by enterin
 
 Once assigned a limit, a virtual card is available immediately. You can view the virtual card details via **Settings > Account > Credit Card Import > Show Details**. Feel free to begin transacting with the virtual card while your physical card is in transit – your virtual card and physical card share a limit.
 
-Please note that you must enable 2-factor authentication on your account if you want to have the option to dispute transactions made on your virtual card. 
+Please note that you must enable two-factor authentication on your account if you want to have the option to dispute transactions made on your virtual card. 
 
 # Notifications
 
