@@ -21,6 +21,7 @@ import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import Performance from '../libs/Performance';
 import networkPropTypes from '../components/networkPropTypes';
+import {withNetwork} from '../components/OnyxProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,6 +40,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
+    /** Network info */
     network: networkPropTypes,
 
     /** Whether we are searching for reports in the server */
@@ -221,6 +223,7 @@ SearchPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withNetwork(),
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -234,9 +237,6 @@ export default compose(
         isSearchingForReports: {
             key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
             initWithStoredValues: false,
-        },
-        network: {
-            key: ONYXKEYS.NETWORK,
         },
     }),
 )(SearchPage);
