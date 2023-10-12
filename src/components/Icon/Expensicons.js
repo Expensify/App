@@ -42,6 +42,7 @@ import Emoji from '../../../assets/images/emoji.svg';
 import EmptyStateRoutePending from '../../../assets/images/emptystate__routepending.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
 import Exit from '../../../assets/images/exit.svg';
+import ExpensifyAppIcon from '../../../assets/images/expensify-app-icon.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
 import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
 import Expand from '../../../assets/images/expand.svg';
@@ -174,6 +175,7 @@ export {
     EmptyStateRoutePending,
     Exclamation,
     Exit,
+    ExpensifyAppIcon,
     ExpensifyCard,
     ExpensifyWordmark,
     ExpensifyFooterLogo,

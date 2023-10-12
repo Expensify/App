@@ -2297,9 +2297,6 @@ const styles = (theme) => ({
         fontSize: variables.fontSizeMedium,
         color: theme.textLight,
     },
-    signInButtonAvatar: {
-        width: 80,
-    },
 
     anonymousRoomFooterSignInButton: {
         width: 110,

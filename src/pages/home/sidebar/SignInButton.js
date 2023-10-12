@@ -2,11 +2,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
-import Button from '../../../components/Button';
 import styles from '../../../styles/styles';
 import * as Session from '../../../libs/actions/Session';
 import useLocalize from '../../../hooks/useLocalize';
 import CONST from '../../../CONST';
+import Avatar from '../../../components/Avatar';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 
 function SignInButton() {
     const {translate} = useLocalize();
@@ -17,13 +18,8 @@ function SignInButton() {
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             onPress={Session.signOutAndRedirectToSignIn}
         >
-            <View style={styles.signInButtonAvatar}>
-                <Button
-                    medium
-                    success
-                    text={translate('common.signIn')}
-                    onPress={Session.signOutAndRedirectToSignIn}
-                />
+            <View style={[styles.sidebarAvatar]}>
+                <Avatar source={Expensicons.ExpensifyAppIcon} />
             </View>
         </PressableWithoutFeedback>
     );
