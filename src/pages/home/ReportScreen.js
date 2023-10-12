@@ -441,6 +441,7 @@ function ReportScreen({
                                         onSubmitComment={onSubmitComment}
                                         policies={policies}
                                         listHeight={listHeight}
+                                        personalDetails={personalDetails}
                                     />
                                 ) : (
                                     <ReportFooter isReportReadyForDisplay={false} />
