@@ -499,8 +499,6 @@ export default {
         flash: 'flash',
         shutter: 'obturador',
         gallery: 'galería',
-        deleteReceipt: 'Eliminar recibo',
-        deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
     },
     iou: {

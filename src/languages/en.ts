@@ -507,8 +507,6 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
-        deleteReceipt: 'Delete receipt',
-        deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
     },
     iou: {

@@ -31,14 +31,11 @@ import useWindowDimensions from '../hooks/useWindowDimensions';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import useNativeDriver from '../libs/useNativeDriver';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Policy from '../libs/actions/Policy';
 import useNetwork from '../hooks/useNetwork';
-import * as IOU from '../libs/actions/IOU';
-import transactionPropTypes from './transactionPropTypes';
-import * as TransactionUtils from '../libs/TransactionUtils';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -82,9 +79,6 @@ const propTypes = {
     /** The report that has this attachment */
     report: reportPropTypes,
 
-    /** The transaction associated with the receipt attachment, if any */
-    transaction: transactionPropTypes,
-
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -103,7 +97,6 @@ const defaultProps = {
     allowDownload: false,
     headerTitle: null,
     report: {},
-    transaction: {},
     onModalShow: () => {},
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
@@ -115,7 +108,6 @@ function AttachmentModal(props) {
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
     const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
@@ -213,21 +205,11 @@ function AttachmentModal(props) {
     }, [isModalOpen, isConfirmButtonDisabled, props.onConfirm, file, source]);
 
     /**
-     * Close the confirm modals.
+     * Close the confirm modal.
      */
     const closeConfirmModal = useCallback(() => {
         setIsAttachmentInvalid(false);
-        setIsDeleteReceiptConfirmModalVisible(false);
     }, []);
-
-    /**
-     * Detach the receipt and close the modal.
-     */
-    const deleteAndCloseModal = useCallback(() => {
-        IOU.detachReceipt(props.transaction.transactionID, props.report.reportID);
-        setIsDeleteReceiptConfirmModalVisible(false);
-        Navigation.dismissModal(props.report.reportID);
-    }, [props.transaction, props.report]);
 
     /**
      * @param {Object} _file
@@ -376,18 +358,9 @@ function AttachmentModal(props) {
             text: props.translate('common.download'),
             onSelected: () => downloadAttachment(source),
         });
-        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction)) {
-            menuItems.push({
-                icon: Expensicons.Trashcan,
-                text: props.translate('receipt.deleteReceipt'),
-                onSelected: () => {
-                    setIsDeleteReceiptConfirmModalVisible(true);
-                },
-            });
-        }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction]);
+    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy]);
 
     return (
         <>
@@ -469,29 +442,17 @@ function AttachmentModal(props) {
                         )}
                     </SafeAreaConsumer>
                 )}
-                {isAttachmentReceipt ? (
-                    <ConfirmModal
-                        title={translate('receipt.deleteReceipt')}
-                        isVisible={isDeleteReceiptConfirmModalVisible}
-                        onConfirm={deleteAndCloseModal}
-                        onCancel={closeConfirmModal}
-                        prompt={translate('receipt.deleteConfirmation')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                ) : (
-                    <ConfirmModal
-                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                        onConfirm={closeConfirmModal}
-                        onCancel={closeConfirmModal}
-                        isVisible={isAttachmentInvalid}
-                        prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                        confirmText={translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
-                )}
             </Modal>
+
+            <ConfirmModal
+                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                onConfirm={closeConfirmModal}
+                onCancel={closeConfirmModal}
+                isVisible={isAttachmentInvalid}
+                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                confirmText={translate('common.close')}
+                shouldShowCancelButton={false}
+            />
 
             {props.children &&
                 props.children({
@@ -509,16 +470,6 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
-        transaction: {
-            key: ({report}) => {
-                if (!report) {
-                    return undefined;
-                }
-                const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
-                const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-            },
-        },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
         },
