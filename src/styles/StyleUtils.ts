@@ -1281,6 +1281,9 @@ function getContainerStyles(size: string, isInReportAction = false): Array<ViewS
         case CONST.AVATAR_SIZE.MEDIUM:
             containerStyles = [styles.emptyAvatarMedium, styles.emptyAvatarMargin];
             break;
+        case CONST.AVATAR_SIZE.LARGE:
+            containerStyles = [styles.emptyAvatarLarge, styles.mb2, styles.mr2];
+            break;
         default:
             containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];
     }
