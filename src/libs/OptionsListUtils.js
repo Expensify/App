@@ -412,6 +412,7 @@ function getLastMessageTextForReport(report) {
  * @param {Object} options
  * @param {Boolean} [options.showChatPreviewLine]
  * @param {Boolean} [options.forcePolicyNamePreview]
+ * @param {Boolean} [options.checkPolicyOwner]
  * @returns {Object}
  */
 function createOption(accountIDs, personalDetails, report, reportActions = {}, {showChatPreviewLine = false, forcePolicyNamePreview = false, checkPolicyOwner = true}) {
