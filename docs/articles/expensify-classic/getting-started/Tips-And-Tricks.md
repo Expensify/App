@@ -45,7 +45,7 @@ If you’d like to use features that rely on your current location, you will nee
 2. At the top right, click the three-dot Menu > Settings
 3. Click “Privacy and Security” and then “Site Settings”
 4. Click Location
-5. Check the “Not allowed to see your location” list to make sure expensify.com and new.expensify.com are not listed. If they are, click the delete icon next to them to allow location access
+5. Check the “Not allowed to see your location” list to ensure that expensify.com and new.expensify.com are not listed. If they are, click the delete icon next to them to allow location access
 
 ## Firefox
 1. Open Firefox
