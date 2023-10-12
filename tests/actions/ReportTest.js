@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {utcToZonedTime} from 'date-fns-tz';
 import {beforeEach, beforeAll, afterEach, describe, it, expect} from '@jest/globals';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -426,11 +427,13 @@ describe('actions/Report', () => {
 
         global.fetch = TestHelper.getGlobalFetchMock();
 
+        const parser = new ExpensiMark();
+
         // User edits comment to add link
         // We should generate link
         let originalCommentHTML = 'Original Comment';
         let afterEditCommentText = 'Original Comment www.google.com';
-        let newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        let newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, parser.htmlToMarkdown(originalCommentHTML).trim());
         let expectedOutput = 'Original Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -438,7 +441,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>';
         afterEditCommentText = 'Comment www.google.com';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, parser.htmlToMarkdown(originalCommentHTML).trim());
         expectedOutput = 'Comment www.google.com';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -446,7 +449,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>';
         afterEditCommentText = 'Comment [www.google.com]';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, parser.htmlToMarkdown(originalCommentHTML).trim());
         expectedOutput = 'Comment [www.google.com]';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -454,7 +457,7 @@ describe('actions/Report', () => {
         // We should generate both links
         originalCommentHTML = 'Comment';
         afterEditCommentText = 'Comment www.google.com www.facebook.com';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, parser.htmlToMarkdown(originalCommentHTML).trim());
         expectedOutput =
             'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> ' +
             '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
@@ -464,7 +467,7 @@ describe('actions/Report', () => {
         // Should not generate link again for the deleted one
         originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>  <a href="https://www.facebook.com" target="_blank">www.facebook.com</a>';
         afterEditCommentText = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, parser.htmlToMarkdown(originalCommentHTML).trim());
         expectedOutput = 'Comment www.google.com  <a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -472,7 +475,7 @@ describe('actions/Report', () => {
         // We should generate link
         originalCommentHTML = 'Comment';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, parser.htmlToMarkdown(originalCommentHTML).trim());
         expectedOutput = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -480,7 +483,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentHTML = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, parser.htmlToMarkdown(originalCommentHTML).trim());
         expectedOutput = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -488,7 +491,7 @@ describe('actions/Report', () => {
         // We should generate link
         originalCommentHTML = 'Comment';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, parser.htmlToMarkdown(originalCommentHTML).trim());
         expectedOutput = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -496,7 +499,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentHTML = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, parser.htmlToMarkdown(originalCommentHTML).trim());
         expectedOutput = 'http://example.com/foo/*/bar/*/test.txt';
         expect(newCommentHTML).toBe(expectedOutput);
     });
