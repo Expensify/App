@@ -10,20 +10,20 @@ function getTopMostCentralPaneRouteName(state) {
     if (!state) {
         return undefined;
     }
-    const topmostCentralPane = lodashFindLast(state.routes, (route) => route.name === 'CentralPaneNavigator');
+    const topMostCentralPane = lodashFindLast(state.routes, (route) => route.name === 'CentralPaneNavigator');
 
-    if (!topmostCentralPane) {
+    if (!topMostCentralPane) {
         return undefined;
     }
 
-    if (topmostCentralPane.state && topmostCentralPane.state.routes) {
+    if (topMostCentralPane.state && topMostCentralPane.state.routes) {
         // State may don't have index in some cases. But in this case there will be only one route in state.
-        return topmostCentralPane.state.routes[topmostCentralPane.state.index || 0].name;
+        return topMostCentralPane.state.routes[topMostCentralPane.state.index || 0].name;
     }
 
-    if (topmostCentralPane.params) {
+    if (topMostCentralPane.params) {
         // State may don't have inner state in some cases (e.g generating actions from path). But in this case there will be params available.
-        return topmostCentralPane.params.screen;
+        return topMostCentralPane.params.screen;
     }
 
     return undefined;
