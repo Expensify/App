@@ -1,11 +1,6 @@
 import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import PropTypes from 'prop-types';
 import {useIsFocused} from '@react-navigation/native';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
-
-const withNavigationFocusPropTypes = {
-    isFocused: PropTypes.bool.isRequired,
-};
 
 type WithNavigationFocusProps = {
     isFocused: boolean;
@@ -27,5 +22,3 @@ export default function withNavigationFocus<TProps extends WithNavigationFocusPr
     WithNavigationFocus.displayName = `withNavigationFocus(${getComponentDisplayName(WrappedComponent as ComponentType)})`;
     return React.forwardRef(WithNavigationFocus);
 }
-
-export {withNavigationFocusPropTypes};
