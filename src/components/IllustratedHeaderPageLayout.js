@@ -1,17 +1,10 @@
-import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {ScrollView, View} from 'react-native';
-import Lottie from 'lottie-react-native';
+import Lottie from './Lottie';
 import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import * as StyleUtils from '../styles/StyleUtils';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import FixedFooter from './FixedFooter';
-import useNetwork from '../hooks/useNetwork';
+import HeaderPageLayout from './HeaderPageLayout';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -30,59 +23,37 @@ const propTypes = {
 
     /** Overlay content to display on top of animation */
     overlayContent: PropTypes.func,
-
-    /** Whether to include padding top */
-    includePaddingTop: PropTypes.bool,
 };
 
 const defaultProps = {
     backgroundColor: themeColors.appBG,
     footer: null,
     overlayContent: null,
-    includePaddingTop: true,
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, includePaddingTop, ...propsToPassToHeader}) {
-    const {windowHeight} = useWindowDimensions();
-    const {isOffline} = useNetwork();
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
     return (
-        <ScreenWrapper
-            style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
-            shouldEnablePickerAvoiding={false}
-            includeSafeAreaPaddingBottom={false}
-            includePaddingTop={includePaddingTop}
-            offlineIndicatorStyle={[StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}
-        >
-            {({safeAreaPaddingBottomStyle}) => (
+        <HeaderPageLayout
+            backgroundColor={backgroundColor}
+            title={propsToPassToHeader.title}
+            headerContent={
                 <>
-                    <HeaderWithBackButton
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...propsToPassToHeader}
-                        titleColor={backgroundColor === themeColors.appBG ? undefined : themeColors.textColorfulBackground}
-                        iconFill={backgroundColor === themeColors.appBG ? undefined : themeColors.iconColorfulBackground}
+                    <Lottie
+                        source={illustration}
+                        style={styles.w100}
+                        autoPlay
+                        loop
                     />
-                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG), !isOffline ? safeAreaPaddingBottomStyle : {}]}>
-                        <ScrollView
-                            contentContainerStyle={safeAreaPaddingBottomStyle}
-                            showsVerticalScrollIndicator={false}
-                        >
-                            <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />
-                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor)]}>
-                                <Lottie
-                                    source={illustration}
-                                    style={styles.w100}
-                                    autoPlay
-                                    loop
-                                />
-                                {overlayContent && overlayContent()}
-                            </View>
-                            <View style={[styles.pt5]}>{children}</View>
-                        </ScrollView>
-                        {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
-                    </View>
+                    {overlayContent && overlayContent()}
                 </>
-            )}
-        </ScreenWrapper>
+            }
+            headerContainerStyles={[styles.justifyContentCenter, styles.w100]}
+            footer={footer}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...propsToPassToHeader}
+        >
+            {children}
+        </HeaderPageLayout>
     );
 }
 
