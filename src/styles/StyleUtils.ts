@@ -13,9 +13,11 @@ import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
 import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
+import {Transaction} from '../types/onyx';
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
+type EReceiptColorName = ValueOf<typeof CONST.ERECEIPT_COLORS>;
 type AvatarSizeValue = ValueOf<
     Pick<
         typeof variables,
@@ -87,13 +89,22 @@ const workspaceColorOptions: WorkspaceColorStyle[] = [
     {backgroundColor: colors.ice700, fill: colors.ice200},
 ];
 
-const eReceiptColorOptions: EreceiptColorStyle[] = [
-    {backgroundColor: colors.yellow600, color: colors.yellow100},
-    {backgroundColor: colors.blue800, color: colors.ice400},
-    {backgroundColor: colors.blue400, color: colors.blue100},
-    {backgroundColor: colors.green800, color: colors.green400},
-    {backgroundColor: colors.tangerine800, color: colors.tangerine400},
-    {backgroundColor: colors.pink800, color: colors.pink400},
+const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
+    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow600, color: colors.yellow100},
+    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.blue800, color: colors.ice400},
+    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue400, color: colors.blue100},
+    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400},
+    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400},
+    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400},
+};
+
+const eReceiptColors: EReceiptColorName[] = [
+    CONST.ERECEIPT_COLORS.YELLOW,
+    CONST.ERECEIPT_COLORS.ICE,
+    CONST.ERECEIPT_COLORS.BLUE,
+    CONST.ERECEIPT_COLORS.GREEN,
+    CONST.ERECEIPT_COLORS.TANGERINE,
+    CONST.ERECEIPT_COLORS.PINK,
 ];
 
 const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
@@ -258,12 +269,21 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle | CSSP
 }
 
 /**
+ * Helper method to return eReceipt color code
+ */
+function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
+    const transactionID = transaction.parentTransactionID ?? transaction.transactionID ?? '';
+
+    const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
+
+    return eReceiptColors[colorHash];
+}
+
+/**
  * Helper method to return eReceipt color styles
  */
-function getEReceiptColor(transactionID: string): ViewStyle | CSSProperties {
-    const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColorOptions.length);
-
-    return eReceiptColorOptions[colorHash];
+function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyle | undefined {
+    return eReceiptColorStyles[colorCode];
 }
 
 /**
@@ -778,6 +798,15 @@ function getMinimumHeight(minHeight: number): ViewStyle | CSSProperties {
 }
 
 /**
+ * Get minimum width as style
+ */
+function getMinimumWidth(minWidth: number): ViewStyle | CSSProperties {
+    return {
+        minWidth,
+    };
+}
+
+/**
  * Get maximum height as style
  */
 function getMaximumHeight(maxHeight: number): ViewStyle | CSSProperties {
@@ -1164,6 +1193,13 @@ function getDisabledLinkStyles(isDisabled = false): ViewStyle | CSSProperties {
 }
 
 /**
+ * Returns color style
+ */
+function getColorStyle(color: string): ViewStyle | CSSProperties {
+    return {color};
+}
+
+/**
  * Returns the checkbox pressable style
  */
 function getCheckboxPressableStyle(borderRadius = 6): ViewStyle | CSSProperties {
@@ -1305,6 +1341,7 @@ export {
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
+    getMinimumWidth,
     getMaximumHeight,
     getMaximumWidth,
     fade,
@@ -1318,6 +1355,7 @@ export {
     getAutoCompleteSuggestionItemStyle,
     getAutoCompleteSuggestionContainerStyle,
     getColoredBackgroundStyle,
+    getColorStyle,
     getDefaultWorkspaceAvatarColor,
     getAvatarBorderRadius,
     getEmojiReactionBubbleStyle,
@@ -1345,5 +1383,6 @@ export {
     getAmountFontSizeAndLineHeight,
     getContainerStyles,
     getTransparentColor,
-    getEReceiptColor,
+    getEReceiptColorStyles,
+    getEReceiptColorCode,
 };
