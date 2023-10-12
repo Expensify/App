@@ -61,6 +61,7 @@ Check the appropriate box under **Additional Information**, accept the agreement
 - If you or another **individual** owns 25% or more of the business, please check the appropriate box
 - If someone else owns 25% or more of the business, you will be prompted to provide their personal information
 If no individual owns more than 25% of the company you do not need to list any beneficial owners. In that case, be sure to leave both boxes unchecked under the Beneficial Owner Additional Information section.
+
 # How to validate the bank account
 The account you set up can be found under **Settings > Account > Payment > Bank Accounts** section in either **Verifying** or **Pending** status.
 If it is **Verifying**, then this means we sent you a message and need more information from you. Please check your Concierge chat which should include a message with specific details about what we require to move forward. 
