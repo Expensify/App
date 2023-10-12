@@ -1859,6 +1859,7 @@ function getRootReportAndWorkspaceName(report) {
 /**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
+ * @param {Boolean} checkPolicyOwner
  * @returns {String}
  */
 function getChatRoomSubtitle(report, checkPolicyOwner = true) {
