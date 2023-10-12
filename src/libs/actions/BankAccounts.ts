@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -27,6 +28,10 @@ export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
 export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
 
 type BankAccountCompanyInformation = BankAccountStepProps & CompanyStepProps & ReimbursementAccountProps;
+
+type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP> | '';
+
+type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP> | '';
 
 function clearPlaid(): Promise<void> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
@@ -274,7 +279,7 @@ function validateBankAccount(bankAccountID: number, validateCode: string) {
     API.write('ValidateBankAccountWithTransactions', parameters, onyxData);
 }
 
-function openReimbursementAccountPage(stepToOpen: string, subStep: string, localCurrentStep: string) {
+function openReimbursementAccountPage(stepToOpen: BankAccountStep, subStep: BankAccountSubStep, localCurrentStep: BankAccountStep) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -306,9 +311,9 @@ function openReimbursementAccountPage(stepToOpen: string, subStep: string, local
     };
 
     type OpenReimbursementAccountPageParams = {
-        stepToOpen: string;
-        subStep: string;
-        localCurrentStep: string;
+        stepToOpen: BankAccountStep;
+        subStep: BankAccountSubStep;
+        localCurrentStep: BankAccountStep;
     };
 
     const parameters: OpenReimbursementAccountPageParams = {
