@@ -265,7 +265,8 @@ function WorkspaceMembersPage(props) {
     const getMemberOptions = () => {
         let result = [];
 
-        _.each(props.policyMembers, (policyMember, accountID) => {
+        _.each(props.policyMembers, (policyMember, accountIDKey) => {
+            const accountID = Number(accountIDKey);
             if (isDeletedPolicyMember(policyMember)) {
                 return;
             }
@@ -314,8 +315,8 @@ function WorkspaceMembersPage(props) {
 
             result.push({
                 keyForList: accountID,
-                accountID: Number(accountID),
-                isSelected: _.contains(selectedEmployees, Number(accountID)),
+                accountID: accountID,
+                isSelected: _.contains(selectedEmployees, accountID),
                 isDisabled:
                     accountID === props.session.accountID ||
                     details.login === props.policy.owner ||
