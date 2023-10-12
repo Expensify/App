@@ -68,7 +68,6 @@ function ReportDetailsPage(props) {
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
     const shouldDisableSettings = useMemo(() => ReportUtils.shouldDisableSettings(props.report), [props.report]);
-    const shouldUseFullTitle = !shouldDisableSettings || ReportUtils.isTaskReport(props.report);
     const shouldUseFullTitle = ReportUtils.isTaskReport(props.report);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
     const isThread = useMemo(() => ReportUtils.isChatThread(props.report), [props.report]);
