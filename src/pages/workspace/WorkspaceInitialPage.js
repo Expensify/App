@@ -91,7 +91,7 @@ function WorkspaceInitialPage(props) {
         }
 
         App.savePolicyDraftByNewWorkspace(props.policyDraft.id, props.policyDraft.name, '', false, '', !isSmallScreenWidth);
-        // I only care when the component renders the first time
+        // We only care when the component renders the first time
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
