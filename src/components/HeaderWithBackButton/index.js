@@ -18,6 +18,7 @@ import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
 import useThrottledButtonState from '../../hooks/useThrottledButtonState';
 import useLocalize from '../../hooks/useLocalize';
 import useKeyboardState from '../../hooks/useKeyboardState';
+import useWaitForNavigation from '../../hooks/useWaitForNavigation';
 
 function HeaderWithBackButton({
     iconFill = undefined,
@@ -49,10 +50,12 @@ function HeaderWithBackButton({
     shouldEnableDetailPageNavigation = false,
     children = null,
     shouldOverlay = false,
+    singleExecution = (func) =>  func,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
+    const waitForNavigate = useWaitForNavigation();
     return (
         <View style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
@@ -121,7 +124,7 @@ function HeaderWithBackButton({
                     {shouldShowGetAssistanceButton && (
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
-                                onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))}
+                                onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))))}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}

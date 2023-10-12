@@ -84,6 +84,9 @@ const propTypes = {
 
     /** Children to wrap in Header */
     children: PropTypes.node,
+
+    /** Single execution function to wrap the action in */
+    singleExecution: PropTypes.func,
 };
 
 export default propTypes;

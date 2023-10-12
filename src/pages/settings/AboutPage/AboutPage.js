@@ -52,7 +52,6 @@ function AboutPage(props) {
                 icon: Expensicons.Link,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
             },
-
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
                 icon: Expensicons.Keyboard,
@@ -65,15 +64,6 @@ function AboutPage(props) {
                 action: () => {
                     Link.openExternalLink(CONST.GITHUB_URL);
                 },
-            },
-            {
-                translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
-                icon: Expensicons.Eye,
-                iconRight: Expensicons.NewWindow,
-                action: () => {
-                    Link.openExternalLink(CONST.GITHUB_URL);
-                },
-                link: CONST.GITHUB_URL,
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
