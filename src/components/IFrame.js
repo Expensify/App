@@ -104,7 +104,19 @@ function OldDotIFrame({session}) {
         setOldDotURL(`https://expensify.com.dev/${getOldDotURL(window.location.href)}`);
 
         window.addEventListener('message', (event) => {
-            const url = event.data;
+            let data = {};
+            try {
+                data = JSON.parse(event.data);
+            } catch {
+                data = {};
+            }
+
+            if (data.iframeId !== 'OldDot' || data.type !== 'URL_CHANGED') {
+                return;
+            }
+
+            const {url} = data.payload ?? {};
+
             // TODO: use this value to navigate to a new path
             // eslint-disable-next-line no-unused-vars
             const newDotURL = getNewDotURL(url);
