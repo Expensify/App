@@ -9,7 +9,12 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 import variables from '../../src/styles/variables';
 
-jest.setTimeout(10000);
+/**
+ * Performance tests with Reassure can require big timeouts as all runs
+ * for a test have to be executed within this limit. (default runs=10)
+ * This also includes manual garbage collection between them.
+ */
+jest.setTimeout(60000);
 
 jest.mock('../../src/libs/Permissions');
 jest.mock('../../src/libs/Navigation/Navigation');

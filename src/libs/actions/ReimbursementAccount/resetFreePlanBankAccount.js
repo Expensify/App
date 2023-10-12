@@ -1,20 +1,20 @@
 import Onyx from 'react-native-onyx';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
-import * as store from './store';
 import * as API from '../../API';
 import * as PlaidDataProps from '../../../pages/ReimbursementAccount/plaidDataPropTypes';
 import * as ReimbursementAccountProps from '../../../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.
- * @param {number} bankAccountID
+ * @param {Number} bankAccountID
+ * @param {Object} session
  */
-function resetFreePlanBankAccount(bankAccountID) {
+function resetFreePlanBankAccount(bankAccountID, session) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
-    if (!store.getCredentials() || !store.getCredentials().login) {
+    if (!session.email) {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
 
@@ -22,7 +22,7 @@ function resetFreePlanBankAccount(bankAccountID) {
         'RestartBankAccountSetup',
         {
             bankAccountID,
-            ownerEmail: store.getCredentials().login,
+            ownerEmail: session.email,
         },
         {
             optimisticData: [
