@@ -1859,10 +1859,9 @@ function getRootReportAndWorkspaceName(report) {
 /**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
- * @param {Boolean} checkPolicyOwner
  * @returns {String}
  */
-function getChatRoomSubtitle(report, checkPolicyOwner = true) {
+function getChatRoomSubtitle(report) {
     if (isChatThread(report)) {
         return '';
     }
@@ -1873,7 +1872,7 @@ function getChatRoomSubtitle(report, checkPolicyOwner = true) {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
-    if ((isPolicyExpenseChat(report) && (!checkPolicyOwner || report.isOwnPolicyExpenseChat)) || isExpenseReport(report)) {
+    if ((isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
         return Localize.translateLocal('workspace.common.workspace');
     }
     if (isArchivedRoom(report)) {
