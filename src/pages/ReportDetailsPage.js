@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {View, ScrollView} from 'react-native';
 import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
 import compose from '../libs/compose';
