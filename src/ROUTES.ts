@@ -112,6 +112,8 @@ export default {
     SETTINGS_STATUS: 'settings/profile/status',
     SETTINGS_STATUS_SET: 'settings/profile/status/set',
 
+    KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
+
     NEW: 'new',
     NEW_CHAT: 'new/chat',
     NEW_ROOM: 'new/room',
@@ -168,6 +170,14 @@ export default {
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}`,
+    },
+    EDIT_SPLIT_BILL: {
+        route: `r/:reportID/split/:reportActionID/edit/:field`,
+        getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${reportID}/split/${reportActionID}/edit/${field}`,
+    },
+    EDIT_SPLIT_BILL_CURRENCY: {
+        route: 'r/:reportID/split/:reportActionID/edit/currency',
+        getRoute: (reportID: string, reportActionID: string, currency: string, backTo: string) => `r/${reportID}/split/${reportActionID}/edit/currency?currency=${currency}&backTo=${backTo}`,
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
@@ -293,6 +303,10 @@ export default {
     WORKSPACE_SETTINGS: {
         route: 'workspace/:policyID/settings',
         getRoute: (policyID: string) => `workspace/${policyID}/settings`,
+    },
+    WORKSPACE_SETTINGS_CURRENCY: {
+        route: 'workspace/:policyID/settings/currency',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/currency`,
     },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
