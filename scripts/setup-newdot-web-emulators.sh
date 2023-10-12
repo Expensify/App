@@ -61,7 +61,7 @@ setup_android_path_1()
   sleep 2
   adb remount
   adb push /etc/hosts /system/etc/hosts
-  # kill_all_emulators_android
+  kill_all_emulators_android
 }
 
 setup_android_path_2()
@@ -80,7 +80,7 @@ setup_android_path_2()
   sleep 2
   adb remount
   adb push /etc/hosts /system/etc/hosts
-  # kill_all_emulators_android
+  kill_all_emulators_android
 }
 
 setup_android()
