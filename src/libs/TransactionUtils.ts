@@ -3,6 +3,7 @@ import {format, parseISO, isValid} from 'date-fns';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
+import {isExpensifyCard} from './CardUtils';
 import * as NumberUtils from './NumberUtils';
 import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
 import {Receipt, Comment, WaypointCollection} from '../types/onyx/Transaction';
@@ -224,6 +225,13 @@ function getMerchant(transaction: Transaction): string {
 }
 
 /**
+ * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
+ */
+function getMCCGroup(transaction: Transaction): string {
+    return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup ?? '';
+}
+
+/**
  * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
  */
 function getWaypoints(transaction: Transaction): WaypointCollection | undefined {
@@ -270,6 +278,27 @@ function isDistanceRequest(transaction: Transaction): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
+function isExpensifyCardTransaction(transaction: Transaction): boolean {
+    if (!transaction.cardID) {
+        return false;
+    }
+    return isExpensifyCard(transaction.cardID);
+}
+
+function isPending(transaction: Transaction): boolean {
+    if (!transaction.status) {
+        return false;
+    }
+    return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
+}
+
+function isPosted(transaction: Transaction): boolean {
+    if (!transaction.status) {
+        return false;
+    }
+    return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
+}
+
 function isReceiptBeingScanned(transaction: Transaction): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction.receipt.state);
 }
@@ -286,6 +315,13 @@ function hasMissingSmartscanFields(transaction: Transaction): boolean {
  */
 function hasRoute(transaction: Transaction): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
+}
+
+/**
+ * Check if the transaction has an Ereceipt
+ */
+function hasEreceipt(transaction: Transaction): boolean {
+    return !!transaction?.hasEReceipt;
 }
 
 /**
@@ -360,6 +396,15 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
     }, {});
 }
 
+/**
+ * Returns the most recent transactions in an object
+ */
+function getRecentTransactions(transactions: Record<string, string>, size = 2): string[] {
+    return Object.keys(transactions)
+        .sort((transactionID1, transactionID2) => (new Date(transactions[transactionID1]) < new Date(transactions[transactionID2]) ? 1 : -1))
+        .slice(0, size);
+}
+
 export {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -368,6 +413,7 @@ export {
     getAmount,
     getCurrency,
     getMerchant,
+    getMCCGroup,
     getCreated,
     getCategory,
     getBillable,
@@ -375,12 +421,17 @@ export {
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
+    hasEreceipt,
     hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
+    isExpensifyCardTransaction,
+    isPending,
+    isPosted,
     getWaypoints,
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
+    getRecentTransactions,
 };

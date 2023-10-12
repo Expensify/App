@@ -27,6 +27,7 @@ import * as Session from './libs/actions/Session';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {PlaybackContextProvider} from './components/PlaybackContext';
+import {SidebarNavigationContextProvider} from './pages/home/sidebar/SidebarNavigationContext';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -66,6 +67,7 @@ function App() {
                     ThemeProvider,
                     ThemeStylesProvider,
                     PlaybackContextProvider,
+                    SidebarNavigationContextProvider,
                 ]}
             >
                 <CustomStatusBar />

@@ -32,6 +32,9 @@ type Message = {
     isEdited: boolean;
 
     isDeletedParentAction: boolean;
+
+    /** Whether the pending transaction was reversed and didn't post to the card */
+    isReversedTransaction?: boolean;
     whisperedTo: number[];
     reactions: Reaction[];
 };

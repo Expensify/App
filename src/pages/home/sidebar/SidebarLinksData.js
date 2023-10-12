@@ -60,7 +60,7 @@ const defaultProps = {
     isLoadingReportData: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
-    policies: [],
+    policies: {},
 };
 
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode}) {
@@ -105,13 +105,13 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         >
             <SidebarLinks
                 // Forwarded props:
-                onLinkClick={onLinkClick}
                 insets={insets}
                 priorityMode={priorityMode}
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
                 optionListItems={optionListItemsWithCurrentReport}
+                onLinkClick={onLinkClick}
             />
         </View>
     );

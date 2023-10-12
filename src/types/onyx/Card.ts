@@ -18,6 +18,7 @@ type Card = {
     cardholderFirstName: string;
     cardholderLastName: string;
     errors?: OnyxCommon.Errors;
+    isLoading?: boolean;
 };
 
 export default Card;

@@ -131,6 +131,7 @@ import Linkedin from '../../../assets/images/social-linkedin.svg';
 import Instagram from '../../../assets/images/social-instagram.svg';
 import AddReaction from '../../../assets/images/add-reaction.svg';
 import Task from '../../../assets/images/task.svg';
+import EReceiptIcon from '../../../assets/images/eReceiptIcon.svg';
 
 export {
     ActiveRoomAvatar,
@@ -175,6 +176,7 @@ export {
     Download,
     DragAndDrop,
     DragHandles,
+    EReceiptIcon,
     Emoji,
     EmptyStateRoutePending,
     Exclamation,
