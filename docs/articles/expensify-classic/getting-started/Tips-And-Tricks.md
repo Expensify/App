@@ -58,7 +58,7 @@ If you’d like to use features that rely on your current location, you will nee
 ## Safari
 1. In the top menu bar, click Safari
 2. Then select Settings > Websites
-3. Click Location on the left hand side
+3. Click Location on the left-hand side
 4. If expensify.com or new.expensify.com have “Deny” set as their access, update it to “Ask” or “Allow”
 
 # Which browser works best with Expensify?
