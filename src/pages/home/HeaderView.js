@@ -23,11 +23,11 @@ import participantPropTypes from '../../components/participantPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import * as HeaderUtils from '../../libs/HeaderUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Link from '../../libs/actions/Link';
 import * as Report from '../../libs/actions/Report';
-import * as Session from '../../libs/actions/Session';
 import * as Task from '../../libs/actions/Task';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -88,6 +88,7 @@ function HeaderView(props) {
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
     const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -134,21 +135,7 @@ function HeaderView(props) {
         }
     }
 
-    if (!props.report.isPinned) {
-        threeDotMenuItems.push({
-            icon: Expensicons.Pin,
-            iconFill: themeColors.icon,
-            text: props.translate('common.pin'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
-        });
-    } else {
-        threeDotMenuItems.push({
-            icon: Expensicons.Pin,
-            iconFill: themeColors.icon,
-            text: props.translate('common.unPin'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
-        });
-    }
+    threeDotMenuItems.push(HeaderUtils.getPinMenuItem(props.report));
 
     if (isConcierge && props.guideCalendarLink) {
         threeDotMenuItems.push({
@@ -159,7 +146,7 @@ function HeaderView(props) {
                 Link.openExternalLink(props.guideCalendarLink);
             },
         });
-    } else if (!isAutomatedExpensifyAccount && !isTaskReport) {
+    } else if (!isAutomatedExpensifyAccount && !isTaskReport && !isArchivedRoom) {
         threeDotMenuItems.push({
             icon: ZoomIcon,
             iconFill: themeColors.icon,

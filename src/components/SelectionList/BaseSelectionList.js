@@ -52,7 +52,7 @@ function BaseSelectionList({
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
     showConfirmButton = false,
-    shouldFocusOnSelectRow = false,
+    shouldPreventDefaultFocusOnSelectRow = false,
     isKeyboardShown = false,
     inputRef = null,
     disableKeyboardShortcuts = false,
@@ -211,14 +211,14 @@ function BaseSelectionList({
 
         onSelectRow(item);
 
-        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };
 
     const selectAllRow = () => {
         onSelectAll();
-        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };
@@ -299,6 +299,7 @@ function BaseSelectionList({
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
                 onDismissError={onDismissError}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             />
         );
     };
@@ -379,6 +380,7 @@ function BaseSelectionList({
                                     selectTextOnFocus
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
+                                    blurOnSubmit={Boolean(flattenedSections.allOptions.length)}
                                 />
                             </View>
                         )}
@@ -400,6 +402,7 @@ function BaseSelectionList({
                                         accessibilityState={{checked: flattenedSections.allSelected}}
                                         disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                                     >
                                         <Checkbox
                                             accessibilityLabel={translate('workspace.people.selectAll')}
