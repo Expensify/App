@@ -28,6 +28,7 @@ Next, to verify the bank account, you’ll enter some details about the business
 
 ## Enter company information
 This is where you’ll add the legal business name as well as several other company details. 
+
 ### Company address
 The company address must: 
 - Be located in the US
