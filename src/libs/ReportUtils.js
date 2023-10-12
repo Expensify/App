@@ -1356,12 +1356,13 @@ function getMoneyRequestReportName(report, policy = undefined) {
  * into a flat object. Used for displaying transactions and sending them in API commands
  *
  * @param {Object} transaction
+ * @param {Object} createdDateFormat
  * @returns {Object}
  */
-function getTransactionDetails(transaction) {
+function getTransactionDetails(transaction, createdDateFormat = CONST.DATE.FNS_FORMAT_STRING) {
     const report = getReport(transaction.reportID);
     return {
-        created: TransactionUtils.getCreated(transaction),
+        created: TransactionUtils.getCreated(transaction, createdDateFormat),
         amount: TransactionUtils.getAmount(transaction, isExpenseReport(report)),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
@@ -1370,6 +1371,8 @@ function getTransactionDetails(transaction) {
         category: TransactionUtils.getCategory(transaction),
         billable: TransactionUtils.getBillable(transaction),
         tag: TransactionUtils.getTag(transaction),
+        mccGroup: TransactionUtils.getMCCGroup(transaction),
+        cardID: TransactionUtils.getCardID(transaction),
     };
 }
 
@@ -2118,6 +2121,7 @@ function buildOptimisticIOUReport(payeeAccountID, payerAccountID, total, chatRep
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.PROCESSING,
+        statusNum: isSendingMoney ? CONST.REPORT.STATUS.REIMBURSED : CONST.REPORT.STATE_NUM.PROCESSING,
         total,
 
         // We don't translate reportName because the server response is always in English

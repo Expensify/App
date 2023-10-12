@@ -92,33 +92,6 @@ Onyx.connect({
 });
 
 /**
- * Get the option for a policy expense report.
- * @param {Object} report
- * @returns {Object}
- */
-function getPolicyExpenseReportOption(report) {
-    const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
-    const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
-    const reportName = ReportUtils.getReportName(expenseReport);
-    return {
-        ...expenseReport,
-        keyForList: expenseReport.policyID,
-        text: reportName,
-        alternateText: Localize.translateLocal('workspace.common.workspace'),
-        icons: [
-            {
-                source: policyExpenseChatAvatarSource,
-                name: reportName,
-                type: CONST.ICON_TYPE_WORKSPACE,
-            },
-        ],
-        selected: report.selected,
-        isPolicyExpenseChat: true,
-        searchText: report.searchText,
-    };
-}
-
-/**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
  *
  * @param {String} login
@@ -560,6 +533,28 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     result.subtitle = subtitle;
 
     return result;
+}
+
+/**
+ * Get the option for a policy expense report.
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getPolicyExpenseReportOption(report) {
+    const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+
+    const option = createOption(
+        expenseReport.participantAccountIDs,
+        allPersonalDetails,
+        expenseReport,
+        {},
+        {
+            showChatPreviewLine: false,
+            forcePolicyNamePreview: false,
+        },
+    );
+    option.selected = report.selected;
+    return option;
 }
 
 /**

@@ -141,6 +141,7 @@ const CONST = {
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
         MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
+        MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
@@ -304,7 +305,7 @@ const CONST = {
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
-        SHORTCUT_MODAL: {
+        SHORTCUTS: {
             descriptionKey: 'openShortcutDialog',
             shortcutKey: 'J',
             modifiers: ['CTRL'],
@@ -1473,6 +1474,15 @@ const CONST = {
         READ: 'read',
         WRITE: 'write',
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
+    },
+
+    ERECEIPT_COLORS: {
+        YELLOW: 'Yellow',
+        ICE: 'Ice',
+        BLUE: 'Blue',
+        GREEN: 'Green',
+        TANGERINE: 'Tangerine',
+        PINK: 'Pink',
     },
 
     MAP_PADDING: 50,
