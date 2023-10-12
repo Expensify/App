@@ -110,6 +110,7 @@ function VerifyStep({account, session}) {
                             text={translate('twoFactorAuth.copy')}
                             textChecked={translate('common.copied')}
                             icon={Expensicons.Copy}
+                            iconName="Copy"
                             inline={false}
                             onPress={() => Clipboard.setString(account.twoFactorAuthSecretKey)}
                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}

@@ -635,6 +635,7 @@ function MoneyRequestConfirmationList(props) {
                         text={translate('common.showMore')}
                         shouldShowRightIcon
                         iconRight={Expensicons.DownArrow}
+                        iconRightName="Down"
                         iconFill={themeColors.icon}
                         style={styles.mh0}
                     />

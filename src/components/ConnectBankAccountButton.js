@@ -40,6 +40,7 @@ function ConnectBankAccountButton(props) {
             text={props.translate('workspace.common.connectBankAccount')}
             onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID, activeRoute)}
             icon={Expensicons.Bank}
+            iconName="Bank"
             style={props.style}
             iconStyles={[styles.buttonCTAIcon]}
             shouldShowRightIcon

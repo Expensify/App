@@ -77,6 +77,7 @@ function TransferBalancePage(props) {
                 minAmount: CurrencyUtils.convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
             }),
             icon: Expensicons.Bolt,
+            iconName: 'Bolt',
             type: CONST.PAYMENT_METHODS.DEBIT_CARD,
         },
         {
@@ -84,6 +85,7 @@ function TransferBalancePage(props) {
             title: props.translate('transferAmountPage.ach'),
             description: props.translate('transferAmountPage.achSummary'),
             icon: Expensicons.Bank,
+            iconName: 'Bank',
             type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
         },
     ];
@@ -201,6 +203,7 @@ function TransferBalancePage(props) {
                                 iconWidth={variables.iconSizeXLarge}
                                 iconHeight={variables.iconSizeXLarge}
                                 icon={paymentType.icon}
+                                iconName={paymentType.iconName}
                                 success={selectedPaymentType === paymentType.key}
                                 wrapperStyle={{
                                     ...styles.mt3,

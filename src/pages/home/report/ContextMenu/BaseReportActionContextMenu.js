@@ -159,8 +159,10 @@ function BaseReportActionContextMenu(props) {
                                 menuItemRefs.current[index] = ref;
                             }}
                             icon={contextAction.icon}
+                            iconName={contextAction.iconName}
                             text={props.translate(contextAction.textTranslateKey, {action: reportAction})}
                             successIcon={contextAction.successIcon}
+                            successIconName={contextAction.successIconName}
                             successText={contextAction.successTextTranslateKey ? props.translate(contextAction.successTextTranslateKey) : undefined}
                             isMini={props.isMini}
                             key={contextAction.textTranslateKey}

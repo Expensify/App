@@ -98,12 +98,14 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         if (!TransactionUtils.hasReceipt(transaction)) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Receipt,
+                iconName: 'Receipt',
                 text: translate('receipt.addReceipt'),
                 onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
             });
         }
         threeDotsMenuItems.push({
             icon: Expensicons.Trashcan,
+            iconName: 'Trashcan',
             text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
             onSelected: () => setIsDeleteModalVisible(true),
         });

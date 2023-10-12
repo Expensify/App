@@ -63,6 +63,7 @@ function EmojiPickerButtonDropdown(props) {
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
                                 src={Expensicons.ArrowRight}
+                                name="ArrowRight"
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                             />
                         </View>

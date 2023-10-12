@@ -64,6 +64,7 @@ function FullPageNotFoundView({children, shouldShow, titleKey, subtitleKey, link
                 <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
+                        iconName="ToddBehindCloud"
                         displayInDefaultIconColor={true}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}

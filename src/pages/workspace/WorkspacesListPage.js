@@ -76,14 +76,17 @@ const defaultProps = {
 const workspaceFeatures = [
     {
         icon: Illustrations.MoneyReceipts,
+        iconName: 'SimpleIllustrationMoneyReceipts',
         translationKey: 'workspace.emptyWorkspace.features.trackAndCollect',
     },
     {
         icon: Illustrations.CreditCardsNew,
+        iconName: 'SimpleIllustrationCreditCards',
         translationKey: 'workspace.emptyWorkspace.features.companyCards',
     },
     {
         icon: Illustrations.MoneyWings,
+        iconName: 'SimpleIllustrationMoneywings',
         translationKey: 'workspace.emptyWorkspace.features.reimbursements',
     },
 ];
@@ -142,6 +145,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                 <MenuItem
                     title={keyTitle}
                     icon={item.icon}
+                    iconName={item.iconName}
                     iconType={CONST.ICON_TYPE_WORKSPACE}
                     onPress={item.action}
                     iconStyles={item.iconStyles}

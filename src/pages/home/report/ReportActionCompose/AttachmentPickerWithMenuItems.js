@@ -128,14 +128,17 @@ function AttachmentPickerWithMenuItems({
         const options = {
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
+                iconName: 'Receipt',
                 text: translate('iou.splitBill'),
             },
             [CONST.IOU.TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
+                iconName: 'MoneyCircle',
                 text: translate('iou.requestMoney'),
             },
             [CONST.IOU.TYPE.SEND]: {
                 icon: Expensicons.Send,
+                iconName: 'Send',
                 text: translate('iou.sendMoney'),
             },
         };
@@ -158,6 +161,7 @@ function AttachmentPickerWithMenuItems({
         return [
             {
                 icon: Expensicons.Task,
+                iconName: 'Task',
                 text: translate('newTaskPage.assignTask'),
                 onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID),
             },
@@ -184,6 +188,7 @@ function AttachmentPickerWithMenuItems({
                     ...taskOption,
                     {
                         icon: Expensicons.Paperclip,
+                        iconName: 'Paperclip',
                         text: translate('reportActionCompose.addAttachment'),
                         onSelected: () => {
                             if (Browser.isSafari()) {

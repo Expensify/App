@@ -248,6 +248,7 @@ function ProfilePage(props) {
                                 title={`${props.translate('common.message')}${displayName}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.ChatBubble}
+                                iconName="Chatbubble"
                                 onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
@@ -271,6 +272,7 @@ function ProfilePage(props) {
                 {shouldShowBlockingView && (
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
+                        iconName="ToddBehindCloud"
                         displayInDefaultIconColor={true}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}

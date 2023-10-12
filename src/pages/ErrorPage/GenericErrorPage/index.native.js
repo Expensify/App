@@ -34,6 +34,7 @@ function GenericErrorPage({translate}) {
                             <View style={styles.mb5}>
                                 <Icon
                                     src={Expensicons.Bug}
+                                    name="Bug"
                                     height={variables.componentSizeNormal}
                                     width={variables.componentSizeNormal}
                                     fill={defaultTheme.iconSuccessFill}

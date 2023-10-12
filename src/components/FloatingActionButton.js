@@ -104,6 +104,7 @@ class FloatingActionButton extends PureComponent {
                             width={variables.iconSizeSmall}
                             height={variables.iconSizeSmall}
                             src={Expensicons.Plus}
+                            name="Plus"
                             fill={fill}
                         />
                     </AnimatedPressable>

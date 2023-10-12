@@ -24,13 +24,16 @@ function WorkspaceInvoicesFirstSection(props) {
         <Section
             title={props.translate('workspace.invoices.invoiceClientsAndCustomers')}
             icon={Illustrations.InvoiceBlue}
+            iconName="SimpleIllustrationInvoice"
             menuItems={[
                 {
                     title: props.translate('workspace.invoices.sendInvoice'),
                     onPress: () => Link.openOldDotLink(sendInvoiceUrl),
                     icon: Expensicons.Send,
+                    iconName: 'Send',
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
+                    iconRightName: 'NewWindow',
                     wrapperStyle: [styles.cardMenuItem],
                     link: () => Link.buildOldDotURL(sendInvoiceUrl),
                 },
@@ -38,8 +41,10 @@ function WorkspaceInvoicesFirstSection(props) {
                     title: props.translate('workspace.invoices.viewAllInvoices'),
                     onPress: () => Link.openOldDotLink(viewAllInvoicesUrl),
                     icon: Expensicons.Invoice,
+                    iconName: 'Invoice',
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
+                    iconRightName: 'NewWindow',
                     wrapperStyle: [styles.cardMenuItem],
                     link: () => Link.buildOldDotURL(viewAllInvoicesUrl),
                 },

@@ -171,6 +171,7 @@ function WorkspaceInitialPage(props) {
         {
             translationKey: 'workspace.common.bankAccount',
             icon: Expensicons.Bank,
+            iconName: 'Bank',
             action: () =>
                 policy.outputCurrency === CONST.CURRENCY.USD
                     ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, ''))))()
@@ -182,16 +183,19 @@ function WorkspaceInitialPage(props) {
     const threeDotsMenuItems = [
         {
             icon: Expensicons.Trashcan,
+            iconName: 'Trashcan',
             text: props.translate('workspace.common.delete'),
             onSelected: () => setIsDeleteModalOpen(true),
         },
         {
             icon: Expensicons.Hashtag,
+            iconName: 'Hashtag',
             text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
             onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
         },
         {
             icon: Expensicons.Hashtag,
+            iconName: 'Hashtag',
             text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
             onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
         },
@@ -280,6 +284,7 @@ function WorkspaceInitialPage(props) {
                                         interactive={!hasPolicyCreationError}
                                         title={props.translate(item.translationKey)}
                                         icon={item.icon}
+                                        iconName={item.iconName}
                                         iconRight={item.iconRight}
                                         onPress={item.action}
                                         shouldShowRightIcon

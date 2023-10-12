@@ -21,6 +21,7 @@ function WorkspaceTravelNoVBAView(props) {
             <Section
                 title={props.translate('workspace.travel.unlockConciergeBookingTravel')}
                 icon={Illustrations.Luggage}
+                iconName="SimpleIllustrationLuggage"
             >
                 <View style={[styles.mv3]}>
                     <Text>{props.translate('workspace.travel.noVBACopy')}</Text>

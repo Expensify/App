@@ -16,6 +16,9 @@ const propTypes = {
     /** Expensicon for the page */
     icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]).isRequired,
 
+    /** Icon name required to create the icon test ID  */
+    iconName: PropTypes.string,
+
     /** Color for the icon (should be from theme) */
     iconColor: PropTypes.string,
 
@@ -48,6 +51,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    iconName: '',
     iconColor: themeColors.offline,
     subtitle: '',
     shouldShowLink: false,
@@ -84,6 +88,7 @@ function BlockingView(props) {
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
             <Icon
                 src={props.icon}
+                name={props.iconName}
                 fill={props.iconColor}
                 width={props.iconWidth}
                 height={props.iconHeight}

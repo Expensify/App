@@ -100,6 +100,7 @@ function LongTermsForm() {
                 <Icon
                     style={styles.flex1}
                     src={Expensicons.Printer}
+                    name="Printer"
                 />
                 <TextLink
                     style={styles.ml1}

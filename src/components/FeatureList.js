@@ -32,11 +32,12 @@ function FeatureList({menuItems, headline, description}) {
                 </Text>
                 <Text style={styles.baseFontStyle}>{translate(description)}</Text>
             </View>
-            {_.map(menuItems, ({translationKey, icon}) => (
+            {_.map(menuItems, ({translationKey, icon, iconName}) => (
                 <MenuItem
                     key={translationKey}
                     title={translate(translationKey)}
                     icon={icon}
+                    iconName={iconName}
                     iconWidth={60}
                     iconHeight={60}
                     iconStyles={[styles.mr3, styles.ml3]}

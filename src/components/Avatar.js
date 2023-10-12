@@ -43,6 +43,9 @@ const propTypes = {
      */
     fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string, imagePropTypes.source]),
 
+     /** Fallback icon name required to create the icon test ID  */
+    fallbackIconName: PropTypes.string,
+
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
 
@@ -58,6 +61,7 @@ const defaultProps = {
     size: CONST.AVATAR_SIZE.DEFAULT,
     fill: themeColors.icon,
     fallbackIcon: Expensicons.FallbackAvatar,
+    fallbackIconName: 'FallbackAvatar',
     type: CONST.ICON_TYPE_AVATAR,
     name: '',
 };

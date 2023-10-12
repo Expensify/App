@@ -55,15 +55,19 @@ function DistanceRequestRenderItem({waypoints, item, onSecondaryInteraction, get
     const index = getIndex();
     let descriptionKey = 'distance.waypointDescription.';
     let waypointIcon;
+    let waypointIconName;
     if (index === 0) {
         descriptionKey += 'start';
         waypointIcon = Expensicons.DotIndicatorUnfilled;
+        waypointIconName = 'DotIndicatorUnfilled';
     } else if (index === lastWaypointIndex) {
         descriptionKey += 'finish';
         waypointIcon = Expensicons.Location;
+        waypointIconName = 'Location';
     } else {
         descriptionKey += 'stop';
         waypointIcon = Expensicons.DotIndicator;
+        waypointIconName = 'DotIndicator';
     }
 
     const waypoint = lodashGet(waypoints, [`waypoint${index}`], {});
@@ -76,6 +80,7 @@ function DistanceRequestRenderItem({waypoints, item, onSecondaryInteraction, get
             icon={Expensicons.DragHandles}
             iconFill={theme.icon}
             secondaryIcon={waypointIcon}
+            secondaryIconName={waypointIconName}
             secondaryIconFill={theme.icon}
             shouldShowRightIcon
             onPress={() => onPress(index)}

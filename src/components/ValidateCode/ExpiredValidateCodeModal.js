@@ -23,6 +23,7 @@ function ExpiredValidateCodeModal(props) {
                         width={variables.modalTopIconWidth}
                         height={variables.modalTopIconHeight}
                         src={Illustrations.ToddBehindCloud}
+                        name="ToddBehindCloud"
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{props.translate('validateCodeModal.expiredCodeTitle')}</Text>

@@ -53,6 +53,9 @@ const propTypes = {
     /** Icon to display at right side of title */
     titleIcon: PropTypes.func,
 
+    /** Title icon name required to create the icon test ID  */
+    titleIconName: PropTypes.string,
+
     /** Boolean whether to display the right icon */
     shouldShowRightIcon: PropTypes.bool,
 
@@ -74,6 +77,7 @@ const propTypes = {
     /** Overrides the icon for shouldShowRightIcon */
     iconRight: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]),
 
+     /** Right icon name required to create the icon test ID  */
     iconRightName: PropTypes.string,
 
     /** A description text to show under the title */

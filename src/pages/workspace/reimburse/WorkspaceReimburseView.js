@@ -106,13 +106,16 @@ function WorkspaceReimburseView(props) {
             <Section
                 title={translate('workspace.reimburse.captureReceipts')}
                 icon={Illustrations.MoneyReceipts}
+                iconName="SimpleIllustrationMoneyReceipts"
                 menuItems={[
                     {
                         title: translate('workspace.reimburse.viewAllReceipts'),
                         onPress: () => Link.openOldDotLink(viewAllReceiptsUrl),
                         icon: Expensicons.Receipt,
+                        iconName: 'Receipt',
                         shouldShowRightIcon: true,
                         iconRight: Expensicons.NewWindow,
+                        iconRightName: 'NewWindow',
                         wrapperStyle: [styles.cardMenuItem],
                         link: () => Link.buildOldDotURL(viewAllReceiptsUrl),
                     },
@@ -133,6 +136,7 @@ function WorkspaceReimburseView(props) {
             <Section
                 title={translate('workspace.reimburse.trackDistance')}
                 icon={Illustrations.TrackShoe}
+                iconName="SimpleIllustrationTrackShoe"
             >
                 <View style={[styles.mv3]}>
                     <Text>{translate('workspace.reimburse.trackDistanceCopy')}</Text>

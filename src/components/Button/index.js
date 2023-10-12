@@ -31,8 +31,13 @@ const propTypes = {
     /** The icon asset to display to the left of the text */
     icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
 
+    /** Icon name required to create the icon test ID  */
+    iconName: PropTypes.string,
+
     /** The icon asset to display to the right of the text */
     iconRight: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
+
+    iconRightName: PropTypes.string,
 
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
@@ -131,7 +136,9 @@ const defaultProps = {
     text: '',
     shouldShowRightIcon: false,
     icon: null,
+    iconName: '',
     iconRight: Expensicons.ArrowRight,
+    iconRightName: 'ArrowRight',
     iconFill: themeColors.textLight,
     iconStyles: [],
     iconRightStyles: [],
@@ -237,6 +244,7 @@ class Button extends Component {
                             <View style={[styles.mr1, ...this.props.iconStyles]}>
                                 <Icon
                                     src={this.props.icon}
+                                    name={this.props.iconName}
                                     fill={this.props.iconFill}
                                     small={this.props.small}
                                 />
@@ -248,6 +256,7 @@ class Button extends Component {
                         <View style={[styles.justifyContentCenter, styles.ml1, ...this.props.iconRightStyles]}>
                             <Icon
                                 src={this.props.iconRight}
+                                name={this.props.iconRightName}
                                 fill={this.props.iconFill}
                                 small={this.props.small}
                             />

@@ -37,11 +37,13 @@ function Template(args) {
                         {
                             text: 'Bank account',
                             icon: Expensicons.Bank,
+                            iconName: 'Bank',
                             onSelected: toggleVisibility,
                         },
                         {
                             text: 'Debit card',
                             icon: Expensicons.CreditCard,
+                            iconName: 'CreditCard',
                             onSelected: toggleVisibility,
                         },
                     ]}
@@ -64,6 +66,7 @@ Default.args = {
     menuItem: {
         title: 'Add payment Methods',
         icon: Expensicons.Plus,
+        iconName: 'Plus',
     },
 };
 

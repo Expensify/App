@@ -49,7 +49,7 @@ const defaultProps = {
 function EnableStep(props) {
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
-    const {icon, iconSize} = getBankIcon(achData.bankName);
+    const {icon, iconName, iconSize} = getBankIcon(achData.bankName);
     const formattedBankAccountNumber = achData.accountNumber ? `${props.translate('paymentMethodList.accountLastFour')} ${achData.accountNumber.slice(-4)}` : '';
     const bankName = achData.addressName;
 
@@ -72,6 +72,7 @@ function EnableStep(props) {
                 <Section
                     title={!isUsingExpensifyCard ? props.translate('workspace.bankAccount.oneMoreThing') : props.translate('workspace.bankAccount.allSet')}
                     icon={!isUsingExpensifyCard ? Illustrations.ConciergeNew : Illustrations.ThumbsUpStars}
+                    iconName={!isUsingExpensifyCard ? 'SimpleIllustrationConcierge' : 'SimpleIllustrationThumbsupstars'}
                 >
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
@@ -83,6 +84,7 @@ function EnableStep(props) {
                             title={bankName}
                             description={formattedBankAccountNumber}
                             icon={icon}
+                            iconName={iconName}
                             iconWidth={iconSize}
                             iconHeight={iconSize}
                             interactive={false}

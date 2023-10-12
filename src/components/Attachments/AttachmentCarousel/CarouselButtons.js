@@ -51,6 +51,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             small
                             innerStyles={[styles.arrowIcon]}
                             icon={Expensicons.BackArrow}
+                            iconName="BackLeft"
                             iconFill={themeColors.text}
                             iconStyles={[styles.mr0]}
                             onPress={onBack}
@@ -67,6 +68,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             small
                             innerStyles={[styles.arrowIcon]}
                             icon={Expensicons.ArrowRight}
+                            iconName="ArrowRight"
                             iconFill={themeColors.text}
                             iconStyles={[styles.mr0]}
                             onPress={onForward}

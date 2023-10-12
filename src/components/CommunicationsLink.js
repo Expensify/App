@@ -32,8 +32,10 @@ function CommunicationsLink(props) {
                 <View style={styles.flexShrink1}>{props.children}</View>
                 <ContextMenuItem
                     icon={Expensicons.Copy}
+                    iconName="Copy"
                     text={props.translate('reportActionContextMenu.copyToClipboard')}
                     successIcon={Expensicons.Checkmark}
+                    successIconName="Checkmark"
                     successText={props.translate('reportActionContextMenu.copied')}
                     isMini
                     onPress={() => Clipboard.setString(props.value)}

@@ -313,6 +313,7 @@ function PaymentMethodList({
                     title={item.title}
                     description={item.description}
                     icon={item.icon}
+                    iconName={item.iconName}
                     disabled={item.disabled}
                     iconFill={item.iconFill}
                     iconHeight={item.iconHeight || item.iconSize}

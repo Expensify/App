@@ -335,6 +335,7 @@ class AvatarWithImagePicker extends React.Component {
 
                                         menuItems.push({
                                             icon: Expensicons.Eye,
+                                            iconName: 'Eye',
                                             text: this.props.translate('avatarWithImagePicker.viewPhoto'),
                                             onSelected: () => show(),
                                         });

@@ -41,6 +41,7 @@ function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session
                         width={200}
                         height={164}
                         src={Illustrations.RocketBlue}
+                        name="RocketBlue"
                         displayInDefaultIconColor={true}
                     />
                 </View>
@@ -59,6 +60,7 @@ function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session
                     height={34}
                     fill={themeColors.success}
                     src={Expensicons.ExpensifyWordmark}
+                    name="ExpensifyWordmark"
                 />
             </View>
         </View>

@@ -193,16 +193,19 @@ function FloatingActionButtonAndPopover(props) {
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,
+                        iconName: 'Chatbubble',
                         text: props.translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
                     {
                         icon: Expensicons.MoneyCircle,
+                        iconName: 'MoneyCircle',
                         text: props.translate('iou.requestMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST)),
                     },
                     {
                         icon: Expensicons.Send,
+                        iconName: 'Send',
                         text: props.translate('iou.sendMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                     },
@@ -210,6 +213,7 @@ function FloatingActionButtonAndPopover(props) {
                         ? [
                               {
                                   icon: Expensicons.Task,
+                                  iconName: 'Task',
                                   text: props.translate('newTaskPage.assignTask'),
                                   onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
                               },
@@ -226,6 +230,7 @@ function FloatingActionButtonAndPopover(props) {
                                   displayInDefaultIconColor: true,
                                   contentFit: 'contain',
                                   icon: Expensicons.NewWorkspace,
+                                  iconName: 'NewWorkspace',
                                   iconWidth: 46,
                                   iconHeight: 40,
                                   text: props.translate('workspace.new.newWorkspace'),

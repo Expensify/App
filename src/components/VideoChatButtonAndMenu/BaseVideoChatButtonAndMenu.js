@@ -38,6 +38,7 @@ function BaseVideoChatButtonAndMenu(props) {
     const menuItemData = [
         {
             icon: ZoomIcon,
+            iconName: 'ZoomIcon',
             text: props.translate('videoChatButtonAndMenu.zoom'),
             onPress: () => {
                 setIsVideoChatMenuActive(false);
@@ -46,6 +47,7 @@ function BaseVideoChatButtonAndMenu(props) {
         },
         {
             icon: GoogleMeetIcon,
+            iconName: 'GoogleMeet',
             text: props.translate('videoChatButtonAndMenu.googleMeet'),
             onPress: () => {
                 setIsVideoChatMenuActive(false);
@@ -104,6 +106,7 @@ function BaseVideoChatButtonAndMenu(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         <Icon
+                            name="Phone"
                             src={Expensicons.Phone}
                             fill={isVideoChatMenuActive ? themeColors.heading : themeColors.icon}
                         />
@@ -122,11 +125,12 @@ function BaseVideoChatButtonAndMenu(props) {
                 anchorRef={videoChatButtonRef}
             >
                 <View style={props.isSmallScreenWidth ? {} : styles.pv3}>
-                    {_.map(menuItemData, ({icon, text, onPress}) => (
+                    {_.map(menuItemData, ({icon, iconName, text, onPress}) => (
                         <MenuItem
                             wrapperStyle={styles.mr3}
                             key={text}
                             icon={icon}
+                            iconName={iconName}
                             title={text}
                             onPress={onPress}
                         />

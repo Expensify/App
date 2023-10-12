@@ -195,6 +195,7 @@ function ReportSettingsPage(props) {
                         <MenuItem
                             title={translate('welcomeMessagePage.welcomeMessage')}
                             icon={Expensicons.ChatBubble}
+                            iconName="Chatbubble"
                             onPress={() => Navigation.navigate(ROUTES.REPORT_WELCOME_MESSAGE.getRoute(report.reportID))}
                             shouldShowRightIcon
                         />

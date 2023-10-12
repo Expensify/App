@@ -27,13 +27,16 @@ function WorkspaceBillsVBAView(props) {
             <Section
                 title={props.translate('workspace.bills.hassleFreeBills')}
                 icon={Illustrations.MoneyBadge}
+                iconName="SimpleIllustrationMoneybadge"
                 menuItems={[
                     {
                         title: props.translate('workspace.common.bills'),
                         onPress: () => Link.openOldDotLink(reportsUrl),
                         icon: Expensicons.Bill,
+                        iconName: 'Bill',
                         shouldShowRightIcon: true,
                         iconRight: Expensicons.NewWindow,
+                        iconRightName: 'NewWindow',
                         wrapperStyle: [styles.cardMenuItem],
                         link: () => Link.buildOldDotURL(reportsUrl),
                     },

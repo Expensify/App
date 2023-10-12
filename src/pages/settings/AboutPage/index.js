@@ -46,6 +46,7 @@ function AboutPage(props) {
         {
             translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
             icon: Expensicons.Link,
+            iconName: 'Link',
             action: () => {
                 Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
             },
@@ -53,12 +54,15 @@ function AboutPage(props) {
         {
             translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
             icon: Expensicons.Keyboard,
+            iconName: 'Keyboard',
             action: KeyboardShortcuts.showKeyboardShortcutModal,
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
             icon: Expensicons.Eye,
+            iconName: 'Eye',
             iconRight: Expensicons.NewWindow,
+            iconRightName: 'NewWindow',
             action: () => {
                 Link.openExternalLink(CONST.GITHUB_URL);
             },
@@ -67,7 +71,9 @@ function AboutPage(props) {
         {
             translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
             icon: Expensicons.MoneyBag,
+            iconName: 'MoneyBag',
             iconRight: Expensicons.NewWindow,
+            iconRightName: 'NewWindow',
             action: () => {
                 Link.openExternalLink(CONST.UPWORK_URL);
             },
@@ -76,6 +82,7 @@ function AboutPage(props) {
         {
             translationKey: 'initialSettingsPage.aboutPage.reportABug',
             icon: Expensicons.Bug,
+            iconName: 'Bug',
             action: Report.navigateToConciergeChat,
         },
     ];
@@ -113,7 +120,9 @@ function AboutPage(props) {
                                     key={item.translationKey}
                                     title={props.translate(item.translationKey)}
                                     icon={item.icon}
+                                    iconName={item.iconName}
                                     iconRight={item.iconRight}
+                                    iconRightName={item.iconRightName}
                                     onPress={() => item.action()}
                                     shouldBlockSelection={Boolean(item.link)}
                                     onSecondaryInteraction={

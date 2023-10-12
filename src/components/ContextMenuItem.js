@@ -60,7 +60,7 @@ const defaultProps = {
     innerRef: null,
 };
 
-function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
+function ContextMenuItem({onPress, successIcon, successIconName, successText, icon, iconName, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
@@ -81,6 +81,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
 
     const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
     const itemText = !isThrottledButtonActive && successText ? successText : text;
+    const itemIconName = !isThrottledButtonActive && successIconName ? successIconName : iconName;
 
     return isMini ? (
         <BaseMiniContextMenuItem
@@ -92,6 +93,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
                 <Icon
                     small
                     src={itemIcon}
+                    name={itemIconName}
                     fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
                 />
             )}
@@ -100,6 +102,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
         <MenuItem
             title={itemText}
             icon={itemIcon}
+            iconName={itemIconName}
             onPress={triggerPressAndUpdateSuccess}
             wrapperStyle={styles.pr9}
             success={!isThrottledButtonActive}

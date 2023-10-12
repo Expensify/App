@@ -102,7 +102,9 @@ class ShareCodePage extends React.Component {
                             text={this.props.translate('qrCodes.copyUrlToClipboard')}
                             shouldShowRightIcon
                             icon={Expensicons.Copy}
+                            iconName="Copy"
                             successIcon={Expensicons.Checkmark}
+                            successIconName="Checkmark"
                             successText={this.props.translate('qrCodes.copied')}
                             onPress={() => Clipboard.setString(url)}
                         />

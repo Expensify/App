@@ -15,14 +15,17 @@ import GrowlNotificationContainer from './GrowlNotificationContainer';
 const types = {
     [CONST.GROWL.SUCCESS]: {
         icon: Expensicons.Checkmark,
+        iconName: 'Checkmark',
         iconColor: themeColors.success,
     },
     [CONST.GROWL.ERROR]: {
         icon: Expensicons.Exclamation,
+        iconName: 'Exclamation',
         iconColor: themeColors.danger,
     },
     [CONST.GROWL.WARNING]: {
         icon: Expensicons.Exclamation,
+        iconName: 'Exclamation',
         iconColor: themeColors.warning,
     },
 };
@@ -110,6 +113,7 @@ function GrowlNotification(_, ref) {
                         <View style={styles.growlNotificationBox}>
                             <Icon
                                 src={types[type].icon}
+                                name={types[type].iconName}
                                 fill={types[type].iconColor}
                             />
                             <Text style={styles.growlNotificationText}>{bodyText}</Text>

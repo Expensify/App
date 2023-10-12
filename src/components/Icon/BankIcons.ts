@@ -146,7 +146,8 @@ export default function getBankIcon(bankName: string, isCard = false): BankIcon 
     };
 
     if (bankName) {
-        bankIcon.icon = getAssetIcon(bankName.toLowerCase(), isCard);
+        const icon = getAssetIcon(bankName.toLowerCase(), isCard);
+        bankIcon.icon = icon;
     }
 
     // For default Credit Card icon the icon size should not be set.

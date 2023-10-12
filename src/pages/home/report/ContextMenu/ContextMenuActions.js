@@ -119,8 +119,10 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
         icon: Expensicons.ChatBubble,
+        iconName: 'Chatbubble',
         successTextTranslateKey: '',
         successIcon: null,
+        successIconName: '',
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
             if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
@@ -226,8 +228,10 @@ export default [
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
+        iconName: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
+        successIconName: 'Checkmark',
         shouldShow: (type) => type === CONTEXT_MENU_TYPES.LINK,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(selection);
@@ -239,8 +243,10 @@ export default [
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
         icon: Expensicons.Copy,
+        iconName: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
+        successIconName: 'Checkmark',
         shouldShow: (type) => type === CONTEXT_MENU_TYPES.EMAIL,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(selection.replace('mailto:', ''));
@@ -252,8 +258,10 @@ export default [
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyToClipboard',
         icon: Expensicons.Copy,
+        iconName: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
+        successIconName: 'Checkmark',
         shouldShow: (type, reportAction) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION && !ReportActionsUtils.isReportActionAttachment(reportAction) && !ReportActionsUtils.isMessageDeleted(reportAction),
 
@@ -303,7 +311,9 @@ export default [
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
+        iconName: 'LinkCopy',
         successIcon: Expensicons.Checkmark,
+        successIconName: 'Checkmark',
         successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget) => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
@@ -326,7 +336,9 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
         icon: Expensicons.Mail,
+        iconName: 'Mail',
         successIcon: Expensicons.Checkmark,
+        successIconName: 'Checkmark',
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
         onPress: (closePopover, {reportAction, reportID}) => {
@@ -342,7 +354,9 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.markAsRead',
         icon: Expensicons.Mail,
+        iconName: 'Mail',
         successIcon: Expensicons.Checkmark,
+        successIconName: 'Checkmark',
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat) => type === CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
         onPress: (closePopover, {reportID}) => {
             Report.readNewestAction(reportID);
@@ -357,6 +371,7 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.editAction',
         icon: Expensicons.Pencil,
+        iconName: 'Pencil',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
@@ -391,6 +406,7 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.deleteAction',
         icon: Expensicons.Trashcan,
+        iconName: 'Trashcan',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
@@ -414,6 +430,7 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'common.pin',
         icon: Expensicons.Pin,
+        iconName: 'Pin',
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
             type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat && !ReportUtils.isMoneyRequestReport(reportID),
         onPress: (closePopover, {reportID}) => {
@@ -428,6 +445,7 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'common.unPin',
         icon: Expensicons.Pin,
+        iconName: 'Pin',
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
             type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat && !ReportUtils.isMoneyRequestReport(reportID),
         onPress: (closePopover, {reportID}) => {
@@ -442,6 +460,7 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.flagAsOffensive',
         icon: Expensicons.Flag,
+        iconName: 'Flag',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
             ReportUtils.canFlagReportAction(reportAction, reportID) &&

@@ -299,6 +299,7 @@ class ContactMethodDetailsPage extends Component {
                             <MenuItem
                                 title={this.props.translate('contacts.setAsDefault')}
                                 icon={Expensicons.Profile}
+                                iconName="Profile"
                                 onPress={this.setAsDefault}
                             />
                         </OfflineWithFeedback>
@@ -322,6 +323,7 @@ class ContactMethodDetailsPage extends Component {
                             <MenuItem
                                 title={this.props.translate('common.remove')}
                                 icon={Expensicons.Trashcan}
+                                iconName="Trashcan"
                                 iconFill={themeColors.danger}
                                 onPress={() => this.toggleDeleteModal(true)}
                             />

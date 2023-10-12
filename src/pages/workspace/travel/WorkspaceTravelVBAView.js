@@ -19,13 +19,16 @@ function WorkspaceTravelVBAView(props) {
         <Section
             title={props.translate('workspace.travel.packYourBags')}
             icon={Illustrations.Luggage}
+            iconName="SimpleIllustrationLuggage"
             menuItems={[
                 {
                     title: props.translate('workspace.common.issueAndManageCards'),
                     onPress: () => Link.openOldDotLink('domain_companycards'),
                     icon: Expensicons.ExpensifyCard,
+                    iconName: 'Expensifycard',
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
+                    iconRightName: 'NewWindow',
                     wrapperStyle: [styles.cardMenuItem],
                     link: () => Link.buildOldDotURL('domain_companycards'),
                 },
@@ -35,6 +38,7 @@ function WorkspaceTravelVBAView(props) {
                         Report.navigateToConciergeChat();
                     },
                     icon: Expensicons.Concierge,
+                    iconName: 'Concierge',
                     shouldShowRightIcon: true,
                     wrapperStyle: [styles.cardMenuItem],
                 },
@@ -42,8 +46,10 @@ function WorkspaceTravelVBAView(props) {
                     title: props.translate('requestorStep.learnMore'),
                     onPress: () => Link.openExternalLink(CONST.CONCIERGE_TRAVEL_URL),
                     icon: Expensicons.Info,
+                    iconName: 'Info',
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
+                    iconRightName: 'NewWindow',
                     wrapperStyle: [styles.cardMenuItem],
                     link: CONST.CONCIERGE_TRAVEL_URL,
                 },

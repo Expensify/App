@@ -118,6 +118,7 @@ function TaskView(props) {
                                                 <Icon
                                                     additionalStyles={[styles.alignItemsCenter]}
                                                     src={Expensicons.ArrowRight}
+                                                    name="ArrowRight"
                                                     fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
                                                 />
                                             </View>

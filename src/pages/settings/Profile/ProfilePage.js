@@ -150,6 +150,7 @@ function ProfilePage(props) {
                 <MenuItem
                     title={props.translate('privatePersonalDetails.personalDetails')}
                     icon={Expensicons.User}
+                    iconName="User"
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                     shouldShowRightIcon
                 />
@@ -157,6 +158,7 @@ function ProfilePage(props) {
                     <MenuItem
                         title={props.translate('loungeAccessPage.loungeAccess')}
                         icon={Expensicons.LoungeAccess}
+                        iconName="LoungeAccess"
                         iconWidth={40}
                         iconHeight={40}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_LOUNGE_ACCESS)}

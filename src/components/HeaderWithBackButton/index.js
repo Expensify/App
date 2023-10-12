@@ -141,7 +141,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.QuestionMark}
-                                    name="QuestionMark"
+                                    name="QuestionMarkCircle"
                                     fill={iconFill}
                                 />
                             </PressableWithoutFeedback>

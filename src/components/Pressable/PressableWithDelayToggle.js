@@ -47,8 +47,14 @@ const propTypes = {
     /** The icon to display */
     icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
 
+    /** Icon name required to create the icon test ID  */
+    iconName: PropTypes.string,
+
     /** The icon to display once the pressable is pressed */
     iconChecked: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
+
+    /** Checked icon name required to create the icon test ID  */
+    iconCheckedName: PropTypes.string,
 
     /**
      * Should be set to `true` if this component is being rendered inline in
@@ -67,6 +73,7 @@ const defaultProps = {
     textStyles: [],
     iconStyles: [],
     icon: null,
+    iconName: '',
     inline: true,
     iconChecked: Expensicons.Checkmark,
     innerRef: () => {},
@@ -123,6 +130,7 @@ function PressableWithDelayToggle(props) {
                                 {props.icon && (
                                     <Icon
                                         src={!isActive ? props.iconChecked : props.icon}
+                                        name={!isActive ? props.iconCheckedName : props.iconName}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
                                         style={props.iconStyles}
                                         width={variables.iconSizeSmall}

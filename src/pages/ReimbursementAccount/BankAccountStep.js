@@ -115,6 +115,7 @@ function BankAccountStep(props) {
                 <ScrollView style={[styles.flex1]}>
                     <Section
                         icon={Illustrations.MoneyWings}
+                        iconName="SimpleIllustrationMoneyWings"
                         title={props.translate('workspace.bankAccount.streamlinePayments')}
                     >
                         <View style={[styles.mv3]}>

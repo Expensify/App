@@ -88,6 +88,7 @@ function LogInWithShortLivedAuthTokenPage(props) {
                         width={200}
                         height={164}
                         src={Illustrations.RocketBlue}
+                        name="RocketBlue"
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>

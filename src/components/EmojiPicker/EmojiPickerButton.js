@@ -53,6 +53,7 @@ function EmojiPickerButton(props) {
                 {({hovered, pressed}) => (
                     <Icon
                         src={Expensicons.Emoji}
+                        name="Emoji"
                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                     />
                 )}

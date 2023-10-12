@@ -37,6 +37,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
             <View style={styles.offlineFeedback.errorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
+                    name="DotIndicator"
                     fill={colors.red}
                 />
             </View>
@@ -65,7 +66,10 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                     >
-                        <Icon src={Expensicons.Close} />
+                        <Icon
+                            name="Close"
+                            src={Expensicons.Close}
+                        />
                     </PressableWithoutFeedback>
                 </Tooltip>
             </View>

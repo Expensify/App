@@ -104,6 +104,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                     title={localize.translate('statusPage.clearStatus')}
                     titleStyle={styles.ml0}
                     icon={Expensicons.Close}
+                    iconName="Close"
                     onPress={clearStatus}
                     iconFill={themeColors.danger}
                     wrapperStyle={[styles.pl2]}

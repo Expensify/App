@@ -36,7 +36,15 @@ class CollapsibleSection extends React.Component {
     }
 
     render() {
-        const src = this.state.isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow;
+        const icon = this.state.isExpanded
+            ? {
+                  src: Expensicons.UpArrow,
+                  name: 'ArrowUp',
+              }
+            : {
+                  src: Expensicons.DownArrow,
+                  name: 'Down',
+              };
 
         return (
             <View style={styles.mt4}>
@@ -55,7 +63,10 @@ class CollapsibleSection extends React.Component {
                     >
                         {this.props.title}
                     </Text>
-                    <Icon src={src} />
+                    <Icon
+                        name={icon.name}
+                        src={icon.src}
+                    />
                 </PressableWithFeedback>
                 <View style={styles.collapsibleSectionBorder} />
 

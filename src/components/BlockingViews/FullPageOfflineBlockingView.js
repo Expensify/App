@@ -23,6 +23,7 @@ function FullPageOfflineBlockingView(props) {
         return (
             <BlockingView
                 icon={Expensicons.OfflineCloud}
+                iconName="OfflineCloud"
                 title={props.translate('common.youAppearToBeOffline')}
                 subtitle={props.translate('common.thisFeatureRequiresInternet')}
             />

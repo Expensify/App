@@ -49,6 +49,7 @@ function GetAssistancePage(props) {
             title: props.translate('getAssistancePage.chatWithConcierge'),
             onPress: () => Report.navigateToConciergeChat(),
             icon: Expensicons.ChatBubble,
+            name: 'Chatbubble',
             shouldShowRightIcon: true,
             wrapperStyle: [styles.cardMenuItem],
         },
@@ -56,8 +57,10 @@ function GetAssistancePage(props) {
             title: props.translate('getAssistancePage.exploreHelpDocs'),
             onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
             icon: Expensicons.QuestionMark,
+            iconName: 'QuestionMarkCircle',
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
+            iconRightName: 'NewWindow',
             wrapperStyle: [styles.cardMenuItem],
             link: CONST.NEWHELP_URL,
         },
@@ -70,8 +73,10 @@ function GetAssistancePage(props) {
             title: props.translate('getAssistancePage.scheduleSetupCall'),
             onPress: () => Link.openExternalLink(guideCalendarLink),
             icon: Expensicons.Phone,
+            iconName: 'Phone',
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
+            iconRightName: 'NewWindow',
             wrapperStyle: [styles.cardMenuItem],
             link: guideCalendarLink,
         });
@@ -87,6 +92,7 @@ function GetAssistancePage(props) {
                 <Section
                     title={props.translate('getAssistancePage.subtitle')}
                     icon={Illustrations.ConciergeNew}
+                    iconName="SimpleIllustrationsConciergeNew"
                     menuItems={menuItems}
                 >
                     <View style={styles.mv3}>

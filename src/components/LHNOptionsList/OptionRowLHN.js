@@ -273,6 +273,7 @@ function OptionRowLHN(props) {
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
+                                            name="DotIndicator"
                                             fill={themeColors.danger}
                                         />
                                     </View>
@@ -287,6 +288,7 @@ function OptionRowLHN(props) {
                                 <View style={styles.ml2}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
+                                        name="DotIndicator"
                                         fill={themeColors.success}
                                     />
                                 </View>
@@ -296,7 +298,10 @@ function OptionRowLHN(props) {
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}
                                 >
-                                    <Icon src={Expensicons.Pencil} />
+                                    <Icon
+                                        name="Pencil"
+                                        src={Expensicons.Pencil}
+                                    />
                                 </View>
                             )}
                             {!shouldShowGreenDotIndicator && optionItem.isPinned && (
@@ -304,7 +309,10 @@ function OptionRowLHN(props) {
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.chatPinned')}
                                 >
-                                    <Icon src={Expensicons.Pin} />
+                                    <Icon
+                                        name="Pin"
+                                        src={Expensicons.Pin}
+                                    />
                                 </View>
                             )}
                         </View>

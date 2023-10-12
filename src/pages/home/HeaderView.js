@@ -103,6 +103,7 @@ function HeaderView(props) {
         if (ReportUtils.isCompletedTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
+                iconName: 'Checkmark',
                 text: props.translate('task.markAsIncomplete'),
                 onSelected: Session.checkIfActionIsAllowed(() => Task.reopenTask(props.report)),
             });
@@ -112,6 +113,7 @@ function HeaderView(props) {
         if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
+                iconName: 'Trashcan',
                 text: props.translate('common.cancel'),
                 onSelected: Session.checkIfActionIsAllowed(() => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
             });
@@ -122,6 +124,7 @@ function HeaderView(props) {
         if (props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
+                iconName: 'Chatbubbles',
                 text: props.translate('common.joinThread'),
                 onSelected: Session.checkIfActionIsAllowed(() =>
                     Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
@@ -130,6 +133,7 @@ function HeaderView(props) {
         } else if (props.report.notificationPreference.length) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
+                iconName: 'Chatbubbles',
                 text: props.translate('common.leaveThread'),
                 onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.report.reportID)),
             });
@@ -141,6 +145,7 @@ function HeaderView(props) {
     if (isConcierge && props.guideCalendarLink) {
         threeDotMenuItems.push({
             icon: Expensicons.Phone,
+            iconName: 'Phone',
             text: props.translate('videoChatButtonAndMenu.tooltip'),
             onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(props.guideCalendarLink);
@@ -149,6 +154,7 @@ function HeaderView(props) {
     } else if (!isAutomatedExpensifyAccount && !isTaskReport && !isArchivedRoom) {
         threeDotMenuItems.push({
             icon: ZoomIcon,
+            iconName: 'ZoomIcon',
             text: props.translate('videoChatButtonAndMenu.zoom'),
             onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
@@ -156,6 +162,7 @@ function HeaderView(props) {
         });
         threeDotMenuItems.push({
             icon: GoogleMeetIcon,
+            iconName: 'GoogleMeet',
             text: props.translate('videoChatButtonAndMenu.googleMeet'),
             onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_GOOGLE_MEET_MEETING_URL);

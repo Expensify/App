@@ -11,12 +11,14 @@ function getPinMenuItem(report) {
     if (!report.isPinned) {
         return {
             icon: Expensicons.Pin,
+            iconName: 'Pin',
             text: Localize.translateLocal('common.pin'),
             onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, report.isPinned)),
         };
     }
     return {
         icon: Expensicons.Pin,
+        iconName: 'Pin',
         text: Localize.translateLocal('common.unPin'),
         onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, report.isPinned)),
     };
