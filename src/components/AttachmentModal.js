@@ -469,7 +469,7 @@ function AttachmentModal(props) {
                         )}
                     </SafeAreaConsumer>
                 )}
-                {isAttachmentReceipt ? (
+                {isAttachmentReceipt && (
                     <ConfirmModal
                         title={translate('receipt.deleteReceipt')}
                         isVisible={isDeleteReceiptConfirmModalVisible}
@@ -480,18 +480,17 @@ function AttachmentModal(props) {
                         cancelText={translate('common.cancel')}
                         danger
                     />
-                ) : (
-                    <ConfirmModal
-                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                        onConfirm={closeConfirmModal}
-                        onCancel={closeConfirmModal}
-                        isVisible={isAttachmentInvalid}
-                        prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                        confirmText={translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
                 )}
             </Modal>
+            <ConfirmModal
+                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                onConfirm={closeConfirmModal}
+                onCancel={closeConfirmModal}
+                isVisible={isAttachmentInvalid}
+                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                confirmText={translate('common.close')}
+                shouldShowCancelButton={false}
+            />
 
             {props.children &&
                 props.children({
