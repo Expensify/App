@@ -197,8 +197,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     <MenuItemWithTopDescription
                         description={translate('common.distance')}
                         title={transactionMerchant}
-                        interactive={canEdit}
-                        shouldShowRightIcon={canEdit}
+                        interactive={canEdit && !isSettled}
+                        shouldShowRightIcon={canEdit && !isSettled}
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
                     />

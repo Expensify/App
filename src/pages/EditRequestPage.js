@@ -115,7 +115,10 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
-        const isNonEditableFieldWhenSettled = _.includes([CONST.EDIT_REQUEST_FIELD.AMOUNT, CONST.EDIT_REQUEST_FIELD.DATE], fieldToEdit);
+        const isNonEditableFieldWhenSettled = _.includes(
+            [CONST.EDIT_REQUEST_FIELD.AMOUNT, CONST.EDIT_REQUEST_FIELD.DATE, CONST.EDIT_REQUEST_FIELD.RECEIPT, CONST.EDIT_REQUEST_FIELD.DISTANCE],
+            fieldToEdit,
+        );
 
         /**
          * Do not dismiss the modal, when a current user can edit a money request.
