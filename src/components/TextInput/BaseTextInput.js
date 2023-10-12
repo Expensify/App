@@ -22,6 +22,7 @@ import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import withLocalize from '../withLocalize';
 import useNativeDriver from '../../libs/useNativeDriver';
 import * as Browser from '../../libs/Browser';
+import SwipeInterceptPanResponder from '../SwipeInterceptPanResponder';
 
 function BaseTextInput(props) {
     const initialValue = props.value || props.defaultValue || '';
@@ -242,21 +243,25 @@ function BaseTextInput(props) {
     For other platforms, explicitly remove `lineHeight` from single-line inputs
     to prevent long text from disappearing once it exceeds the input space.
     See https://github.com/Expensify/App/issues/13802 */
+
     const lineHeight = useMemo(() => {
-        if (Browser.isSafari() && _.isArray(props.inputStyle)) {
+        if ((Browser.isSafari() || Browser.isMobileChrome()) && _.isArray(props.inputStyle)) {
             const lineHeightValue = _.find(props.inputStyle, (f) => f.lineHeight !== undefined);
             if (lineHeightValue) {
                 return lineHeightValue.lineHeight;
             }
-        } else if (Browser.isSafari() || Browser.isMobileChrome()) {
-            return height;
         }
+
         return undefined;
-    }, [props.inputStyle, height]);
+    }, [props.inputStyle]);
 
     return (
         <>
-            <View style={styles.pointerEventsNone}>
+            <View
+                style={styles.pointerEventsNone}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(props.shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
+            >
                 <PressableWithoutFeedback
                     onPress={onPress}
                     focusable={false}
@@ -340,6 +345,10 @@ function BaseTextInput(props) {
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
                                     // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
                                     !isMultiline && {height, lineHeight},
+
+                                    // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
+                                    // for the issue mentioned here https://github.com/Expensify/App/issues/26735
+                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),

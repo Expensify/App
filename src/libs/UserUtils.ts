@@ -31,9 +31,8 @@ type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | ''
  *      }
  * }}
  */
-function hasLoginListError(loginList: Login): boolean {
-    const errorFields = loginList?.errorFields ?? {};
-    return Object.values(errorFields).some((field) => Object.keys(field ?? {}).length > 0);
+function hasLoginListError(loginList: Record<string, Login>): boolean {
+    return Object.values(loginList).some((loginData) => Object.values(loginData.errorFields ?? {}).some((field) => Object.keys(field ?? {}).length > 0));
 }
 
 /**
@@ -41,15 +40,15 @@ function hasLoginListError(loginList: Login): boolean {
  * an Info brick road status indicator. Currently this only applies if the user
  * has an unvalidated contact method.
  */
-function hasLoginListInfo(loginList: Login): boolean {
-    return !loginList.validatedDate;
+function hasLoginListInfo(loginList: Record<string, Login>): boolean {
+    return !Object.values(loginList).every((field) => field.validatedDate);
 }
 
 /**
  * Gets the appropriate brick road indicator status for a given loginList.
  * Error status is higher priority, so we check for that first.
  */
-function getLoginListBrickRoadIndicator(loginList: Login): LoginListIndicator {
+function getLoginListBrickRoadIndicator(loginList: Record<string, Login>): LoginListIndicator {
     if (hasLoginListError(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }

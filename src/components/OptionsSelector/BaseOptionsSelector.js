@@ -54,6 +54,7 @@ class BaseOptionsSelector extends Component {
         this.selectRow = this.selectRow.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
+        this.updateSearchValue = this.updateSearchValue.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
@@ -63,6 +64,7 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
+            errorMessage: '',
         };
     }
 
@@ -70,7 +72,7 @@ class BaseOptionsSelector extends Component {
         this.subscribeToKeyboardShortcut();
 
         if (this.props.isFocused && this.props.autoFocus && this.textInput) {
-            setTimeout(() => {
+            this.focusTimeout = setTimeout(() => {
                 this.textInput.focus();
             }, CONST.ANIMATED_TRANSITION);
         }
@@ -108,8 +110,9 @@ class BaseOptionsSelector extends Component {
             });
             return;
         }
-
         const newFocusedIndex = this.props.selectedOptions.length;
+        const isNewFocusedIndex = newFocusedIndex !== this.state.focusedIndex;
+
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
@@ -118,13 +121,13 @@ class BaseOptionsSelector extends Component {
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || this.props.value === '') {
+                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || (!!prevProps.value && !this.props.value)) {
                     this.scrollToIndex(0);
                     return;
                 }
 
                 // Otherwise, scroll to the focused index (as long as it's in range)
-                if (this.state.allOptions.length <= this.state.focusedIndex) {
+                if (this.state.allOptions.length <= this.state.focusedIndex || !isNewFocusedIndex) {
                     return;
                 }
                 this.scrollToIndex(this.state.focusedIndex);
@@ -164,6 +167,14 @@ class BaseOptionsSelector extends Component {
         }
 
         return defaultIndex;
+    }
+
+    updateSearchValue(value) {
+        this.setState({
+            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+        });
+
+        this.props.onChangeText(value);
     }
 
     subscribeToKeyboardShortcut() {
@@ -315,7 +326,7 @@ class BaseOptionsSelector extends Component {
      */
     selectRow(option, ref) {
         return new Promise((resolve) => {
-            if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
+            if (this.props.shouldShowTextInput && this.props.shouldPreventDefaultFocusOnSelectRow) {
                 if (this.relatedTarget && ref === this.relatedTarget) {
                     this.textInput.focus();
                     this.relatedTarget = null;
@@ -343,7 +354,7 @@ class BaseOptionsSelector extends Component {
      * @param {Object} option
      */
     addToSelection(option) {
-        if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
+        if (this.props.shouldShowTextInput && this.props.shouldPreventDefaultFocusOnSelectRow) {
             this.textInput.focus();
             if (this.textInput.isFocused()) {
                 setSelection(this.textInput, 0, this.props.value.length);
@@ -365,13 +376,14 @@ class BaseOptionsSelector extends Component {
                 label={this.props.textInputLabel}
                 accessibilityLabel={this.props.textInputLabel}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                onChangeText={this.props.onChangeText}
+                onChangeText={this.updateSearchValue}
+                errorText={this.state.errorMessage}
                 onSubmitEditing={this.selectFocusedOption}
                 placeholder={this.props.placeholderText}
-                maxLength={this.props.maxLength}
+                maxLength={this.props.maxLength + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
                 keyboardType={this.props.keyboardType}
                 onBlur={(e) => {
-                    if (!this.props.shouldFocusOnSelectRow) {
+                    if (!this.props.shouldPreventDefaultFocusOnSelectRow) {
                         return;
                     }
                     this.relatedTarget = e.relatedTarget;
@@ -379,6 +391,7 @@ class BaseOptionsSelector extends Component {
                 selectTextOnFocus
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
                 spellCheck={false}
+                shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
             />
         );
         const optionsList = (
@@ -394,7 +407,7 @@ class BaseOptionsSelector extends Component {
                 multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
                 onAddToSelection={this.addToSelection}
                 hideSectionHeaders={this.props.hideSectionHeaders}
-                headerMessage={this.props.headerMessage}
+                headerMessage={this.state.errorMessage ? '' : this.props.headerMessage}
                 boldStyle={this.props.boldStyle}
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
@@ -415,6 +428,7 @@ class BaseOptionsSelector extends Component {
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
                 isRowMultilineSupported={this.props.isRowMultilineSupported}
+                shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
             />
         );
         return (
