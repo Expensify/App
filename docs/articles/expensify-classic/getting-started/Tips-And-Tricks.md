@@ -50,7 +50,7 @@ If you’d like to use features that rely on your current location, you will nee
 ## Firefox
 1. Open Firefox
 2. In the URL bar enter “about:preferences”
-3. On the left hand side select “Privacy & Security”
+3. On the left-hand side select “Privacy & Security”
 4. Scroll down to Permissions
 5. Click on Settings next to Location
 6. If location access is blocked for expensify.com or new.expensify.com, you can update it here to allow access
