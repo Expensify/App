@@ -34,6 +34,7 @@ The company address must:
 - Be located in the US
 - Be a physical location
 If you input a maildrop address (PO box, UPS Store, etc.), the address will likely be flagged for review and adding the bank account to Expensify will be delayed. 
+
 ### Tax Identification Number
 This is the identification number that was assigned to the business by the IRS.
 ### Company website
