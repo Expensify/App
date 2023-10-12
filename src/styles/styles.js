@@ -814,6 +814,7 @@ const styles = (theme) => ({
 
     headerGap: {
         height: CONST.DESKTOP_HEADER_PADDING,
+        backgroundColor: theme.highlightBG,
     },
 
     reportOptions: {
