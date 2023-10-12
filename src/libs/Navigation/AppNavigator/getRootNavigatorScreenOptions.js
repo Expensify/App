@@ -37,10 +37,10 @@ export default (isSmallScreenWidth) => ({
 
         cardStyle: {
             ...getNavigationModalCardStyle(),
-            width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+            width: isSmallScreenWidth ? '100%' : variables.lhpWidth,
 
             // We need to translate the sidebar to not be covered by the StackNavigator so it can be clickable.
-            transform: [{translateX: isSmallScreenWidth ? 0 : -variables.sideBarWidth}],
+            transform: [{translateX: isSmallScreenWidth ? 0 : -variables.lhpWidth}],
             ...(isSmallScreenWidth ? {} : styles.borderRight),
         },
     },
@@ -64,7 +64,7 @@ export default (isSmallScreenWidth) => ({
 
         cardStyle: {
             ...getNavigationModalCardStyle(),
-            paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,
+            paddingRight: isSmallScreenWidth ? 0 : variables.lhpWidth,
         },
     },
 });

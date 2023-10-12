@@ -2325,7 +2325,7 @@ const styles = (theme) => ({
         borderRadius: 88,
     },
 
-    rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
+    rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.lhpWidth, flex: 1}),
     RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
 
     avatarInnerTextChat: {
