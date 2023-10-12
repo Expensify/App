@@ -485,7 +485,7 @@ function ComposerWithSuggestions({
 
     useEffect(() => {
         // Set the `selection at end` and `scrolls input to bottom` for `Web Platforms`.
-        updateMultilineInputRange(textInputRef.current);
+        updateMultilineInputRange(textInputRef.current, shouldAutoFocus);
 
         if (value.length === 0) {
             return;
