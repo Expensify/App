@@ -81,6 +81,7 @@ Note: A report is shared with all individuals with access to the same business b
 This step is important when accountants and staff leave your business.
 To remove an admin's access to a shared bank account, go to **Settings > Account > Payments > Shared Business Bank Accounts**. 
 You'll find a list of individuals who have access to the bank account. Next to each user, you'll see the option to Unshare the bank account.
+
 # How to delete a verified bank account
 If you need to delete a bank account from Expensify, run through the following steps:
 1. Head to  **Settings > Account > Payments**
