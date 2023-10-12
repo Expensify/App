@@ -3,7 +3,7 @@
  */
 import CONFIG from '../../../CONFIG';
 
-let unReadTotalCount = 0;
+let unreadTotalCount = 0;
 /**
  * Set the page title on web
  *
@@ -11,7 +11,7 @@ let unReadTotalCount = 0;
  */
 function updateUnread(totalCount) {
     const hasUnread = totalCount !== 0;
-    unReadTotalCount = totalCount;
+    unreadTotalCount = totalCount;
     // This setTimeout is required because due to how react rendering messes with the DOM, the document title can't be modified synchronously, and we must wait until all JS is done
     // running before setting the title.
     setTimeout(() => {
@@ -24,7 +24,7 @@ function updateUnread(totalCount) {
 }
 
 window.addEventListener('popstate', () => {
-    updateUnread(unReadTotalCount);
+    updateUnread(unreadTotalCount);
 });
 
 export default updateUnread;
