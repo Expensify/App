@@ -69,4 +69,4 @@ We recommend using Google Chrome, but you can use Expensify on most major browse
 - [Microsoft Internet Explorer](https://microsoft.com/ie). Please note: Microsoft has discontinued support and security updates for all versions below Version 11. This means those older versions may not work well. Due to the lack of security updates for the older versions, parts of our site may not be accessible. Please update your IE version or choose a different browser.
 - [Apple Safari (Apple devices only)](https://apple.com/safari)
 - [Opera](https://opera.com)
-It's always best practice to make sure you have the most recent updates for your browser and keep your operating system up to date.
+It's always best practice to ensure you have the most recent updates for your browser and keep your operating system up to date.
