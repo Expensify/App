@@ -61,12 +61,19 @@ function BaseMiniContextMenuItem(props) {
                         return;
                     }
 
+                    // Allow text input blur on right click
+                    if (!e || e.button === 2) {
+                        return;
+                    }
+
+                    // Prevent text input blur on left click
                     e.preventDefault();
                 }}
                 accessibilityLabel={props.tooltipText}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
+                    props.isDelayButtonStateComplete && styles.cursorDefault,
                 ]}
             >
                 {(pressableState) => (
