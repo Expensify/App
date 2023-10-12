@@ -182,7 +182,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
         [transactionID, waypoints, waypointsList],
     );
 
-    const onPress = useCallback(() => {
+    const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
         if (_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute || isLoading) {
             setHasError(true);
@@ -236,7 +236,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
                     allowBubble
                     pressOnEnter
                     style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                    onPress={onPress}
+                    onPress={submitWaypoints}
                     text={translate(isEditingRequest ? 'common.save' : 'common.next')}
                     isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                 />
