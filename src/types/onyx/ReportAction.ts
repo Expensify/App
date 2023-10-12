@@ -1,4 +1,5 @@
 import {ValueOf} from 'type-fest';
+import {SvgProps} from 'react-native-svg';
 import OriginalMessage, {Reaction} from './OriginalMessage';
 import * as OnyxCommon from './OnyxCommon';
 import CONST from '../../CONST';
@@ -73,9 +74,9 @@ type ReportActionBase = {
     error?: string;
 
     /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
-    whisperedToAccountIDs?: number[];
+    whisperedToAccountIDs?: Array<number | undefined>;
 
-    avatar?: string;
+    avatar?: string | React.FC<SvgProps>;
     automatic?: boolean;
     shouldShow?: boolean;
     childReportID?: string;
