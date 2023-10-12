@@ -51,28 +51,6 @@ setup_ios()
   kill_all_emulators_ios
 }
 
-restart_adb_server() {
-  info "Restarting adb ..."
-  adb kill-server
-  sleep 2
-  adb start-server
-  sleep 2
-  info "Restarting adb done"
-}
-
-ensure_device_available() {
-  # Must turn off exit on error temporarily
-  set +e
-  if adb devices | grep -q offline; then
-    restart_adb_server
-    if adb devices | grep -q offline; then
-      error "Device remains 'offline'.  Please investigate!"
-      exit 1
-    fi
-  fi
-  set -e
-}
-
 setup_android_path_1()
 {
   adb root || {
