@@ -351,7 +351,6 @@ function ReportActionItem(props) {
                 ReportUtils.isCurrentUserSubmitter(props.report.reportID) &&
                 lodashGet(props.action, 'paymentType', '') === CONST.IOU.PAYMENT_TYPE.EXPENSIFY &&
                 !ReportUtils.isSettled(props.report.reportID);
-
             children = (
                 <ReportActionItemBasicMessage
                     message={
