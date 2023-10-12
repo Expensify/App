@@ -211,9 +211,9 @@ function MoneyRequestConfirmationList(props) {
     // Do not hide fields in case of send money request
     const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || !props.shouldShowSmartScanFields || isTypeSend || props.isEditingSplitBill;
 
-    // In Send Money flow, we don't allow the Merchant or Date to be edited.
+    // In Send Money flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = shouldShowAllFields && !isTypeSend;
-    const shouldShowMerchant = shouldShowAllFields && !isTypeSend;
+    const shouldShowMerchant = shouldShowAllFields && !isTypeSend && !props.isDistanceRequest;
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(props.policyTags);
