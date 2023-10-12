@@ -555,7 +555,7 @@ function getPolicyExpenseReportOption(report) {
     );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
-    option.text = ReportUtils.getPolicyName(report);
+    option.text = ReportUtils.getPolicyName(expenseReport);
     option.alternateText = Localize.translateLocal('workspace.common.workspace');
     option.selected = report.selected;
     return option;
