@@ -414,7 +414,7 @@ function getLastMessageTextForReport(report) {
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function createOption(accountIDs, personalDetails, report, reportActions = {}, {showChatPreviewLine = false, forcePolicyNamePreview = false}) {
+function createOption(accountIDs, personalDetails, report, reportActions = {}, {showChatPreviewLine = false, forcePolicyNamePreview = false, checkPolicyOwner = true}) {
     const result = {
         text: null,
         alternateText: null,
@@ -485,7 +485,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.policyID = report.policyID;
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
-        subtitle = ReportUtils.getChatRoomSubtitle(report);
+        subtitle = ReportUtils.getChatRoomSubtitle(report, checkPolicyOwner);
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
@@ -511,7 +511,12 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         } else {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
-        reportName = ReportUtils.getReportName(report);
+
+        if (result.isPolicyExpenseChat && !checkPolicyOwner) {
+            reportName = ReportUtils.getPolicyName(report);
+        } else {
+            reportName = ReportUtils.getReportName(report);
+        }
     } else {
         reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
         result.keyForList = String(accountIDs[0]);
@@ -551,6 +556,7 @@ function getPolicyExpenseReportOption(report) {
         {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
+            checkPolicyOwner: false,
         },
     );
     option.selected = report.selected;

@@ -1861,7 +1861,7 @@ function getRootReportAndWorkspaceName(report) {
  * @param {Object} report
  * @returns {String}
  */
-function getChatRoomSubtitle(report) {
+function getChatRoomSubtitle(report, checkPolicyOwner = true) {
     if (isChatThread(report)) {
         return '';
     }
@@ -1872,7 +1872,7 @@ function getChatRoomSubtitle(report) {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
-    if ((isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
+    if ((isPolicyExpenseChat(report) && (!checkPolicyOwner || report.isOwnPolicyExpenseChat)) || isExpenseReport(report)) {
         return Localize.translateLocal('workspace.common.workspace');
     }
     if (isArchivedRoom(report)) {
