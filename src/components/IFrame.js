@@ -30,19 +30,70 @@ function getNewDotURL(url) {
     }
 
     if (pathname === 'policy') {
-        const workspaceID = params.policyID || '';
-        const section = urlObj.hash.slice(1) || 'overview';
+        const workspaceID = params.policyID ?? '';
+        const section = urlObj.hash.slice(1) ?? '';
 
-        return `workspace/${workspaceID}/${section}`;
+        let sectionName = section;
+        switch (section) {
+            case '':
+                sectionName = 'overview';
+                break;
+            case 'js_policyEditor_perDiem':
+                sectionName = 'per-diem';
+                break;
+            case 'exportFormats':
+                sectionName = 'export-formats';
+                break;
+            default:
+                sectionName = section;
+        }
+
+        return `workspace/${workspaceID}/${sectionName}`;
     }
 
     if (pathname === 'settings') {
         const {section} = params;
-        return `settings/${section}`;
+
+        let sectionName = '';
+        switch (section) {
+            case undefined:
+            case '':
+                sectionName = 'account';
+                break;
+            case 'expenserules':
+                sectionName = 'expense-rules';
+                break;
+            case 'creditcards':
+                sectionName = 'cards';
+                break;
+            default:
+                sectionName = section;
+        }
+
+        return `settings/${sectionName}`;
+    }
+
+    if (pathname === 'admin_domains') {
+        return 'domains';
     }
 
     if (pathname.includes('domain')) {
-        return pathname;
+        const [, section] = pathname.split('_');
+
+        let sectionName = '';
+        switch (section) {
+            case '':
+            case 'companycards':
+                sectionName = 'cards';
+                break;
+            case 'loadingDock':
+                sectionName = 'tools';
+                break;
+            default:
+                sectionName = section;
+        }
+
+        return `domain/${sectionName}`;
     }
 
     return pathname;
