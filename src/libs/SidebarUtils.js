@@ -392,7 +392,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
         result.phoneNumber = personalDetail.phoneNumber;
     }
 
-    const reportName = ReportUtils.getReportName(report, policy, true);
+    const reportName = ReportUtils.getReportName(report, policy, false, true);
 
     result.text = reportName;
     result.subtitle = subtitle;
