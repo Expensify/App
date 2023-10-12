@@ -6,6 +6,7 @@ import defaultTheme from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
 import spacing from './utilities/spacing';
+import borders from './utilities/borders';
 import sizing from './utilities/sizing';
 import flex from './utilities/flex';
 import display from './utilities/display';
@@ -163,6 +164,7 @@ const webViewStyles = (theme) => ({
 const styles = (theme) => ({
     // Add all of our utility and helper styles
     ...spacing,
+    ...borders,
     ...sizing,
     ...flex,
     ...display,
@@ -781,9 +783,9 @@ const styles = (theme) => ({
     cameraView: {
         flex: 1,
         overflow: 'hidden',
-        borderRadius: 28,
+        borderRadius: variables.componentBorderRadiusXLarge,
         borderStyle: 'solid',
-        borderWidth: 8,
+        borderWidth: variables.componentBorderWidth,
         backgroundColor: theme.highlightBG,
         borderColor: theme.appBG,
         display: 'flex',
@@ -3713,13 +3715,9 @@ const styles = (theme) => ({
     },
 
     mapEditView: {
-        borderRadius: 28,
-        borderWidth: 8,
+        borderRadius: variables.componentBorderRadiusXLarge,
+        borderWidth: variables.componentBorderWidth,
         borderColor: theme.appBG,
-    },
-
-    mapConfirmationView: {
-        borderRadius: 16,
     },
 
     mapViewOverlay: {

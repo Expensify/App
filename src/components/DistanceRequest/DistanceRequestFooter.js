@@ -134,7 +134,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, hasRo
                         style={[styles.mapView, styles.mapEditView]}
                         waypoints={waypointMarkers}
                         styleURL={CONST.MAPBOX.STYLE_URL}
-                        overlayStyle={styles.m4}
+                        overlayStyle={styles.mapEditView}
                     />
                 ) : (
                     <PendingMapView
