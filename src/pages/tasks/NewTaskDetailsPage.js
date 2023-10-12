@@ -15,6 +15,8 @@ import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
+import CONST from '../../CONST';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Beta features list */
@@ -34,7 +36,7 @@ const defaultProps = {
     task: {},
 };
 
-function NewTaskPage(props) {
+function NewTaskDetailsPage(props) {
     const inputRef = useRef();
     const [taskTitle, setTaskTitle] = useState(props.task.title);
     const [taskDescription, setTaskDescription] = useState(props.task.description || '');
@@ -74,6 +76,8 @@ function NewTaskPage(props) {
         <ScreenWrapper
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID={NewTaskDetailsPage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.assignTask')}
@@ -92,18 +96,22 @@ function NewTaskPage(props) {
                 <View style={styles.mb5}>
                     <TextInput
                         ref={(el) => (inputRef.current = el)}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
+                        accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
                     />
                 </View>
                 <View style={styles.mb5}>
                     <TextInput
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
+                        accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
-                        submitOnEnter
+                        submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
                         value={taskDescription}
@@ -115,9 +123,9 @@ function NewTaskPage(props) {
     );
 }
 
-NewTaskPage.displayName = 'NewTaskPage';
-NewTaskPage.propTypes = propTypes;
-NewTaskPage.defaultProps = defaultProps;
+NewTaskDetailsPage.displayName = 'NewTaskDetailsPage';
+NewTaskDetailsPage.propTypes = propTypes;
+NewTaskDetailsPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
@@ -129,4 +137,4 @@ export default compose(
         },
     }),
     withLocalize,
-)(NewTaskPage);
+)(NewTaskDetailsPage);

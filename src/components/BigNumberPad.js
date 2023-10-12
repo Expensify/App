@@ -6,6 +6,7 @@ import styles from '../styles/styles';
 import Button from './Button';
 import ControlSelection from '../libs/ControlSelection';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Callback to inform parent modal with key pressed */
@@ -34,6 +35,7 @@ const padNumbers = [
 
 function BigNumberPad(props) {
     const [timer, setTimer] = useState(null);
+    const {isExtraSmallScreenHeight} = useWindowDimensions();
 
     /**
      * Handle long press key on number pad.
@@ -71,6 +73,7 @@ function BigNumberPad(props) {
                         return (
                             <Button
                                 key={column}
+                                medium={isExtraSmallScreenHeight}
                                 shouldEnableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
                                 text={column === '<' ? column : props.toLocaleDigit(column)}

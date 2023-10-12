@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import moment from 'moment/moment';
+import {subYears} from 'date-fns';
 import _ from 'underscore';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
@@ -134,8 +134,8 @@ function IdentityForm(props) {
     const dobErrorText = (props.errors.dob ? props.translate('bankAccount.error.dob') : '') || (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
     const identityFormInputKeys = ['firstName', 'lastName', 'dob', 'ssnLast4'];
 
-    const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
-    const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'Y').toDate();
+    const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
+    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
     return (
         <View style={props.style}>
@@ -145,6 +145,8 @@ function IdentityForm(props) {
                         inputID={props.inputKeys.firstName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.firstName')}`}
+                        accessibilityLabel={props.translate('common.firstName')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={props.values.firstName}
                         defaultValue={props.defaultValues.firstName}
                         onChangeText={(value) => props.onFieldChange({firstName: value})}
@@ -156,6 +158,8 @@ function IdentityForm(props) {
                         inputID={props.inputKeys.lastName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.lastName')}`}
+                        accessibilityLabel={props.translate('common.lastName')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={props.values.lastName}
                         defaultValue={props.defaultValues.lastName}
                         onChangeText={(value) => props.onFieldChange({lastName: value})}
@@ -179,6 +183,8 @@ function IdentityForm(props) {
                 inputID={props.inputKeys.ssnLast4}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.ssnLast4')}`}
+                accessibilityLabel={props.translate('common.ssnLast4')}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 containerStyles={[styles.mt4]}
                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                 defaultValue={props.defaultValues.ssnLast4}

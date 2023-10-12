@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -11,7 +11,7 @@ import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
-import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -40,7 +40,7 @@ const propTypes = {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL.
      * If the avatar is type === workspace, this fallback icon will be ignored and decided based on the name prop.
      */
-    fallbackIcon: PropTypes.func,
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
 
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
@@ -64,7 +64,11 @@ const defaultProps = {
 function Avatar(props) {
     const [imageError, setImageError] = useState(false);
 
-    useOnNetworkReconnect(() => setImageError(false));
+    useNetwork({onReconnect: () => setImageError(false)});
+
+    useEffect(() => {
+        setImageError(false);
+    }, [props.source]);
 
     if (!props.source) {
         return null;
@@ -75,20 +79,20 @@ function Avatar(props) {
 
     const imageStyle =
         props.imageStyles && props.imageStyles.length
-            ? [StyleUtils.getAvatarStyle(props.size), ...props.imageStyles, StyleUtils.getAvatarBorderRadius(props.size, props.type)]
-            : [StyleUtils.getAvatarStyle(props.size), StyleUtils.getAvatarBorderStyle(props.size, props.type)];
+            ? [StyleUtils.getAvatarStyle(props.size), ...props.imageStyles, styles.noBorderRadius]
+            : [StyleUtils.getAvatarStyle(props.size), styles.noBorderRadius];
 
     const iconStyle = props.imageStyles && props.imageStyles.length ? [StyleUtils.getAvatarStyle(props.size), styles.bgTransparent, ...props.imageStyles] : undefined;
 
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(props.name).fill : props.fill;
-    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(props.name) : props.fallbackIcon;
+    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(props.name) : props.fallbackIcon || Expensicons.FallbackAvatar;
 
     return (
         <View
             pointerEvents="none"
             style={props.containerStyles}
         >
-            {_.isFunction(props.source) || imageError ? (
+            {_.isFunction(props.source) || (imageError && _.isFunction(fallbackAvatar)) ? (
                 <View style={iconStyle}>
                     <Icon
                         src={imageError ? fallbackAvatar : props.source}
@@ -106,7 +110,7 @@ function Avatar(props) {
             ) : (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type), ...props.iconAdditionalStyles]}>
                     <Image
-                        source={{uri: props.source}}
+                        source={{uri: imageError ? fallbackAvatar : props.source}}
                         style={imageStyle}
                         onError={() => setImageError(true)}
                     />

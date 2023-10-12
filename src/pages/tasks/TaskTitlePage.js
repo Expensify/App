@@ -13,6 +13,12 @@ import styles from '../../styles/styles';
 import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
 import * as Task from '../../libs/actions/Task';
+import * as ReportUtils from '../../libs/ReportUtils';
+import CONST from '../../CONST';
+import Navigation from '../../libs/Navigation/Navigation';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
+import withReportOrNotFound from '../home/report/withReportOrNotFound';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -52,49 +58,74 @@ function TaskTitlePage(props) {
         (values) => {
             // Set the title of the report in the store and then call Task.editTaskReport
             // to update the title of the report on the server
-            Task.editTaskAndNavigate(props.report, props.session.email, props.session.accountID, {title: values.title});
+            Task.editTaskAndNavigate(props.report, props.session.accountID, {title: values.title});
         },
         [props],
     );
 
+    if (!ReportUtils.isTaskReport(props.report)) {
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal(props.report.reportID);
+        });
+    }
+
     const inputRef = useRef(null);
+    const isOpen = ReportUtils.isOpenTaskReport(props.report);
+    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
+    const isTaskNonEditable = ReportUtils.isTaskReport(props.report) && (!canModifyTask || !isOpen);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            shouldEnableMaxHeight
+            testID={TaskTitlePage.displayName}
         >
-            <HeaderWithBackButton title={props.translate('task.task')} />
-            <Form
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
-                validate={validate}
-                onSubmit={submit}
-                submitButtonText={props.translate('common.save')}
-                enabledWhenOffline
-            >
-                <View style={[styles.mb4]}>
-                    <TextInput
-                        inputID="title"
-                        name="title"
-                        autoGrowHeight
-                        textAlignVertical="top"
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        label={props.translate('task.title')}
-                        defaultValue={(props.report && props.report.reportName) || ''}
-                        ref={(el) => (inputRef.current = el)}
-                    />
-                </View>
-            </Form>
+            {({didScreenTransitionEnd}) => (
+                <FullPageNotFoundView shouldShow={isTaskNonEditable}>
+                    <HeaderWithBackButton title={props.translate('task.task')} />
+                    <Form
+                        style={[styles.flexGrow1, styles.ph5]}
+                        formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
+                        validate={validate}
+                        onSubmit={submit}
+                        submitButtonText={props.translate('common.save')}
+                        enabledWhenOffline
+                    >
+                        <View style={[styles.mb4]}>
+                            <TextInput
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                inputID="title"
+                                name="title"
+                                label={props.translate('task.title')}
+                                accessibilityLabel={props.translate('task.title')}
+                                defaultValue={(props.report && props.report.reportName) || ''}
+                                ref={(el) => {
+                                    if (!el) {
+                                        return;
+                                    }
+                                    if (!inputRef.current && didScreenTransitionEnd) {
+                                        el.focus();
+                                    }
+                                    inputRef.current = el;
+                                }}
+                            />
+                        </View>
+                    </Form>
+                </FullPageNotFoundView>
+            )}
         </ScreenWrapper>
     );
 }
 
 TaskTitlePage.propTypes = propTypes;
 TaskTitlePage.defaultProps = defaultProps;
+TaskTitlePage.displayName = 'TaskTitlePage';
 
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
+    withReportOrNotFound,
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,

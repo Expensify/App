@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -27,7 +27,7 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -45,13 +45,17 @@ function TaskShareDestinationSelectorModal(props) {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
-    const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
+
+    const optionRef = useRef();
 
     const filteredReports = useMemo(() => {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
-            if (!ReportUtils.isAllowedToComment(props.reports[reportKey])) {
+            if (
+                ReportUtils.shouldDisableWriteActions(props.reports[reportKey]) ||
+                ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey]) ||
+                ReportUtils.isCanceledTaskReport(props.reports[reportKey])
+            ) {
                 return;
             }
             reports[reportKey] = props.reports[reportKey];
@@ -59,21 +63,11 @@ function TaskShareDestinationSelectorModal(props) {
         return reports;
     }, [props.reports]);
     const updateOptions = useCallback(() => {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(
-            filteredReports,
-            props.personalDetails,
-            props.betas,
-            searchValue.trim(),
-            [],
-            CONST.EXPENSIFY_EMAILS,
-            true,
-        );
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, props.personalDetails, props.betas, searchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
 
-        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0, Boolean(userToInvite), searchValue));
+        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length !== 0, false, searchValue));
 
-        setFilteredUserToInvite(userToInvite);
         setFilteredRecentReports(recentReports);
-        setFilteredPersonalDetails(personalDetails);
     }, [props, searchValue, filteredReports]);
 
     useEffect(() => {
@@ -101,23 +95,6 @@ function TaskShareDestinationSelectorModal(props) {
             indexOffset += filteredRecentReports?.length;
         }
 
-        if (filteredPersonalDetails?.length > 0) {
-            sections.push({
-                data: filteredPersonalDetails,
-                shouldShow: true,
-                indexOffset,
-            });
-            indexOffset += filteredRecentReports?.length;
-        }
-
-        if (filteredUserToInvite) {
-            sections.push({
-                data: [filteredUserToInvite],
-                shouldShow: true,
-                indexOffset,
-            });
-        }
-
         return sections;
     };
 
@@ -130,13 +107,17 @@ function TaskShareDestinationSelectorModal(props) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
             Task.setShareDestinationValue(option.reportID);
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.NEW_TASK);
         }
     };
 
     const sections = getSections();
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
+            testID={TaskShareDestinationSelectorModal.displayName}
+        >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
@@ -154,8 +135,10 @@ function TaskShareDestinationSelectorModal(props) {
                             Headers
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
-                            placeholderText={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            autoFocus={false}
+                            ref={optionRef}
                         />
                     </View>
                 </>

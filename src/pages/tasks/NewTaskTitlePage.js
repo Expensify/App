@@ -15,6 +15,7 @@ import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Beta features list */
@@ -58,7 +59,7 @@ function NewTaskTitlePage(props) {
     // the response
     function onSubmit(values) {
         Task.setTitleValue(values.taskTitle);
-        Navigation.navigate(ROUTES.NEW_TASK);
+        Navigation.goBack(ROUTES.NEW_TASK);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -75,6 +76,8 @@ function NewTaskTitlePage(props) {
                 inputRef.current.focus();
             }}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID={NewTaskTitlePage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('task.title')}
@@ -92,10 +95,12 @@ function NewTaskTitlePage(props) {
             >
                 <View style={styles.mb5}>
                     <TextInput
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={props.task.title}
                         ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
+                        accessibilityLabel={props.translate('task.title')}
                     />
                 </View>
             </Form>

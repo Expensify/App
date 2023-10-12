@@ -1,7 +1,8 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {useIsFocused} from '@react-navigation/native';
 import CONST from '../../../CONST';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -18,6 +19,8 @@ import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
 import RoomNameInput from '../../../components/RoomNameInput';
+import * as ReportUtils from '../../../libs/ReportUtils';
+import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -27,15 +30,26 @@ const propTypes = {
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
+
+    /** Policy of the report for which the name is being edited */
+    policy: PropTypes.shape({
+        role: PropTypes.string,
+        owner: PropTypes.string,
+    }),
 };
 const defaultProps = {
     reports: {},
+    policy: {},
 };
 
 function RoomNamePage(props) {
+    const policy = props.policy;
     const report = props.report;
     const reports = props.reports;
     const translate = props.translate;
+
+    const roomNameInputRef = useRef(null);
+    const isFocused = useIsFocused();
 
     const validate = useCallback(
         (values) => {
@@ -66,27 +80,34 @@ function RoomNamePage(props) {
     );
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithBackButton
-                title={translate('newRoomPage.roomName')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID))}
-            />
-            <Form
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
-                onSubmit={(values) => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
-                validate={validate}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
-            >
-                <View style={styles.mb4}>
-                    <RoomNameInput
-                        inputID="roomName"
-                        autoFocus
-                        defaultValue={report.reportName}
-                    />
-                </View>
-            </Form>
+        <ScreenWrapper
+            onEntryTransitionEnd={() => roomNameInputRef.current && roomNameInputRef.current.focus()}
+            includeSafeAreaPaddingBottom={false}
+            testID={RoomNamePage.displayName}
+        >
+            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(report, policy)}>
+                <HeaderWithBackButton
+                    title={translate('newRoomPage.roomName')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID))}
+                />
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
+                    onSubmit={(values) => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
+                    validate={validate}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <View style={styles.mb4}>
+                        <RoomNameInput
+                            ref={(ref) => (roomNameInputRef.current = ref)}
+                            inputID="roomName"
+                            defaultValue={report.reportName}
+                            isFocused={isFocused}
+                        />
+                    </View>
+                </Form>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
@@ -101,6 +122,9 @@ export default compose(
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
     }),
 )(RoomNamePage);

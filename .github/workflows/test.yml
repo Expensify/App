@@ -18,9 +18,11 @@ jobs:
         chunk: [ 1, 2, 3 ]
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
-      - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Get number of CPU cores
         id: cpu-cores
@@ -41,8 +43,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Storybook tests
     steps:
-      - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
+      - uses: actions/checkout@v3
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+
       - name: Storybook run
         run: npm run storybook -- --smoke-test --ci
 
@@ -51,9 +55,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Shell tests
     steps:
-      - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Test CI git logic
         run: tests/unit/CIGitLogicTest.sh

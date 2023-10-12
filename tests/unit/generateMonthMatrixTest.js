@@ -1,4 +1,4 @@
-import generateMonthMatrix from '../../src/components/CalendarPicker/generateMonthMatrix';
+import generateMonthMatrix from '../../src/components/NewDatePicker/CalendarPicker/generateMonthMatrix';
 
 describe('generateMonthMatrix', () => {
     it('returns the correct matrix for January 2022', () => {

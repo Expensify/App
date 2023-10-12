@@ -1,0 +1,12 @@
+name: 'Get previous npm version'
+description: 'Get the previous app version.'
+inputs:
+  SEMVER_LEVEL:
+    description: Semantic Versioning Level
+    required: true
+outputs:
+  PREVIOUS_VERSION:
+    description: The previous semver version of the application, according to the SEMVER_LEVEL provided
+runs:
+  using: 'node16'
+  main: './index.js'

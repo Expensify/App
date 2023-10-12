@@ -40,12 +40,6 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             appversion: pkg.version,
         };
 
-        const shouldPersist = lodashGet(request, 'data.persist', false);
-        if (shouldPersist) {
-            SequentialQueue.push(request);
-            return;
-        }
-
         // Add promise handlers to any request that we are not persisting
         request.resolve = resolve;
         request.reject = reject;

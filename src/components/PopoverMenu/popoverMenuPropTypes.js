@@ -33,6 +33,9 @@ const propTypes = {
         left: PropTypes.number,
     }).isRequired,
 
+    /** The anchor reference of the CreateMenu popover */
+    anchorRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
+
     /** A react-native-animatable animation definition for the modal display animation. */
     animationIn: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 

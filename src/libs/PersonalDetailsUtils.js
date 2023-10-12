@@ -4,11 +4,16 @@ import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 let personalDetails = [];
+let allPersonalDetails = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (personalDetails = _.values(val)),
+    callback: (val) => {
+        personalDetails = _.values(val);
+        allPersonalDetails = val;
+    },
 });
 
 /**
@@ -20,7 +25,7 @@ Onyx.connect({
 function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
     const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
 
-    return displayName || defaultValue || 'Hidden';
+    return displayName || defaultValue || Localize.translateLocal('common.hidden');
 }
 
 /**
@@ -61,7 +66,7 @@ function getAccountIDsByLogins(logins) {
             const currentDetail = _.find(personalDetails, (detail) => detail.login === login);
             if (!currentDetail) {
                 // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
-                foundAccountIDs.push(UserUtils.generateAccountID());
+                foundAccountIDs.push(UserUtils.generateAccountID(login));
             } else {
                 foundAccountIDs.push(Number(currentDetail.accountID));
             }
@@ -91,4 +96,85 @@ function getLoginsByAccountIDs(accountIDs) {
     );
 }
 
-export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs};
+/**
+ * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored
+ *
+ * @param {Array<string>} logins Array of user logins
+ * @param {Array<number>} accountIDs Array of user accountIDs
+ * @returns {Object} - Object with optimisticData, successData and failureData (object of personal details objects)
+ */
+function getNewPersonalDetailsOnyxData(logins, accountIDs) {
+    const optimisticData = {};
+    const successData = {};
+    const failureData = {};
+
+    _.each(logins, (login, index) => {
+        const accountID = accountIDs[index];
+
+        if (_.isEmpty(allPersonalDetails[accountID])) {
+            optimisticData[accountID] = {
+                login,
+                accountID,
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
+                displayName: LocalePhoneNumber.formatPhoneNumber(login),
+            };
+
+            /**
+             * Cleanup the optimistic user to ensure it does not permanently persist.
+             * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
+             */
+            successData[accountID] = null;
+        }
+    });
+
+    return {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: optimisticData,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: successData,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: failureData,
+            },
+        ],
+    };
+}
+
+/**
+ * Applies common formatting to each piece of an address
+ *
+ * @param {String} piece - address piece to format
+ * @returns {String} - formatted piece
+ */
+function formatPiece(piece) {
+    return piece ? `${piece}, ` : '';
+}
+
+/**
+ * Formats an address object into an easily readable string
+ *
+ * @param {OnyxTypes.PrivatePersonalDetails} privatePersonalDetails - details object
+ * @returns {String} - formatted address
+ */
+function getFormattedAddress(privatePersonalDetails) {
+    const {address} = privatePersonalDetails;
+    const [street1, street2] = (address.street || '').split('\n');
+    const formattedAddress = formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
+
+    // Remove the last comma of the address
+    return formattedAddress.trim().replace(/,$/, '');
+}
+
+export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData, getFormattedAddress};

@@ -1,5 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -16,13 +18,21 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import themeColors from '../../../styles/themes/default';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import * as PolicyUtils from '../../../libs/PolicyUtils';
+import {policyPropTypes, policyDefaultProps} from '../../workspace/withPolicy';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...policyPropTypes,
 
     /** The report for which we are setting write capability */
     report: reportPropTypes.isRequired,
 };
+
+const defaultProps = {
+    ...policyDefaultProps,
+};
+
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 function WriteCapabilityPage(props) {
@@ -38,13 +48,18 @@ function WriteCapabilityPage(props) {
         boldStyle: value === (props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL),
     }));
 
+    const isAbleToEdit = !ReportUtils.isAdminRoom(props.report) && PolicyUtils.isPolicyAdmin(props.policy) && !ReportUtils.isArchivedRoom(props.report);
+
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <FullPageNotFoundView shouldShow={ReportUtils.isAdminRoom(props.report)}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={WriteCapabilityPage.displayName}
+        >
+            <FullPageNotFoundView shouldShow={!isAbleToEdit}>
                 <HeaderWithBackButton
                     title={props.translate('writeCapabilityPage.label')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
                 />
                 <OptionsList
                     sections={[{data: writeCapabilityOptions}]}
@@ -66,5 +81,14 @@ function WriteCapabilityPage(props) {
 
 WriteCapabilityPage.displayName = 'WriteCapabilityPage';
 WriteCapabilityPage.propTypes = propTypes;
+WriteCapabilityPage.defaultProps = defaultProps;
 
-export default compose(withLocalize, withReportOrNotFound)(WriteCapabilityPage);
+export default compose(
+    withLocalize,
+    withReportOrNotFound,
+    withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+        },
+    }),
+)(WriteCapabilityPage);

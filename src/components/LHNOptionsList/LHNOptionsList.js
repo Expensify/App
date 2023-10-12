@@ -1,22 +1,23 @@
-import _ from 'underscore';
-import React, {Component} from 'react';
-import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import OptionRowLHN from './OptionRowLHN';
-import variables from '../../styles/variables';
+import React from 'react';
+import {FlatList, View} from 'react-native';
+import _ from 'underscore';
 import CONST from '../../CONST';
+import styles from '../../styles/styles';
+import variables from '../../styles/variables';
+import OptionRowLHNDataWithFocus from './OptionRowLHNDataWithFocus';
 
 const propTypes = {
+    /** Wrapper style for the section list */
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.arrayOf(PropTypes.object),
+
     /** Extra styles for the section list container */
     // eslint-disable-next-line react/forbid-prop-types
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object).isRequired,
 
     /** Sections for the section list */
     data: PropTypes.arrayOf(PropTypes.string).isRequired,
-
-    /** Index for option to focus on */
-    focusedIndex: PropTypes.number.isRequired,
 
     /** Callback to fire when a row is selected */
     onSelectRow: PropTypes.func.isRequired,
@@ -29,83 +30,66 @@ const propTypes = {
 };
 
 const defaultProps = {
+    style: styles.flex1,
     shouldDisableFocusOptions: false,
 };
 
-class LHNOptionsList extends Component {
-    constructor(props) {
-        super(props);
-
-        this.renderItem = this.renderItem.bind(this);
-        this.getItemLayout = this.getItemLayout.bind(this);
-        this.data = this.props.data;
-    }
-
+function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions}) {
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
      * lists.
      *
-     * @param {Array} data - This is the same as the data we pass into the component
+     * @param {Array} itemData - This is the same as the data we pass into the component
      * @param {Number} index the current item's index in the set of data
      *
      * @returns {Object}
      */
-    getItemLayout(data, index) {
-        const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+    const getItemLayout = (itemData, index) => {
+        const optionHeight = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
         return {
             length: optionHeight,
             offset: index * optionHeight,
             index,
         };
-    }
+    };
 
     /**
      * Function which renders a row in the list
      *
      * @param {Object} params
      * @param {Object} params.item
-     * @param {Number} params.index
      *
      * @return {Component}
      */
-    renderItem({item, index}) {
-        return (
-            <OptionRowLHN
-                reportID={item}
-                viewMode={this.props.optionMode}
-                isFocused={!this.props.shouldDisableFocusOptions && this.props.focusedIndex === index}
-                onSelectRow={this.props.onSelectRow}
+    const renderItem = ({item}) => (
+        <OptionRowLHNDataWithFocus
+            reportID={item}
+            viewMode={optionMode}
+            shouldDisableFocusOptions={shouldDisableFocusOptions}
+            onSelectRow={onSelectRow}
+        />
+    );
+
+    return (
+        <View style={style}>
+            <FlatList
+                indicatorStyle="white"
+                keyboardShouldPersistTaps="always"
+                contentContainerStyle={contentContainerStyles}
+                showsVerticalScrollIndicator={false}
+                data={data}
+                testID="lhn-options-list"
+                keyExtractor={(item) => item}
+                stickySectionHeadersEnabled={false}
+                renderItem={renderItem}
+                getItemLayout={getItemLayout}
+                initialNumToRender={5}
+                maxToRenderPerBatch={5}
+                windowSize={5}
             />
-        );
-    }
-
-    render() {
-        const areArraysEqual = _.isEqual(this.props.data, this.data);
-        if (!areArraysEqual) {
-            this.data = this.props.data;
-        }
-
-        return (
-            <View style={[styles.flex1]}>
-                <FlatList
-                    indicatorStyle="white"
-                    keyboardShouldPersistTaps="always"
-                    contentContainerStyle={this.props.contentContainerStyles}
-                    showsVerticalScrollIndicator={false}
-                    data={this.data}
-                    keyExtractor={(item) => item}
-                    stickySectionHeadersEnabled={false}
-                    renderItem={this.renderItem}
-                    getItemLayout={this.getItemLayout}
-                    extraData={this.props.focusedIndex}
-                    initialNumToRender={5}
-                    maxToRenderPerBatch={5}
-                    windowSize={5}
-                />
-            </View>
-        );
-    }
+        </View>
+    );
 }
 
 LHNOptionsList.propTypes = propTypes;

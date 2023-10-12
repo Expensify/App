@@ -75,7 +75,7 @@ export default function fileDownload(fileUrl, fileName) {
     return new Promise((resolve) => {
         let fileDownloadPromise = null;
         const fileType = FileUtils.getFileType(fileUrl);
-        const attachmentName = fileName || FileUtils.getAttachmentName(fileUrl);
+        const attachmentName = FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(fileUrl);
 
         switch (fileType) {
             case CONST.ATTACHMENT_FILE_TYPE.IMAGE:

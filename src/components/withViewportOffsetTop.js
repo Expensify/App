@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import addViewportResizeListener from '../libs/VisualViewport';
+import refPropTypes from './refPropTypes';
 
 const viewportOffsetTopPropTypes = {
     // viewportOffsetTop returns the offset of the top edge of the visual viewport from the
@@ -53,8 +54,7 @@ export default function (WrappedComponent) {
 
     WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(WrappedComponent)})`;
     WithViewportOffsetTop.propTypes = {
-        // eslint-disable-next-line react/forbid-prop-types
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.any})]),
+        forwardedRef: refPropTypes,
     };
     WithViewportOffsetTop.defaultProps = {
         forwardedRef: undefined,

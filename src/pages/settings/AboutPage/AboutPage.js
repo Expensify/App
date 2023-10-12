@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {ScrollView, View} from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -20,13 +21,23 @@ import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
-import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
 import * as Environment from '../../../libs/Environment/Environment';
 
 const propTypes = {
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
+
+function getFlavor() {
+    const bundleId = DeviceInfo.getBundleId();
+    if (bundleId.includes('dev')) {
+        return ' Develop';
+    }
+    if (bundleId.includes('adhoc')) {
+        return ' Ad-Hoc';
+    }
+    return '';
+}
 
 function AboutPage(props) {
     let popoverAnchor;
@@ -41,7 +52,9 @@ function AboutPage(props) {
         {
             translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
             icon: Expensicons.Keyboard,
-            action: KeyboardShortcuts.showKeyboardShortcutModal,
+            action: () => {
+                Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+            },
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
@@ -69,7 +82,10 @@ function AboutPage(props) {
     ];
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={AboutPage.displayName}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
@@ -88,7 +104,7 @@ function AboutPage(props) {
                                         selectable
                                         style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted]}
                                     >
-                                        v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : pkg.version}
+                                        v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                                     </Text>
                                     <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
                                 </View>

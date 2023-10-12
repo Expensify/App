@@ -1,0 +1,146 @@
+diff --git a/node_modules/@react-navigation/material-top-tabs/lib/module/index.js b/node_modules/@react-navigation/material-top-tabs/lib/module/index.js
+index b83d44f..9d158a0 100644
+--- a/node_modules/@react-navigation/material-top-tabs/lib/module/index.js
++++ b/node_modules/@react-navigation/material-top-tabs/lib/module/index.js
+@@ -9,6 +9,11 @@ export { default as createMaterialTopTabNavigator } from './navigators/createMat
+ export { default as MaterialTopTabBar } from './views/MaterialTopTabBar';
+ export { default as MaterialTopTabView } from './views/MaterialTopTabView';
+ 
++/**
++ * Utilities
++ */
++export { useTabAnimation } from './utils/useTabAnimation';
++
+ /**
+  * Types
+  */
+diff --git a/node_modules/@react-navigation/material-top-tabs/lib/module/utils/TabAnimationContext.js b/node_modules/@react-navigation/material-top-tabs/lib/module/utils/TabAnimationContext.js
+new file mode 100644
+index 0000000..4ef4e76
+--- /dev/null
++++ b/node_modules/@react-navigation/material-top-tabs/lib/module/utils/TabAnimationContext.js
+@@ -0,0 +1,3 @@
++import * as React from 'react';
++export const TabAnimationContext = /*#__PURE__*/React.createContext(undefined);
++//# sourceMappingURL=TabAnimationContext.js.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/material-top-tabs/lib/module/utils/useTabAnimation.js b/node_modules/@react-navigation/material-top-tabs/lib/module/utils/useTabAnimation.js
+new file mode 100644
+index 0000000..764ca9b
+--- /dev/null
++++ b/node_modules/@react-navigation/material-top-tabs/lib/module/utils/useTabAnimation.js
+@@ -0,0 +1,10 @@
++import * as React from 'react';
++import { TabAnimationContext } from './TabAnimationContext';
++export function useTabAnimation() {
++  const animation = React.useContext(TabAnimationContext);
++  if (animation === undefined) {
++    throw new Error("Couldn't find values for card animation. Are you inside a screen in Tab?");
++  }
++  return animation;
++}
++//# sourceMappingURL=useTabAnimation.js.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/material-top-tabs/lib/module/views/MaterialTopTabView.js b/node_modules/@react-navigation/material-top-tabs/lib/module/views/MaterialTopTabView.js
+index 7eda7c4..f736fd9 100644
+--- a/node_modules/@react-navigation/material-top-tabs/lib/module/views/MaterialTopTabView.js
++++ b/node_modules/@react-navigation/material-top-tabs/lib/module/views/MaterialTopTabView.js
+@@ -2,6 +2,7 @@ function _extends() { _extends = Object.assign ? Object.assign.bind() : function
+ import { CommonActions, useTheme } from '@react-navigation/native';
+ import * as React from 'react';
+ import { TabView } from 'react-native-tab-view';
++import { TabAnimationContext } from '../utils/TabAnimationContext';
+ import MaterialTopTabBar from './MaterialTopTabBar';
+ export default function MaterialTopTabView(_ref) {
+   let {
+@@ -34,9 +35,12 @@ export default function MaterialTopTabView(_ref) {
+     }),
+     renderScene: _ref2 => {
+       let {
+-        route
++        route,
++        position
+       } = _ref2;
+-      return descriptors[route.key].render();
++      return /*#__PURE__*/React.createElement(TabAnimationContext.Provider, {
++        value: position
++      }, descriptors[route.key].render());
+     },
+     navigationState: state,
+     renderTabBar: renderTabBar,
+diff --git a/node_modules/@react-navigation/material-top-tabs/src/index.tsx b/node_modules/@react-navigation/material-top-tabs/src/index.tsx
+index ae02811..b735f30 100644
+--- a/node_modules/@react-navigation/material-top-tabs/src/index.tsx
++++ b/node_modules/@react-navigation/material-top-tabs/src/index.tsx
+@@ -9,6 +9,11 @@ export { default as createMaterialTopTabNavigator } from './navigators/createMat
+ export { default as MaterialTopTabBar } from './views/MaterialTopTabBar';
+ export { default as MaterialTopTabView } from './views/MaterialTopTabView';
+ 
++/**
++ * Utilities
++ */
++export { useTabAnimation } from './utils/useTabAnimation';
++
+ /**
+  * Types
+  */
+diff --git a/node_modules/@react-navigation/material-top-tabs/src/utils/TabAnimationContext.ts b/node_modules/@react-navigation/material-top-tabs/src/utils/TabAnimationContext.ts
+new file mode 100644
+index 0000000..92a97ec
+--- /dev/null
++++ b/node_modules/@react-navigation/material-top-tabs/src/utils/TabAnimationContext.ts
+@@ -0,0 +1,6 @@
++import * as React from 'react';
++import type { Animated } from 'react-native';
++
++export const TabAnimationContext = React.createContext<
++  Animated.AnimatedInterpolation<number> | undefined
++>(undefined);
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/material-top-tabs/src/utils/useTabAnimation.ts b/node_modules/@react-navigation/material-top-tabs/src/utils/useTabAnimation.ts
+new file mode 100644
+index 0000000..6c122a7
+--- /dev/null
++++ b/node_modules/@react-navigation/material-top-tabs/src/utils/useTabAnimation.ts
+@@ -0,0 +1,15 @@
++import * as React from 'react';
++
++import { TabAnimationContext } from './TabAnimationContext';
++
++export function useTabAnimation() {
++  const animation = React.useContext(TabAnimationContext);
++
++  if (animation === undefined) {
++    throw new Error(
++      "Couldn't find values for card animation. Are you inside a screen in Tab?"
++    );
++  }
++
++  return animation;
++}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/material-top-tabs/src/views/MaterialTopTabView.tsx b/node_modules/@react-navigation/material-top-tabs/src/views/MaterialTopTabView.tsx
+index 1282698..9b0af5d 100644
+--- a/node_modules/@react-navigation/material-top-tabs/src/views/MaterialTopTabView.tsx
++++ b/node_modules/@react-navigation/material-top-tabs/src/views/MaterialTopTabView.tsx
+@@ -14,6 +14,7 @@ import type {
+   MaterialTopTabNavigationConfig,
+   MaterialTopTabNavigationHelpers,
+ } from '../types';
++import { TabAnimationContext } from '../utils/TabAnimationContext';
+ import MaterialTopTabBar from './MaterialTopTabBar';
+ 
+ type Props = MaterialTopTabNavigationConfig & {
+@@ -55,7 +56,11 @@ export default function MaterialTopTabView({
+           target: state.key,
+         })
+       }
+-      renderScene={({ route }) => descriptors[route.key].render()}
++      renderScene={({ route, position }) => (
++        <TabAnimationContext.Provider value={position}>
++          {descriptors[route.key].render()}
++        </TabAnimationContext.Provider>
++      )}
+       navigationState={state}
+       renderTabBar={renderTabBar}
+       renderLazyPlaceholder={({ route }) =>

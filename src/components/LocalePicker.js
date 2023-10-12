@@ -27,9 +27,11 @@ const defaultProps = {
 };
 
 function LocalePicker(props) {
-    const localesToLanguages = _.map(props.translate('languagePage.languages'), (language, key) => ({
-        value: key,
-        label: language.label,
+    const localesToLanguages = _.map(CONST.LANGUAGES, (language) => ({
+        value: language,
+        label: props.translate(`languagePage.languages.${language}.label`),
+        keyForList: language,
+        isSelected: props.preferredLocale === language,
     }));
     return (
         <Picker

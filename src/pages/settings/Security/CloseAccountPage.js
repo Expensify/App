@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -20,6 +19,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Form from '../../../components/Form';
 import CONST from '../../../CONST';
 import ConfirmModal from '../../../components/ConfirmModal';
+import * as ValidationUtils from '../../../libs/ValidationUtils';
 
 const propTypes = {
     /** Session of currently logged in user */
@@ -62,11 +62,19 @@ function CloseAccountPage(props) {
         setReasonForLeaving(values.reasonForLeaving);
     };
 
-    const validate = (values) => {
-        const userEmailOrPhone = props.formatPhoneNumber(props.session.email);
-        const errors = {};
+    /**
+     * Removes spaces and transform the input string to lowercase.
+     * @param {String} phoneOrEmail - The input string to be sanitized.
+     * @returns {String} The sanitized string
+     */
+    const sanitizePhoneOrEmail = (phoneOrEmail) => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
 
-        if (_.isEmpty(values.phoneOrEmail) || userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()) {
+    const validate = (values) => {
+        const requiredFields = ['phoneOrEmail'];
+        const userEmailOrPhone = props.formatPhoneNumber(props.session.email);
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+
+        if (values.phoneOrEmail && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
             errors.phoneOrEmail = 'closeAccountPage.enterYourDefaultContactMethod';
         }
         return errors;
@@ -75,7 +83,10 @@ function CloseAccountPage(props) {
     const userEmailOrPhone = props.formatPhoneNumber(props.session.email);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={CloseAccountPage.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('closeAccountPage.closeAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
@@ -95,15 +106,19 @@ function CloseAccountPage(props) {
                         autoGrowHeight
                         textAlignVertical="top"
                         label={props.translate('closeAccountPage.enterMessageHere')}
+                        accessibilityLabel={props.translate('closeAccountPage.enterMessageHere')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
                     />
                     <Text style={[styles.mt5]}>
-                        {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>.
+                        {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
                     </Text>
                     <TextInput
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         label={props.translate('closeAccountPage.enterDefaultContact')}
+                        accessibilityLabel={props.translate('closeAccountPage.enterDefaultContact')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt5]}
                         autoCorrect={false}
                         keyboardType={Str.isValidEmail(userEmailOrPhone) ? CONST.KEYBOARD_TYPE.EMAIL_ADDRESS : CONST.KEYBOARD_TYPE.DEFAULT}
@@ -117,6 +132,7 @@ function CloseAccountPage(props) {
                         prompt={props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                         confirmText={props.translate('common.yesContinue')}
                         cancelText={props.translate('common.cancel')}
+                        shouldDisableConfirmButtonWhenOffline
                         shouldShowCancelButton
                     />
                 </View>
@@ -127,6 +143,7 @@ function CloseAccountPage(props) {
 
 CloseAccountPage.propTypes = propTypes;
 CloseAccountPage.defaultProps = defaultProps;
+CloseAccountPage.displayName = 'CloseAccountPage';
 
 export default compose(
     withLocalize,

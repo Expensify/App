@@ -1,217 +1,143 @@
-import React from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
-import * as Expensicons from './Icon/Expensicons';
-import Text from './Text';
-import participantPropTypes from './participantPropTypes';
-import Avatar from './Avatar';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import CONST from '../CONST';
-import withWindowDimensions from './withWindowDimensions';
 import compose from '../libs/compose';
+import * as Expensicons from './Icon/Expensicons';
+import participantPropTypes from './participantPropTypes';
+import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import Icon from './Icon';
-import SettlementButton from './SettlementButton';
-import * as Policy from '../libs/actions/Policy';
+import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import DateUtils from '../libs/DateUtils';
-import reportPropTypes from '../pages/reportPropTypes';
-import * as UserUtils from '../libs/UserUtils';
+import ConfirmModal from './ConfirmModal';
+import useLocalize from '../hooks/useLocalize';
+import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import * as TransactionUtils from '../libs/TransactionUtils';
+import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
+import transactionPropTypes from './transactionPropTypes';
+import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     /** The report currently being looked at */
     report: iouReportPropTypes.isRequired,
 
-    /** The expense report or iou report (only will have a value if this is a transaction thread) */
-    parentReport: iouReportPropTypes,
-
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
+    /** The policy which the report is tied to */
+    policy: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
-    }).isRequired,
-
-    /** The chat report this report is linked to */
-    chatReport: reportPropTypes,
+    }),
 
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
-    /** Whether we're viewing a report with a single transaction in it */
-    isSingleTransactionView: PropTypes.bool,
-
+    /* Onyx Props */
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
         email: PropTypes.string,
     }),
 
-    ...withLocalizePropTypes,
+    /** The expense report or iou report (only will have a value if this is a transaction thread) */
+    parentReport: iouReportPropTypes,
+
+    /** The report action the transaction is tied to from the parent report */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
+
+    /** All the data for the transaction */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
-    isSingleTransactionView: false,
-    chatReport: {},
     session: {
         email: null,
     },
     parentReport: {},
+    parentReportAction: {},
+    transaction: {},
+    policy: {},
 };
 
-function MoneyRequestHeader(props) {
-    // These are only used for the single transaction view and not for expense and iou reports
-    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(props.parentReportAction);
-    const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const transactionDate = lodashGet(props.parentReportAction, ['created']);
-    const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
-
-    const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
-    const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
+function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}) {
+    const {translate} = useLocalize();
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const isExpenseReport = ReportUtils.isExpenseReport(moneyRequestReport);
-    const payeeName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport, props.policies) : ReportUtils.getDisplayNameForParticipant(moneyRequestReport.managerID);
-    const payeeAvatar = isExpenseReport
-        ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
-        : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'avatar']), moneyRequestReport.managerID);
-    const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
-    const isPayer =
-        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
-    const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
-    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
-    const report = props.report;
-    if (props.isSingleTransactionView) {
-        report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
-        report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
-    }
+    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+
+    // Only the requestor can take delete the request, admins can only edit it.
+    const isActionOwner = lodashGet(parentReportAction, 'actorAccountID') === lodashGet(session, 'accountID', null);
+
+    const deleteTransaction = useCallback(() => {
+        IOU.deleteMoneyRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), parentReportAction, true);
+        setIsDeleteModalVisible(false);
+    }, [parentReportAction, setIsDeleteModalVisible]);
+
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+
+    const canModifyRequest = isActionOwner && !isSettled && !isApproved;
+
+    useEffect(() => {
+        if (canModifyRequest) {
+            return;
+        }
+
+        setIsDeleteModalVisible(false);
+    }, [canModifyRequest]);
+
     return (
-        <View style={[styles.highlightBG, styles.pl0]}>
-            <HeaderWithBackButton
-                shouldShowAvatarWithDisplay
-                shouldShowPinButton={props.isSingleTransactionView}
-                shouldShowThreeDotsButton={!isPayer && !isSettled && props.isSingleTransactionView}
-                threeDotsMenuItems={[
-                    {
-                        icon: Expensicons.Trashcan,
-                        text: props.translate('common.delete'),
-                        onSelected: () => {},
-                    },
-                ]}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
-                report={report}
-                policies={props.policies}
-                personalDetails={props.personalDetails}
-                shouldShowBackButton={props.isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-            />
-            <View style={[styles.ph5, styles.pb2]}>
-                <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Avatar
-                            source={payeeAvatar}
-                            type={isExpenseReport ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR}
-                            name={payeeName}
-                            size={CONST.AVATAR_SIZE.DEFAULT}
-                        />
-                        <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
-                            <Text
-                                style={[styles.headerText, styles.pre]}
-                                numberOfLines={1}
-                            >
-                                {payeeName}
-                            </Text>
-                            {isExpenseReport && (
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                    numberOfLines={1}
-                                >
-                                    {props.translate('workspace.common.workspace')}
-                                </Text>
-                            )}
-                        </View>
-                    </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
-                        {!props.isSingleTransactionView && isSettled && (
-                            <View style={styles.defaultCheckmarkWrapper}>
-                                <Icon
-                                    src={Expensicons.Checkmark}
-                                    fill={themeColors.iconSuccessFill}
-                                />
-                            </View>
-                        )}
-                        {shouldShowSettlementButton && !props.isSmallScreenWidth && (
-                            <View style={[styles.ml4]}>
-                                <SettlementButton
-                                    currency={props.report.currency}
-                                    policyID={props.report.policyID}
-                                    shouldShowPaypal={shouldShowPaypal}
-                                    chatReportID={props.chatReport.reportID}
-                                    iouReport={props.report}
-                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
-                                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                                    addBankAccountRoute={bankAccountRoute}
-                                    shouldShowPaymentOptions
-                                />
-                            </View>
-                        )}
-                    </View>
-                </View>
-                {shouldShowSettlementButton && props.isSmallScreenWidth && (
-                    <SettlementButton
-                        currency={props.report.currency}
-                        policyID={props.report.policyID}
-                        shouldShowPaypal={shouldShowPaypal}
-                        chatReportID={props.report.chatReportID}
-                        iouReport={props.report}
-                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
-                        enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                        addBankAccountRoute={bankAccountRoute}
-                        shouldShowPaymentOptions
-                    />
-                )}
+        <>
+            <View style={[styles.pl0]}>
+                <HeaderWithBackButton
+                    shouldShowAvatarWithDisplay
+                    shouldShowPinButton={false}
+                    shouldShowThreeDotsButton={canModifyRequest}
+                    threeDotsMenuItems={[
+                        ...(TransactionUtils.hasReceipt(transaction)
+                            ? []
+                            : [
+                                  {
+                                      icon: Expensicons.Receipt,
+                                      text: translate('receipt.addReceipt'),
+                                      onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+                                  },
+                              ]),
+                        {
+                            icon: Expensicons.Trashcan,
+                            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                            onSelected: () => setIsDeleteModalVisible(true),
+                        },
+                    ]}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    report={{
+                        ...report,
+                        ownerAccountID: lodashGet(parentReport, 'ownerAccountID', null),
+                        ownerEmail: lodashGet(parentReport, 'ownerEmail', null),
+                    }}
+                    policy={policy}
+                    personalDetails={personalDetails}
+                    shouldShowBackButton={isSmallScreenWidth}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
+                />
+                {isScanning && <MoneyRequestHeaderStatusBar />}
             </View>
-            {props.isSingleTransactionView && (
-                <>
-                    <MenuItemWithTopDescription
-                        title={formattedTransactionAmount}
-                        shouldShowTitleIcon={isSettled}
-                        titleIcon={Expensicons.Checkmark}
-                        description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}${isSettled ? ` • ${props.translate('iou.settledExpensify')}` : ''}`}
-                        titleStyle={styles.newKansasLarge}
-                        disabled={isSettled}
-                        // Note: These options are temporarily disabled while we figure out the required API changes
-                        // shouldShowRightIcon={!isSettled}
-                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-                    />
-                    <MenuItemWithTopDescription
-                        description={props.translate('common.description')}
-                        title={transactionDescription}
-                        disabled={isSettled}
-                        // shouldShowRightIcon={!isSettled}
-                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
-                    />
-                    <MenuItemWithTopDescription
-                        description={props.translate('common.date')}
-                        title={formattedTransactionDate}
-                        // shouldShowRightIcon={!isSettled}
-                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
-                    />
-                </>
-            )}
-        </View>
+            <ConfirmModal
+                title={translate('iou.deleteRequest')}
+                isVisible={isDeleteModalVisible}
+                onConfirm={deleteTransaction}
+                onCancel={() => setIsDeleteModalVisible(false)}
+                prompt={translate('iou.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
+        </>
     );
 }
 
@@ -220,17 +146,25 @@ MoneyRequestHeader.propTypes = propTypes;
 MoneyRequestHeader.defaultProps = defaultProps;
 
 export default compose(
-    withWindowDimensions,
-    withLocalize,
     withOnyx({
-        chatReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },
         parentReport: {
-            key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${props.report.parentReportID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        transaction: {
+            key: ({report, parentReportActions}) => {
+                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
+            },
         },
     }),
 )(MoneyRequestHeader);

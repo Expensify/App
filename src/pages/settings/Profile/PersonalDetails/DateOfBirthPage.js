@@ -1,21 +1,23 @@
-import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
+import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import moment from 'moment';
 import lodashGet from 'lodash/get';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import Form from '../../../../components/Form';
+import {subYears} from 'date-fns';
+import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
+import ROUTES from '../../../../ROUTES';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
+import NewDatePicker from '../../../../components/NewDatePicker';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import Navigation from '../../../../libs/Navigation/Navigation';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import styles from '../../../../styles/styles';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
-import NewDatePicker from '../../../../components/NewDatePicker';
-import CONST from '../../../../CONST';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
+import styles from '../../../../styles/styles';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import FormProvider from '../../../../components/Form/FormProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -34,15 +36,9 @@ const defaultProps = {
     },
 };
 
-function DateOfBirthPage({translate, route, privatePersonalDetails}) {
-    /**
-     * The year should be set on the route when navigating back from the year picker
-     * This lets us pass the selected year without having to overwrite the value in Onyx
-     */
-    const dobYear = String(moment(privatePersonalDetails.dob).year());
-    const selectedYear = lodashGet(route.params, 'year', dobYear);
-    const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
-    const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
+function DateOfBirthPage({translate, privatePersonalDetails}) {
+    usePrivatePersonalDetails();
+    const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
 
     /**
      * @param {Object} values
@@ -50,15 +46,14 @@ function DateOfBirthPage({translate, route, privatePersonalDetails}) {
      * @returns {Object} - An object containing the errors for each inputID
      */
     const validate = useCallback((values) => {
-        const errors = {};
+        const requiredFields = ['dob'];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+
         const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
         const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
-
-        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
-            errors.dob = 'common.error.fieldRequired';
-        }
         const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
-        if (dateError) {
+
+        if (values.dob && dateError) {
             errors.dob = dateError;
         }
 
@@ -66,28 +61,34 @@ function DateOfBirthPage({translate, route, privatePersonalDetails}) {
     }, []);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={DateOfBirthPage.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('common.dob')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
-            <Form
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
-                validate={validate}
-                onSubmit={PersonalDetails.updateDateOfBirth}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
-            >
-                <NewDatePicker
-                    inputID="dob"
-                    label={translate('common.date')}
-                    defaultValue={privatePersonalDetails.dob || ''}
-                    minDate={minDate}
-                    maxDate={maxDate}
-                    selectedYear={selectedYear}
-                />
-            </Form>
+            {isLoadingPersonalDetails ? (
+                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            ) : (
+                <FormProvider
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
+                    validate={validate}
+                    onSubmit={PersonalDetails.updateDateOfBirth}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <NewDatePicker
+                        inputID="dob"
+                        label={translate('common.date')}
+                        defaultValue={privatePersonalDetails.dob || ''}
+                        minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
+                        maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
+                    />
+                </FormProvider>
+            )}
         </ScreenWrapper>
     );
 }

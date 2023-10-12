@@ -3,8 +3,10 @@ import PropTypes from 'prop-types';
 import {render} from '@testing-library/react-native';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import OnyxProvider from '../../src/components/OnyxProvider';
-import {LocaleContextProvider} from '../../src/components/withLocalize';
-import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
+import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
+import SidebarLinksData from '../../src/pages/home/sidebar/SidebarLinksData';
+import {EnvironmentProvider} from '../../src/components/withEnvironment';
+import {CurrentReportIDContextProvider} from '../../src/components/withCurrentReportID';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 
@@ -14,6 +16,7 @@ jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
+        useFocusEffect: jest.fn(),
         useIsFocused: () => ({
             navigate: mockedNavigate,
         }),
@@ -95,12 +98,12 @@ let lastFakeReportID = 0;
 let lastFakeReportActionID = 0;
 
 /**
- * @param {Number[]} participants
+ * @param {Number[]} participantAccountIDs
  * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  * @param {boolean} isUnread
  * @returns {Object}
  */
-function getFakeReport(participants = [1, 2], millisecondsInThePast = 0, isUnread = false) {
+function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false) {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
     return {
         type: CONST.REPORT.TYPE.CHAT,
@@ -108,7 +111,7 @@ function getFakeReport(participants = [1, 2], millisecondsInThePast = 0, isUnrea
         reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
-        participantAccountIDs: participants,
+        participantAccountIDs,
     };
 }
 
@@ -153,7 +156,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
  */
 function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
     return {
-        ...getFakeReport(['email1@test.com', 'email2@test.com'], 0, isUnread),
+        ...getFakeReport([1, 2], 0, isUnread),
         type: CONST.REPORT.TYPE.CHAT,
         chatType: isUserCreatedPolicyRoom ? CONST.REPORT.CHAT_TYPE.POLICY_ROOM : CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         statusNum: isArchived ? CONST.REPORT.STATUS.CLOSED : 0,
@@ -191,9 +194,8 @@ function getDefaultRenderedSidebarLinks(currentReportID = '') {
  */
 function MockedSidebarLinks({currentReportID}) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
-            <SidebarLinks
-                onLinkClick={() => {}}
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
+            <SidebarLinksData
                 insets={{
                     top: 0,
                     left: 0,
@@ -202,6 +204,7 @@ function MockedSidebarLinks({currentReportID}) {
                 }}
                 isSmallScreenWidth={false}
                 currentReportID={currentReportID}
+                onLinkClick={() => {}}
             />
         </ComposeProviders>
     );

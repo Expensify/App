@@ -1,4 +1,5 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
+import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -6,6 +7,8 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
+import withLocalize from '../../components/withLocalize';
+import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
@@ -17,7 +20,6 @@ import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as PlaidDataProps from './plaidDataPropTypes';
 import StepPropTypes from './StepPropTypes';
-import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     ...StepPropTypes,
@@ -39,8 +41,8 @@ const defaultProps = {
 };
 
 function BankAccountPlaidStep(props) {
-    const {plaidData, receivedRedirectURI, plaidLinkOAuthToken, reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField} = props;
-    const {translate} = useLocalize();
+    const {plaidData, receivedRedirectURI, plaidLinkOAuthToken, reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField, translate} = props;
+    const isFocused = useIsFocused();
 
     const validate = useCallback((values) => {
         const errorFields = {};
@@ -50,6 +52,14 @@ function BankAccountPlaidStep(props) {
 
         return errorFields;
     }, []);
+
+    useEffect(() => {
+        const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts') || [];
+        if (isFocused || plaidBankAccounts.length) {
+            return;
+        }
+        BankAccounts.setBankAccountSubStep(null);
+    }, [isFocused, plaidData]);
 
     const submit = useCallback(() => {
         const selectedPlaidBankAccount = _.findWhere(lodashGet(plaidData, 'bankAccounts', []), {
@@ -79,6 +89,7 @@ function BankAccountPlaidStep(props) {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator={false}
+            testID={BankAccountPlaidStep.displayName}
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.connectBankAccount')}
@@ -88,7 +99,7 @@ function BankAccountPlaidStep(props) {
                 onBackButtonPress={onBackButtonPress}
             />
             <Form
-                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
                 onSubmit={submit}
                 scrollContextEnabled
@@ -132,8 +143,11 @@ function BankAccountPlaidStep(props) {
 BankAccountPlaidStep.propTypes = propTypes;
 BankAccountPlaidStep.defaultProps = defaultProps;
 BankAccountPlaidStep.displayName = 'BankAccountPlaidStep';
-export default withOnyx({
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
-})(BankAccountPlaidStep);
+export default compose(
+    withLocalize,
+    withOnyx({
+        plaidData: {
+            key: ONYXKEYS.PLAID_DATA,
+        },
+    }),
+)(BankAccountPlaidStep);

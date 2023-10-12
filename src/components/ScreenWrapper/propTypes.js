@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
-import {environmentPropTypes} from '../withEnvironment';
+import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -8,6 +7,9 @@ const propTypes = {
 
     /** Returns a function as a child to pass insets to or a node to render without insets */
     children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
+
+    /** A unique ID to find the screen wrapper in tests */
+    testID: PropTypes.string.isRequired,
 
     /** Whether to include padding bottom */
     includeSafeAreaPaddingBottom: PropTypes.bool,
@@ -35,12 +37,14 @@ const propTypes = {
     /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
     shouldEnableMaxHeight: PropTypes.bool,
 
-    ...windowDimensionsPropTypes,
-
-    ...environmentPropTypes,
+    /** Array of additional styles for header gap */
+    headerGapStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether to show offline indicator */
     shouldShowOfflineIndicator: PropTypes.bool,
+
+    /** Styles for the offline indicator */
+    offlineIndicatorStyle: stylePropTypes,
 };
 
 const defaultProps = {
@@ -54,6 +58,8 @@ const defaultProps = {
     shouldEnableMaxHeight: false,
     shouldEnablePickerAvoiding: true,
     shouldShowOfflineIndicator: true,
+    offlineIndicatorStyle: [],
+    headerGapStyles: [],
 };
 
 export {propTypes, defaultProps};

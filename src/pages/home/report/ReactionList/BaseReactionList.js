@@ -79,7 +79,7 @@ function BaseReactionList(props) {
             hoverStyle={styles.hoveredComponentBG}
             onSelectRow={() => {
                 props.onClose();
-                Navigation.navigate(ROUTES.getProfileRoute(item.accountID));
+                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
             }}
             option={{
                 text: Str.removeSMSDomain(item.displayName),
@@ -87,6 +87,7 @@ function BaseReactionList(props) {
                 participantsList: [item],
                 icons: [
                     {
+                        id: item.accountID,
                         source: UserUtils.getAvatar(item.avatar, item.accountID),
                         name: item.login,
                         type: CONST.ICON_TYPE_AVATAR,

@@ -44,6 +44,7 @@ class RequestorOnfidoStep extends React.Component {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldShowOfflineIndicator={false}
+                testID={RequestorOnfidoStep.displayName}
             >
                 <HeaderWithBackButton
                     title={this.props.translate('requestorStep.headerTitle')}

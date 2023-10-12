@@ -5,18 +5,18 @@
 
 ### Fixed Issues
 <!---
-1. Please postfix `$` with a URL link to the GitHub issue this Pull Request is fixing. For example, `$ https://github.com/Expensify/App/issues/123`.
-2. Please postfix  `PROPOSAL:` with a URL link to your GitHub comment, which contains the approved proposal (i.e. the proposal that was approved by Expensify).  For example, `PROPOSAL: https://github.com/Expensify/App/issues/123#issuecomment-1369752925`
+1. Please postfix `$` with a URL link to the GitHub issue this Pull Request is fixing. For example, `$ https://github.com/Expensify/App/issues/<issueID>`.
+2. Please postfix  `PROPOSAL:` with a URL link to your GitHub comment, which contains the approved proposal (i.e. the proposal that was approved by Expensify).  For example, `PROPOSAL: https://github.com/Expensify/App/issues/<issueID>#issuecomment-1369752925`
 
 Do NOT add the special GH keywords like `fixed` etc, we have our own process of managing the flow.
 It MUST be an entire link to the github issue and your comment proposal ; otherwise, the linking and its automation will not work as expected.
 
 Make sure this section looks similar to this (you can link multiple issues using the same formatting, just add a new line):
 
-$ https://github.com/Expensify/App/issues/<number-of-the-issue>
-$ https://github.com/Expensify/App/issues/<number-of-the-issue(comment)>
+$ https://github.com/Expensify/App/issues/<issueID>
+$ https://github.com/Expensify/App/issues/<issueID(comment)>
 
-Do NOT only link the issue number like this: $ #<number-of-the-issue>
+Do NOT only link the issue number like this: $ #<issueID>
 --->
 $ 
 PROPOSAL: 
@@ -70,12 +70,12 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] I tested this PR with a [High Traffic account](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts) against the staging or production API to ensure there are no regressions (e.g. long loading states that impact usability).
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I ran the tests on **all platforms** & verified they passed on:
-    - [ ] Android / native
-    - [ ] Android / Chrome
-    - [ ] iOS / native
-    - [ ] iOS / Safari
-    - [ ] MacOS / Chrome / Safari
-    - [ ] MacOS / Desktop
+    - [ ] Android: Native
+    - [ ] Android: mWeb Chrome
+    - [ ] iOS: Native
+    - [ ] iOS: mWeb Safari
+    - [ ] MacOS: Chrome / Safari
+    - [ ] MacOS: Desktop
 - [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
 - [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`)
@@ -113,48 +113,49 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] If the PR modifies code that runs when editing or sending messages, I tested and verified there is no unexpected behavior for all supported markdown - URLs, single line code, code blocks, quotes, headings, bold, strikethrough, and italic.
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
+- [ ] If the PR modifies a component or page that can be accessed by a direct deeplink, I verified that the code functions as expected when the deeplink is used - from a logged in and logged out account.
 - [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.
 - [ ] If the `main` branch was merged into this PR after a review, I tested again and verified the outcome was still expected according to the `Test` steps.
 - [ ] I have checked off every checkbox in the PR author checklist, including those that don't apply to this PR.
 
 ### Screenshots/Videos
 <details>
-<summary>Web</summary>
+<summary>Android: Native</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Mobile Web - Chrome</summary>
+<summary>Android: mWeb Chrome</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Mobile Web - Safari</summary>
+<summary>iOS: Native</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Desktop</summary>
+<summary>iOS: mWeb Safari</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>iOS</summary>
+<summary>MacOS: Chrome / Safari</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Android</summary>
+<summary>MacOS: Desktop</summary>
 
 <!-- add screenshots or videos here -->
 

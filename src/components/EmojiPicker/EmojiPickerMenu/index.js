@@ -21,6 +21,7 @@ import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
 import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
+import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -32,6 +33,10 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
+    /** Stores user's frequently used emojis */
+    // eslint-disable-next-line react/forbid-prop-types
+    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.object),
+
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
 
@@ -41,6 +46,7 @@ const propTypes = {
 const defaultProps = {
     forwardedRef: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    frequentlyUsedEmojis: [],
 };
 
 class EmojiPickerMenu extends Component {
@@ -53,26 +59,12 @@ class EmojiPickerMenu extends Component {
         // Ref for emoji FlatList
         this.emojiList = undefined;
 
-        // If we're on Windows, don't display the flag emojis (the last category),
-        // since Windows doesn't support them
-        const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && emoji.code === 'flags');
-        this.emojis =
-            getOperatingSystem() === CONST.OS.WINDOWS
-                ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex))
-                : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis);
-
-        // Get the header emojis along with the code, index and icon.
-        // index is the actual header index starting at the first emoji and counting each one
-        this.headerEmojis = EmojiUtils.getHeaderEmojis(this.emojis);
-
-        // This is the indices of each header's Row
-        // The positions are static, and are calculated as index/numColumns (8 in our case)
-        // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
+        // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
+        // prevent auto focus when open picker for mobile device
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
-        this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
         this.setupEventHandlers = this.setupEventHandlers.bind(this);
         this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
@@ -83,8 +75,12 @@ class EmojiPickerMenu extends Component {
         this.getItemLayout = this.getItemLayout.bind(this);
         this.scrollToHeader = this.scrollToHeader.bind(this);
 
-        this.currentScrollOffset = 0;
         this.firstNonHeaderIndex = 0;
+
+        const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
+        this.emojis = filteredEmojis;
+        this.headerEmojis = headerEmojis;
+        this.headerRowIndices = headerRowIndices;
 
         this.state = {
             filteredEmojis: this.emojis,
@@ -105,11 +101,26 @@ class EmojiPickerMenu extends Component {
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
-        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
+        if (this.shouldFocusInputOnScreenFocus && this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
             this.props.forwardedRef(this.searchInput);
         }
         this.setupEventHandlers();
         this.setFirstNonHeaderIndex(this.emojis);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.frequentlyUsedEmojis === this.props.frequentlyUsedEmojis) {
+            return;
+        }
+
+        const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
+        this.emojis = filteredEmojis;
+        this.headerEmojis = headerEmojis;
+        this.headerRowIndices = headerRowIndices;
+        this.setState({
+            filteredEmojis: this.emojis,
+            headerIndices: this.headerRowIndices,
+        });
     }
 
     componentWillUnmount() {
@@ -123,6 +134,31 @@ class EmojiPickerMenu extends Component {
      */
     onSelectionChange(event) {
         this.setState({selection: event.nativeEvent.selection});
+    }
+
+    /**
+     * Calculate the filtered + header emojis and header row indices
+     * @returns {Object}
+     */
+    getEmojisAndHeaderRowIndices() {
+        // If we're on Windows, don't display the flag emojis (the last category),
+        // since Windows doesn't support them
+        const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && emoji.code === 'flags');
+        const filteredEmojis =
+            getOperatingSystem() === CONST.OS.WINDOWS
+                ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex))
+                : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis);
+
+        // Get the header emojis along with the code, index and icon.
+        // index is the actual header index starting at the first emoji and counting each one
+        const headerEmojis = EmojiUtils.getHeaderEmojis(filteredEmojis);
+
+        // This is the indices of each header's Row
+        // The positions are static, and are calculated as index/numColumns (8 in our case)
+        // This is because each row of 8 emojis counts as one index to the flatlist
+        const headerRowIndices = _.map(headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
+
+        return {filteredEmojis, headerEmojis, headerRowIndices};
     }
 
     /**
@@ -159,7 +195,7 @@ class EmojiPickerMenu extends Component {
                     return;
                 }
                 const emoji = lodashGet(item, ['types', this.props.preferredSkinTone], item.code);
-                this.addToFrequentAndSelectEmoji(emoji, item);
+                this.props.onEmojiSelected(emoji, item);
                 return;
             }
 
@@ -223,16 +259,6 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * @param {String} emoji
-     * @param {Object} emojiObject
-     */
-    addToFrequentAndSelectEmoji(emoji, emojiObject) {
-        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-        User.updateFrequentlyUsedEmojis(frequentEmojiList);
-        this.props.onEmojiSelected(emoji, emojiObject);
-    }
-
-    /**
      * Focuses the search Input and has the text selected
      */
     focusInputWithTextSelect() {
@@ -263,9 +289,9 @@ class EmojiPickerMenu extends Component {
                 return;
             }
 
-            // Blur the input and change the highlight type to keyboard
+            // Blur the input, change the highlight type to keyboard, and disable pointer events
             this.searchInput.blur();
-            this.setState({isUsingKeyboardMovement: true});
+            this.setState({isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
 
             // We only want to hightlight the Emoji if none was highlighted already
             // If we already have a highlighted Emoji, lets just skip the first navigation
@@ -275,10 +301,9 @@ class EmojiPickerMenu extends Component {
         }
 
         // If nothing is highlighted and an arrow key is pressed
-        // select the first emoji
+        // select the first emoji, apply keyboard movement styles, and disable pointer events
         if (this.state.highlightedIndex === -1) {
-            this.setState({highlightedIndex: this.firstNonHeaderIndex});
-            this.scrollToHighlightedIndex();
+            this.setState({highlightedIndex: this.firstNonHeaderIndex, isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
             return;
         }
 
@@ -332,10 +357,9 @@ class EmojiPickerMenu extends Component {
                 break;
         }
 
-        // Actually highlight the new emoji, apply keyboard movement styles, and scroll to it if the index was changed
+        // Actually highlight the new emoji, apply keyboard movement styles, and disable pointer events
         if (newIndex !== this.state.highlightedIndex) {
-            this.setState({highlightedIndex: newIndex, isUsingKeyboardMovement: true});
-            this.scrollToHighlightedIndex();
+            this.setState({highlightedIndex: newIndex, isUsingKeyboardMovement: true, arePointerEventsDisabled: true});
         }
     }
 
@@ -343,36 +367,6 @@ class EmojiPickerMenu extends Component {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
         this.emojiList.flashScrollIndicators();
         this.emojiList.scrollToOffset({offset: calculatedOffset, animated: true});
-    }
-
-    /**
-     * Calculates the required scroll offset (aka distance from top) and scrolls the FlatList to the highlighted emoji
-     * if any portion of it falls outside of the window.
-     * Doing this because scrollToIndex doesn't work as expected.
-     */
-    scrollToHighlightedIndex() {
-        // Calculate the number of rows above the current row, then add 1 to include the current row
-        const numRows = Math.floor(this.state.highlightedIndex / CONST.EMOJI_NUM_PER_ROW) + 1;
-
-        // The scroll offsets at the top and bottom of the highlighted emoji
-        const offsetAtEmojiBottom = numRows * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        const offsetAtEmojiTop = offsetAtEmojiBottom - CONST.EMOJI_PICKER_ITEM_HEIGHT;
-
-        // Scroll to fit the entire highlighted emoji into the window if we need to
-        let targetOffset = this.currentScrollOffset;
-        if (offsetAtEmojiBottom - this.currentScrollOffset >= CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT) {
-            targetOffset = offsetAtEmojiBottom - CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT;
-        } else if (offsetAtEmojiTop - CONST.EMOJI_PICKER_HEADER_HEIGHT <= this.currentScrollOffset) {
-            // There is always a sticky header on the top, subtract the EMOJI_PICKER_HEADER_HEIGHT from offsetAtEmojiTop to get the correct scroll position.
-            targetOffset = offsetAtEmojiTop - CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        }
-        if (targetOffset !== this.currentScrollOffset) {
-            // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
-            if (!this.state.arePointerEventsDisabled) {
-                this.setState({arePointerEventsDisabled: true});
-            }
-            this.emojiList.scrollToOffset({offset: targetOffset, animated: false});
-        }
     }
 
     /**
@@ -426,10 +420,11 @@ class EmojiPickerMenu extends Component {
      * Return a unique key for each emoji item
      *
      * @param {Object} item
+     * @param {Number} index
      * @returns {String}
      */
-    keyExtractor(item) {
-        return `emoji_picker_${item.code}`;
+    keyExtractor(item, index) {
+        return `emoji_picker_${item.code}_${index}`;
     }
 
     /**
@@ -461,7 +456,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={(emoji) => this.addToFrequentAndSelectEmoji(emoji, item)}
+                onPress={(emoji) => this.props.onEmojiSelected(emoji, item)}
                 onHoverIn={() => this.setState({highlightedIndex: index, isUsingKeyboardMovement: false})}
                 onHoverOut={() => {
                     if (this.state.arePointerEventsDisabled) {
@@ -487,23 +482,30 @@ class EmojiPickerMenu extends Component {
 
     render() {
         const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
+        const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, this.props.windowHeight);
+        const height = !listStyle.maxHeight || listStyle.height < listStyle.maxHeight ? listStyle.height : listStyle.maxHeight;
+        const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
         return (
             <View
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
+                // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
                 <View style={[styles.ph4, styles.pb3, styles.pt2]}>
                     <TextInput
                         label={this.props.translate('common.search')}
+                        accessibilityLabel={this.props.translate('common.search')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         onChangeText={this.filterEmojis}
                         defaultValue=""
                         ref={(el) => (this.searchInput = el)}
-                        autoFocus={!this.props.isSmallScreenWidth}
+                        autoFocus={this.shouldFocusInputOnScreenFocus}
                         selectTextOnFocus={this.state.selectTextOnFocus}
                         onSelectionChange={this.onSelectionChange}
                         onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
                         onBlur={() => this.setState({isFocused: false})}
                         autoCorrect={false}
+                        blurOnSubmit={this.state.filteredEmojis.length > 0}
                     />
                 </View>
                 {!isFiltered && (
@@ -518,17 +520,20 @@ class EmojiPickerMenu extends Component {
                     renderItem={this.renderItem}
                     keyExtractor={this.keyExtractor}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
-                    style={StyleUtils.getEmojiPickerListHeight(isFiltered, this.props.windowHeight)}
+                    style={[
+                        listStyle,
+                        // This prevents elastic scrolling when scroll reaches the start or end
+                        {overscrollBehaviorY: 'contain'},
+                        // Set overflow to hidden to prevent elastic scrolling when there are not enough contents to scroll in FlatList
+                        {overflowY: this.state.filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
+                        // Set scrollPaddingTop to consider sticky headers while scrolling
+                        {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
+                    ]}
                     extraData={[this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]}
                     stickyHeaderIndices={this.state.headerIndices}
-                    onScroll={(e) => (this.currentScrollOffset = e.nativeEvent.contentOffset.y)}
                     getItemLayout={this.getItemLayout}
                     contentContainerStyle={styles.flexGrow1}
-                    ListEmptyComponent={
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
-                            <Text style={[styles.textLabel, styles.colorMuted]}>{this.props.translate('common.noResultsFound')}</Text>
-                        </View>
-                    }
+                    ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{this.props.translate('common.noResultsFound')}</Text>}
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
@@ -548,6 +553,9 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
 )(

@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useCallback, useEffect} from 'react';
+import React, {useState, useMemo, useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -17,8 +17,7 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import ROUTES from '../../ROUTES';
 import themeColors from '../../styles/themes/default';
 import * as Expensicons from '../../components/Icon/Expensicons';
-import reportPropTypes from '../reportPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
+import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -26,6 +25,24 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
  * IOU Currency selection for selecting currency
  */
 const propTypes = {
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+
+            /** Currently selected currency */
+            currency: PropTypes.string,
+
+            /** Route to navigate back after selecting a currency */
+            backTo: PropTypes.string,
+        }),
+    }).isRequired,
+
     // The currency list constant object from Onyx
     currencyList: PropTypes.objectOf(
         PropTypes.shape({
@@ -41,44 +58,22 @@ const propTypes = {
     ),
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        currency: PropTypes.string,
-    }),
-
-    /** The report on which the request is initiated on */
-    report: reportPropTypes,
-
-    /** Any errors associated with an attempt to create a chat */
-    // eslint-disable-next-line react/forbid-prop-types
-    errors: PropTypes.object,
+    iou: iouPropTypes,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    report: {},
-    errors: {},
     currencyList: {},
-    iou: {
-        currency: CONST.CURRENCY.USD,
-    },
+    iou: iouDefaultProps,
 };
 
 function IOUCurrencySelection(props) {
     const [searchValue, setSearchValue] = useState('');
-    const selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.currency, CONST.CURRENCY.USD);
-
+    const optionsSelectorRef = useRef();
+    const selectedCurrencyCode = (lodashGet(props.route, 'params.currency', props.iou.currency) || CONST.CURRENCY.USD).toUpperCase();
     const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
     const reportID = lodashGet(props.route, 'params.reportID', '');
-
-    const shouldDismissModal = ReportUtils.shouldHideComposer(props.report, props.errors);
-
-    useEffect(() => {
-        if (!shouldDismissModal) {
-            return;
-        }
-        Navigation.dismissModal(reportID);
-    }, [shouldDismissModal, reportID]);
 
     const confirmCurrencySelection = useCallback(
         (option) => {
@@ -87,7 +82,7 @@ function IOUCurrencySelection(props) {
             // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
             // To prevent any negative experience, we have made the decision to simply close the currency selection page.
             if (_.isEmpty(backTo) || props.navigation.getState().routes.length === 1) {
-                Navigation.goBack();
+                Navigation.goBack(ROUTES.HOME);
             } else {
                 Navigation.navigate(`${props.route.params.backTo}?currency=${option.currencyCode}`);
             }
@@ -100,6 +95,7 @@ function IOUCurrencySelection(props) {
         const currencyOptions = _.map(currencyList, (currencyInfo, currencyCode) => {
             const isSelectedCurrency = currencyCode === selectedCurrencyCode;
             return {
+                currencyName: currencyInfo.name,
                 text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
                 currencyCode,
                 keyForList: currencyCode,
@@ -108,8 +104,8 @@ function IOUCurrencySelection(props) {
             };
         });
 
-        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue), 'i');
-        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text));
+        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
+        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text) || searchRegex.test(currencyOption.currencyName));
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
         return {
@@ -132,12 +128,16 @@ function IOUCurrencySelection(props) {
     }, [currencyList, searchValue, selectedCurrencyCode, translate]);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
+            testID={IOUCurrencySelection.displayName}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
                         title={translate('iOUCurrencySelection.selectCurrency')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID))}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
                     />
                     <OptionsSelector
                         sections={sections}
@@ -149,6 +149,8 @@ function IOUCurrencySelection(props) {
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         shouldHaveOptionSeparator
+                        autoFocus={false}
+                        ref={optionsSelectorRef}
                     />
                 </>
             )}
@@ -165,9 +167,6 @@ export default compose(
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         iou: {key: ONYXKEYS.IOU},
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-        },
     }),
     withNetwork(),
 )(IOUCurrencySelection);

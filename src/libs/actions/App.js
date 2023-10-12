@@ -1,4 +1,6 @@
-import moment from 'moment-timezone';
+// Do not remove this import until moment package is fully removed.
+// Issue - https://github.com/Expensify/App/issues/26719
+import 'moment/locale/es';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -17,12 +19,15 @@ import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
+import * as Browser from '../Browser';
 
 let currentUserAccountID;
+let currentUserEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentUserEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -97,7 +102,7 @@ function setLocale(locale) {
  */
 function setLocaleAndNavigate(locale) {
     setLocale(locale);
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
 
 function setSidebarLoaded() {
@@ -119,63 +124,216 @@ AppState.addEventListener('change', (nextAppState) => {
 });
 
 /**
- * Fetches data needed for app initialization
- * @param {boolean} [isReconnecting]
+ * Gets the policy params that are passed to the server in the OpenApp and ReconnectApp API commands. This includes a full list of policy IDs the client knows about as well as when they were last modified.
+ * @returns {Promise}
  */
-function openApp(isReconnecting = false) {
-    isReadyToOpenApp.then(() => {
-        const connectionID = Onyx.connect({
-            key: ONYXKEYS.COLLECTION.POLICY,
-            waitForCollectionCallback: true,
-            callback: (policies) => {
-                // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
-                // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
-                //
-                // - Look through the local report actions and reports to find the most recently modified report action or report.
-                // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-                const params = {policyIDList: getNonOptimisticPolicyIDs(policies)};
-                if (isReconnecting) {
-                    Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-                    params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
-                    Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
-                }
-                Onyx.disconnect(connectionID);
-
-                // eslint-disable-next-line rulesdir/no-multiple-api-calls
-                const apiMethod = isReconnecting ? API.write : API.read;
-                apiMethod(isReconnecting ? 'ReconnectApp' : 'OpenApp', params, {
-                    optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: true,
-                        },
-                    ],
-                    successData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: false,
-                        },
-                    ],
-                    failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: false,
-                        },
-                    ],
-                });
-            },
+function getPolicyParamsForOpenOrReconnect() {
+    return new Promise((resolve) => {
+        isReadyToOpenApp.then(() => {
+            const connectionID = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.POLICY,
+                waitForCollectionCallback: true,
+                callback: (policies) => {
+                    Onyx.disconnect(connectionID);
+                    resolve({policyIDList: getNonOptimisticPolicyIDs(policies)});
+                },
+            });
         });
     });
 }
 
 /**
- * Refreshes data when the app reconnects
+ * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
+ * @param {Boolean} isOpenApp
+ * @returns {Object}
  */
-function reconnectApp() {
-    openApp(true);
+function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
+    const defaultData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            },
+        ],
+    };
+    if (!isOpenApp) {
+        return defaultData;
+    }
+    return {
+        optimisticData: [
+            ...defaultData.optimisticData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: true,
+            },
+        ],
+        successData: [
+            ...defaultData.successData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: false,
+            },
+        ],
+        failureData: [
+            ...defaultData.failureData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: false,
+            },
+        ],
+    };
+}
+
+/**
+ * Fetches data needed for app initialization
+ */
+function openApp() {
+    getPolicyParamsForOpenOrReconnect().then((policyParams) => {
+        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect(true));
+    });
+}
+
+/**
+ * Fetches data when the app reconnects to the network
+ * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
+ */
+function reconnectApp(updateIDFrom = 0) {
+    console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
+    getPolicyParamsForOpenOrReconnect().then((policyParams) => {
+        const params = {...policyParams};
+
+        // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
+        // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
+        //
+        // - Look through the local report actions and reports to find the most recently modified report action or report.
+        // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
+        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
+        params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+        Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+
+        // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
+        // Otherwise, a full set of app data will be returned.
+        if (updateIDFrom) {
+            params.updateIDFrom = updateIDFrom;
+        }
+
+        API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
+    });
+}
+
+/**
+ * Fetches data when the app will call reconnectApp without params for the last time. This is a separate function
+ * because it will follow patterns that are not recommended so we can be sure we're not putting the app in a unusable
+ * state because of race conditions between reconnectApp and other pusher updates being applied at the same time.
+ * @return {Promise}
+ */
+function finalReconnectAppAfterActivatingReliableUpdates() {
+    console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
+    return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
+        const params = {...policyParams};
+
+        // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
+        // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
+        //
+        // - Look through the local report actions and reports to find the most recently modified report action or report.
+        // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
+        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
+        params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+        Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+
+        // It is SUPER BAD FORM to return promises from action methods.
+        // DO NOT FOLLOW THIS PATTERN!!!!!
+        // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
+        // as soon as we have everyone migrated to the reliableUpdate beta.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        return API.makeRequestWithSideEffects('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
+    });
+}
+
+/**
+ * Fetches data when the client has discovered it missed some Onyx updates from the server
+ * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
+ * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
+ * @return {Promise}
+ */
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
+    console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
+
+    // It is SUPER BAD FORM to return promises from action methods.
+    // DO NOT FOLLOW THIS PATTERN!!!!!
+    // It was absolutely necessary in order to block OnyxUpdates while fetching the missing updates from the server or else the udpates aren't applied in the proper order.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(
+        'GetMissingOnyxMessages',
+        {
+            updateIDFrom,
+            updateIDTo,
+        },
+        getOnyxDataForOpenOrReconnect(),
+    );
+}
+
+/**
+ * This promise is used so that deeplink component know when a transition is end.
+ * This is necessary because we want to begin deeplink redirection after the transition is end.
+ */
+let resolveSignOnTransitionToFinishPromise;
+const signOnTransitionToFinishPromise = new Promise((resolve) => {
+    resolveSignOnTransitionToFinishPromise = resolve;
+});
+
+function waitForSignOnTransitionToFinish() {
+    return signOnTransitionToFinishPromise;
+}
+
+function endSignOnTransition() {
+    return resolveSignOnTransitionToFinishPromise();
+}
+
+/**
+ * Create a new workspace and navigate to it
+ *
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param {String} [policyName] Optional, custom policy name we will use for created workspace
+ * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
+ * @param {Boolean} [shouldNavigateToAdminChat] Optional, navigate to the #admin room after creation
+ */
+function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false, shouldNavigateToAdminChat = true) {
+    const policyID = Policy.generatePolicyID();
+    const adminsChatReportID = Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
+    Navigation.isNavigationReady()
+        .then(() => {
+            if (transitionFromOldDot) {
+                // We must call goBack() to remove the /transition route from history
+                Navigation.goBack(ROUTES.HOME);
+            }
+
+            if (shouldNavigateToAdminChat) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
+            }
+
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        })
+        .then(endSignOnTransition);
 }
 
 /**
@@ -197,8 +355,9 @@ function reconnectApp() {
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
+ * @param {Boolean} shouldNavigateToAdminChat Should we navigate to admin chat after creating workspace
  */
-function setUpPoliciesAndNavigate(session) {
+function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
@@ -214,22 +373,39 @@ function setUpPoliciesAndNavigate(session) {
     const makeMeAdmin = url.searchParams.get('makeMeAdmin');
     const policyName = url.searchParams.get('policyName');
 
-    // Sign out the current user if we're transitioning from oldDot with a different user
-    const isTransitioningFromOldDot = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT));
-    if (isLoggingInAsNewUser && isTransitioningFromOldDot) {
+    // Sign out the current user if we're transitioning with a different user
+    const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
+    if (isLoggingInAsNewUser && isTransitioning) {
         Session.signOut();
     }
 
-    const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioningFromOldDot && exitTo === ROUTES.WORKSPACE_NEW;
+    const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, true);
+        createWorkspaceAndNavigateToIt(policyOwnerEmail, makeMeAdmin, policyName, true, shouldNavigateToAdminChat);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
+        Navigation.isNavigationReady()
+            .then(() => {
+                // We must call goBack() to remove the /transition route from history
+                Navigation.goBack(ROUTES.HOME);
+                Navigation.navigate(exitTo);
+            })
+            .then(endSignOnTransition);
+    }
+}
+
+function redirectThirdPartyDesktopSignIn() {
+    const currentUrl = getCurrentUrl();
+    if (!currentUrl) {
+        return;
+    }
+    const url = new URL(currentUrl);
+
+    if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
         Navigation.isNavigationReady().then(() => {
-            // We must call goBack() to remove the /transition route from history
-            Navigation.goBack();
-            Navigation.navigate(exitTo);
+            Navigation.goBack(ROUTES.HOME);
+            Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
         });
     }
 }
@@ -241,7 +417,7 @@ function openProfile(personalDetails) {
     if (lodashGet(oldTimezoneData, 'automatic', true)) {
         newTimezoneData = {
             automatic: true,
-            selected: moment.tz.guess(true),
+            selected: Intl.DateTimeFormat().resolvedOptions().timeZone,
         };
     }
 
@@ -277,4 +453,64 @@ function openProfile(personalDetails) {
     );
 }
 
-export {setLocale, setLocaleAndNavigate, setSidebarLoaded, setUpPoliciesAndNavigate, openProfile, openApp, reconnectApp, confirmReadyToOpenApp};
+/**
+ * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
+ */
+function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
+    // There's no support for anonymous users on desktop
+    if (Session.isAnonymousUser()) {
+        return;
+    }
+
+    // If the route that is being handled is a magic link, email and shortLivedAuthToken should not be attached to the url
+    // to prevent signing into the wrong account
+    if (!currentUserAccountID || !shouldAuthenticateWithCurrentAccount) {
+        Browser.openRouteInDesktopApp();
+        return;
+    }
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects('OpenOldDotLink', {shouldRetry: false}, {}).then((response) => {
+        if (!response) {
+            Log.alert(
+                'Trying to redirect via deep link, but the response is empty. User likely not authenticated.',
+                {response, shouldAuthenticateWithCurrentAccount, currentUserAccountID},
+                true,
+            );
+            return;
+        }
+
+        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail);
+    });
+}
+
+/**
+ * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
+ */
+function beginDeepLinkRedirectAfterTransition(shouldAuthenticateWithCurrentAccount = true) {
+    waitForSignOnTransitionToFinish().then(() => beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount));
+}
+
+function handleRestrictedEvent(eventName) {
+    API.write('HandleRestrictedEvent', {
+        eventName,
+    });
+}
+
+export {
+    setLocale,
+    setLocaleAndNavigate,
+    setSidebarLoaded,
+    setUpPoliciesAndNavigate,
+    openProfile,
+    redirectThirdPartyDesktopSignIn,
+    openApp,
+    reconnectApp,
+    confirmReadyToOpenApp,
+    handleRestrictedEvent,
+    beginDeepLinkRedirect,
+    beginDeepLinkRedirectAfterTransition,
+    createWorkspaceAndNavigateToIt,
+    getMissingOnyxUpdates,
+    finalReconnectAppAfterActivatingReliableUpdates,
+};

@@ -11,9 +11,9 @@ jobs:
     if: ${{ github.event.label.name == 'DeployBlockerCash' }}
 
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
-          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get URL, title, & number of new deploy blocker (issue)
@@ -64,7 +64,8 @@ jobs:
               2. Find someone who can quickly fix the issue.
               3. Fix the issue yourself.
 
-      - if: ${{ failure() }}
+      - name: Announce failed workflow in Slack
+        if: ${{ failure() }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

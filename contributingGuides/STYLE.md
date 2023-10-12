@@ -194,7 +194,7 @@ function populateShortcutModal(shouldShowAdvancedShortcuts) {
 ```
 
 ## Destructuring
-JavaScript destructuring is convenient and fun, but we should avoid using it in situations where it reduces code clarity. Here are some general guidelines on destructuring.
+We should avoid using object destructuring in situations where it reduces code clarity. Here are some general guidelines on destructuring.
 
 **General Guidelines**
 
@@ -210,30 +210,28 @@ const {name, accountID, email} = data;
 
 **React Components**
 
-Don't destructure props or state. It makes the source of a given variable unclear. This guideline helps us quickly know which variables are from props, state, or from some other scope.
+Always use destructuring to get prop values. Destructuring is necessary to assign default values to props. 
 
 ```javascript
 // Bad
-const {userData} = props;
-const {firstName, lastName} = state;
-...
-
-// Bad
-function UserInfo({name, email}) {
-    return (
-        <View>
-            <Text>Name: {name}</Text>
-            <Text>Email: {email}</Text>
-        </View>
-    );
-}
-
-// Good
 function UserInfo(props) {
     return (
         <View>
             <Text>Name: {props.name}</Text>
             <Text>Email: {props.email}</Text>
+        </View>
+}
+
+UserInfo.defaultProps = {
+    name: 'anonymous';
+}
+
+// Good
+function UserInfo({ name = 'anonymous', email }) {
+    return (
+        <View>
+            <Text>Name: {name}</Text>
+            <Text>Email: {email}</Text>
         </View>
     );
 }
@@ -493,6 +491,19 @@ When writing a function component you must ALWAYS add a `displayName` property a
     export default Avatar;
 ```
 
+## Forwarding refs
+
+When forwarding a ref define named component and pass it directly to the `forwardRef`. By doing this we remove potential extra layer in React tree in form of anonymous component.
+
+```javascript
+    function FancyInput(props, ref) {
+        ...
+        return <input {...props} ref={ref} />
+    }
+
+    export default React.forwardRef(FancyInput)
+```
+
 ## Stateless components vs Pure Components vs Class based components vs Render Props - When to use what?
 
 Class components are DEPRECATED. Use function components and React hooks.
@@ -568,6 +579,28 @@ A `useEffect()` that does not include referenced props or state in its dependenc
 ## Should I declare my components with arrow functions (`const`) or the `function` keyword?
 
 There are pros and cons of each, but ultimately we have standardized on using the `function` keyword to align things more with modern React conventions. There are also some minor cognitive overhead benefits in that you don't need to think about adding and removing brackets when encountering an implicit return. The `function` syntax also has the benefit of being able to be hoisted where arrow functions do not.
+
+## How do I auto-focus a TextInput using `useFocusEffect()`?
+
+```javascript
+const focusTimeoutRef = useRef(null);
+
+useFocusEffect(useCallback(() => {
+    focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
+    return () => {
+        if (!focusTimeoutRef.current) {
+            return;
+        }
+        clearTimeout(focusTimeoutRef.current);
+    };
+}, []));
+```
+
+This works better than using `onTransitionEnd` because -
+1. `onTransitionEnd` is only fired for the top card in the stack, and therefore does not fire on the new top card when popping a card off the stack. For example - pressing the back button to go from the workspace invite page to the workspace members list.
+2. Using `InteractionsManager.runAfterInteractions` with `useFocusEffect` will interrupt an in-progress transition animation.
+
+Note - This is a solution from [this PR](https://github.com/Expensify/App/pull/26415). You can find detailed discussion in comments.
 
 # Onyx Best Practices
 

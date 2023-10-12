@@ -3,15 +3,17 @@ import lodashGet from 'lodash/get';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import {getActionFromState} from '@react-navigation/core';
 import Log from '../Log';
-import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
+import originalGetTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
+import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import getStateFromPath from './getStateFromPath';
 import SCREENS from '../../SCREENS';
+import CONST from '../../CONST';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -44,6 +46,12 @@ function canNavigate(methodName, params = {}) {
 
 // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
+
+// Re-exporting the getTopMostCentralPaneRouteName here to fill in default value for state. The getTopMostCentralPaneRouteName isn't defined in this file to avoid cyclic dependencies.
+const getTopMostCentralPaneRouteName = (state = navigationRef.getState()) => originalGetTopMostCentralPaneRouteName(state);
+
+// Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
+const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
 /**
  * Method for finding on which index in stack we are.
@@ -83,11 +91,6 @@ function navigate(route = ROUTES.HOME, type) {
         return;
     }
 
-    // A pressed navigation button will remain focused, keeping its tooltip visible, even if it's supposed to be out of view.
-    // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is missing).
-    // More info: https://github.com/Expensify/App/issues/13146
-    DomUtils.blurActiveElement();
-
     linkTo(navigationRef.current, route, type);
 }
 
@@ -96,7 +99,7 @@ function navigate(route = ROUTES.HOME, type) {
  * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
  * @param {Bool} shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shouldPopToTop = false) {
+function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
     }
@@ -114,8 +117,20 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
         return;
     }
 
-    if (shouldEnforceFallback || (!getActiveRouteIndex(navigationRef.current.getState()) && fallbackRoute)) {
-        navigate(fallbackRoute, 'UP');
+    const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
+
+    if (isFirstRouteInNavigator) {
+        const rootState = navigationRef.getRootState();
+        const lastRoute = _.last(rootState.routes);
+        // If the user comes from a different flow (there is more than one route in RHP) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
+        if (lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute.state.index > 0) {
+            navigationRef.current.goBack();
+            return;
+        }
+    }
+
+    if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
+        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
         return;
     }
 
@@ -148,11 +163,11 @@ function dismissModal(targetReportID) {
     const lastRoute = _.last(rootState.routes);
     switch (lastRoute.name) {
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
-        case NAVIGATORS.FULL_SCREEN_NAVIGATOR:
+        case SCREENS.NOT_FOUND:
         case SCREENS.REPORT_ATTACHMENTS:
             // if we are not in the target report, we need to navigate to it after dismissing the modal
             if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
-                const state = getStateFromPath(ROUTES.getReportRoute(targetReportID));
+                const state = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReportID));
 
                 const action = getActionFromState(state, linkingConfig.config);
                 action.type = 'REPLACE';
@@ -185,6 +200,22 @@ function getActiveRoute() {
     }
 
     return '';
+}
+
+/** Returns the active route name from a state event from the navigationRef
+ * @param {Object} event
+ * @returns {String | undefined}
+ * */
+function getRouteNameFromStateEvent(event) {
+    if (!event.data.state) {
+        return;
+    }
+    const currentRouteName = event.data.state.routes.slice(-1).name;
+
+    // Check to make sure we have a route name
+    if (currentRouteName) {
+        return currentRouteName;
+    }
 }
 
 /**
@@ -238,6 +269,9 @@ export default {
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,
+    getRouteNameFromStateEvent,
+    getTopMostCentralPaneRouteName,
+    getTopmostReportActionId,
 };
 
 export {navigationRef};

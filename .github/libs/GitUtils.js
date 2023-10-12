@@ -2,29 +2,27 @@ const _ = require('underscore');
 const {spawn, execSync} = require('child_process');
 const CONST = require('./CONST');
 const sanitizeStringForJSONParse = require('./sanitizeStringForJSONParse');
+const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = require('../libs/versionUpdater');
 
 /**
  * @param {String} tag
  */
-// eslint-disable-next-line no-unused-vars
-function fetchTagIfNeeded(tag) {
+function fetchTag(tag) {
+    const previousPatchVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
     try {
-        console.log(`Checking if tag ${tag} exists locally`);
-        const command = `git rev-parse --verify ${tag}`;
-        console.log(`Running command: ${command}`);
-        const result = execSync(command).toString();
-        console.log(result);
-    } catch (e) {
-        console.log(`Tag ${tag} not found locally, attempting to fetch it.`);
         let command = `git fetch origin tag ${tag} --no-tags`;
+
+        // Exclude commits reachable from the previous patch version (i.e: previous checklist),
+        // so that we don't have to fetch the full history
+        // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
+        if (previousPatchVersion !== tag) {
+            command += ` --shallow-exclude=${previousPatchVersion}`;
+        }
+
         console.log(`Running command: ${command}`);
-        let result = execSync(command).toString();
-        console.log(result);
-        console.log('Verifying that the tag is now available...');
-        command = `git rev-parse --verify ${tag}`;
-        console.log(`Running command: ${command}`);
-        result = execSync(command).toString();
-        console.log(result);
+        execSync(command);
+    } catch (e) {
+        console.error(e);
     }
 }
 
@@ -36,10 +34,8 @@ function fetchTagIfNeeded(tag) {
  * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
-    // fetchTagIfNeeded(fromTag);
-    // fetchTagIfNeeded(toTag);
-    // Note: this is a temporary measure until we can figure out a faster way to fetch only what's needed
-    execSync('git fetch --all --tags');
+    fetchTag(fromTag);
+    fetchTag(toTag);
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise((resolve, reject) => {
@@ -80,7 +76,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
  * Parse merged PRs, excluding those from irrelevant branches.
  *
  * @param {Array<Object<{commit: String, subject: String, authorName: String}>>} commits
- * @returns {Array<String>}
+ * @returns {Array<Number>}
  */
 function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
@@ -95,7 +91,7 @@ function getValidMergedPRs(commits) {
             return;
         }
 
-        const pr = match[1];
+        const pr = Number.parseInt(match[1], 10);
         if (mergedPRs.has(pr)) {
             // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
             // That also means that we don't want to include it in the current checklist, so we remove it now.
@@ -114,16 +110,17 @@ function getValidMergedPRs(commits) {
  *
  * @param {String} fromTag
  * @param {String} toTag
- * @returns {Promise<Array<String>>} – Pull request numbers
+ * @returns {Promise<Array<Number>>} – Pull request numbers
  */
 function getPullRequestsMergedBetween(fromTag, toTag) {
+    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
     return getCommitHistoryAsJSON(fromTag, toTag).then((commitList) => {
         console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
         // Find which commit messages correspond to merged PR's
         const pullRequestNumbers = getValidMergedPRs(commitList);
         console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-        return pullRequestNumbers;
+        return _.map(pullRequestNumbers, (prNum) => Number.parseInt(prNum, 10));
     });
 }
 
