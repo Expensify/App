@@ -4,10 +4,14 @@ import {NavigationProp} from '@react-navigation/native';
 import {ParamListBase} from '@react-navigation/routers';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
+type AddListenerCallback = () => void;
+
+type RemoveListenerCallback = () => void;
+
 type NavigationContextValue = {
     isFocused: () => boolean;
-    addListener: () => () => void;
-    removeListener: () => () => void;
+    addListener: () => AddListenerCallback;
+    removeListener: () => RemoveListenerCallback;
 };
 
 export default function <TProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
