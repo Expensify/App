@@ -132,17 +132,6 @@ function getParentReportAction(report, allReportActionsParam = undefined) {
 }
 
 /**
- * Find the reportAction having the given childReportID in parent report actions
- *
- * @param {String} childReportID
- * @param {String} parentReportID
- * @returns {Object}
- */
-function getParentReportActionInReport(childReportID, parentReportID) {
-    return _.find(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
-}
-
-/**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  *
  * @param {Object} reportAction
@@ -384,7 +373,9 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
 
     // If a whisper action is the REPORTPREVIEW action, we are displaying it.
     return (
-        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction)) && !isDeletedAction(reportAction)
+        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
+        !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
+        !isDeletedAction(reportAction)
     );
 }
 
@@ -652,6 +643,11 @@ function isReportActionAttachment(reportAction) {
     return _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : isReportMessageAttachment(message);
 }
 
+// eslint-disable-next-line rulesdir/no-negated-variables
+function isNotifiableReportAction(reportAction) {
+    return reportAction && _.contains([CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE], reportAction.actionName);
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -674,7 +670,6 @@ export {
     getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,
-    getParentReportActionInReport,
     isTransactionThread,
     isSentMoneyReportAction,
     isDeletedParentAction,
@@ -690,4 +685,5 @@ export {
     isTaskAction,
     getAllReportActions,
     isReportActionAttachment,
+    isNotifiableReportAction,
 };

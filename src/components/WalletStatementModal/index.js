@@ -12,6 +12,7 @@ import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 import * as Report from '../../libs/actions/Report';
+import CONST from '../../CONST';
 
 function WalletStatementModal({statementPageURL, session}) {
     const [isLoading, setIsLoading] = useState(true);
@@ -23,15 +24,15 @@ function WalletStatementModal({statementPageURL, session}) {
      * @param {MessageEvent} event
      */
     const navigate = (event) => {
-        if (!event.data || !event.data.type || (event.data.type !== 'STATEMENT_NAVIGATE' && event.data.type !== 'CONCIERGE_NAVIGATE')) {
+        if (!event.data || !event.data.type || (event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
             return;
         }
 
-        if (event.data.type === 'CONCIERGE_NAVIGATE') {
+        if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
             Report.navigateToConciergeChat();
         }
 
-        if (event.data.type === 'STATEMENT_NAVIGATE' && event.data.url) {
+        if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.url) {
             const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
             const navigateToIOURoute = _.find(iouRoutes, (iouRoute) => event.data.url.includes(iouRoute));
             if (navigateToIOURoute) {

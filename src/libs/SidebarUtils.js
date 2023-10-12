@@ -331,9 +331,9 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
               }
             : null;
     }
-    let lastMessageText =
-        hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
-    lastMessageText += report ? lastMessageTextFromReport : '';
+    const lastActorDisplayName =
+        hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? lastActorDetails.displayName : '';
+    let lastMessageText = lastMessageTextFromReport;
 
     if (result.isArchivedRoom) {
         const archiveReason =
@@ -351,9 +351,11 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
             const newName = lodashGet(lastAction, 'originalMessage.newName', '');
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
         } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}: ${report.reportName}`;
+            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}`;
         } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}: ${report.reportName}`;
+            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}`;
+        } else if (lodashGet(lastAction, 'actionName', '') !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
+            result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
