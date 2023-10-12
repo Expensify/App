@@ -181,7 +181,9 @@ function subscribe(
  */
 const KeyboardShortcut = {
     subscribe,
+    getDisplayName,
     getDocumentedShortcuts,
+    getPlatformEquivalentForKeys,
 };
 
 export default KeyboardShortcut;

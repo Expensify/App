@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.3.81-4",
+  "version": "1.3.83-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -8,6 +8,8 @@
   "private": true,
   "scripts": {
     "configure-mapbox": "scripts/setup-mapbox-sdk-walkthrough.sh",
+    "setupNewDotWebForEmulators": "scripts/setup-newdot-web-emulators.sh",
+    "startAndroidEmulator": "scripts/start-android.sh",
     "postinstall": "scripts/postInstall.sh",
     "clean": "npx react-native clean-project-auto",
     "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --variant=developmentDebug --appId=com.expensify.chat.dev",
@@ -68,7 +70,7 @@
     "@onfido/react-native-sdk": "7.4.0",
     "@react-native-async-storage/async-storage": "^1.17.10",
     "@react-native-camera-roll/camera-roll": "5.4.0",
-    "@react-native-community/clipboard": "^1.5.1",
+    "@react-native-clipboard/clipboard": "^1.12.1",
     "@react-native-community/datetimepicker": "^3.5.2",
     "@react-native-community/geolocation": "^3.0.6",
     "@react-native-community/netinfo": "^9.3.10",
@@ -161,6 +163,7 @@
     "react-pdf": "^6.2.2",
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
+    "react-webcam": "^7.1.1",
     "react-window": "^1.8.9",
     "save": "^2.4.0",
     "semver": "^7.5.2",

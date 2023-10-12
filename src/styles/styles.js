@@ -26,6 +26,7 @@ import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+import objectFit from './utilities/objectFit';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
@@ -174,6 +175,7 @@ const styles = (theme) => ({
     ...userSelect,
     ...textUnderline,
     ...theme, // TODO: Should we do this?
+    ...objectFit,
 
     autoCompleteSuggestionsContainer: {
         backgroundColor: theme.appBG,
@@ -779,12 +781,14 @@ const styles = (theme) => ({
     cameraView: {
         flex: 1,
         overflow: 'hidden',
-        padding: 10,
         borderRadius: 28,
         borderStyle: 'solid',
         borderWidth: 8,
         backgroundColor: theme.highlightBG,
         borderColor: theme.appBG,
+        display: 'flex',
+        justifyContent: 'center',
+        justifyItems: 'center',
     },
 
     permissionView: {
@@ -2270,7 +2274,7 @@ const styles = (theme) => ({
             justifyContent: 'space-between',
         }),
         padding: 20,
-        backgroundColor: theme.sidebar,
+        backgroundColor: theme.cardBG,
         borderRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
     }),
@@ -2965,47 +2969,6 @@ const styles = (theme) => ({
         transform: [{scaleX: -1}, {scaleY: -1}],
     },
 
-    keyboardShortcutModalContainer: {
-        maxHeight: '100%',
-        flex: 0,
-        flexBasis: 'auto',
-    },
-
-    keyboardShortcutTableWrapper: {
-        alignItems: 'center',
-        flex: 1,
-        height: 'auto',
-        maxHeight: '100%',
-    },
-
-    keyboardShortcutTableContainer: {
-        display: 'flex',
-        width: '100%',
-        borderColor: theme.border,
-        height: 'auto',
-        borderRadius: variables.componentBorderRadius,
-        borderWidth: 1,
-    },
-
-    keyboardShortcutTableRow: {
-        flex: 1,
-        flexDirection: 'row',
-        borderColor: theme.border,
-        flexBasis: 'auto',
-        alignSelf: 'stretch',
-        borderTopWidth: 1,
-    },
-
-    keyboardShortcutTablePrefix: {
-        width: '30%',
-        borderRightWidth: 1,
-        borderColor: theme.border,
-    },
-
-    keyboardShortcutTableFirstRow: {
-        borderTopWidth: 0,
-    },
-
     iPhoneXSafeArea: {
         backgroundColor: theme.inverse,
         flex: 1,
@@ -3287,6 +3250,64 @@ const styles = (theme) => ({
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
         lineHeight: variables.lineHeightXXLarge,
+    },
+
+    eReceiptAmountLarge: {
+        ...headlineFont,
+        fontSize: variables.fontSizeEReceiptLarge,
+        lineHeight: variables.lineHeightXXsLarge,
+        wordBreak: 'break-word',
+        textAlign: 'center',
+    },
+
+    eReceiptCurrency: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXXLarge,
+        lineHeight: variables.lineHeightXXLarge,
+        wordBreak: 'break-all',
+    },
+
+    eReceiptMerchant: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
+        color: theme.text,
+    },
+
+    eReceiptWaypointTitle: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
+    },
+
+    eReceiptWaypointAddress: {
+        fontFamily: fontFamily.MONOSPACE,
+        fontSize: variables.fontSizeNormal,
+        lineHeight: variables.lineHeightNormal,
+        color: theme.textColorfulBackground,
+    },
+
+    eReceiptGuaranteed: {
+        fontFamily: fontFamily.MONOSPACE,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: variables.lineHeightSmall,
+        color: theme.textColorfulBackground,
+    },
+
+    eReceiptBackgroundThumbnail: {
+        ...sizing.w100,
+        position: 'absolute',
+        aspectRatio: 335 / 540,
+        top: 0,
+        minWidth: 217,
+    },
+
+    eReceiptContainer: {
+        flex: 1,
+        width: 335,
+        minHeight: 540,
+        borderRadius: 20,
+        overflow: 'hidden',
     },
 
     loginHeroBody: {
@@ -3733,6 +3754,12 @@ const styles = (theme) => ({
     draggableTopBar: {
         height: 30,
         width: '100%',
+    },
+    videoContainer: {
+        ...flex.flex1,
+        ...flex.alignItemsCenter,
+        ...flex.justifyContentCenter,
+        ...objectFit.oFCover,
     },
 
     globalNavigation: {
