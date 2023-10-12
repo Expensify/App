@@ -148,13 +148,12 @@ export default [
         getDescription: () => {},
     },
     {
-<<<<<<< HEAD
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.subscribeToThread',
         // textTranslateKey: lodashGet(reportAction, 'childReportNotificationPreference', '0'),
         icon: Expensicons.Bell,
         successTextTranslateKey: '',
-        successIcon: null,g
+        successIcon: null,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
             const subscribed = lodashGet(reportAction, 'childReportNotificationPreference', '') !== "hidden";
             if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
@@ -213,10 +212,7 @@ export default [
         getDescription: () => {},
     },
     {
-        isAnonymousAction: false,
-=======
         isAnonymousAction: true,
->>>>>>> main
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
