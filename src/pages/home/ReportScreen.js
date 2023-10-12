@@ -156,6 +156,7 @@ function ReportScreen({
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
+    const [listHeight, setListHeight] = useState(0);
 
     const reportID = getReportID(route);
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
@@ -351,7 +352,8 @@ function ReportScreen({
         }
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
-    const onListLayout = useCallback(() => {
+    const onListLayout = useCallback((e) => {
+        setListHeight((prev) => lodashGet(e, 'nativeEvent.layout.height', prev));
         if (!markReadyForHydration) {
             return;
         }
@@ -438,6 +440,8 @@ function ReportScreen({
                                         isComposerFullSize={isComposerFullSize}
                                         onSubmitComment={onSubmitComment}
                                         policies={policies}
+                                        listHeight={listHeight}
+                                        personalDetails={personalDetails}
                                     />
                                 ) : (
                                     <ReportFooter isReportReadyForDisplay={false} />
