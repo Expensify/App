@@ -53,7 +53,8 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicator={false}
-        testID={RequestorOnfidoStep.displayName}>
+            testID={RequestorOnfidoStep.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('requestorStep.headerTitle')}
                 stepCounter={HEADER_STEP_COUNTER}
