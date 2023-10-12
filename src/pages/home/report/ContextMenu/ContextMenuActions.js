@@ -148,6 +148,7 @@ export default [
         getDescription: () => {},
     },
     {
+<<<<<<< HEAD
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.subscribeToThread',
         // textTranslateKey: lodashGet(reportAction, 'childReportNotificationPreference', '0'),
@@ -213,6 +214,9 @@ export default [
     },
     {
         isAnonymousAction: false,
+=======
+        isAnonymousAction: true,
+>>>>>>> main
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -225,7 +229,7 @@ export default [
         getDescription: (selection) => selection,
     },
     {
-        isAnonymousAction: false,
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -289,7 +293,7 @@ export default [
     },
 
     {
-        isAnonymousAction: false,
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
         successIcon: Expensicons.Checkmark,
@@ -441,6 +445,7 @@ export default [
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 hideContextMenu(false, () => Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction.reportActionID)));
+                return;
             }
 
             Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction.reportActionID));

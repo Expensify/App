@@ -257,6 +257,7 @@ export default function getTooltipStyles(
             fontSize: variables.fontSizeSmall,
             overflow: 'hidden',
             lineHeight: variables.lineHeightSmall,
+            textAlign: 'center',
         },
         pointerWrapperStyle: {
             position: 'fixed',

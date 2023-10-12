@@ -24,6 +24,7 @@ import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -63,10 +64,11 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
     const {translate} = useLocalize();
 
     useEffect(() => {
-        if (network.isOffline) {
+        if (network.isOffline && report.isLoadingPrivateNotes) {
             return;
         }
         Report.getReportPrivateNote(report.reportID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add isLoadingPrivateNotes to dependencies
     }, [report.reportID, network.isOffline]);
 
     /**
@@ -122,7 +124,13 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
             includeSafeAreaPaddingBottom={false}
             testID={PrivateNotesListPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {})))}>
+            <FullPageNotFoundView
+                shouldShow={
+                    _.isEmpty(report.reportID) ||
+                    (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {}))) ||
+                    ReportUtils.isArchivedRoom(report)
+                }
+            >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     shouldShowBackButton

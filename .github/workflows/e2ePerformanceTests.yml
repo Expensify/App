@@ -84,12 +84,7 @@ jobs:
       - name: Unmerged PR - Fetch head ref of unmerged PR
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         run: |
-          if [[ ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }} != '' ]]; then
-            git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
-            git fetch pr_remote ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
-          else
-            git fetch origin ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
-          fi
+          git fetch origin ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
 
       - name: Unmerged PR - Set dummy git credentials before merging
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
@@ -101,7 +96,7 @@ jobs:
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         id: getMergeCommitShaIfUnmergedPR
         run: |
-          git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+          git merge --allow-unrelated-histories --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
           git checkout ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -140,18 +135,19 @@ jobs:
           name: baseline-apk-${{ needs.buildBaseline.outputs.VERSION }}
           path: zip
 
-      # The downloaded artifact will be a file named "app-e2eRelease.apk" so we have to rename it
+      # The downloaded artifact will be a file named "app-e2e-release.apk" so we have to rename it
       - name: Rename baseline APK
-        run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease-baseline.apk"
+        run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease-baseline.apk"
 
       - name: Download delta APK
         uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
+        id: downloadDeltaAPK
         with:
           name: delta-apk-${{ needs.buildDelta.outputs.DELTA_REF }}
           path: zip
 
       - name: Rename delta APK
-        run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease-compare.apk"
+        run: mv "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2eRelease-compare.apk"
 
       - name: Copy e2e code into zip folder
         run: cp -r tests/e2e zip
@@ -196,7 +192,6 @@ jobs:
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label
-        if: ${{ github.event_name == 'workflow_call' }}
         run: |
           if grep -q '🔴' ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; then
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash

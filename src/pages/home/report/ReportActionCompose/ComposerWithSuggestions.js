@@ -24,7 +24,6 @@ import * as User from '../../../../libs/actions/User';
 import * as ReportUtils from '../../../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
-import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
 import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
@@ -91,7 +90,7 @@ function ComposerWithSuggestions({
     isFullComposerAvailable,
     setIsFullComposerAvailable,
     setIsCommentEmpty,
-    submitForm,
+    handleSendMessage,
     shouldShowComposeInput,
     measureParentContainer,
     // Refs
@@ -103,8 +102,14 @@ function ComposerWithSuggestions({
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
-
-    const [value, setValue] = useState(() => getDraftComment(reportID) || '');
+    const emojisPresentBefore = useRef([]);
+    const [value, setValue] = useState(() => {
+        const draft = getDraftComment(reportID) || '';
+        if (draft) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(draft);
+        }
+        return draft;
+    });
     const commentRef = useRef(value);
 
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -155,14 +160,6 @@ function ComposerWithSuggestions({
         debouncedLowerIsScrollLikelyLayoutTriggered();
     }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
 
-    const onInsertedEmoji = useCallback(
-        (emojiObject) => {
-            insertedEmojisRef.current = [...insertedEmojisRef.current, emojiObject];
-            debouncedUpdateFrequentlyUsedEmojis(emojiObject);
-        },
-        [debouncedUpdateFrequentlyUsedEmojis],
-    );
-
     /**
      * Set the TextInput Ref
      *
@@ -187,6 +184,14 @@ function ComposerWithSuggestions({
         RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
     }, [textInputRef]);
 
+    const debouncedSaveReportComment = useMemo(
+        () =>
+            _.debounce((selectedReportID, newComment) => {
+                Report.saveReportComment(selectedReportID, newComment || '');
+            }, 1000),
+        [],
+    );
+
     /**
      * Update the value of the comment in Onyx
      *
@@ -199,10 +204,13 @@ function ComposerWithSuggestions({
             const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
-                insertedEmojisRef.current = [...insertedEmojisRef.current, ...emojis];
-                debouncedUpdateFrequentlyUsedEmojis();
+                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
+                if (!_.isEmpty(newEmojis)) {
+                    insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
+                    debouncedUpdateFrequentlyUsedEmojis();
+                }
             }
-
+            emojisPresentBefore.current = emojis;
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
@@ -238,7 +246,16 @@ function ComposerWithSuggestions({
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty, suggestionsRef, raiseIsScrollLikelyLayoutTriggered],
+        [
+            debouncedUpdateFrequentlyUsedEmojis,
+            preferredLocale,
+            preferredSkinTone,
+            reportID,
+            setIsCommentEmpty,
+            suggestionsRef,
+            raiseIsScrollLikelyLayoutTriggered,
+            debouncedSaveReportComment,
+        ],
     );
 
     /**
@@ -279,7 +296,7 @@ function ComposerWithSuggestions({
         }
         setIsFullComposerAvailable(false);
         return trimmedComment;
-    }, [updateComment, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID]);
+    }, [updateComment, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID, debouncedSaveReportComment]);
 
     /**
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
@@ -312,7 +329,7 @@ function ComposerWithSuggestions({
             // Submit the form when Enter is pressed
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
                 e.preventDefault();
-                submitForm();
+                handleSendMessage();
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
@@ -331,7 +348,7 @@ function ComposerWithSuggestions({
                 }
             }
         },
-        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, submitForm, suggestionsRef, valueRef],
+        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
     );
 
     const onSelectionChange = useCallback(
@@ -534,7 +551,6 @@ function ComposerWithSuggestions({
                 isComposerFullSize={isComposerFullSize}
                 updateComment={updateComment}
                 composerHeight={composerHeight}
-                onInsertedEmoji={onInsertedEmoji}
                 measureParentContainer={measureParentContainer}
                 // Input
                 value={value}
