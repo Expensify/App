@@ -6,7 +6,7 @@ import styles from '../../styles/styles';
 import Text from '../Text';
 import ReportActionItemImage from './ReportActionItemImage';
 import * as StyleUtils from '../../styles/StyleUtils';
-import * as variables from '../../styles/variables';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /** array of image and thumbnail URIs */
