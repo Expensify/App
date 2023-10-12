@@ -1,13 +1,15 @@
 import Onyx from 'react-native-onyx';
 import {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
 import isObject from 'lodash/isObject';
-import {LiteralUnion} from 'type-fest';
+import {LiteralUnion, ValueOf} from 'type-fest';
 import ONYXKEYS from '../../ONYXKEYS';
 import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
 import DeepValueOf from '../../types/utils/DeepValueOf';
 import {SocketEventName} from './library/types';
+import CONST from '../../CONST';
+import {OnyxUpdateEvent, OnyxUpdatesFromServer} from '../../types/onyx';
 
 type States = {
     previous: string;
@@ -20,11 +22,15 @@ type Args = {
     authEndpoint: string;
 };
 
+type PushJSON = OnyxUpdateEvent[] | OnyxUpdatesFromServer;
+
+type EventCallbackError = {type: ValueOf<typeof CONST.ERROR>; data: {code: number}};
+
 type ChunkedDataEvents = {chunks: unknown[]; receivedFinal: boolean};
 
 type EventData = {id?: string; chunk?: unknown; final?: boolean; index: number};
 
-type SocketEventCallback = (eventName: SocketEventName, data?: unknown) => void;
+type SocketEventCallback = (eventName: SocketEventName, data?: States | EventCallbackError) => void;
 
 type PusherWithAuthParams = InstanceType<typeof Pusher> & {
     config: {
@@ -57,7 +63,7 @@ let customAuthorizer: ChannelAuthorizerGenerator;
 /**
  * Trigger each of the socket event callbacks with the event information
  */
-function callSocketEventCallbacks(eventName: SocketEventName, data?: unknown) {
+function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallbackError | States) {
     socketEventCallbacks.forEach((cb) => cb(eventName, data));
 }
 
@@ -99,7 +105,7 @@ function init(args: Args, params?: unknown): Promise<void> {
         }
 
         // Listen for connection errors and log them
-        socket?.connection.bind('error', (error: unknown) => {
+        socket?.connection.bind('error', (error: EventCallbackError) => {
             callSocketEventCallbacks('error', error);
         });
 
@@ -133,19 +139,19 @@ function getChannel(channelName: string): Channel | undefined {
 /**
  * Binds an event callback to a channel + eventName
  */
-function bindEventToChannel(channel: Channel | undefined, eventName: PusherEventName, eventCallback: (data: unknown) => void = () => {}) {
+function bindEventToChannel(channel: Channel | undefined, eventName: PusherEventName, eventCallback: (data: PushJSON) => void = () => {}) {
     if (!eventName) {
         return;
     }
 
     const chunkedDataEvents: Record<string, ChunkedDataEvents> = {};
-    const callback = (eventData: string | Record<string, unknown>) => {
+    const callback = (eventData: string | Record<string, unknown> | EventData) => {
         if (shouldForceOffline) {
             Log.info('[Pusher] Ignoring a Push event because shouldForceOffline = true');
             return;
         }
 
-        let data: EventData;
+        let data;
         try {
             data = isObject(eventData) ? eventData : JSON.parse(eventData);
         } catch (err) {
@@ -201,7 +207,7 @@ function bindEventToChannel(channel: Channel | undefined, eventName: PusherEvent
  * Subscribe to a channel and an event
  * @param [onResubscribe] Callback to be called when reconnection happen
  */
-function subscribe(channelName: string, eventName: PusherEventName, eventCallback = () => {}, onResubscribe = () => {}): Promise<void> {
+function subscribe(channelName: string, eventName: PusherEventName, eventCallback: (data: PushJSON) => void = () => {}, onResubscribe = () => {}): Promise<void> {
     return new Promise((resolve, reject) => {
         // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
@@ -387,3 +393,5 @@ export {
     TYPE,
     getPusherSocketID,
 };
+
+export type {EventCallbackError, States, PushJSON};
