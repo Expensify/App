@@ -183,6 +183,7 @@ export default {
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}: CharacterLimitParams) => `Supera el límite de ${limit} caracteres`,
+            characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
             invalidCharacter: 'Carácter invalido',
             enterMerchant: 'Introduce un comerciante',
@@ -252,6 +253,7 @@ export default {
         recent: 'Reciente',
         all: 'Todo',
         tbd: 'Por determinar',
+        card: 'Tarjeta',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -497,6 +499,8 @@ export default {
         flash: 'flash',
         shutter: 'obturador',
         gallery: 'galería',
+        deleteReceipt: 'Eliminar recibo',
+        deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
     },
     iou: {
@@ -504,6 +508,7 @@ export default {
         approve: 'Aprobar',
         approved: 'Aprobado',
         cash: 'Efectivo',
+        card: 'Tarjeta',
         split: 'Dividir',
         addToSplit: 'Añadir para dividir',
         splitBill: 'Dividir factura',
@@ -514,11 +519,13 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
         receiptScanning: 'Escaneo de recibo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
+        receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
         deleteRequest: 'Eliminar pedido',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
@@ -1612,7 +1619,7 @@ export default {
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
-    keyboardShortcutModal: {
+    keyboardShortcutsPage: {
         title: 'Atajos de teclado',
         subtitle: 'Ahorra tiempo con estos atajos de teclado:',
         shortcuts: {
@@ -2333,5 +2340,9 @@ export default {
     },
     globalNavigationOptions: {
         chats: 'Chats',
+    },
+    eReceipt: {
+        guaranteed: 'eRecibo garantizado',
+        transactionDate: 'Fecha de transacción',
     },
 } satisfies EnglishTranslation;
