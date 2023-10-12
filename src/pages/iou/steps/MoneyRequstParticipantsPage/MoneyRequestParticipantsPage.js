@@ -50,7 +50,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, selectedTab);
-    const isSendRequest = iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+    const isSendRequest = iouType.current === CONST.IOU.TYPE.SEND;
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();

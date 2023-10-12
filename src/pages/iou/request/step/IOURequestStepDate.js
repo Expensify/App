@@ -1,6 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import moment from 'moment';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
@@ -14,7 +15,7 @@ import transactionPropTypes from '../../../../components/transactionPropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import * as IOUUtils from '../../../../libs/IOUUtils';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
-import moment from 'moment';
+import FormProvider from '../../../../components/Form/FormProvider';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -58,7 +59,7 @@ function IOURequestStepDate({
             shouldShowWrapper
             testID={IOURequestStepDate.displayName}
         >
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
                 onSubmit={updateDate}
@@ -72,7 +73,7 @@ function IOURequestStepDate({
                     maxDate={moment().add(1, 'year').toDate()}
                     minDate={moment().subtract(20, 'years').toDate()}
                 />
-            </Form>
+            </FormProvider>
         </StepScreenWrapper>
     );
 }

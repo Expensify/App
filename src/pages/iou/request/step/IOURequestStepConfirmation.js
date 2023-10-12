@@ -29,12 +29,8 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import {policyPropTypes} from '../../../workspace/withPolicy';
 import useNetwork from '../../../../hooks/useNetwork';
 import * as Policy from '../../../../libs/actions/Policy';
-import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: IOURequestStepRoutePropTypes.isRequired,
-
     /* Onyx Props */
     /** The personal details of the current user */
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -63,7 +59,6 @@ function IOURequestStepConfirmation({
     personalDetails,
     policy,
     report,
-    route,
     route: {
         params: {iouType, reportID, transactionID},
     },
@@ -84,7 +79,7 @@ function IOURequestStepConfirmation({
             }),
         [transaction.participants, personalDetails],
     );
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
 
     const navigateBack = () => {
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
@@ -124,7 +119,7 @@ function IOURequestStepConfirmation({
             const trimmedComment = lodashGet(transaction, 'comment.comment', '').trim();
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
-            if (iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && receipt.path) {
+            if (iouType === CONST.IOU.TYPE.SPLIT && receipt.path) {
                 const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
                 FileUtils.readFileAsync(receipt.path, receipt.source).then((receiptFile) => {
                     IOU.startSplitBill(selectedParticipants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, trimmedComment, receiptFile, existingSplitChatReportID);
@@ -153,7 +148,6 @@ function IOURequestStepConfirmation({
                     selectedParticipants[0],
                     trimmedComment,
                     transaction.created,
-                    undefined,
                     transaction.category,
                     transaction.tag,
                     transaction.amount,
@@ -206,7 +200,7 @@ function IOURequestStepConfirmation({
                 transaction.billable,
             );
         },
-        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, receipt, report, requestType],
+        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, receipt, report, reportID, requestType],
     );
 
     /**

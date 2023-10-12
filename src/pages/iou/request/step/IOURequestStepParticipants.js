@@ -45,15 +45,15 @@ function IOURequestStepParticipants({
             IOU.setMoneeRequestParticipants(transactionID, val);
             numberOfParticipants.current = val.length;
 
+            // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
             if (val.length !== 1) {
-                // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
                 return;
             }
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
-            selectedReportID.current = val[0].reportID;
+            selectedReportID.current = lodashGet(val, '[0].reportID', reportID);
         },
-        [transactionID],
+        [reportID, transactionID],
     );
 
     const goToNextStep = () => {

@@ -195,7 +195,7 @@ function MoneyRequestConfirmPage(props) {
             const trimmedComment = props.iou.comment.trim();
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
-            if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && props.iou.receiptPath) {
+            if (iouType.current === CONST.IOU.TYPE.SPLIT && props.iou.receiptPath) {
                 const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID.current) ? reportID.current : '';
                 FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((receipt) => {
                     IOU.startSplitBill(
@@ -304,7 +304,7 @@ function MoneyRequestConfirmPage(props) {
             return props.translate('iou.split');
         }
 
-        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+        if (iouType.current === CONST.IOU.TYPE.SEND) {
             return props.translate('common.send');
         }
 
