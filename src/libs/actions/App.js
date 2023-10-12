@@ -48,7 +48,7 @@ let priorityMode;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
     callback: (nextPriorityMode) => {
-        // When someone switches their priority mode we need to fetch all their chats. This is only possible via the OpenApp command.
+        // When someone switches their priority mode we need to fetch all their chats because only #focus mode works with a subset of a user's chats. This is only possible via the OpenApp command.
         if (nextPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
             // eslint-disable-next-line no-use-before-define
             openApp();

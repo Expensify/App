@@ -1,4 +1,4 @@
-import React, {useState, useRef, useCallback} from 'react';
+import React, {useState, useRef, useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -63,7 +63,23 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
 
     // We need to edit the note in markdown format, but display it in HTML format
     const parser = new ExpensiMark();
-    const [privateNote, setPrivateNote] = useState(parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim());
+    const [privateNote, setPrivateNote] = useState(
+        Report.getDraftPrivateNote(report.reportID) || parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim(),
+    );
+
+    /**
+     * Save the draft of the private note. This debounced so that we're not ceaselessly saving your edit. Saving the draft
+     * allows one to navigate somewhere else and come back to the private note and still have it in edit mode.
+     * @param {String} newDraft
+     */
+    const debouncedSavePrivateNote = useMemo(
+        () =>
+            _.debounce((text) => {
+                Report.savePrivateNotesDraft(report.reportID, text);
+            }, 1000),
+        [report.reportID],
+    );
+
     const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
 
     // To focus on the input field when the page loads
@@ -153,7 +169,10 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                             defaultValue={privateNote}
                             value={privateNote}
-                            onChangeText={(text) => setPrivateNote(text)}
+                            onChangeText={(text) => {
+                                debouncedSavePrivateNote(text);
+                                setPrivateNote(text);
+                            }}
                             ref={(el) => {
                                 if (!el) {
                                     return;
