@@ -23,6 +23,7 @@ import reportPropTypes from '../../reportPropTypes';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import reportActionPropTypes from './reportActionPropTypes';
+import {isCreatedAction} from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -97,6 +98,10 @@ function keyExtractor(item) {
 }
 
 function isMessageUnread(message, lastReadTime) {
+    if (!lastReadTime) {
+        return Boolean(!isCreatedAction(message));
+    }
+
     return Boolean(message && lastReadTime && message.created && lastReadTime < message.created);
 }
 
@@ -289,12 +294,12 @@ function ReportActionsList({
             if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
-                shouldDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
+                shouldDisplayNewMarker = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, report.lastReadTime));
 
                 if (!messageManuallyMarkedUnread) {
                     shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
-                const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
+                const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD && userActiveSince.current ? reportAction.created < userActiveSince.current : true;
 
                 if (!currentUnreadMarker && shouldDisplayNewMarker && canDisplayMarker) {
                     setCurrentUnreadMarker(reportAction.reportActionID);
