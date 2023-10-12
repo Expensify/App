@@ -76,8 +76,15 @@ function buildOptimisticTransaction(
     };
 }
 
+/**
+ * Check if the transaction has an Ereceipt
+ */
+function hasEreceipt(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.hasEReceipt;
+}
+
 function hasReceipt(transaction: Transaction | undefined | null): boolean {
-    return !!transaction?.receipt?.state;
+    return !!transaction?.receipt?.state || hasEreceipt(transaction);
 }
 
 function areRequiredFieldsEmpty(transaction: Transaction): boolean {
@@ -330,13 +337,6 @@ function hasMissingSmartscanFields(transaction: Transaction): boolean {
  */
 function hasRoute(transaction: Transaction): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
-}
-
-/**
- * Check if the transaction has an Ereceipt
- */
-function hasEreceipt(transaction: Transaction): boolean {
-    return !!transaction?.hasEReceipt;
 }
 
 /**

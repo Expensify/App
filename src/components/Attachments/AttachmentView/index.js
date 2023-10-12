@@ -18,6 +18,8 @@ import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
 import useNetwork from '../../../hooks/useNetwork';
+import CONST from '../../../CONST';
+import EReceipt from '../../EReceipt';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -89,6 +91,15 @@ function AttachmentView({
                 fill={iconFillColor}
                 additionalStyles={additionalStyles}
             />
+        );
+    }
+
+    if((_.isString(source)) && source.startsWith(CONST.ERECEIPT_PATH)) {
+        const transactionIDFromURL = source.split(CONST.ERECEIPT_PATH)[1];
+        return (
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <EReceipt transactionID={transactionIDFromURL} />
+            </View>
         );
     }
 

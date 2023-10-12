@@ -126,7 +126,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     let receiptURIs;
     let hasErrors = false;
     if (hasReceipt) {
-        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
         hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 

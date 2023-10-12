@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import styles from '../../styles/styles';
 import Image from '../Image';
 import ThumbnailImage from '../ThumbnailImage';
@@ -10,6 +11,7 @@ import {ShowContextMenuContext} from '../ShowContextMenuContext';
 import Navigation from '../../libs/Navigation/Navigation';
 import PressableWithoutFocus from '../Pressable/PressableWithoutFocus';
 import useLocalize from '../../hooks/useLocalize';
+import EReceiptThumbnail from '../EReceiptThumbnail';
 
 const propTypes = {
     /** thumbnail URI for the image */
@@ -38,7 +40,11 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
 
-    const receiptImageComponent = thumbnail ? (
+
+    const isEReceipt = imageSource.startsWith(CONST.ERECEIPT_PATH);
+
+
+    let receiptImageComponent = thumbnail ? (
         <ThumbnailImage
             previewSourceURL={thumbnailSource}
             style={[styles.w100, styles.h100]}
@@ -51,6 +57,13 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
             style={[styles.w100, styles.h100]}
         />
     );
+
+    if(isEReceipt) {
+        const transactionIDFromURL = imageSource.split(CONST.ERECEIPT_PATH)[1];
+        receiptImageComponent = (
+            <View style={[styles.w100, styles.h100]}><EReceiptThumbnail transactionID={transactionIDFromURL}/></View>
+        );
+    }
 
     if (enablePreviewModal) {
         return (
