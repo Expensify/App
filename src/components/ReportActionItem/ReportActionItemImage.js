@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import Image from '../Image';
@@ -16,7 +17,7 @@ const propTypes = {
     thumbnail: PropTypes.string,
 
     /** URI for the image or local numeric reference for the image  */
-    image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    image: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.node]).isRequired,
 
     /** whether or not to enable the image preview modal */
     enablePreviewModal: PropTypes.bool,
@@ -35,10 +36,10 @@ const defaultProps = {
 
 function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
     const {translate} = useLocalize();
-    const imageSource = tryResolveUrlFromApiRoot(image || '');
+    const imageSource = ''; // tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
 
-    const receiptImageComponent = thumbnail ? (
+    let receiptImageComponent = thumbnail ? (
         <ThumbnailImage
             previewSourceURL={thumbnailSource}
             style={[styles.w100, styles.h100]}
@@ -51,6 +52,9 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
             style={[styles.w100, styles.h100]}
         />
     );
+
+    console.log('>>>', {image, isFunc: _.isFunction(image)});
+    receiptImageComponent = !_.isString(image) ? (<View style={[styles.w100, styles.h100]}>{image}</View>) : receiptImageComponent;
 
     if (enablePreviewModal) {
         return (

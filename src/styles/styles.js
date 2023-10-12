@@ -2572,13 +2572,13 @@ const styles = (theme) => ({
 
     requestPreviewBox: {
         marginTop: 12,
-        maxWidth: variables.sideBarWidth,
+        maxWidth: variables.reportPreviewMaxWidth,
     },
 
     moneyRequestPreviewBox: {
         backgroundColor: theme.cardBG,
         borderRadius: variables.componentBorderRadiusLarge,
-        maxWidth: variables.sideBarWidth,
+        maxWidth: variables.reportPreviewMaxWidth,
         width: '100%',
     },
 
@@ -3612,10 +3612,8 @@ const styles = (theme) => ({
         borderColor: theme.transparent,
         borderTopLeftRadius: variables.componentBorderRadiusLarge,
         borderTopRightRadius: variables.componentBorderRadiusLarge,
-        borderBottomLeftRadius: variables.componentBorderRadiusLarge,
-        borderBottomRightRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
-        height: 200,
+        height: 130,
     },
 
     reportActionItemImage: {
@@ -3628,19 +3626,41 @@ const styles = (theme) => ({
     },
 
     reportActionItemImageBorder: {
-        borderRightWidth: 2,
+        borderRightWidth: 4,
         borderColor: theme.cardBG,
     },
 
-    reportActionItemImagesMore: {
+    reportActionItemImagesMoreContainer: {
         position: 'absolute',
-        borderRadius: 18,
-        backgroundColor: theme.cardBG,
-        width: 36,
-        height: 36,
+        bottom: 0,
+        right: 0,
         display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
+        // justifyContent: 'center',
+        // alignItems: 'center',
+    },
+
+    reportActionItemImagesMore: {
+        borderTopLeftRadius: 12,
+        backgroundColor: theme.border,
+        width: 40,
+        height: 40,
+        // display: 'flex',
+        // justifyContent: 'center',
+        // alignItems: 'center',
+    },
+
+    reportActionItemImagesMoreCorner: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        width: 0,
+        height: 0,
+        borderStyle: 'solid',
+        borderWidth: 0,
+        borderBottomWidth: 40,
+        borderLeftWidth: 40,
+        borderColor: 'transparent',
+        borderBottomColor: theme.cardBG,
     },
 
     moneyRequestHeaderStatusBarBadge: {

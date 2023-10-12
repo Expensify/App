@@ -37,6 +37,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import MoneyRequestSkeletonView from '../MoneyRequestSkeletonView';
+import EReceiptThumbnail from '../EReceiptThumbnail';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -232,6 +233,22 @@ function MoneyRequestPreview(props) {
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
     };
 
+    // const testEReceipt = {image: ( <EReceiptThumbnail transactionID={"1493056356268263092"} /> )};
+    // const testEReceipt1 = {image: ( <EReceiptThumbnail transactionID={"149305635626826309"} /> )};
+    // const testEReceipt3 = {image: ( <EReceiptThumbnail transactionID={"1493056356268263092"} /> )};
+    // const testEReceipt4 = {image: ( <EReceiptThumbnail transactionID={"149305635626826309"} /> )};
+
+    const testEReceipt = {image: "eReceipt/1493056356268263092"};
+    const testEReceipt2 = {image: "eReceipt/149305635626826309"};
+    const testEReceipt3 = {image: "eReceipt/1493056356268263092"};
+    const testEReceipt4 = {image: "eReceipt/149305635626826309"};
+
+    // const testEReceipt2 = {image: ( <View style={{backgroundColor: 'blue', flex: 1}} /> )};
+    // const testEReceipt3 = {image: ( <View style={{backgroundColor: 'red', flex: 1}} /> )};
+    // const testEReceipt4 = {image: ( <View style={{backgroundColor: 'orange', flex: 1}}/> )};
+
+
+
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -249,10 +266,11 @@ function MoneyRequestPreview(props) {
                         !props.onPreviewPressed ? [styles.moneyRequestPreviewBox, ...props.containerStyles] : {},
                     ]}
                 >
-                    {hasReceipt && (
+                    {true && (
                         <ReportActionItemImages
-                            images={receiptImages}
-                            isHovered={isScanning}
+                            images={[testEReceipt, testEReceipt3, testEReceipt4, testEReceipt2]}
+                            isHovered={props.isHovered || isScanning}
+                            size={3}
                         />
                     )}
                     {_.isEmpty(props.transaction) &&

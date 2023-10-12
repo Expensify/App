@@ -7,8 +7,9 @@ import ReceiptDoc from '../../assets/images/receipt-doc.png';
 import ReceiptGeneric from '../../assets/images/receipt-generic.png';
 import ReceiptSVG from '../../assets/images/receipt-svg.png';
 
+
 type ThumbnailAndImageURI = {
-    image: ImageSourcePropType | string;
+    image: ImageSourcePropType | string | Node;
     thumbnail: string | null;
 };
 
@@ -16,6 +17,17 @@ type FileNameAndExtension = {
     fileExtension?: string;
     fileName?: string;
 };
+
+// /**
+//  * Grab the appropriate receipt image and thumbnail URIs based on file type
+//  *
+//  * @param transaction 
+//  */
+// function getThumbnailAndImageForEReceipts(transaction: Transaction): ThumbnailAndImageURI {
+
+//     const eReceipt = <EReceiptThumbnail transactionID={transaction.transactionID}/>; 
+//     return {thumbnail: null, image: ()};
+// }
 
 /**
  * Grab the appropriate receipt image and thumbnail URIs based on file type

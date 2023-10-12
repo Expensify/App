@@ -11,7 +11,7 @@ const propTypes = {
     images: PropTypes.arrayOf(
         PropTypes.shape({
             thumbnail: PropTypes.string,
-            image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            image: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.node]),
         }),
     ).isRequired,
 
@@ -49,10 +49,22 @@ function ReportActionItemImages({images, size, total, isHovered}) {
     const shownImages = images.slice(0, size);
     const remaining = (total || images.length) - size;
 
+    console.log('>>>',{images});
+
+    const heights = {
+        0: 0,
+        1: 147,
+        2: 138,
+        3: 110,
+    };
+
+    const heightStyle = {height: heights[numberOfShownImages]};
+
     const hoverStyle = isHovered ? styles.reportPreviewBoxHoverBorder : undefined;
     return (
-        <View style={[styles.reportActionItemImages, hoverStyle]}>
+        <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
             {_.map(shownImages, ({thumbnail, image}, index) => {
+                console.log('>>>', {image});
                 const isLastImage = index === numberOfShownImages - 1;
 
                 // Show a border to separate multiple images. Shown to the right for each except the last.
@@ -68,8 +80,10 @@ function ReportActionItemImages({images, size, total, isHovered}) {
                             image={image}
                         />
                         {isLastImage && remaining > 0 && (
-                            <View style={[styles.reportActionItemImagesMore, hoverStyle]}>
-                                <Text>+{remaining}</Text>
+                            <View style={[styles.reportActionItemImagesMoreContainer]}>
+                                <View style={[styles.reportActionItemImagesMore, hoverStyle]} />
+                                <View style={[styles.reportActionItemImagesMoreCorner]}/>
+                                <Text style={[{position: 'absolute', marginLeft: 15, marginTop: 13}, styles.mentionSuggestionsHandle, styles.textStrong]}>+{remaining}</Text>
                             </View>
                         )}
                     </View>

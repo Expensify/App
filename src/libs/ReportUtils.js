@@ -3768,7 +3768,7 @@ function getReportPreviewDisplayTransactions(reportPreviewAction) {
         (transactions, transactionID) => {
             if (transactionIDs[transactionID] !== null) {
                 const transaction = TransactionUtils.getTransaction(transactionID);
-                if (TransactionUtils.hasReceipt(transaction)) {
+                if (TransactionUtils.hasReceipt(transaction) || TransactionUtils.hasEreceipt(transaction)) {
                     transactions.push(transaction);
                 }
             }
