@@ -176,7 +176,7 @@ function EmojiPickerMenu(props) {
         }
 
         // Arrow Down and Arrow Right enable arrow navigation when search is focused
-        if (searchInputRef.current?.isFocused()) {
+        if (searchInputRef.current && searchInputRef.current.isFocused()) {
             if (arrowKey !== 'ArrowDown' && arrowKey !== 'ArrowRight') {
                 return;
             }
@@ -289,15 +289,15 @@ function EmojiPickerMenu(props) {
         // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
         // is not focused, so that the navigation and tab cycling can be done using the keyboard without
         // interfering with the input behaviour.
-        if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && !searchInputRef.current?.isFocused())) {
+        if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && searchInputRef.current && !searchInputRef.current.isFocused())) {
             setIsUsingKeyboardMovement(true);
             return;
         }
 
         // We allow typing in the search box if any key is pressed apart from Arrow keys.
-        if (!searchInputRef.current?.isFocused()) {
+        if (searchInputRef.current && !searchInputRef.current.isFocused()) {
             setSelectTextOnFocus(false);
-            searchInputRef.current?.focus();
+            searchInputRef.current.focus();
 
             // Re-enable selection on the searchInput
             setSelectTextOnFocus(true);
@@ -324,8 +324,12 @@ function EmojiPickerMenu(props) {
      * Cleanup all mouse/keydown event listeners that we've set up
      */
     function cleanupEventHandlers() {
-        document?.removeEventListener('keydown', keyDownHandler, true);
-        document?.removeEventListener('mousemove', mouseMoveHandler);
+        if (!document) {
+            return;
+        }
+
+        document.removeEventListener('keydown', keyDownHandler, true);
+        document.removeEventListener('mousemove', mouseMoveHandler);
     }
 
     useEffect(() => {
@@ -346,9 +350,13 @@ function EmojiPickerMenu(props) {
     }, []);
 
     function scrollToHeader(headerIndex) {
+        if (!emojiListRef.current) {
+            return;
+        }
+
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        emojiListRef.current?.flashScrollIndicators();
-        emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
+        emojiListRef.current.flashScrollIndicators();
+        emojiListRef.current.scrollToOffset({offset: calculatedOffset, animated: true});
     }
 
     /**
@@ -359,7 +367,9 @@ function EmojiPickerMenu(props) {
     const filterEmojis = useCallback(
         _.debounce((searchTerm) => {
             const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
-            emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
+            if (emojiListRef.current) {
+                emojiListRef.current.scrollToOffset({offset: 0, animated: false});
+            }
             if (normalizedSearchTerm === '') {
                 // There are no headers when searching, so we need to re-make them sticky when there is no search term
                 setFilteredEmojis(emojis.current);
@@ -451,7 +461,7 @@ function EmojiPickerMenu(props) {
                     setHighlightedIndex(-1);
                 }}
                 emoji={emojiCode}
-                onFocus={() => void setHighlightedIndex(index)}
+                onFocus={() => setHighlightedIndex(index)}
                 onBlur={() =>
                     // Only clear the highlighted index if the highlighted index is the same,
                     // meaning that the focus changed to an element that is not an emoji item.
