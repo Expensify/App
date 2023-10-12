@@ -69,6 +69,7 @@ If it is **Verifying**, then this means we sent you a message and need more info
 If it is **Pending**, then in 1-2 business days Expensify will administer 3 test transactions to your bank account. Please check your Concierge chat for further instructions. If you do not see these test transactions
 After these transactions (2 withdrawals and 1 deposit) have been processed in your account, visit your Expensify Inbox, where you'll see a prompt to input the transaction amounts.
 Once you've finished these steps, your business bank account is ready to use in Expensify!
+
 # How to share a verified bank account 
 Only admins with access to the verified bank account can reimburse employees or pay vendor bills. To grant another admin access to the bank account in Expensify, go to **Settings > Account > Payments > Bank Accounts** and click **"Share"**. Enter their email address, and they will receive instructions from us. Please note, they must be a policy admin on a policy you also have access to in order to share the bank account with them.
 When a bank account is shared, it must be revalidated with three new microtransactions to ensure the shared admin has access. This process takes 1-2 business days. Once received, the shared admin can enter the transactions via their Expensify account's Inbox tab.
