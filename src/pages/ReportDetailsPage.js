@@ -145,17 +145,18 @@ function ReportDetailsPage(props) {
         }
 
         if (isUserCreatedPolicyRoom || canLeaveRoom || isThread) {
+            const isWorkspaceMemberLeavingWorkspaceRoom = lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && PolicyUtils.isPolicyMember(props.report.policyID, props.policies);
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
                 icon: Expensicons.Exit,
                 isAnonymousAction: false,
-                action: () => Report.leaveRoom(props.report.reportID),
+                action: () => Report.leaveRoom(props.report.reportID, isWorkspaceMemberLeavingWorkspaceRoom),
             });
         }
 
         return items;
-    }, [props.report, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom, isPolicyMember]);
+    }, [props.report, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom, isPolicyMember, props.betas, props.policies]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
