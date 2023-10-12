@@ -122,7 +122,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
             }
             FormActions.setErrorFields(formID, null);
 
-            const validateErrors = validate(values);
+            const validateErrors = validate(values) || {};
 
             // Validate the input for html tags. It should supercede any other error
             _.each(trimmedStringValues, (inputValue, inputID) => {

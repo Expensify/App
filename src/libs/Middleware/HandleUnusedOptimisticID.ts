@@ -10,7 +10,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
         const responseOnyxData = response?.onyxData ?? [];
         responseOnyxData.forEach((onyxData) => {
             const key = onyxData.key;
-            if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
+            if (!key?.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
                 return;
             }
 

@@ -24,7 +24,7 @@ import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import MenuItemRenderHTMLTitle from './MenuItemRenderHTMLTitle';
+import RenderHTML from './RenderHTML';
 
 const propTypes = menuItemPropTypes;
 
@@ -77,6 +77,8 @@ const defaultProps = {
     shouldGreyOutWhenDisabled: true,
     error: '',
     shouldRenderAsHTML: false,
+    rightComponent: undefined,
+    shouldShowRightComponent: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -130,6 +132,8 @@ const MenuItem = React.forwardRef((props, ref) => {
 
         return '';
     }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
+
+    const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
 
     return (
         <Hoverable>
@@ -248,7 +252,9 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             {Boolean(props.title) && (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) && (
-                                                <MenuItemRenderHTMLTitle title={getProcessedTitle} />
+                                                <View style={styles.renderHTMLTitle}>
+                                                    <RenderHTML html={getProcessedTitle} />
+                                                </View>
                                             )}
                                             {!props.shouldRenderAsHTML && !props.shouldParseTitle && Boolean(props.title) && (
                                                 <Text
@@ -300,7 +306,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     </View>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
+                            <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
                                 {Boolean(props.badgeText) && (
                                     <Badge
                                         text={props.badgeText}
@@ -345,6 +351,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         />
                                     </View>
                                 )}
+                                {props.shouldShowRightComponent && props.rightComponent}
                                 {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                             </View>
                         </>
