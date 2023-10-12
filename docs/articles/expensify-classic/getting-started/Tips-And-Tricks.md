@@ -56,7 +56,7 @@ If you’d like to use features that rely on your current location you will need
 6. If location access is blocked for expensify.com or new.expensify.com, you can update it here to allow access
 
 ## Safari
-1. In the top menu bar click Safari
+1. In the top menu bar, click Safari
 2. Then select Settings > Websites
 3. Click Location on the left hand side
 4. If expensify.com or new.expensify.com have “Deny” set as their access, update it to “Ask” or “Allow”
