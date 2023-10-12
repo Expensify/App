@@ -123,15 +123,70 @@ function getOldDotURL(url) {
     }
 
     if (pathname === 'workspace') {
-        const [, workspaceID, section] = paths;
+        const [, workspaceID, sectionName] = paths;
+
+        let section = '';
+        switch (sectionName) {
+            case 'overview':
+                section = '';
+                break;
+            case 'per-diem':
+                section = 'js_policyEditor_perDiem';
+                break;
+            case 'export-formats':
+                section = 'exportFormats';
+                break;
+            default:
+                section = sectionName;
+        }
+
         const param = {policyID: workspaceID};
         return `policy/?param${JSON.stringify(param)}#${section}`;
     }
 
     if (pathname === 'settings') {
-        const [, section] = paths;
+        const [, sectionName] = paths;
+
+        let section = '';
+        switch (sectionName) {
+            case 'account':
+                section = '';
+                break;
+            case 'expense-rules':
+                section = 'expenserules';
+                break;
+            case 'cards':
+                section = 'creditcards';
+                break;
+            default:
+                section = sectionName;
+        }
+
         const param = {section};
         return `settings?param=${JSON.stringify(param)}`;
+    }
+
+    if (pathname === 'domains') {
+        return 'admin_domains';
+    }
+
+
+    if (pathname.includes('domain')) {
+        const [, sectionName] = paths;
+
+        let section = '';
+        switch (sectionName) {
+            case 'cards':
+                section = 'companycards';
+                break;
+            case 'tools':
+                section = 'loadingDock';
+                break;
+            default:
+                section = sectionName;
+        }
+
+        return `domain/${section}`;
     }
 
     return pathname;
