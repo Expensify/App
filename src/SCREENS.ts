@@ -20,10 +20,10 @@ export default {
         WALLET: 'Settings_Wallet',
         WALLET_DOMAIN_CARDS: 'Settings_Wallet_DomainCards',
         WALLET_CARDS_GET_PHYSICAL: {
-                    NAME: 'Settings_Cards_Get_Physical_Name',
-                    PHONE: 'Settings_Cards_Get_Physical_Phone',
-                    ADDRESS: 'Settings_Cards_Get_Physical_Address',
-                    CONFIRM: 'Settings_Cards_Get_Physical_Confirm',
+            NAME: 'Settings_Cards_Get_Physical_Name',
+            PHONE: 'Settings_Cards_Get_Physical_Phone',
+            ADDRESS: 'Settings_Cards_Get_Physical_Address',
+            CONFIRM: 'Settings_Cards_Get_Physical_Confirm',
         },
     },
     SAVE_THE_WORLD: {
