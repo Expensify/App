@@ -833,7 +833,7 @@ describe('OptionsListUtils', () => {
             {
                 title: 'All',
                 shouldShow: true,
-                indexOffset: 3,
+                indexOffset: 2,
                 data: [
                     {
                         text: 'Restaurant',
@@ -1346,10 +1346,6 @@ describe('OptionsListUtils', () => {
                 enabled: true,
                 name: 'Meals',
             },
-            Taxi: {
-                enabled: false,
-                name: 'Taxi',
-            },
             Restaurant: {
                 enabled: true,
                 name: 'Restaurant',
@@ -1366,25 +1362,13 @@ describe('OptionsListUtils', () => {
                 enabled: true,
                 name: 'Food: Milk',
             },
-            'Food: Vegetables': {
-                enabled: false,
-                name: 'Food: Vegetables',
-            },
             'Cars: Audi': {
                 enabled: true,
                 name: 'Cars: Audi',
             },
-            'Cars: BMW': {
-                enabled: false,
-                name: 'Cars: BMW',
-            },
             'Cars: Mercedes-Benz': {
                 enabled: true,
                 name: 'Cars: Mercedes-Benz',
-            },
-            Medical: {
-                enabled: false,
-                name: 'Medical',
             },
             'Travel: Meals': {
                 enabled: true,
@@ -1393,10 +1377,6 @@ describe('OptionsListUtils', () => {
             'Travel: Meals: Breakfast': {
                 enabled: true,
                 name: 'Travel: Meals: Breakfast',
-            },
-            'Travel: Meals: Dinner': {
-                enabled: false,
-                name: 'Travel: Meals: Dinner',
             },
             'Travel: Meals: Lunch': {
                 enabled: true,
