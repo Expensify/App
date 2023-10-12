@@ -55,7 +55,7 @@ function ReportActionItemImages({images, size, total, isHovered}) {
     console.log('>>>',{images});
 
     // The height varies depending on the number of images we are displaying.
-    let heightStyle = StyleUtils.getHeight(0);
+    let heightStyle = {};
 
     if(numberOfShownImages === 1){
         heightStyle = StyleUtils.getHeight(variables.reportActionImagesSingleImageHeight);
@@ -89,8 +89,8 @@ function ReportActionItemImages({images, size, total, isHovered}) {
                         {isLastImage && remaining > 0 && (
                             <View style={[styles.reportActionItemImagesMoreContainer]}>
                                 <View style={[styles.reportActionItemImagesMore, hoverStyle]} />
-                                <View style={[styles.reportActionItemImagesMoreCorner]}/>
-                                <Text style={[{position: 'absolute', marginLeft: 15, marginTop: 13}, styles.mentionSuggestionsHandle, styles.textStrong]}>+{remaining}</Text>
+                                <View style={[styles.reportActionItemImagesMoreCornerTriangle]}/>
+                                <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>+{remaining}</Text>
                             </View>
                         )}
                     </View>

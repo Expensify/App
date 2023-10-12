@@ -3613,7 +3613,7 @@ const styles = (theme) => ({
         borderTopLeftRadius: variables.componentBorderRadiusLarge,
         borderTopRightRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
-        height: 130,
+        height: variables.reportActionImagesSingleImageHeight,
     },
 
     reportActionItemImage: {
@@ -3635,8 +3635,6 @@ const styles = (theme) => ({
         bottom: 0,
         right: 0,
         display: 'flex',
-        // justifyContent: 'center',
-        // alignItems: 'center',
     },
 
     reportActionItemImagesMore: {
@@ -3644,12 +3642,16 @@ const styles = (theme) => ({
         backgroundColor: theme.border,
         width: 40,
         height: 40,
-        // display: 'flex',
-        // justifyContent: 'center',
-        // alignItems: 'center',
     },
 
-    reportActionItemImagesMoreCorner: {
+    reportActionItemImagesMoreText: {
+        position: 'absolute',
+        marginLeft: 15,
+        marginTop: 13,
+        color: theme.textSupporting,
+    },
+
+    reportActionItemImagesMoreCornerTriangle: {
         position: 'absolute',
         bottom: 0,
         right: 0,
