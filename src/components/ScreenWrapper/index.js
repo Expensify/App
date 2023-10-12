@@ -35,6 +35,7 @@ function ScreenWrapper({
     shouldDismissKeyboardBeforeClose,
     onEntryTransitionEnd,
     testID,
+    isSidebar,
 }) {
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const keyboardState = useKeyboardState();
@@ -133,7 +134,10 @@ function ScreenWrapper({
                                     style={styles.flex1}
                                     enabled={shouldEnablePickerAvoiding}
                                 >
-                                    <HeaderGap styles={headerGapStyles} />
+                                    <HeaderGap
+                                        styles={headerGapStyles}
+                                        isSidebar={isSidebar}
+                                    />
                                     {isDevelopment && <TestToolsModal />}
                                     {isDevelopment && <CustomDevMenu />}
                                     {

@@ -45,6 +45,9 @@ const propTypes = {
 
     /** Styles for the offline indicator */
     offlineIndicatorStyle: stylePropTypes,
+
+    /** Is screen in Sidebar */
+    isSidebar: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -60,6 +63,7 @@ const defaultProps = {
     shouldShowOfflineIndicator: true,
     offlineIndicatorStyle: [],
     headerGapStyles: [],
+    isSidebar: false,
 };
 
 export {propTypes, defaultProps};

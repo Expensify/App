@@ -814,7 +814,12 @@ const styles = (theme) => ({
 
     headerGap: {
         height: CONST.DESKTOP_HEADER_PADDING,
-        backgroundColor: theme.highlightBG,
+    },
+
+    headerGapLhpRight: {
+        backgroundColor: theme.sidebar,
+        borderTopLeftRadius: variables.componentBorderRadiusRounded,
+        flex: 1,
     },
 
     reportOptions: {
@@ -1250,7 +1255,6 @@ const styles = (theme) => ({
     subNavigationContainer: {
         backgroundColor: theme.sidebar,
         flex: 1,
-        borderTopLeftRadius: variables.componentBorderRadiusRounded,
     },
 
     sidebarAnimatedWrapperContainer: {
