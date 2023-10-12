@@ -50,6 +50,7 @@ function ReportActionItemImages({images, size, total, isHovered}) {
     const numberOfShownImages = size || images.length;
     const shownImages = images.slice(0, size);
     const remaining = (total || images.length) - size;
+    const MAX_REMAINING = 9;
 
     // The height varies depending on the number of images we are displaying.
     let heightStyle = {};
@@ -82,9 +83,9 @@ function ReportActionItemImages({images, size, total, isHovered}) {
                         />
                         {isLastImage && remaining > 0 && (
                             <View style={[styles.reportActionItemImagesMoreContainer]}>
-                                <View style={[styles.reportActionItemImagesMore, hoverStyle]} />
-                                <View style={[styles.reportActionItemImagesMoreCornerTriangle]} />
-                                <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>+{remaining}</Text>
+                                <View style={[styles.reportActionItemImagesMore, isHovered ? styles.reportActionItemImagesMoreHovered : {}]} />
+                                <View style={[styles.reportActionItemImagesMoreCornerTriangle, isHovered ? styles.reportActionItemImagesMoreCornerTriangleHighlighted : {}]} />
+                                <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>{remaining > MAX_REMAINING ? `${MAX_REMAINING}+` : `+${remaining}`}</Text>
                             </View>
                         )}
                     </View>

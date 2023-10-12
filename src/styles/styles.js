@@ -3644,6 +3644,10 @@ const styles = (theme) => ({
         height: 40,
     },
 
+    reportActionItemImagesMoreHovered: {
+        backgroundColor: theme.cardBG,
+    },
+
     reportActionItemImagesMoreText: {
         position: 'absolute',
         marginLeft: 15,
@@ -3663,6 +3667,11 @@ const styles = (theme) => ({
         borderLeftWidth: 40,
         borderColor: 'transparent',
         borderBottomColor: theme.cardBG,
+    },
+
+    reportActionItemImagesMoreCornerTriangleHighlighted: {
+        borderColor: 'transparent',
+        borderBottomColor: theme.border,
     },
 
     moneyRequestHeaderStatusBarBadge: {
