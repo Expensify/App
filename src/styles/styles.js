@@ -821,9 +821,9 @@ const styles = (theme) => ({
     },
 
     chatItemComposeSecondaryRow: {
-        height: 15,
-        marginBottom: 5,
-        marginTop: 5,
+        height: CONST.CHAT_FOOTER_SECONDARY_ROW_HEIGHT,
+        marginBottom: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
+        marginTop: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
     },
 
     chatItemComposeSecondaryRowSubText: {
