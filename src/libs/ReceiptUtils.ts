@@ -7,7 +7,6 @@ import ReceiptDoc from '../../assets/images/receipt-doc.png';
 import ReceiptGeneric from '../../assets/images/receipt-generic.png';
 import ReceiptSVG from '../../assets/images/receipt-svg.png';
 
-
 type ThumbnailAndImageURI = {
     image: ImageSourcePropType | string;
     thumbnail: string | null;

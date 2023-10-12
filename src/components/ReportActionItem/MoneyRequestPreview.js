@@ -37,7 +37,6 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import MoneyRequestSkeletonView from '../MoneyRequestSkeletonView';
-import EReceiptThumbnail from '../EReceiptThumbnail';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -173,7 +172,7 @@ function MoneyRequestPreview(props) {
         !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
 
-    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || '')] : [];
+    const receiptImage = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || '')] : [];
 
     const getSettledMessage = () => {
         if (isExpensifyCardTransaction || isDistanceRequest) {
@@ -252,9 +251,9 @@ function MoneyRequestPreview(props) {
                 >
                     {hasReceipt && (
                         <ReportActionItemImages
-                            images={receiptImages}
+                            images={receiptImage}
                             isHovered={props.isHovered || isScanning}
-                            size={3}
+                            size={1}
                         />
                     )}
                     {_.isEmpty(props.transaction) &&

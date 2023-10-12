@@ -8,7 +8,6 @@ import ReportActionItemImage from './ReportActionItemImage';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as variables from '../../styles/variables';
 
-
 const propTypes = {
     /** array of image and thumbnail URIs */
     images: PropTypes.arrayOf(
@@ -54,11 +53,11 @@ function ReportActionItemImages({images, size, total, isHovered}) {
 
     // The height varies depending on the number of images we are displaying.
     let heightStyle = {};
-    if(numberOfShownImages === 1){
+    if (numberOfShownImages === 1) {
         heightStyle = StyleUtils.getHeight(variables.reportActionImagesSingleImageHeight);
-    } else if(numberOfShownImages === 2) {
+    } else if (numberOfShownImages === 2) {
         heightStyle = StyleUtils.getHeight(variables.reportActionImagesDoubleImageHeight);
-    } else if(numberOfShownImages > 2) {
+    } else if (numberOfShownImages > 2) {
         heightStyle = StyleUtils.getHeight(variables.reportActionImagesMultipleImageHeight);
     }
 
@@ -84,7 +83,7 @@ function ReportActionItemImages({images, size, total, isHovered}) {
                         {isLastImage && remaining > 0 && (
                             <View style={[styles.reportActionItemImagesMoreContainer]}>
                                 <View style={[styles.reportActionItemImagesMore, hoverStyle]} />
-                                <View style={[styles.reportActionItemImagesMoreCornerTriangle]}/>
+                                <View style={[styles.reportActionItemImagesMoreCornerTriangle]} />
                                 <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>+{remaining}</Text>
                             </View>
                         )}
