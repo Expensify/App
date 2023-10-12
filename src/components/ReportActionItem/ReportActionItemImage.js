@@ -40,9 +40,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
 
-
     const isEReceipt = imageSource.startsWith(CONST.ERECEIPT_PATH);
-
 
     let receiptImageComponent = thumbnail ? (
         <ThumbnailImage
@@ -58,10 +56,12 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
         />
     );
 
-    if(isEReceipt) {
+    if (isEReceipt) {
         const transactionIDFromURL = imageSource.split(CONST.ERECEIPT_PATH)[1];
         receiptImageComponent = (
-            <View style={[styles.w100, styles.h100]}><EReceiptThumbnail transactionID={transactionIDFromURL}/></View>
+            <View style={[styles.w100, styles.h100]}>
+                <EReceiptThumbnail transactionID={transactionIDFromURL} />
+            </View>
         );
     }
 

@@ -45,6 +45,17 @@ DisplayJSX.args = {
     total: 1,
 };
 
+const DisplayMultipleEReceipts = Template.bind({});
+DisplayMultipleEReceipts.args = {
+    images: [
+        {image: 'eReceipt/FAKE_3', thumbnail: ''},
+        {image: 'eReceipt/FAKE_5', thumbnail: ''},
+        {image: 'eReceipt/FAKE_2', thumbnail: ''},
+    ],
+    size: 3,
+    total: 3,
+};
+
 const TwoImages = Template.bind({});
 TwoImages.args = {
     images: [
@@ -146,4 +157,4 @@ ThreePlusTenImages.args = {
 };
 
 export default story;
-export {Default, TwoImages, ThreeImages, FourImages, ThreePlusTwoImages, ThreePlusTenImages, DisplayJSX};
+export {Default, TwoImages, ThreeImages, FourImages, ThreePlusTwoImages, ThreePlusTenImages, DisplayJSX, DisplayMultipleEReceipts};

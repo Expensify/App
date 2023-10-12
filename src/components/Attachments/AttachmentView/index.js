@@ -94,7 +94,7 @@ function AttachmentView({
         );
     }
 
-    if((_.isString(source)) && source.startsWith(CONST.ERECEIPT_PATH)) {
+    if (_.isString(source) && source.startsWith(CONST.ERECEIPT_PATH)) {
         const transactionIDFromURL = source.split(CONST.ERECEIPT_PATH)[1];
         return (
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>

@@ -3757,29 +3757,6 @@ function getParticipantsIDs(report) {
 }
 
 /**
- * Get the last 3 transactions with receipts of an IOU report that will be displayed on the report preview
- *
- * @param {Object} reportPreviewAction
- * @returns {Object}
- */
-function getReportPreviewDisplayTransactions(reportPreviewAction) {
-    const transactionIDs = lodashGet(reportPreviewAction, ['childRecentReceiptTransactionIDs']);
-    return _.reduce(
-        _.keys(transactionIDs),
-        (transactions, transactionID) => {
-            if (transactionIDs[transactionID] !== null) {
-                const transaction = TransactionUtils.getTransaction(transactionID);
-                if (TransactionUtils.hasReceipt(transaction)) {
-                    transactions.push(transaction);
-                }
-            }
-            return transactions;
-        },
-        [],
-    );
-}
-
-/**
  * Return iou report action display message
  *
  * @param {Object} reportAction report action
@@ -3966,7 +3943,6 @@ export {
     canEditMoneyRequest,
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
-    getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
