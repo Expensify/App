@@ -121,9 +121,9 @@ function EmojiPickerMenu(props) {
      *
      * @param {Event} event
      */
-    function onSelectionChange(event) {
+    const onSelectionChange = useCallback((event) => {
         setSelection(event.nativeEvent.selection);
-    }
+    }, []);
 
     /**
      * Find and store index of the first emoji item
@@ -150,9 +150,7 @@ function EmojiPickerMenu(props) {
      * @param {Number} index row index
      * @returns {Object}
      */
-    function getItemLayout(data, index) {
-        return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
-    }
+    const getItemLayout = useCallback((data, index) => ({length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index}), []);
 
     /**
      * Focuses the search Input and has the text selected
@@ -349,7 +347,7 @@ function EmojiPickerMenu(props) {
         };
     }, []);
 
-    function scrollToHeader(headerIndex) {
+    const scrollToHeader = useCallback((headerIndex) => {
         if (!emojiListRef.current) {
             return;
         }
@@ -357,7 +355,7 @@ function EmojiPickerMenu(props) {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
         emojiListRef.current.flashScrollIndicators();
         emojiListRef.current.scrollToOffset({offset: calculatedOffset, animated: true});
-    }
+    }, []);
 
     /**
      * Filter the entire list of emojis to only emojis that have the search term in their keywords
@@ -401,13 +399,13 @@ function EmojiPickerMenu(props) {
     /**
      * @param {Number} skinTone
      */
-    function updatePreferredSkinTone(skinTone) {
+    const updatePreferredSkinTone = useCallback((skinTone) => {
         if (Number(preferredSkinTone) === skinTone) {
             return;
         }
 
         User.updatePreferredSkinTone(skinTone);
-    }
+    }, []);
 
     /**
      * Return a unique key for each emoji item
@@ -416,9 +414,7 @@ function EmojiPickerMenu(props) {
      * @param {Number} index
      * @returns {String}
      */
-    function keyExtractor(item, index) {
-        return `emoji_picker_${item.code}_${index}`;
-    }
+    const keyExtractor = useCallback((item, index) => `emoji_picker_${item.code}_${index}`, []);
 
     /**
      * Given an emoji item object, render a component based on its type.
@@ -429,7 +425,7 @@ function EmojiPickerMenu(props) {
      * @param {Number} index
      * @returns {*}
      */
-    function renderItem({item, index}) {
+    const renderItem = useCallback(({item, index}) => {
         const {code, header, types} = item;
         if (item.spacer) {
             return null;
@@ -472,7 +468,7 @@ function EmojiPickerMenu(props) {
                 isUsingKeyboardMovement={isUsingKeyboardMovement}
             />
         );
-    }
+    }, []);
 
     const isFiltered = emojis.current.length !== filteredEmojis.length;
     const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, windowHeight);
