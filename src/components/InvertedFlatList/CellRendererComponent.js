@@ -1,11 +1,17 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
 
 const propTypes = {
     /** Position index of the list item in a list view */
     index: PropTypes.number.isRequired,
+
+    /** Styles that are passed to the component */
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+};
+
+const defaultProps = {
+    style: {},
 };
 
 function CellRendererComponent(props) {
@@ -14,8 +20,7 @@ function CellRendererComponent(props) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             style={[
-                styles.invert,
-
+                props.style,
                 /**
                  * To achieve absolute positioning and handle overflows for list items,
                  * it is necessary to assign zIndex values. In the case of inverted lists,
@@ -30,6 +35,7 @@ function CellRendererComponent(props) {
 }
 
 CellRendererComponent.propTypes = propTypes;
+CellRendererComponent.defaultProps = defaultProps;
 CellRendererComponent.displayName = 'CellRendererComponent';
 
 export default CellRendererComponent;
