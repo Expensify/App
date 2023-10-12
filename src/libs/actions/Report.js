@@ -1908,8 +1908,7 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
     const inviteeEmails = _.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = _.values(inviteeEmailsToAccountIDs);
 
-    const {participants, participantAccountIDs} = report;
-    const participantsAfterInvitation = _.uniq([...participants, ...inviteeEmails]);
+    const {participantAccountIDs} = report;
     const participantAccountIDsAfterInvitation = _.uniq([...participantAccountIDs, ...inviteeAccountIDs]);
 
     API.write(
@@ -1924,7 +1923,6 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        participants: participantsAfterInvitation,
                         participantAccountIDs: participantAccountIDsAfterInvitation,
                     },
                 },
@@ -1934,7 +1932,6 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        participants,
                         participantAccountIDs,
                     },
                 },

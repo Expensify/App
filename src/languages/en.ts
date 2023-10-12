@@ -1509,7 +1509,7 @@ export default {
         selectAWorkspace: 'Select a workspace',
         growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
         visibilityOptions: {
-            restricted: 'Restricted',
+            restricted: 'Workspace', // the translation for "restricted" visibility is actually workspace. This is so we can display restricted visibility rooms as "workspace" without having to change what's stored.
             private: 'Private',
             public: 'Public',
             // eslint-disable-next-line @typescript-eslint/naming-convention

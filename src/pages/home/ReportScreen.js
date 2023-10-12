@@ -88,9 +88,6 @@ const propTypes = {
     /** Whether user is leaving the current report */
     userLeavingStatus: PropTypes.bool,
 
-    /** Whether user lost access to the current report */
-    didLoseAccess: PropTypes.bool,
-
     ...viewportOffsetTopPropTypes,
     ...withCurrentReportIDPropTypes,
 };
@@ -107,7 +104,6 @@ const defaultProps = {
     policies: {},
     accountManagerReportID: null,
     userLeavingStatus: false,
-    didLoseAccess: false,
     personalDetails: {},
     ...withCurrentReportIDDefaultProps,
 };
@@ -147,7 +143,6 @@ function ReportScreen({
     errors,
     userLeavingStatus,
     currentReportID,
-    didLoseAccess,
 }) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -317,14 +312,12 @@ function ReportScreen({
         if (
             // non-optimistic case
             (!prevUserLeavingStatus && userLeavingStatus) ||
-            didLoseAccess ||
             // optimistic case
-            (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && prevReport.statusNum === CONST.REPORT.STATUS.OPEN && report.statusNum === CONST.REPORT.STATUS.CLOSED)
+            (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && prevReport.statusNum === CONST.REPORT.STATUS.OPEN)
         ) {
             Report.clearReportLostAccessFlag();
             Navigation.goBack();
             Report.navigateToConciergeChat();
-            // debugger;
             return;
         }
 
@@ -338,7 +331,7 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum, didLoseAccess]);
+    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -497,9 +490,6 @@ export default compose(
         },
         userLeavingStatus: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
-        },
-        didLoseAccess: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_LOST_ACCESS}${getReportID(route)}`,
         },
     }),
 )(ReportScreen);
