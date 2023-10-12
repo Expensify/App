@@ -47,6 +47,7 @@ Whoever is connecting the bank account to Expensify, must enter their details un
 - The address must be located in the US
 - The SSN must be US-issued 
 This does not need to be a signor on the bank account. If someone other than the Expensify account holder enters their personal information in this section, the details will be flagged for review and adding the bank account to Expensify will be delayed. 
+
 ## Upload ID
 After entering your personal details, you’ll be prompted to click a link or scan a QR code so that you can do the following:
 1. Upload the front and back of your ID 
