@@ -167,15 +167,15 @@ function dismissModal(targetReportID) {
         case SCREENS.REPORT_ATTACHMENTS:
             // if we are not in the target report, we need to navigate to it after dismissing the modal
             if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
-                const state = getStateFromPath(ROUTES.getReportRoute(targetReportID));
+                const state = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReportID));
 
                 const action = getActionFromState(state, linkingConfig.config);
                 action.type = 'REPLACE';
                 navigationRef.current.dispatch(action);
-            // If not-found page is in the route stack, we need to close it
-            } else if (targetReportID && _.some(rootState.routes, route => route.name === SCREENS.NOT_FOUND)) {
+                // If not-found page is in the route stack, we need to close it
+            } else if (targetReportID && _.some(rootState.routes, (route) => route.name === SCREENS.NOT_FOUND)) {
                 const lastRouteIndex = rootState.routes.length - 1;
-                const centralRouteIndex = _.findLastIndex(rootState.routes, route => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+                const centralRouteIndex = _.findLastIndex(rootState.routes, (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
                 navigationRef.current.dispatch({...StackActions.pop(lastRouteIndex - centralRouteIndex), target: rootState.key});
             } else {
                 navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key});
