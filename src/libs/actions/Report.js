@@ -1366,6 +1366,7 @@ function navigateToConciergeChat() {
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], false);
         });
     } else {
+        console.log(">>>> Navigating to concierge chat");
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
     }
 }
@@ -1886,10 +1887,11 @@ function leaveRoom(reportID) {
         },
     );
     Navigation.dismissModal();
-    if (Navigation.getTopmostReportId() === reportID) {
-        Navigation.goBack(ROUTES.HOME);
-    }
     if (report.parentReportID) {
+        if (Navigation.getTopmostReportId() === reportID) {
+            Navigation.goBack(ROUTES.HOME);
+            return;
+        }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
         return;
     }
@@ -2231,14 +2233,6 @@ function clearPrivateNotesError(reportID, accountID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
-/**
- * Clears the report lost access flag
- * @param {Number} reportID
- */
-function clearReportLostAccessFlag(reportID) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_LOST_ACCESS}${reportID}`, null);
-}
-
 export {
     addComment,
     addAttachment,
@@ -2296,5 +2290,4 @@ export {
     clearPrivateNotesError,
     hasErrorInPrivateNotes,
     openRoomMembersPage,
-    clearReportLostAccessFlag,
 };
