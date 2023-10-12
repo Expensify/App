@@ -26,6 +26,8 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
 import useDelayedInputFocus from '../../hooks/useDelayedInputFocus';
+import FormProvider from "../../components/Form/FormProvider";
+import InputWrapper from "../../components/Form/InputWrapper";
 
 const propTypes = {
     /** All reports shared with the user */
@@ -172,7 +174,7 @@ function WorkspaceNewRoomPage(props) {
                         // This is because when wrapping whole screen the screen was freezing when changing Tabs.
                         keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
                     >
-                        <Form
+                        <FormProvider
                             formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                             submitButtonText={translate('newRoomPage.createRoom')}
                             scrollContextEnabled
@@ -191,7 +193,8 @@ function WorkspaceNewRoomPage(props) {
                                 />
                             </View>
                             <View style={styles.mb2}>
-                                <Picker
+                                <InputWrapper
+                                    InputComponent={Picker}
                                     inputID="policyID"
                                     label={translate('workspace.common.workspace')}
                                     placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
@@ -201,7 +204,8 @@ function WorkspaceNewRoomPage(props) {
                             </View>
                             {isPolicyAdmin && (
                                 <View style={styles.mb2}>
-                                    <Picker
+                                    <InputWrapper
+                                        InputComponent={Picker}
                                         inputID="writeCapability"
                                         label={translate('writeCapabilityPage.label')}
                                         items={writeCapabilityOptions}
@@ -210,7 +214,8 @@ function WorkspaceNewRoomPage(props) {
                                 </View>
                             )}
                             <View style={styles.mb2}>
-                                <Picker
+                                <InputWrapper
+                                    InputComponent={Picker}
                                     inputID="visibility"
                                     label={translate('newRoomPage.visibility')}
                                     items={visibilityOptions}
@@ -219,7 +224,7 @@ function WorkspaceNewRoomPage(props) {
                                 />
                             </View>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
-                        </Form>
+                        </FormProvider>
                     </KeyboardAvoidingView>
                 )}
             </ScreenWrapper>
