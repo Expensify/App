@@ -103,7 +103,7 @@ export default {
     SETTINGS_2FA: {
         CODES: 'settings/security/two-factor-auth/codes',
         VERIFY: 'settings/security/two-factor-auth/verify',
-        SUCESS: 'settings/security/two-factor-auth/success',
+        SUCCESS: 'settings/security/two-factor-auth/success',
         ENABLED: 'settings/security/two-factor-auth/enabled',
         DISABLED: 'settings/security/two-factor-auth/disabled',
     },

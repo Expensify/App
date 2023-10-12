@@ -50,7 +50,7 @@ function VerifyStep({account, session}) {
             ...CommonActions.goBack(),
             source: navigation.getState().key,
         });
-        Navigation.navigate(ROUTES.SETTINGS_2FA.SUCESS, CONST.NAVIGATION.TYPE.FORCED_UP);
+        Navigation.navigate(ROUTES.SETTINGS_2FA.SUCCESS, CONST.NAVIGATION.TYPE.FORCED_UP);
     }, [account.requiresTwoFactorAuth, navigation]);
 
     /**

@@ -164,7 +164,7 @@ export default {
                                 exact: true,
                             },
                             Settings_TwoFactorAuth_Success: {
-                                path: ROUTES.SETTINGS_2FA.SUCESS,
+                                path: ROUTES.SETTINGS_2FA.SUCCESS,
                                 exact: true,
                             },
                             Settings_TwoFactorAuth_Enabled: {
