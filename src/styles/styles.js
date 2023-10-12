@@ -3650,8 +3650,8 @@ const styles = (theme) => ({
 
     reportActionItemImagesMoreText: {
         position: 'absolute',
-        marginLeft: 15,
-        marginTop: 13,
+        marginLeft: 20,
+        marginTop: 16,
         color: theme.textSupporting,
     },
 
