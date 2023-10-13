@@ -176,8 +176,8 @@ function WorkspaceNewRoomPage(props) {
             >
                 {({insets}) => (
                     <KeyboardAvoidingView
-                        style={{height: '100%'}}
-                        behavior="height"
+                        style={styles.h100}
+                        behavior="padding"
                         // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                         // This is because when wrapping whole screen the screen was freezing when changing Tabs.
                         keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
