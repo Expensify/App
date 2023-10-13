@@ -4,6 +4,7 @@ description: Each member has a role that defines what they can see and do in the
 ---
 
 # Overview
+
 This guide is for those who are part of a **Group Workspace**.
 
 Each member has a role that defines what they can see and do in the workspace. Most members will have the role of "Employee."
