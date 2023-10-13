@@ -160,9 +160,6 @@ function FloatingActionButtonAndPopover(props) {
         if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
             return;
         }
-        if (lodashGet(props.demoInfo, 'saastr.isBeginningDemo', false) || lodashGet(props.demoInfo, 'sbe.isBeginningDemo', false)) {
-            return;
-        }
         if (lodashGet(props.demoInfo, 'money2020.isBeginningDemo', false)) {
             return;
         }
