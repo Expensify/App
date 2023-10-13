@@ -76,6 +76,7 @@ type ReportActionBase = {
     automatic?: boolean;
     shouldShow?: boolean;
     childReportID?: string;
+    childReportName?: string;
     childType?: string;
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;

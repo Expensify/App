@@ -444,6 +444,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         isArchivedRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
+        isOwnPolicyExpenseChat: false,
         isExpenseReport: false,
         policyID: null,
         isOptimisticPersonalDetail: false,
@@ -463,12 +464,13 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
-        result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.isExpenseReport = ReportUtils.isExpenseReport(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         result.isThread = ReportUtils.isChatThread(report);
         result.isTaskReport = ReportUtils.isTaskReport(report);
         result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
+        result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat || false;
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
@@ -553,6 +555,10 @@ function getPolicyExpenseReportOption(report) {
             forcePolicyNamePreview: false,
         },
     );
+
+    // Update text & alternateText because createOption returns workspace name only if report is owned by the user
+    option.text = ReportUtils.getPolicyName(expenseReport);
+    option.alternateText = Localize.translateLocal('workspace.common.workspace');
     option.selected = report.selected;
     return option;
 }
