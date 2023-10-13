@@ -1,7 +1,6 @@
-/* eslint-disable no-unused-vars */
-import colors from '../colors';
 import SCREENS from '../../SCREENS';
-import ROUTES from '../../ROUTES';
+import colors from '../colors';
+import type {ThemeBase} from './types';
 
 const darkTheme = {
     // Figma keys
@@ -82,9 +81,10 @@ const darkTheme = {
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
-    selectionListIndicatorColor: colors.white,
     mapAttributionText: colors.black,
-};
+    PAGE_BACKGROUND_COLORS: {},
+    white: colors.white,
+} satisfies ThemeBase;
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: darkTheme.sidebar,

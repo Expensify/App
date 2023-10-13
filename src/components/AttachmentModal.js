@@ -376,7 +376,7 @@ function AttachmentModal(props) {
             text: props.translate('common.download'),
             onSelected: () => downloadAttachment(source),
         });
-        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction)) {
+        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction) && !isSettled) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('receipt.deleteReceipt'),
@@ -469,7 +469,7 @@ function AttachmentModal(props) {
                         )}
                     </SafeAreaConsumer>
                 )}
-                {isAttachmentReceipt ? (
+                {isAttachmentReceipt && (
                     <ConfirmModal
                         title={translate('receipt.deleteReceipt')}
                         isVisible={isDeleteReceiptConfirmModalVisible}
@@ -480,18 +480,19 @@ function AttachmentModal(props) {
                         cancelText={translate('common.cancel')}
                         danger
                     />
-                ) : (
-                    <ConfirmModal
-                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                        onConfirm={closeConfirmModal}
-                        onCancel={closeConfirmModal}
-                        isVisible={isAttachmentInvalid}
-                        prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                        confirmText={translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
                 )}
             </Modal>
+            {!isAttachmentReceipt && (
+                <ConfirmModal
+                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                    onConfirm={closeConfirmModal}
+                    onCancel={closeConfirmModal}
+                    isVisible={isAttachmentInvalid}
+                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                    confirmText={translate('common.close')}
+                    shouldShowCancelButton={false}
+                />
+            )}
 
             {props.children &&
                 props.children({
