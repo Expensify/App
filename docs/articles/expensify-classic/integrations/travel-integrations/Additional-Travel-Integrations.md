@@ -55,13 +55,17 @@ You can automatically import receipts from many travel platforms into Expensify,
 # FAQ
 
 **Q: What if I don’t have the option for Send to Expensify in Trainline?**
+
 A: This can happen if the native iOS Mail app is not installed on an Apple device. However, you can still use the native iOS share to Expensify function for Trainline receipts.
 
 **Q: Why should I choose automatic mode in Kayak for Business?**
+
 A: Automatic mode is less effort as it’s easier to delete an expense in Expensify than to remember to forward a forgotten receipt.
 
 **Q: Can I receive consolidated reports from SpotHero?**
+
 A: Yes, you can set a weekly or monthly cadence for SpotHero expenses to be emailed in a consolidated report.
 
 **Q: Do I need to select a specific profile before booking in Bolt Work and Grab?**
+
 A: Yes, ensure you have selected your work or business profile as the payment method before booking.
