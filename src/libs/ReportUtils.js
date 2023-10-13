@@ -1307,7 +1307,7 @@ function getMoneyRequestReimbursableTotal(report, allReportsDict = null) {
 /**
  * @param {Object} report
  * @param {Object} allReportsDict
- * @returns {Number}
+ * @returns {Object}
  */
 function getMoneyRequestSpendBreakdown(report, allReportsDict = null) {
     const allAvailableReports = allReportsDict || allReports;
@@ -1323,12 +1323,12 @@ function getMoneyRequestSpendBreakdown(report, allReportsDict = null) {
         let reimbursableSpend = lodashGet(moneyRequestReport, 'total', 0);
 
         if (nonReimbursableSpend + reimbursableSpend !== 0) {
-            nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
-            reimbursableSpend = isExpenseReport(moneyRequestReport) ? reimbursableSpend * -1 : Math.abs(reimbursableSpend);
-            const totalDisplaySpend = nonReimbursableSpend + reimbursableSpend;
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to “offset” future expenses
+            nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
+            reimbursableSpend = isExpenseReport(moneyRequestReport) ? reimbursableSpend * -1 : Math.abs(reimbursableSpend);
+            const totalDisplaySpend = nonReimbursableSpend + reimbursableSpend;
             return {
                 nonReimbursableSpend,
                 reimbursableSpend,
