@@ -1,4 +1,4 @@
-import React, {createContext, forwardRef, useCallback, useState, useMemo, RefAttributes, ComponentType} from 'react';
+import React, {createContext, forwardRef, useCallback, useState, useMemo, RefAttributes, ComponentType, ForwardedRef} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationState} from '@react-navigation/native';
 
@@ -10,6 +10,7 @@ type CurrentReportIDContextValue = {
     currentReportID: string;
 };
 type CurrentReportIDContextProviderProps = {
+    /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
 
@@ -44,7 +45,7 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
 
     /**
      * The context this component exposes to child components
-     * @returns  currentReportID to share between central pane and LHN
+     * @returns currentReportID to share between central pane and LHN
      */
     const contextValue = useMemo(
         (): CurrentReportIDContextValue => ({
@@ -59,24 +60,26 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
 
 CurrentReportIDContextProvider.displayName = 'CurrentReportIDContextProvider';
 
-export default function withCurrentReportID<TComponentProps extends CurrentReportIDContextValue>(WrappedComponent: ComponentType<TComponentProps>) {
-    const WithCurrentReportID: ComponentType<Omit<TComponentProps, keyof CurrentReportIDContextValue> & RefAttributes<ComponentType<TComponentProps>>> = forwardRef((props, ref) => (
-        <CurrentReportIDContext.Consumer>
-            {(currentReportIDUtils) => (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...currentReportIDUtils}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...(props as TComponentProps)}
-                    ref={ref}
-                />
-            )}
-        </CurrentReportIDContext.Consumer>
-    ));
+export default function withCurrentReportID<TProps extends CurrentReportIDContextValue, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+    function WithCurrentReportID(props: Omit<TProps, keyof CurrentReportIDContextValue>, ref: ForwardedRef<TRef>) {
+        return (
+            <CurrentReportIDContext.Consumer>
+                {(currentReportIDUtils) => (
+                    <WrappedComponent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...currentReportIDUtils}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...(props as TProps)}
+                        ref={ref}
+                    />
+                )}
+            </CurrentReportIDContext.Consumer>
+        );
+    }
 
     WithCurrentReportID.displayName = `withCurrentReportID(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithCurrentReportID;
+    return forwardRef(WithCurrentReportID);
 }
 
 export {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps, CurrentReportIDContextProvider, CurrentReportIDContext};
