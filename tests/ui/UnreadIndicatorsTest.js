@@ -78,7 +78,7 @@ function scrollUpToRevealNewMessagesBadge() {
 function isNewMessagesBadgeVisible() {
     const hintText = Localize.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
-    return Math.round(badge.props.style.transform[0].translateY) === 10;
+    return Math.round(badge.props.style.transform[0].translateY) === -40;
 }
 
 /**
