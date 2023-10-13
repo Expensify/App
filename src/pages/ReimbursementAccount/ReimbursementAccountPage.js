@@ -159,6 +159,12 @@ class ReimbursementAccountPage extends React.Component {
             return;
         }
 
+        // Update the data that is returned from back-end to draft value
+        const draftStep = this.props.reimbursementAccount.draftStep;
+        if (draftStep) {
+            BankAccounts.updateReimbursementAccountDraft(this.getBankAccountFields(this.getFieldsForStep(draftStep)));
+        }
+
         const currentStepRouteParam = this.getStepToOpenFromRouteParams();
         if (currentStepRouteParam === currentStep) {
             // The route is showing the correct step, no need to update the route param or clear errors.
@@ -181,6 +187,42 @@ class ReimbursementAccountPage extends React.Component {
 
     componentWillUnmount() {
         BankAccounts.clearReimbursementAccount();
+    }
+
+    getFieldsForStep(step) {
+        switch (step) {
+            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+                return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
+            case CONST.BANK_ACCOUNT.STEP.COMPANY:
+                return [
+                    'companyName',
+                    'addressStreet',
+                    'addressZipCode',
+                    'addressCity',
+                    'addressState',
+                    'companyPhone',
+                    'website',
+                    'companyTaxID',
+                    'incorporationType',
+                    'incorporationDate',
+                    'incorporationState',
+                ];
+            case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+                return ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
+            default:
+                return [];
+        }
+    }
+
+    /**
+     * @param {Array} fieldNames
+     *
+     * @returns {*}
+     */
+    getBankAccountFields(fieldNames) {
+        return {
+            ..._.pick(lodashGet(this.props.reimbursementAccount, 'achData'), ...fieldNames),
+        };
     }
 
     /*

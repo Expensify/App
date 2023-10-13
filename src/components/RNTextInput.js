@@ -21,6 +21,7 @@ function RNTextInput(props) {
     return (
         <AnimatedTextInput
             allowFontScaling={false}
+            textBreakStrategy="simple"
             ref={(ref) => {
                 if (!_.isFunction(props.forwardedRef)) {
                     return;

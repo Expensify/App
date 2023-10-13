@@ -27,6 +27,7 @@ import type {
     SettleExpensifyCardParams,
     RequestAmountParams,
     SplitAmountParams,
+    DidSplitAmountMessageParams,
     AmountEachParams,
     PayerOwesAmountParams,
     PayerOwesParams,
@@ -253,6 +254,7 @@ export default {
         recent: 'Reciente',
         all: 'Todo',
         tbd: 'Por determinar',
+        card: 'Tarjeta',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -498,6 +500,8 @@ export default {
         flash: 'flash',
         shutter: 'obturador',
         gallery: 'galería',
+        deleteReceipt: 'Eliminar recibo',
+        deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
     },
     iou: {
@@ -505,6 +509,7 @@ export default {
         approve: 'Aprobar',
         approved: 'Aprobado',
         cash: 'Efectivo',
+        card: 'Tarjeta',
         split: 'Dividir',
         addToSplit: 'Añadir para dividir',
         splitBill: 'Dividir factura',
@@ -515,11 +520,13 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
         receiptScanning: 'Escaneo de recibo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
+        receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
         deleteRequest: 'Eliminar pedido',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
@@ -530,6 +537,7 @@ export default {
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
+        didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} debe ${amount}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} debe: `,
@@ -565,6 +573,8 @@ export default {
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
             genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
+            duplicateWaypointsErrorMessage: 'Por favor elimina los puntos de ruta duplicados',
+            emptyWaypointsErrorMessage: 'Por favor introduce al menos dos puntos de ruta',
         },
     },
     notificationPreferencesPage: {
@@ -824,6 +834,16 @@ export default {
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
+        getPaidFaster: 'Cobra más rápido',
+        addPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente en la aplicación.',
+        getPaidBackFaster: 'Recibe tus pagos más rápido',
+        secureAccessToYourMoney: 'Acceso seguro a tu dinero',
+        receiveMoney: 'Recibe dinero en tu moneda local',
+        expensifyWallet: 'Billetera Expensify',
+        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
+        bankAccounts: 'Cuentas bancarias',
+        addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
+        addBankAccount: 'Agregar cuenta bancaria',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -1613,7 +1633,7 @@ export default {
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
-    keyboardShortcutModal: {
+    keyboardShortcutsPage: {
         title: 'Atajos de teclado',
         subtitle: 'Ahorra tiempo con estos atajos de teclado:',
         shortcuts: {
@@ -1627,6 +1647,9 @@ export default {
     guides: {
         screenShare: 'Compartir pantalla',
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
+    },
+    search: {
+        resultsAreLimited: 'Los resultados de búsqueda están limitados.',
     },
     genericErrorPage: {
         title: '¡Uh-oh, algo salió mal!',
@@ -2234,6 +2257,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Pedido eliminado]',
+        reversedTransaction: '[Transacción anulada]',
         deletedTask: '[Tarea eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
@@ -2317,6 +2341,10 @@ export default {
         errors: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
+    },
+    eReceipt: {
+        guaranteed: 'eRecibo garantizado',
+        transactionDate: 'Fecha de transacción',
     },
     globalNavigationOptions: {
         chats: 'Chats',
