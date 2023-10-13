@@ -834,6 +834,16 @@ export default {
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
+        getPaidFaster: 'Cobra más rápido',
+        addPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente en la aplicación.',
+        getPaidBackFaster: 'Recibe tus pagos más rápido',
+        secureAccessToYourMoney: 'Acceso seguro a tu dinero',
+        receiveMoney: 'Recibe dinero en tu moneda local',
+        expensifyWallet: 'Billetera Expensify',
+        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
+        bankAccounts: 'Cuentas bancarias',
+        addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
+        addBankAccount: 'Agregar cuenta bancaria',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -912,6 +922,7 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Mensaje de bienvenida',
+        welcomeMessageOptional: 'Mensaje de bienvenida (opcional)',
         explainerText: 'Configura un mensaje de bienvenida privado y personalizado que se enviará cuando los usuarios se unan a esta sala de chat.',
     },
     languagePage: {
@@ -2332,11 +2343,11 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
     },
-    globalNavigationOptions: {
-        chats: 'Chats',
-    },
     eReceipt: {
         guaranteed: 'eRecibo garantizado',
         transactionDate: 'Fecha de transacción',
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
     },
 } satisfies EnglishTranslation;
