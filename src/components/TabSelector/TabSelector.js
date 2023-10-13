@@ -62,7 +62,7 @@ const getOpacity = (position, routesLength, tabIndex, active, affectedTabs) => {
 
         return position.interpolate({
             inputRange,
-            outputRange: _.map(inputRange, (i) => ((affectedTabs.includes(tabIndex) && i === tabIndex) ? activeValue : inactiveValue)),
+            outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? activeValue : inactiveValue)),
         });
     }
     return activeValue;
@@ -74,7 +74,7 @@ const getBackgroundColor = (position, routesLength, tabIndex, affectedTabs) => {
 
         return position.interpolate({
             inputRange,
-            outputRange: _.map(inputRange, (i) => ((affectedTabs.includes(tabIndex) && i === tabIndex) ? themeColors.border : themeColors.appBG)),
+            outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? themeColors.border : themeColors.appBG)),
         });
     }
     return themeColors.border;
