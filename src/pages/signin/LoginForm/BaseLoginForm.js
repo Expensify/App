@@ -63,6 +63,9 @@ const propTypes = {
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
+    /** Whether or not the sign in page is being rendered in the RHP modal */
+    isInModal: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -77,6 +80,7 @@ const defaultProps = {
     closeAccount: {},
     blurOnSubmit: false,
     innerRef: () => {},
+    isInModal: false,
 };
 
 function LoginForm(props) {
@@ -165,7 +169,13 @@ function LoginForm(props) {
         if (!canFocusInputOnScreenFocus() || !input.current || !props.isVisible) {
             return;
         }
-        input.current.focus();
+        let focusTimeout;
+        if (props.isInModal) {
+            focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
+        } else {
+            input.current.focus();
+        }
+        return () => clearTimeout(focusTimeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 

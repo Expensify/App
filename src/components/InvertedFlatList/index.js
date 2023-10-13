@@ -113,7 +113,6 @@ function InvertedFlatList(props) {
         <BaseInvertedFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            inverted
             ref={listRef}
             shouldMeasureItems
             contentContainerStyle={contentContainerStyle}

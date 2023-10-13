@@ -23,11 +23,11 @@ import participantPropTypes from '../../components/participantPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import * as HeaderUtils from '../../libs/HeaderUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Link from '../../libs/actions/Link';
 import * as Report from '../../libs/actions/Report';
-import * as Session from '../../libs/actions/Session';
 import * as Task from '../../libs/actions/Task';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -135,21 +135,7 @@ function HeaderView(props) {
         }
     }
 
-    if (!props.report.isPinned) {
-        threeDotMenuItems.push({
-            icon: Expensicons.Pin,
-            iconFill: themeColors.icon,
-            text: props.translate('common.pin'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
-        });
-    } else {
-        threeDotMenuItems.push({
-            icon: Expensicons.Pin,
-            iconFill: themeColors.icon,
-            text: props.translate('common.unPin'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned)),
-        });
-    }
+    threeDotMenuItems.push(HeaderUtils.getPinMenuItem(props.report));
 
     if (isConcierge && props.guideCalendarLink) {
         threeDotMenuItems.push({
