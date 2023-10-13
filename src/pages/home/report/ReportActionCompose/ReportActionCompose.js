@@ -61,6 +61,9 @@ const propTypes = {
     /** Whether user interactions should be disabled */
     disabled: PropTypes.bool,
 
+    /** Height of the list which the composer is part of */
+    listHeight: PropTypes.number,
+
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
         // The date that the user will be unblocked
@@ -86,6 +89,7 @@ const defaultProps = {
     isComposerFullSize: false,
     pendingAction: null,
     shouldShowComposeInput: true,
+    listHeight: 0,
     isReportReadyForDisplay: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -108,6 +112,7 @@ function ReportActionCompose({
     report,
     reportID,
     reportActions,
+    listHeight,
     shouldShowComposeInput,
     isReportReadyForDisplay,
 }) {
@@ -408,6 +413,7 @@ function ReportActionCompose({
                                     onFocus={onFocus}
                                     onBlur={onBlur}
                                     measureParentContainer={measureContainer}
+                                    listHeight={listHeight}
                                 />
                                 <ReportDropUI
                                     onDrop={(e) => {
