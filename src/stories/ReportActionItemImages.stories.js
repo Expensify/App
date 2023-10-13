@@ -40,7 +40,7 @@ Default.args = {
 
 const DisplayEReceipt = Template.bind({});
 DisplayEReceipt.args = {
-    images: [{image: 'eReceipt/FAKE_3', thumbnail: ''}],
+    images: [{image: 'eReceipt/FAKE_3', thumbnail: '', transactionID: 'FAKE_3'}],
     size: 1,
     total: 1,
 };
@@ -48,9 +48,9 @@ DisplayEReceipt.args = {
 const DisplayMultipleEReceipts = Template.bind({});
 DisplayMultipleEReceipts.args = {
     images: [
-        {image: 'eReceipt/FAKE_3', thumbnail: ''},
-        {image: 'eReceipt/FAKE_5', thumbnail: ''},
-        {image: 'eReceipt/FAKE_2', thumbnail: ''},
+        {image: 'eReceipt/FAKE_3', thumbnail: '', transactionID: 'FAKE_3'},
+        {image: 'eReceipt/FAKE_5', thumbnail: '', transactionID: 'FAKE_5'},
+        {image: 'eReceipt/FAKE_2', thumbnail: '', transactionID: 'FAKE_2'},
     ],
     size: 3,
     total: 3,

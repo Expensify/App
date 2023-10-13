@@ -12,6 +12,7 @@ import ROUTES from '../ROUTES';
 type ThumbnailAndImageURI = {
     image: ImageSourcePropType | string;
     thumbnail: string | null;
+    transactionID?: string | null;
 };
 
 type FileNameAndExtension = {
@@ -34,7 +35,7 @@ function getThumbnailAndImageURIs(transaction: Transaction): ThumbnailAndImageUR
     const hasEReceipt = transaction?.hasEReceipt;
 
     if (hasEReceipt) {
-        return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID)};
+        return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transactionID: transaction.transactionID};
     }
 
     // For local files, we won't have a thumbnail yet

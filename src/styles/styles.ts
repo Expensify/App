@@ -3406,7 +3406,6 @@ const styles = (theme: ThemeDefault) =>
         },
 
         eReceiptContainer: {
-            flex: 1,
             width: 335,
             minHeight: 540,
             borderRadius: 20,

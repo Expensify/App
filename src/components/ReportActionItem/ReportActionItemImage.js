@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Image from '../Image';
 import ThumbnailImage from '../ThumbnailImage';
@@ -12,6 +15,8 @@ import Navigation from '../../libs/Navigation/Navigation';
 import PressableWithoutFocus from '../Pressable/PressableWithoutFocus';
 import useLocalize from '../../hooks/useLocalize';
 import EReceiptThumbnail from '../EReceiptThumbnail';
+import transactionPropTypes from '../transactionPropTypes';
+import * as TransactionUtils from '../../libs/TransactionUtils';
 
 const propTypes = {
     /** thumbnail URI for the image */
@@ -22,10 +27,18 @@ const propTypes = {
 
     /** whether or not to enable the image preview modal */
     enablePreviewModal: PropTypes.bool,
+
+    /** The transactionID associated with this image, if any */
+    transactionID: PropTypes.string,
+
+    /* Onyx Props */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     thumbnail: null,
+    transaction: {},
+    transactionID: '',
     enablePreviewModal: false,
 };
 
@@ -35,21 +48,18 @@ const defaultProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, transactionID}) {
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
-
-    // The source that we set for an Expensify Card eReceipt is `eReceipt/{transactionID}`
-    const isEReceipt = imageSource.startsWith(CONST.ERECEIPT_PATH);
+    const isEReceipt = !_.isEmpty(transaction) && TransactionUtils.hasEreceipt(transaction);
 
     let receiptImageComponent;
 
     if (isEReceipt) {
-        const transactionIDFromURL = imageSource.split(CONST.ERECEIPT_PATH)[1];
         receiptImageComponent = (
             <View style={[styles.w100, styles.h100]}>
-                <EReceiptThumbnail transactionID={transactionIDFromURL} />
+                <EReceiptThumbnail transactionID={transactionID} />
             </View>
         );
     } else if (thumbnail) {
@@ -97,4 +107,8 @@ ReportActionItemImage.propTypes = propTypes;
 ReportActionItemImage.defaultProps = defaultProps;
 ReportActionItemImage.displayName = 'ReportActionItemImage';
 
-export default ReportActionItemImage;
+export default withOnyx({
+    transaction: {
+        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+    },
+})(ReportActionItemImage);
