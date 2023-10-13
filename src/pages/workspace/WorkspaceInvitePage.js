@@ -235,12 +235,17 @@ function WorkspaceInvitePage(props) {
         const searchValue = searchTerm.trim().toLowerCase();
 
         if (usersToInvite.length === 0) {
-            if (CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
-                return translate('messages.errorMessageInvalidEmail');
-            }
+            // Handle errors when a single email is specified
+            if (searchEmails.length === 1) {
+                const email = _.first(searchEmails);
 
-            if (excludedUsers.includes(searchValue)) {
-                return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
+                if (CONST.EXPENSIFY_EMAILS.includes(email)) {
+                    return translate('messages.errorMessageInvalidEmail');
+                }
+
+                if (excludedUsers.includes(email)) {
+                    return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
+                }
             }
 
             // Handle errors when multiple emails are specified
