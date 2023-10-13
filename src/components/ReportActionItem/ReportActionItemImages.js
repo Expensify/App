@@ -7,7 +7,6 @@ import Text from '../Text';
 import ReportActionItemImage from './ReportActionItemImage';
 import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
-import transactionPropTypes from '../transactionPropTypes';
 
 const propTypes = {
     /** array of image and thumbnail URIs */
@@ -15,7 +14,7 @@ const propTypes = {
         PropTypes.shape({
             thumbnail: PropTypes.string,
             image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-            transactionID: transactionPropTypes,
+            transactionID: PropTypes.string,
         }),
     ).isRequired,
 
