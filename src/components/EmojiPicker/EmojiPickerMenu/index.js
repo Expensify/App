@@ -164,30 +164,27 @@ function EmojiPickerMenu(props) {
         searchInputRef.current.focus();
     }
 
-    const filterEmojis = useCallback(() => {
-        const debouncedFilterEmojis = _.debounce((searchTerm) => {
-            const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
-            if (emojiListRef.current) {
-                emojiListRef.current.scrollToOffset({offset: 0, animated: false});
-            }
-            if (normalizedSearchTerm === '') {
-                // There are no headers when searching, so we need to re-make them sticky when there is no search term
-                setFilteredEmojis(emojis.current);
-                setHeaderIndices(headerRowIndices.current);
-                setHighlightedIndex(-1);
-                updateFirstNonHeaderIndex(emojis.current);
-                return;
-            }
-            const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, emojis.current.length);
+    const filterEmojis = _.debounce((searchTerm) => {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
+        if (emojiListRef.current) {
+            emojiListRef.current.scrollToOffset({offset: 0, animated: false});
+        }
+        if (normalizedSearchTerm === '') {
+            // There are no headers when searching, so we need to re-make them sticky when there is no search term
+            setFilteredEmojis(emojis.current);
+            setHeaderIndices(headerRowIndices.current);
+            setHighlightedIndex(-1);
+            updateFirstNonHeaderIndex(emojis.current);
+            return;
+        }
+        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, emojis.current.length);
 
-            // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
-            setFilteredEmojis(newFilteredEmojiList);
-            setHeaderIndices([]);
-            setHighlightedIndex(0);
-            updateFirstNonHeaderIndex(newFilteredEmojiList);
-        }, 300);
-        debouncedFilterEmojis();
-    }, [preferredLocale]);
+        // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
+        setFilteredEmojis(newFilteredEmojiList);
+        setHeaderIndices([]);
+        setHighlightedIndex(0);
+        updateFirstNonHeaderIndex(newFilteredEmojiList);
+    }, 300);
 
     /**
      * Highlights emojis adjacent to the currently highlighted emoji depending on the arrowKey
