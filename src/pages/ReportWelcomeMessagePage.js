@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {useFocusEffect} from '@react-navigation/native';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -19,6 +20,9 @@ import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundVi
 import Form from '../components/Form';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import {policyPropTypes, policyDefaultProps} from './workspace/withPolicy';
+import ROUTES from '../ROUTES';
+import Navigation from '../libs/Navigation/Navigation';
+import updateMultilineInputRange from '../libs/UpdateMultilineInputRange';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -44,6 +48,7 @@ function ReportWelcomeMessagePage(props) {
     const parser = new ExpensiMark();
     const [welcomeMessage, setWelcomeMessage] = useState(parser.htmlToMarkdown(props.report.welcomeMessage));
     const welcomeMessageInputRef = useRef(null);
+    const focusTimeoutRef = useRef(null);
 
     const handleWelcomeMessageChange = useCallback((value) => {
         setWelcomeMessage(value);
@@ -53,17 +58,29 @@ function ReportWelcomeMessagePage(props) {
         Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage.trim());
     }, [props.report.reportID, props.report.welcomeMessage, welcomeMessage]);
 
-    return (
-        <ScreenWrapper
-            onEntryTransitionEnd={() => {
-                if (!welcomeMessageInputRef.current) {
-                    return;
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                if (welcomeMessageInputRef.current) {
+                    welcomeMessageInputRef.current.focus();
                 }
-                welcomeMessageInputRef.current.focus();
-            }}
-        >
+                return () => {
+                    if (!focusTimeoutRef.current) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
+            }, CONST.ANIMATED_TRANSITION);
+        }, []),
+    );
+
+    return (
+        <ScreenWrapper testID={ReportWelcomeMessagePage.displayName}>
             <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
-                <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
+                <HeaderWithBackButton
+                    title={props.translate('welcomeMessagePage.welcomeMessage')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
+                />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
@@ -80,7 +97,13 @@ function ReportWelcomeMessagePage(props) {
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             autoGrowHeight
                             maxLength={CONST.MAX_COMMENT_LENGTH}
-                            ref={(el) => (welcomeMessageInputRef.current = el)}
+                            ref={(el) => {
+                                if (!el) {
+                                    return;
+                                }
+                                welcomeMessageInputRef.current = el;
+                                updateMultilineInputRange(welcomeMessageInputRef.current);
+                            }}
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"

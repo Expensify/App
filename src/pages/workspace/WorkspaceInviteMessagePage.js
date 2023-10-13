@@ -12,6 +12,7 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import TextInput from '../../components/TextInput';
 import MultipleAvatars from '../../components/MultipleAvatars';
 import CONST from '../../CONST';
@@ -46,9 +47,6 @@ const propTypes = {
     /** All of the personal details for everyone */
     allPersonalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     invitedEmailsToAccountIDsDraft: PropTypes.objectOf(PropTypes.number),
 
     /** URL Route params */
@@ -67,7 +65,6 @@ const propTypes = {
 const defaultProps = {
     ...policyDefaultProps,
     allPersonalDetails: {},
-    betas: [],
     invitedEmailsToAccountIDsDraft: {},
 };
 
@@ -85,7 +82,7 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     componentDidMount() {
         if (_.isEmpty(this.props.invitedEmailsToAccountIDsDraft)) {
-            Navigation.goBack(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID), true);
+            Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(this.props.route.params.policyID), true);
             return;
         }
         this.focusWelcomeMessageInput();
@@ -122,9 +119,11 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     sendInvitation() {
         Keyboard.dismiss();
-        Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
+        Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, {});
-        Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
+        // Pop the invite message page before navigating to the members page.
+        Navigation.goBack(ROUTES.HOME);
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(this.props.route.params.policyID));
     }
 
     /**
@@ -159,9 +158,12 @@ class WorkspaceInviteMessagePage extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={WorkspaceInviteMessagePage.displayName}
+            >
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)}
+                    shouldShow={_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy) || PolicyUtils.isPendingDeletePolicy(this.props.policy)}
                     subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
@@ -172,7 +174,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
-                        onBackButtonPress={() => Navigation.goBack()}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(this.props.route.params.policyID))}
                     />
                     <Form
                         style={[styles.flexGrow1, styles.ph5]}
@@ -244,9 +246,6 @@ export default compose(
     withOnyx({
         allPersonalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         invitedEmailsToAccountIDsDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,

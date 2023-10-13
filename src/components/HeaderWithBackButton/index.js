@@ -22,13 +22,12 @@ import useKeyboardState from '../../hooks/useKeyboardState';
 function HeaderWithBackButton({
     iconFill = undefined,
     guidesCallTaskID = '',
-    onBackButtonPress = () => Navigation.goBack(),
+    onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report = null,
-    parentReport = null,
-    policies = {},
+    policy = {},
     personalDetails = {},
     shouldShowAvatarWithDisplay = false,
     shouldShowBackButton = true,
@@ -37,21 +36,19 @@ function HeaderWithBackButton({
     shouldShowDownloadButton = false,
     shouldShowGetAssistanceButton = false,
     shouldShowPinButton = false,
-    shouldShowStepCounter = false,
     shouldShowThreeDotsButton = false,
     stepCounter = null,
     subtitle = '',
     title = '',
     titleColor = undefined,
-    threeDotsAnchorAlignment = {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    },
     threeDotsAnchorPosition = {
         vertical: 0,
         horizontal: 0,
     },
     threeDotsMenuItems = [],
+    shouldEnableDetailPageNavigation = false,
+    children = null,
+    shouldOverlay = false,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
@@ -79,21 +76,22 @@ function HeaderWithBackButton({
                         </PressableWithoutFeedback>
                     </Tooltip>
                 )}
-                {shouldShowAvatarWithDisplay && (
+                {shouldShowAvatarWithDisplay ? (
                     <AvatarWithDisplayName
-                        report={parentReport || report}
-                        policies={policies}
+                        report={report}
+                        policy={policy}
                         personalDetails={personalDetails}
+                        shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     />
-                )}
-                {!shouldShowAvatarWithDisplay && (
+                ) : (
                     <Header
                         title={title}
-                        subtitle={stepCounter && shouldShowStepCounter ? translate('stepCounter', stepCounter) : subtitle}
+                        subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
                         textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
                     />
                 )}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
+                    {children}
                     {shouldShowDownloadButton && (
                         <Tooltip text={translate('common.download')}>
                             <PressableWithoutFeedback
@@ -123,7 +121,7 @@ function HeaderWithBackButton({
                     {shouldShowGetAssistanceButton && (
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
-                                onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(guidesCallTaskID))}
+                                onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
@@ -141,7 +139,7 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
-                            anchorAlignment={threeDotsAnchorAlignment}
+                            shouldOverlay={shouldOverlay}
                         />
                     )}
                     {shouldShowCloseButton && (

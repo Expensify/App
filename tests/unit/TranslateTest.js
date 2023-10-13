@@ -7,19 +7,19 @@ const CONST = require('../../src/CONST').default;
 
 const originalTranslations = _.clone(translations);
 translations.default = {
-    [CONST.LOCALES.EN]: {
+    [CONST.LOCALES.EN]: translations.flattenObject({
         testKey1: 'English',
         testKey2: 'Test Word 2',
         testKey3: 'Test Word 3',
         testKeyGroup: {
             testFunction: ({testVariable}) => `With variable ${testVariable}`,
         },
-    },
-    [CONST.LOCALES.ES]: {
+    }),
+    [CONST.LOCALES.ES]: translations.flattenObject({
         testKey1: 'Spanish',
         testKey2: 'Spanish Word 2',
-    },
-    [CONST.LOCALES.ES_ES]: {testKey1: 'Spanish ES'},
+    }),
+    [CONST.LOCALES.ES_ES]: translations.flattenObject({testKey1: 'Spanish ES'}),
 };
 
 describe('translate', () => {
@@ -38,14 +38,12 @@ describe('translate', () => {
 
     test('Test when key is not found in default', () => {
         expect(() => Localize.translate(CONST.LOCALES.ES_ES, 'testKey4')).toThrow(Error);
-        expect(() => Localize.translate(CONST.LOCALES.ES_ES, ['a', 'b', 'c'])).toThrow(Error);
     });
 
     test('Test when key is not found in default (Production Mode)', () => {
         const ORIGINAL_IS_IN_PRODUCTION = CONFIG.default.IS_IN_PRODUCTION;
         CONFIG.default.IS_IN_PRODUCTION = true;
         expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey4')).toBe('testKey4');
-        expect(Localize.translate(CONST.LOCALES.ES_ES, ['a', 'b', 'c'])).toBe('a.b.c');
         CONFIG.default.IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
     });
 
@@ -53,7 +51,6 @@ describe('translate', () => {
         const expectedValue = 'With variable Test Variable';
         const testVariable = 'Test Variable';
         expect(Localize.translate(CONST.LOCALES.EN, 'testKeyGroup.testFunction', {testVariable})).toBe(expectedValue);
-        expect(Localize.translate(CONST.LOCALES.EN, ['testKeyGroup', 'testFunction'], {testVariable})).toBe(expectedValue);
     });
 });
 
@@ -94,6 +91,48 @@ describe('Translation Keys', () => {
                 AnnotationError(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);
             }
             expect(hasAllKeys).toEqual([]);
+        });
+    });
+});
+
+describe('flattenObject', () => {
+    it('It should work correctly', () => {
+        const func = ({content}) => `This is the content: ${content}`;
+        const simpleObject = {
+            common: {
+                yes: 'Yes',
+                no: 'No',
+            },
+            complex: {
+                activity: {
+                    none: 'No Activity',
+                    some: 'Some Activity',
+                },
+                report: {
+                    title: {
+                        expense: 'Expense',
+                        task: 'Task',
+                    },
+                    description: {
+                        none: 'No description',
+                    },
+                    content: func,
+                    messages: ['Hello', 'Hi', 'Sup!'],
+                },
+            },
+        };
+
+        const result = translations.flattenObject(simpleObject);
+        expect(result).toStrictEqual({
+            'common.yes': 'Yes',
+            'common.no': 'No',
+            'complex.activity.none': 'No Activity',
+            'complex.activity.some': 'Some Activity',
+            'complex.report.title.expense': 'Expense',
+            'complex.report.title.task': 'Task',
+            'complex.report.description.none': 'No description',
+            'complex.report.content': func,
+            'complex.report.messages': ['Hello', 'Hi', 'Sup!'],
         });
     });
 });

@@ -33,8 +33,17 @@ function openPlaidView() {
     clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
 }
 
-function openPersonalBankAccountSetupView() {
-    clearPlaid().then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+/**
+ * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
+ * @param {String} exitReportID
+ */
+function openPersonalBankAccountSetupView(exitReportID) {
+    clearPlaid().then(() => {
+        if (exitReportID) {
+            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
+        }
+        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
+    });
 }
 
 function clearPersonalBankAccount() {
@@ -48,10 +57,10 @@ function clearOnfidoToken() {
 
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
- *
+ * @param {String | undefined} currentStep The name of the bank account setup step for which we will update the draft value when we receive the response from the API.
  * @returns {Object}
  */
-function getVBBADataForOnyx() {
+function getVBBADataForOnyx(currentStep = undefined) {
     return {
         optimisticData: [
             {
@@ -70,6 +79,12 @@ function getVBBADataForOnyx() {
                 value: {
                     isLoading: false,
                     errors: null,
+                    // When setting up a bank account, we save the draft form values in Onyx.
+                    // When we update the information for a step, the value of some fields that are returned from the API
+                    // can be different from the value that we stored as the draft in Onyx (i.e. the phone number is formatted).
+                    // This is why we store the current step used to call the API in order to update the corresponding draft data in Onyx.
+                    // If currentStep is undefined that means this step don't need to update the data of the draft in Onyx.
+                    draftStep: currentStep,
                 },
             },
         ],
@@ -79,7 +94,7 @@ function getVBBADataForOnyx() {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxError('paymentsPage.addBankAccountFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxError('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -156,7 +171,7 @@ function addPersonalBankAccount(account) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxError('paymentsPage.addBankAccountFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxError('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -213,7 +228,7 @@ function deletePaymentBankAccount(bankAccountID) {
  * @param {Boolean} [params.isOnfidoSetupComplete]
  */
 function updatePersonalInformationForBankAccount(params) {
-    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx());
+    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR));
 }
 
 /**
@@ -327,9 +342,10 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
  * @param {String} [bankAccount.incorporationState]
  * @param {String} [bankAccount.incorporationDate]
  * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
+ * @param {String} policyID
  */
-function updateCompanyInformationForBankAccount(bankAccount) {
-    API.write('UpdateCompanyInformationForBankAccount', bankAccount, getVBBADataForOnyx());
+function updateCompanyInformationForBankAccount(bankAccount, policyID) {
+    API.write('UpdateCompanyInformationForBankAccount', {...bankAccount, policyID}, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY));
 }
 
 /**
@@ -366,7 +382,7 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
             routingNumber,
             plaidMask,
         },
-        getVBBADataForOnyx(),
+        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT),
     );
 }
 
@@ -391,6 +407,15 @@ function openWorkspaceView() {
     API.read('OpenWorkspaceView');
 }
 
+function handlePlaidError(bankAccountID, error, error_description, plaidRequestID) {
+    API.write('BankAccount_HandlePlaidError', {
+        bankAccountID,
+        error,
+        error_description,
+        plaidRequestID,
+    });
+}
+
 /**
  * Set the reimbursement account loading so that it happens right away, instead of when the API command is processed.
  *
@@ -409,6 +434,7 @@ export {
     connectBankAccountManually,
     connectBankAccountWithPlaid,
     deletePaymentBankAccount,
+    handlePlaidError,
     openPersonalBankAccountSetupView,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,

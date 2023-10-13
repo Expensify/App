@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -18,35 +18,28 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 };
 
-class RadioButtons extends React.Component {
-    constructor(props) {
-        super(props);
+function RadioButtons(props) {
+    const [checkedValue, setCheckedValue] = useState('');
 
-        this.state = {
-            checkedValue: '',
-        };
-    }
-
-    render() {
-        return (
-            <View>
-                {_.map(this.props.items, (item, index) => (
-                    <RadioButtonWithLabel
-                        key={`${item.label}-${index}`}
-                        isChecked={item.value === this.state.checkedValue}
-                        style={[styles.mt4]}
-                        onPress={() => {
-                            this.setState({checkedValue: item.value});
-                            return this.props.onPress(item.value);
-                        }}
-                        label={item.label}
-                    />
-                ))}
-            </View>
-        );
-    }
+    return (
+        <View>
+            {_.map(props.items, (item, index) => (
+                <RadioButtonWithLabel
+                    key={`${item.label}-${index}`}
+                    isChecked={item.value === checkedValue}
+                    style={[styles.mt4]}
+                    onPress={() => {
+                        setCheckedValue(item.value);
+                        return props.onPress(item.value);
+                    }}
+                    label={item.label}
+                />
+            ))}
+        </View>
+    );
 }
 
 RadioButtons.propTypes = propTypes;
+RadioButtons.displayName = 'RadioButtons';
 
 export default RadioButtons;

@@ -1,10 +1,6 @@
 import {useEffect} from 'react';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
-
-// Creating a default array this way because objects ({}) and arrays ([]) are not stable types.
-// The "excludedNodes" array needs to be stable to prevent the "useEffect" hook from being recreated unnecessarily.
-// Freezing the array ensures that it cannot be unintentionally modified.
-const EMPTY_ARRAY = Object.freeze([]);
+import CONST from '../CONST';
 
 /**
  * Register a keyboard shortcut handler.
@@ -15,7 +11,17 @@ const EMPTY_ARRAY = Object.freeze([]);
  * @param {Object} [config]
  */
 export default function useKeyboardShortcut(shortcut, callback, config = {}) {
-    const {captureOnInputs = true, shouldBubble = false, priority = 0, shouldPreventDefault = true, excludedNodes = EMPTY_ARRAY, isActive = true} = config;
+    const {
+        captureOnInputs = true,
+        shouldBubble = false,
+        priority = 0,
+        shouldPreventDefault = true,
+
+        // The "excludedNodes" array needs to be stable to prevent the "useEffect" hook from being recreated unnecessarily.
+        // Hence the use of CONST.EMPTY_ARRAY.
+        excludedNodes = CONST.EMPTY_ARRAY,
+        isActive = true,
+    } = config;
 
     useEffect(() => {
         if (isActive) {

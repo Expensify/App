@@ -10,10 +10,11 @@ import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 import useThrottledButtonState from '../../hooks/useThrottledButtonState';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Ref passed to the component by React.forwardRef (do not pass from parent) */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
+    innerRef: refPropTypes,
 
     /** The text to display */
     text: PropTypes.string,
@@ -67,6 +68,7 @@ const defaultProps = {
     icon: null,
     inline: true,
     iconChecked: Expensicons.Checkmark,
+    innerRef: () => {},
 };
 
 function PressableWithDelayToggle(props) {
@@ -85,22 +87,25 @@ function PressableWithDelayToggle(props) {
     // of a Pressable
     const PressableView = props.inline ? Text : PressableWithoutFeedback;
     const tooltipText = !isActive ? props.tooltipTextChecked : props.tooltipText;
+    const labelText = (
+        <Text
+            suppressHighlighting
+            style={props.textStyles}
+        >
+            {!isActive && props.textChecked ? props.textChecked : props.text}
+            &nbsp;
+        </Text>
+    );
 
     return (
         <PressableView
             ref={props.innerRef}
-            style={[styles.flexRow, ...props.styles]}
             onPress={updatePressState}
             accessibilityLabel={tooltipText}
+            suppressHighlighting={props.inline ? true : undefined}
         >
             <>
-                <Text
-                    suppressHighlighting
-                    style={props.textStyles}
-                >
-                    {!isActive && props.textChecked ? props.textChecked : props.text}
-                    &nbsp;
-                </Text>
+                {props.inline && labelText}
                 <Tooltip
                     containerStyles={[styles.flexRow]}
                     text={tooltipText}
@@ -109,9 +114,11 @@ function PressableWithDelayToggle(props) {
                         focusable={false}
                         accessible={false}
                         onPress={updatePressState}
+                        style={[styles.flexRow, ...props.styles, !isActive && styles.cursorDefault]}
                     >
                         {({hovered, pressed}) => (
                             <>
+                                {!props.inline && labelText}
                                 {props.icon && (
                                     <Icon
                                         src={!isActive ? props.iconChecked : props.icon}
@@ -119,6 +126,7 @@ function PressableWithDelayToggle(props) {
                                         style={props.iconStyles}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
+                                        inline={props.inline}
                                     />
                                 )}
                             </>

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {propTypes as anchorForAttachmentsOnlyPropTypes, defaultProps as anchorForAttachmentsOnlyDefaultProps} from './anchorForAttachmentsOnlyPropTypes';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import AttachmentView from '../AttachmentView';
+import AttachmentView from '../Attachments/AttachmentView';
 import * as Download from '../../libs/actions/Download';
 import fileDownload from '../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';

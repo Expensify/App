@@ -73,9 +73,9 @@ if (isDevMode) {
 
 const restartApp = async () => {
     Logger.log('Killing app …');
-    await killApp('android');
+    await killApp('android', config.APP_PACKAGE);
     Logger.log('Launching app …');
-    await launchApp('android');
+    await launchApp('android', config.APP_PACKAGE);
 };
 
 const runTestsOnBranch = async (baselineOrCompare, branch) => {
@@ -89,6 +89,8 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
         const appExists = fs.existsSync(appPath);
         if (!appExists) {
             Logger.warn(`Build mode "${buildMode}" is not possible, because the app does not exist. Falling back to build mode "full".`);
+            Logger.note(`App path: ${appPath}`);
+
             buildMode = 'full';
         }
     }
@@ -125,7 +127,7 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
 
     // Install app and reverse port
     let progressLog = Logger.progressInfo('Installing app and reversing port');
-    await installApp('android', appPath);
+    await installApp('android', config.APP_PACKAGE, appPath);
     await reversePort();
     progressLog.done();
 

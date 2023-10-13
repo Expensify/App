@@ -1,40 +1,40 @@
 import _ from 'underscore';
-import React, {useEffect, useState} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
+import {useFocusEffect} from '@react-navigation/native';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
+import DateUtils from '../../libs/DateUtils';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import MultipleAvatars from '../MultipleAvatars';
 import Hoverable from '../Hoverable';
 import DisplayNames from '../DisplayNames';
-import colors from '../../styles/colors';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import {withReportCommentDrafts} from '../OnyxProvider';
 import Text from '../Text';
 import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
 import themeColors from '../../styles/themes/default';
-import SidebarUtils from '../../libs/SidebarUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Report from '../../libs/actions/Report';
+import * as ReportUtils from '../../libs/ReportUtils';
+import useLocalize from '../../hooks/useLocalize';
+import Permissions from '../../libs/Permissions';
+import Tooltip from '../Tooltip';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
 
-    /** The comment left by the user */
-    comment: PropTypes.string,
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The ID of the report that the option is for */
     reportID: PropTypes.string.isRequired,
@@ -50,40 +50,49 @@ const propTypes = {
 
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    ...withLocalizePropTypes,
+    /** The item that should be rendered */
+    // eslint-disable-next-line react/forbid-prop-types
+    optionItem: PropTypes.object,
 };
 
 const defaultProps = {
-    hoverStyle: styles.sidebarLinkHover,
+    hoverStyle: styles.sidebarLinkHoverLHN,
     viewMode: 'default',
     onSelectRow: () => {},
-    isFocused: false,
     style: null,
-    comment: '',
+    optionItem: null,
+    isFocused: false,
+    betas: [],
 };
 
 function OptionRowLHN(props) {
-    const optionItem = SidebarUtils.getOptionData(props.reportID);
+    const popoverAnchor = useRef(null);
+    const isFocusedRef = useRef(true);
+    const {isSmallScreenWidth} = useWindowDimensions();
+
+    const {translate} = useLocalize();
+
+    const optionItem = props.optionItem;
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
-    useEffect(() => {
-        if (!optionItem || optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || props.isFocused) {
-            return;
-        }
-        Report.setReportWithDraft(props.reportID, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            isFocusedRef.current = true;
+            return () => {
+                isFocusedRef.current = false;
+            };
+        }, []),
+    );
 
     if (!optionItem) {
         return null;
     }
 
-    const isMuted = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
-    if (isMuted && !props.isFocused && !optionItem.isPinned) {
+    const isHidden = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    if (isHidden && !props.isFocused && !optionItem.isPinned) {
         return null;
     }
 
-    let popoverAnchor = null;
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
@@ -101,15 +110,12 @@ function OptionRowLHN(props) {
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
     const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : themeColors.sidebar;
-    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const focusedBackgroundColor = styles.sidebarLinkActiveLHN.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const shouldShowGreenDotIndicator =
-        !hasBrickError &&
-        (optionItem.isUnreadWithMention ||
-            (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
-            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isCompletedTaskReport && !optionItem.isArchivedRoom));
+        !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -117,6 +123,9 @@ function OptionRowLHN(props) {
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
+        if (!isFocusedRef.current && isSmallScreenWidth) {
+            return;
+        }
         setIsContextMenuActive(true);
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
@@ -124,7 +133,8 @@ function OptionRowLHN(props) {
             '',
             popoverAnchor,
             props.reportID,
-            {},
+            '0',
+            props.reportID,
             '',
             () => {},
             () => setIsContextMenuActive(false),
@@ -135,16 +145,24 @@ function OptionRowLHN(props) {
         );
     };
 
+    const emojiCode = lodashGet(optionItem, 'status.emojiCode', '');
+    const statusText = lodashGet(optionItem, 'status.text', '');
+    const statusClearAfterDate = lodashGet(optionItem, 'status.clearAfter', '');
+    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
+    const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
+    const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(optionItem);
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
             errors={optionItem.allReportErrors}
             shouldShowErrorMessages={false}
+            needsOffscreenAlphaCompositing
         >
             <Hoverable>
                 {(hovered) => (
                     <PressableWithSecondaryInteraction
-                        ref={(el) => (popoverAnchor = el)}
+                        ref={popoverAnchor}
                         onPress={(e) => {
                             if (e) {
                                 e.preventDefault();
@@ -153,13 +171,15 @@ function OptionRowLHN(props) {
                             props.onSelectRow(optionItem, popoverAnchor);
                         }}
                         onMouseDown={(e) => {
-                            if (!e) {
+                            // Allow composer blur on right click
+                            if (!e || e.button === 2) {
                                 return;
                             }
 
-                            // Prevent losing Composer focus
+                            // Prevent composer blur on left click
                             e.preventDefault();
                         }}
+                        testID={optionItem.reportID}
                         onSecondaryInteraction={(e) => showPopover(e)}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
@@ -167,14 +187,15 @@ function OptionRowLHN(props) {
                             styles.flexRow,
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
-                            styles.sidebarLink,
-                            styles.sidebarLinkInner,
+                            styles.sidebarLinkLHN,
+                            styles.sidebarLinkInnerLHN,
                             StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
                             (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
                         ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        accessibilityLabel={props.translate('accessibilityHints.navigatesToChat')}
+                        accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
+                        needsOffscreenAlphaCompositing={props.optionItem.icons.length >= 2}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -202,7 +223,7 @@ function OptionRowLHN(props) {
                                 <View style={contentContainerStyles}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
-                                            accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
+                                            accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
                                             fullTitle={optionItem.text}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
@@ -212,14 +233,22 @@ function OptionRowLHN(props) {
                                                 optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport
                                             }
                                         />
+                                        {isStatusVisible && (
+                                            <Tooltip
+                                                text={statusContent}
+                                                shiftVertical={-4}
+                                            >
+                                                <Text style={styles.ml1}>{emojiCode}</Text>
+                                            </Tooltip>
+                                        )}
                                     </View>
                                     {optionItem.alternateText ? (
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
-                                            accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
+                                            accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.alternateText}
+                                            {optionItem.isLastMessageDeletedParentAction ? translate('parentReportAction.deletedMessage') : optionItem.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>
@@ -232,7 +261,7 @@ function OptionRowLHN(props) {
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
-                                            fill={colors.red}
+                                            fill={themeColors.danger}
                                         />
                                     </View>
                                 )}
@@ -243,15 +272,17 @@ function OptionRowLHN(props) {
                             accessible={false}
                         >
                             {shouldShowGreenDotIndicator && (
-                                <Icon
-                                    src={Expensicons.DotIndicator}
-                                    fill={themeColors.success}
-                                />
+                                <View style={styles.ml2}>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={themeColors.success}
+                                    />
+                                </View>
                             )}
-                            {optionItem.hasDraftComment && (
+                            {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
+                                    accessibilityLabel={translate('sidebarScreen.draftedMessage')}
                                 >
                                     <Icon src={Expensicons.Pencil} />
                                 </View>
@@ -259,7 +290,7 @@ function OptionRowLHN(props) {
                             {!shouldShowGreenDotIndicator && optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
+                                    accessibilityLabel={translate('sidebarScreen.chatPinned')}
                                 >
                                     <Icon src={Expensicons.Pin} />
                                 </View>
@@ -276,13 +307,6 @@ OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-export default compose(
-    withLocalize,
-    withReportCommentDrafts({
-        propName: 'comment',
-        transformValue: (drafts, props) => {
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
-            return lodashGet(drafts, draftKey, '');
-        },
-    }),
-)(OptionRowLHN);
+export default React.memo(OptionRowLHN);
+
+export {propTypes, defaultProps};

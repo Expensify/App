@@ -1,4 +1,4 @@
-import React, {memo, useEffect, useState} from 'react';
+import React, {memo, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
@@ -25,7 +25,7 @@ const propTypes = {
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.func,
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
@@ -71,18 +71,41 @@ const defaultProps = {
     maxAvatarsInRow: CONST.AVATAR_ROW_SIZE.DEFAULT,
 };
 
+const avatarSizeToStylesMap = {
+    [CONST.AVATAR_SIZE.SMALL]: {
+        singleAvatarStyle: styles.singleAvatarSmall,
+        secondAvatarStyles: styles.secondAvatarSmall,
+    },
+    [CONST.AVATAR_SIZE.LARGE]: {
+        singleAvatarStyle: styles.singleAvatarMedium,
+        secondAvatarStyles: styles.secondAvatarMedium,
+    },
+    default: {
+        singleAvatarStyle: styles.singleAvatar,
+        secondAvatarStyles: styles.secondAvatar,
+    },
+};
 function MultipleAvatars(props) {
-    const [avatarRows, setAvatarRows] = useState([props.icons]);
-    let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, styles.emptyAvatarMargin];
-    const singleAvatarStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
-    const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
-    const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
+    let avatarContainerStyles = StyleUtils.getContainerStyles(props.size, props.isInReportAction);
+    const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[props.size] || avatarSizeToStylesMap.default, [props.size]);
 
-    const calculateAvatarRows = () => {
+    const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
+    const avatarSize = useMemo(() => {
+        if (props.isFocusMode) {
+            return CONST.AVATAR_SIZE.MID_SUBSCRIPT;
+        }
+
+        if (props.size === CONST.AVATAR_SIZE.LARGE) {
+            return CONST.AVATAR_SIZE.MEDIUM;
+        }
+
+        return CONST.AVATAR_SIZE.SMALLER;
+    }, [props.isFocusMode, props.size]);
+
+    const avatarRows = useMemo(() => {
         // If we're not displaying avatars in rows or the number of icons is less than or equal to the max avatars in a row, return a single row
         if (!props.shouldDisplayAvatarsInRows || props.icons.length <= props.maxAvatarsInRow) {
-            setAvatarRows([props.icons]);
-            return;
+            return [props.icons];
         }
 
         // Calculate the size of each row
@@ -93,14 +116,7 @@ function MultipleAvatars(props) {
         const secondRow = props.icons.slice(0, rowSize);
 
         // Update the state with the two rows as an array
-        setAvatarRows([firstRow, secondRow]);
-    };
-
-    useEffect(() => {
-        calculateAvatarRows();
-
-        // The only dependencies of the effect are based on props, so we can safely disable the exhaustive-deps rule
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        return [firstRow, secondRow];
     }, [props.icons, props.maxAvatarsInRow, props.shouldDisplayAvatarsInRows]);
 
     if (!props.icons.length) {
@@ -124,6 +140,7 @@ function MultipleAvatars(props) {
                         fill={themeColors.iconSuccessFill}
                         name={props.icons[0].name}
                         type={props.icons[0].type}
+                        fallbackIcon={props.icons[0].fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -135,18 +152,9 @@ function MultipleAvatars(props) {
     const overlapSize = oneAvatarSize.width / 3;
 
     if (props.shouldStackHorizontally) {
-        let width;
-
         // Height of one avatar + border space
         const height = oneAvatarSize.height + 2 * oneAvatarBorderWidth;
-        if (props.icons.length > 4) {
-            const length = avatarRows.length > 1 ? Math.max(avatarRows[0].length, avatarRows[1].length) : avatarRows[0].length;
-            width = oneAvatarSize.width + overlapSize * 2 * (length - 1) + oneAvatarBorderWidth * (length * 2);
-        } else {
-            // one avatar width + overlaping avatar sizes + border space
-            width = oneAvatarSize.width + overlapSize * 2 * (props.icons.length - 1) + oneAvatarBorderWidth * (props.icons.length * 2);
-        }
-        avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height), StyleUtils.getWidthStyle(width)]);
+        avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height)]);
     }
 
     return (
@@ -167,34 +175,31 @@ function MultipleAvatars(props) {
                                     avatar: icon.avatar,
                                 }}
                             >
-                                <View
-                                    style={[
-                                        styles.justifyContentCenter,
-                                        styles.alignItemsCenter,
-                                        StyleUtils.getHorizontalStackedAvatarBorderStyle({
-                                            isHovered: props.isHovered,
-                                            isPressed: props.isPressed,
-                                            isInReportAction: props.isInReportAction,
-                                            shouldUseCardBackground: props.shouldUseCardBackground,
-                                        }),
-                                        StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
-                                        icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {},
-                                    ]}
-                                >
+                                <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(props.size, icon.type)]}>
                                     <Avatar
+                                        iconAdditionalStyles={[
+                                            StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                                isHovered: props.isHovered,
+                                                isPressed: props.isPressed,
+                                                isInReportAction: props.isInReportAction,
+                                                shouldUseCardBackground: props.shouldUseCardBackground,
+                                            }),
+                                            StyleUtils.getAvatarBorderWidth(props.size),
+                                        ]}
                                         source={icon.source || props.fallbackIcon}
                                         fill={themeColors.iconSuccessFill}
                                         size={props.size}
                                         name={icon.name}
                                         type={icon.type}
+                                        fallbackIcon={icon.fallbackIcon}
                                     />
                                 </View>
                             </UserDetailsTooltip>
                         ))}
                         {avatars.length > props.maxAvatarsInRow && (
                             <Tooltip
-                                // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-                                text={tooltipTexts.slice(3, 10).join(', ')}
+                                // We only want to cap tooltips to only 10 users or so since some reports have hundreds of users, causing performance to degrade.
+                                text={tooltipTexts.slice(avatarRows.length * props.maxAvatarsInRow - 1, avatarRows.length * props.maxAvatarsInRow + 9).join(', ')}
                             >
                                 <View
                                     style={[
@@ -224,6 +229,7 @@ function MultipleAvatars(props) {
                                         <Text
                                             selectable={false}
                                             style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}
+                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
                                     </View>
                                 </View>
@@ -247,14 +253,21 @@ function MultipleAvatars(props) {
                                 <Avatar
                                     source={props.icons[0].source || props.fallbackIcon}
                                     fill={themeColors.iconSuccessFill}
-                                    size={props.isFocusMode ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER}
+                                    size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
                                     name={props.icons[0].name}
                                     type={props.icons[0].type}
+                                    fallbackIcon={props.icons[0].fallbackIcon}
                                 />
                             </View>
                         </UserDetailsTooltip>
-                        <View style={[...secondAvatarStyles, props.icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[1].type) : {}]}>
+                        <View
+                            style={[
+                                secondAvatarStyles,
+                                ...props.secondAvatarStyle,
+                                props.icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[1].type) : {},
+                            ]}
+                        >
                             {props.icons.length === 2 ? (
                                 <UserDetailsTooltip
                                     accountID={props.icons[1].id}
@@ -268,10 +281,11 @@ function MultipleAvatars(props) {
                                         <Avatar
                                             source={props.icons[1].source || props.fallbackIcon}
                                             fill={themeColors.iconSuccessFill}
-                                            size={props.isFocusMode ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALLER}
+                                            size={avatarSize}
                                             imageStyles={[singleAvatarStyle]}
                                             name={props.icons[1].name}
                                             type={props.icons[1].type}
+                                            fallbackIcon={props.icons[1].fallbackIcon}
                                         />
                                     </View>
                                 </UserDetailsTooltip>
@@ -281,6 +295,7 @@ function MultipleAvatars(props) {
                                         <Text
                                             selectable={false}
                                             style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}
+                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         >
                                             {`+${props.icons.length - 1}`}
                                         </Text>

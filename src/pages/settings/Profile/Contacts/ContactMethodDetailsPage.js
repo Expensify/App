@@ -19,12 +19,13 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import * as User from '../../../../libs/actions/User';
-import CONST from '../../../../CONST';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
-import NotFoundPage from '../../../ErrorPage/NotFoundPage';
 import ValidateCodeForm from './ValidateCodeForm';
 import ROUTES from '../../../../ROUTES';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import FullPageNotFoundView from '../../../../components/BlockingViews/FullPageNotFoundView';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -68,6 +69,9 @@ const propTypes = {
         }),
     }),
 
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -83,6 +87,7 @@ const defaultProps = {
             contactMethod: '',
         },
     },
+    isLoadingReportData: true,
 };
 
 class ContactMethodDetailsPage extends Component {
@@ -98,16 +103,27 @@ class ContactMethodDetailsPage extends Component {
         this.state = {
             isDeleteModalOpen: false,
         };
+
+        this.validateCodeFormRef = React.createRef();
+    }
+
+    componentDidMount() {
+        const contactMethod = this.getContactMethod();
+        const loginData = lodashGet(this.props.loginList, contactMethod, {});
+        if (_.isEmpty(loginData)) {
+            return;
+        }
+        User.resetContactMethodValidateCodeSentState(this.getContactMethod());
     }
 
     componentDidUpdate(prevProps) {
-        const errorFields = lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {});
-        const prevPendingFields = lodashGet(prevProps.loginList, [this.getContactMethod(), 'pendingFields'], {});
+        const validatedDate = lodashGet(this.props.loginList, [this.getContactMethod(), 'validatedDate']);
+        const prevValidatedDate = lodashGet(prevProps.loginList, [this.getContactMethod(), 'validatedDate']);
 
         // Navigate to methods page on successful magic code verification
-        // validateLogin property of errorFields & prev pendingFields is responsible to decide the status of the magic code verification
-        if (!errorFields.validateLogin && prevPendingFields.validateLogin === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+        // validatedDate property is responsible to decide the status of the magic code verification
+        if (!prevValidatedDate && validatedDate) {
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
         }
     }
 
@@ -116,7 +132,22 @@ class ContactMethodDetailsPage extends Component {
      * @returns {string}
      */
     getContactMethod() {
-        return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
+        const contactMethod = lodashGet(this.props.route, 'params.contactMethod');
+
+        // We find the number of times the url is encoded based on the last % sign and remove them.
+        const lastPercentIndex = contactMethod.lastIndexOf('%');
+        const encodePercents = contactMethod.substring(lastPercentIndex).match(new RegExp('25', 'g'));
+        let numberEncodePercents = encodePercents ? encodePercents.length : 0;
+        const beforeAtSign = contactMethod.substring(0, lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, (match) => {
+            if (numberEncodePercents > 0) {
+                numberEncodePercents--;
+                return '%';
+            }
+            return match;
+        });
+        const afterAtSign = contactMethod.substring(lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, '%');
+
+        return decodeURIComponent(beforeAtSign + afterAtSign);
     }
 
     /**
@@ -194,17 +225,34 @@ class ContactMethodDetailsPage extends Component {
         // Replacing spaces with "hard spaces" to prevent breaking the number
         const formattedContactMethod = Str.isSMSLogin(contactMethod) ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
 
+        if (this.props.isLoadingReportData && _.isEmpty(this.props.loginList)) {
+            return <FullscreenLoadingIndicator />;
+        }
+
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
-            return <NotFoundPage />;
+            return (
+                <ScreenWrapper testID={ContactMethodDetailsPage.displayName}>
+                    <FullPageNotFoundView
+                        shouldShow
+                        linkKey="contacts.goBackContactMethods"
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                        onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                    />
+                </ScreenWrapper>
+            );
         }
 
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
+        const isFailedRemovedContactMethod = Boolean(lodashGet(loginData, 'errorFields.deletedLogin'));
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper
+                onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}
+                testID={ContactMethodDetailsPage.displayName}
+            >
                 <HeaderWithBackButton
                     title={formattedContactMethod}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
@@ -217,7 +265,7 @@ class ContactMethodDetailsPage extends Component {
                         prompt={this.props.translate('contacts.removeAreYouSure')}
                         confirmText={this.props.translate('common.yesContinue')}
                         cancelText={this.props.translate('common.cancel')}
-                        isVisible={this.state.isDeleteModalOpen}
+                        isVisible={this.state.isDeleteModalOpen && !isDefaultContactMethod}
                         danger
                     />
                     {isFailedAddContactMethod && (
@@ -238,6 +286,7 @@ class ContactMethodDetailsPage extends Component {
                                 contactMethod={contactMethod}
                                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                                 loginList={this.props.loginList}
+                                ref={this.validateCodeFormRef}
                             />
                         </View>
                     )}
@@ -257,9 +306,9 @@ class ContactMethodDetailsPage extends Component {
                     {isDefaultContactMethod ? (
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
-                            errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
+                            errors={ErrorUtils.getLatestErrorField(loginData, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
                             errorRowStyles={[styles.ml8, styles.mr5]}
-                            onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
+                            onClose={() => User.clearContactMethodErrors(contactMethod, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
                         >
                             <Text style={[styles.ph5, styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
                         </OfflineWithFeedback>
@@ -301,6 +350,9 @@ export default compose(
         },
         securityGroups: {
             key: `${ONYXKEYS.COLLECTION.SECURITY_GROUP}`,
+        },
+        isLoadingReportData: {
+            key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
         },
     }),
 )(ContactMethodDetailsPage);

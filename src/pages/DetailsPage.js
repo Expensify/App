@@ -27,8 +27,6 @@ import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import * as UserUtils from '../libs/UserUtils';
 
 const matchType = PropTypes.shape({
@@ -50,13 +48,10 @@ const propTypes = {
     /** Route params */
     route: matchType.isRequired,
 
-    /** Login list for the user that is signed in */
-    loginList: PropTypes.shape({
-        /** Date login was validated, used to show info indicator status */
-        validatedDate: PropTypes.string,
-
-        /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
     }),
 
     ...withLocalizePropTypes,
@@ -65,7 +60,9 @@ const propTypes = {
 const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
-    loginList: {},
+    session: {
+        accountID: 0,
+    },
 };
 
 /**
@@ -102,11 +99,12 @@ function DetailsPage(props) {
                 avatar: UserUtils.getDefaultAvatar(CONST.ACCOUNT_ID.CONCIERGE),
             };
         } else {
+            const optimisticAccountID = UserUtils.generateAccountID(login);
             details = {
-                accountID: -1,
+                accountID: optimisticAccountID,
                 login,
                 displayName: login,
-                avatar: UserUtils.getDefaultAvatar(),
+                avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
             };
         }
     }
@@ -124,15 +122,12 @@ function DetailsPage(props) {
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
 
-    const isCurrentUser = _.keys(props.loginList).includes(details.login);
+    const isCurrentUser = props.session.accountID === details.accountID;
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={DetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
-                <HeaderWithBackButton
-                    title={props.translate('common.details')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
-                />
+                <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
@@ -159,6 +154,7 @@ function DetailsPage(props) {
                                                     imageStyles={[styles.avatarLarge]}
                                                     source={UserUtils.getAvatar(details.avatar, details.accountID)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
+                                                    fallbackIcon={details.fallbackIcon}
                                                 />
                                             </OfflineWithFeedback>
                                         </PressableWithoutFocus>
@@ -203,6 +199,7 @@ function DetailsPage(props) {
                             {!isCurrentUser && (
                                 <MenuItem
                                     title={`${props.translate('common.message')}${details.displayName}`}
+                                    titleStyle={styles.flex1}
                                     icon={Expensicons.ChatBubble}
                                     onPress={() => Report.navigateToAndOpenReport([login])}
                                     wrapperStyle={styles.breakAll}
@@ -227,8 +224,8 @@ export default compose(
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
-        loginList: {
-            key: ONYXKEYS.LOGIN_LIST,
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(DetailsPage);

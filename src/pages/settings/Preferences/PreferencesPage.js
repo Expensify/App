@@ -40,13 +40,9 @@ function PreferencesPage(props) {
     const {isProduction} = useEnvironment();
     const {translate, preferredLocale} = useLocalize();
 
-    const priorityModes = translate('priorityModePage.priorityModes');
-    const languages = translate('languagePage.languages');
-
     return (
         <IllustratedHeaderPageLayout
             title={translate('common.preferences')}
-            shouldShowBackButton
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.PreferencesDJ}
@@ -72,13 +68,13 @@ function PreferencesPage(props) {
                 </View>
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
-                    title={priorityModes[props.priorityMode].label}
+                    title={translate(`priorityModePage.priorityModes.${props.priorityMode}.label`)}
                     description={translate('priorityModePage.priorityMode')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
                 />
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
-                    title={languages[preferredLocale].label}
+                    title={translate(`languagePage.languages.${preferredLocale}.label`)}
                     description={translate('languagePage.language')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                 />

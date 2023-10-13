@@ -1,33 +1,45 @@
-import _ from 'underscore';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import PropTypes from 'prop-types';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import MenuItem from '../../../components/MenuItem';
-import compose from '../../../libs/compose';
 import * as Illustrations from '../../../components/Icon/Illustrations';
-import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../userPropTypes';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import NotFoundPage from '../../ErrorPage/NotFoundPage';
+import useLocalize from '../../../hooks/useLocalize';
+import FeatureList from '../../../components/FeatureList';
+import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
+import * as LottieAnimations from '../../../components/LottieAnimations';
+import compose from '../../../libs/compose';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
+import LinearGradient from '../../../components/LinearGradient';
+import styles from '../../../styles/styles';
+import Avatar from '../../../components/Avatar';
+import Text from '../../../components/Text';
+import * as UserUtils from '../../../libs/UserUtils';
+import CONST from '../../../CONST';
+import themeColors from '../../../styles/themes/default';
+import * as LocalePhoneNumber from '../../../libs/LocalePhoneNumber';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
+    /** The session of the logged in person */
+    session: PropTypes.shape({
+        /** Email of the logged in person */
+        email: PropTypes.string,
+    }),
 
     /** Current user details, which will hold whether or not they have Lounge Access */
     user: userPropTypes,
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
+    session: {},
     user: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const menuItems = [
@@ -46,49 +58,53 @@ const menuItems = [
 ];
 
 function LoungeAccessPage(props) {
-    const illustrationStyle = props.isSmallScreenWidth
-        ? {
-              width: props.windowWidth,
-              height: CONST.SETTINGS_LOUNGE_ACCESS.HEADER_IMAGE_ASPECT_RATIO * props.windowWidth,
-          }
-        : {};
+    const {translate} = useLocalize();
+
+    if (!props.user.hasLoungeAccess) {
+        return <NotFoundPage />;
+    }
+
+    const overlayContent = () => (
+        <LinearGradient
+            colors={[`${themeColors.loungeAccessOverlay}00`, themeColors.loungeAccessOverlay]}
+            style={[styles.pAbsolute, styles.w100, styles.h100]}
+        >
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pt5, styles.ph5]}>
+                <Avatar
+                    imageStyles={[styles.avatarLarge]}
+                    source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
+                    size={CONST.AVATAR_SIZE.LARGE}
+                    fallbackIcon={props.currentUserPersonalDetails.fallbackIcon}
+                />
+                <Text
+                    style={[styles.textHeadline, styles.pre, styles.mt2]}
+                    numberOfLines={1}
+                >
+                    {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : LocalePhoneNumber.formatPhoneNumber(props.session.email)}
+                </Text>
+                <Text
+                    style={[styles.textLabelSupporting, styles.mt1]}
+                    numberOfLines={1}
+                >
+                    {LocalePhoneNumber.formatPhoneNumber(props.session.email)}
+                </Text>
+            </View>
+        </LinearGradient>
+    );
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!props.user.hasLoungeAccess}>
-                    <HeaderWithBackButton
-                        title={props.translate('loungeAccessPage.loungeAccess')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-                    />
-                    <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
-                        <View style={illustrationStyle}>
-                            <Illustrations.Lounge />
-                        </View>
-                        <View style={styles.pageWrapperNotCentered}>
-                            <Text
-                                style={[styles.textHeadline, styles.preWrap, styles.mb2]}
-                                numberOfLines={2}
-                            >
-                                {props.translate('loungeAccessPage.headline')}
-                            </Text>
-                            <Text style={styles.baseFontStyle}>{props.translate('loungeAccessPage.description')}</Text>
-                        </View>
-                        {_.map(menuItems, (item) => (
-                            <MenuItem
-                                key={item.translationKey}
-                                title={props.translate(item.translationKey)}
-                                icon={item.icon}
-                                iconWidth={60}
-                                iconHeight={60}
-                                iconStyles={[styles.mr3, styles.ml3]}
-                                interactive={false}
-                            />
-                        ))}
-                    </ScrollView>
-                </FullPageNotFoundView>
-            )}
-        </ScreenWrapper>
+        <IllustratedHeaderPageLayout
+            title={translate('loungeAccessPage.loungeAccess')}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            illustration={LottieAnimations.ExpensifyLounge}
+            overlayContent={overlayContent}
+        >
+            <FeatureList
+                headline="loungeAccessPage.headline"
+                description="loungeAccessPage.description"
+                menuItems={menuItems}
+            />
+        </IllustratedHeaderPageLayout>
     );
 }
 
@@ -97,9 +113,11 @@ LoungeAccessPage.defaultProps = defaultProps;
 LoungeAccessPage.displayName = 'LoungeAccessPage';
 
 export default compose(
-    withLocalize,
-    withWindowDimensions,
+    withCurrentUserPersonalDetails,
     withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
         user: {
             key: ONYXKEYS.USER,
         },

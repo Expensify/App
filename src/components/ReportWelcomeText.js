@@ -10,6 +10,7 @@ import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as PolicyUtils from '../libs/PolicyUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
@@ -33,21 +34,27 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
     /* Onyx Props */
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
+    policy: {},
     personalDetails: {},
-    betas: [],
 };
 
 function ReportWelcomeText(props) {
@@ -60,12 +67,16 @@ function ReportWelcomeText(props) {
         OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, props.personalDetails),
         isMultipleParticipant,
     );
-    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs, props.betas);
+    const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(props.policy);
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, isUserPolicyAdmin);
+    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs);
+
     return (
         <>
             <View>
-                <Text style={[styles.textHero]}>{props.translate('reportActionsView.sayHello')}</Text>
+                <Text style={[styles.textHero]}>
+                    {isChatRoom ? props.translate('reportActionsView.welcomeToRoom', {roomName: ReportUtils.getReportName(props.report)}) : props.translate('reportActionsView.sayHello')}
+                </Text>
             </View>
             <Text style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat && (
@@ -84,13 +95,16 @@ function ReportWelcomeText(props) {
                 {isChatRoom && (
                     <>
                         <Text>{roomWelcomeMessage.phrase1}</Text>
-                        <Text
-                            style={[styles.textStrong]}
-                            onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
-                        >
-                            {ReportUtils.getReportName(props.report)}
-                        </Text>
-                        <Text>{roomWelcomeMessage.phrase2}</Text>
+                        {roomWelcomeMessage.showReportName && (
+                            <Text
+                                style={[styles.textStrong]}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID))}
+                                suppressHighlighting
+                            >
+                                {ReportUtils.getReportName(props.report)}
+                            </Text>
+                        )}
+                        {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
                     </>
                 )}
                 {isDefault && (
@@ -99,12 +113,17 @@ function ReportWelcomeText(props) {
                         {_.map(displayNamesWithTooltips, ({displayName, pronouns, accountID}, index) => (
                             <Text key={`${displayName}${pronouns}${index}`}>
                                 <UserDetailsTooltip accountID={accountID}>
-                                    <Text
-                                        style={[styles.textStrong]}
-                                        onPress={() => Navigation.navigate(ROUTES.getProfileRoute(accountID))}
-                                    >
-                                        {displayName}
-                                    </Text>
+                                    {ReportUtils.isOptimisticPersonalDetail(accountID) ? (
+                                        <Text style={[styles.textStrong]}>{displayName}</Text>
+                                    ) : (
+                                        <Text
+                                            style={[styles.textStrong]}
+                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID))}
+                                            suppressHighlighting
+                                        >
+                                            {displayName}
+                                        </Text>
+                                    )}
                                 </UserDetailsTooltip>
                                 {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
                                 {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}
@@ -129,9 +148,6 @@ ReportWelcomeText.displayName = 'ReportWelcomeText';
 export default compose(
     withLocalize,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },

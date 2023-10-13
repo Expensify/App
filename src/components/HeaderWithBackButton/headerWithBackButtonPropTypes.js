@@ -1,7 +1,5 @@
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {ThreeDotsMenuItemPropTypes} from '../ThreeDotsMenu';
-import CONST from '../../CONST';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import participantPropTypes from '../participantPropTypes';
 
@@ -50,20 +48,11 @@ const propTypes = {
         left: PropTypes.number,
     }),
 
-    /** The anchor alignment of the menu */
-    threeDotsAnchorAlignment: PropTypes.shape({
-        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
-        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
-    }),
-
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
 
     /** Whether we should show a back button */
     shouldShowBackButton: PropTypes.bool,
-
-    /** Whether we should show the step counter */
-    shouldShowStepCounter: PropTypes.bool,
 
     /** The guides call taskID to associate with the get assistance button, if we show it */
     guidesCallTaskID: PropTypes.string,
@@ -84,14 +73,17 @@ const propTypes = {
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
     report: iouReportPropTypes,
 
-    /** Policies, if we're showing the details for a report and need info about it for AvatarWithDisplay */
-    policies: PropTypes.shape({
+    /** The report's policy, if we're showing the details for a report and need info about it for AvatarWithDisplay */
+    policy: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
     }),
 
     /** Policies, if we're showing the details for a report and need participant details for AvatarWithDisplay */
     personalDetails: PropTypes.objectOf(participantPropTypes),
+
+    /** Children to wrap in Header */
+    children: PropTypes.node,
 };
 
 export default propTypes;

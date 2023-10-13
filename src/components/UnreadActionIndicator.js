@@ -10,6 +10,7 @@ function UnreadActionIndicator(props) {
         <View
             accessibilityLabel={props.translate('accessibilityHints.newMessageLineIndicator')}
             data-action-id={props.reportActionID}
+            pointerEvents="none"
             style={[styles.unreadIndicatorContainer, styles.userSelectNone]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
