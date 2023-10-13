@@ -39,7 +39,10 @@ const propTypes = {
         }),
     }).isRequired,
 
-    navigation: PropTypes.object.isRequired,
+    /* Navigation functions provided by React Navigation */
+    navigation: PropTypes.shape({
+        setParams: PropTypes.func.isRequired,
+    }).isRequired,
 };
 
 const defaultProps = {

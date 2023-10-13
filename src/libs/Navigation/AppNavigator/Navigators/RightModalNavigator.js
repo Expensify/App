@@ -13,7 +13,10 @@ import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
 const Stack = createStackNavigator();
 
 const propTypes = {
-    navigation: PropTypes.object.isRequired,
+    /* Navigation functions provided by React Navigation */
+    navigation: PropTypes.shape({
+        goBack: PropTypes.func.isRequired,
+    }).isRequired,
 };
 
 function RightModalNavigator(props) {
