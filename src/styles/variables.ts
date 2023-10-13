@@ -167,6 +167,10 @@ export default {
     eReceiptWordmarkWidth: 86,
     eReceiptBGHeight: 540,
     eReceiptBGHWidth: 335,
+    reportPreviewMaxWidth: 302,
+    reportActionImagesSingleImageHeight: 147,
+    reportActionImagesDoubleImageHeight: 138,
+    reportActionImagesMultipleImageHeight: 110,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
