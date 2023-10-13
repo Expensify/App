@@ -108,6 +108,7 @@ const CONST = {
 
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
+        ASPECT_RATIO: 3.72,
         SMALL_SCREEN: {
             IMAGE_HEIGHT: 300,
             CONTAINER_MINHEIGHT: 200,
@@ -140,6 +141,7 @@ const CONST = {
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
         MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
+        MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
@@ -234,7 +236,6 @@ const CONST = {
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         BETA_COMMENT_LINKING: 'commentLinking',
         INTERNATIONALIZATION: 'internationalization',
-        IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
@@ -304,7 +305,7 @@ const CONST = {
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
-        SHORTCUT_MODAL: {
+        SHORTCUTS: {
             descriptionKey: 'openShortcutDialog',
             shortcutKey: 'J',
             modifiers: ['CTRL'],
@@ -478,20 +479,21 @@ const CONST = {
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
-                APPROVED: 'APPROVED',
                 ADDCOMMENT: 'ADDCOMMENT',
+                APPROVED: 'APPROVED',
+                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
-                TASKEDITED: 'TASKEDITED',
-                TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
-                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
-                TASKCOMPLETED: 'TASKCOMPLETED',
-                TASKREOPENED: 'TASKREOPENED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
+                SUBMITTED: 'SUBMITTED',
+                TASKCANCELLED: 'TASKCANCELLED',
+                TASKCOMPLETED: 'TASKCOMPLETED',
+                TASKEDITED: 'TASKEDITED',
+                TASKREOPENED: 'TASKREOPENED',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -666,6 +668,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
+        SEARCH_FOR_REPORTS_DEBOUNCE_TIME: 300,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -902,6 +905,8 @@ const CONST = {
         HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,
+    CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
+    CHAT_FOOTER_SECONDARY_ROW_PADDING: 5,
     CHAT_FOOTER_MIN_HEIGHT: 65,
     CHAT_SKELETON_VIEW: {
         AVERAGE_ROW_HEIGHT: 80,
@@ -1171,6 +1176,14 @@ const CONST = {
             AUDITOR: 'auditor',
             USER: 'user',
         },
+        AUTO_REPORTING_FREQUENCIES: {
+            IMMEDIATE: 'immediate',
+            WEEKLY: 'weekly',
+            SEMI_MONTHLY: 'semimonthly',
+            MONTHLY: 'monthly',
+            TRIP: 'trip',
+            MANUAL: 'manual',
+        },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
@@ -1230,6 +1243,7 @@ const CONST = {
             CLOSED: 6,
             STATE_SUSPENDED: 7,
         },
+        ACTIVE_STATES: [2, 3, 4, 7],
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -1255,7 +1269,7 @@ const CONST = {
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
-        ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
+        ROOM_NAME: /^#[\p{Ll}0-9-]{1,80}$/u,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
@@ -1464,6 +1478,15 @@ const CONST = {
         READ: 'read',
         WRITE: 'write',
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
+    },
+
+    ERECEIPT_COLORS: {
+        YELLOW: 'Yellow',
+        ICE: 'Ice',
+        BLUE: 'Blue',
+        GREEN: 'Green',
+        TANGERINE: 'Tangerine',
+        PINK: 'Pink',
     },
 
     MAP_PADDING: 50,
@@ -2639,8 +2662,8 @@ const CONST = {
         ATTACHMENT: 'common.attachment',
     },
     TEACHERS_UNITE: {
-        PUBLIC_ROOM_ID: '207591744844000',
-        POLICY_ID: 'ABD1345ED7293535',
+        PUBLIC_ROOM_ID: '7470147100835202',
+        POLICY_ID: 'B795B6319125BDF2',
         POLICY_NAME: 'Expensify.org / Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
     },
@@ -2728,6 +2751,12 @@ const CONST = {
     },
 
     MISSING_TRANSLATION: 'MISSING TRANSLATION',
+    SEARCH_MAX_LENGTH: 500,
+
+    /**
+     * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
+     */
+    ADDITIONAL_ALLOWED_CHARACTERS: 20,
 } as const;
 
 export default CONST;

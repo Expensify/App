@@ -1,6 +1,5 @@
-import {CSSProperties} from 'react';
 import {TextStyle} from 'react-native';
 
-type AddOutlineWidth = (obj: TextStyle | CSSProperties, val?: number, error?: boolean) => TextStyle | CSSProperties;
+type AddOutlineWidth = (obj: TextStyle, val?: number, hasError?: boolean) => TextStyle;
 
 export default AddOutlineWidth;

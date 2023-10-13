@@ -8,7 +8,7 @@ import UpdateNumberOfLines from './types';
  * divide by line height to get the total number of rows for the textarea.
  */
 const updateNumberOfLines: UpdateNumberOfLines = (props, event) => {
-    const lineHeight = styles.textInputCompose.lineHeight;
+    const lineHeight = styles.textInputCompose.lineHeight ?? 0;
     const paddingTopAndBottom = styles.textInputComposeSpacing.paddingVertical * 2;
     const inputHeight = event?.nativeEvent?.contentSize?.height ?? null;
     if (!inputHeight) {
