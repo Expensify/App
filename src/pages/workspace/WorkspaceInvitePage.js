@@ -83,23 +83,29 @@ function WorkspaceInvitePage(props) {
 
     const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails), [props.policyMembers, props.personalDetails]);
 
-    useEffect(() => {
-        let emails = _.compact(
-            searchTerm
-                .trim()
-                .replace(/\s*,\s*/g, ',')
-                .split(','),
-        );
+    const searchEmails = useMemo(
+        () =>
+            _.compact(
+                searchTerm
+                    .trim()
+                    .replace(/\s*,\s*/g, ',')
+                    .split(','),
+            ),
+        [searchTerm],
+    );
 
-        if (emails.length === 0) {
+    useEffect(() => {
+        const newUsersToInviteDict = {};
+        const newSelectedOptionsDict = {};
+
+        let emails = searchEmails;
+
+        if (searchEmails.length === 0) {
+            // This ensures suggestions are displayed when there is no search term
             emails = [''];
         }
 
-        const newUsersToInviteDict = {};
-        const newPersonalDetailsDict = {};
-        const newSelectedOptionsDict = {};
-
-        _.each(emails, (email) => {
+        _.each(emails, (email, i) => {
             const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, email, excludedUsers);
 
             // Update selectedOptions with the latest personalDetails and policyMembers information
@@ -118,10 +124,10 @@ function WorkspaceInvitePage(props) {
                 newUsersToInviteDict[userToInvite.accountID] = userToInvite;
             }
 
-            // Add all personal details to the new dict
-            _.each(inviteOptions.personalDetails, (details) => {
-                newPersonalDetailsDict[details.accountID] = details;
-            });
+            // Only show contact suggestions for the last search term
+            if (i === emails.length - 1) {
+                setPersonalDetails(inviteOptions.personalDetails);
+            }
 
             // Add all selected options to the new dict
             _.each(newSelectedOptions, (option) => {
@@ -131,11 +137,10 @@ function WorkspaceInvitePage(props) {
 
         // Strip out dictionary keys and update arrays
         setUsersToInvite(_.values(newUsersToInviteDict));
-        setPersonalDetails(_.values(newPersonalDetailsDict));
         setSelectedOptions(_.values(newSelectedOptionsDict));
 
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [props.personalDetails, props.policyMembers, props.betas, searchTerm, excludedUsers]);
+    }, [props.personalDetails, props.policyMembers, props.betas, searchEmails, excludedUsers]);
 
     const getSections = () => {
         const sections = [];
@@ -228,14 +233,24 @@ function WorkspaceInvitePage(props) {
 
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();
-        if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
-            return translate('messages.errorMessageInvalidEmail');
+
+        if (usersToInvite.length === 0) {
+            if (CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
+                return translate('messages.errorMessageInvalidEmail');
+            }
+
+            if (excludedUsers.includes(searchValue)) {
+                return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
+            }
+
+            // Handle errors when multiple emails are specified
+            if (searchEmails.length > 1 && personalDetails.length === 0) {
+                return translate('messages.errorMessageAllInviteesInvalid');
+            }
         }
-        if (usersToInvite.length === 0 && excludedUsers.includes(searchValue)) {
-            return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
-        }
+
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, searchTerm, policyName, usersToInvite, personalDetails]);
+    }, [excludedUsers, translate, searchTerm, searchEmails, policyName, usersToInvite, personalDetails]);
 
     return (
         <ScreenWrapper

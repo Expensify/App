@@ -1169,6 +1169,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Invalid email',
+        errorMessageAllInviteesInvalid: 'All of the invitees are invalid or have been invited already',
         userIsAlreadyMemberOfWorkspace: ({login, workspace}: UserIsAlreadyMemberOfWorkspaceParams) => `${login} is already a member of ${workspace}`,
     },
     onfidoStep: {
