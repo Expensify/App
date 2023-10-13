@@ -11,7 +11,7 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import stylePropTypes from '../styles/stylePropTypes';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
     // The error messages to display
@@ -25,8 +25,6 @@ const propTypes = {
 
     /** Additional style object for the container */
     containerStyles: stylePropTypes,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -35,24 +33,25 @@ const defaultProps = {
     containerStyles: [],
 };
 
-function DotIndicatorMessageWithClose(props) {
-    if (_.isEmpty(props.messages)) {
+function DotIndicatorMessageWithClose({messages, type, onClose, containerStyles}) {
+    const {translate} = useLocalize();
+    if (_.isEmpty(messages)) {
         return null;
     }
 
     return (
-        <View style={StyleUtils.combineStyles(styles.flexRow, styles.alignItemsCenter, props.containerStyles)}>
+        <View style={StyleUtils.combineStyles(styles.flexRow, styles.alignItemsCenter, containerStyles)}>
             <DotIndicatorMessage
                 style={[styles.flex1]}
-                messages={props.messages}
-                type={props.type}
+                messages={messages}
+                type={type}
             />
-            <Tooltip text={props.translate('common.close')}>
+            <Tooltip text={translate('common.close')}>
                 <PressableWithoutFeedback
-                    onPress={props.onClose}
+                    onPress={onClose}
                     style={[styles.touchableButtonImage]}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    accessibilityLabel={props.translate('common.close')}
+                    accessibilityLabel={translate('common.close')}
                 >
                     <Icon src={Expensicons.Close} />
                 </PressableWithoutFeedback>
@@ -65,4 +64,4 @@ DotIndicatorMessageWithClose.propTypes = propTypes;
 DotIndicatorMessageWithClose.defaultProps = defaultProps;
 DotIndicatorMessageWithClose.displayName = 'DotIndicatorMessageWithClose';
 
-export default withLocalize(DotIndicatorMessageWithClose);
+export default DotIndicatorMessageWithClose;
