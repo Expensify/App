@@ -14,7 +14,9 @@ export default function requireParameters(parameterNames: string[], parameters: 
         const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
         const parametersCopy = {...parameters};
         Object.keys(parametersCopy).forEach((key) => {
-            if (!propertiesToRedact.includes(key.toString())) return;
+            if (!propertiesToRedact.includes(key.toString())) {
+                return;
+            }
 
             parametersCopy[key] = '<redacted>';
         });

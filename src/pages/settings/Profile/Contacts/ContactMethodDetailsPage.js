@@ -25,6 +25,7 @@ import ValidateCodeForm from './ValidateCodeForm';
 import ROUTES from '../../../../ROUTES';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 import FullPageNotFoundView from '../../../../components/BlockingViews/FullPageNotFoundView';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -131,7 +132,22 @@ class ContactMethodDetailsPage extends Component {
      * @returns {string}
      */
     getContactMethod() {
-        return decodeURIComponent(lodashGet(this.props.route, 'params.contactMethod'));
+        const contactMethod = lodashGet(this.props.route, 'params.contactMethod');
+
+        // We find the number of times the url is encoded based on the last % sign and remove them.
+        const lastPercentIndex = contactMethod.lastIndexOf('%');
+        const encodePercents = contactMethod.substring(lastPercentIndex).match(new RegExp('25', 'g'));
+        let numberEncodePercents = encodePercents ? encodePercents.length : 0;
+        const beforeAtSign = contactMethod.substring(0, lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, (match) => {
+            if (numberEncodePercents > 0) {
+                numberEncodePercents--;
+                return '%';
+            }
+            return match;
+        });
+        const afterAtSign = contactMethod.substring(lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, '%');
+
+        return decodeURIComponent(beforeAtSign + afterAtSign);
     }
 
     /**
@@ -216,7 +232,7 @@ class ContactMethodDetailsPage extends Component {
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
             return (
-                <ScreenWrapper>
+                <ScreenWrapper testID={ContactMethodDetailsPage.displayName}>
                     <FullPageNotFoundView
                         shouldShow
                         linkKey="contacts.goBackContactMethods"
@@ -230,9 +246,13 @@ class ContactMethodDetailsPage extends Component {
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
+        const isFailedRemovedContactMethod = Boolean(lodashGet(loginData, 'errorFields.deletedLogin'));
 
         return (
-            <ScreenWrapper onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}>
+            <ScreenWrapper
+                onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}
+                testID={ContactMethodDetailsPage.displayName}
+            >
                 <HeaderWithBackButton
                     title={formattedContactMethod}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
@@ -245,7 +265,7 @@ class ContactMethodDetailsPage extends Component {
                         prompt={this.props.translate('contacts.removeAreYouSure')}
                         confirmText={this.props.translate('common.yesContinue')}
                         cancelText={this.props.translate('common.cancel')}
-                        isVisible={this.state.isDeleteModalOpen}
+                        isVisible={this.state.isDeleteModalOpen && !isDefaultContactMethod}
                         danger
                     />
                     {isFailedAddContactMethod && (
@@ -286,9 +306,9 @@ class ContactMethodDetailsPage extends Component {
                     {isDefaultContactMethod ? (
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
-                            errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
+                            errors={ErrorUtils.getLatestErrorField(loginData, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
                             errorRowStyles={[styles.ml8, styles.mr5]}
-                            onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
+                            onClose={() => User.clearContactMethodErrors(contactMethod, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
                         >
                             <Text style={[styles.ph5, styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
                         </OfflineWithFeedback>

@@ -54,6 +54,7 @@ function BaseOptionsList({
     showScrollIndicator,
     listContainerStyles,
     shouldDisableRowInnerPadding,
+    shouldPreventDefaultFocusOnSelectRow,
     disableFocusOptions,
     canSelectMultipleOptions,
     shouldShowMultipleOptionSelectorAsButton,
@@ -174,7 +175,11 @@ function BaseOptionsList({
     const renderItem = ({item, index, section}) => {
         const isItemDisabled = isDisabled || section.isDisabled || !!item.isDisabled;
         const isSelected = _.some(selectedOptions, (option) => {
-            if (option.accountID === item.accountID) {
+            if (option.accountID && option.accountID === item.accountID) {
+                return true;
+            }
+
+            if (option.reportID && option.reportID === item.reportID) {
                 return true;
             }
 
@@ -202,6 +207,7 @@ function BaseOptionsList({
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 isMultilineSupported={isRowMultilineSupported}
             />
         );

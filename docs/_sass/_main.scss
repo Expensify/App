@@ -299,7 +299,6 @@ button {
     }
 
     .selected {
-        cursor: auto;
         font-weight: bold;
         color: $color-text;
     }
@@ -457,6 +456,15 @@ button {
     }
 }
 
+
+.platform-cards-group {
+    @extend .cards-group;
+
+    @include breakpoint($breakpoint-desktop) {
+        grid-template-columns: 33.33% 33.33% 33.33%;
+    }
+}
+
 .card {
     display: flex;
     flex-wrap: nowrap;
@@ -476,20 +484,54 @@ button {
         flex-basis:100%;
     }
 
-    .left-icon {
+    .body {
         display: flex;
-        align-items: center;
-        padding-right: 28px;
-
-        img {
-            width: 64px;
-        }
+        flex-wrap: nowrap;
+        flex-direction: column;
+        flex-grow: 2;
     }
+
+    h3.title {
+        font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    }
+
+    h3.title,
+    h4.title {
+        padding: 0;
+        margin: 0;
+    }
+
+    p.description,
+    p.url {
+        margin: 0;
+        font-weight: normal;
+    }
+}
+
+.article-card {
+    @extend .card;
 
     .right-icon {
         display: flex;
         align-items: center;
         padding-left: 16px;
+    }
+}
+
+.platform-card {
+    @extend .card;
+    .row {
+        flex-direction: column;
+    }
+
+    .platform-screenshot {
+        display: flex;
+        align-items: center;
+
+        img {
+            border-radius: 12px;
+            width: 100%;
+        }
     }
 
     .submit-button {
@@ -505,27 +547,62 @@ button {
     }
 
     .body {
-        display: flex;
-        flex-wrap: nowrap;
-        flex-direction: column;
-        flex-grow: 2;
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .select-button {
+                display: flex;
+                .success {
+                    align-items: flex-end;
+                    font-size: 0.8em;
+                }
+            }
+        }
     }
 
-    h3.title {
-        padding: 0;
-        margin: 0;
-
+    h3.title,
+    h4.title {
         &.with-margin {
             margin: 0 0 4px 0;
         }
     }
 
+    h3.title {
+        font-size: 1.4em;
+        font-weight: normal;
+    }
 
+    p.description {
+        padding: 20px 0 20px 0;
+    }
+
+    p.url {
+        padding: 0;
+        font-size: 0.8em;
+        color: $color-gray-label;
+    }
+}
+
+.hub-card {
+    @extend .card;
+    padding: 24px;
+
+    .row {
+        flex-direction: column;
+    }
+
+    h3.title {
+        font-size: 1.2em;
+        font-weight: normal;
+        &.with-margin {
+            margin: 20px 0 8px 0;
+        }
+    }
 
     p.description {
         padding: 0;
-        margin: 0;
-        font-weight: normal;
 
         &.with-min-height {
             min-height: 68px;
@@ -564,30 +641,13 @@ button {
 }
 
 .centered-content {
-    height: 240px;
+    width: 100%;
+    height: calc(100vh - 56px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    font-size: larger;
-    position: absolute;
-    top: calc((100vh - 240px) / 2);
-
-    width: 380px;
-    right: calc((100vw - 380px) / 2);
-    @include breakpoint($breakpoint-tablet) {
-        width: 500px;
-        right: calc((100vw - 500px) / 2);
-    }
-
-    &.with-lhn {
-        right: calc((100vw - 380px) / 2);
-
-        @include breakpoint($breakpoint-tablet) {
-            right: calc((100vw - 320px - 500px ) / 2);
-        }
-
-        @include breakpoint($breakpoint-desktop) {
-            right: calc((100vw - 420px - 500px) / 2);
-        }
-    }
 
     div {
         margin-top: 8px;

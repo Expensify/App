@@ -78,7 +78,10 @@ function TimezoneSelectPage(props) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={TimezoneSelectPage.displayName}
+        >
             <HeaderWithBackButton
                 title={translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
@@ -99,5 +102,6 @@ function TimezoneSelectPage(props) {
 
 TimezoneSelectPage.propTypes = propTypes;
 TimezoneSelectPage.defaultProps = defaultProps;
+TimezoneSelectPage.displayName = 'TimezoneSelectPage';
 
 export default withCurrentUserPersonalDetails(TimezoneSelectPage);

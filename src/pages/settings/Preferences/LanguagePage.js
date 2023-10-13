@@ -26,7 +26,10 @@ function LanguagePage(props) {
     }));
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={LanguagePage.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('languagePage.language')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}

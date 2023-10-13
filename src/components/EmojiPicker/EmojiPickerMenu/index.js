@@ -21,6 +21,7 @@ import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
 import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
+import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -57,6 +58,10 @@ class EmojiPickerMenu extends Component {
 
         // Ref for emoji FlatList
         this.emojiList = undefined;
+
+        // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
+        // prevent auto focus when open picker for mobile device
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
@@ -96,7 +101,7 @@ class EmojiPickerMenu extends Component {
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
-        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
+        if (this.shouldFocusInputOnScreenFocus && this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
             this.props.forwardedRef(this.searchInput);
         }
         this.setupEventHandlers();
@@ -104,7 +109,9 @@ class EmojiPickerMenu extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.frequentlyUsedEmojis === this.props.frequentlyUsedEmojis) return;
+        if (prevProps.frequentlyUsedEmojis === this.props.frequentlyUsedEmojis) {
+            return;
+        }
 
         const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
         this.emojis = filteredEmojis;
@@ -188,7 +195,7 @@ class EmojiPickerMenu extends Component {
                     return;
                 }
                 const emoji = lodashGet(item, ['types', this.props.preferredSkinTone], item.code);
-                this.addToFrequentAndSelectEmoji(emoji, item);
+                this.props.onEmojiSelected(emoji, item);
                 return;
             }
 
@@ -249,16 +256,6 @@ class EmojiPickerMenu extends Component {
 
         document.removeEventListener('keydown', this.keyDownHandler, true);
         document.removeEventListener('mousemove', this.mouseMoveHandler);
-    }
-
-    /**
-     * @param {String} emoji
-     * @param {Object} emojiObject
-     */
-    addToFrequentAndSelectEmoji(emoji, emojiObject) {
-        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-        User.updateFrequentlyUsedEmojis(frequentEmojiList);
-        this.props.onEmojiSelected(emoji, emojiObject);
     }
 
     /**
@@ -459,7 +456,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={(emoji) => this.addToFrequentAndSelectEmoji(emoji, item)}
+                onPress={(emoji) => this.props.onEmojiSelected(emoji, item)}
                 onHoverIn={() => this.setState({highlightedIndex: index, isUsingKeyboardMovement: false})}
                 onHoverOut={() => {
                     if (this.state.arePointerEventsDisabled) {
@@ -502,11 +499,13 @@ class EmojiPickerMenu extends Component {
                         onChangeText={this.filterEmojis}
                         defaultValue=""
                         ref={(el) => (this.searchInput = el)}
+                        autoFocus={this.shouldFocusInputOnScreenFocus}
                         selectTextOnFocus={this.state.selectTextOnFocus}
                         onSelectionChange={this.onSelectionChange}
                         onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
                         onBlur={() => this.setState({isFocused: false})}
                         autoCorrect={false}
+                        blurOnSubmit={this.state.filteredEmojis.length > 0}
                     />
                 </View>
                 {!isFiltered && (

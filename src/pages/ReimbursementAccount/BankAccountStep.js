@@ -49,6 +49,9 @@ const propTypes = {
 
     /* The workspace name */
     policyName: PropTypes.string,
+
+    /* The workspace ID */
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -57,6 +60,7 @@ const defaultProps = {
     user: {},
     isPlaidDisabled: false,
     policyName: '',
+    policyID: '',
 };
 
 function BankAccountStep(props) {
@@ -66,7 +70,11 @@ function BankAccountStep(props) {
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
-    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
+    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(
+        'new',
+        props.policyID,
+        ROUTES.WORKSPACE_INITIAL.getRoute(props.policyID),
+    )}`;
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
         return (
@@ -91,7 +99,10 @@ function BankAccountStep(props) {
     }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={BankAccountStep.displayName}
+        >
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.connectBankAccount')}
