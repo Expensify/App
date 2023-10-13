@@ -1,21 +1,22 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {ComponentType, ForwardedRef, RefAttributes, forwardRef} from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import {useNavigationState} from '@react-navigation/native';
 import CONST from '../../CONST';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import * as Policy from '../../libs/actions/Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import policyMemberPropType from '../policyMemberPropType';
+import * as OnyxTypes from '../../types/onyx';
 
-/**
- * @param {Object} route
- * @returns {String}
- */
-function getPolicyIDFromRoute(route) {
-    return lodashGet(route, 'params.policyID', '');
+type PolicyRoute = {
+    params?: {
+        policyID: string;
+    };
+};
+
+function getPolicyIDFromRoute(route: PolicyRoute): string {
+    return route?.params?.policyID ?? 'N/A';
 }
 
 const policyPropTypes = {
@@ -28,10 +29,10 @@ const policyPropTypes = {
         name: PropTypes.string,
 
         /** The current user's role in the policy */
-        role: PropTypes.oneOf(_.values(CONST.POLICY.ROLE)),
+        role: PropTypes.oneOf(Object.values(CONST.POLICY.ROLE)),
 
         /** The policy type */
-        type: PropTypes.oneOf(_.values(CONST.POLICY.TYPE)),
+        type: PropTypes.oneOf(Object.values(CONST.POLICY.TYPE)),
 
         /** The email of the policy owner */
         owner: PropTypes.string,
@@ -61,66 +62,54 @@ const policyPropTypes = {
     policyMembers: PropTypes.objectOf(policyMemberPropType),
 };
 
-const policyDefaultProps = {
-    policy: {},
+const policyDefaultProps: WithPolicyOnyxProps = {
+    policy: {} as OnyxTypes.Policy,
     policyMembers: {},
 };
 
+type WithPolicyOnyxProps = {
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyMembers: OnyxEntry<OnyxTypes.PolicyMember>;
+};
+
+type WithPolicyProps = WithPolicyOnyxProps & {
+    route: PolicyRoute;
+};
 /*
  * HOC for connecting a policy in Onyx corresponding to the policyID in route params
  */
-export default function (WrappedComponent) {
-    const propTypes = {
-        /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
-         * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
-        forwardedRef: PropTypes.func,
+export default function withPolicy<TProps extends WithPolicyProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps>> {
+    function WithPolicy(props: TProps, ref: ForwardedRef<TRef>) {
+        const routes = useNavigationState((state) => state.routes || []);
+        const currentRoute = routes?.[routes.length - 1];
+        const policyID = getPolicyIDFromRoute(currentRoute as PolicyRoute);
 
-        ...policyPropTypes,
-    };
-
-    const defaultProps = {
-        forwardedRef: () => {},
-
-        ...policyDefaultProps,
-    };
-
-    function WithPolicy(props) {
-        const currentRoute = _.last(useNavigationState((state) => state.routes || []));
-        const policyID = getPolicyIDFromRoute(currentRoute);
-
-        if (_.isString(policyID) && !_.isEmpty(policyID)) {
+        if (typeof policyID === 'string' && policyID.length > 0) {
             Policy.updateLastAccessedWorkspace(policyID);
         }
 
-        const rest = _.omit(props, ['forwardedRef']);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...rest}
-                ref={props.forwardedRef}
+                {...props}
+                ref={ref}
             />
         );
     }
 
-    WithPolicy.propTypes = propTypes;
-    WithPolicy.defaultProps = defaultProps;
+    WithPolicy.defaultProps = policyDefaultProps;
     WithPolicy.displayName = `withPolicy(${getComponentDisplayName(WrappedComponent)})`;
-    const withPolicy = React.forwardRef((props, ref) => (
-        <WithPolicy
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    ));
 
-    return withOnyx({
+    return withOnyx<TProps, WithPolicyOnyxProps>({
         policy: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
         },
         policyMembers: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${getPolicyIDFromRoute(props.route)}`,
         },
-    })(withPolicy);
+    })(forwardRef(WithPolicy));
 }
 
 export {policyPropTypes, policyDefaultProps};
