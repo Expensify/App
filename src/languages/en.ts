@@ -1859,11 +1859,11 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
     },
-    globalNavigationOptions: {
-        chats: 'Chats',
-    },
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',
         transactionDate: 'Transaction date',
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
     },
 } satisfies TranslationBase;

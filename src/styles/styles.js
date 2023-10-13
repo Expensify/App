@@ -26,6 +26,7 @@ import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+import colors from './colors';
 import objectFit from './utilities/objectFit';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
@@ -3260,6 +3261,13 @@ const styles = (theme) => ({
         lineHeight: variables.lineHeightXXLarge,
     },
 
+    eReceiptAmount: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXXXLarge,
+        lineHeight: variables.lineHeightXXXLarge,
+        color: colors.green400,
+    },
+
     eReceiptAmountLarge: {
         ...headlineFont,
         fontSize: variables.fontSizeEReceiptLarge,
@@ -3286,6 +3294,7 @@ const styles = (theme) => ({
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightSmall,
+        color: colors.green400,
     },
 
     eReceiptWaypointAddress: {
@@ -3300,6 +3309,24 @@ const styles = (theme) => ({
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightSmall,
         color: theme.textColorfulBackground,
+    },
+
+    eReceiptBackground: {
+        ...sizing.w100,
+        borderRadius: 20,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: 540,
+    },
+
+    eReceiptPanel: {
+        ...spacing.p5,
+        ...spacing.pb8,
+        ...spacing.m5,
+        backgroundColor: colors.green800,
+        borderRadius: 20,
+        width: 335,
     },
 
     eReceiptBackgroundThumbnail: {
