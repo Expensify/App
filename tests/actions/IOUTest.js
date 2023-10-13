@@ -2161,7 +2161,7 @@ describe('actions/IOU', () => {
     });
 
     describe('submitReport', () => {
-        it('correctly sibmitting a report', () => {
+        it('correctly submits a report', () => {
             const amount = 10000;
             const comment = '💸💸💸💸';
             const merchant = 'NASDAQ';
