@@ -323,6 +323,7 @@ function AddressSearch(props) {
     const renderHeaderComponent = () =>
         props.predefinedPlaces.length > 0 && (
             <>
+                {/* This will show current location button in list if there are some recent destinations */}
                 {shouldShowCurrentLocationButton && (
                     <CurrentLocationButton
                         onPress={getCurrentLocation}
@@ -412,7 +413,7 @@ function AddressSearch(props) {
                         label: props.label,
                         containerStyles: props.containerStyles,
                         errorText: props.errorText,
-                        hint: displayListViewBorder ? undefined : props.hint,
+                        hint: displayListViewBorder || (props.predefinedPlaces.length === 0 && shouldShowCurrentLocationButton) ? undefined : props.hint,
                         value: props.value,
                         defaultValue: props.defaultValue,
                         inputID: props.inputID,
@@ -461,6 +462,19 @@ function AddressSearch(props) {
                         // to prevent a lingering border when there are no address suggestions.
                         setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
                     }}
+                    inbetweenCompo={
+                        // We want to show the current location button even if there are no recent destinations
+                        props.predefinedPlaces.length === 0 && shouldShowCurrentLocationButton ? (
+                            <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
+                                <CurrentLocationButton
+                                    onPress={getCurrentLocation}
+                                    isDisabled={props.network.isOffline}
+                                />
+                            </View>
+                        ) : (
+                            <></>
+                        )
+                    }
                 />
                 <LocationErrorMessage
                     onClose={() => setLocationErrorCode(null)}
