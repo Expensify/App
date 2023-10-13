@@ -26,6 +26,9 @@ const ONYXKEYS = {
     /** Boolean flag set whenever the sidebar has loaded */
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
+    /** Boolean flag set whenever we are searching for reports in the server */
+    IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
+
     /** Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe */
     PERSISTED_REQUESTS: 'networkRequestQueue',
 

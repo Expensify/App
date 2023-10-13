@@ -1638,6 +1638,9 @@ export default {
         screenShare: 'Compartir pantalla',
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
+    search: {
+        resultsAreLimited: 'Los resultados de búsqueda están limitados.',
+    },
     genericErrorPage: {
         title: '¡Uh-oh, algo salió mal!',
         body: {
