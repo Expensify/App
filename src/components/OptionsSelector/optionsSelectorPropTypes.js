@@ -128,6 +128,9 @@ const propTypes = {
 
     /** Whether the text input should intercept swipes or not */
     shouldTextInputInterceptSwipe: PropTypes.bool,
+
+    /** Whether we should allow the view wrapping the nested children to be scrollable */
+    shouldAllowScrollingChildren: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -165,6 +168,7 @@ const defaultProps = {
     isRowMultilineSupported: false,
     initialFocusedIndex: undefined,
     shouldTextInputInterceptSwipe: false,
+    shouldAllowScrollingChildren: false,
 };
 
 export {propTypes, defaultProps};
