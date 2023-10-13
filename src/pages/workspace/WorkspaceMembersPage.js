@@ -80,6 +80,21 @@ function WorkspaceMembersPage(props) {
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef(null);
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
+    const prevPersonalDetails = usePrevious(props.personalDetails);
+
+    function filterPersonalDetails(policyMembers, personalDetails) {
+        return _.reduce(
+            _.keys(policyMembers),
+            (value, key) => {
+                if (personalDetails[key]) {
+                    value[key] = personalDetails[key];
+                }
+                return value;
+            },
+            {},
+        );
+    }
+
     /**
      * Get members for the current workspace
      */
@@ -116,12 +131,18 @@ function WorkspaceMembersPage(props) {
         if (removeMembersConfirmModalVisible && !_.isEqual(accountIDs, prevAccountIDs)) {
             setRemoveMembersConfirmModalVisible(false);
         }
-        setSelectedEmployees((prevSelected) =>
-            _.intersection(
-                prevSelected,
+        setSelectedEmployees((prevSelected) => {
+            const currentPersonalDetails = filterPersonalDetails(props.policyMembers, props.personalDetails);
+            const prevSelectedElements = _.map(prevSelected, (id) => {
+                const prevItem = lodashGet(prevPersonalDetails, id);
+                const res = _.find(_.values(currentPersonalDetails), (item) => lodashGet(prevItem, 'login') === lodashGet(item, 'login'));
+                return lodashGet(res, 'accountID', id);
+            });
+            return _.intersection(
+                prevSelectedElements,
                 _.map(_.values(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)), (accountID) => Number(accountID)),
-            ),
-        );
+            );
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.policyMembers]);
 
