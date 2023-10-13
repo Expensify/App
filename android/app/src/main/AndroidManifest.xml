@@ -102,7 +102,5 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/bootsplash_background" />
 
-        <meta-data android:name="asset_statements" android:resource="@string/asset_statements" />
-
     </application>
 </manifest>
