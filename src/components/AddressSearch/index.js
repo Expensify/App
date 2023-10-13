@@ -13,7 +13,7 @@ import * as ApiUtils from '../../libs/ApiUtils';
 import * as GooglePlacesUtils from '../../libs/GooglePlacesUtils';
 import CONST from '../../CONST';
 import * as StyleUtils from '../../styles/StyleUtils';
-import resetDisplayListViewBorderOnBlur from './resetDisplayListViewBorderOnBlur';
+import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 import variables from '../../styles/variables';
 import {withNetwork} from '../OnyxProvider';
 import networkPropTypes from '../networkPropTypes';
@@ -343,7 +343,9 @@ function AddressSearch(props) {
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
                         onBlur: (event) => {
-                            resetDisplayListViewBorderOnBlur(setDisplayListViewBorder, event, containerRef);
+                            if (!isCurrentTargetInsideContainer(event, containerRef)) {
+                                setDisplayListViewBorder(false);
+                            }
                             props.onBlur();
                         },
                         autoComplete: 'off',
