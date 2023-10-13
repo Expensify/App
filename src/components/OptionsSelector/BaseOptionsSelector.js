@@ -436,9 +436,9 @@ class BaseOptionsSelector extends Component {
         );
 
         const {shouldAllowScrollingChildren} = this.props;
-        const ScrollWrapper = function (props) {
+        function ScrollWrapper({children}) {
             if (!shouldAllowScrollingChildren) {
-                return props.children;
+                return children;
             }
             return (
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
@@ -446,11 +446,11 @@ class BaseOptionsSelector extends Component {
                         horizontal
                         contentContainerStyle={[styles.flex1, styles.flexColumn]}
                     >
-                        {props.children}
+                        {children}
                     </ScrollView>
                 </ScrollView>
             );
-        };
+        }
 
         return (
             <ArrowKeyFocusManager
@@ -460,34 +460,32 @@ class BaseOptionsSelector extends Component {
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
                 shouldResetIndexOnEndReached={false}
             >
-                <ScrollWrapper>
-                    <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
-                        {this.props.shouldTextInputAppearBelowOptions ? (
-                            <>
-                                <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
-                                <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
-                                    {this.props.children}
-                                    {this.props.shouldShowTextInput && textInput}
-                                </View>
-                            </>
-                        ) : (
-                            <>
-                                <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
-                                    {this.props.children}
-                                    {this.props.shouldShowTextInput && textInput}
-                                    {Boolean(this.props.textInputAlert) && (
-                                        <FormHelpMessage
-                                            message={this.props.textInputAlert}
-                                            style={[styles.mb3]}
-                                            isError={false}
-                                        />
-                                    )}
-                                </View>
-                                {optionsList}
-                            </>
-                        )}
-                    </View>
-                </ScrollWrapper>
+                <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
+                    {this.props.shouldTextInputAppearBelowOptions ? (
+                        <ScrollWrapper>
+                            <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
+                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
+                                {this.props.children}
+                                {this.props.shouldShowTextInput && textInput}
+                            </View>
+                        </ScrollWrapper>
+                    ) : (
+                        <>
+                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
+                                {this.props.children}
+                                {this.props.shouldShowTextInput && textInput}
+                                {Boolean(this.props.textInputAlert) && (
+                                    <FormHelpMessage
+                                        message={this.props.textInputAlert}
+                                        style={[styles.mb3]}
+                                        isError={false}
+                                    />
+                                )}
+                            </View>
+                            {optionsList}
+                        </>
+                    )}
+                </View>
                 {shouldShowFooter && (
                     <FixedFooter>
                         {shouldShowDefaultConfirmButton && (
