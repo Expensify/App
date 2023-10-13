@@ -848,6 +848,9 @@ export default {
         bankAccounts: 'Cuentas bancarias',
         addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
         addBankAccount: 'Agregar cuenta bancaria',
+        assignedCards: 'Tarjetas asignadas',
+        assignedCardsDescription: 'Son tarjetas asignadas por un administrador del Espacio de Trabajo para gestionar los gastos de la empresa.',
+        expensifyCard: 'Tarjeta Expensify',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
