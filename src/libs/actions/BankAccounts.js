@@ -275,6 +275,10 @@ function validateBankAccount(bankAccountID, validateCode) {
     );
 }
 
+function clearReimbursementAccount() {
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
+}
+
 function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
     const onyxData = {
         optimisticData: [
@@ -436,6 +440,7 @@ export {
     deletePaymentBankAccount,
     handlePlaidError,
     openPersonalBankAccountSetupView,
+    clearReimbursementAccount,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
