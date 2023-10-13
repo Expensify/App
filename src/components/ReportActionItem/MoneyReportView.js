@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
@@ -8,7 +9,9 @@ import themeColors from '../../styles/themes/default';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
+import compose from '../../libs/compose';
 import Text from '../Text';
+import ONYXKEYS from '../../ONYXKEYS';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import variables from '../../styles/variables';
@@ -122,4 +125,11 @@ function MoneyReportView(props) {
 MoneyReportView.propTypes = propTypes;
 MoneyReportView.displayName = 'MoneyReportView';
 
-export default withWindowDimensions(MoneyReportView);
+export default compose(
+    withWindowDimensions,
+    withOnyx({
+        report: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+        },
+    }),
+)(MoneyReportView);
