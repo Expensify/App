@@ -118,6 +118,120 @@ Onyx.connect({
 });
 
 /**
+ * Initialize money request info and navigate to the MoneyRequest page
+ * @param {String} reportID to attach the transaction to
+ * @param {String} [iouRequestType] one of manual/scan/distance
+ */
+function startMoneeRequest(reportID, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+    // Generate a brand new transactionID
+    const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const created = currentDate || moment().format('YYYY-MM-DD');
+    const comment = {};
+
+    // Add initial empty waypoints when starting a distance request
+    if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
+        comment.waypoints = {
+            waypoint0: null,
+            waypoint1: null,
+        };
+    }
+
+    // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
+    // Use set() here so that there is no way that data will be leaked between objects when it gets reset
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {
+        amount: 0,
+        comment,
+        created,
+        currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
+        iouRequestType,
+        reportID,
+        transactionID: newTransactionID,
+    });
+}
+
+/**
+ * @param {String} transactionID
+ * @param {Number} amount
+ * @param {String} currency
+ */
+function setMoneeRequestAmount(transactionID, amount, currency) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount, currency});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} created
+ */
+function setMoneeRequestCreated(transactionID, created) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} currency
+ */
+function setMoneeRequestCurrency(transactionID, currency) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {currency});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} comment
+ */
+function setMoneeRequestDescription(transactionID, comment) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} merchant
+ */
+function setMoneeRequestMerchant(transactionID, merchant) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant: merchant.trim()});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} category
+ */
+function setMoneeRequestCategory(transactionID, category) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {category});
+}
+
+/*
+ * @param {String} transactionID
+ * @param {String} tag
+ */
+function setMoneeRequestTag(transactionID, tag) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {tag});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {Boolean} billable
+ */
+function setMoneeRequestBillable(transactionID, billable) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {billable});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {Object[]} participants
+ */
+function setMoneeRequestParticipants(transactionID, participants) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {participants});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} path
+ * @param {String} source
+ */
+function setMoneeRequestReceipt(transactionID, path, source) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {receipt: {path, source}});
+}
+
+/**
  * Reset money request info from the store with its initial value
  * @param {String} id
  */
@@ -2767,7 +2881,6 @@ function autoAssignParticipants(transactionID, report) {
 }
 
 /**
- * TODO: remove this in favor of startMoneeRequest()
  * Initialize money request info and navigate to the MoneyRequest page
  * @param {String} iouType
  * @param {String} reportID
@@ -2778,38 +2891,6 @@ function startMoneyRequest(iouType, reportID = '') {
 }
 
 /**
- * Initialize money request info and navigate to the MoneyRequest page
- * @param {String} reportID to attach the transaction to
- * @param {String} [iouRequestType] one of manual/scan/distance
- */
-function startMoneeRequest(reportID, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
-    // Generate a brand new transactionID
-    const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const created = currentDate || moment().format('YYYY-MM-DD');
-    const comment = {};
-
-    // Add initial empty waypoints when starting a distance request
-    if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
-        comment.waypoints = {
-            waypoint0: null,
-            waypoint1: null,
-        };
-    }
-
-    // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
-    // Use set() here so that there is no way that data will be leaked between objects when it gets reset
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`, {
-        amount: 0,
-        comment,
-        created,
-        currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
-        iouRequestType,
-        reportID,
-        transactionID: newTransactionID,
-    });
-}
-
-/**
  * @param {String} id
  */
 function setMoneyRequestId(id) {
@@ -2817,7 +2898,6 @@ function setMoneyRequestId(id) {
 }
 
 /**
- * TODO: remove this in favor of setMoneeRequestAmount()
  * @param {Number} amount
  */
 function setMoneyRequestAmount(amount) {
@@ -2825,28 +2905,10 @@ function setMoneyRequestAmount(amount) {
 }
 
 /**
- * @param {String} transactionID
- * @param {Number} amount
- * @param {String} currency
- */
-function setMoneeRequestAmount(transactionID, amount, currency) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount, currency});
-}
-
-/**
- * TODO: remove this in favor of setMoneeRequestCreated()
  * @param {String} created
  */
 function setMoneyRequestCreated(created) {
     Onyx.merge(ONYXKEYS.IOU, {created});
-}
-
-/**
- * @param {String} transactionID
- * @param {String} created
- */
-function setMoneeRequestCreated(transactionID, created) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
 }
 
 /**
@@ -2857,15 +2919,6 @@ function setMoneyRequestCurrency(currency) {
 }
 
 /**
- * @param {String} transactionID
- * @param {String} currency
- */
-function setMoneeRequestCurrency(transactionID, currency) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {currency});
-}
-
-/**
- * TODO: remove this in favor of setMoneeRequestDescription()
  * @param {String} comment
  */
 function setMoneyRequestDescription(comment) {
@@ -2873,15 +2926,6 @@ function setMoneyRequestDescription(comment) {
 }
 
 /**
- * @param {String} transactionID
- * @param {String} comment
- */
-function setMoneeRequestDescription(transactionID, comment) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
-}
-
-/**
- * TODO: remove this in favor of setMoneeRequestMerchant()
  * @param {String} merchant
  */
 function setMoneyRequestMerchant(merchant) {
@@ -2889,23 +2933,6 @@ function setMoneyRequestMerchant(merchant) {
 }
 
 /**
- * @param {String} transactionID
- * @param {String} merchant
- */
-function setMoneeRequestMerchant(transactionID, merchant) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant: merchant.trim()});
-}
-
-/**
- * @param {String} transactionID
- * @param {String} category
- */
-function setMoneeRequestCategory(transactionID, category) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {category});
-}
-
-/**
- * TODO: remove this in favor of setMoneeRequestCategory()
  * @param {String} category
  */
 function setMoneyRequestCategory(category) {
@@ -2917,19 +2944,10 @@ function resetMoneyRequestCategory() {
 }
 
 /*
- * TODO: remove this in favor of setMoneeRequestTag()
  * @param {String} tag
  */
 function setMoneyRequestTag(tag) {
     Onyx.merge(ONYXKEYS.IOU, {tag});
-}
-
-/*
- * @param {String} transactionID
- * @param {String} tag
- */
-function setMoneeRequestTag(transactionID, tag) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {tag});
 }
 
 function resetMoneyRequestTag() {
@@ -2944,15 +2962,6 @@ function setMoneyRequestBillable(billable) {
 }
 
 /**
- * @param {String} transactionID
- * @param {Boolean} billable
- */
-function setMoneeRequestBillable(transactionID, billable) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {billable});
-}
-
-/**
- * TODO: remove this in favor of setMoneeRequestParticipants()
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
@@ -2960,29 +2969,11 @@ function setMoneyRequestParticipants(participants) {
 }
 
 /**
- * @param {String} transactionID
- * @param {Object[]} participants
- */
-function setMoneeRequestParticipants(transactionID, participants) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {participants});
-}
-
-/**
- * TODO: remove this in favor of setMoneeRequestReceipt()
  * @param {String} receiptPath
  * @param {String} receiptFilename
  */
 function setMoneyRequestReceipt(receiptPath, receiptFilename) {
     Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptFilename, merchant: ''});
-}
-
-/**
- * @param {String} transactionID
- * @param {String} path
- * @param {String} source
- */
-function setMoneeRequestReceipt(transactionID, path, source) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {receipt: {path, source}});
 }
 
 function setUpDistanceTransaction() {

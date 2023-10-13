@@ -27,6 +27,46 @@ Onyx.connect({
     },
 });
 
+function isDistanceRequest(transaction: Transaction): boolean {
+    // This is used during the request creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    const type = transaction?.comment?.type;
+    const customUnitName = transaction?.comment?.customUnit?.name;
+    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+function isScanRequest(transaction: Transaction): boolean {
+    // This is used during the request creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+    }
+
+    return Boolean(transaction?.receipt?.source);
+}
+
+function getRequestType(transaction: Transaction): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
+    if (isDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE;
+    }
+    if (isScanRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.SCAN;
+    }
+    return CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+function isManualRequest(transaction: Transaction): boolean {
+    // This is used during the request creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    }
+
+    return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
 /**
  * Optimistically generate a transaction.
  *
@@ -306,46 +346,6 @@ function getCreated(transaction: Transaction, dateFormat: string = CONST.DATE.FN
     }
 
     return '';
-}
-
-function isDistanceRequest(transaction: Transaction): boolean {
-    // This is used during the request creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    const type = transaction?.comment?.type;
-    const customUnitName = transaction?.comment?.customUnit?.name;
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
-}
-
-function isScanRequest(transaction: Transaction): boolean {
-    // This is used during the request creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
-    }
-
-    return Boolean(transaction?.receipt?.source);
-}
-
-function getRequestType(transaction: Transaction): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
-    if (isDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE;
-    }
-    if (isScanRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.SCAN;
-    }
-    return CONST.IOU.REQUEST_TYPE.MANUAL;
-}
-
-function isManualRequest(transaction: Transaction): boolean {
-    // This is used during the request creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
-    }
-
-    return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
 /**
