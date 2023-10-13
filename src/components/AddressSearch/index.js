@@ -413,7 +413,10 @@ function AddressSearch(props) {
                         label: props.label,
                         containerStyles: props.containerStyles,
                         errorText: props.errorText,
-                        hint: displayListViewBorder || (props.predefinedPlaces.length === 0 && shouldShowCurrentLocationButton) ? undefined : props.hint,
+                        hint:
+                            displayListViewBorder || (props.predefinedPlaces.length === 0 && shouldShowCurrentLocationButton) || (props.canUseCurrentLocation && isTyping)
+                                ? undefined
+                                : props.hint,
                         value: props.value,
                         defaultValue: props.defaultValue,
                         inputID: props.inputID,
@@ -425,6 +428,7 @@ function AddressSearch(props) {
                             if (!isCurrentTargetInsideContainer(event, containerRef)) {
                                 setDisplayListViewBorder(false);
                                 setIsFocused(false);
+                                setIsTyping(false);
                             }
                             props.onBlur();
                         },
