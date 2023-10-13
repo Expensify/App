@@ -70,7 +70,7 @@ function IOURequestStepCurrency({
      * @param {String} options.currencyCode
      */
     const confirmCurrencySelection = (option) => {
-        IOU.setMoneeRequestCurrency(transactionID, option.currencyCode);
+        IOU.setMoneeRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode);
         navigateBack();
     };
 

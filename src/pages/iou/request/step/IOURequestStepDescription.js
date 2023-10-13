@@ -66,7 +66,7 @@ function IOURequestStepDescription({
      * @param {String} value.moneyRequestComment
      */
     const updateComment = (value) => {
-        IOU.setMoneeRequestDescription(transactionID, value.moneyRequestComment);
+        IOU.setMoneeRequestDescription_temporaryForRefactor(transactionID, value.moneyRequestComment);
         navigateBack();
     };
 

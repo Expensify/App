@@ -111,7 +111,7 @@ function IOURequestStepScan({
         }
 
         const filePath = URL.createObjectURL(file);
-        IOU.setMoneeRequestReceipt(transactionID, filePath, file.name);
+        IOU.setMoneeRequestReceipt_temporaryForRefactor(transactionID, filePath, file.name);
 
         // When an existing transaction is being edited (eg. not the create transaction flow)
         if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {

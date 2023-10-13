@@ -249,14 +249,14 @@ function IOURequestStepConfirmation({
             }
             return participant;
         });
-        IOU.setMoneeRequestParticipants(transactionID, newParticipants);
+        IOU.setMoneeRequestParticipants_temporaryForRefactor(transactionID, newParticipants);
     };
 
     /**
      * @param {Boolean} billable
      */
     const setBillable = (billable) => {
-        IOU.setMoneeRequestBillable(transactionID, billable);
+        IOU.setMoneeRequestBillable_temporaryForRefactor(transactionID, billable);
     };
 
     return (

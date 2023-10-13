@@ -69,7 +69,7 @@ function IOURequestStartPage({
     // Clear out the temporary money request when this component is unmounted
     useEffect(
         () => () => {
-            IOU.startMoneeRequest('');
+            IOU.startMoneyRequest_temporaryForRefactor('');
         },
         [],
     );
@@ -92,7 +92,7 @@ function IOURequestStartPage({
         if (newIouType === previousIOURequestType) {
             return;
         }
-        IOU.startMoneeRequest(reportID, newIouType);
+        IOU.startMoneyRequest_temporaryForRefactor(reportID, newIouType);
         transactionRequestType.current = newIouType;
     };
 

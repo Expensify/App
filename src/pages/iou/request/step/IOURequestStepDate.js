@@ -46,7 +46,7 @@ function IOURequestStepDate({
      * @param {String} value.moneyRequestCreated
      */
     const updateDate = (value) => {
-        IOU.setMoneeRequestCreated(transactionID, value.moneyRequestCreated);
+        IOU.setMoneeRequestCreated_temporaryForRefactor(transactionID, value.moneyRequestCreated);
         navigateBack();
     };
 

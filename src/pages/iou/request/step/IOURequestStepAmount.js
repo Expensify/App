@@ -86,7 +86,7 @@ function IOURequestStepAmount({
      */
     const navigateToNextPage = (currentAmount) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
-        IOU.setMoneeRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
+        IOU.setMoneeRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
 
         if (isUserComingFromConfirmationStep) {
             navigateToConfirmationStep();
