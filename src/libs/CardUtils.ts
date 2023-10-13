@@ -41,7 +41,7 @@ function isExpensifyCard(cardID: number) {
  * @param cardID
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
-function getCardDescription(cardID: string) {
+function getCardDescription(cardID: number) {
     const card = allCards[cardID];
     if (!card) {
         return '';

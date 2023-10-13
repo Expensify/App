@@ -165,7 +165,7 @@ function MoneyRequestPreview(props) {
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
-    const isSettled = ReportUtils.isSettled(props.iouReport);
+    const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant =
@@ -175,6 +175,9 @@ function MoneyRequestPreview(props) {
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || '')] : [];
 
     const getSettledMessage = () => {
+        if (isExpensifyCardTransaction || isDistanceRequest) {
+            return props.translate('common.done');
+        }
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
                 return props.translate('iou.settledExpensify');
@@ -188,17 +191,6 @@ function MoneyRequestPreview(props) {
     };
 
     const getPreviewHeaderText = () => {
-        if (isExpensifyCardTransaction) {
-            let message = props.translate('iou.card');
-
-            if (TransactionUtils.isPending(props.transaction)) {
-                message += ` • ${props.translate('iou.pending')}`;
-            } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
-                message += ` • ${props.translate('common.done')}`;
-            }
-            return message;
-        }
-
         if (isDistanceRequest) {
             return props.translate('common.distance');
         }
@@ -211,13 +203,19 @@ function MoneyRequestPreview(props) {
             return props.translate('iou.split');
         }
 
+        if (isExpensifyCardTransaction) {
+            let message = props.translate('iou.card');
+            if (TransactionUtils.isPending(props.transaction)) {
+                message += ` • ${props.translate('iou.pending')}`;
+            }
+            return message;
+        }
+
         let message = props.translate('iou.cash');
         if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
             message += ` • ${props.translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
-        } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
-            message += ` • ${props.translate('iou.settledExpensify')}`;
         }
         return message;
     };
@@ -254,7 +252,8 @@ function MoneyRequestPreview(props) {
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={receiptImages}
-                            isHovered={isScanning}
+                            isHovered={props.isHovered || isScanning}
+                            size={1}
                         />
                     )}
                     {_.isEmpty(props.transaction) &&

@@ -72,6 +72,14 @@ function isDeletedParentAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isReversedTransaction(reportAction) {
+    return lodashGet(reportAction, ['message', 0, 'isReversedTransaction'], false) && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isPendingRemove(reportAction) {
     return lodashGet(reportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
@@ -352,7 +360,7 @@ function shouldReportActionBeVisible(reportAction, key) {
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
-    return !isDeleted || isPending || isDeletedParentAction(reportAction);
+    return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
 /**
@@ -673,6 +681,7 @@ export {
     isTransactionThread,
     isSentMoneyReportAction,
     isDeletedParentAction,
+    isReversedTransaction,
     isReportPreviewAction,
     isModifiedExpenseAction,
     getIOUReportIDFromReportActionPreview,

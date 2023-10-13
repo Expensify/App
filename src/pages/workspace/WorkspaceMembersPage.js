@@ -422,7 +422,7 @@ function WorkspaceMembersPage(props) {
                             onDismissError={dismissError}
                             showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers))}
                             showScrollIndicator
-                            shouldFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                             inputRef={textInputRef}
                         />
                     </View>
