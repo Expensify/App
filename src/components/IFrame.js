@@ -115,8 +115,8 @@ function getOldDotURL(screenName, params) {
         return params ? `expenses/${params.param}` : 'expenses';
     }
 
-    if (screenName === SCREENS.INDIVIDUAL_WORKSPACES_OLDDOT || screenName === SCREENS.GROUPS_WORKSPACES_OLDDOT) {
-        const param = {section: screenName === SCREENS.INDIVIDUAL_WORKSPACES_OLDDOT ? 'individual' : 'group'};
+    if (screenName === SCREENS.INDIVIDUAL_WORKSPACE_OLDDOT || screenName === SCREENS.GROUPS_WORKSPACES_OLDDOT) {
+        const param = {section: screenName === SCREENS.INDIVIDUAL_WORKSPACE_OLDDOT ? 'individual' : 'group'};
         return `admin_policies?param=${JSON.stringify(param)}`;
     }
 

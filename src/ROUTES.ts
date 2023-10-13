@@ -328,7 +328,7 @@ export default {
     INSIGHTS_OLDDOT: 'insights',
 
     // Workspaces tab
-    INDIVIDUALS_OLDDOT: 'individual_workspaces',
+    INDIVIDUALS_OLDDOT: 'individual_workspace',
     GROUPS_OLDDOT: 'group_workspaces',
 
     DOMAINS_OLDDOT: 'domains',
@@ -339,7 +339,7 @@ export default {
     },
 
     WORKSPACE_OLDDOT: {
-        route: 'workspace-classic/:workspaceID/:section',
-        getRoute: (workspaceID: string, section: string) => `workspace-classic/${workspaceID}/${section}`,
+        route: 'workspaces/:workspaceID/:section',
+        getRoute: (workspaceID: string, section: string) => `workspaces/${workspaceID}/${section}`,
     },
 } as const;

@@ -79,7 +79,7 @@ function SubNavigation({onLinkClick, insets}) {
                         {
                             icon: Expensicons.User,
                             text: translate('subNavigation.individual'),
-                            value: SCREENS.INDIVIDUAL_WORKSPACES_OLDDOT,
+                            value: SCREENS.INDIVIDUAL_WORKSPACE_OLDDOT,
                             onSelected: () => {
                                 Navigation.navigate(ROUTES.INDIVIDUALS_OLDDOT);
                             },
