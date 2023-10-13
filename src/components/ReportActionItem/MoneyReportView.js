@@ -48,7 +48,7 @@ function MoneyReportView(props) {
             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                     <Text
-                        style={[styles.textLabelSupporting, StyleUtils.getFontSizeStyle(variables.fontSizeNormal)]}
+                        style={[styles.textLabelSupporting]}
                         numberOfLines={1}
                     >
                         {translate('common.total')}
@@ -76,7 +76,7 @@ function MoneyReportView(props) {
                     <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
                             <Text
-                                style={[styles.textLabelSupporting, StyleUtils.getFontSizeStyle(variables.fontSizeNormal)]}
+                                style={[styles.textLabelSupporting]}
                                 numberOfLines={1}
                             >
                                 {translate('cardTransactions.outOfPocket')}
@@ -94,7 +94,7 @@ function MoneyReportView(props) {
                     <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
                             <Text
-                                style={[styles.textLabelSupporting, StyleUtils.getFontSizeStyle(variables.fontSizeNormal), StyleUtils.getColorStyle(themeColors.textSupporting)]}
+                                style={[styles.textLabelSupporting, StyleUtils.getColorStyle(themeColors.textSupporting)]}
                                 numberOfLines={1}
                             >
                                 {translate('cardTransactions.companySpend')}
