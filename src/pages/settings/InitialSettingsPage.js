@@ -96,13 +96,15 @@ const propTypes = {
     walletTerms: walletTermsPropTypes,
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.shape({
-        /** Date login was validated, used to show brickroad info status */
-        validatedDate: PropTypes.string,
+    loginList: PropTypes.objectOf(
+        PropTypes.shape({
+            /** Date login was validated, used to show brickroad info status */
+            validatedDate: PropTypes.string,
 
-        /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
-    }),
+            /** Field-specific server side errors keyed by microtime */
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        }),
+    ),
 
     /** Members keyed by accountID for all policies */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
@@ -348,6 +350,7 @@ function InitialSettingsPage(props) {
                                     imageStyles={[styles.avatarXLarge]}
                                     source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
                                     size={CONST.AVATAR_SIZE.XLARGE}
+                                    fallbackIcon={props.currentUserPersonalDetails.fallbackIcon}
                                 />
                             </OfflineWithFeedback>
                         </PressableWithoutFeedback>

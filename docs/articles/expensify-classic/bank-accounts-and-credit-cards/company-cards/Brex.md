@@ -2,4 +2,4 @@
 title: Brex
 description: Brex
 ---
-## Resources Coming Soon!
+## Resource Coming Soon!

@@ -22,4 +22,7 @@ export default PropTypes.shape({
 
     /** Whether we should show the ActivateStep success view after the user finished the KYC flow */
     shouldShowWalletActivationSuccess: PropTypes.bool,
+
+    /** The wallet's programID, used to show the correct terms. */
+    walletProgramID: PropTypes.string,
 });

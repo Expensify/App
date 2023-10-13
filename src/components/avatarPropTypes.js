@@ -6,4 +6,5 @@ export default PropTypes.shape({
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
     name: PropTypes.string,
     id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
 });
