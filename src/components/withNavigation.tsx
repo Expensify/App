@@ -11,7 +11,6 @@ export default function withNavigation<TProps extends WithNavigationProps, TRef>
         const navigation = useNavigation();
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 ref={ref}
                 navigation={navigation}
