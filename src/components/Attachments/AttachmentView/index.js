@@ -92,9 +92,9 @@ function AttachmentView({
         );
     }
 
-    // Check both source and file.name since PDFs dragged into the the text field
+    // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
-    if (Str.isPDF(source) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
+    if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         return (
@@ -114,8 +114,9 @@ function AttachmentView({
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
-    // both PDFs and images will appear as images when pasted into the the text field
-    const isImage = Str.isImage(source);
+    // both PDFs and images will appear as images when pasted into the text field.
+    // We also check for numeric source since this is how static images (used for preview) are represented in RN.
+    const isImage = typeof source === 'number' || Str.isImage(source);
     if (isImage || (file && Str.isImage(file.name))) {
         return (
             <AttachmentViewImage
