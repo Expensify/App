@@ -150,22 +150,30 @@ function ReportActionItem(props) {
     }, [isActiveReportActionForMenu]);
 
     useEffect(() => {
-        const shouldClearReopenError =
-            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
-            !_.isEmpty(props.action.errors) &&
-            props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
-            props.report.statusNum === CONST.REPORT.STATUS.OPEN;
+        const {action, report} = props;
+        const {actionName, errors} = action;
+        const {stateNum, statusNum} = report;
 
-        const shouldClearCompletedTask =
-            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED &&
-            !_.isEmpty(props.action.errors) &&
-            props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED &&
-            props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
+        // We should clear error when two users simultaneously click Mark as Done, Re-open or Cancel button
+        const clearErrorsConditions = {
+            /**  Mark as Done */
+            [CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED]: stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && statusNum === CONST.REPORT.STATUS.APPROVED,
+            /**  Re-open */
+            [CONST.REPORT.ACTIONS.TYPE.TASKREOPENED]: stateNum === CONST.REPORT.STATE_NUM.OPEN && statusNum === CONST.REPORT.STATUS.OPEN,
+            /** Cancel */
+            [CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED]: stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && statusNum === CONST.REPORT.STATUS.CLOSED,
+        };
 
-        if (shouldClearCompletedTask || shouldClearReopenError) {
-            ReportActions.clearReportActionErrors(props.report.reportID, props.action);
+        const shouldClearError = (actionType) => actionName === actionType && !_.isEmpty(errors) && clearErrorsConditions[actionType];
+
+        if (
+            shouldClearError(CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) ||
+            shouldClearError(CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) ||
+            shouldClearError(CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED)
+        ) {
+            ReportActions.clearReportActionErrors(report.reportID, action);
         }
-    }, [props.action, props.report]);
+    }, [props, props.action, props.report]);
 
     const updateHiddenState = useCallback(
         (isHiddenValue) => {
