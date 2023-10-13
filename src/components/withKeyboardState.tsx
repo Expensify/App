@@ -18,7 +18,9 @@ const keyboardStatePropTypes = {
     /** Whether the keyboard is open */
     isKeyboardShown: PropTypes.bool.isRequired,
 };
+
 const KeyboardStateContext = createContext<KeyboardStateContextValue | null>(null);
+
 function KeyboardStateProvider(props: KeyboardStateProviderProps) {
     const {children} = props;
     const [isKeyboardShown, setIsKeyboardShown] = useState(false);
