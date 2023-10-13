@@ -106,6 +106,7 @@
     "fbjs": "^3.0.2",
     "htmlparser2": "^7.2.0",
     "idb-keyval": "^6.2.1",
+    "jest-expo": "^49.0.0",
     "jest-when": "^3.5.2",
     "lodash": "4.17.21",
     "lottie-react-native": "^6.3.1",
