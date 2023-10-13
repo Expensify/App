@@ -150,9 +150,8 @@ function ReportActionItem(props) {
     }, [isActiveReportActionForMenu]);
 
     useEffect(() => {
-        const {action, report} = props;
-        const {actionName, errors} = action;
-        const {stateNum, statusNum} = report;
+        const {actionName, errors} = props.action;
+        const {stateNum, statusNum} = props.report;
 
         // We should clear error when two users simultaneously click Mark as Done, Re-open or Cancel button
         const clearErrorsConditions = {
@@ -171,9 +170,9 @@ function ReportActionItem(props) {
             shouldClearError(CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) ||
             shouldClearError(CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED)
         ) {
-            ReportActions.clearReportActionErrors(report.reportID, action);
+            ReportActions.clearReportActionErrors(props.report.reportID, props.action);
         }
-    }, [props, props.action, props.report]);
+    }, [props.action, props.report]);
 
     const updateHiddenState = useCallback(
         (isHiddenValue) => {
