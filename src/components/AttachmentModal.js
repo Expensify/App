@@ -1,11 +1,11 @@
-import React, {useState, useCallback, useRef, useMemo} from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import {View, Animated, Keyboard} from 'react-native';
+import { View, Animated, Keyboard } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './Attachments/AttachmentView';
@@ -16,11 +16,11 @@ import * as StyleUtils from '../styles/StyleUtils';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import withWindowDimensions, { windowDimensionsPropTypes } from './withWindowDimensions';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import fileDownload from '../libs/fileDownload';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withLocalize, { withLocalizePropTypes } from './withLocalize';
 import ConfirmModal from './ConfirmModal';
 import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
@@ -104,9 +104,9 @@ const defaultProps = {
     headerTitle: null,
     report: {},
     transaction: {},
-    onModalShow: () => {},
-    onModalHide: () => {},
-    onCarouselAttachmentChange: () => {},
+    onModalShow: () => { },
+    onModalHide: () => { },
+    onCarouselAttachmentChange: () => { },
     isWorkspaceAvatar: false,
 };
 
@@ -125,17 +125,17 @@ function AttachmentModal(props) {
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
     const [shouldShowDownloadButton, setShouldShowDownloadButton] = React.useState(true);
-    const {windowWidth} = useWindowDimensions();
+    const { windowWidth } = useWindowDimensions();
 
     const [file, setFile] = useState(
         props.originalFileName
             ? {
-                  name: props.originalFileName,
-              }
+                name: props.originalFileName,
+            }
             : undefined,
     );
-    const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
+    const { translate } = useLocalize();
+    const { isOffline } = useNetwork();
 
     const onCarouselAttachmentChange = props.onCarouselAttachmentChange;
 
@@ -205,7 +205,7 @@ function AttachmentModal(props) {
         }
 
         if (props.onConfirm) {
-            props.onConfirm(lodashExtend(file, {source}));
+            props.onConfirm(lodashExtend(file, { source }));
         }
 
         setIsModalOpen(false);
@@ -292,7 +292,7 @@ function AttachmentModal(props) {
                 let updatedFile = fileObject;
                 const cleanName = FileUtils.cleanFileName(updatedFile.name);
                 if (updatedFile.name !== cleanName) {
-                    updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
+                    updatedFile = new File([updatedFile], cleanName, { type: updatedFile.type });
                 }
                 const inputSource = URL.createObjectURL(updatedFile);
                 const inputModalType = getModalType(inputSource, updatedFile);
@@ -454,7 +454,7 @@ function AttachmentModal(props) {
                 {/* If we have an onConfirm method show a confirmation button */}
                 {Boolean(props.onConfirm) && (
                     <SafeAreaConsumer>
-                        {({safeAreaPaddingBottomStyle}) => (
+                        {({ safeAreaPaddingBottomStyle }) => (
                             <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
                                 <Button
                                     success
@@ -482,15 +482,17 @@ function AttachmentModal(props) {
                     />
                 )}
             </Modal>
-            <ConfirmModal
-                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                onConfirm={closeConfirmModal}
-                onCancel={closeConfirmModal}
-                isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                confirmText={translate('common.close')}
-                shouldShowCancelButton={false}
-            />
+            {!isAttachmentReceipt && (
+                <ConfirmModal
+                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                    onConfirm={closeConfirmModal}
+                    onCancel={closeConfirmModal}
+                    isVisible={isAttachmentInvalid}
+                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                    confirmText={translate('common.close')}
+                    shouldShowCancelButton={false}
+                />
+            )}
 
             {props.children &&
                 props.children({
@@ -509,7 +511,7 @@ export default compose(
     withLocalize,
     withOnyx({
         transaction: {
-            key: ({report}) => {
+            key: ({ report }) => {
                 if (!report) {
                     return undefined;
                 }
@@ -519,13 +521,13 @@ export default compose(
             },
         },
         parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+            key: ({ report }) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
         },
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+            key: ({ report }) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
         parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            key: ({ report }) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
             canEvict: false,
         },
         session: {
