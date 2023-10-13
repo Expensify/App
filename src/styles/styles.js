@@ -197,6 +197,7 @@ const styles = (theme) => ({
 
     rtlTextRenderForSafari: {
         textAlign:"left",
+        ...writingDirection.ltr
     },
 
     emojiSuggestionsEmoji: {
