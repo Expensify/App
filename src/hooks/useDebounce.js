@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import lodashDebounce from 'lodash/debounce';
 
 /**
@@ -27,11 +27,13 @@ export default function useDebounce(func, wait, options) {
         return debouncedFn.cancel;
     }, [func, wait, leading, maxWait, trailing]);
 
-    return (...args) => {
+    const debounceCallback = useCallback((...args) => {
         const debouncedFn = debouncedFnRef.current;
 
         if (debouncedFn) {
             debouncedFn(...args);
         }
-    };
+    }, []);
+
+    return debounceCallback;
 }
