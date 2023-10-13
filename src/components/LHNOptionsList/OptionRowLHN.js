@@ -169,6 +169,7 @@ function OptionRowLHN(props) {
                             if (e) {
                                 e.preventDefault();
                             }
+                            // Enable Composer to focus on clicking the same chat after opening the context menu.
                             ReportActionComposeFocusManager.focus();
                             props.onSelectRow(optionItem, popoverAnchor);
                         }}
@@ -184,9 +185,9 @@ function OptionRowLHN(props) {
                         testID={optionItem.reportID}
                         onSecondaryInteraction={(e) => {
                             showPopover(e);
-                            DomUtils.blurActiveElement();
+                            // Composer blur when opening context menu
+                            DomUtils.getActiveElement().blur();
                         }}
-                        
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
                         style={[
