@@ -821,9 +821,9 @@ const styles = (theme) => ({
     },
 
     chatItemComposeSecondaryRow: {
-        height: 15,
-        marginBottom: 5,
-        marginTop: 5,
+        height: CONST.CHAT_FOOTER_SECONDARY_ROW_HEIGHT,
+        marginBottom: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
+        marginTop: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
     },
 
     chatItemComposeSecondaryRowSubText: {
@@ -2572,13 +2572,13 @@ const styles = (theme) => ({
 
     requestPreviewBox: {
         marginTop: 12,
-        maxWidth: variables.sideBarWidth,
+        maxWidth: variables.reportPreviewMaxWidth,
     },
 
     moneyRequestPreviewBox: {
         backgroundColor: theme.cardBG,
         borderRadius: variables.componentBorderRadiusLarge,
-        maxWidth: variables.sideBarWidth,
+        maxWidth: variables.reportPreviewMaxWidth,
         width: '100%',
     },
 
@@ -2729,7 +2729,7 @@ const styles = (theme) => ({
 
     noSelect: {
         boxShadow: 'none',
-        outline: 'none',
+        outlineStyle: 'none',
     },
 
     cardStyleNavigator: {
@@ -2964,11 +2964,6 @@ const styles = (theme) => ({
         horizontal: windowWidth - 140,
     }),
 
-    invert: {
-        // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
-        transform: [{scaleX: -1}, {scaleY: -1}],
-    },
-
     iPhoneXSafeArea: {
         backgroundColor: theme.inverse,
         flex: 1,
@@ -3077,11 +3072,24 @@ const styles = (theme) => ({
     },
 
     cardMenuItem: {
-        paddingLeft: 8,
+        paddingLeft: 0,
         paddingRight: 0,
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         alignItems: 'center',
+    },
+
+    transferBalance: {
+        paddingLeft: 20,
+        paddingRight: 20,
+        borderRadius: 0,
+        height: 64,
+        alignItems: 'center',
+    },
+
+    paymentMethod: {
+        paddingHorizontal: 20,
+        height: 64,
     },
 
     archivedReportFooter: {
@@ -3611,10 +3619,8 @@ const styles = (theme) => ({
         borderColor: theme.transparent,
         borderTopLeftRadius: variables.componentBorderRadiusLarge,
         borderTopRightRadius: variables.componentBorderRadiusLarge,
-        borderBottomLeftRadius: variables.componentBorderRadiusLarge,
-        borderBottomRightRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
-        height: 200,
+        height: variables.reportActionImagesSingleImageHeight,
     },
 
     reportActionItemImage: {
@@ -3627,19 +3633,52 @@ const styles = (theme) => ({
     },
 
     reportActionItemImageBorder: {
-        borderRightWidth: 2,
+        borderRightWidth: 4,
         borderColor: theme.cardBG,
     },
 
-    reportActionItemImagesMore: {
+    reportActionItemImagesMoreContainer: {
         position: 'absolute',
-        borderRadius: 18,
-        backgroundColor: theme.cardBG,
-        width: 36,
-        height: 36,
+        bottom: 0,
+        right: 0,
         display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
+    },
+
+    reportActionItemImagesMore: {
+        borderTopLeftRadius: 12,
+        backgroundColor: theme.border,
+        width: 40,
+        height: 40,
+    },
+
+    reportActionItemImagesMoreHovered: {
+        backgroundColor: theme.cardBG,
+    },
+
+    reportActionItemImagesMoreText: {
+        position: 'absolute',
+        marginLeft: 20,
+        marginTop: 16,
+        color: theme.textSupporting,
+    },
+
+    reportActionItemImagesMoreCornerTriangle: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        width: 0,
+        height: 0,
+        borderStyle: 'solid',
+        borderWidth: 0,
+        borderBottomWidth: 40,
+        borderLeftWidth: 40,
+        borderColor: 'transparent',
+        borderBottomColor: theme.cardBG,
+    },
+
+    reportActionItemImagesMoreCornerTriangleHighlighted: {
+        borderColor: 'transparent',
+        borderBottomColor: theme.border,
     },
 
     moneyRequestHeaderStatusBarBadge: {
@@ -3809,6 +3848,13 @@ const styles = (theme) => ({
         color: theme.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightLarge,
+    },
+
+    walletBalance: {
+        lineHeight: undefined,
+        fontSize: 45,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 
     aspectRatioLottie: (source) => {

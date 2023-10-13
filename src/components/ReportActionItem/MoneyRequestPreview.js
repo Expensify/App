@@ -252,7 +252,8 @@ function MoneyRequestPreview(props) {
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={receiptImages}
-                            isHovered={isScanning}
+                            isHovered={props.isHovered || isScanning}
+                            size={1}
                         />
                     )}
                     {_.isEmpty(props.transaction) &&

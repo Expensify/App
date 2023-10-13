@@ -27,6 +27,7 @@ import type {
     SettleExpensifyCardParams,
     RequestAmountParams,
     SplitAmountParams,
+    DidSplitAmountMessageParams,
     AmountEachParams,
     PayerOwesAmountParams,
     PayerOwesParams,
@@ -536,6 +537,7 @@ export default {
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
+        didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} debe ${amount}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} debe: `,
@@ -571,6 +573,8 @@ export default {
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
             genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
+            duplicateWaypointsErrorMessage: 'Por favor elimina los puntos de ruta duplicados',
+            emptyWaypointsErrorMessage: 'Por favor introduce al menos dos puntos de ruta',
         },
     },
     notificationPreferencesPage: {
@@ -830,6 +834,16 @@ export default {
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
+        getPaidFaster: 'Cobra más rápido',
+        addPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente en la aplicación.',
+        getPaidBackFaster: 'Recibe tus pagos más rápido',
+        secureAccessToYourMoney: 'Acceso seguro a tu dinero',
+        receiveMoney: 'Recibe dinero en tu moneda local',
+        expensifyWallet: 'Billetera Expensify',
+        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
+        bankAccounts: 'Cuentas bancarias',
+        addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
+        addBankAccount: 'Agregar cuenta bancaria',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -1634,6 +1648,9 @@ export default {
         screenShare: 'Compartir pantalla',
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
+    search: {
+        resultsAreLimited: 'Los resultados de búsqueda están limitados.',
+    },
     genericErrorPage: {
         title: '¡Uh-oh, algo salió mal!',
         body: {
@@ -2240,6 +2257,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Pedido eliminado]',
+        reversedTransaction: '[Transacción anulada]',
         deletedTask: '[Tarea eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
