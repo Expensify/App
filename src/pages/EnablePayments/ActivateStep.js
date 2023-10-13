@@ -30,8 +30,8 @@ const defaultProps = {
 };
 
 function ActivateStep(props) {
-    const isActivedWallet = _.contains([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM], props.userWallet.tierName);
-    const animation = isActivedWallet ? LottieAnimations.Fireworks : LottieAnimations.ReviewingBankInfo;
+    const isActivatedWallet = _.contains([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM], props.userWallet.tierName);
+    const animation = isActivatedWallet ? LottieAnimations.Fireworks : LottieAnimations.ReviewingBankInfo;
     const continueButtonText = props.walletTerms.chatReportID ? props.translate('activateStep.continueToPayment') : props.translate('activateStep.continueToTransfer');
 
     return (
@@ -39,9 +39,9 @@ function ActivateStep(props) {
             <HeaderWithBackButton title={props.translate('activateStep.headerTitle')} />
             <ConfirmationPage
                 animation={animation}
-                heading={props.translate(`activateStep.${isActivedWallet ? 'activated' : 'checkBackLater'}Title`)}
-                description={props.translate(`activateStep.${isActivedWallet ? 'activated' : 'checkBackLater'}Message`)}
-                shouldShowButton={isActivedWallet}
+                heading={props.translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Title`)}
+                description={props.translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Message`)}
+                shouldShowButton={isActivatedWallet}
                 buttonText={continueButtonText}
                 onButtonPress={PaymentMethods.continueSetup}
             />
