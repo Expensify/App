@@ -222,7 +222,7 @@ function WorkspaceNewRoomPage(props) {
                                 />
                             </View>
                             {isPolicyAdmin && (
-                                 <View style={styles.mhn5}>
+                                <View style={styles.mhn5}>
                                     <ValuePicker
                                         inputID="writeCapability"
                                         label={translate('writeCapabilityPage.label')}
