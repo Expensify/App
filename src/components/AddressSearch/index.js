@@ -135,6 +135,7 @@ const defaultProps = {
 function AddressSearch(props) {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
     const containerRef = useRef();
     const query = useMemo(
         () => ({
@@ -313,6 +314,7 @@ function AddressSearch(props) {
 
                         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                         setDisplayListViewBorder(false);
+                        setIsFocused(false);
                     }}
                     query={query}
                     requestUrl={{
@@ -342,9 +344,13 @@ function AddressSearch(props) {
                         defaultValue: props.defaultValue,
                         inputID: props.inputID,
                         shouldSaveDraft: props.shouldSaveDraft,
+                        onFocus: () => {
+                            setIsFocused(true);
+                        },
                         onBlur: (event) => {
                             if (!isCurrentTargetInsideContainer(event, containerRef)) {
                                 setDisplayListViewBorder(false);
+                                setIsFocused(false);
                             }
                             props.onBlur();
                         },
@@ -367,7 +373,7 @@ function AddressSearch(props) {
                     }}
                     styles={{
                         textInputContainer: [styles.flexColumn],
-                        listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight],
+                        listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight, !isFocused && {height: 0}],
                         row: [styles.pv4, styles.ph3, styles.overflowAuto],
                         description: [styles.googleSearchText],
                         separator: [styles.googleSearchSeparator],
