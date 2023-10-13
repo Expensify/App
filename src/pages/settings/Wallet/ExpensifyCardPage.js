@@ -18,7 +18,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as CardUtils from '../../../libs/CardUtils';
 import Button from '../../../components/Button';
 import CardDetails from './WalletPage/CardDetails';
-import Card from '../../../libs/actions/Card';
+import * as Card from '../../../libs/actions/Card';
 import CONST from '../../../CONST';
 import assignedCardPropTypes from './assignedCardPropTypes';
 
