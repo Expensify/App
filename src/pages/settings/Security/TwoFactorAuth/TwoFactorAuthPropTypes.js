@@ -21,6 +21,7 @@ const TwoFactorAuthPropTypes = {
 
 const defaultAccount = {
     requiresTwoFactorAuth: false,
+    twoFactorAuthStep: '',
 };
 
 export {TwoFactorAuthPropTypes, defaultAccount};
