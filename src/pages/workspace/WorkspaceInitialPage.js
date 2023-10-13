@@ -32,7 +32,6 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import * as ReportUtils from '../../libs/ReportUtils';
 import withWindowDimensions from '../../components/withWindowDimensions';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     ...policyPropTypes,
@@ -70,7 +69,6 @@ function WorkspaceInitialPage(props) {
     const policy = props.policyDraft && props.policyDraft.id ? props.policyDraft : props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-    const {isSmallScreenWidth} = useWindowDimensions();
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
 
     /**
@@ -90,7 +88,7 @@ function WorkspaceInitialPage(props) {
             return;
         }
 
-        App.savePolicyDraftByNewWorkspace(props.policyDraft.id, props.policyDraft.name, '', false, '', !isSmallScreenWidth);
+        App.savePolicyDraftByNewWorkspace(props.policyDraft.id, props.policyDraft.name, '', false);
         // We only care when the component renders the first time
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

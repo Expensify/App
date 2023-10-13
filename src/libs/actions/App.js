@@ -337,7 +337,7 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
 }
 
 /**
- * Create a new Draft workspace and navigate to it
+ * Create a new draft workspace and navigate to it
  *
  * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace

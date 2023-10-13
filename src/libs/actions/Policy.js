@@ -1001,16 +1001,6 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
-                    value: null,
-                },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-                    value: null,
-                },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     value: {
                         id: policyID,
@@ -1078,6 +1068,16 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
                     value: expenseReportActionData,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
+                    value: null,
                 },
             ],
             successData: [
