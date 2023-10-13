@@ -1,3 +1,4 @@
+import {ValueOf} from 'type-fest';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONFIG from '../CONFIG';
@@ -8,7 +9,7 @@ import {Request} from '../types/onyx';
 
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
-let ENV_NAME = CONST.ENVIRONMENT.PRODUCTION;
+let ENV_NAME: ValueOf<typeof CONST.ENVIRONMENT> = CONST.ENVIRONMENT.PRODUCTION;
 let shouldUseStagingServer = false;
 Environment.getEnvironment().then((envName) => {
     ENV_NAME = envName;
