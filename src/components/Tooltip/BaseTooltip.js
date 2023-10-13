@@ -48,10 +48,8 @@ function chooseBoundingBox(target, clientX, clientY) {
         }
     }
 
-    // If no matching bounding box is found, fall back to the first one.
-    // This could only happen if the user is moving the mouse very quickly
-    // and they got it outside our slop above.
-    return bbs[0];
+    // If no matching bounding box is found, fall back to getBoundingClientRect.
+    return target.getBoundingClientRect();
 }
 
 function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal, shiftVertical}) {

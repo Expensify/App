@@ -2819,9 +2819,12 @@ function setMoneyRequestReceipt(receiptPath, receiptFilename) {
     Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptFilename, merchant: ''});
 }
 
-function createEmptyTransaction() {
+function setUpDistanceTransaction() {
     const transactionID = NumberUtils.rand64();
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {transactionID});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        transactionID,
+        comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
+    });
     Onyx.merge(ONYXKEYS.IOU, {transactionID});
 }
 
@@ -2916,7 +2919,7 @@ export {
     setMoneyRequestBillable,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
-    createEmptyTransaction,
+    setUpDistanceTransaction,
     navigateToNextPage,
     updateDistanceRequest,
     replaceReceipt,
