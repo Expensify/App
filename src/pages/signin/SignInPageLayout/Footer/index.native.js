@@ -161,9 +161,8 @@ function Footer(props) {
                 {isVertical ? (
                     <View style={[styles.signInPageGradientMobile]}>
                         <Image
-                            contentFit="contain"
                             source={SignInGradient}
-                            style={{height: '100%'}}
+                            style={{height: '100%', width: '100%'}}
                         />
                     </View>
                 ) : null}

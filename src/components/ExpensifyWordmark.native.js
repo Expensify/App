@@ -48,8 +48,9 @@ function ExpensifyWordmark(props) {
                 ]}
             >
                 <Image
+                    contentFit='contain'
                     source={LogoComponent}
-                    tintColor={themeColors.success}
+                    style={{width: '100%', height: '100%'}}
                 />
             </View>
         </>

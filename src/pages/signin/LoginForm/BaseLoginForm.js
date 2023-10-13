@@ -237,10 +237,6 @@ function LoginForm(props) {
                     hasError={hasError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
-                {/* <Image
-                    style={{width: 200, height: 200}}
-                    source={require('../../../../assets/images/qrcode.svg')}
-                /> */}
             </View>
             {!_.isEmpty(props.account.success) && <Text style={[styles.formSuccess]}>{props.account.success}</Text>}
             {!_.isEmpty(props.closeAccount.success || props.account.message) && (
