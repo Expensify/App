@@ -3,6 +3,7 @@ import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {Animated} from 'react-native';
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import Str from 'expensify-common/lib/str';
+import {PopoverContext} from '../PopoverProvider';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
 import * as tooltipPropTypes from './tooltipPropTypes';
@@ -68,6 +69,8 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
     const [wrapperWidth, setWrapperWidth] = useState(0);
     const [wrapperHeight, setWrapperHeight] = useState(0);
 
+    const {isOpen, popover} = useContext(PopoverContext);
+
     // Whether the tooltip is first tooltip to activate the TooltipSense
     const isTooltipSenseInitiator = useRef(false);
     const animation = useRef(new Animated.Value(0));
@@ -81,6 +84,31 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
         target.current = e.target;
         initialMousePosition.current = {x: e.clientX, y: e.clientY};
     }, []);
+
+    const tooltipRef = useRef(null);
+
+    const isPopoverRelatedToTooltipOpen = useMemo(() => {
+        // eslint-disable-next-line
+        const tooltipNode = tooltipRef.current ? tooltipRef.current._childNode : null;
+        if (
+            isOpen && 
+            popover && 
+            popover.anchorRef.current &&
+            tooltipNode &&
+            (
+                tooltipNode.contains(popover.anchorRef.current) ||
+                tooltipNode === popover.anchorRef.current
+            )
+        ) {
+            return true;
+        }
+
+        return false;
+
+    }, [isOpen, popover]);
+
+    const previousPopoverOpen = usePrevious(isPopoverRelatedToTooltipOpen);
+
 
     /**
      * Display the tooltip in an animation.
@@ -164,6 +192,13 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
         setIsVisible(false);
     };
 
+    useEffect(() => {
+        if (isPopoverRelatedToTooltipOpen && !previousPopoverOpen) {
+            return;
+        }
+        hideTooltip();
+    }, [isPopoverRelatedToTooltipOpen, previousPopoverOpen]);
+
     // Skip the tooltip and return the children if the text is empty,
     // we don't have a render function or the device does not support hovering
     if ((_.isEmpty(text) && renderTooltipContent == null) || !hasHoverSupport) {
@@ -194,6 +229,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
             <BoundsObserver
                 enabled={isVisible}
                 onBoundsChange={updateBounds}
+                ref={tooltipRef}
             >
                 <Hoverable
                     onMouseEnter={updateTargetAndMousePosition}
