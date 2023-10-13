@@ -28,16 +28,24 @@ const propTypes = {
 };
 
 function MoneyReportView(props) {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
-    const isSettled = ReportUtils.isSettled(props.report.reportID);
     const {translate} = useLocalize();
+    const isSettled = ReportUtils.isSettled(props.report.reportID);
+
+    const {total, companySpend, outOfPocketSpend} = ReportUtils.getMoneyRequestTotalBreakdown(props.report.reportID);
+
+    const shouldShowNonReimbursableBreakdown = companySpend && outOfPocketSpend;
+    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(total, props.report.currency);
+    const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(outOfPocketSpend, props.report.currency);
+    const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(companySpend, props.report.currency);
+
+    const subAmountTextStyles = [styles.taskTitleMenuItem, styles.alignSelfCenter, StyleUtils.getFontSizeStyle(variables.fontSizeh1), StyleUtils.getColorStyle(themeColors.textSupporting)];
 
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
                 <AnimatedEmptyStateBackground />
             </View>
-            <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
+            <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                     <Text
                         style={[styles.textLabelSupporting, StyleUtils.getFontSizeStyle(variables.fontSizeNormal)]}
@@ -59,10 +67,50 @@ function MoneyReportView(props) {
                         numberOfLines={1}
                         style={[styles.taskTitleMenuItem, styles.alignSelfCenter]}
                     >
-                        {formattedAmount}
+                        {formattedTotalAmount}
                     </Text>
                 </View>
             </View>
+            {shouldShowNonReimbursableBreakdown ? (
+                <>
+                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
+                        <View style={[styles.flex1, styles.justifyContentCenter]}>
+                            <Text
+                                style={[styles.textLabelSupporting, StyleUtils.getFontSizeStyle(variables.fontSizeNormal)]}
+                                numberOfLines={1}
+                            >
+                                {translate('cardTransactions.outOfPocket')}
+                            </Text>
+                        </View>
+                        <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                            <Text
+                                numberOfLines={1}
+                                style={subAmountTextStyles}
+                            >
+                                {formattedOutOfPocketAmount}
+                            </Text>
+                        </View>
+                    </View>
+                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
+                        <View style={[styles.flex1, styles.justifyContentCenter]}>
+                            <Text
+                                style={[styles.textLabelSupporting, StyleUtils.getFontSizeStyle(variables.fontSizeNormal), StyleUtils.getColorStyle(themeColors.textSupporting)]}
+                                numberOfLines={1}
+                            >
+                                {translate('cardTransactions.companySpend')}
+                            </Text>
+                        </View>
+                        <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                            <Text
+                                numberOfLines={1}
+                                style={subAmountTextStyles}
+                            >
+                                {formattedCompanySpendAmount}
+                            </Text>
+                        </View>
+                    </View>
+                </>
+            ) : undefined}
             <SpacerView
                 shouldShow={props.shouldShowHorizontalRule}
                 style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}

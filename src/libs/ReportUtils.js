@@ -1282,7 +1282,10 @@ function getMoneyRequestTotal(report, allReportsDict = null) {
         moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
     }
     if (moneyRequestReport) {
-        const total = lodashGet(moneyRequestReport, 'total', 0);
+        const companySpend = lodashGet(moneyRequestReport, 'nonReimbursableTotal', 0);
+        const outOfPocketSpend = lodashGet(moneyRequestReport, 'total', 0);
+
+        const total = (companySpend && outOfPocketSpend) ? companySpend + outOfPocketSpend : companySpend || outOfPocketSpend;
 
         if (total !== 0) {
             // There is a possibility that if the Expense report has a negative total.
@@ -1292,6 +1295,44 @@ function getMoneyRequestTotal(report, allReportsDict = null) {
         }
     }
     return 0;
+}
+
+/**
+ * @param {Object} report
+ * @param {Object} allReportsDict
+ * @returns {Number}
+ */
+function getMoneyRequestTotalBreakdown(report, allReportsDict = null) {
+    const allAvailableReports = allReportsDict || allReports;
+    let moneyRequestReport;
+    if (isMoneyRequestReport(report)) {
+        moneyRequestReport = report;
+    }
+    if (allAvailableReports && report.hasOutstandingIOU && report.iouReportID) {
+        moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+    }
+    if (moneyRequestReport) {
+        const companySpend = lodashGet(moneyRequestReport, 'nonReimbursableTotal', 0);
+        const outOfPocketSpend = lodashGet(moneyRequestReport, 'total', 0);
+
+        const total = (companySpend && outOfPocketSpend) ? companySpend + outOfPocketSpend : companySpend || outOfPocketSpend;
+
+        if (total !== 0) {
+            // There is a possibility that if the Expense report has a negative total.
+            // This is because there are instances where you can get a credit back on your card,
+            // or you enter a negative expense to “offset” future expenses
+            return {
+                total: isExpenseReport(moneyRequestReport) ? total * -1 : Math.abs(total),
+                companySpend: isExpenseReport(moneyRequestReport) ? total * -1 : Math.abs(companySpend),
+                outOfPocketSpend: isExpenseReport(moneyRequestReport) ? total * -1 : Math.abs(outOfPocketSpend),
+             };
+        }
+    }
+    return {
+        total: 0,
+        companySpend: 0,
+        outOfPocketSpend: 0,
+     };
 }
 
 /**
@@ -3876,6 +3917,7 @@ export {
     isWaitingForIOUActionFromCurrentUser,
     isIOUOwnedByCurrentUser,
     getMoneyRequestTotal,
+    getMoneyRequestTotalBreakdown,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
