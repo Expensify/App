@@ -244,6 +244,11 @@ const styles = (theme: ThemeDefault) =>
             alignItems: 'center',
         },
 
+        rtlTextRenderForSafari: {
+            textAlign: 'left',
+            ...writingDirection.ltr,
+        },
+
         emojiSuggestionsEmoji: {
             fontSize: variables.fontSizeMedium,
             width: 51,
