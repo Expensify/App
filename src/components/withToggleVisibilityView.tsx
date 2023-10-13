@@ -11,12 +11,12 @@ type ToggleVisibilityViewPropTypes = {
 export default function withToggleVisibilityView<TProps extends ToggleVisibilityViewPropTypes, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): ComponentType<TProps> {
     function WithToggleVisibilityView(props: Omit<TProps, keyof ToggleVisibilityViewPropTypes>, ref: ForwardedRef<TRef>) {
         return (
-            <View style={!(props as TProps).isVisible && styles.visuallyHidden}>
+            <View style={!((props as TProps)?.isVisible ?? false) && styles.visuallyHidden}>
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(props as TProps)}
                     ref={ref}
-                    isVisible={(props as TProps).isVisible}
+                    isVisible={(props as TProps).isVisible ?? false}
                 />
             </View>
         );
