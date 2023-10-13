@@ -40,7 +40,7 @@ const propTypes = {
     transaction: transactionPropTypes.isRequired,
 
     /** The draft transaction that holds data to be persisited on the current transaction */
-    draftTransaction: PropTypes.shape(transactionPropTypes),
+    draftTransaction: transactionPropTypes,
 
     /** Route params */
     route: PropTypes.shape({

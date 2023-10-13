@@ -144,6 +144,9 @@ const propTypes = {
     /** Whether the money request is a scan request */
     isScanRequest: PropTypes.bool,
 
+    /** Whether we're editing a split bill */
+    isEditingSplitBill: PropTypes.bool,
+
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields: PropTypes.bool,
 
