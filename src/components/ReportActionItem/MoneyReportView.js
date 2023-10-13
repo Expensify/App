@@ -31,12 +31,12 @@ function MoneyReportView(props) {
     const {translate} = useLocalize();
     const isSettled = ReportUtils.isSettled(props.report.reportID);
 
-    const {total, companySpend, outOfPocketSpend} = ReportUtils.getMoneyRequestTotalBreakdown(props.report.reportID);
+    const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.report);
 
-    const shouldShowNonReimbursableBreakdown = companySpend && outOfPocketSpend;
-    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(total, props.report.currency);
-    const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(outOfPocketSpend, props.report.currency);
-    const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(companySpend, props.report.currency);
+    const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend;
+    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.report.currency);
+    const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, props.report.currency);
+    const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, props.report.currency);
 
     const subAmountTextStyles = [styles.taskTitleMenuItem, styles.alignSelfCenter, StyleUtils.getFontSizeStyle(variables.fontSizeh1), StyleUtils.getColorStyle(themeColors.textSupporting)];
 
@@ -71,7 +71,7 @@ function MoneyReportView(props) {
                     </Text>
                 </View>
             </View>
-            {shouldShowNonReimbursableBreakdown ? (
+            {shouldShowBreakdown ? (
                 <>
                     <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
                         <View style={[styles.flex1, styles.justifyContentCenter]}>

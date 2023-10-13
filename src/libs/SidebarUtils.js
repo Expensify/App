@@ -158,7 +158,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReportsDict);
+        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReportsDict);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -384,7 +384,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result);
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail.accountID;

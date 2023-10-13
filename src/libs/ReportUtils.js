@@ -1272,7 +1272,7 @@ function isWaitingForTaskCompleteFromAssignee(report, parentReportAction = {}) {
  * @param {Object} allReportsDict
  * @returns {Number}
  */
-function getMoneyRequestTotal(report, allReportsDict = null) {
+function getMoneyRequestReimbursableTotal(report, allReportsDict = null) {
     const allAvailableReports = allReportsDict || allReports;
     let moneyRequestReport;
     if (isMoneyRequestReport(report)) {
@@ -1282,11 +1282,7 @@ function getMoneyRequestTotal(report, allReportsDict = null) {
         moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
     }
     if (moneyRequestReport) {
-        const companySpend = lodashGet(moneyRequestReport, 'nonReimbursableTotal', 0);
-        const outOfPocketSpend = lodashGet(moneyRequestReport, 'total', 0);
-
-        const total = (companySpend && outOfPocketSpend) ? companySpend + outOfPocketSpend : companySpend || outOfPocketSpend;
-
+        const total = lodashGet(moneyRequestReport, 'total', 0);
         if (total !== 0) {
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
@@ -1302,7 +1298,7 @@ function getMoneyRequestTotal(report, allReportsDict = null) {
  * @param {Object} allReportsDict
  * @returns {Number}
  */
-function getMoneyRequestTotalBreakdown(report, allReportsDict = null) {
+function getMoneyRequestSpendBreakdown(report, allReportsDict = null) {
     const allAvailableReports = allReportsDict || allReports;
     let moneyRequestReport;
     if (isMoneyRequestReport(report)) {
@@ -1312,27 +1308,28 @@ function getMoneyRequestTotalBreakdown(report, allReportsDict = null) {
         moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
     }
     if (moneyRequestReport) {
-        const companySpend = lodashGet(moneyRequestReport, 'nonReimbursableTotal', 0);
-        const outOfPocketSpend = lodashGet(moneyRequestReport, 'total', 0);
+        let nonReimbursableSpend = lodashGet(moneyRequestReport, 'nonReimbursableTotal', 0);
+        let reimbursableSpend = lodashGet(moneyRequestReport, 'total', 0);
 
-        const total = (companySpend && outOfPocketSpend) ? companySpend + outOfPocketSpend : companySpend || outOfPocketSpend;
-
-        if (total !== 0) {
+        if (nonReimbursableSpend + reimbursableSpend !== 0) {
+            nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
+            reimbursableSpend = isExpenseReport(moneyRequestReport) ? reimbursableSpend * -1 : Math.abs(reimbursableSpend);
+            const totalDisplaySpend = nonReimbursableSpend + reimbursableSpend;
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to “offset” future expenses
             return {
-                total: isExpenseReport(moneyRequestReport) ? total * -1 : Math.abs(total),
-                companySpend: isExpenseReport(moneyRequestReport) ? total * -1 : Math.abs(companySpend),
-                outOfPocketSpend: isExpenseReport(moneyRequestReport) ? total * -1 : Math.abs(outOfPocketSpend),
-             };
+                nonReimbursableSpend,
+                reimbursableSpend,
+                totalDisplaySpend,
+            };
         }
     }
     return {
-        total: 0,
-        companySpend: 0,
-        outOfPocketSpend: 0,
-     };
+        nonReimbursableSpend: 0,
+        reimbursableSpend: 0,
+        totalDisplaySpend: 0,
+    };
 }
 
 /**
@@ -1374,7 +1371,7 @@ function getPolicyExpenseChatName(report, policy = undefined) {
  * @returns  {String}
  */
 function getMoneyRequestReportName(report, policy = undefined) {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(report), report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
     const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerName,
@@ -1571,7 +1568,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment});
     }
 
-    const totalAmount = getMoneyRequestTotal(report);
+    const totalAmount = getMoneyRequestReimbursableTotal(report);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
@@ -2239,7 +2236,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
 function getIOUReportActionMessage(iouReportID, type, total, comment, currency, paymentType = '', isSettlingUp = false) {
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY
-            ? CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(getReport(iouReportID)), currency)
+            ? CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(getReport(iouReportID)), currency)
             : CurrencyUtils.convertToDisplayString(total, currency);
 
     let paymentMethodMessage;
@@ -3916,8 +3913,8 @@ export {
     hasExpensifyGuidesEmails,
     isWaitingForIOUActionFromCurrentUser,
     isIOUOwnedByCurrentUser,
-    getMoneyRequestTotal,
-    getMoneyRequestTotalBreakdown,
+    getMoneyRequestReimbursableTotal,
+    getMoneyRequestSpendBreakdown,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
