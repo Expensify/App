@@ -1479,7 +1479,6 @@ const CONST = {
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
     },
 
-    ERECEIPT_PATH: 'eReceipt/',
     ERECEIPT_COLORS: {
         YELLOW: 'Yellow',
         ICE: 'Ice',

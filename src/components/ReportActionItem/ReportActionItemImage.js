@@ -52,7 +52,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
-    const isEReceipt = !_.isEmpty(transaction) && TransactionUtils.hasEreceipt(transaction);
+    const isEReceipt = !_.isEmpty(transaction) && TransactionUtils.hasEReceipt(transaction);
 
     let receiptImageComponent;
 

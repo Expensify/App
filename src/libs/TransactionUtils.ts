@@ -79,12 +79,12 @@ function buildOptimisticTransaction(
 /**
  * Check if the transaction has an Ereceipt
  */
-function hasEreceipt(transaction: Transaction | undefined | null): boolean {
+function hasEReceipt(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.hasEReceipt;
 }
 
 function hasReceipt(transaction: Transaction | undefined | null): boolean {
-    return !!transaction?.receipt?.state || hasEreceipt(transaction);
+    return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
 function areRequiredFieldsEmpty(transaction: Transaction): boolean {
@@ -437,7 +437,7 @@ export {
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
-    hasEreceipt,
+    hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,
