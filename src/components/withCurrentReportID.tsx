@@ -12,8 +12,10 @@ type CurrentReportIDContextValue = {
 type CurrentReportIDContextProviderProps = {
     children: React.ReactNode;
 };
+
 const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>(null);
 
+// TODO: Remove when depended components are migrated to TypeScript.
 const withCurrentReportIDPropTypes = {
     /** Function to update the state */
     updateCurrentReportID: PropTypes.func.isRequired,
@@ -56,20 +58,16 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
 }
 
 CurrentReportIDContextProvider.displayName = 'CurrentReportIDContextProvider';
-CurrentReportIDContextProvider.propTypes = {
-    /** Actual content wrapped by this component */
-    children: PropTypes.node.isRequired,
-};
 
 export default function withCurrentReportID<TComponentProps extends CurrentReportIDContextValue>(WrappedComponent: ComponentType<TComponentProps>) {
-    const WithCurrentReportID: ComponentType<TComponentProps & RefAttributes<ComponentType<TComponentProps>>> = forwardRef((props, ref) => (
+    const WithCurrentReportID: ComponentType<Omit<TComponentProps, keyof CurrentReportIDContextValue> & RefAttributes<ComponentType<TComponentProps>>> = forwardRef((props, ref) => (
         <CurrentReportIDContext.Consumer>
             {(currentReportIDUtils) => (
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...currentReportIDUtils}
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
+                    {...(props as TComponentProps)}
                     ref={ref}
                 />
             )}
