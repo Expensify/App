@@ -73,6 +73,10 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET_DOMAINCARDS.route,
                                 exact: true,
                             },
+                            Settings_Wallet_ReportVirtualCardFraud: {
+                                path: ROUTES.SETTINGS_REPORT_FRAUD.route,
+                                exact: true,
+                            },
                             Settings_Wallet_EnablePayments: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
@@ -83,6 +87,10 @@ export default {
                             },
                             Settings_Wallet_Choose_Transfer_Account: {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
+                                exact: true,
+                            },
+                            Settings_Wallet_Card_Activate: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
                                 exact: true,
                             },
                             Settings_Add_Debit_Card: {
@@ -193,6 +201,9 @@ export default {
                             Workspace_Settings: {
                                 path: ROUTES.WORKSPACE_SETTINGS.route,
                             },
+                            Workspace_Settings_Currency: {
+                                path: ROUTES.WORKSPACE_SETTINGS_CURRENCY.route,
+                            },
                             Workspace_Card: {
                                 path: ROUTES.WORKSPACE_CARD.route,
                             },
@@ -226,6 +237,9 @@ export default {
                             },
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE.route,
+                            },
+                            KeyboardShortcuts: {
+                                path: ROUTES.KEYBOARD_SHORTCUTS,
                             },
                         },
                     },
@@ -360,6 +374,8 @@ export default {
                     SplitDetails: {
                         screens: {
                             SplitDetails_Root: ROUTES.SPLIT_BILL_DETAILS.route,
+                            SplitDetails_Edit_Request: ROUTES.EDIT_SPLIT_BILL.route,
+                            SplitDetails_Edit_Currency: ROUTES.EDIT_SPLIT_BILL_CURRENCY.route,
                         },
                     },
                     Task_Details: {

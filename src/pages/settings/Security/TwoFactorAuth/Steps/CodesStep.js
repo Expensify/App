@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {ActivityIndicator, View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
+import {ActivityIndicator, View, ScrollView} from 'react-native';
 import _ from 'underscore';
 import * as Expensicons from '../../../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../../../components/Icon/Illustrations';
