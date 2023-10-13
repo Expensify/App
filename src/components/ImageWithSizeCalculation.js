@@ -6,6 +6,7 @@ import Log from '../libs/Log';
 import styles from '../styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
+import useNetwork from '../hooks/useNetwork';
 
 // Define constants for load states
 const LoadState = {
@@ -50,7 +51,8 @@ function ImageWithSizeCalculation(props) {
     const [loadState, setLoadState] = useState(LoadState.INITIAL);
     const [isImageCached, setIsImageCached] = useState(true);
     const source = useMemo(() => ({ uri: props.url }), [props.url]);
-
+    const {isOffline} = useNetwork();
+    
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url: props.url});
         setLoadState(LoadState.ERRORED);
