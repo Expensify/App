@@ -22,6 +22,7 @@ import useLocalize from '../../../../../hooks/useLocalize';
 import {defaultAccount, TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes';
 import Navigation from '../../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../../ROUTES';
+import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
 
 const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
@@ -40,18 +41,27 @@ function VerifyStep({account, session}) {
 
     useEffect(() => {
         Session.clearAccountMessages();
+
+        if (account.twoFactorAuthStep !== 'VERIFY') {
+            Navigation.navigate(ROUTES.SETTINGS_2FA.ENABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        if (!account.requiresTwoFactorAuth) {
+        if (!account.requiresTwoFactorAuth || account.twoFactorAuthStep !== 'VERIFY') {
             return;
         }
+
+        TwoFactorAuthActions.setTwoFactorAuthStep('SUCCESS');
+
         navigation.dispatch({
             ...CommonActions.goBack(),
             source: navigation.getState().key,
         });
+
         Navigation.navigate(ROUTES.SETTINGS_2FA.SUCCESS, CONST.NAVIGATION.TYPE.FORCED_UP);
-    }, [account.requiresTwoFactorAuth, navigation]);
+    }, [account.requiresTwoFactorAuth, account.twoFactorAuthStep, navigation]);
 
     /**
      * Splits the two-factor auth secret key in 4 chunks

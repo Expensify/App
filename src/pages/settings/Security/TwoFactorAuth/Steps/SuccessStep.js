@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import ConfirmationPage from '../../../../../components/ConfirmationPage';
 import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
 import * as LottieAnimations from '../../../../../components/LottieAnimations';
@@ -7,9 +8,24 @@ import useLocalize from '../../../../../hooks/useLocalize';
 import Navigation from '../../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../../ROUTES';
 import CONST from '../../../../../CONST';
+import ONYXKEYS from '../../../../../ONYXKEYS';
+import {TwoFactorAuthPropTypes, defaultAccount} from '../TwoFactorAuthPropTypes';
 
-function SuccessStep() {
+function SuccessStep({account = defaultAccount}) {
     const {translate} = useLocalize();
+
+    useEffect(() => {
+        if (account.twoFactorAuthStep === 'SUCCESS') {
+            return;
+        }
+
+        if (account.requiresTwoFactorAuth) {
+            Navigation.navigate(ROUTES.SETTINGS_2FA.ENABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
+        } else {
+            Navigation.navigate(ROUTES.SETTINGS_2FA.CODES, CONST.NAVIGATION.TYPE.FORCED_UP);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <StepWrapper
@@ -34,4 +50,8 @@ function SuccessStep() {
     );
 }
 
-export default SuccessStep;
+SuccessStep.propTypes = TwoFactorAuthPropTypes;
+
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+})(SuccessStep);

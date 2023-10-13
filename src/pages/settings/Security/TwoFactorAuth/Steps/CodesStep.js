@@ -24,11 +24,19 @@ import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuth
 import FormHelpMessage from '../../../../../components/FormHelpMessage';
 import Navigation from '../../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../../ROUTES';
+import CONST from '../../../../../CONST';
 
 function CodesStep({account = defaultAccount}) {
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (!account.requiresTwoFactorAuth) {
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_2FA.ENABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
+    }, [account.requiresTwoFactorAuth]);
 
     useEffect(() => {
         if (account.recoveryCodes) {
@@ -122,6 +130,7 @@ function CodesStep({account = defaultAccount}) {
                                 setError('twoFactorAuth.errorStepCodes');
                                 return;
                             }
+                            TwoFactorAuthActions.setTwoFactorAuthStep('VERIFY');
                             Navigation.navigate(ROUTES.SETTINGS_2FA.VERIFY);
                         }}
                     />

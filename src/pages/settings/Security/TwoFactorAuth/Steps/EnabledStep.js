@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Text, View, ScrollView} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import Section from '../../../../../components/Section';
 import * as Illustrations from '../../../../../components/Icon/Illustrations';
 import * as Expensicons from '../../../../../components/Icon/Expensicons';
@@ -12,11 +13,22 @@ import useLocalize from '../../../../../hooks/useLocalize';
 import Navigation from '../../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../../ROUTES';
 import CONST from '../../../../../CONST';
+import {TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes';
+import ONYXKEYS from '../../../../../ONYXKEYS';
+import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
 
-function EnabledStep() {
+function EnabledStep({account}) {
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const {translate} = useLocalize();
+
+    useEffect(() => {
+        if (account.requiresTwoFactorAuth) {
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_2FA.CODES, CONST.NAVIGATION.TYPE.FORCED_UP);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <StepWrapper title={translate('twoFactorAuth.headerTitle')}>
@@ -45,6 +57,7 @@ function EnabledStep() {
                     title={translate('twoFactorAuth.disableTwoFactorAuth')}
                     onConfirm={() => {
                         setIsConfirmModalVisible(false);
+                        TwoFactorAuthActions.setTwoFactorAuthStep('DISABLED');
                         Navigation.navigate(ROUTES.SETTINGS_2FA.DISABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
                         Session.toggleTwoFactorAuth(false);
                     }}
@@ -62,4 +75,8 @@ function EnabledStep() {
     );
 }
 
-export default EnabledStep;
+EnabledStep.propTypes = TwoFactorAuthPropTypes;
+
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+})(EnabledStep);
