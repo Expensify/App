@@ -127,7 +127,7 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
-    return String(lodashGet(route, 'params.reportID', null));
+    return String(lodashGet(route, 'params.reportID', ''));
 }
 
 function ReportScreen({
@@ -345,7 +345,7 @@ function ReportScreen({
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
-        if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
+        if (!!reportID && !didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
             Report.subscribeToReportLeavingEvents(reportID);
             didSubscribeToReportLeavingEvents.current = true;
         }
