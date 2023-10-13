@@ -52,9 +52,6 @@ const propTypes = {
         authToken: PropTypes.string,
     }),
 
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: PropTypes.string,
-
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -76,7 +73,6 @@ const defaultProps = {
     session: {
         authToken: null,
     },
-    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 function BaseValidateCodeForm(props) {
@@ -96,6 +92,8 @@ function BaseValidateCodeForm(props) {
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
     const isLoadingResendValidationForm = props.account.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
     const shouldDisableResendValidateCode = props.network.isOffline || props.account.isLoading;
+    const isValidateCodeFormSubmitting =
+        props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM);
 
     useEffect(() => {
         if (!(inputValidateCodeRef.current && hasError && (props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || props.account.isLoading))) {
@@ -181,6 +179,7 @@ function BaseValidateCodeForm(props) {
      */
     const resendValidateCode = () => {
         User.resendValidateCode(props.credentials.login);
+        inputValidateCodeRef.current.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
         setTimeRemaining(30);
     };
@@ -283,11 +282,11 @@ function BaseValidateCodeForm(props) {
 
         const accountID = lodashGet(props.credentials, 'accountID');
         if (accountID) {
-            Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale, recoveryCodeOr2faCode);
+            Session.signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);
         } else {
-            Session.signIn(validateCode, recoveryCodeOr2faCode, props.preferredLocale);
+            Session.signIn(validateCode, recoveryCodeOr2faCode);
         }
-    }, [props.account, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode, props.isUsingRecoveryCode, recoveryCode]);
+    }, [props.account, props.credentials, twoFactorAuthCode, validateCode, props.isUsingRecoveryCode, recoveryCode]);
 
     return (
         <>
@@ -304,6 +303,7 @@ function BaseValidateCodeForm(props) {
                             label={props.translate('recoveryCodeForm.recoveryCode')}
                             errorText={formError.recoveryCode ? props.translate(formError.recoveryCode) : ''}
                             hasError={hasError}
+                            onSubmitEditing={validateAndSubmitForm}
                             autoFocus
                         />
                     ) : (
@@ -329,6 +329,7 @@ function BaseValidateCodeForm(props) {
                         underlayColor={themeColors.componentBG}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
+                        disabled={isValidateCodeFormSubmitting}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}
                     >
@@ -381,9 +382,7 @@ function BaseValidateCodeForm(props) {
                     success
                     style={[styles.mv3]}
                     text={props.translate('common.signIn')}
-                    isLoading={
-                        props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
-                    }
+                    isLoading={isValidateCodeFormSubmitting}
                     onPress={validateAndSubmitForm}
                 />
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />
@@ -404,7 +403,6 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
-        preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
         session: {key: ONYXKEYS.SESSION},
     }),
     withNetwork(),

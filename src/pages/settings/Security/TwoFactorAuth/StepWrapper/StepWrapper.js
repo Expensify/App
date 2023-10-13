@@ -44,5 +44,6 @@ function StepWrapper({
 }
 
 StepWrapper.propTypes = StepWrapperPropTypes;
+StepWrapper.displayName = 'StepWrapper';
 
 export default StepWrapper;

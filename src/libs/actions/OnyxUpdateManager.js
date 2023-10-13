@@ -88,6 +88,7 @@ export default () => {
             canUnpauseQueuePromise.finally(() => {
                 OnyxUpdates.apply(updateParams).finally(() => {
                     console.debug('[OnyxUpdateManager] Done applying all updates');
+                    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
                     SequentialQueue.unpause();
                 });
             });

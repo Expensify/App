@@ -22,9 +22,6 @@ const baseProps = {
     /** Callback to update the comment draft */
     updateComment: PropTypes.func.isRequired,
 
-    /** Flag whether we need to consider the participants */
-    shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
-
     /** Meaures the parent container's position and dimensions. */
     measureParentContainer: PropTypes.func.isRequired,
 };

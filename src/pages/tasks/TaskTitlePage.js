@@ -120,6 +120,7 @@ function TaskTitlePage(props) {
 
 TaskTitlePage.propTypes = propTypes;
 TaskTitlePage.defaultProps = defaultProps;
+TaskTitlePage.displayName = 'TaskTitlePage';
 
 export default compose(
     withLocalize,

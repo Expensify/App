@@ -34,9 +34,6 @@ const propTypes = {
     }),
 
     withoutOverlay: PropTypes.bool,
-
-    /** Function to call on modal hide */
-    onModalHide: PropTypes.func,
 };
 
 const defaultProps = {
@@ -47,7 +44,6 @@ const defaultProps = {
     },
     anchorRef: () => {},
     withoutOverlay: false,
-    onModalHide: () => {},
 };
 
 function PopoverMenu(props) {
@@ -82,7 +78,6 @@ function PopoverMenu(props) {
             isVisible={props.isVisible}
             onModalHide={() => {
                 setFocusedIndex(-1);
-                props.onModalHide();
                 if (selectedItemIndex.current !== null) {
                     props.menuItems[selectedItemIndex.current].onSelected();
                     selectedItemIndex.current = null;
@@ -103,6 +98,7 @@ function PopoverMenu(props) {
                         icon={item.icon}
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
+                        iconFill={item.iconFill}
                         title={item.text}
                         description={item.description}
                         onPress={() => selectItem(menuIndex)}

@@ -32,6 +32,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
     }, [selectedCategory]);
 
     const sections = useMemo(() => {
+        const validPolicyRecentlyUsedCategories = _.filter(policyRecentlyUsedCategories, (p) => !_.isEmpty(p));
         const {categoryOptions} = OptionsListUtils.getFilteredOptions(
             {},
             {},
@@ -43,7 +44,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             false,
             true,
             policyCategories,
-            policyRecentlyUsedCategories,
+            validPolicyRecentlyUsedCategories,
             false,
         );
 
@@ -54,13 +55,13 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         let categoryInitialFocusedIndex = 0;
 
         if (!_.isEmpty(searchValue) || isCategoriesCountBelowThreshold) {
-            const index = _.findIndex(lodashGet(sections, '[0].data', []), (category) => category.searchText === iou.category);
+            const index = _.findIndex(lodashGet(sections, '[0].data', []), (category) => category.searchText === selectedCategory);
 
             categoryInitialFocusedIndex = index === -1 ? 0 : index;
         }
 
         return categoryInitialFocusedIndex;
-    }, [iou.category, searchValue, isCategoriesCountBelowThreshold, sections]);
+    }, [selectedCategory, searchValue, isCategoriesCountBelowThreshold, sections]);
 
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
     const shouldShowTextInput = !isCategoriesCountBelowThreshold;

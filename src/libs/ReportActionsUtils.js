@@ -72,6 +72,14 @@ function isDeletedParentAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isReversedTransaction(reportAction) {
+    return lodashGet(reportAction, ['message', 0, 'isReversedTransaction'], false) && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isPendingRemove(reportAction) {
     return lodashGet(reportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
@@ -129,17 +137,6 @@ function getParentReportAction(report, allReportActionsParam = undefined) {
         return {};
     }
     return lodashGet(allReportActionsParam || allReportActions, [report.parentReportID, report.parentReportActionID], {});
-}
-
-/**
- * Find the reportAction having the given childReportID in parent report actions
- *
- * @param {String} childReportID
- * @param {String} parentReportID
- * @returns {Object}
- */
-function getParentReportActionInReport(childReportID, parentReportID) {
-    return _.find(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
 }
 
 /**
@@ -250,6 +247,23 @@ function extractLinksFromMessageHtml(reportAction) {
 }
 
 /**
+ * Returns the report action immediately before the specified index.
+ * @param {Array} reportActions - all actions
+ * @param {Number} actionIndex - index of the action
+ * @returns {Object|null}
+ */
+function findPreviousAction(reportActions, actionIndex) {
+    for (let i = actionIndex + 1; i < reportActions.length; i++) {
+        // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
+        // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
+        if (isNetworkOffline || reportActions[i].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return reportActions[i];
+        }
+    }
+    return null;
+}
+
+/**
  * Returns true when the report action immediately before the specified index is a comment made by the same actor who who is leaving a comment in the action at the specified index.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
@@ -258,9 +272,7 @@ function extractLinksFromMessageHtml(reportAction) {
  * @returns {Boolean}
  */
 function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
-    // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
-    // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-    const previousAction = _.find(_.drop(reportActions, actionIndex + 1), (action) => isNetworkOffline || action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const previousAction = findPreviousAction(reportActions, actionIndex);
     const currentAction = reportActions[actionIndex];
 
     // It's OK for there to be no previous action, and in that case, false will be returned
@@ -348,7 +360,7 @@ function shouldReportActionBeVisible(reportAction, key) {
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
-    return !isDeleted || isPending || isDeletedParentAction(reportAction);
+    return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
 /**
@@ -369,7 +381,9 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
 
     // If a whisper action is the REPORTPREVIEW action, we are displaying it.
     return (
-        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction)) && !isDeletedAction(reportAction)
+        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
+        !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
+        !isDeletedAction(reportAction)
     );
 }
 
@@ -637,6 +651,11 @@ function isReportActionAttachment(reportAction) {
     return _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : isReportMessageAttachment(message);
 }
 
+// eslint-disable-next-line rulesdir/no-negated-variables
+function isNotifiableReportAction(reportAction) {
+    return reportAction && _.contains([CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE], reportAction.actionName);
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -659,10 +678,10 @@ export {
     getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,
-    getParentReportActionInReport,
     isTransactionThread,
     isSentMoneyReportAction,
     isDeletedParentAction,
+    isReversedTransaction,
     isReportPreviewAction,
     isModifiedExpenseAction,
     getIOUReportIDFromReportActionPreview,
@@ -675,4 +694,5 @@ export {
     isTaskAction,
     getAllReportActions,
     isReportActionAttachment,
+    isNotifiableReportAction,
 };

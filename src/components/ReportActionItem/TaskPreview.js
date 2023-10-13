@@ -8,6 +8,7 @@ import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../withCurrentUserPersonalDetails';
 import Icon from '../Icon';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
@@ -23,6 +24,7 @@ import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
 import * as Session from '../../libs/actions/Session';
+import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -51,9 +53,12 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
+    ...withCurrentUserPersonalDetailsDefaultProps,
     personalDetailsList: {},
     taskReport: {},
     isHovered: false,
@@ -70,8 +75,11 @@ function TaskPreview(props) {
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
     const assigneeLogin = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], '');
     const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
-    const taskAssignee = assigneeLogin || assigneeDisplayName;
-    const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
+    const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
+    const htmlForTaskPreview =
+        taskAssignee && taskAssigneeAccountID !== 0
+            ? `<comment><mention-user accountid="${taskAssigneeAccountID}">@${taskAssignee}</mention-user> ${taskTitle}</comment>`
+            : `<comment>${taskTitle}</comment>`;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(props.taskReport, props.action);
 
     if (isDeletedParentAction) {
@@ -81,7 +89,7 @@ function TaskPreview(props) {
     return (
         <View style={[styles.chatItemMessage]}>
             <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
+                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.taskReportID))}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={props.translate('task.task')}
@@ -91,12 +99,12 @@ function TaskPreview(props) {
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
+                        disabled={!Task.canModifyTask(props.taskReport, props.currentUserPersonalDetails.accountID)}
                         onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
-                                Task.reopenTask(props.taskReport, taskTitle);
+                                Task.reopenTask(props.taskReport);
                             } else {
-                                Task.completeTask(props.taskReport, taskTitle);
+                                Task.completeTask(props.taskReport);
                             }
                         })}
                         accessibilityLabel={props.translate('task.task')}
@@ -118,12 +126,15 @@ TaskPreview.displayName = 'TaskPreview';
 
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
     withOnyx({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            initialValue: {},
         },
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            initialValue: {},
         },
     }),
 )(TaskPreview);

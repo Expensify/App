@@ -1,3 +1,6 @@
+// Do not remove this import until moment package is fully removed.
+// Issue - https://github.com/Expensify/App/issues/26719
+import 'moment/locale/es';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -39,6 +42,19 @@ let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val),
+});
+
+let priorityMode;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: (nextPriorityMode) => {
+        // When someone switches their priority mode we need to fetch all their chats because only #focus mode works with a subset of a user's chats. This is only possible via the OpenApp command.
+        if (nextPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
+            // eslint-disable-next-line no-use-before-define
+            openApp();
+        }
+        priorityMode = nextPriorityMode;
+    },
 });
 
 let resolveIsReadyPromise;
@@ -204,7 +220,8 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
  */
 function openApp() {
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect(true));
+        const params = {enablePriorityModeFilter: true, ...policyParams};
+        API.read('OpenApp', params, getOnyxDataForOpenOrReconnect(true));
     });
 }
 
@@ -325,10 +342,10 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
             }
 
             if (shouldNavigateToAdminChat) {
-                Navigation.navigate(ROUTES.getReportRoute(adminsChatReportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
             }
 
-            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
         })
         .then(endSignOnTransition);
 }

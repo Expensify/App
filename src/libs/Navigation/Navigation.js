@@ -3,15 +3,16 @@ import lodashGet from 'lodash/get';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import {getActionFromState} from '@react-navigation/core';
 import Log from '../Log';
-import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
+import originalGetTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
+import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import getStateFromPath from './getStateFromPath';
-import SCREENS from '../../SCREENS';
+import SCREENS, {PROTECTED_SCREENS} from '../../SCREENS';
 import CONST from '../../CONST';
 
 let resolveNavigationIsReadyPromise;
@@ -45,6 +46,12 @@ function canNavigate(methodName, params = {}) {
 
 // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
+
+// Re-exporting the getTopMostCentralPaneRouteName here to fill in default value for state. The getTopMostCentralPaneRouteName isn't defined in this file to avoid cyclic dependencies.
+const getTopMostCentralPaneRouteName = (state = navigationRef.getState()) => originalGetTopMostCentralPaneRouteName(state);
+
+// Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
+const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
 /**
  * Method for finding on which index in stack we are.
@@ -83,11 +90,6 @@ function navigate(route = ROUTES.HOME, type) {
         pendingRoute = route;
         return;
     }
-
-    // A pressed navigation button will remain focused, keeping its tooltip visible, even if it's supposed to be out of view.
-    // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is missing).
-    // More info: https://github.com/Expensify/App/issues/13146
-    DomUtils.blurActiveElement();
 
     linkTo(navigationRef.current, route, type);
 }
@@ -165,11 +167,16 @@ function dismissModal(targetReportID) {
         case SCREENS.REPORT_ATTACHMENTS:
             // if we are not in the target report, we need to navigate to it after dismissing the modal
             if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
-                const state = getStateFromPath(ROUTES.getReportRoute(targetReportID));
+                const state = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReportID));
 
                 const action = getActionFromState(state, linkingConfig.config);
                 action.type = 'REPLACE';
                 navigationRef.current.dispatch(action);
+                // If not-found page is in the route stack, we need to close it
+            } else if (targetReportID && _.some(rootState.routes, (route) => route.name === SCREENS.NOT_FOUND)) {
+                const lastRouteIndex = rootState.routes.length - 1;
+                const centralRouteIndex = _.findLastIndex(rootState.routes, (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+                navigationRef.current.dispatch({...StackActions.pop(lastRouteIndex - centralRouteIndex), target: rootState.key});
             } else {
                 navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key});
             }
@@ -255,6 +262,61 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+/**
+ *  Checks if the navigation state contains routes that are protected (over the auth wall).
+ *
+ *  @function
+ *  @param {Object} state - react-navigation state object
+ *
+ *  @returns {Boolean}
+ */
+function navContainsProtectedRoutes(state) {
+    if (!state || !state.routeNames || !_.isArray(state.routeNames)) {
+        return false;
+    }
+    const protectedScreensNames = _.values(PROTECTED_SCREENS);
+    const difference = _.difference(protectedScreensNames, state.routeNames);
+
+    return !difference.length;
+}
+
+/**
+ * Waits for the navigation state to contain protected routes specified in PROTECTED_SCREENS constant
+ * If the navigation is in a state, where protected routes are available, the promise will resolve immediately.
+ *
+ * @function
+ * @returns {Promise<void>} A promise that resolves to `true` when the Concierge route is present.
+ *                             Rejects with an error if the navigation is not ready.
+ *
+ * @example
+ * waitForProtectedRoutes()
+ *   .then(() => console.log('Protected routes are present!'))
+ *   .catch(error => console.error(error.message));
+ */
+function waitForProtectedRoutes() {
+    return new Promise((resolve, reject) => {
+        const isReady = navigationRef.current && navigationRef.current.isReady();
+        if (!isReady) {
+            reject(new Error('[Navigation] is not ready yet!'));
+            return;
+        }
+        const currentState = navigationRef.current.getState();
+        if (navContainsProtectedRoutes(currentState)) {
+            resolve();
+            return;
+        }
+        let unsubscribe;
+        const handleStateChange = ({data}) => {
+            const state = lodashGet(data, 'state');
+            if (navContainsProtectedRoutes(state)) {
+                unsubscribe();
+                resolve();
+            }
+        };
+        unsubscribe = navigationRef.current.addListener('state', handleStateChange);
+    });
+}
+
 export default {
     setShouldPopAllStateOnUP,
     canNavigate,
@@ -268,6 +330,9 @@ export default {
     setIsNavigationReady,
     getTopmostReportId,
     getRouteNameFromStateEvent,
+    waitForProtectedRoutes,
+    getTopMostCentralPaneRouteName,
+    getTopmostReportActionId,
 };
 
 export {navigationRef};

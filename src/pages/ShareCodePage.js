@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, ScrollView} from 'react-native';
+import _ from 'underscore';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Navigation from '../libs/Navigation/Navigation';
@@ -40,15 +41,34 @@ const defaultProps = {
 class ShareCodePage extends React.Component {
     qrCodeRef = React.createRef();
 
+    /**
+     * @param {Boolean} isReport
+     * @return {String|string|*}
+     */
+    getSubtitle(isReport) {
+        if (ReportUtils.isExpenseReport(this.props.report)) {
+            return ReportUtils.getPolicyName(this.props.report);
+        }
+        if (ReportUtils.isMoneyRequestReport(this.props.report)) {
+            // generate subtitle from participants
+            return _.map(ReportUtils.getParticipantsIDs(this.props.report), (accountID) => ReportUtils.getDisplayNameForParticipant(accountID)).join(' & ');
+        }
+
+        if (isReport) {
+            return ReportUtils.getParentNavigationSubtitle(this.props.report).workspaceName || ReportUtils.getChatRoomSubtitle(this.props.report);
+        }
+
+        return this.props.formatPhoneNumber(this.props.session.email);
+    }
+
     render() {
         const isReport = this.props.report != null && this.props.report.reportID != null;
         const title = isReport ? ReportUtils.getReportName(this.props.report) : this.props.currentUserPersonalDetails.displayName;
-        const formattedEmail = this.props.formatPhoneNumber(this.props.session.email);
-        const subtitle = isReport ? ReportUtils.getParentNavigationSubtitle(this.props.report).workspaceName || ReportUtils.getChatRoomSubtitle(this.props.report) : formattedEmail;
+        const subtitle = this.getSubtitle(isReport);
         const urlWithTrailingSlash = Url.addTrailingForwardSlash(this.props.environmentURL);
         const url = isReport
-            ? `${urlWithTrailingSlash}${ROUTES.getReportRoute(this.props.report.reportID)}`
-            : `${urlWithTrailingSlash}${ROUTES.getProfileRoute(this.props.session.accountID)}`;
+            ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(this.props.report.reportID)}`
+            : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(this.props.session.accountID)}`;
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
@@ -57,7 +77,7 @@ class ShareCodePage extends React.Component {
             <ScreenWrapper testID={ShareCodePage.displayName}>
                 <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}
-                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.getReportDetailsRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
+                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
                 />
 
                 <ScrollView style={[styles.flex1, styles.mt3]}>

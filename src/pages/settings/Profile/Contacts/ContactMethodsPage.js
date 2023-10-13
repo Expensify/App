@@ -2,8 +2,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '../../../../components/Button';
@@ -100,7 +99,7 @@ function ContactMethodsPage(props) {
                 <MenuItem
                     title={menuItemTitle}
                     description={description}
-                    onPress={() => Navigation.navigate(ROUTES.getEditContactMethodRoute(partnerUserID))}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID))}
                     brickRoadIndicator={indicator}
                     shouldShowBasicTitle
                     shouldShowRightIcon
