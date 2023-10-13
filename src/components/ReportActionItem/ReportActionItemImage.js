@@ -28,17 +28,13 @@ const propTypes = {
     /** whether or not to enable the image preview modal */
     enablePreviewModal: PropTypes.bool,
 
-    /** The transactionID associated with this image, if any */
-    transactionID: PropTypes.string,
-
-    /* Onyx Props */
+    /* The transaction associated with this image, if any. Passed for handling eReceipts. */
     transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     thumbnail: null,
     transaction: {},
-    transactionID: '',
     enablePreviewModal: false,
 };
 
@@ -48,7 +44,7 @@ const defaultProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, transactionID}) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction}) {
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
@@ -59,7 +55,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
     if (isEReceipt) {
         receiptImageComponent = (
             <View style={[styles.w100, styles.h100]}>
-                <EReceiptThumbnail transactionID={transactionID} />
+                <EReceiptThumbnail transactionID={transaction.transactionID} />
             </View>
         );
     } else if (thumbnail) {
@@ -107,8 +103,4 @@ ReportActionItemImage.propTypes = propTypes;
 ReportActionItemImage.defaultProps = defaultProps;
 ReportActionItemImage.displayName = 'ReportActionItemImage';
 
-export default withOnyx({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
-})(ReportActionItemImage);
+export default ReportActionItemImage;

@@ -7,6 +7,7 @@ import Text from '../Text';
 import ReportActionItemImage from './ReportActionItemImage';
 import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
+import transactionPropTypes from '../transactionPropTypes';
 
 const propTypes = {
     /** array of image and thumbnail URIs */
@@ -14,7 +15,7 @@ const propTypes = {
         PropTypes.shape({
             thumbnail: PropTypes.string,
             image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-            transactionID: PropTypes.string,
+            transaction: transactionPropTypes,
         }),
     ).isRequired,
 
@@ -67,7 +68,7 @@ function ReportActionItemImages({images, size, total, isHovered}) {
 
     return (
         <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-            {_.map(shownImages, ({thumbnail, image, transactionID}, index) => {
+            {_.map(shownImages, ({thumbnail, image, transaction}, index) => {
                 const isLastImage = index === numberOfShownImages - 1;
 
                 // Show a border to separate multiple images. Shown to the right for each except the last.
@@ -81,7 +82,7 @@ function ReportActionItemImages({images, size, total, isHovered}) {
                         <ReportActionItemImage
                             thumbnail={thumbnail}
                             image={image}
-                            transactionID={transactionID}
+                            transaction={transaction}
                         />
                         {isLastImage && remaining > 0 && (
                             <View style={[styles.reportActionItemImagesMoreContainer]}>

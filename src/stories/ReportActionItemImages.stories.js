@@ -40,7 +40,22 @@ Default.args = {
 
 const DisplayEReceipt = Template.bind({});
 DisplayEReceipt.args = {
-    images: [{image: 'eReceipt/FAKE_3', thumbnail: '', transactionID: 'FAKE_3'}],
+    images: [
+        {
+            image: 'eReceipt/FAKE_3',
+            thumbnail: '',
+            transaction: {
+                transactionID: 'FAKE_3',
+                amount: 1000,
+                currency: 'USD',
+                cardID: 5,
+                merchant: 'United Airlines',
+                mccGroup: 'Commuter',
+                created: '2023-07-24 13:46:20',
+                hasEReceipt: true,
+            },
+        },
+    ],
     size: 1,
     total: 1,
 };
@@ -48,9 +63,48 @@ DisplayEReceipt.args = {
 const DisplayMultipleEReceipts = Template.bind({});
 DisplayMultipleEReceipts.args = {
     images: [
-        {image: 'eReceipt/FAKE_3', thumbnail: '', transactionID: 'FAKE_3'},
-        {image: 'eReceipt/FAKE_5', thumbnail: '', transactionID: 'FAKE_5'},
-        {image: 'eReceipt/FAKE_2', thumbnail: '', transactionID: 'FAKE_2'},
+        {
+            image: 'eReceipt/FAKE_3',
+            thumbnail: '',
+            transaction: {
+                transactionID: 'FAKE_3',
+                amount: 1000,
+                currency: 'USD',
+                cardID: 5,
+                merchant: 'United Airlines',
+                mccGroup: 'Commuter',
+                created: '2023-07-24 13:46:20',
+                hasEReceipt: true,
+            },
+        },
+        {
+            image: 'eReceipt/FAKE_5',
+            thumbnail: '',
+            transaction: {
+                transactionID: 'FAKE_5',
+                amount: 230440,
+                currency: 'USD',
+                cardID: 4,
+                merchant: 'Barnes and Noble',
+                mccGroup: 'Goods',
+                created: '2022-03-21 13:46:20',
+                hasEReceipt: true,
+            },
+        },
+        {
+            image: 'eReceipt/FAKE_2',
+            thumbnail: '',
+            transaction: {
+                transactionID: 'FAKE_2',
+                amount: 1000,
+                currency: 'USD',
+                cardID: 4,
+                merchant: 'United Airlines',
+                mccGroup: 'Airlines',
+                created: '2023-07-24 13:46:20',
+                hasEReceipt: true,
+            },
+        },
     ],
     size: 3,
     total: 3,
