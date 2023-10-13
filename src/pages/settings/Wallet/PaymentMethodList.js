@@ -203,6 +203,7 @@ function PaymentMethodList({
             return _.map(assignedCards, (card) => {
                 const icon = getBankIcon(card.bank);
                 return {
+                    key: card.key,
                     title: translate('walletPage.expensifyCard'),
                     description: card.domainName,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(card.domainName)),

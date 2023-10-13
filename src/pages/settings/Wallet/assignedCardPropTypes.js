@@ -10,7 +10,7 @@ const assignedCardPropTypes = PropTypes.shape({
     domainName: PropTypes.string,
     maskedPan: PropTypes.string,
     isVirtual: PropTypes.bool,
-    fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES,
+    fraud: PropTypes.oneOf([CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN, CONST.EXPENSIFY_CARD.FRAUD_TYPES.USER, CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE]),
     cardholderFirstName: PropTypes.string,
     cardholderLastName: PropTypes.string,
 });
