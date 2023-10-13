@@ -145,16 +145,22 @@ function ReportActionItem(props) {
     }, [isActiveReportActionForMenu]);
 
     useEffect(() => {
-        if (
-            props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
-            _.isEmpty(props.action.errors) ||
-            props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED ||
-            props.report.statusNum !== CONST.REPORT.STATUS.APPROVED
-        ) {
-            return;
+        const shouldClearReopenError =
+            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
+            !_.isEmpty(props.action.errors) &&
+            props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
+            props.report.statusNum === CONST.REPORT.STATUS.OPEN;
+
+        const shouldClearCompletedTask =
+            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED &&
+            !_.isEmpty(props.action.errors) &&
+            props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED &&
+            props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
+
+        if (shouldClearCompletedTask || shouldClearReopenError) {
+            ReportActions.clearReportActionErrors(props.report.reportID, props.action);
         }
-        ReportActions.clearReportActionErrors(props.report.reportID, props.action);
-    }, [props]);
+    }, [props.action, props.report]);
 
     const updateHiddenState = useCallback(
         (isHiddenValue) => {
