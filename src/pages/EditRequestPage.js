@@ -5,6 +5,7 @@ import lodashValues from 'lodash/values';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import ROUTES from '../ROUTES';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
@@ -204,6 +205,10 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
                         amount,
                         currency: defaultCurrency,
                     });
+                }}
+                onNavigateToCurrency={() => {
+                    const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+                    Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
                 }}
             />
         );

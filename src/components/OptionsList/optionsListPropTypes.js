@@ -87,6 +87,9 @@ const propTypes = {
 
     /** Whether to wrap large text up to 2 lines */
     isRowMultilineSupported: PropTypes.bool,
+
+    /** Whether we are loading new options */
+    isLoadingNewOptions: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -113,6 +116,7 @@ const defaultProps = {
     shouldPreventDefaultFocusOnSelectRow: false,
     showScrollIndicator: false,
     isRowMultilineSupported: false,
+    isLoadingNewOptions: false,
 };
 
 export {propTypes, defaultProps};
