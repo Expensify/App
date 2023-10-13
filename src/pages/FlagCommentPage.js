@@ -7,7 +7,6 @@ import reportPropTypes from './reportPropTypes';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import ONYXKEYS from '../ONYXKEYS';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import styles from '../styles/styles';
@@ -21,7 +20,8 @@ import * as ReportUtils from '../libs/ReportUtils';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as Session from '../libs/actions/Session';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import FullscreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** Array of report actions for this report */
@@ -41,16 +41,12 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** Indicates whether the report data is loading */
-    isLoadingReportData: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reportActions: {},
     report: {},
-    isLoadingReportData: true,
 };
 
 /**
@@ -157,15 +153,13 @@ function FlagCommentPage(props) {
         />
     ));
 
-    const shouldShowLoading = props.isLoadingReportData || props.report.isLoadingReportActions;
-    if (shouldShowLoading) {
-        return <FullscreenLoadingIndicator />;
-    }
-
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={FlagCommentPage.displayName}
+        >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!shouldShowLoading && !ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
+                <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
                     <HeaderWithBackButton title={props.translate('reportActionContextMenu.flagAsOffensive')} />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
@@ -191,16 +185,11 @@ FlagCommentPage.displayName = 'FlagCommentPage';
 
 export default compose(
     withLocalize,
+    withReportAndReportActionOrNotFound,
     withOnyx({
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID || report.reportID}`,
             canEvict: false,
-        },
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(FlagCommentPage);

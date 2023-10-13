@@ -40,14 +40,17 @@ const propTypes = {
      * 2.5 items. When this value is true, the height can be up to 5 items.  */
     isEmojiPickerLarge: PropTypes.bool.isRequired,
 
-    /** Show that we should include ReportRecipientLocalTime view height */
-    shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
-
     /** Stores user's preferred skin tone */
     preferredSkinToneIndex: PropTypes.number.isRequired,
+
+    /** Meaures the parent container's position and dimensions. */
+    measureParentContainer: PropTypes.func,
 };
 
-const defaultProps = {highlightedEmojiIndex: 0};
+const defaultProps = {
+    highlightedEmojiIndex: 0,
+    measureParentContainer: () => {},
+};
 
 /**
  * Create unique keys for each emoji item
@@ -96,8 +99,8 @@ function EmojiSuggestions(props) {
             highlightedSuggestionIndex={props.highlightedEmojiIndex}
             onSelect={props.onSelect}
             isSuggestionPickerLarge={props.isEmojiPickerLarge}
-            shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
             accessibilityLabelExtractor={keyExtractor}
+            measureParentContainer={props.measureParentContainer}
         />
     );
 }

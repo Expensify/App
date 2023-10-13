@@ -6,6 +6,7 @@ import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import DomUtils from '../../libs/DomUtils';
 import Visibility from '../../libs/Visibility';
+import * as Browser from '../../libs/Browser';
 
 function TextInput(props) {
     const textInputRef = useRef(null);
@@ -21,7 +22,7 @@ function TextInput(props) {
         }
 
         removeVisibilityListenerRef.current = Visibility.onVisibilityChange(() => {
-            if (!Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
+            if (!Browser.isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
                 return;
             }
             textInputRef.current.blur();
@@ -29,7 +30,9 @@ function TextInput(props) {
         });
 
         return () => {
-            if (!removeVisibilityListenerRef.current) return;
+            if (!removeVisibilityListenerRef.current) {
+                return;
+            }
             removeVisibilityListenerRef.current();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps

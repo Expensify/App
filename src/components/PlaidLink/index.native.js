@@ -1,16 +1,13 @@
 import {useEffect} from 'react';
 import {openLink, useDeepLinkRedirector, usePlaidEmitter} from 'react-native-plaid-link-sdk';
 import Log from '../../libs/Log';
-import CONST from '../../CONST';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 
 function PlaidLink(props) {
     useDeepLinkRedirector();
     usePlaidEmitter((event) => {
         Log.info('[PlaidLink] Handled Plaid Event: ', false, event);
-        if (event.eventName === CONST.PLAID.EVENT.ERROR) {
-            props.onError(event.metadata);
-        }
+        props.onEvent(event.eventName, event.metadata);
     });
     useEffect(() => {
         openLink({

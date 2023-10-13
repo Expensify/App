@@ -7,6 +7,7 @@ import CoffeeMug from '../../../assets/images/simple-illustrations/simple-illust
 import ConciergeBlue from '../../../assets/images/product-illustrations/concierge--blue.svg';
 import ConciergeExclamation from '../../../assets/images/product-illustrations/concierge--exclamation.svg';
 import CreditCardsBlue from '../../../assets/images/product-illustrations/credit-cards--blue.svg';
+import EmailAddress from '../../../assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import InvoiceOrange from '../../../assets/images/product-illustrations/invoice--orange.svg';
 import JewelBoxBlue from '../../../assets/images/product-illustrations/jewel-box--blue.svg';
 import JewelBoxGreen from '../../../assets/images/product-illustrations/jewel-box--green.svg';
@@ -44,6 +45,7 @@ import MoneyBadge from '../../../assets/images/simple-illustrations/simple-illus
 import TreasureChest from '../../../assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import ThumbsUpStars from '../../../assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import Hands from '../../../assets/images/product-illustrations/home-illustration-hands.svg';
+import HandEarth from '../../../assets/images/simple-illustrations/simple-illustration__handearth.svg';
 
 export {
     Abracadabra,
@@ -55,6 +57,7 @@ export {
     ConciergeBlue,
     ConciergeExclamation,
     CreditCardsBlue,
+    EmailAddress,
     InvoiceOrange,
     JewelBoxBlue,
     JewelBoxGreen,
@@ -92,4 +95,5 @@ export {
     TreasureChest,
     ThumbsUpStars,
     Hands,
+    HandEarth,
 };

@@ -67,14 +67,18 @@ function AddReactionBubble(props) {
                 refParam || ref.current,
                 anchorOrigin,
                 props.onWillShowPicker,
-                props.reportAction,
+                props.reportAction.reportActionID,
             );
         };
 
-        if (props.onPressOpenPicker) {
-            props.onPressOpenPicker(openPicker);
+        if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
+            if (props.onPressOpenPicker) {
+                props.onPressOpenPicker(openPicker);
+            } else {
+                openPicker();
+            }
         } else {
-            openPicker();
+            EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
         }
     };
 
@@ -84,12 +88,20 @@ function AddReactionBubble(props) {
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
                 onPress={Session.checkIfActionIsAllowed(onPress)}
-                // Prevent text input blur when Add reaction is clicked
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => {
+                    // Allow text input blur when Add reaction is right clicked
+                    if (!e || e.button === 2) {
+                        return;
+                    }
+
+                    // Prevent text input blur when Add reaction is left clicked
+                    e.preventDefault();
+                }}
                 accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 // disable dimming
                 pressDimmingValue={1}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {({hovered, pressed}) => (
                     <>

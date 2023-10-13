@@ -5,8 +5,8 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import styles from '../../styles/styles';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import Navigation from '../../libs/Navigation/Navigation';
-import * as Policy from '../../libs/actions/Policy';
 import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -102,10 +102,11 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            testID={WorkspacePageWithSections.displayName}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                shouldShow={_.isEmpty(policy) || !Policy.isPolicyOwner(policy)}
+                shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
                 subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
                 <HeaderWithBackButton
@@ -113,7 +114,7 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
                     subtitle={policyName}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={guidesCallTaskID}
-                    onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                 />
                 {shouldUseScrollView ? (
                     <ScrollViewWithContext
@@ -133,6 +134,7 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
 
 WorkspacePageWithSections.propTypes = propTypes;
 WorkspacePageWithSections.defaultProps = defaultProps;
+WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
 
 export default compose(
     withOnyx({

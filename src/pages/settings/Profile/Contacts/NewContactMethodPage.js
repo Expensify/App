@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import compose from '../../../../libs/compose';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
@@ -49,27 +48,9 @@ const defaultProps = {
     loginList: {},
 };
 
-const getPhoneLogin = (phoneOrEmail) => {
-    if (_.isEmpty(phoneOrEmail)) {
-        return '';
-    }
-
-    return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
-};
-
-const validateNumber = (values) => {
-    const parsedPhoneNumber = parsePhoneNumber(values);
-
-    if (parsedPhoneNumber.possible && Str.isValidPhone(values.slice(0))) {
-        return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
-    }
-
-    return '';
-};
-
 const addNewContactMethod = (values) => {
-    const phoneLogin = getPhoneLogin(values.phoneOrEmail);
-    const validateIfnumber = validateNumber(phoneLogin);
+    const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
+    const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
     const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
 
     User.addNewContactMethodAndNavigate(submitDetail);
@@ -80,8 +61,8 @@ function NewContactMethodPage(props) {
 
     const validate = React.useCallback(
         (values) => {
-            const phoneLogin = getPhoneLogin(values.phoneOrEmail);
-            const validateIfnumber = validateNumber(phoneLogin);
+            const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
+            const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
 
             const errors = {};
 
@@ -117,6 +98,7 @@ function NewContactMethodPage(props) {
             }}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={NewContactMethodPage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
@@ -151,6 +133,7 @@ function NewContactMethodPage(props) {
 
 NewContactMethodPage.propTypes = propTypes;
 NewContactMethodPage.defaultProps = defaultProps;
+NewContactMethodPage.displayName = 'NewContactMethodPage';
 
 export default compose(
     withLocalize,

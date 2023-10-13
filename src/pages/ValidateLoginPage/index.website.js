@@ -7,10 +7,8 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
-import useLocalize from '../../hooks/useLocalize';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
 import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import JustSignedInModal from '../../components/ValidateCode/JustSignedInModal';
 
@@ -50,7 +48,6 @@ const defaultProps = {
 };
 
 function ValidateLoginPage(props) {
-    const {preferredLocale} = useLocalize();
     const login = lodashGet(props, 'credentials.login', null);
     const autoAuthState = lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
     const accountID = lodashGet(props.route.params, 'accountID', '');
@@ -62,7 +59,7 @@ function ValidateLoginPage(props) {
     useEffect(() => {
         if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
-            Navigation.navigate(ROUTES.REPORT);
+            Navigation.navigate();
             return;
         }
         Session.initAutoAuthState(autoAuthState);
@@ -72,7 +69,7 @@ function ValidateLoginPage(props) {
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(accountID, validateCode, preferredLocale);
+        Session.signInWithValidateCode(accountID, validateCode);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -82,7 +79,7 @@ function ValidateLoginPage(props) {
         }
 
         // The user clicked the option to sign in the current tab
-        Navigation.navigate(ROUTES.REPORT);
+        Navigation.navigate();
     }, [login, cachedAccountID, is2FARequired]);
 
     return (

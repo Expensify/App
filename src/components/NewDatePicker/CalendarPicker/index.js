@@ -125,12 +125,15 @@ class CalendarPicker extends React.PureComponent {
         const currentMonthView = this.state.currentDateView.getMonth();
         const currentYearView = this.state.currentDateView.getFullYear();
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-        const hasAvailableDatesNextMonth = moment(this.props.maxDate).endOf('month').startOf('day') > moment(this.state.currentDateView).add(1, 'months');
-        const hasAvailableDatesPrevMonth = moment(this.props.minDate).startOf('day') < moment(this.state.currentDateView).subtract(1, 'months').endOf('month');
+        const hasAvailableDatesNextMonth = moment(this.props.maxDate).endOf('month').endOf('day') >= moment(this.state.currentDateView).add(1, 'months');
+        const hasAvailableDatesPrevMonth = moment(this.props.minDate).startOf('month').startOf('day') <= moment(this.state.currentDateView).subtract(1, 'months');
 
         return (
             <View>
-                <View style={[styles.calendarHeader, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph4, styles.pr1]}>
+                <View
+                    style={[styles.calendarHeader, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph4, styles.pr1]}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                >
                     <PressableWithFeedback
                         onPress={() => this.setState({isYearPickerVisible: true})}
                         style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
@@ -186,6 +189,7 @@ class CalendarPicker extends React.PureComponent {
                         <View
                             key={dayOfWeek}
                             style={[styles.calendarDayRoot, styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={styles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
                         </View>
@@ -212,6 +216,7 @@ class CalendarPicker extends React.PureComponent {
                                     accessibilityLabel={day ? day.toString() : undefined}
                                     focusable={Boolean(day)}
                                     accessible={Boolean(day)}
+                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 >
                                     {({hovered, pressed}) => (
                                         <View

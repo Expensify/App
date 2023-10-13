@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -19,6 +19,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
+import * as ActiveClientManager from '../../libs/ActiveClientManager';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -45,11 +46,19 @@ const propTypes = {
         twoFactorAuthCode: PropTypes.string,
         validateCode: PropTypes.string,
     }),
+
+    /** Active Clients connected to ONYX Database */
+    activeClients: PropTypes.arrayOf(PropTypes.string),
+
+    /** Whether or not the sign in page is being rendered in the RHP modal */
+    isInModal: PropTypes.bool,
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
+    isInModal: false,
+    activeClients: [],
 };
 
 /**
@@ -60,13 +69,13 @@ const defaultProps = {
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, hasEmailDeliveryFailure}) {
-    const shouldShowLoginForm = !hasLogin && !hasValidateCode;
+function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, hasEmailDeliveryFailure, isClientTheLeader}) {
+    const shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || !isClientTheLeader;
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
@@ -77,15 +86,22 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     };
 }
 
-function SignInPage({credentials, account}) {
+function SignInPage({credentials, account, isInModal, activeClients}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
     const safeAreaInsets = useSafeAreaInsets();
+    const signInPageLayoutRef = useRef();
+    /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
+     * and we need it here since welcome text(`welcomeText`) also depends on it */
+    const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
+
+    const isClientTheLeader = activeClients && ActiveClientManager.isClientTheLeader();
 
     const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions(
         {
@@ -95,38 +111,44 @@ function SignInPage({credentials, account}) {
             isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
             isAccountValidated: Boolean(account.validated),
             hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
+            isClientTheLeader,
         },
     );
 
     let welcomeHeader = '';
     let welcomeText = '';
-    if (shouldShowLoginForm) {
-        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
+    const headerText = translate('login.hero.header');
+
+    if (!isClientTheLeader) {
+        welcomeHeader = translate('welcomeText.anotherLoginPageIsOpen');
+        welcomeText = translate('welcomeText.anotherLoginPageIsOpenExplanation');
+    } else if (shouldShowLoginForm) {
+        welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
         welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
     } else if (shouldShowValidateCodeForm) {
         if (account.requiresTwoFactorAuth) {
             // We will only know this after a user signs in successfully, without their 2FA code
             welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-            welcomeText = translate('validateCodeForm.enterAuthenticatorCode');
+            welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
             const userLogin = Str.removeSMSDomain(credentials.login || '');
 
             // replacing spaces with "hard spaces" to prevent breaking the number
             const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
             if (account.validated) {
-                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-                welcomeText = isSmallScreenWidth
+                welcomeHeader = shouldShowSmallScreen ? '' : translate('welcomeText.welcomeBack');
+                welcomeText = shouldShowSmallScreen
                     ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
             } else {
-                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcome');
-                welcomeText = isSmallScreenWidth
+                welcomeHeader = shouldShowSmallScreen ? '' : translate('welcomeText.welcome');
+                welcomeText = shouldShowSmallScreen
                     ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
-        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
+        welcomeHeader = shouldShowSmallScreen ? headerText : translate('welcomeText.welcomeBack');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
         if (shouldShowEmailDeliveryFailurePage) {
@@ -137,20 +159,31 @@ function SignInPage({credentials, account}) {
     }
 
     return (
-        <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding(safeAreaInsets, 1)]}>
+        // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
+        // The SVG should flow under the Home Indicator on iOS.
+        <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0}, 1)]}>
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
-                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth}
+                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth || !isInModal}
                 shouldShowWelcomeText={shouldShowWelcomeText}
+                ref={signInPageLayoutRef}
+                isInModal={isInModal}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering this component will break this feature. */}
                 <LoginForm
+                    isInModal={isInModal}
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}
+                    scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}
                 />
-                {shouldShowValidateCodeForm && <ValidateCodeForm />}
+                {shouldShowValidateCodeForm && (
+                    <ValidateCodeForm
+                        isUsingRecoveryCode={isUsingRecoveryCode}
+                        setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                    />
+                )}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
                 {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
@@ -165,4 +198,12 @@ SignInPage.displayName = 'SignInPage';
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
+    /** 
+    This variable is only added to make sure the component is re-rendered 
+    whenever the activeClients change, so that we call the 
+    ActiveClientManager.isClientTheLeader function 
+    everytime the leader client changes.
+    We use that function to prevent repeating code that checks which client is the leader.
+    */
+    activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS},
 })(SignInPage);

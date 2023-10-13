@@ -1,7 +1,7 @@
+/* eslint-disable rulesdir/prefer-underscore-method */
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
@@ -16,7 +16,6 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 const visibleReportActionItems = {};
 const lastReportActions = {};
-const reportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -32,11 +31,12 @@ Onyx.connect({
         // does not match a closed or created state.
         const reportActionsForDisplay = _.filter(
             actionsArray,
-            (reportAction, actionKey) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+            (reportAction, actionKey) =>
+                ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
-
-        reportActions[key] = actions;
     },
 });
 
@@ -71,9 +71,35 @@ function isSidebarLoadedReady() {
     return sidebarIsReadyPromise;
 }
 
+function compareStringDates(stringA, stringB) {
+    if (stringA < stringB) {
+        return -1;
+    }
+    if (stringA > stringB) {
+        return 1;
+    }
+    return 0;
+}
+
 function setIsSidebarLoadedReady() {
     resolveSidebarIsReadyPromise();
 }
+
+// Define a cache object to store the memoized results
+const reportIDsCache = new Map();
+
+// Function to set a key-value pair while maintaining the maximum key limit
+function setWithLimit(map, key, value) {
+    if (map.size >= 5) {
+        // If the map has reached its limit, remove the first (oldest) key-value pair
+        const firstKey = map.keys().next().value;
+        map.delete(firstKey);
+    }
+    map.set(key, value);
+}
+
+// Variable to verify if ONYX actions are loaded
+let hasInitialReportActions = false;
 
 /**
  * @param {String} currentReportId
@@ -85,24 +111,46 @@ function setIsSidebarLoadedReady() {
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions) {
-    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    const isInDefaultMode = !isInGSDMode;
-
-    // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReportsDict, (report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies, allReportActions),
+    // Generate a unique cache key based on the function arguments
+    const cachedReportsKey = JSON.stringify(
+        // eslint-disable-next-line es/no-optional-chaining
+        [currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
+        (key, value) => {
+            /**
+             *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,
+             *  which we don't need to store in a cacheKey
+             */
+            if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText') {
+                return undefined;
+            }
+            return value;
+        },
     );
 
-    if (_.isEmpty(reportsToDisplay)) {
+    // Check if the result is already in the cache
+    if (reportIDsCache.has(cachedReportsKey) && hasInitialReportActions) {
+        return reportIDsCache.get(cachedReportsKey);
+    }
+
+    // This is needed to prevent caching when Onyx is empty for a second render
+    hasInitialReportActions = Object.values(lastReportActions).length > 0;
+
+    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+    const isInDefaultMode = !isInGSDMode;
+    const allReportsDictValues = Object.values(allReportsDict);
+    // Filter out all the reports that shouldn't be displayed
+    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, true));
+
+    if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
-        const conciergeChatReport = _.find(allReportsDict, ReportUtils.isConciergeChatReport);
+        const conciergeChatReport = allReportsDictValues.find(ReportUtils.isConciergeChatReport);
         if (conciergeChatReport) {
             reportsToDisplay.push(conciergeChatReport);
         }
     }
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    _.each(reportsToDisplay, (report) => {
+    reportsToDisplay.forEach((report) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
@@ -117,75 +165,66 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     // 1. Pinned - Always sorted by reportDisplayName
     // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
     // 3. Drafts - Always sorted by reportDisplayName
-    // 4. Non-archived reports
+    // 4. Non-archived reports and settled IOUs
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     // 5. Archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
-    let pinnedReports = [];
-    let outstandingIOUReports = [];
-    let draftReports = [];
-    let nonArchivedReports = [];
-    let archivedReports = [];
-    _.each(reportsToDisplay, (report) => {
+    const pinnedReports = [];
+    const outstandingIOUReports = [];
+    const draftReports = [];
+    const nonArchivedReports = [];
+    const archivedReports = [];
+    reportsToDisplay.forEach((report) => {
         if (report.isPinned) {
             pinnedReports.push(report);
-            return;
-        }
-
-        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report, allReportsDict)) {
+        } else if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
             outstandingIOUReports.push(report);
-            return;
-        }
-
-        if (report.hasDraft) {
+        } else if (report.hasDraft) {
             draftReports.push(report);
-            return;
-        }
-
-        if (ReportUtils.isArchivedRoom(report)) {
+        } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(report);
-            return;
+        } else {
+            nonArchivedReports.push(report);
         }
-
-        if (ReportUtils.isTaskReport(report) && ReportUtils.isCompletedTaskReport(report)) {
-            archivedReports.push(report);
-            return;
-        }
-
-        nonArchivedReports.push(report);
     });
 
     // Sort each group of reports accordingly
-    pinnedReports = _.sortBy(pinnedReports, (report) => report.displayName.toLowerCase());
-    outstandingIOUReports = lodashOrderBy(outstandingIOUReports, ['iouReportAmount', (report) => report.displayName.toLowerCase()], ['desc', 'asc']);
-    draftReports = _.sortBy(draftReports, (report) => report.displayName.toLowerCase());
-    nonArchivedReports = isInDefaultMode
-        ? lodashOrderBy(nonArchivedReports, ['lastVisibleActionCreated', (report) => report.displayName.toLowerCase()], ['desc', 'asc'])
-        : lodashOrderBy(nonArchivedReports, [(report) => report.displayName.toLowerCase()], ['asc']);
-    archivedReports = _.sortBy(archivedReports, (report) => (isInDefaultMode ? report.lastVisibleActionCreated : report.displayName.toLowerCase()));
+    pinnedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
+    outstandingIOUReports.sort((a, b) => b.iouReportAmount - a.iouReportAmount || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
+    draftReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
 
-    // For archived reports ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
     if (isInDefaultMode) {
-        archivedReports.reverse();
+        nonArchivedReports.sort(
+            (a, b) => compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()),
+        );
+        // For archived reports ensure that most recent reports are at the top by reversing the order
+        archivedReports.sort((a, b) => compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated));
+    } else {
+        nonArchivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
+        archivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     }
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    return _.pluck([].concat(pinnedReports).concat(outstandingIOUReports).concat(draftReports).concat(nonArchivedReports).concat(archivedReports), 'reportID');
+    const LHNReports = [].concat(pinnedReports, outstandingIOUReports, draftReports, nonArchivedReports, archivedReports).map((report) => report.reportID);
+    setWithLimit(reportIDsCache, cachedReportsKey, LHNReports);
+    return LHNReports;
 }
 
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  *
  * @param {Object} report
+ * @param {Object} reportActions
  * @param {Object} personalDetails
  * @param {String} preferredLocale
  * @param {Object} [policy]
+ * @param {Object} parentReportAction
  * @returns {Object}
  */
-function getOptionData(report, personalDetails, preferredLocale, policy) {
+function getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -207,8 +246,10 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
         accountID: null,
         managerID: null,
         reportID: null,
+        policyID: null,
+        statusNum: null,
+        stateNum: null,
         phoneNumber: null,
-        payPalMeAddress: null,
         isUnread: null,
         isUnreadWithMention: null,
         hasDraftComment: false,
@@ -237,8 +278,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
     if (result.isTaskReport) {
-        result.isCompletedTaskReport = ReportUtils.isCompletedTaskReport(report);
-        result.isTaskAssignee = ReportUtils.isTaskAssignee(report);
+        result.isWaitingForTaskCompleteFromAssignee = ReportUtils.isWaitingForTaskCompleteFromAssignee(report, parentReportAction);
     }
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -251,6 +291,9 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
+    result.policyID = report.policyID;
+    result.stateNum = report.stateNum;
+    result.statusNum = report.statusNum;
     result.isUnread = ReportUtils.isUnread(report);
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
     result.hasDraftComment = report.hasDraft;
@@ -262,15 +305,13 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.parentReportID = report.parentReportID || null;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference || null;
-
-    const {addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
-    // If the composer is hidden then the user is not allowed to comment, same can be used to hide the draft icon.
-    result.isAllowedToComment = !ReportUtils.shouldHideComposer(report, addWorkspaceRoomOrChatErrors);
+    result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
     const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
+    const status = lodashGet(personalDetail, 'status', '');
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
@@ -290,9 +331,9 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
               }
             : null;
     }
-    let lastMessageText =
-        hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
-    lastMessageText += report ? lastMessageTextFromReport : '';
+    const lastActorDisplayName =
+        hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? lastActorDetails.displayName : '';
+    let lastMessageText = lastMessageTextFromReport;
 
     if (result.isArchivedRoom) {
         const archiveReason =
@@ -310,9 +351,11 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
             const newName = lodashGet(lastAction, 'originalMessage.newName', '');
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
         } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}: ${report.reportName}`;
+            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}`;
         } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}: ${report.reportName}`;
+            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}`;
+        } else if (lodashGet(lastAction, 'actionName', '') !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
+            result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
@@ -347,7 +390,6 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
         result.accountID = personalDetail.accountID;
         result.login = personalDetail.login;
         result.phoneNumber = personalDetail.phoneNumber;
-        result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
     const reportName = ReportUtils.getReportName(report, policy);
@@ -356,10 +398,16 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), true, '', -1, policy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
     result.isLastMessageDeletedParentAction = report.isLastMessageDeletedParentAction;
+
+    if (status) {
+        result.status = status;
+    }
+    result.type = report.type;
+
     return result;
 }
 

@@ -7,7 +7,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
 import Log from '../../Log';
-import PushNotification from '../../Notification/PushNotification';
 import Timing from '../Timing';
 import CONST from '../../../CONST';
 import Timers from '../../Timers';
@@ -18,17 +17,26 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import Navigation from '../../Navigation/Navigation';
 import * as Device from '../Device';
-import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
-import * as Report from '../Report';
 import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 
-let authTokenType = '';
+let sessionAuthTokenType = '';
+let sessionAuthToken = null;
+let authPromiseResolver = null;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (session) => (authTokenType = lodashGet(session, 'authTokenType')),
+    callback: (session) => {
+        sessionAuthTokenType = lodashGet(session, 'authTokenType');
+        sessionAuthToken = lodashGet(session, 'authToken');
+
+        if (sessionAuthToken && authPromiseResolver) {
+            authPromiseResolver(true);
+            authPromiseResolver = null;
+        }
+    },
 });
 
 let credentials = {};
@@ -37,26 +45,10 @@ Onyx.connect({
     callback: (val) => (credentials = val || {}),
 });
 
-/**
- * Manage push notification subscriptions on sign-in/sign-out.
- *
- * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
- * push subscription when the session changes here.
- */
+let preferredLocale;
 Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
-    callback: (notificationID) => {
-        if (notificationID) {
-            PushNotification.register(notificationID);
-
-            // Prevent issue where report linking fails after users switch accounts without closing the app
-            PushNotification.init();
-            subscribeToReportCommentPushNotifications();
-        } else {
-            PushNotification.deregister();
-            PushNotification.clearNotifications();
-        }
-    },
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (val) => (preferredLocale = val),
 });
 
 /**
@@ -85,19 +77,21 @@ function signOut() {
  * @return {boolean}
  */
 function isAnonymousUser() {
-    return authTokenType === 'anonymousAccount';
+    return sessionAuthTokenType === 'anonymousAccount';
 }
 
 function signOutAndRedirectToSignIn() {
-    hideContextMenu(false);
-    signOut();
-    redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
-    if (isAnonymousUser()) {
+    hideContextMenu(false);
+    if (!isAnonymousUser()) {
+        signOut();
+        redirectToSignIn();
+    } else {
+        Navigation.navigate(ROUTES.SIGN_IN_MODAL);
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
-                Report.setLastOpenedPublicRoom(reportID);
+                Onyx.merge(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
             }
         });
     }
@@ -197,55 +191,87 @@ function resendValidateCode(login = credentials.login) {
 }
 
 /**
- * Checks the API to see if an account exists for the given login
+
+/**
+ * Constructs the state object for the BeginSignIn && BeginAppleSignIn API calls.
+ *  @returns {Object}
+ */
+function signInAttemptState() {
+    return {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    ...CONST.DEFAULT_ACCOUNT_DATA,
+                    isLoading: true,
+                    message: null,
+                    loadingForm: CONST.FORMS.LOGIN_FORM,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    loadingForm: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CREDENTIALS,
+                value: {
+                    validateCode: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    loadingForm: null,
+                    // eslint-disable-next-line rulesdir/prefer-localization
+                    errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
+                },
+            },
+        ],
+    };
+}
+
+/**
+ * Checks the API to see if an account exists for the given login.
  *
  * @param {String} login
  */
 function beginSignIn(login) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                ...CONST.DEFAULT_ACCOUNT_DATA,
-                isLoading: true,
-                message: null,
-                loadingForm: CONST.FORMS.LOGIN_FORM,
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                loadingForm: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CREDENTIALS,
-            value: {
-                validateCode: null,
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                loadingForm: null,
-                errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
-            },
-        },
-    ];
-
+    const {optimisticData, successData, failureData} = signInAttemptState();
     API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Given an idToken from Sign in with Apple, checks the API to see if an account
+ * exists for that email address and signs the user in if so.
+ *
+ * @param {String} idToken
+ */
+function beginAppleSignIn(idToken) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    API.write('SignInWithApple', {idToken, preferredLocale}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Shows Google sign-in process, and if an auth token is successfully obtained,
+ * passes the token on to the Expensify API to sign in with
+ *
+ * @param {String} token
+ */
+function beginGoogleSignIn(token) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    API.write('SignInWithGoogle', {token, preferredLocale}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -301,9 +327,8 @@ function signInWithShortLivedAuthToken(email, authToken) {
  *
  * @param {String} validateCode 6 digit code required for login
  * @param {String} [twoFactorAuthCode]
- * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
  */
-function signIn(validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
+function signIn(validateCode, twoFactorAuthCode) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -360,7 +385,7 @@ function signIn(validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES
     });
 }
 
-function signInWithValidateCode(accountID, code, preferredLocale = CONST.LOCALES.DEFAULT, twoFactorAuthCode = '') {
+function signInWithValidateCode(accountID, code, twoFactorAuthCode = '') {
     // If this is called from the 2fa step, get the validateCode directly from onyx
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
@@ -436,8 +461,8 @@ function signInWithValidateCode(accountID, code, preferredLocale = CONST.LOCALES
     });
 }
 
-function signInWithValidateCodeAndNavigate(accountID, validateCode, preferredLocale = CONST.LOCALES.DEFAULT, twoFactorAuthCode = '') {
-    signInWithValidateCode(accountID, validateCode, preferredLocale, twoFactorAuthCode);
+function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode = '') {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
     Navigation.navigate(ROUTES.HOME);
 }
 
@@ -739,8 +764,33 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
     API.write('TwoFactorAuth_Validate', {twoFactorAuthCode}, {optimisticData, successData, failureData});
 }
 
+/**
+ * Waits for a user to sign in.
+ *
+ * If the user is already signed in (`authToken` is truthy), the promise resolves immediately.
+ * Otherwise, the promise will resolve when the `authToken` in `ONYXKEYS.SESSION` becomes truthy via the Onyx callback.
+ * The promise will not reject on failed login attempt.
+ *
+ * @returns {Promise<boolean>} A promise that resolves to `true` once the user is signed in.
+ * @example
+ * waitForUserSignIn().then(() => {
+ *   console.log('User is signed in!');
+ * });
+ */
+function waitForUserSignIn() {
+    return new Promise((resolve) => {
+        if (sessionAuthToken) {
+            resolve(true);
+        } else {
+            authPromiseResolver = resolve;
+        }
+    });
+}
+
 export {
     beginSignIn,
+    beginAppleSignIn,
+    beginGoogleSignIn,
     setSupportAuthToken,
     checkIfActionIsAllowed,
     signIn,
@@ -764,4 +814,5 @@ export {
     isAnonymousUser,
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
+    waitForUserSignIn,
 };

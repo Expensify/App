@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -27,7 +27,7 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -46,13 +46,15 @@ function TaskShareDestinationSelectorModal(props) {
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
 
+    const optionRef = useRef();
+
     const filteredReports = useMemo(() => {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
             if (
-                !ReportUtils.isAllowedToComment(props.reports[reportKey]) ||
-                ReportUtils.isArchivedRoom(props.reports[reportKey]) ||
-                ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey])
+                ReportUtils.shouldDisableWriteActions(props.reports[reportKey]) ||
+                ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey]) ||
+                ReportUtils.isCanceledTaskReport(props.reports[reportKey])
             ) {
                 return;
             }
@@ -111,7 +113,11 @@ function TaskShareDestinationSelectorModal(props) {
 
     const sections = getSections();
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
+            testID={TaskShareDestinationSelectorModal.displayName}
+        >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
@@ -131,6 +137,8 @@ function TaskShareDestinationSelectorModal(props) {
                             shouldShowOptions={didScreenTransitionEnd}
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            autoFocus={false}
+                            ref={optionRef}
                         />
                     </View>
                 </>

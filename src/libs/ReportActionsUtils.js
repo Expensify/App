@@ -1,14 +1,13 @@
+/* eslint-disable rulesdir/prefer-underscore-method */
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import lodashMerge from 'lodash/merge';
+import {max, parseISO, isEqual} from 'date-fns';
 import lodashFindLast from 'lodash/findLast';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
-import * as CurrencyUtils from './CurrencyUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
 const allReports = {};
@@ -73,6 +72,14 @@ function isDeletedParentAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isReversedTransaction(reportAction) {
+    return lodashGet(reportAction, ['message', 0, 'isReversedTransaction'], false) && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isPendingRemove(reportAction) {
     return lodashGet(reportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
@@ -93,16 +100,28 @@ function isReportPreviewAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isModifiedExpenseAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+}
+
 function isWhisperAction(action) {
     return (action.whisperedToAccountIDs || []).length > 0;
 }
 
 /**
+ * Returns whether the comment is a thread parent message/the first message in a thread
+ *
  * @param {Object} reportAction
+ * @param {String} reportID
  * @returns {Boolean}
  */
-function hasCommentThread(reportAction) {
-    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
+function isThreadParentMessage(reportAction = {}, reportID) {
+    const {childType, childVisibleActionCount = 0, childReportID} = reportAction;
+    return childType === CONST.REPORT.TYPE.CHAT && (childVisibleActionCount > 0 || String(childReportID) === reportID);
 }
 
 /**
@@ -111,6 +130,7 @@ function hasCommentThread(reportAction) {
  * @param {Object} report
  * @param {Object} [allReportActionsParam]
  * @returns {Object}
+ * @deprecated Use Onyx.connect() or withOnyx() instead
  */
 function getParentReportAction(report, allReportActionsParam = undefined) {
     if (!report || !report.parentReportID || !report.parentReportActionID) {
@@ -132,19 +152,6 @@ function isSentMoneyReportAction(reportAction) {
         lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
         _.has(reportAction.originalMessage, 'IOUDetails')
     );
-}
-
-/**
- * Returns the formatted amount of a money request. The request and money sent (from send money flow) have
- * currency and amount in IOUDetails object.
- *
- * @param {Object} reportAction
- * @returns {Number}
- */
-function getFormattedAmount(reportAction) {
-    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY && lodashGet(reportAction, 'originalMessage.IOUDetails', false)
-        ? CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.IOUDetails.amount', 0), lodashGet(reportAction, 'originalMessage.IOUDetails.currency', ''))
-        : CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.amount', 0), lodashGet(reportAction, 'originalMessage.currency', ''));
 }
 
 /**
@@ -240,6 +247,23 @@ function extractLinksFromMessageHtml(reportAction) {
 }
 
 /**
+ * Returns the report action immediately before the specified index.
+ * @param {Array} reportActions - all actions
+ * @param {Number} actionIndex - index of the action
+ * @returns {Object|null}
+ */
+function findPreviousAction(reportActions, actionIndex) {
+    for (let i = actionIndex + 1; i < reportActions.length; i++) {
+        // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
+        // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
+        if (isNetworkOffline || reportActions[i].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return reportActions[i];
+        }
+    }
+    return null;
+}
+
+/**
  * Returns true when the report action immediately before the specified index is a comment made by the same actor who who is leaving a comment in the action at the specified index.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
@@ -248,9 +272,7 @@ function extractLinksFromMessageHtml(reportAction) {
  * @returns {Boolean}
  */
 function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
-    // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
-    // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-    const previousAction = _.find(_.drop(reportActions, actionIndex + 1), (action) => isNetworkOffline || action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const previousAction = findPreviousAction(reportActions, actionIndex);
     const currentAction = reportActions[actionIndex];
 
     // It's OK for there to be no previous action, and in that case, false will be returned
@@ -322,11 +344,7 @@ function shouldReportActionBeVisible(reportAction, key) {
     }
 
     // Filter out any unsupported reportAction types
-    if (
-        !_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) &&
-        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName) &&
-        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.TASK), reportAction.actionName)
-    ) {
+    if (!Object.values(CONST.REPORT.ACTIONS.TYPE).includes(reportAction.actionName) && !Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG).includes(reportAction.actionName)) {
         return false;
     }
 
@@ -341,8 +359,8 @@ function shouldReportActionBeVisible(reportAction, key) {
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
-    const isPending = !_.isEmpty(reportAction.pendingAction);
-    return !isDeleted || isPending || isDeletedParentAction(reportAction);
+    const isPending = !!reportAction.pendingAction;
+    return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
 /**
@@ -357,7 +375,16 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
         return false;
     }
 
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !isWhisperAction(reportAction) && !isDeletedAction(reportAction);
+    if (!_.isEmpty(reportAction.errors)) {
+        return false;
+    }
+
+    // If a whisper action is the REPORTPREVIEW action, we are displaying it.
+    return (
+        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
+        !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
+        !isDeletedAction(reportAction)
+    );
 }
 
 /**
@@ -366,14 +393,24 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
  * @return {Object}
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const visibleActions = _.filter(actions, (action) => shouldReportActionBeVisibleAsLastAction(action));
+    const updatedActionsToMerge = {};
+    if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
+        Object.keys(actionsToMerge).forEach(
+            (actionToMergeID) => (updatedActionsToMerge[actionToMergeID] = {...allReportActions[reportID][actionToMergeID], ...actionsToMerge[actionToMergeID]}),
+        );
+    }
+    const actions = Object.values({
+        ...allReportActions[reportID],
+        ...updatedActionsToMerge,
+    });
+    const visibleActions = actions.filter((action) => shouldReportActionBeVisibleAsLastAction(action));
 
-    if (_.isEmpty(visibleActions)) {
+    if (visibleActions.length === 0) {
         return {};
     }
-
-    return _.max(visibleActions, (action) => moment.utc(action.created).valueOf());
+    const maxDate = max(visibleActions.map((action) => parseISO(action.created)));
+    const maxAction = visibleActions.find((action) => isEqual(parseISO(action.created), maxDate));
+    return maxAction;
 }
 
 /**
@@ -388,6 +425,8 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     if (isReportMessageAttachment(message)) {
         return {
             lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            lastMessageText: CONST.ATTACHMENT_MESSAGE_TEXT,
+            lastMessageHtml: CONST.TRANSLATION_KEYS.ATTACHMENT,
         };
     }
 
@@ -561,6 +600,62 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
+/**
+ * Returns the number of money requests associated with a report preview
+ *
+ * @param {Object|null} reportPreviewAction
+ * @returns {Number}
+ */
+function getNumberOfMoneyRequests(reportPreviewAction) {
+    return lodashGet(reportPreviewAction, 'childMoneyRequestCount', 0);
+}
+
+/**
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isSplitBillAction(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+}
+
+/**
+ *
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isTaskAction(reportAction) {
+    const reportActionName = lodashGet(reportAction, 'actionName', '');
+    return (
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
+    );
+}
+
+/**
+ * @param {*} reportID
+ * @returns {[Object]}
+ */
+function getAllReportActions(reportID) {
+    return lodashGet(allReportActions, reportID, []);
+}
+
+/**
+ * Check whether a report action is an attachment (a file, such as an image or a zip).
+ *
+ * @param {Object} reportAction report action
+ * @returns {Boolean}
+ */
+function isReportActionAttachment(reportAction) {
+    const message = _.first(lodashGet(reportAction, 'message', [{}]));
+    return _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : isReportMessageAttachment(message);
+}
+
+// eslint-disable-next-line rulesdir/no-negated-variables
+function isNotifiableReportAction(reportAction) {
+    return reportAction && _.contains([CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE], reportAction.actionName);
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -577,20 +672,27 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     isMoneyRequestAction,
-    hasCommentThread,
+    isThreadParentMessage,
     getLinkedTransactionID,
     getMostRecentReportActionLastModified,
     getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,
     isTransactionThread,
-    getFormattedAmount,
     isSentMoneyReportAction,
     isDeletedParentAction,
+    isReversedTransaction,
     isReportPreviewAction,
+    isModifiedExpenseAction,
     getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    getNumberOfMoneyRequests,
+    isSplitBillAction,
+    isTaskAction,
+    getAllReportActions,
+    isReportActionAttachment,
+    isNotifiableReportAction,
 };

@@ -13,12 +13,6 @@ export default PropTypes.shape({
     /** List of icons for report participants */
     icons: PropTypes.arrayOf(avatarPropTypes),
 
-    /** Are we loading more report actions? */
-    isLoadingMoreReportActions: PropTypes.bool,
-
-    /** Flag to check if the report actions data are loading */
-    isLoadingReportActions: PropTypes.bool,
-
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat: PropTypes.bool,
 
@@ -27,9 +21,6 @@ export default PropTypes.shape({
 
     /** Whether we're waiting on submitter to add a bank account */
     isWaitingOnBankAccount: PropTypes.bool,
-
-    /** The email of the last message's actor */
-    lastActorEmail: PropTypes.string,
 
     /** The accountID of the last message's actor */
     lastActorAccountID: PropTypes.number,
@@ -78,5 +69,5 @@ export default PropTypes.shape({
     writeCapability: PropTypes.oneOf(_.values(CONST.REPORT.WRITE_CAPABILITIES)),
 
     /** Field-specific pending states for offline UI status */
-    pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    pendingFields: PropTypes.objectOf(PropTypes.string),
 });

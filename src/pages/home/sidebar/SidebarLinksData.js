@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import _ from 'underscore';
 import {deepEqual} from 'fast-equals';
 import {withOnyx} from 'react-native-onyx';
@@ -15,6 +15,7 @@ import CONST from '../../../CONST';
 import useLocalize from '../../../hooks/useLocalize';
 import styles from '../../../styles/styles';
 import withNavigationFocus from '../../../components/withNavigationFocus';
+import * as SessionUtils from '../../../libs/SessionUtils';
 
 const propTypes = {
     ...basePropTypes,
@@ -39,8 +40,8 @@ const propTypes = {
         ),
     ),
 
-    /** Whether the personal details are loading. When false it means they are ready to be used. */
-    isPersonalDetailsLoading: PropTypes.bool,
+    /** Whether the reports are loading. When false it means they are ready to be used. */
+    isLoadingReportData: PropTypes.bool,
 
     /** The chat priority mode */
     priorityMode: PropTypes.string,
@@ -56,26 +57,45 @@ const propTypes = {
 const defaultProps = {
     chatReports: {},
     allReportActions: {},
+    isLoadingReportData: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    isPersonalDetailsLoading: true,
     betas: [],
-    policies: [],
+    policies: {},
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isPersonalDetailsLoading, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
+function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
-    const reportIDsRef = useRef([]);
+    const reportIDsRef = useRef(null);
+    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
+        const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
-        reportIDsRef.current = reportIDs;
-        return reportIDs;
-    }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode]);
 
-    const isLoading = _.isEmpty(chatReports) || isPersonalDetailsLoading;
+        // We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
+        if (!isLoading || !reportIDsRef.current) {
+            reportIDsRef.current = reportIDs;
+        }
+        return reportIDsRef.current || [];
+    }, [allReportActions, betas, chatReports, policies, priorityMode, isLoading]);
+
+    // We need to make sure the current report is in the list of reports, but we do not want
+    // to have to re-generate the list every time the currentReportID changes. To do that
+    // we first generate the list as if there was no current report, then here we check if
+    // the current report is missing from the list, which should very rarely happen. In this
+    // case we re-generate the list a 2nd time with the current report included.
+    const optionListItemsWithCurrentReport = useMemo(() => {
+        if (currentReportID && !_.contains(optionListItems, currentReportID)) {
+            return SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
+        }
+        return optionListItems;
+    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions]);
+
+    const currentReportIDRef = useRef(currentReportID);
+    currentReportIDRef.current = currentReportID;
+    const isActiveReport = useCallback((reportID) => currentReportIDRef.current === reportID, []);
 
     return (
         <View
@@ -85,13 +105,13 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         >
             <SidebarLinks
                 // Forwarded props:
-                onLinkClick={onLinkClick}
                 insets={insets}
-                isSmallScreenWidth={isSmallScreenWidth}
                 priorityMode={priorityMode}
                 // Data props:
+                isActiveReport={isActiveReport}
                 isLoading={isLoading}
-                optionListItems={optionListItems}
+                optionListItems={optionListItemsWithCurrentReport}
+                onLinkClick={onLinkClick}
             />
         </View>
     );
@@ -110,10 +130,10 @@ SidebarLinksData.displayName = 'SidebarLinksData';
 const chatReportSelector = (report) =>
     report && {
         reportID: report.reportID,
-        participants: report.participants,
         participantAccountIDs: report.participantAccountIDs,
         hasDraft: report.hasDraft,
         isPinned: report.isPinned,
+        isHidden: report.isHidden,
         errorFields: {
             addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
         },
@@ -177,9 +197,8 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
             selector: chatReportSelector,
         },
-        isPersonalDetailsLoading: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            selector: _.isEmpty,
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,

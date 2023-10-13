@@ -3,7 +3,6 @@ import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
@@ -21,12 +20,13 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../CONST';
 import * as UserUtils from '../libs/UserUtils';
+import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** The active report */
     report: reportPropTypes.isRequired,
@@ -54,13 +54,11 @@ const defaultProps = {
  * @param {Object} translate The localize
  * @return {Array}
  */
-const getAllParticipants = (report, personalDetails, translate) => {
-    const {participantAccountIDs} = report;
-
-    return _.chain(participantAccountIDs)
+const getAllParticipants = (report, personalDetails, translate) =>
+    _.chain(ReportUtils.getParticipantsIDs(report))
         .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
-            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '') || translate('common.hidden');
+            const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
 
             return {
                 alternateText: userLogin,
@@ -83,7 +81,6 @@ const getAllParticipants = (report, personalDetails, translate) => {
         })
         .sortBy((participant) => participant.displayName.toLowerCase())
         .value();
-};
 
 function ReportParticipantsPage(props) {
     const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => ({
@@ -92,12 +89,19 @@ function ReportParticipantsPage(props) {
     }));
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ReportParticipantsPage.displayName}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || ReportUtils.isArchivedRoom(props.report)}>
                     <HeaderWithBackButton
                         title={props.translate(
-                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isChatThread(props.report)
+                            ReportUtils.isChatRoom(props.report) ||
+                                ReportUtils.isPolicyExpenseChat(props.report) ||
+                                ReportUtils.isChatThread(props.report) ||
+                                ReportUtils.isTaskReport(props.report) ||
+                                ReportUtils.isMoneyRequestReport(props.report)
                                 ? 'common.members'
                                 : 'common.details',
                         )}
@@ -117,7 +121,7 @@ function ReportParticipantsPage(props) {
                                     },
                                 ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
+                                    Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip

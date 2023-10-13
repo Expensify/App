@@ -47,6 +47,7 @@ function LegalNamePage(props) {
     usePrivatePersonalDetails();
     const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
     const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
+    const isLoadingPersonalDetails = lodashGet(props.privatePersonalDetails, 'isLoading', true);
 
     const validate = useCallback((values) => {
         const errors = {};
@@ -66,58 +67,60 @@ function LegalNamePage(props) {
         return errors;
     }, []);
 
-    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
-        return <FullscreenLoadingIndicator />;
-    }
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={LegalNamePage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.legalName')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
-            <Form
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
-                validate={validate}
-                onSubmit={updateLegalName}
-                submitButtonText={props.translate('common.save')}
-                enabledWhenOffline
-            >
-                <View style={[styles.mb4]}>
-                    <TextInput
-                        inputID="legalFirstName"
-                        name="lfname"
-                        label={props.translate('privatePersonalDetails.legalFirstName')}
-                        accessibilityLabel={props.translate('privatePersonalDetails.legalFirstName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={legalFirstName}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                        spellCheck={false}
-                    />
-                </View>
-                <View>
-                    <TextInput
-                        inputID="legalLastName"
-                        name="llname"
-                        label={props.translate('privatePersonalDetails.legalLastName')}
-                        accessibilityLabel={props.translate('privatePersonalDetails.legalLastName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={legalLastName}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                        spellCheck={false}
-                    />
-                </View>
-            </Form>
+            {isLoadingPersonalDetails ? (
+                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            ) : (
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
+                    validate={validate}
+                    onSubmit={updateLegalName}
+                    submitButtonText={props.translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <View style={[styles.mb4]}>
+                        <TextInput
+                            inputID="legalFirstName"
+                            name="lfname"
+                            label={props.translate('privatePersonalDetails.legalFirstName')}
+                            accessibilityLabel={props.translate('privatePersonalDetails.legalFirstName')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            defaultValue={legalFirstName}
+                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                            spellCheck={false}
+                        />
+                    </View>
+                    <View>
+                        <TextInput
+                            inputID="legalLastName"
+                            name="llname"
+                            label={props.translate('privatePersonalDetails.legalLastName')}
+                            accessibilityLabel={props.translate('privatePersonalDetails.legalLastName')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            defaultValue={legalLastName}
+                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                            spellCheck={false}
+                        />
+                    </View>
+                </Form>
+            )}
         </ScreenWrapper>
     );
 }
 
 LegalNamePage.propTypes = propTypes;
 LegalNamePage.defaultProps = defaultProps;
+LegalNamePage.displayName = 'LegalNamePage';
 
 export default compose(
     withLocalize,

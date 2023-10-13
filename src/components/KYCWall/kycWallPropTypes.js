@@ -1,9 +1,11 @@
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import userWalletPropTypes from '../../pages/EnablePayments/userWalletPropTypes';
 import bankAccountPropTypes from '../bankAccountPropTypes';
 import cardPropTypes from '../cardPropTypes';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import reimbursementAccountPropTypes from '../../pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Route for the Add Bank Account screen for a given navigation stack */
@@ -14,9 +16,6 @@ const propTypes = {
 
     /** Route for the KYC enable payments screen for a given navigation stack */
     enablePaymentsRoute: PropTypes.string.isRequired,
-
-    /** Where to place the popover */
-    popoverPlacement: PropTypes.string,
 
     /** Listen for window resize event on web and desktop */
     shouldListenForResize: PropTypes.bool,
@@ -30,10 +29,7 @@ const propTypes = {
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID: PropTypes.string,
 
-    /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
-
-    /** List of cards */
+    /** List of user's cards */
     fundList: PropTypes.objectOf(cardPropTypes),
 
     /** List of bank accounts */
@@ -47,21 +43,29 @@ const propTypes = {
 
     /** The reimbursement account linked to the Workspace */
     reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** Where the popover should be positioned relative to the anchor points. */
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
 };
 
 const defaultProps = {
     userWallet: {},
-    popoverPlacement: 'top',
     shouldListenForResize: false,
     isDisabled: false,
     chatReportID: '',
     bankAccountList: {},
-    cardList: null,
     fundList: null,
     chatReport: null,
     reimbursementAccount: {},
     addDebitCardRoute: '',
     iouReport: {},
+    anchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
 };
 
 export {propTypes, defaultProps};
