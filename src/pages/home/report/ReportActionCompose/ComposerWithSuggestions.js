@@ -491,7 +491,7 @@ function ComposerWithSuggestions({
     }, [focus, prevIsFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
 
     useEffect(() => {
-        // Set the `selection at end` and `scrolls input to bottom` for `Web Platforms`.
+        // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, shouldAutoFocus);
 
         if (value.length === 0) {
