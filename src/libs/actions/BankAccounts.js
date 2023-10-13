@@ -57,10 +57,10 @@ function clearOnfidoToken() {
 
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
- *
+ * @param {String | undefined} currentStep The name of the bank account setup step for which we will update the draft value when we receive the response from the API.
  * @returns {Object}
  */
-function getVBBADataForOnyx() {
+function getVBBADataForOnyx(currentStep = undefined) {
     return {
         optimisticData: [
             {
@@ -79,6 +79,12 @@ function getVBBADataForOnyx() {
                 value: {
                     isLoading: false,
                     errors: null,
+                    // When setting up a bank account, we save the draft form values in Onyx.
+                    // When we update the information for a step, the value of some fields that are returned from the API
+                    // can be different from the value that we stored as the draft in Onyx (i.e. the phone number is formatted).
+                    // This is why we store the current step used to call the API in order to update the corresponding draft data in Onyx.
+                    // If currentStep is undefined that means this step don't need to update the data of the draft in Onyx.
+                    draftStep: currentStep,
                 },
             },
         ],
@@ -222,7 +228,7 @@ function deletePaymentBankAccount(bankAccountID) {
  * @param {Boolean} [params.isOnfidoSetupComplete]
  */
 function updatePersonalInformationForBankAccount(params) {
-    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx());
+    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR));
 }
 
 /**
@@ -339,7 +345,7 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
  * @param {String} policyID
  */
 function updateCompanyInformationForBankAccount(bankAccount, policyID) {
-    API.write('UpdateCompanyInformationForBankAccount', {...bankAccount, policyID}, getVBBADataForOnyx());
+    API.write('UpdateCompanyInformationForBankAccount', {...bankAccount, policyID}, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY));
 }
 
 /**
@@ -376,7 +382,7 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
             routingNumber,
             plaidMask,
         },
-        getVBBADataForOnyx(),
+        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT),
     );
 }
 

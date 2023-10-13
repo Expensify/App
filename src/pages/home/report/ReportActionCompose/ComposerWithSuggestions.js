@@ -35,6 +35,7 @@ import {propTypes, defaultProps} from './composerWithSuggestionsProps';
 import focusWithDelay from '../../../../libs/focusWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
 import updateMultilineInputRange from '../../../../libs/UpdateMultilineInputRange';
+import * as InputFocus from '../../../../libs/actions/InputFocus';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -101,6 +102,7 @@ function ComposerWithSuggestions({
     animatedRef,
     forwardedRef,
     isNextModalWillOpenRef,
+    editFocused,
 }) {
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
@@ -381,6 +383,7 @@ function ComposerWithSuggestions({
         if (!suggestionsRef.current) {
             return false;
         }
+        InputFocus.inputFocusChange(false);
         return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
 
@@ -487,9 +490,12 @@ function ComposerWithSuggestions({
             return;
         }
 
+        if (editFocused) {
+            InputFocus.inputFocusChange(false);
+            return;
+        }
         focus();
-    }, [focus, prevIsFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
-
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, shouldAutoFocus);
@@ -603,6 +609,9 @@ export default compose(
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             selector: EmojiUtils.getPreferredSkinToneIndex,
+        },
+        editFocused: {
+            key: ONYXKEYS.INPUT_FOCUSED,
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,

@@ -80,6 +80,12 @@ const propTypes = {
     /** IOU Tag */
     iouTag: PropTypes.string,
 
+    /** IOU isBillable */
+    iouIsBillable: PropTypes.bool,
+
+    /** Callback to toggle the billable state */
+    onToggleBillable: PropTypes.func,
+
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
@@ -165,6 +171,8 @@ const defaultProps = {
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     iouCategory: '',
     iouTag: '',
+    iouIsBillable: false,
+    onToggleBillable: () => {},
     payeePersonalDetails: null,
     canModifyParticipants: false,
     isReadOnly: false,
