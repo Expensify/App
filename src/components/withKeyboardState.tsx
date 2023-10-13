@@ -1,16 +1,16 @@
 import React, {ComponentType, createContext, ForwardedRef, forwardRef, ReactNode, useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
-import getComponentDisplayName from "../libs/getComponentDisplayName";
+import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 type KeyboardStateContextValue = {
     /** Whether the keyboard is open */
-    isKeyboardShown : boolean
+    isKeyboardShown: boolean;
 };
 
 type KeyboardStateProviderProps = {
     /* Actual content wrapped by this component */
-    children: ReactNode
+    children: ReactNode;
 };
 
 // TODO: Remove - left for backwards compatibility with existing components.
@@ -39,7 +39,6 @@ function KeyboardStateProvider(props: KeyboardStateProviderProps) {
     return <KeyboardStateContext.Provider value={{isKeyboardShown}}>{children}</KeyboardStateContext.Provider>;
 }
 
-
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export default function withKeyboardState(WrappedComponent: ComponentType<{ref: ForwardedRef<unknown>}>) {
     const WithKeyboardState = forwardRef((props: Record<string, unknown>, ref: React.ForwardedRef<unknown>) => (
@@ -53,7 +52,8 @@ export default function withKeyboardState(WrappedComponent: ComponentType<{ref: 
                     ref={ref}
                 />
             )}
-        </KeyboardStateContext.Consumer>));
+        </KeyboardStateContext.Consumer>
+    ));
     (WithKeyboardState as unknown as {displayName: string}).displayName = `withKeyboardState(${getComponentDisplayName(WrappedComponent as ComponentType)})`;
     return WithKeyboardState;
 }
