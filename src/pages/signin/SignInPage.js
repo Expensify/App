@@ -101,7 +101,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     let shouldInitiateSAMLLogin = false;
     const platform = getPlatform();
     if (Permissions.canUseSAML() || platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP) {
-        // True if the user has SAML required and we're not already loading their account
+        // True if the user has SAML required and we haven't already initiated SAML for their account
         shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && account.isLoading;
         shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
     }
