@@ -1,12 +1,16 @@
 import React from 'react';
+import {useNavigation} from '@react-navigation/native';
 import HeaderWithBackButton from '../../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../../components/ScreenWrapper';
 import FullPageOfflineBlockingView from '../../../../../components/BlockingViews/FullPageOfflineBlockingView';
 import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
 import StepWrapperPropTypes from './StepWrapperPropTypes';
 import styles from '../../../../../styles/styles';
+import ROUTES from '../../../../../ROUTES';
+import Navigation from '../../../../../libs/Navigation/Navigation';
 
-function StepWrapper({title = '', stepCounter = null, onBackButtonPress = TwoFactorAuthActions.quitAndNavigateBackToSettings, children = null, shouldEnableKeyboardAvoidingView = true}) {
+function StepWrapper({title = '', stepCounter = null, onBackButtonPress, children = null, shouldEnableKeyboardAvoidingView = true}) {
+    const navigation = useNavigation();
     const shouldShowStepCounter = Boolean(stepCounter);
 
     return (
@@ -20,7 +24,20 @@ function StepWrapper({title = '', stepCounter = null, onBackButtonPress = TwoFac
                 title={title}
                 shouldShowStepCounter={shouldShowStepCounter}
                 stepCounter={stepCounter}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={() => {
+                    if (onBackButtonPress) {
+                        onBackButtonPress();
+                    } else {
+                        const routes = navigation.getState().routes;
+                        const prevRoute = routes[routes.length - 2];
+
+                        if (prevRoute && prevRoute.path === `/${ROUTES.SETTINGS_SECURITY}`) {
+                            TwoFactorAuthActions.quitAndNavigateBackToSettings();
+                        } else {
+                            Navigation.navigate(ROUTES.SETTINGS_SECURITY);
+                        }
+                    }
+                }}
             />
             <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
         </ScreenWrapper>
