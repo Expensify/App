@@ -116,12 +116,7 @@ function WorkspaceMembersPage(props) {
         if (removeMembersConfirmModalVisible && !_.isEqual(accountIDs, prevAccountIDs)) {
             setRemoveMembersConfirmModalVisible(false);
         }
-        setSelectedEmployees((prevSelected) =>
-            _.intersection(
-                prevSelected,
-                _.values(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)),
-            ),
-        );
+        setSelectedEmployees((prevSelected) => _.intersection(prevSelected, _.values(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails))));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.policyMembers]);
 
