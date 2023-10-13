@@ -1,11 +1,12 @@
 import _ from 'underscore';
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** Url for image to display */
@@ -42,6 +43,8 @@ function ImageWithSizeCalculation(props) {
     const isLoadedRef = useRef(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    const {isOffline} = useNetwork();
+    const source = useMemo(() => ({uri: props.url}), [props.url]);
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url: props.url});
@@ -73,14 +76,15 @@ function ImageWithSizeCalculation(props) {
         <View style={[styles.w100, styles.h100, props.style]}>
             <Image
                 style={[styles.w100, styles.h100]}
-                source={{uri: props.url}}
+                source={source}
                 isAuthTokenRequired={props.isAuthTokenRequired}
                 resizeMode={Image.resizeMode.cover}
                 onLoadStart={() => {
-                    if (isLoadedRef.current || isLoading) {
-                        return;
+                    if (isLoadedRef.current || isOffline) {
+                        setIsLoading(false);
+                    } else {
+                        setIsLoading(true);
                     }
-                    setIsLoading(true);
                 }}
                 onLoadEnd={() => {
                     setIsLoading(false);
