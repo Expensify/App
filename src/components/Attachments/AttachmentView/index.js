@@ -1,5 +1,5 @@
 import React, {memo, useState} from 'react';
-import {View, ActivityIndicator} from 'react-native';
+import {View, ScrollView, ActivityIndicator} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -22,7 +22,6 @@ import * as TransactionUtils from '../../../libs/TransactionUtils';
 import DistanceEReceipt from '../../DistanceEReceipt';
 import useNetwork from '../../../hooks/useNetwork';
 import ONYXKEYS from '../../../ONYXKEYS';
-import CONST from '../../../CONST';
 import EReceipt from '../../EReceipt';
 
 const propTypes = {
@@ -103,11 +102,15 @@ function AttachmentView({
         );
     }
 
-    if (_.isString(source) && source.startsWith(CONST.ERECEIPT_PATH)) {
-        const transactionIDFromURL = source.split(CONST.ERECEIPT_PATH)[1];
+    if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.hasEreceipt(transaction)) {
         return (
-            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <EReceipt transactionID={transactionIDFromURL} />
+            <View style={[styles.flex1, styles.alignItemsCenter]}>
+                <ScrollView
+                    style={styles.w100}
+                    contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
+                >
+                    <EReceipt transactionID={transaction.transactionID} />
+                </ScrollView>
             </View>
         );
     }

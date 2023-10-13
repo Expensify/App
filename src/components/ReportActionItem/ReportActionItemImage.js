@@ -40,21 +40,10 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
 
+    // The source that we set for an Expensify Card eReceipt is `eReceipt/{transactionID}`
     const isEReceipt = imageSource.startsWith(CONST.ERECEIPT_PATH);
 
-    let receiptImageComponent = thumbnail ? (
-        <ThumbnailImage
-            previewSourceURL={thumbnailSource}
-            style={[styles.w100, styles.h100]}
-            isAuthTokenRequired
-            shouldDynamicallyResize={false}
-        />
-    ) : (
-        <Image
-            source={{uri: image}}
-            style={[styles.w100, styles.h100]}
-        />
-    );
+    let receiptImageComponent;
 
     if (isEReceipt) {
         const transactionIDFromURL = imageSource.split(CONST.ERECEIPT_PATH)[1];
@@ -62,6 +51,22 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
             <View style={[styles.w100, styles.h100]}>
                 <EReceiptThumbnail transactionID={transactionIDFromURL} />
             </View>
+        );
+    } else if (thumbnail) {
+        receiptImageComponent = (
+            <ThumbnailImage
+                previewSourceURL={thumbnailSource}
+                style={[styles.w100, styles.h100]}
+                isAuthTokenRequired
+                shouldDynamicallyResize={false}
+            />
+        );
+    } else {
+        receiptImageComponent = (
+            <Image
+                source={{uri: image}}
+                style={[styles.w100, styles.h100]}
+            />
         );
     }
 
