@@ -821,9 +821,9 @@ const styles = (theme) => ({
     },
 
     chatItemComposeSecondaryRow: {
-        height: 15,
-        marginBottom: 5,
-        marginTop: 5,
+        height: CONST.CHAT_FOOTER_SECONDARY_ROW_HEIGHT,
+        marginBottom: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
+        marginTop: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
     },
 
     chatItemComposeSecondaryRowSubText: {
@@ -2729,7 +2729,7 @@ const styles = (theme) => ({
 
     noSelect: {
         boxShadow: 'none',
-        outline: 'none',
+        outlineStyle: 'none',
     },
 
     cardStyleNavigator: {
@@ -2963,11 +2963,6 @@ const styles = (theme) => ({
         ...getPopOverVerticalOffset(80),
         horizontal: windowWidth - 140,
     }),
-
-    invert: {
-        // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
-        transform: [{scaleX: -1}, {scaleY: -1}],
-    },
 
     iPhoneXSafeArea: {
         backgroundColor: theme.inverse,
