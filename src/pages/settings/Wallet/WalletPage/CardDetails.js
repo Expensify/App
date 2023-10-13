@@ -100,7 +100,7 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
             />
             <TextLink
                 style={[styles.link, styles.mh5, styles.mb3]}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain))}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain))}
             >
                 {translate('cardPage.cardDetails.updateAddress')}
             </TextLink>
