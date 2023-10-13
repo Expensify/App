@@ -349,144 +349,149 @@ function AddressSearch(props) {
          * To work around this, we wrap the GooglePlacesAutocomplete component with a horizontal ScrollView
          * that has scrolling disabled and would otherwise not be needed
          */
-        <ScrollView
-            horizontal
-            contentContainerStyle={styles.flex1}
-            scrollEnabled={false}
-            // keyboardShouldPersistTaps="always" is required for Android native,
-            // otherwise tapping on a result doesn't do anything. More information
-            // here: https://github.com/FaridSafi/react-native-google-places-autocomplete#use-inside-a-scrollview-or-flatlist
-            keyboardShouldPersistTaps="always"
-        >
-            <View
-                style={styles.w100}
-                ref={containerRef}
+        <>
+            <ScrollView
+                horizontal
+                contentContainerStyle={styles.flex1}
+                scrollEnabled={false}
+                // keyboardShouldPersistTaps="always" is required for Android native,
+                // otherwise tapping on a result doesn't do anything. More information
+                // here: https://github.com/FaridSafi/react-native-google-places-autocomplete#use-inside-a-scrollview-or-flatlist
+                keyboardShouldPersistTaps="always"
             >
-                <GooglePlacesAutocomplete
-                    disableScroll
-                    fetchDetails
-                    suppressDefaultStyles
-                    enablePoweredByContainer={false}
-                    predefinedPlaces={props.predefinedPlaces}
-                    listEmptyComponent={
-                        props.network.isOffline || !isTyping ? null : (
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
-                        )
-                    }
-                    listLoaderComponent={
-                        <View style={[styles.pv4]}>
-                            <ActivityIndicator
-                                color={themeColors.spinner}
-                                size="small"
-                            />
-                        </View>
-                    }
-                    renderHeaderComponent={renderHeaderComponent}
-                    onPress={(data, details) => {
-                        saveLocationDetails(data, details);
-                        setIsTyping(false);
-
-                        // After we select an option, we set displayListViewBorder to false to prevent UI flickering
-                        setDisplayListViewBorder(false);
-                        setIsFocused(false);
-                    }}
-                    query={query}
-                    requestUrl={{
-                        useOnPlatform: 'all',
-                        url: props.network.isOffline ? null : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
-                    }}
-                    textInputProps={{
-                        InputComp: TextInput,
-                        ref: (node) => {
-                            if (!props.innerRef) {
-                                return;
-                            }
-
-                            if (_.isFunction(props.innerRef)) {
-                                props.innerRef(node);
-                                return;
-                            }
-
-                            // eslint-disable-next-line no-param-reassign
-                            props.innerRef.current = node;
-                        },
-                        label: props.label,
-                        containerStyles: props.containerStyles,
-                        errorText: props.errorText,
-                        hint:
-                            displayListViewBorder || (props.predefinedPlaces.length === 0 && shouldShowCurrentLocationButton) || (props.canUseCurrentLocation && isTyping)
-                                ? undefined
-                                : props.hint,
-                        value: props.value,
-                        defaultValue: props.defaultValue,
-                        inputID: props.inputID,
-                        shouldSaveDraft: props.shouldSaveDraft,
-                        onFocus: () => {
-                            setIsFocused(true);
-                        },
-                        onBlur: (event) => {
-                            if (!isCurrentTargetInsideContainer(event, containerRef)) {
-                                setDisplayListViewBorder(false);
-                                setIsFocused(false);
-                                setIsTyping(false);
-                            }
-                            props.onBlur();
-                        },
-                        autoComplete: 'off',
-                        onInputChange: (text) => {
-                            setSearchValue(text);
-                            setIsTyping(true);
-                            if (props.inputID) {
-                                props.onInputChange(text);
-                            } else {
-                                props.onInputChange({street: text});
-                            }
-
-                            // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
-                            if (_.isEmpty(text) && _.isEmpty(props.predefinedPlaces)) {
-                                setDisplayListViewBorder(false);
-                            }
-                        },
-                        maxLength: props.maxInputLength,
-                        spellCheck: false,
-                    }}
-                    styles={{
-                        textInputContainer: [styles.flexColumn],
-                        listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight, !isFocused && {height: 0}],
-                        row: [styles.pv4, styles.ph3, styles.overflowAuto],
-                        description: [styles.googleSearchText],
-                        separator: [styles.googleSearchSeparator],
-                    }}
-                    numberOfLines={2}
-                    isRowScrollable={false}
-                    listHoverColor={themeColors.border}
-                    listUnderlayColor={themeColors.buttonPressedBG}
-                    onLayout={(event) => {
-                        // We use the height of the element to determine if we should hide the border of the listView dropdown
-                        // to prevent a lingering border when there are no address suggestions.
-                        setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
-                    }}
-                    inbetweenCompo={
-                        // We want to show the current location button even if there are no recent destinations
-                        props.predefinedPlaces.length === 0 && shouldShowCurrentLocationButton ? (
-                            <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
-                                <CurrentLocationButton
-                                    onPress={getCurrentLocation}
-                                    isDisabled={props.network.isOffline}
+                <View
+                    style={styles.w100}
+                    ref={containerRef}
+                >
+                    <GooglePlacesAutocomplete
+                        disableScroll
+                        fetchDetails
+                        suppressDefaultStyles
+                        enablePoweredByContainer={false}
+                        predefinedPlaces={props.predefinedPlaces}
+                        listEmptyComponent={
+                            props.network.isOffline || !isTyping ? null : (
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
+                            )
+                        }
+                        listLoaderComponent={
+                            <View style={[styles.pv4]}>
+                                <ActivityIndicator
+                                    color={themeColors.spinner}
+                                    size="small"
                                 />
                             </View>
-                        ) : (
-                            <></>
-                        )
-                    }
-                />
-                <LocationErrorMessage
-                    onClose={() => setLocationErrorCode(null)}
-                    locationErrorCode={locationErrorCode}
-                />
-                {isFetchingCurrentLocation && <FullScreenLoadingIndicator />}
-            </View>
-        </ScrollView>
+                        }
+                        renderHeaderComponent={renderHeaderComponent}
+                        onPress={(data, details) => {
+                            saveLocationDetails(data, details);
+                            setIsTyping(false);
+
+                            // After we select an option, we set displayListViewBorder to false to prevent UI flickering
+                            setDisplayListViewBorder(false);
+                            setIsFocused(false);
+
+                            // Clear location error code after address is selected
+                            setLocationErrorCode(null);
+                        }}
+                        query={query}
+                        requestUrl={{
+                            useOnPlatform: 'all',
+                            url: props.network.isOffline ? null : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
+                        }}
+                        textInputProps={{
+                            InputComp: TextInput,
+                            ref: (node) => {
+                                if (!props.innerRef) {
+                                    return;
+                                }
+
+                                if (_.isFunction(props.innerRef)) {
+                                    props.innerRef(node);
+                                    return;
+                                }
+
+                                // eslint-disable-next-line no-param-reassign
+                                props.innerRef.current = node;
+                            },
+                            label: props.label,
+                            containerStyles: props.containerStyles,
+                            errorText: props.errorText,
+                            hint:
+                                displayListViewBorder || (props.predefinedPlaces.length === 0 && shouldShowCurrentLocationButton) || (props.canUseCurrentLocation && isTyping)
+                                    ? undefined
+                                    : props.hint,
+                            value: props.value,
+                            defaultValue: props.defaultValue,
+                            inputID: props.inputID,
+                            shouldSaveDraft: props.shouldSaveDraft,
+                            onFocus: () => {
+                                setIsFocused(true);
+                            },
+                            onBlur: (event) => {
+                                if (!isCurrentTargetInsideContainer(event, containerRef)) {
+                                    setDisplayListViewBorder(false);
+                                    setIsFocused(false);
+                                    setIsTyping(false);
+                                }
+                                props.onBlur();
+                            },
+                            autoComplete: 'off',
+                            onInputChange: (text) => {
+                                setSearchValue(text);
+                                setIsTyping(true);
+                                if (props.inputID) {
+                                    props.onInputChange(text);
+                                } else {
+                                    props.onInputChange({street: text});
+                                }
+
+                                // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
+                                if (_.isEmpty(text) && _.isEmpty(props.predefinedPlaces)) {
+                                    setDisplayListViewBorder(false);
+                                }
+                            },
+                            maxLength: props.maxInputLength,
+                            spellCheck: false,
+                        }}
+                        styles={{
+                            textInputContainer: [styles.flexColumn],
+                            listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight, !isFocused && {height: 0}],
+                            row: [styles.pv4, styles.ph3, styles.overflowAuto],
+                            description: [styles.googleSearchText],
+                            separator: [styles.googleSearchSeparator],
+                        }}
+                        numberOfLines={2}
+                        isRowScrollable={false}
+                        listHoverColor={themeColors.border}
+                        listUnderlayColor={themeColors.buttonPressedBG}
+                        onLayout={(event) => {
+                            // We use the height of the element to determine if we should hide the border of the listView dropdown
+                            // to prevent a lingering border when there are no address suggestions.
+                            setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
+                        }}
+                        inbetweenCompo={
+                            // We want to show the current location button even if there are no recent destinations
+                            props.predefinedPlaces.length === 0 && shouldShowCurrentLocationButton ? (
+                                <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
+                                    <CurrentLocationButton
+                                        onPress={getCurrentLocation}
+                                        isDisabled={props.network.isOffline}
+                                    />
+                                </View>
+                            ) : (
+                                <></>
+                            )
+                        }
+                    />
+                    <LocationErrorMessage
+                        onClose={() => setLocationErrorCode(null)}
+                        locationErrorCode={locationErrorCode}
+                    />
+                </View>
+            </ScrollView>
+            {isFetchingCurrentLocation && <FullScreenLoadingIndicator />}
+        </>
     );
 }
 
