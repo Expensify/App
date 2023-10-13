@@ -33,6 +33,8 @@ function CurrentLocationButton({onPress, isDisabled, translate}) {
             onPress={onPress}
             accessibilityLabel={translate('location.useCurrent')}
             disabled={isDisabled}
+            onMouseDown={(e) => e.preventDefault()}
+            onTouchStart={(e) => e.preventDefault()}
         >
             <Icon
                 src={Expensicons.Location}
