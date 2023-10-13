@@ -225,7 +225,7 @@ function HeaderView(props) {
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
-                                    textStyles={[styles.headerText, styles.pre]}
+                                    textStyles={[styles.headerText, styles.pre, styles.mw100]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
                                 />
                                 {!_.isEmpty(parentNavigationSubtitleData) && (

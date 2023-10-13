@@ -47,7 +47,6 @@ const customHTMLElementModels = {
         reactNativeProps: {
             text: {numberOfLines: 1},
         },
-        mixedUAStyles: {width: '100%'},
     }),
     strong: defaultHTMLElementModels.span.extend({
         tagName: 'strong',
