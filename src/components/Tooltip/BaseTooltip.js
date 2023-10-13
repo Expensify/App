@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState, useContext, useMemo} from 'react';
 import {Animated} from 'react-native';
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import Str from 'expensify-common/lib/str';
@@ -90,25 +90,14 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
     const isPopoverRelatedToTooltipOpen = useMemo(() => {
         // eslint-disable-next-line
         const tooltipNode = tooltipRef.current ? tooltipRef.current._childNode : null;
-        if (
-            isOpen && 
-            popover && 
-            popover.anchorRef.current &&
-            tooltipNode &&
-            (
-                tooltipNode.contains(popover.anchorRef.current) ||
-                tooltipNode === popover.anchorRef.current
-            )
-        ) {
+        if (isOpen && popover && popover.anchorRef.current && tooltipNode && (tooltipNode.contains(popover.anchorRef.current) || tooltipNode === popover.anchorRef.current)) {
             return true;
         }
 
         return false;
-
     }, [isOpen, popover]);
 
     const previousPopoverOpen = usePrevious(isPopoverRelatedToTooltipOpen);
-
 
     /**
      * Display the tooltip in an animation.
@@ -201,7 +190,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
 
     // Skip the tooltip and return the children if the text is empty,
     // we don't have a render function or the device does not support hovering
-    if ((_.isEmpty(text) && renderTooltipContent == null) || !hasHoverSupport) {
+    if ((_.isEmpty(text) && renderTooltipContent == null) || !hasHoverSupport || isPopoverRelatedToTooltipOpen) {
         return children;
     }
 
