@@ -1187,6 +1187,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email inválido',
+        errorMessageAllInviteesInvalid: 'Todos los invitados son o bien inválidos o ya han sido invitados.',
         userIsAlreadyMemberOfWorkspace: ({login, workspace}: UserIsAlreadyMemberOfWorkspaceParams) => `${login} ya es miembro de ${workspace}`,
     },
     onfidoStep: {
