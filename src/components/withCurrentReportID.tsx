@@ -61,7 +61,6 @@ CurrentReportIDContextProvider.propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export default function withCurrentReportID<TComponentProps extends CurrentReportIDContextValue>(WrappedComponent: ComponentType<TComponentProps>) {
     const WithCurrentReportID: ComponentType<TComponentProps & RefAttributes<ComponentType<TComponentProps>>> = forwardRef((props, ref) => (
         <CurrentReportIDContext.Consumer>
