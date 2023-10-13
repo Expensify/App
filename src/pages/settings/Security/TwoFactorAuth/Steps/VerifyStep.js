@@ -45,10 +45,11 @@ function VerifyStep({account, session}) {
         if (account.twoFactorAuthStep !== 'VERIFY') {
             Navigation.navigate(ROUTES.SETTINGS_2FA.ENABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         return () => {
             Session.clearAccountMessages();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
