@@ -11,6 +11,8 @@ type Config = {
     isActive?: boolean;
 };
 
+type UseArrowKeyFocusManager = [number, (index: number) => void];
+
 /**
  * A hook that makes it easy to use the arrow keys to manage focus of items in a list
  *
@@ -34,7 +36,7 @@ export default function useArrowKeyFocusManager({
     disabledIndexes = CONST.EMPTY_ARRAY,
     shouldExcludeTextAreaNodes = true,
     isActive,
-}: Config): [number, (index: number) => void] {
+}: Config): UseArrowKeyFocusManager {
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
     const arrowConfig = useMemo(
         () => ({
