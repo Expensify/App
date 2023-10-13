@@ -34,8 +34,8 @@ Onyx.connect({
 });
 
 export default function () {
-    // Because JS Engines do not expose default timezone, the polyfill cannot detect local timezone that a browser is in
-    // We must manually do this by getting the local timezone before adding polyfill
+    // Because JS Engines do not expose default timezone, the polyfill cannot detect local timezone that a browser is in.
+    // We must manually do this by getting the local timezone before adding polyfill.
     const currentTimezone = timezone.automatic ? Intl.DateTimeFormat().resolvedOptions().timeZone : timezone.selected;
 
     require('@formatjs/intl-datetimeformat/polyfill-force');
