@@ -9,8 +9,8 @@ import ONYXKEYS from '../ONYXKEYS';
 
 import getTopMostCentralPaneRouteName from '../libs/Navigation/getTopMostCentralPaneRouteName';
 import SCREENS from '../SCREENS';
+import ROUTES from '../ROUTES';
 
-// TODO: use consts from ROUTES
 function getNewDotURL(url) {
     const urlObj = new URL(url);
     const paramString = urlObj.searchParams.get('param') ?? '';
@@ -24,16 +24,16 @@ function getNewDotURL(url) {
     }
 
     if (pathname === 'inbox') {
-        return 'home';
+        return ROUTES.HOME_OLDDOT;
     }
 
     if (pathname === 'expenses') {
-        return `${params.viewMode === 'charts' ? 'insights' : 'expenses'}${paramString ? `/?param=${paramString}` : ''}`;
+        return `${params.viewMode === 'charts' ? ROUTES.INSIGHTS_OLDDOT : ROUTES.EXPENSES_OLDDOT}${paramString ? `/?param=${paramString}` : ''}`;
     }
 
     if (pathname === 'admin_policies') {
         const {section} = params;
-        return section === 'individual' ? 'individual_workspaces' : 'group_workspaces';
+        return section === 'individual' ? ROUTES.INDIVIDUALS_OLDDOT : ROUTES.GROUPS_OLDDOT;
     }
 
     if (pathname === 'policy') {
@@ -55,7 +55,7 @@ function getNewDotURL(url) {
                 sectionName = section;
         }
 
-        return `workspace/${workspaceID}/${sectionName}`;
+        return ROUTES.WORKSPACES_OLDDOT.getRoute(workspaceID, sectionName);
     }
 
     if (pathname === 'settings') {
@@ -81,7 +81,7 @@ function getNewDotURL(url) {
     }
 
     if (pathname === 'admin_domains') {
-        return 'domains';
+        return ROUTES.DOMAINS_OLDDOT;
     }
 
     if (pathname.includes('domain')) {
@@ -100,7 +100,7 @@ function getNewDotURL(url) {
                 sectionName = section;
         }
 
-        return `domain/${sectionName}`;
+        return ROUTES.DOMAIN_OLDDOT.getRoute(sectionName);
     }
 
     return pathname;
@@ -250,10 +250,12 @@ function IFrame({session}) {
         document.cookie = `email=${session.email}; domain=expensify.com.dev; path=/;`;
     }, [session.authToken, session.email]);
 
+    const [time] = useState(new Date().getSeconds());
+
     return (
         <>
             {/* TODO: Remove text with information */}
-            <Text style={{fontSize: 40, color: 'white'}}>{`${routeName}\n${JSON.stringify(params)} \n${oldDotURL}`}</Text>
+            <Text style={{fontSize: 40, color: 'white'}}>{`${routeName}\n${JSON.stringify(params)} \n${oldDotURL}\n${time}`}</Text>
             <iframe
                 style={{flex: 1, borderWidth: 0}}
                 src={oldDotURL}

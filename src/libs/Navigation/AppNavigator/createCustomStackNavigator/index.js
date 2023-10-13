@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {useNavigationBuilder, createNavigatorFactory} from '@react-navigation/native';
 import {StackView} from '@react-navigation/stack';
@@ -69,40 +69,17 @@ function ResponsiveStackNavigator(props) {
         getIsSmallScreenWidth: () => isSmallScreenWidthRef.current,
     });
 
-    const {iframeRoutes, rhpRoutes, otherRoutes} = splitRoutes(state.routes);
-
-    let newState = {...state};
-    let newDescriptors = {...descriptors};
-
-    const isIframeTopRoute = getTopMostCentralPaneRouteName(state) !== SCREENS.REPORT;
-
-    // TODO: It's probably better to use useMemo for newState and newDescriptors
-    if (iframeRoutes.length > 0) {
-        // If there is at least one iframeRoutes we will use it to render iframe
-        const lastIframe = iframeRoutes[iframeRoutes.length - 1];
-        const stableIframeRoute = {...lastIframe, key: IFRAME_CONSTANT_KEY};
-
-        if (isIframeTopRoute) {
-            newState = {
-                ...state,
-                // It is actually otherRoutes.length + rhpRoutes.length -1 + 2,
-                // because we are rendering two additional routes for iframe
-                // The lastIframe descriptor.render() needs to be called to set proper url in the adress bar. This won't render any screen.
-                // The stableIframeRoute with constant key is used to render actual iframe.
-                // We need to replace render method for it's decriptor.
-                index: otherRoutes.length + rhpRoutes.length + 1,
-                routes: [...otherRoutes, lastIframe, stableIframeRoute, ...rhpRoutes],
-            };
-        } else {
-            newState = {
-                ...state,
-                index: otherRoutes.length + rhpRoutes.length,
-                // To avoid unmounting of the iframe route we will move it to the bottom of stack to hide it.
-                routes: [stableIframeRoute, ...otherRoutes, ...rhpRoutes],
-            };
+    const stackViewProps = useMemo(() => {
+        const {iframeRoutes, rhpRoutes, otherRoutes} = splitRoutes(state.routes);
+        // If there is no iframe routes, don't modify the state and descriptors.
+        if (iframeRoutes.length === 0) {
+            return {newState: state, newDescriptors: descriptors};
         }
 
-        newDescriptors = {
+        // If there is at least one iframeRoutes we will reuse it with changed key to render stable iframe.
+        const lastIframe = iframeRoutes[iframeRoutes.length - 1];
+        const stableIframeRoute = {...lastIframe, key: IFRAME_CONSTANT_KEY};
+        const newDescriptors = {
             ...descriptors,
             [IFRAME_CONSTANT_KEY]: {
                 ...descriptors[lastIframe.key],
@@ -110,15 +87,37 @@ function ResponsiveStackNavigator(props) {
                 route: stableIframeRoute,
             },
         };
-    }
+
+        // If the top most central pane route is an iframe route, we will include it in the state.
+        // It won't render any screen because screens for iframe routes are null but it will set a proper url in the adress bar.
+        // We will aslo use modified version of this route with stable key to render stable iframe.
+        const isIframeTopRoute = getTopMostCentralPaneRouteName(state) !== SCREENS.REPORT;
+        if (isIframeTopRoute) {
+            const newState = {
+                ...state,
+                index: otherRoutes.length + rhpRoutes.length + 1,
+                routes: [...otherRoutes, lastIframe, stableIframeRoute, ...rhpRoutes],
+            };
+            return {newState, newDescriptors};
+        }
+
+        // If not iframe is not on a top, we will hide stable iframe route to prevent unmounting.
+        const newState = {
+            ...state,
+            index: otherRoutes.length + rhpRoutes.length,
+            // To avoid unmounting of the iframe route we will move it to the bottom of stack to hide it.
+            routes: [stableIframeRoute, ...otherRoutes, ...rhpRoutes],
+        };
+        return {newState, newDescriptors};
+    }, [state, descriptors]);
 
     return (
         <NavigationContent>
             <StackView
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                state={newState}
-                descriptors={newDescriptors}
+                state={stackViewProps.newState}
+                descriptors={stackViewProps.newDescriptors}
                 navigation={navigation}
             />
         </NavigationContent>

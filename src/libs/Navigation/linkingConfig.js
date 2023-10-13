@@ -36,7 +36,7 @@ export default {
                     [SCREENS.GROUPS_WORKSPACES_OLDDOT]: ROUTES.GROUPS_OLDDOT,
                     [SCREENS.DOMAINS_OLDDOT]: ROUTES.DOMAINS_OLDDOT,
                     [SCREENS.DOMAIN_OLDDOT]: ROUTES.DOMAIN_OLDDOT.route,
-                    [SCREENS.WORKSPACE_OLDDOT]: ROUTES.WORKSPACE_OLDDOT.route,
+                    [SCREENS.WORKSPACE_OLDDOT]: ROUTES.WORKSPACES_OLDDOT.route,
                 },
             },
             [SCREENS.NOT_FOUND]: '*',

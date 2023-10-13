@@ -338,7 +338,7 @@ export default {
         getRoute: (section: string) => `domain/${section}`,
     },
 
-    WORKSPACE_OLDDOT: {
+    WORKSPACES_OLDDOT: {
         route: 'workspaces/:workspaceID/:section',
         getRoute: (workspaceID: string, section: string) => `workspaces/${workspaceID}/${section}`,
     },
