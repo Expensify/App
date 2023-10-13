@@ -12,7 +12,7 @@ import themeColors from '../styles/themes/default';
 import Icon from '../components/Icon';
 import * as Expensicons from '../components/Icon/Expensicons';
 import * as Illustrations from '../components/Icon/Illustrations';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import useLocalize from '../hooks/useLocalize';
 import compose from '../libs/compose';
 import TextLink from '../components/TextLink';
 import ONYXKEYS from '../ONYXKEYS';
@@ -33,8 +33,6 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...withLocalizePropTypes,
-
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** Whether a sign is loading */
@@ -49,6 +47,8 @@ const defaultProps = {
 };
 
 function LogInWithShortLivedAuthTokenPage(props) {
+    const {translate} = useLocalize();
+
     useEffect(() => {
         const email = lodashGet(props, 'route.params.email', '');
 
@@ -91,17 +91,17 @@ function LogInWithShortLivedAuthTokenPage(props) {
                         src={Illustrations.RocketBlue}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge]}>{props.translate('deeplinkWrapper.launching')}</Text>
+                <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
                 <View style={styles.mt2}>
                     <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                        {props.translate('deeplinkWrapper.expired')}{' '}
+                        {translate('deeplinkWrapper.expired')}{' '}
                         <TextLink
                             onPress={() => {
                                 Session.clearSignInData();
                                 Navigation.navigate();
                             }}
                         >
-                            {props.translate('deeplinkWrapper.signIn')}
+                            {translate('deeplinkWrapper.signIn')}
                         </TextLink>
                     </Text>
                 </View>
@@ -122,4 +122,7 @@ LogInWithShortLivedAuthTokenPage.propTypes = propTypes;
 LogInWithShortLivedAuthTokenPage.defaultProps = defaultProps;
 LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage';
 
-export default compose(withLocalize, withOnyx({account: {key: ONYXKEYS.ACCOUNT}}), withOnyx({session: {key: ONYXKEYS.SESSION}}))(LogInWithShortLivedAuthTokenPage);
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+    session: {key: ONYXKEYS.SESSION},
+})(LogInWithShortLivedAuthTokenPage);

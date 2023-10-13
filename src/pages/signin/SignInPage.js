@@ -20,7 +20,6 @@ import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
 import getPlatform from '../../libs/getPlatform';
-import Permissions from '../../libs/Permissions';
 import CONST from '../../CONST';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -100,7 +99,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     let shouldShowChooseSSOOrMagicCode = false;
     let shouldInitiateSAMLLogin = false;
     const platform = getPlatform();
-    if (Permissions.canUseSAML() || platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP) {
+    if (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP) {
         // True if the user has SAML required and we haven't already initiated SAML for their account
         shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && account.isLoading;
         shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;

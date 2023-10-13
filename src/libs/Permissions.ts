@@ -57,10 +57,6 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-function canUseSAML(betas: Beta[]): boolean {
-    return betas?.includes(CONST.BETAS.NEW_DOT_SAML) || canUseAllBetas(betas);
-}
-
 export default {
     canUseChronos,
     canUsePayWithExpensify,
@@ -73,5 +69,4 @@ export default {
     canUseCategories,
     canUseTags,
     canUseLinkPreviews,
-    canUseSAML,
 };
