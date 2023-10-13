@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import Log from '../../src/libs/Log';
-import AddLastVisibleActionCreated from '../../src/libs/migrations/AddLastVisibleActionCreated';
 import PersonalDetailsByAccountID from '../../src/libs/migrations/PersonalDetailsByAccountID';
 import CheckForPreviousReportActionID from '../../src/libs/migrations/CheckForPreviousReportActionID';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -23,62 +22,6 @@ describe('Migrations', () => {
         jest.clearAllMocks();
         Onyx.clear();
         return waitForBatchedUpdates();
-    });
-
-    describe('AddLastVisibleActionCreated', () => {
-        it('Should add lastVisibleActionCreated wherever lastActionCreated currently is', () =>
-            Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
-                    lastActionCreated: '2022-11-16 01:31:13.702',
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: {
-                    lastActionCreated: '2022-11-16 01:31:54.821',
-                },
-            })
-                .then(AddLastVisibleActionCreated)
-                .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Adding lastVisibleActionCreated field to 2 reports');
-                    const connectionID = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.REPORT,
-                        waitForCollectionCallback: true,
-                        callback: (allReports) => {
-                            Onyx.disconnect(connectionID);
-                            expect(_.keys(allReports).length).toBe(2);
-                            _.each(allReports, (report) => {
-                                expect(_.has(report, 'lastVisibleActionCreated')).toBe(true);
-                            });
-                            expect(allReports.report_1.lastVisibleActionCreated).toBe('2022-11-16 01:31:13.702');
-                            expect(allReports.report_2.lastVisibleActionCreated).toBe('2022-11-16 01:31:54.821');
-                        },
-                    });
-                }));
-
-        it('Should skip if the report data already has the correct fields', () =>
-            Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
-                    lastVisibleActionCreated: '2022-11-16 01:31:13.702',
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: {
-                    lastVisibleActionCreated: '2022-11-16 01:31:54.821',
-                },
-            })
-                .then(AddLastVisibleActionCreated)
-                .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
-                }));
-
-        it('Should work even if there is no report data', () =>
-            AddLastVisibleActionCreated().then(() => {
-                expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
-                const connectionID = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
-                    callback: (allReports) => {
-                        Onyx.disconnect(connectionID);
-                        expect(_.compact(_.values(allReports))).toEqual([]);
-                    },
-                });
-            }));
     });
 
     describe('PersonalDetailsByAccountID', () => {
@@ -461,6 +404,56 @@ describe('Migrations', () => {
                         callback: (allPersonalDetails) => {
                             Onyx.disconnect(connectionID);
                             expect(allPersonalDetails).toBeNull();
+                        },
+                    });
+                }));
+
+        it('Should remove any instances of lastActorEmail found in a report', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
+                    reportID: 1,
+                    lastActorEmail: 'fake@test.com',
+                    lastActorAccountID: 5,
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing lastActorEmail from report 1');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReport = {
+                                reportID: 1,
+                                lastActorAccountID: 5,
+                            };
+                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`]).toMatchObject(expectedReport);
+                        },
+                    });
+                }));
+
+        it('Should remove any instances of participants found in a report', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
+                    reportID: 1,
+                    participants: ['fake@test.com'],
+                    participantAccountIDs: [5],
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing participants from report 1');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReport = {
+                                reportID: 1,
+                                participantAccountIDs: [5],
+                            };
+                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`]).toMatchObject(expectedReport);
                         },
                     });
                 }));

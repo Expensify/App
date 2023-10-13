@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {LogBox, ScrollView, View, Text} from 'react-native';
+import {LogBox, ScrollView, View, Text, ActivityIndicator} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
 import compose from '../../libs/compose';
@@ -134,6 +134,7 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 function AddressSearch(props) {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
     const containerRef = useRef();
     const query = useMemo(
         () => ({
@@ -208,14 +209,15 @@ function AddressSearch(props) {
 
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
-
+            // Make sure country is updated first, since city and state will be reset if the country changes
+            country: '',
             // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
             // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
             // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g.
             // Salagatan, Upssala, Sweden).
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
-            country: '',
+
             state: state || stateAutoCompleteFallback,
             lat: lodashGet(details, 'geometry.location.lat', 0),
             lng: lodashGet(details, 'geometry.location.lng', 0),
@@ -286,13 +288,28 @@ function AddressSearch(props) {
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
                     predefinedPlaces={props.predefinedPlaces}
-                    ListEmptyComponent={
-                        props.network.isOffline ? null : (
+                    listEmptyComponent={
+                        props.network.isOffline || !isTyping ? null : (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
+                        )
+                    }
+                    listLoaderComponent={
+                        <View style={[styles.pv4]}>
+                            <ActivityIndicator
+                                color={themeColors.spinner}
+                                size="small"
+                            />
+                        </View>
+                    }
+                    renderHeaderComponent={() =>
+                        !props.value &&
+                        props.predefinedPlaces && (
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.pt2, styles.ph3, styles.overflowAuto]}>{props.translate('common.recentDestinations')}</Text>
                         )
                     }
                     onPress={(data, details) => {
                         saveLocationDetails(data, details);
+                        setIsTyping(false);
 
                         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                         setDisplayListViewBorder(false);
@@ -331,14 +348,15 @@ function AddressSearch(props) {
                         },
                         autoComplete: 'off',
                         onInputChange: (text) => {
+                            setIsTyping(true);
                             if (props.inputID) {
                                 props.onInputChange(text);
                             } else {
                                 props.onInputChange({street: text});
                             }
 
-                            // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
-                            if (_.isEmpty(text)) {
+                            // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
+                            if (_.isEmpty(text) && _.isEmpty(props.predefinedPlaces)) {
                                 setDisplayListViewBorder(false);
                             }
                         },

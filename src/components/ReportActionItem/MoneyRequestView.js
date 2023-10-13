@@ -24,12 +24,11 @@ import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
+import AnimatedEmptyStateBackground from '../../pages/home/report/AnimatedEmptyStateBackground';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import transactionPropTypes from '../transactionPropTypes';
-import Image from '../Image';
 import Text from '../Text';
 import Switch from '../Switch';
 import ReportActionItemImage from './ReportActionItemImage';
@@ -94,10 +93,15 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     } = ReportUtils.getTransactionDetails(transaction);
     const isEmptyMerchant =
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
+    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
+    if (isDistanceRequest && !formattedTransactionAmount) {
+        formattedTransactionAmount = translate('common.tbd');
+    }
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
 
@@ -110,7 +114,10 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const shouldShowTag = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
     const shouldShowBillable = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
-    let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
+    let description = `${translate('iou.amount')}`;
+    if (!isDistanceRequest) {
+        description += ` • ${translate('iou.cash')}`;
+    }
     if (isSettled) {
         description += ` • ${translate('iou.settledExpensify')}`;
     } else if (report.isWaitingOnBankAccount) {
@@ -131,18 +138,13 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
         hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
-    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const pendingAction = lodashGet(transaction, 'pendingAction');
     const getPendingFieldAction = (fieldPath) => lodashGet(transaction, fieldPath) || pendingAction;
 
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
-                <Image
-                    pointerEvents="none"
-                    source={EmptyStateBackgroundImage}
-                    style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
-                />
+                <AnimatedEmptyStateBackground />
             </View>
 
             {hasReceipt && (
@@ -216,8 +218,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
                         brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                        subtitle={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
-                        subtitleTextStyle={styles.textLabelError}
+                        error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                     />
                 </OfflineWithFeedback>
             )}

@@ -105,7 +105,7 @@ const defaultProps = {
         hasOutstandingIOU: false,
     },
     reportMetadata: {
-        isLoadingReportActions: false,
+        isLoadingReportActions: true,
         isLoadingMoreReportActions: false,
     },
     isComposerFullSize: false,
@@ -117,15 +117,6 @@ const defaultProps = {
     markReadyForHydration: null,
     ...withCurrentReportIDDefaultProps,
 };
-
-/**
- *
- * Function to check weather the report available in props is default
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-const checkDefaultReport = (report) => report === defaultProps.report;
 
 /**
  * Get the currently viewed report ID as number
@@ -165,6 +156,7 @@ function ReportScreen({
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
+    const [listHeight, setListHeight] = useState(0);
 
     const reportID = getReportID(route);
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
@@ -180,15 +172,12 @@ function ReportScreen({
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
 
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
-
-    const isDefaultReport = checkDefaultReport(report);
 
     let headerView = (
         <HeaderView
@@ -199,7 +188,7 @@ function ReportScreen({
         />
     );
 
-    if (isSingleTransactionView && !isDeletedParentAction) {
+    if (isSingleTransactionView) {
         headerView = (
             <MoneyRequestHeader
                 report={report}
@@ -241,18 +230,19 @@ function ReportScreen({
 
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
-        if (!reportIDFromPath) {
+        if (!ReportUtils.isValidReportIDFromPath(reportIDFromPath)) {
             return;
         }
 
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (report.reportID && report.reportID === getReportID(route)) {
+        if (report.reportID && report.reportID === getReportID(route) && !isLoadingInitialReportActions) {
             return;
         }
+
         Report.openReport(reportIDFromPath);
-    }, [report.reportID, route]);
+    }, [report.reportID, route, isLoadingInitialReportActions]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -324,7 +314,15 @@ function ReportScreen({
             // optimistic case
             (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && prevReport.statusNum === CONST.REPORT.STATUS.OPEN && report.statusNum === CONST.REPORT.STATUS.CLOSED)
         ) {
-            Navigation.goBack();
+            Navigation.dismissModal();
+            if (Navigation.getTopmostReportId() === prevOnyxReportID) {
+                Navigation.setShouldPopAllStateOnUP();
+                Navigation.goBack(ROUTES.HOME, false, true);
+            }
+            if (prevReport.parentReportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
+                return;
+            }
             Report.navigateToConciergeChat();
             return;
         }
@@ -339,7 +337,7 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum]);
+    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum, prevReport.parentReportID]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -353,7 +351,8 @@ function ReportScreen({
         }
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
-    const onListLayout = useCallback(() => {
+    const onListLayout = useCallback((e) => {
+        setListHeight((prev) => lodashGet(e, 'nativeEvent.layout.height', prev));
         if (!markReadyForHydration) {
             return;
         }
@@ -364,17 +363,8 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () =>
-            (!firstRenderRef.current &&
-                !_.isEmpty(report) &&
-                !isDefaultReport &&
-                !report.reportID &&
-                !isOptimisticDelete &&
-                !report.isLoadingReportActions &&
-                !isLoading &&
-                !userLeavingStatus) ||
-            shouldHideReport,
-        [report, isLoading, shouldHideReport, isDefaultReport, isOptimisticDelete, userLeavingStatus],
+        () => (!firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
+        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
 
     return (
@@ -449,9 +439,11 @@ function ReportScreen({
                                         isComposerFullSize={isComposerFullSize}
                                         onSubmitComment={onSubmitComment}
                                         policies={policies}
+                                        listHeight={listHeight}
+                                        personalDetails={personalDetails}
                                     />
                                 ) : (
-                                    <ReportFooter shouldDisableCompose />
+                                    <ReportFooter isReportReadyForDisplay={false} />
                                 )}
                             </View>
                         </DragAndDropProvider>
@@ -486,7 +478,7 @@ export default compose(
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
                 initialValue: {
-                    isLoadingReportActions: false,
+                    isLoadingReportActions: true,
                     isLoadingMoreReportActions: false,
                 },
             },

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import optionPropTypes from '../optionPropTypes';
 import styles from '../../styles/styles';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Callback to fire when a row is tapped */
@@ -80,8 +81,8 @@ const propTypes = {
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
 
-    /** Whether to focus the textinput after an option is selected */
-    shouldFocusOnSelectRow: PropTypes.bool,
+    /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
+    shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,
 
     /** Whether to autofocus the search input on mount */
     autoFocus: PropTypes.bool,
@@ -124,6 +125,9 @@ const propTypes = {
 
     /** Initial focused index value */
     initialFocusedIndex: PropTypes.number,
+
+    /** Whether the text input should intercept swipes or not */
+    shouldTextInputInterceptSwipe: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -141,7 +145,7 @@ const defaultProps = {
     hideSectionHeaders: false,
     boldStyle: false,
     showTitleTooltip: false,
-    shouldFocusOnSelectRow: false,
+    shouldPreventDefaultFocusOnSelectRow: false,
     autoFocus: true,
     shouldShowConfirmButton: false,
     confirmButtonText: undefined,
@@ -154,12 +158,13 @@ const defaultProps = {
     isDisabled: false,
     shouldHaveOptionSeparator: false,
     initiallyFocusedOptionKey: undefined,
-    maxLength: undefined,
+    maxLength: CONST.SEARCH_MAX_LENGTH,
     shouldShowTextInput: true,
     onChangeText: () => {},
     shouldUseStyleForChildren: true,
     isRowMultilineSupported: false,
     initialFocusedIndex: undefined,
+    shouldTextInputInterceptSwipe: false,
 };
 
 export {propTypes, defaultProps};
