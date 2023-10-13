@@ -82,7 +82,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
 
     const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
-    const [isTorchAvailable, setIsTorchAvailable] = useState(true);
+    const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
 
     const hideReciptModal = () => {
