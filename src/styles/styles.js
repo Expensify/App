@@ -3899,6 +3899,12 @@ const styles = (theme) => ({
     checkboxWithLabelCheckboxStyle: {
         marginLeft: -2,
     },
+
+    receiptPlaceholder: {
+        position: 'absolute',
+        alignItems:'center',
+        justifyContent:'center'
+    },
 });
 
 // For now we need to export the styles function that takes the theme as an argument

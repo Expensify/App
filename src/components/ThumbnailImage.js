@@ -7,6 +7,8 @@ import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 import useWindowDimensions from '../hooks/useWindowDimensions';
+import useNetwork from '../hooks/useNetwork';
+import ReceiptPlaceholderImage from '../../assets/images/receipt-placeholder.svg';
 
 const propTypes = {
     /** Source URL for the preview image */
@@ -91,15 +93,24 @@ function ThumbnailImage(props) {
     );
 
     const sizeStyles = props.shouldDynamicallyResize ? [StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight)] : [styles.w100, styles.h100];
+    const {isOffline} = useNetwork();
 
     return (
         <View style={[props.style, styles.overflowHidden]}>
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                <ImageWithSizeCalculation
-                    url={props.previewSourceURL}
-                    onMeasure={updateImageSize}
-                    isAuthTokenRequired={props.isAuthTokenRequired}
-                />
+                {isOffline ? (
+                    <ReceiptPlaceholderImage
+                        pointerEvents={'none'}
+                        width={100}
+                        style={styles.receiptPlaceholder}
+                    />
+                ) : (
+                    <ImageWithSizeCalculation
+                        url={props.previewSourceURL}
+                        onMeasure={updateImageSize}
+                        isAuthTokenRequired={props.isAuthTokenRequired}
+                    />
+                )} 
             </View>
         </View>
     );

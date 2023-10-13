@@ -1,11 +1,19 @@
 import _ from 'underscore';
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
+
+// Define constants for load states
+const LoadState = {
+    INITIAL: 'initial',
+    LOADING: 'loading',
+    LOADED: 'loaded',
+    ERRORED: 'errored',
+};
 
 const propTypes = {
     /** Url for image to display */
@@ -39,16 +47,17 @@ const defaultProps = {
  *
  */
 function ImageWithSizeCalculation(props) {
-    const isLoadedRef = useRef(null);
+    const [loadState, setLoadState] = useState(LoadState.INITIAL);
     const [isImageCached, setIsImageCached] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
+    const source = useMemo(() => ({ uri: props.url }), [props.url]);
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url: props.url});
+        setLoadState(LoadState.ERRORED);
     };
 
     const imageLoadedSuccessfully = (event) => {
-        isLoadedRef.current = true;
+        setLoadState(LoadState.LOADED);
         props.onMeasure({
             width: event.nativeEvent.width,
             height: event.nativeEvent.height,
@@ -57,39 +66,41 @@ function ImageWithSizeCalculation(props) {
 
     /** Delay the loader to detect whether the image is being loaded from the cache or the internet. */
     useEffect(() => {
-        if (isLoadedRef.current || !isLoading) {
+        if (loadState !== LoadState.LOADING) {
             return;
         }
         const timeout = _.delay(() => {
-            if (!isLoading || isLoadedRef.current) {
+            if (loadState !== LoadState.LOADING) {
                 return;
             }
+            setLoadState(LoadState.ERRORED);
             setIsImageCached(false);
         }, 200);
         return () => clearTimeout(timeout);
-    }, [isLoading]);
+    }, [loadState]);
 
     return (
         <View style={[styles.w100, styles.h100, props.style]}>
             <Image
                 style={[styles.w100, styles.h100]}
-                source={{uri: props.url}}
+                source={source}
                 isAuthTokenRequired={props.isAuthTokenRequired}
                 resizeMode={Image.resizeMode.cover}
                 onLoadStart={() => {
-                    if (isLoadedRef.current || isLoading) {
-                        return;
+                    if (loadState === LoadState.LOADED || isOffline) {
+                        setLoadState(LoadState.INITIAL);
+                    } else {
+                        setLoadState(LoadState.LOADING);
                     }
-                    setIsLoading(true);
                 }}
                 onLoadEnd={() => {
-                    setIsLoading(false);
+                    setLoadState(LoadState.LOADED);
                     setIsImageCached(true);
                 }}
                 onError={onError}
                 onLoad={imageLoadedSuccessfully}
             />
-            {isLoading && !isImageCached && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {loadState === LoadState.LOADING && !isImageCached && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
         </View>
     );
 }
