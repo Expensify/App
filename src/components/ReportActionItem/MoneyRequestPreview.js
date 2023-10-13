@@ -262,8 +262,8 @@ function MoneyRequestPreview(props) {
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewHeaderText()}</Text>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
+                                    <Text style={[styles.textLabelSupporting, styles.lh20]}>{getPreviewHeaderText()}</Text>
                                     {isSettled && (
                                         <>
                                             <Icon
@@ -272,7 +272,7 @@ function MoneyRequestPreview(props) {
                                                 height={4}
                                                 additionalStyles={[styles.mr1, styles.ml1]}
                                             />
-                                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getSettledMessage()}</Text>
+                                            <Text style={[styles.textLabelSupporting, styles.lh20]}>{getSettledMessage()}</Text>
                                         </>
                                     )}
                                 </View>
