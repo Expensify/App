@@ -19,6 +19,7 @@ import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import * as TransactionUtils from '../libs/TransactionUtils';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as HeaderUtils from '../libs/HeaderUtils';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import transactionPropTypes from './transactionPropTypes';
@@ -81,7 +82,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }, [parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    const canModifyRequest = isActionOwner && !isSettled && !isApproved;
+
+    const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
 
     useEffect(() => {
         if (canModifyRequest) {

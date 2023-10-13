@@ -27,6 +27,7 @@ import type {
     SettleExpensifyCardParams,
     RequestAmountParams,
     SplitAmountParams,
+    DidSplitAmountMessageParams,
     AmountEachParams,
     PayerOwesAmountParams,
     PayerOwesParams,
@@ -544,6 +545,7 @@ export default {
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
+        didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} each`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} owes ${amount}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} owes: `,
@@ -577,6 +579,8 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
+            duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
+            emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
         },
     },
     notificationPreferencesPage: {
@@ -1756,6 +1760,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
+        reversedTransaction: '[Reversed transaction]',
         deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
     },
