@@ -156,9 +156,6 @@ const propTypes = {
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields: PropTypes.bool,
 
-    /** Whether we should show the amount, date, and merchant fields. */
-    isScrollable: PropTypes.bool,
-
     /** A flag for verifying that the current report is a sub-report of a workspace chat */
     isPolicyExpenseChat: PropTypes.bool,
 
@@ -202,7 +199,6 @@ const defaultProps = {
     isScanRequest: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
-    shouldAllowScrollingInputs: false,
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -561,7 +557,7 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
             listStyles={props.listStyles}
-            shouldAllowScrollingChildren={props.isScrollable}
+            shouldAllowScrollingChildren
         >
             {props.isDistanceRequest && (
                 <View style={styles.confirmationListMapItem}>

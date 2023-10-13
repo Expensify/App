@@ -130,7 +130,7 @@ const propTypes = {
     shouldTextInputInterceptSwipe: PropTypes.bool,
 
     /** Whether we should allow the view wrapping the nested children to be scrollable */
-    isScrollable: PropTypes.bool,
+    shouldAllowScrollingChildren: PropTypes.bool,
 };
 
 const defaultProps = {

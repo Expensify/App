@@ -141,7 +141,6 @@ function SplitBillDetailsPage(props) {
                             reportID={reportID}
                             reportActionID={reportAction.reportActionID}
                             transactionID={props.transaction.transactionID}
-                            isScrollable
                             onConfirm={onConfirm}
                         />
                     )}
