@@ -16,7 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import TextInput from '../../../components/TextInput';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as LoginUtils from '../../../libs/LoginUtils';
-import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../../components/withToggleVisibilityView';
+import withToggleVisibilityView from '../../../components/withToggleVisibilityView';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import {withNetwork} from '../../../components/OnyxProvider';
 import networkPropTypes from '../../../components/networkPropTypes';
@@ -66,11 +66,11 @@ const propTypes = {
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
 
+    isVisible: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
-
-    ...toggleVisibilityViewPropTypes,
 
     ...withNavigationFocusPropTypes,
 };
