@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
-import ROUTES from '../../ROUTES';
 
 const darkTheme = {
     // Figma keys
@@ -43,7 +42,7 @@ const darkTheme = {
     hoverComponentBG: colors.darkHighlightBackground,
     activeComponentBG: colors.darkBorders,
     signInSidebar: colors.green800,
-    sidebar: colors.darkHighlightBackground,
+    sidebar: colors.darkAppBackground,
     sidebarHover: colors.darkAppBackground,
     heading: colors.darkPrimaryText,
     textLight: colors.darkPrimaryText,
@@ -84,6 +83,7 @@ const darkTheme = {
     loungeAccessOverlay: colors.blue800,
     selectionListIndicatorColor: colors.white,
     mapAttributionText: colors.black,
+    walletPageBG: colors.green700,
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
