@@ -838,6 +838,16 @@ export default {
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
         addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
+        getPaidFaster: 'Get paid faster',
+        addPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
+        getPaidBackFaster: 'Get paid back faster',
+        secureAccessToYourMoney: 'Secure access to your money',
+        receiveMoney: 'Receive money in your local currency',
+        expensifyWallet: 'Expensify Wallet',
+        sendAndReceiveMoney: 'Send and receive money from your Expensify Wallet.',
+        bankAccounts: 'Bank accounts',
+        addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
+        addBankAccount: 'Add bank account',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -1847,11 +1857,11 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
     },
-    globalNavigationOptions: {
-        chats: 'Chats',
-    },
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',
         transactionDate: 'Transaction date',
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
     },
 } satisfies TranslationBase;

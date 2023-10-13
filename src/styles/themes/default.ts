@@ -82,16 +82,18 @@ const darkTheme = {
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
     mapAttributionText: colors.black,
-    PAGE_BACKGROUND_COLORS: {
-        [SCREENS.HOME]: colors.darkHighlightBackground,
-        [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
-        [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
-        [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
-        [SCREENS.SETTINGS.SECURITY]: colors.ice500,
-        [SCREENS.SETTINGS.STATUS]: colors.green700,
-        [SCREENS.SETTINGS.ROOT]: colors.darkHighlightBackground,
-    },
+    PAGE_BACKGROUND_COLORS: {},
     white: colors.white,
 } satisfies ThemeBase;
+
+darkTheme.PAGE_BACKGROUND_COLORS = {
+    [SCREENS.HOME]: darkTheme.sidebar,
+    [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
+    [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
+    [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
+    [SCREENS.SETTINGS.SECURITY]: colors.ice500,
+    [SCREENS.SETTINGS.STATUS]: colors.green700,
+    [SCREENS.SETTINGS.ROOT]: darkTheme.sidebar,
+};
 
 export default darkTheme;
