@@ -3072,11 +3072,24 @@ const styles = (theme) => ({
     },
 
     cardMenuItem: {
-        paddingLeft: 8,
+        paddingLeft: 0,
         paddingRight: 0,
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         alignItems: 'center',
+    },
+
+    transferBalance: {
+        paddingLeft: 20,
+        paddingRight: 20,
+        borderRadius: 0,
+        height: 64,
+        alignItems: 'center',
+    },
+
+    paymentMethod: {
+        paddingHorizontal: 20,
+        height: 64,
     },
 
     archivedReportFooter: {
@@ -3805,6 +3818,13 @@ const styles = (theme) => ({
         color: theme.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: variables.lineHeightLarge,
+    },
+
+    walletBalance: {
+        lineHeight: undefined,
+        fontSize: 45,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 
     aspectRatioLottie: (source) => {

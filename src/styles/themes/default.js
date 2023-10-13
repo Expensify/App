@@ -84,6 +84,7 @@ const darkTheme = {
     loungeAccessOverlay: colors.blue800,
     selectionListIndicatorColor: colors.white,
     mapAttributionText: colors.black,
+    walletPageBG: colors.green700,
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
