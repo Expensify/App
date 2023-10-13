@@ -256,6 +256,8 @@ function SuggestionMention({
         setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}));
     }, []);
 
+    const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+
     useImperativeHandle(
         forwardedRef,
         () => ({
@@ -263,8 +265,9 @@ function SuggestionMention({
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
+            getSuggestions,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     if (!isMentionSuggestionsMenuVisible) {
