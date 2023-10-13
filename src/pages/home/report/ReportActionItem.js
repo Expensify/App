@@ -258,7 +258,7 @@ function ReportActionItem(props) {
                 props.action.reportActionID,
                 originalReportID,
                 props.draftMessage,
-                () => {},
+                () => setIsContextMenuActive(true),
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(originalReport),
                 ReportUtils.chatIncludesChronos(originalReport),

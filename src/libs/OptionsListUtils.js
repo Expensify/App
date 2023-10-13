@@ -92,33 +92,6 @@ Onyx.connect({
 });
 
 /**
- * Get the option for a policy expense report.
- * @param {Object} report
- * @returns {Object}
- */
-function getPolicyExpenseReportOption(report) {
-    const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
-    const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
-    const reportName = ReportUtils.getReportName(expenseReport);
-    return {
-        ...expenseReport,
-        keyForList: expenseReport.policyID,
-        text: reportName,
-        alternateText: Localize.translateLocal('workspace.common.workspace'),
-        icons: [
-            {
-                source: policyExpenseChatAvatarSource,
-                name: reportName,
-                type: CONST.ICON_TYPE_WORKSPACE,
-            },
-        ],
-        selected: report.selected,
-        isPolicyExpenseChat: true,
-        searchText: report.searchText,
-    };
-}
-
-/**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
  *
  * @param {String} login
@@ -471,6 +444,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         isArchivedRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
+        isOwnPolicyExpenseChat: false,
         isExpenseReport: false,
         policyID: null,
         isOptimisticPersonalDetail: false,
@@ -490,12 +464,13 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
-        result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.isExpenseReport = ReportUtils.isExpenseReport(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         result.isThread = ReportUtils.isChatThread(report);
         result.isTaskReport = ReportUtils.isTaskReport(report);
         result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
+        result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat || false;
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
@@ -560,6 +535,28 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     result.subtitle = subtitle;
 
     return result;
+}
+
+/**
+ * Get the option for a policy expense report.
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getPolicyExpenseReportOption(report) {
+    const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+
+    const option = createOption(
+        expenseReport.participantAccountIDs,
+        allPersonalDetails,
+        expenseReport,
+        {},
+        {
+            showChatPreviewLine: false,
+            forcePolicyNamePreview: false,
+        },
+    );
+    option.selected = report.selected;
+    return option;
 }
 
 /**
