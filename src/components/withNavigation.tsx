@@ -18,6 +18,6 @@ export default function withNavigation<TProps extends WithNavigationProps, TRef>
         );
     }
 
-    WithNavigation.displayName = `withNavigation(${getComponentDisplayName(WrappedComponent as ComponentType)})`;
+    WithNavigation.displayName = `withNavigation(${getComponentDisplayName(WrappedComponent)})`;
     return React.forwardRef(WithNavigation);
 }
