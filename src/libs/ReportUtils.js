@@ -1356,12 +1356,13 @@ function getMoneyRequestReportName(report, policy = undefined) {
  * into a flat object. Used for displaying transactions and sending them in API commands
  *
  * @param {Object} transaction
+ * @param {Object} createdDateFormat
  * @returns {Object}
  */
-function getTransactionDetails(transaction) {
+function getTransactionDetails(transaction, createdDateFormat = CONST.DATE.FNS_FORMAT_STRING) {
     const report = getReport(transaction.reportID);
     return {
-        created: TransactionUtils.getCreated(transaction),
+        created: TransactionUtils.getCreated(transaction, createdDateFormat),
         amount: TransactionUtils.getAmount(transaction, isExpenseReport(report)),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
@@ -1370,6 +1371,8 @@ function getTransactionDetails(transaction) {
         category: TransactionUtils.getCategory(transaction),
         billable: TransactionUtils.getBillable(transaction),
         tag: TransactionUtils.getTag(transaction),
+        mccGroup: TransactionUtils.getMCCGroup(transaction),
+        cardID: TransactionUtils.getCardID(transaction),
     };
 }
 
@@ -1474,7 +1477,11 @@ function hasMissingSmartscanFields(iouReportID) {
  * @returns {String}
  */
 function getTransactionReportName(reportAction) {
-    if (ReportActionsUtils.isDeletedParentAction(reportAction)) {
+    if (ReportActionsUtils.isReversedTransaction(reportAction)) {
+        return Localize.translateLocal('parentReportAction.reversedTransaction');
+    }
+
+    if (ReportActionsUtils.isDeletedAction(reportAction)) {
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
 
@@ -1510,6 +1517,17 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
         // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
         return reportActionMessage;
+    }
+
+    if (!isIOUReport(report) && ReportActionsUtils.isSplitBillAction(reportAction)) {
+        // This covers group chats where the last action is a split bill action
+        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+        if (_.isEmpty(linkedTransaction)) {
+            return reportActionMessage;
+        }
+        const {amount, currency, comment} = getTransactionDetails(linkedTransaction);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+        return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment});
     }
 
     const totalAmount = getMoneyRequestTotal(report);
@@ -2118,6 +2136,7 @@ function buildOptimisticIOUReport(payeeAccountID, payerAccountID, total, chatRep
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.PROCESSING,
+        statusNum: isSendingMoney ? CONST.REPORT.STATUS.REIMBURSED : CONST.REPORT.STATE_NUM.PROCESSING,
         total,
 
         // We don't translate reportName because the server response is always in English
@@ -2573,6 +2592,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
  * @param {String} notificationPreference
  * @param {String} parentReportActionID
  * @param {String} parentReportID
+ * @param {String} welcomeMessage
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -2588,6 +2608,7 @@ function buildOptimisticChatReport(
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
+    welcomeMessage = '',
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
@@ -2614,7 +2635,7 @@ function buildOptimisticChatReport(
         stateNum: 0,
         statusNum: 0,
         visibility,
-        welcomeMessage: '',
+        welcomeMessage,
         writeCapability,
     };
 }
@@ -2829,6 +2850,7 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
         policyID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS.OPEN,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     };
 }
 

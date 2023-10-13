@@ -20,6 +20,9 @@ const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
     onPress: PropTypes.func.isRequired,
 
+    /** Call the onPress function on main button when Enter key is pressed */
+    pressOnEnter: PropTypes.bool,
+
     /** Settlement currency type */
     currency: PropTypes.string,
 
@@ -81,6 +84,7 @@ const propTypes = {
 const defaultProps = {
     isLoading: false,
     isDisabled: false,
+    pressOnEnter: false,
     addBankAccountRoute: '',
     addDebitCardRoute: '',
     currency: CONST.CURRENCY.USD,
@@ -122,6 +126,7 @@ function SettlementButton({
     formattedAmount,
     nvp_lastPaymentMethod,
     onPress,
+    pressOnEnter,
     policyID,
     shouldShowPaymentOptions,
     style,
@@ -220,6 +225,7 @@ function SettlementButton({
                     isDisabled={isDisabled}
                     isLoading={isLoading}
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
+                    pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
                     style={style}
                     buttonSize={buttonSize}
