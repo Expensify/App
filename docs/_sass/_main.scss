@@ -371,9 +371,34 @@ button {
             flex-wrap: wrap;
         }
 
+        h1 {
+            font-size: 1.5em;
+            padding: 20px 0 20px 0;
+        }
+
+        h1::after {
+            content:' ';
+            background: $color-borders;
+            border: none;
+            display: block;
+            width: 100%;
+            height: 2px;
+            margin-top: 12px;
+        }
+
+        h2 {
+            font-size: 1.125em;
+        }
+
+        h3 {
+            font-size: 1em;
+        }
+
         h2,
         h3 {
             font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+            margin: 0;
+            padding: 20px 0 12px 0;
         }
 
         blockquote {
