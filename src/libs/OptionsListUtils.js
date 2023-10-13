@@ -142,6 +142,7 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
         return {
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
+            avatarImageName: UserUtils.getAvatarImageName(userPersonalDetail.avatar, userPersonalDetail.accountID),
             type: CONST.ICON_TYPE_AVATAR,
             name: userPersonalDetail.login,
         };
@@ -212,6 +213,7 @@ function getParticipantsOption(participant, personalDetails) {
         icons: [
             {
                 source: UserUtils.getAvatar(detail.avatar, detail.accountID),
+                avatarImageName: UserUtils.getAvatar(detail.avatar, detail.accountID),
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
                 id: detail.accountID,

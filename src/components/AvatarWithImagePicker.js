@@ -32,6 +32,9 @@ const propTypes = {
     /** Avatar source to display */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
 
+    /** Avatar image name required to create the avatar test ID  */
+    avatarImageName: PropTypes.string,
+
     /** Additional style props */
     style: stylePropTypes,
 
@@ -63,6 +66,8 @@ const propTypes = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string, imagePropTypes.source]),
+
+    fallbackIconName: PropTypes.string,
 
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
@@ -100,6 +105,7 @@ const propTypes = {
 
 const defaultProps = {
     source: '',
+    avatarImageName: '',
     onImageSelected: () => {},
     onImageRemoved: () => {},
     style: [],
@@ -108,6 +114,7 @@ const defaultProps = {
     isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
     fallbackIcon: Expensicons.FallbackAvatar,
+    fallbackIconName: 'FallbackAvatar',
     type: CONST.ICON_TYPE_AVATAR,
     editorMaskImage: undefined,
     errorRowStyles: [],
@@ -276,6 +283,7 @@ class AvatarWithImagePicker extends React.Component {
                                             containerStyles={styles.avatarLarge}
                                             imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                                             source={this.props.source}
+                                            avatarImageName={this.props.avatarImageName}
                                             fallbackIcon={this.props.fallbackIcon}
                                             size={this.props.size}
                                             type={this.props.type}

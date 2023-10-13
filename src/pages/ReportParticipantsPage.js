@@ -68,6 +68,7 @@ const getAllParticipants = (report, personalDetails, translate) =>
                     {
                         id: accountID,
                         source: UserUtils.getAvatar(userPersonalDetail.avatar, accountID),
+                        avatarImageName: UserUtils.getAvatarImageName(userPersonalDetail.avatar, accountID),
                         name: userLogin,
                         type: CONST.ICON_TYPE_AVATAR,
                     },

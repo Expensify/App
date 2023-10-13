@@ -18,6 +18,9 @@ const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
 
+    /** Avatar image name required to create the avatar test ID  */
+    avatarImageName: PropTypes.string,
+
     /** Extra styles to pass to Image */
     // eslint-disable-next-line react/forbid-prop-types
     imageStyles: PropTypes.arrayOf(PropTypes.object),
@@ -43,7 +46,7 @@ const propTypes = {
      */
     fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string, imagePropTypes.source]),
 
-     /** Fallback icon name required to create the icon test ID  */
+    /** Fallback icon name required to create the icon test ID  */
     fallbackIconName: PropTypes.string,
 
     /** Denotes whether it is an avatar or a workspace avatar */
@@ -54,6 +57,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    avatarImageName: '',
     source: null,
     imageStyles: [],
     iconAdditionalStyles: [],
@@ -68,7 +72,6 @@ const defaultProps = {
 
 function Avatar(props) {
     const [imageError, setImageError] = useState(false);
-
     useNetwork({onReconnect: () => setImageError(false)});
 
     useEffect(() => {

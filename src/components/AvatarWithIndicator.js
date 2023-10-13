@@ -13,16 +13,23 @@ const propTypes = {
     /** URL for the avatar */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]).isRequired,
 
+    /** Avatar image name required to create the avatar test ID  */
+    avatarImageName: PropTypes.string,
+
     /** To show a tooltip on hover */
     tooltipText: PropTypes.string,
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string, imagePropTypes.source]),
+
+    /** Fallback icon name required to create the icon test ID  */
+    fallbackIconName: PropTypes.string,
 };
 
 const defaultProps = {
     tooltipText: '',
     fallbackIcon: Expensicons.FallbackAvatar,
+    fallbackIconName: 'FallbackAvatar',
 };
 
 function AvatarWithIndicator(props) {
@@ -31,7 +38,9 @@ function AvatarWithIndicator(props) {
             <View style={[styles.sidebarAvatar]}>
                 <Avatar
                     source={UserUtils.getSmallSizeAvatar(props.source)}
+                    avatarImageName={props.avatarImageName}
                     fallbackIcon={props.fallbackIcon}
+                    fallbackIconName={props.fallbackIconName}
                 />
                 <Indicator />
             </View>

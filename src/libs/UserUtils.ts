@@ -78,11 +78,20 @@ function getDefaultAvatar(accountID = -1): React.FC<SvgProps> {
         return ConciergeAvatar;
     }
 
-    // There are 24 possible default avatars, so we choose which one this user has based
-    // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
-    const accountIDHashBucket = ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
+    const accountIDHashBucket = getAccountIDHashBucket(accountID);
 
     return defaultAvatars[`Avatar${accountIDHashBucket}`];
+}
+
+/**
+ * Helper method to return default avatar id based on a modulo operation on account id
+ * @param [accountID]
+ * @returns
+ */
+function getAccountIDHashBucket(accountID: number): AvatarRange {
+    // There are 24 possible default avatars, so we choose which one this user has based
+    // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
+    return ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
 }
 
 /**
@@ -98,6 +107,25 @@ function getDefaultAvatarURL(accountID: string | number = '', isNewDot = false):
     const avatarPrefix = isNewDot ? `default-avatar` : `avatar`;
 
     return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${accountIDHashBucket}.png`;
+}
+
+/**
+ * Helper method to return the default avatar name which is necessary to create test id for the avatar
+ * @param [accountID]
+ * @returns
+ */
+function getDefaultAvatarName(accountID = -1): string {
+    if (accountID <= 0) {
+        return 'FallbackAvatar';
+    }
+
+    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
+        return 'ConciergeAvatar';
+    }
+
+    const accountIDHashBucket = getAccountIDHashBucket(accountID);
+
+    return `DefaultAvatar_${accountIDHashBucket}`;
 }
 
 /**
@@ -144,6 +172,17 @@ function getAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | s
  */
 function getAvatarUrl(avatarURL: string, accountID: number): string {
     return isDefaultAvatar(avatarURL) ? getDefaultAvatarURL(accountID, true) : avatarURL;
+}
+
+/**
+ * Provided an avatar URL, if avatar is a default avatar, return image name for default avatar.
+ * Otherwise, return the image name based on the account id param.
+ *
+ * @param avatarURL - the avatar source from user's personalDetails
+ * @param accountID - the accountID of the user
+ */
+function getAvatarImageName(avatarURL: string, accountID: number): string {
+    return isDefaultAvatar(avatarURL) ? getDefaultAvatarName(accountID) : `Avatar_${accountID}`;
 }
 
 /**
@@ -201,4 +240,5 @@ export {
     getSmallSizeAvatar,
     getFullSizeAvatar,
     generateAccountID,
+    getAvatarImageName,
 };

@@ -256,6 +256,7 @@ function InitialSettingsPage(props) {
                 },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                iconRightName: 'NewWindow',
                 link: CONST.NEWHELP_URL,
             },
             {
@@ -269,6 +270,7 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
+                iconName: 'Exit',
                 iconInfo: 'Exit',
                 action: () => {
                     signOut(false);
@@ -360,6 +362,7 @@ function InitialSettingsPage(props) {
                                 <Avatar
                                     imageStyles={[styles.avatarXLarge]}
                                     source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
+                                    avatarImageName={UserUtils.getAvatarImageName(props.currentUserPersonalDetails.avatar, props.session.accountID)}
                                     size={CONST.AVATAR_SIZE.XLARGE}
                                     fallbackIcon={props.currentUserPersonalDetails.fallbackIcon}
                                 />

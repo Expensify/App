@@ -247,6 +247,7 @@ function WorkspaceInitialPage(props) {
                                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                                                     source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                                                     fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                                    fallbackIconName="FallbackWorkspaceAvatar"
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                     name={policyName}
                                                     type={CONST.ICON_TYPE_WORKSPACE}

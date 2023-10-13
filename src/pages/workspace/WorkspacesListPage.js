@@ -175,6 +175,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                 action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
                 iconFill: themeColors.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                fallbackIconName: 'FallbackWorkspaceAvatar',
                 brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,

@@ -242,6 +242,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     imageStyles={[styles.alignSelfCenter]}
                                                     size={CONST.AVATAR_SIZE.DEFAULT}
                                                     source={props.icon}
+                                                    avatarImageName={props.iconName}
                                                     fallbackIcon={props.fallbackIcon}
                                                     name={props.title}
                                                     type={CONST.ICON_TYPE_WORKSPACE}
@@ -251,7 +252,9 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                 <Avatar
                                                     imageStyles={[styles.alignSelfCenter]}
                                                     source={props.icon}
+                                                    avatarImageName={props.iconName}
                                                     fallbackIcon={props.fallbackIcon}
+                                                    fallbackIconName={props.fallbackIconName}
                                                     size={props.avatarSize}
                                                 />
                                             )}

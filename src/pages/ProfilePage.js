@@ -179,6 +179,7 @@ function ProfilePage(props) {
                                                 containerStyles={[styles.avatarLarge, styles.mb3]}
                                                 imageStyles={[styles.avatarLarge]}
                                                 source={UserUtils.getAvatar(avatar, accountID)}
+                                                avatarImageName={UserUtils.getAvatarImageName(avatar, accountID)}
                                                 size={CONST.AVATAR_SIZE.LARGE}
                                                 fallbackIcon={fallbackIcon}
                                             />

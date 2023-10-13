@@ -118,6 +118,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                                 imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                                 source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                fallbackIconName="FallbackWorkspaceAvatar"
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 name={policyName}
                                 type={CONST.ICON_TYPE_WORKSPACE}
@@ -125,6 +126,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                         )}
                         type={CONST.ICON_TYPE_WORKSPACE}
                         fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                        fallbackIconName="FallbackWorkspaceAvatar"
                         style={[styles.mb3]}
                         anchorPosition={styles.createMenuPositionProfile(windowWidth)}
                         anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}

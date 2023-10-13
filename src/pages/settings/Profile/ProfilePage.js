@@ -120,6 +120,7 @@ function ProfilePage(props) {
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
                     source={UserUtils.getAvatar(avatarURL, accountID)}
+                    avatarImageName={UserUtils.getAvatarImageName(avatarURL, accountID)}
                     onImageSelected={PersonalDetails.updateAvatar}
                     onImageRemoved={PersonalDetails.deleteAvatar}
                     anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
