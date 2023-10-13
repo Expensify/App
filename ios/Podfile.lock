@@ -819,7 +819,7 @@ PODS:
     - SDWebImage/Core (~> 5.10)
   - SocketRocket (0.6.1)
   - Turf (2.6.1)
-  - VisionCamera (2.15.4):
+  - VisionCamera (2.16.2):
     - React
     - React-callinvoker
     - React-Core
@@ -1287,7 +1287,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 469ce2c3d22e5e8e4818d5a3b254699a5c89efa4
-  VisionCamera: d3ec8883417a6a4a0e3a6ba37d81d22db7611601
+  VisionCamera: 95f969b8950b411285579d633a1014782fe0e634
   Yoga: 3efc43e0d48686ce2e8c60f99d4e6bd349aff981
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 

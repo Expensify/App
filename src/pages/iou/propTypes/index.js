@@ -21,6 +21,9 @@ const iouPropTypes = PropTypes.shape({
     /** The category name */
     category: PropTypes.string,
 
+    /** Whether the request is billable */
+    billable: PropTypes.bool,
+
     /** The tag */
     tag: PropTypes.string,
 
@@ -42,6 +45,7 @@ const iouDefaultProps = {
     merchant: '',
     category: '',
     tag: '',
+    billable: false,
     created: '',
     participants: [],
     receiptPath: '',
