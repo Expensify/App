@@ -124,11 +124,11 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     let amountDescription = `${translate('iou.amount')}`;
 
     if (isExpensifyCardTransaction) {
-        if (TransactionUtils.isPending(transaction)) {
-            amountDescription += ` • ${translate('iou.pending')}`;
-        }
         if (formattedOriginalAmount) {
             amountDescription += ` • ${translate('iou.original')} ${formattedOriginalAmount}`;
+        }
+        if (TransactionUtils.isPending(transaction)) {
+            amountDescription += ` • ${translate('iou.pending')}`;
         }
     } else {
         if (!isDistanceRequest) {
