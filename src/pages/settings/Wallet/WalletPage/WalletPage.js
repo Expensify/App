@@ -62,6 +62,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
 
     const hasBankAccount = !_.isEmpty(bankAccountList) || !_.isEmpty(fundList);
     const hasWallet = userWallet.walletLinkedAccountID > 0;
+    const hasSilverWallet = userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER;
     const hasAssignedCard = !_.isEmpty(cardList);
     const shouldShowEmptyState = !hasBankAccount && !hasWallet && !hasAssignedCard;
 
@@ -330,7 +331,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                 {hasWallet && (
                                     <WalletSection
                                         icon={Illustrations.MoneyIntoWallet}
-                                        subtitle={translate('walletPage.sendAndReceiveMoney')}
+                                        subtitle={translate(`walletPage.${hasSilverWallet ? 'enableWalletToSendAndReceiveMoney' : 'sendAndReceiveMoney'}`)}
                                         title={translate('walletPage.expensifyWallet')}
                                     >
                                         <>
@@ -358,17 +359,29 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                                 popoverPlacement="bottom"
                                             >
-                                                {(triggerKYCFlow, buttonRef) => (
-                                                    <MenuItem
-                                                        ref={buttonRef}
-                                                        title={translate('common.transferBalance')}
-                                                        icon={Expensicons.Transfer}
-                                                        onPress={triggerKYCFlow}
-                                                        shouldShowRightIcon
-                                                        disabled={network.isOffline}
-                                                        wrapperStyle={styles.transferBalance}
-                                                    />
-                                                )}
+                                                {(triggerKYCFlow, buttonRef) =>
+                                                    hasSilverWallet ? (
+                                                        <Button
+                                                            ref={buttonRef}
+                                                            text={translate('walletPage.enableWallet')}
+                                                            onPress={triggerKYCFlow}
+                                                            style={styles.mh5}
+                                                            disabled={network.isOffline}
+                                                            success
+                                                            large
+                                                        />
+                                                    ) : (
+                                                        <MenuItem
+                                                            ref={buttonRef}
+                                                            title={translate('common.transferBalance')}
+                                                            icon={Expensicons.Transfer}
+                                                            onPress={triggerKYCFlow}
+                                                            shouldShowRightIcon
+                                                            disabled={network.isOffline}
+                                                            wrapperStyle={styles.transferBalance}
+                                                        />
+                                                    )
+                                                }
                                             </KYCWall>
                                         </>
                                     </WalletSection>

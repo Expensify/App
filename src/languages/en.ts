@@ -845,6 +845,8 @@ export default {
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
         sendAndReceiveMoney: 'Send and receive money from your Expensify Wallet.',
+        enableWalletToSendAndReceiveMoney: 'Enable your Expensify Wallet to start sending and receiving money with friends!',
+        enableWallet: 'Enable wallet',
         bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
         addBankAccount: 'Add bank account',
