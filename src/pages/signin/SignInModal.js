@@ -24,11 +24,7 @@ function SignInModal() {
             shouldEnableMaxHeight
             testID={SignInModal.displayName}
         >
-            <HeaderWithBackButton
-                onBackButtonPress={() => {
-                    Navigation.dismissModal();
-                }}
-            />
+            <HeaderWithBackButton onBackButtonPress={Navigation.dismissModal} />
             <SignInPage isInModal />
         </ScreenWrapper>
     );
