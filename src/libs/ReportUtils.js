@@ -1373,6 +1373,8 @@ function getTransactionDetails(transaction, createdDateFormat = CONST.DATE.FNS_F
         tag: TransactionUtils.getTag(transaction),
         mccGroup: TransactionUtils.getMCCGroup(transaction),
         cardID: TransactionUtils.getCardID(transaction),
+        originalAmount: TransactionUtils.getOriginalAmount(transaction),
+        originalCurrency: TransactionUtils.getOriginalCurrency(transaction),
     };
 }
 
