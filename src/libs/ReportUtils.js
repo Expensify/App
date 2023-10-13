@@ -1355,7 +1355,7 @@ function getMoneyRequestReportName(report, policy = undefined) {
         return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
-    if (hasNonReimbursableTransactions(report)) {
+    if (hasNonReimbursableTransactions(report.reportID)) {
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
     }
 
@@ -1580,7 +1580,8 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
 
-    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+    const hasNonReimbursableTransactions = hasNonReimbursableTransactions(report.reportID);
+    return Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
 }
 
 /**
