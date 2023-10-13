@@ -518,6 +518,7 @@ export default {
         approved: 'Approved',
         cash: 'Cash',
         card: 'Card',
+        original: 'Original',
         split: 'Split',
         addToSplit: 'Add to split',
         splitBill: 'Split bill',
@@ -535,6 +536,7 @@ export default {
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
+        transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',
@@ -551,6 +553,8 @@ export default {
         payerOwes: ({payer}: PayerOwesParams) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} paid ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} paid: `,
+        payerSpentAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} spent ${amount}`,
+        payerSpent: ({payer}: PayerPaidParams) => `${payer} spent: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} approved:`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
@@ -924,6 +928,7 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Welcome message',
+        welcomeMessageOptional: 'Welcome message (optional)',
         explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
     },
     languagePage: {

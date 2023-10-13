@@ -105,10 +105,12 @@ class ReimbursementAccountPage extends React.Component {
         this.goBack = this.goBack.bind(this);
         this.requestorStepRef = React.createRef();
 
-        // The first time we open this page, the props.reimbursementAccount has not been loaded from the server.
-        // Calculating shouldShowContinueSetupButton on the default data doesn't make sense, and we should recalculate
+        // The first time we open this page, props.reimbursementAccount is either not available in Onyx
+        // or only partial data loaded where props.reimbursementAccount.achData.currentStep is not available
+        // Calculating shouldShowContinueSetupButton on first page open doesn't make sense, and we should recalculate
         // it once we get the response from the server the first time in componentDidUpdate.
-        const hasACHDataBeenLoaded = this.props.reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps;
+        const hasACHDataBeenLoaded =
+            this.props.reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && _.has(this.props.reimbursementAccount, 'achData.currentStep');
         this.state = {
             hasACHDataBeenLoaded,
             shouldShowContinueSetupButton: hasACHDataBeenLoaded ? this.getShouldShowContinueSetupButtonInitialValue() : false,
@@ -181,6 +183,10 @@ class ReimbursementAccountPage extends React.Component {
         const backTo = lodashGet(this.props.route.params, 'backTo');
         const policyId = lodashGet(this.props.route.params, 'policyID');
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(this.getRouteForCurrentStep(currentStep), policyId, backTo));
+    }
+
+    componentWillUnmount() {
+        BankAccounts.clearReimbursementAccount();
     }
 
     getFieldsForStep(step) {

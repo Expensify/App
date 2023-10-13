@@ -1268,6 +1268,17 @@ function isWaitingForTaskCompleteFromAssignee(report, parentReportAction = {}) {
 }
 
 /**
+ * Returns number of transactions that are nonReimbursable
+ *
+ * @param {Object|null} iouReportID
+ * @returns {Number}
+ */
+function hasNonReimbursableTransactions(iouReportID) {
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.filter(allTransactions, (transaction) => transaction.reimbursable === false).length > 0;
+}
+
+/**
  * @param {Object} report
  * @param {Object} allReportsDict
  * @returns {Number}
@@ -1382,6 +1393,10 @@ function getMoneyRequestReportName(report, policy = undefined) {
         return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
+    if (hasNonReimbursableTransactions(report.reportID)) {
+        return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
+    }
+
     if (report.hasOutstandingIOU) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
@@ -1411,6 +1426,8 @@ function getTransactionDetails(transaction, createdDateFormat = CONST.DATE.FNS_F
         tag: TransactionUtils.getTag(transaction),
         mccGroup: TransactionUtils.getMCCGroup(transaction),
         cardID: TransactionUtils.getCardID(transaction),
+        originalAmount: TransactionUtils.getOriginalAmount(transaction),
+        originalCurrency: TransactionUtils.getOriginalCurrency(transaction),
     };
 }
 
@@ -1601,7 +1618,8 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
 
-    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
+    return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
 }
 
 /**
@@ -2630,6 +2648,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
  * @param {String} notificationPreference
  * @param {String} parentReportActionID
  * @param {String} parentReportID
+ * @param {String} welcomeMessage
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -2645,6 +2664,7 @@ function buildOptimisticChatReport(
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
+    welcomeMessage = '',
 ) {
     const currentTime = DateUtils.getDBTime();
     return {
@@ -2671,7 +2691,7 @@ function buildOptimisticChatReport(
         stateNum: 0,
         statusNum: 0,
         visibility,
-        welcomeMessage: '',
+        welcomeMessage,
         writeCapability,
     };
 }
@@ -4023,6 +4043,7 @@ export {
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
+    hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
