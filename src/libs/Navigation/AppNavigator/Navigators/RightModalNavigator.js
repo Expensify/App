@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
+import PropTypes from 'prop-types';
 
 import * as ModalStackNavigators from '../ModalStackNavigators';
 import RHPScreenOptions from '../RHPScreenOptions';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import {withNavigationPropTypes} from '../../../../components/withNavigation';
 import styles from '../../../../styles/styles';
 import Overlay from './Overlay';
 import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
@@ -13,7 +13,7 @@ import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
 const Stack = createStackNavigator();
 
 const propTypes = {
-    ...withNavigationPropTypes,
+    navigation: PropTypes.object.isRequired,
 };
 
 function RightModalNavigator(props) {

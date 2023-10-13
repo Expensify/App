@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {withNavigationPropTypes} from '../../../components/withNavigation';
 import ReportScreen from '../../../pages/home/ReportScreen';
 import ReportScreenIDSetter from './ReportScreenIDSetter';
 
@@ -17,7 +16,7 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...withNavigationPropTypes,
+    navigation: PropTypes.object.isRequired,
 };
 
 const defaultProps = {};

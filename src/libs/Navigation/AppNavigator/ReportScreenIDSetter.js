@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
-import {withNavigationPropTypes} from '../../../components/withNavigation';
 import * as App from '../../actions/App';
 import usePermissions from '../../../hooks/usePermissions';
 import CONST from '../../../CONST';
@@ -40,7 +39,7 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...withNavigationPropTypes,
+    navigation: PropTypes.object.isRequired,
 };
 
 const defaultProps = {
