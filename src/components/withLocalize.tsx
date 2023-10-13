@@ -1,6 +1,6 @@
-import React, {forwardRef} from 'react';
+import React, {ComponentType, ForwardedRef, RefAttributes, forwardRef} from 'react';
 import PropTypes from 'prop-types';
-import {LocaleContext} from './LocaleContextProvider';
+import {LocaleContext, LocaleContextProps} from './LocaleContextProvider';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 const withLocalizePropTypes = {
@@ -30,24 +30,27 @@ const withLocalizePropTypes = {
     toLocaleDigit: PropTypes.func.isRequired,
 };
 
-export default function withLocalize(WrappedComponent) {
-    const WithLocalize = forwardRef((props, ref) => (
-        <LocaleContext.Consumer>
-            {(translateUtils) => (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...translateUtils}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    ref={ref}
-                />
-            )}
-        </LocaleContext.Consumer>
-    ));
+type WithLocalizeProps = LocaleContextProps;
+
+export default function withLocalize<TProps extends WithLocalizeProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+    function WithLocalize(props: Omit<TProps, keyof WithLocalizeProps>, ref: ForwardedRef<TRef>) {
+        return (
+            <LocaleContext.Consumer>
+                {(translateUtils) => (
+                    <WrappedComponent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...translateUtils}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                        ref={ref}
+                    />
+                )}
+            </LocaleContext.Consumer>
+        );
+    }
 
     WithLocalize.displayName = `withLocalize(${getComponentDisplayName(WrappedComponent)})`;
-
-    return WithLocalize;
+    return forwardRef(WithLocalize);
 }
 
 export {withLocalizePropTypes};
