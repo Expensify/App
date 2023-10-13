@@ -17,6 +17,7 @@ import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDe
 import setSelection from '../../libs/setSelection';
 import compose from '../../libs/compose';
 import getPlatform from '../../libs/getPlatform';
+import FormHelpMessage from '../FormHelpMessage';
 
 const propTypes = {
     /** padding bottom style of safe area */
@@ -392,6 +393,7 @@ class BaseOptionsSelector extends Component {
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
                 spellCheck={false}
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
+                isLoading={this.props.isLoadingNewOptions}
             />
         );
         const optionsList = (
@@ -428,6 +430,7 @@ class BaseOptionsSelector extends Component {
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
                 isRowMultilineSupported={this.props.isRowMultilineSupported}
+                isLoadingNewOptions={this.props.isLoadingNewOptions}
                 shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
             />
         );
@@ -453,6 +456,13 @@ class BaseOptionsSelector extends Component {
                             <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
                                 {this.props.children}
                                 {this.props.shouldShowTextInput && textInput}
+                                {Boolean(this.props.textInputAlert) && (
+                                    <FormHelpMessage
+                                        message={this.props.textInputAlert}
+                                        style={[styles.mb3]}
+                                        isError={false}
+                                    />
+                                )}
                             </View>
                             {optionsList}
                         </>

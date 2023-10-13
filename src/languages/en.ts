@@ -1614,6 +1614,9 @@ export default {
         screenShare: 'Screen share',
         screenShareRequest: 'Expensify is inviting you to a screen share',
     },
+    search: {
+        resultsAreLimited: 'Search results are limited.',
+    },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
         body: {
