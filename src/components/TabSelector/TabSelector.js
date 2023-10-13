@@ -1,5 +1,5 @@
 import {View} from 'react-native';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import * as Expensicons from '../Icon/Expensicons';
@@ -83,15 +83,14 @@ const getBackgroundColor = (position, routesLength, tabIndex, affectedTabs) => {
 function TabSelector({state, navigation, onTabPress, position}) {
     const {translate} = useLocalize();
 
-    const defaultAffectedAnimatedTabs = Array.from({length: state.routes.length}, (v, i) => i);
+    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
 
     React.useEffect(() => {
         setTimeout(() => {
             setAffectedAnimatedTabs(defaultAffectedAnimatedTabs);
         }, CONST.ANIMATED_TRANSITION);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [state.index]);
+    }, [defaultAffectedAnimatedTabs, state.index]);
 
     return (
         <View style={styles.tabSelector}>
