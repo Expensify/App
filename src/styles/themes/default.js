@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
-import ROUTES from '../../ROUTES';
 
 const darkTheme = {
     // Figma keys
