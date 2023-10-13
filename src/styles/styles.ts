@@ -872,9 +872,9 @@ const styles = (theme: ThemeDefault) =>
         },
 
         chatItemComposeSecondaryRow: {
-            height: 15,
-            marginBottom: 5,
-            marginTop: 5,
+            height: CONST.CHAT_FOOTER_SECONDARY_ROW_HEIGHT,
+            marginBottom: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
+            marginTop: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
         },
 
         chatItemComposeSecondaryRowSubText: {
@@ -1597,7 +1597,6 @@ const styles = (theme: ThemeDefault) =>
         overlayStyles: (current: OverlayStylesParams) =>
             ({
                 ...positioning.pFixed,
-
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
                 left: -2 * variables.sideBarWidth,
                 top: 0,
@@ -2793,7 +2792,7 @@ const styles = (theme: ThemeDefault) =>
 
         noSelect: {
             boxShadow: 'none',
-            outline: 'none',
+            outlineStyle: 'none',
         },
 
         cardStyleNavigator: {
@@ -3031,11 +3030,6 @@ const styles = (theme: ThemeDefault) =>
                 ...getPopOverVerticalOffset(80),
                 horizontal: windowWidth - 140,
             } satisfies AnchorPosition),
-
-        invert: {
-            // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
-            transform: [{scaleX: -1}, {scaleY: -1}],
-        },
 
         iPhoneXSafeArea: {
             backgroundColor: theme.inverse,
