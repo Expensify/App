@@ -1519,6 +1519,17 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         return reportActionMessage;
     }
 
+    if (!isIOUReport(report) && ReportActionsUtils.isSplitBillAction(reportAction)) {
+        // This covers group chats where the last action is a split bill action
+        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+        if (_.isEmpty(linkedTransaction)) {
+            return reportActionMessage;
+        }
+        const {amount, currency, comment} = getTransactionDetails(linkedTransaction);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+        return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment});
+    }
+
     const totalAmount = getMoneyRequestTotal(report);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
