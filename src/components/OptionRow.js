@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {Component} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet, InteractionManager} from 'react-native';
 import styles from '../styles/styles';
@@ -70,6 +70,9 @@ const propTypes = {
     /** Whether to remove the lateral padding and align the content with the margins */
     shouldDisableRowInnerPadding: PropTypes.bool,
 
+    /** Whether to prevent default focusing on select */
+    shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,
+
     /** Whether to wrap large text up to 2 lines */
     isMultilineSupported: PropTypes.bool,
 
@@ -95,234 +98,221 @@ const defaultProps = {
     style: null,
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
+    shouldPreventDefaultFocusOnSelectRow: false,
 };
 
-class OptionRow extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isDisabled: this.props.isDisabled,
-        };
+function OptionRow(props) {
+    const pressableRef = useRef(null);
+    const [isDisabled, setIsDisabled] = useState(props.isDisabled);
+
+    useEffect(() => {
+        setIsDisabled(props.isDisabled);
+    }, [props.isDisabled]);
+
+    const textStyle = props.optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
+    const textUnreadStyle = props.boldStyle || props.option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, props.style, styles.pre, isDisabled ? styles.optionRowDisabled : {});
+    const alternateTextStyle = StyleUtils.combineStyles(
+        textStyle,
+        styles.optionAlternateText,
+        styles.textLabelSupporting,
+        props.style,
+        lodashGet(props.option, 'alternateTextMaxLines', 1) === 1 ? styles.pre : styles.preWrap,
+    );
+    const contentContainerStyles = [styles.flex1];
+    const sidebarInnerRowStyle = StyleSheet.flatten([styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter]);
+    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : props.backgroundColor;
+    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const isMultipleParticipant = lodashGet(props.option, 'participantsList.length', 0) > 1;
+    const defaultSubscriptSize = props.option.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
+
+    // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
+        (props.option.participantsList || (props.option.accountID ? [props.option] : [])).slice(0, 10),
+        isMultipleParticipant,
+    );
+    let subscriptColor = themeColors.appBG;
+    if (props.optionIsFocused) {
+        subscriptColor = focusedBackgroundColor;
     }
 
-    // It is very important to use shouldComponentUpdate here so SectionList items will not unnecessarily re-render
-    shouldComponentUpdate(nextProps, nextState) {
-        return (
-            this.state.isDisabled !== nextState.isDisabled ||
-            this.props.isDisabled !== nextProps.isDisabled ||
-            this.props.isMultilineSupported !== nextProps.isMultilineSupported ||
-            this.props.isSelected !== nextProps.isSelected ||
-            this.props.shouldHaveOptionSeparator !== nextProps.shouldHaveOptionSeparator ||
-            this.props.selectedStateButtonText !== nextProps.selectedStateButtonText ||
-            this.props.showSelectedState !== nextProps.showSelectedState ||
-            this.props.highlightSelected !== nextProps.highlightSelected ||
-            this.props.showTitleTooltip !== nextProps.showTitleTooltip ||
-            !_.isEqual(this.props.option.icons, nextProps.option.icons) ||
-            this.props.optionIsFocused !== nextProps.optionIsFocused ||
-            this.props.option.text !== nextProps.option.text ||
-            this.props.option.alternateText !== nextProps.option.alternateText ||
-            this.props.option.descriptiveText !== nextProps.option.descriptiveText ||
-            this.props.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator ||
-            this.props.option.shouldShowSubscript !== nextProps.option.shouldShowSubscript ||
-            this.props.option.ownerAccountID !== nextProps.option.ownerAccountID ||
-            this.props.option.subtitle !== nextProps.option.subtitle ||
-            this.props.option.pendingAction !== nextProps.option.pendingAction ||
-            this.props.option.customIcon !== nextProps.option.customIcon
-        );
-    }
+    return (
+        <OfflineWithFeedback
+            pendingAction={props.option.pendingAction}
+            errors={props.option.allReportErrors}
+            shouldShowErrorMessages={false}
+            needsOffscreenAlphaCompositing
+        >
+            <Hoverable>
+                {(hovered) => (
+                    <PressableWithFeedback
+                        ref={(el) => (pressableRef.current = el)}
+                        onPress={(e) => {
+                            if (!props.onSelectRow) {
+                                return;
+                            }
 
-    componentDidUpdate(prevProps) {
-        if (this.props.isDisabled === prevProps.isDisabled) {
-            return;
-        }
-
-        this.setState({isDisabled: this.props.isDisabled});
-    }
-
-    render() {
-        let pressableRef = null;
-        const textStyle = this.props.optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-        const textUnreadStyle = this.props.boldStyle || this.props.option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-        const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, this.props.style, styles.pre, this.state.isDisabled ? styles.optionRowDisabled : {});
-        const alternateTextStyle = StyleUtils.combineStyles(
-            textStyle,
-            styles.optionAlternateText,
-            styles.textLabelSupporting,
-            this.props.style,
-            lodashGet(this.props.option, 'alternateTextMaxLines', 1) === 1 ? styles.pre : styles.preWrap,
-        );
-        const contentContainerStyles = [styles.flex1];
-        const sidebarInnerRowStyle = StyleSheet.flatten([styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter]);
-        const hoveredBackgroundColor = this.props.hoverStyle && this.props.hoverStyle.backgroundColor ? this.props.hoverStyle.backgroundColor : this.props.backgroundColor;
-        const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-        const isMultipleParticipant = lodashGet(this.props.option, 'participantsList.length', 0) > 1;
-        const defaultSubscriptSize = this.props.option.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
-
-        // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-        const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-            (this.props.option.participantsList || (this.props.option.accountID ? [this.props.option] : [])).slice(0, 10),
-            isMultipleParticipant,
-        );
-        let subscriptColor = themeColors.appBG;
-        if (this.props.optionIsFocused) {
-            subscriptColor = focusedBackgroundColor;
-        }
-
-        return (
-            <OfflineWithFeedback
-                pendingAction={this.props.option.pendingAction}
-                errors={this.props.option.allReportErrors}
-                shouldShowErrorMessages={false}
-                needsOffscreenAlphaCompositing
-            >
-                <Hoverable>
-                    {(hovered) => (
-                        <PressableWithFeedback
-                            ref={(el) => (pressableRef = el)}
-                            onPress={(e) => {
-                                if (!this.props.onSelectRow) {
-                                    return;
-                                }
-
-                                this.setState({isDisabled: true});
-                                if (e) {
-                                    e.preventDefault();
-                                }
-                                let result = this.props.onSelectRow(this.props.option, pressableRef);
-                                if (!(result instanceof Promise)) {
-                                    result = Promise.resolve();
-                                }
-                                InteractionManager.runAfterInteractions(() => {
-                                    result.finally(() => this.setState({isDisabled: this.props.isDisabled}));
-                                });
-                            }}
-                            disabled={this.state.isDisabled}
-                            style={[
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                                styles.justifyContentBetween,
-                                styles.sidebarLink,
-                                this.props.shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
-                                this.props.optionIsFocused ? styles.sidebarLinkActive : null,
-                                this.props.shouldHaveOptionSeparator && styles.borderTop,
-                                !this.props.onSelectRow && !this.props.isDisabled ? styles.cursorDefault : null,
-                                this.props.isSelected && this.props.highlightSelected && styles.optionRowSelected,
-                            ]}
-                            accessibilityLabel={this.props.option.text}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            hoverDimmingValue={1}
-                            hoverStyle={this.props.hoverStyle}
-                            needsOffscreenAlphaCompositing={lodashGet(this.props.option, 'icons.length', 0) >= 2}
-                        >
-                            <View style={sidebarInnerRowStyle}>
-                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                    {!_.isEmpty(this.props.option.icons) &&
-                                        (this.props.option.shouldShowSubscript ? (
-                                            <SubscriptAvatar
-                                                mainAvatar={this.props.option.icons[0]}
-                                                secondaryAvatar={this.props.option.icons[1]}
-                                                backgroundColor={hovered ? hoveredBackgroundColor : subscriptColor}
-                                                size={defaultSubscriptSize}
+                            setIsDisabled(true);
+                            if (e) {
+                                e.preventDefault();
+                            }
+                            let result = props.onSelectRow(props.option, pressableRef.current);
+                            if (!(result instanceof Promise)) {
+                                result = Promise.resolve();
+                            }
+                            InteractionManager.runAfterInteractions(() => {
+                                result.finally(() => setIsDisabled(props.isDisabled));
+                            });
+                        }}
+                        disabled={isDisabled}
+                        style={[
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                            styles.sidebarLink,
+                            props.shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
+                            props.optionIsFocused ? styles.sidebarLinkActive : null,
+                            props.shouldHaveOptionSeparator && styles.borderTop,
+                            !props.onSelectRow && !props.isDisabled ? styles.cursorDefault : null,
+                            props.isSelected && props.highlightSelected && styles.optionRowSelected,
+                        ]}
+                        accessibilityLabel={props.option.text}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        hoverDimmingValue={1}
+                        hoverStyle={props.hoverStyle}
+                        needsOffscreenAlphaCompositing={lodashGet(props.option, 'icons.length', 0) >= 2}
+                        onMouseDown={props.shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                    >
+                        <View style={sidebarInnerRowStyle}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                {!_.isEmpty(props.option.icons) &&
+                                    (props.option.shouldShowSubscript ? (
+                                        <SubscriptAvatar
+                                            mainAvatar={props.option.icons[0]}
+                                            secondaryAvatar={props.option.icons[1]}
+                                            backgroundColor={hovered ? hoveredBackgroundColor : subscriptColor}
+                                            size={defaultSubscriptSize}
+                                        />
+                                    ) : (
+                                        <MultipleAvatars
+                                            icons={props.option.icons}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
+                                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered ? hoveredBackgroundColor : subscriptColor)]}
+                                            shouldShowTooltip={props.showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(props.option)}
+                                        />
+                                    ))}
+                                <View style={contentContainerStyles}>
+                                    <DisplayNames
+                                        accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
+                                        fullTitle={props.option.text}
+                                        displayNamesWithTooltips={displayNamesWithTooltips}
+                                        tooltipEnabled={props.showTitleTooltip}
+                                        numberOfLines={props.isMultilineSupported ? 2 : 1}
+                                        textStyles={displayNameStyle}
+                                        shouldUseFullTitle={
+                                            props.option.isChatRoom ||
+                                            props.option.isPolicyExpenseChat ||
+                                            props.option.isMoneyRequestReport ||
+                                            props.option.isThread ||
+                                            props.option.isTaskReport
+                                        }
+                                    />
+                                    {props.option.alternateText ? (
+                                        <Text
+                                            style={alternateTextStyle}
+                                            numberOfLines={lodashGet(props.option, 'alternateTextMaxLines', 1)}
+                                        >
+                                            {props.option.alternateText}
+                                        </Text>
+                                    ) : null}
+                                </View>
+                                {props.option.descriptiveText ? (
+                                    <View style={[styles.flexWrap, styles.pl2]}>
+                                        <Text style={[styles.textLabel]}>{props.option.descriptiveText}</Text>
+                                    </View>
+                                ) : null}
+                                {props.option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                        <Icon
+                                            src={Expensicons.DotIndicator}
+                                            fill={themeColors.danger}
+                                        />
+                                    </View>
+                                )}
+                                {props.showSelectedState && (
+                                    <>
+                                        {props.shouldShowSelectedStateAsButton && !props.isSelected ? (
+                                            <Button
+                                                style={[styles.pl2]}
+                                                text={props.selectedStateButtonText}
+                                                onPress={() => props.onSelectedStatePressed(props.option)}
+                                                small
                                             />
                                         ) : (
-                                            <MultipleAvatars
-                                                icons={this.props.option.icons}
-                                                size={CONST.AVATAR_SIZE.DEFAULT}
-                                                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered ? hoveredBackgroundColor : subscriptColor)]}
-                                                shouldShowTooltip={this.props.showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(this.props.option)}
-                                            />
-                                        ))}
-                                    <View style={contentContainerStyles}>
-                                        <DisplayNames
-                                            accessibilityLabel={this.props.translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={this.props.option.text}
-                                            displayNamesWithTooltips={displayNamesWithTooltips}
-                                            tooltipEnabled={this.props.showTitleTooltip}
-                                            numberOfLines={this.props.isMultilineSupported ? 2 : 1}
-                                            textStyles={displayNameStyle}
-                                            shouldUseFullTitle={
-                                                this.props.option.isChatRoom ||
-                                                this.props.option.isPolicyExpenseChat ||
-                                                this.props.option.isMoneyRequestReport ||
-                                                this.props.option.isThread ||
-                                                this.props.option.isTaskReport
-                                            }
-                                        />
-                                        {this.props.option.alternateText ? (
-                                            <Text
-                                                style={alternateTextStyle}
-                                                numberOfLines={lodashGet(this.props.option, 'alternateTextMaxLines', 1)}
+                                            <PressableWithFeedback
+                                                onPress={() => props.onSelectedStatePressed(props.option)}
+                                                disabled={isDisabled}
+                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                             >
-                                                {this.props.option.alternateText}
-                                            </Text>
-                                        ) : null}
+                                                <SelectCircle isChecked={props.isSelected} />
+                                            </PressableWithFeedback>
+                                        )}
+                                    </>
+                                )}
+                                {props.isSelected && props.highlightSelected && (
+                                    <View style={styles.defaultCheckmarkWrapper}>
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            fill={themeColors.iconSuccessFill}
+                                        />
                                     </View>
-                                    {this.props.option.descriptiveText ? (
-                                        <View style={[styles.flexWrap, styles.pl2]}>
-                                            <Text style={[styles.textLabel]}>{this.props.option.descriptiveText}</Text>
-                                        </View>
-                                    ) : null}
-                                    {this.props.option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                            <Icon
-                                                src={Expensicons.DotIndicator}
-                                                fill={themeColors.danger}
-                                            />
-                                        </View>
-                                    )}
-                                    {this.props.showSelectedState && (
-                                        <>
-                                            {this.props.shouldShowSelectedStateAsButton && !this.props.isSelected ? (
-                                                <Button
-                                                    style={[styles.pl2]}
-                                                    text={this.props.selectedStateButtonText}
-                                                    onPress={() => this.props.onSelectedStatePressed(this.props.option)}
-                                                    small
-                                                />
-                                            ) : (
-                                                <PressableWithFeedback
-                                                    onPress={() => this.props.onSelectedStatePressed(this.props.option)}
-                                                    disabled={this.state.isDisabled}
-                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                                                    accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                                                >
-                                                    <SelectCircle isChecked={this.props.isSelected} />
-                                                </PressableWithFeedback>
-                                            )}
-                                        </>
-                                    )}
-                                    {this.props.isSelected && this.props.highlightSelected && (
-                                        <View style={styles.defaultCheckmarkWrapper}>
-                                            <Icon
-                                                src={Expensicons.Checkmark}
-                                                fill={themeColors.iconSuccessFill}
-                                            />
-                                        </View>
-                                    )}
+                                )}
+                            </View>
+                        </View>
+                        {Boolean(props.option.customIcon) && (
+                            <View
+                                style={[styles.flexRow, styles.alignItemsCenter]}
+                                accessible={false}
+                            >
+                                <View>
+                                    <Icon
+                                        src={lodashGet(props.option, 'customIcon.src', '')}
+                                        fill={lodashGet(props.option, 'customIcon.color')}
+                                    />
                                 </View>
                             </View>
-                            {Boolean(this.props.option.customIcon) && (
-                                <View
-                                    style={[styles.flexRow, styles.alignItemsCenter]}
-                                    accessible={false}
-                                >
-                                    <View>
-                                        <Icon
-                                            src={lodashGet(this.props.option, 'customIcon.src', '')}
-                                            fill={lodashGet(this.props.option, 'customIcon.color')}
-                                        />
-                                    </View>
-                                </View>
-                            )}
-                        </PressableWithFeedback>
-                    )}
-                </Hoverable>
-            </OfflineWithFeedback>
-        );
-    }
+                        )}
+                    </PressableWithFeedback>
+                )}
+            </Hoverable>
+        </OfflineWithFeedback>
+    );
 }
 
 OptionRow.propTypes = propTypes;
 OptionRow.defaultProps = defaultProps;
 
-export default withLocalize(OptionRow);
+export default React.memo(
+    withLocalize(OptionRow),
+    (prevProps, nextProps) =>
+        prevProps.isDisabled === nextProps.isDisabled &&
+        prevProps.isMultilineSupported === nextProps.isMultilineSupported &&
+        prevProps.isSelected === nextProps.isSelected &&
+        prevProps.shouldHaveOptionSeparator === nextProps.shouldHaveOptionSeparator &&
+        prevProps.selectedStateButtonText === nextProps.selectedStateButtonText &&
+        prevProps.showSelectedState === nextProps.showSelectedState &&
+        prevProps.highlightSelected === nextProps.highlightSelected &&
+        prevProps.showTitleTooltip === nextProps.showTitleTooltip &&
+        !_.isEqual(prevProps.option.icons, nextProps.option.icons) &&
+        prevProps.optionIsFocused === nextProps.optionIsFocused &&
+        prevProps.option.text === nextProps.option.text &&
+        prevProps.option.alternateText === nextProps.option.alternateText &&
+        prevProps.option.descriptiveText === nextProps.option.descriptiveText &&
+        prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator &&
+        prevProps.option.shouldShowSubscript === nextProps.option.shouldShowSubscript &&
+        prevProps.option.ownerAccountID === nextProps.option.ownerAccountID &&
+        prevProps.option.subtitle === nextProps.option.subtitle &&
+        prevProps.option.pendingAction === nextProps.option.pendingAction &&
+        prevProps.option.customIcon === nextProps.option.customIcon,
+);

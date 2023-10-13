@@ -51,7 +51,7 @@ function assignRef(ref, el) {
  * parent. https://github.com/necolas/react-native-web/issues/1875
  */
 
-const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, children, shouldHandleScroll}, outerRef) => {
+const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, onMouseEnter, onMouseLeave, children, shouldHandleScroll}, outerRef) => {
     const [isHovered, setIsHovered] = useState(false);
 
     const isScrolling = useRef(false);
@@ -153,22 +153,30 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, children, 
         (el) => {
             updateIsHoveredOnScrolling(true);
 
+            if (_.isFunction(onMouseEnter)) {
+                onMouseEnter(el);
+            }
+
             if (_.isFunction(child.props.onMouseEnter)) {
                 child.props.onMouseEnter(el);
             }
         },
-        [child.props, updateIsHoveredOnScrolling],
+        [child.props, onMouseEnter, updateIsHoveredOnScrolling],
     );
 
     const disableHoveredOnMouseLeave = useCallback(
         (el) => {
             updateIsHoveredOnScrolling(false);
 
+            if (_.isFunction(onMouseLeave)) {
+                onMouseLeave(el);
+            }
+
             if (_.isFunction(child.props.onMouseLeave)) {
                 child.props.onMouseLeave(el);
             }
         },
-        [child.props, updateIsHoveredOnScrolling],
+        [child.props, onMouseLeave, updateIsHoveredOnScrolling],
     );
 
     const disableHoveredOnBlur = useCallback(

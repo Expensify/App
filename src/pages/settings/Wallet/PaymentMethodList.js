@@ -22,6 +22,7 @@ import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Log from '../../../libs/Log';
+import stylePropTypes from '../../../styles/stylePropTypes';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -35,6 +36,9 @@ const propTypes = {
 
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
+
+    /** Whether the empty list message should be shown when the list is empty */
+    shouldShowEmptyListMessage: PropTypes.bool,
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
@@ -69,6 +73,12 @@ const propTypes = {
     /** React ref being forwarded to the PaymentMethodList Button */
     buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
+    /** To enable/disable scrolling */
+    shouldEnableScroll: PropTypes.bool,
+
+    /** List container style */
+    style: stylePropTypes,
+
     ...withLocalizePropTypes,
 };
 
@@ -81,6 +91,7 @@ const defaultProps = {
     },
     isLoadingPaymentMethods: true,
     shouldShowAddPaymentMethodButton: true,
+    shouldShowEmptyListMessage: true,
     filterType: '',
     actionPaymentMethodType: '',
     activePaymentMethodID: '',
@@ -88,6 +99,8 @@ const defaultProps = {
     listHeaderComponent: null,
     buttonRef: () => {},
     onListContentSizeChange: () => {},
+    shouldEnableScroll: true,
+    style: {},
 };
 
 /**
@@ -143,9 +156,26 @@ function shouldShowDefaultBadge(filteredPaymentMethods, isDefault = false) {
 function isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod) {
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
-function PaymentMethodList(props) {
-    const {actionPaymentMethodType, activePaymentMethodID, bankAccountList, fundList, filterType, network, onPress, shouldShowSelectedState, selectedMethodID, translate} = props;
-
+function PaymentMethodList({
+    actionPaymentMethodType,
+    activePaymentMethodID,
+    bankAccountList,
+    buttonRef,
+    fundList,
+    filterType,
+    isLoadingPaymentMethods,
+    listHeaderComponent,
+    network,
+    onListContentSizeChange,
+    onPress,
+    shouldEnableScroll,
+    shouldShowSelectedState,
+    shouldShowAddPaymentMethodButton,
+    shouldShowEmptyListMessage,
+    selectedMethodID,
+    style,
+    translate,
+}) {
     const filteredPaymentMethods = useMemo(() => {
         const paymentCardList = fundList || {};
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
@@ -183,6 +213,18 @@ function PaymentMethodList(props) {
      */
     const renderListEmptyComponent = useCallback(() => <Text style={[styles.popoverMenuItem]}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>, [translate]);
 
+    const renderListFooterComponent = useCallback(
+        () => (
+            <MenuItem
+                onPress={onPress}
+                title={translate('walletPage.addBankAccount')}
+                icon={Expensicons.Plus}
+                wrapperStyle={styles.paymentMethod}
+            />
+        ),
+        [onPress, translate],
+    );
+
     /**
      * Create a menuItem for each passed paymentMethod
      *
@@ -209,13 +251,13 @@ function PaymentMethodList(props) {
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
-                    wrapperStyle={item.wrapperStyle}
+                    wrapperStyle={styles.paymentMethod}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID === item.methodID}
                 />
             </OfflineWithFeedback>
         ),
-        [shouldShowSelectedState, selectedMethodID, filteredPaymentMethods, translate],
+        [filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
     );
 
     return (
@@ -224,25 +266,28 @@ function PaymentMethodList(props) {
                 data={filteredPaymentMethods}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.key}
-                ListEmptyComponent={renderListEmptyComponent(translate)}
-                ListHeaderComponent={props.listHeaderComponent}
-                onContentSizeChange={props.onListContentSizeChange}
+                ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent(translate) : null}
+                ListHeaderComponent={listHeaderComponent}
+                ListFooterComponent={renderListFooterComponent}
+                onContentSizeChange={onListContentSizeChange}
+                scrollEnabled={shouldEnableScroll}
+                style={style}
             />
-            {props.shouldShowAddPaymentMethodButton && (
+            {shouldShowAddPaymentMethodButton && (
                 <FormAlertWrapper>
                     {(isOffline) => (
                         <Button
                             text={translate('paymentMethodList.addPaymentMethod')}
                             icon={Expensicons.CreditCard}
-                            onPress={props.onPress}
-                            isDisabled={props.isLoadingPaymentMethods || isOffline}
+                            onPress={onPress}
+                            isDisabled={isLoadingPaymentMethods || isOffline}
                             style={[styles.mh4, styles.buttonCTA]}
                             iconStyles={[styles.buttonCTAIcon]}
                             key="addPaymentMethodButton"
                             success
                             shouldShowRightIcon
                             large
-                            ref={props.buttonRef}
+                            ref={buttonRef}
                         />
                     )}
                 </FormAlertWrapper>
