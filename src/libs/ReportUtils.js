@@ -1808,18 +1808,18 @@ function getThreadReportNameHtml(parentReportActionMessage) {
  * If render in html, only the first line of the message should display.
  *
  * @param {Object} parentReportAction
- * @param {Boolean} shouldRenderHTML
+ * @param {Boolean} shouldRenderAsHTML
  * @param {Boolean} shouldRenderFirstLineOnly
  * @returns {String}
  */
-function getThreadReportName(parentReportAction, shouldRenderHTML, shouldRenderFirstLineOnly) {
-    if (!shouldRenderHTML && !shouldRenderFirstLineOnly) {
+function getThreadReportName(parentReportAction, shouldRenderAsHTML, shouldRenderFirstLineOnly) {
+    if (!shouldRenderAsHTML && !shouldRenderFirstLineOnly) {
         return lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
     }
 
     const threadReportNameHtml = getThreadReportNameHtml(lodashGet(parentReportAction, ['message', 0, 'html']));
 
-    if (!shouldRenderHTML && shouldRenderFirstLineOnly) {
+    if (!shouldRenderAsHTML && shouldRenderFirstLineOnly) {
         return Str.stripHTML(threadReportNameHtml);
     }
 
@@ -1832,11 +1832,11 @@ function getThreadReportName(parentReportAction, shouldRenderHTML, shouldRenderF
  *
  * @param {Object} report
  * @param {Object} [policy]
- * @param {Boolean} [shouldRenderHTML]
+ * @param {Boolean} [shouldRenderAsHTML]
  * @param {Boolean} [shouldRenderFirstLineOnly]
  * @returns {String}
  */
-function getReportName(report, policy = undefined, shouldRenderHTML = false, shouldRenderFirstLineOnly = false) {
+function getReportName(report, policy = undefined, shouldRenderAsHTML = false, shouldRenderFirstLineOnly = false) {
     let formattedName;
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     if (isChatThread(report)) {
@@ -1845,7 +1845,7 @@ function getReportName(report, policy = undefined, shouldRenderHTML = false, sho
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(parentReportAction);
-        const parentReportActionMessage = getThreadReportName(parentReportAction, shouldRenderHTML, shouldRenderFirstLineOnly);
+        const parentReportActionMessage = getThreadReportName(parentReportAction, shouldRenderAsHTML, shouldRenderFirstLineOnly);
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }

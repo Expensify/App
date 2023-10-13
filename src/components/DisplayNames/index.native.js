@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import {propTypes, defaultProps} from './displayNamesPropTypes';
 import Text from '../Text';
 import RenderHTML from '../RenderHTML';
@@ -8,16 +9,22 @@ import * as StyleUtils from '../../styles/StyleUtils';
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
 function DisplayNames(props) {
     const containsHtml = StringUtils.containsHtml(props.fullTitle);
-    const fullTitle = containsHtml ? <RenderHTML html={props.fullTitle} /> : props.fullTitle;
+
+    if (containsHtml) {
+        return (
+            <View style={[...props.textStyles, StyleUtils.getHeightOfRenderHtmlText(props.numberOfLines)]}>
+                <RenderHTML html={props.fullTitle} />
+            </View>
+        );
+    }
 
     return (
         <Text
             accessibilityLabel={props.accessibilityLabel}
-            // Set a fixed height to prevent RenderHTML's text overflow on iOS
-            style={[containsHtml ? StyleUtils.getHeightOfRenderHtmlText(props.numberOfLines) : {}, ...props.textStyles]}
+            style={props.textStyles}
             numberOfLines={props.numberOfLines || undefined}
         >
-            {fullTitle}
+            {props.fullTitle}
         </Text>
     );
 }
