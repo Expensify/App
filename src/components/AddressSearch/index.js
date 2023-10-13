@@ -1,7 +1,7 @@
 import _ from 'underscore';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {LogBox, ScrollView, View, Text, ActivityIndicator} from 'react-native';
+import {Keyboard, LogBox, ScrollView, View, Text, ActivityIndicator} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
 import compose from '../../libs/compose';
@@ -11,12 +11,16 @@ import themeColors from '../../styles/themes/default';
 import TextInput from '../TextInput';
 import * as ApiUtils from '../../libs/ApiUtils';
 import * as GooglePlacesUtils from '../../libs/GooglePlacesUtils';
+import getCurrentPosition from '../../libs/getCurrentPosition';
 import CONST from '../../CONST';
 import * as StyleUtils from '../../styles/StyleUtils';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 import variables from '../../styles/variables';
+import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
+import LocationErrorMessage from '../LocationErrorMessage';
 import {withNetwork} from '../OnyxProvider';
 import networkPropTypes from '../networkPropTypes';
+import CurrentLocationButton from './CurrentLocationButton';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -60,6 +64,9 @@ const propTypes = {
 
     /** Should address search be limited to results in the USA */
     isLimitedToUSA: PropTypes.bool,
+
+    /** Shows a current location button in suggestion list */
+    canUseCurrentLocation: PropTypes.bool,
 
     /** A list of predefined places that can be shown when the user isn't searching for something */
     predefinedPlaces: PropTypes.arrayOf(
@@ -115,6 +122,7 @@ const defaultProps = {
     defaultValue: undefined,
     containerStyles: [],
     isLimitedToUSA: false,
+    canUseCurrentLocation: false,
     renamedInputKeys: {
         street: 'addressStreet',
         street2: 'addressStreet2',
@@ -136,6 +144,10 @@ function AddressSearch(props) {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
+    const [searchValue, setSearchValue] = useState(props.value || props.defaultValue || '');
+    const [locationErrorCode, setLocationErrorCode] = useState(null);
+    const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
+    const shouldTriggerGeolocationCallbacks = useRef(true);
     const containerRef = useRef();
     const query = useMemo(
         () => ({
@@ -145,6 +157,7 @@ function AddressSearch(props) {
         }),
         [props.preferredLocale, props.resultTypes, props.isLimitedToUSA],
     );
+    const shouldShowCurrentLocationButton = props.canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
 
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
@@ -263,6 +276,71 @@ function AddressSearch(props) {
         props.onPress(values);
     };
 
+    /** Gets the user's current location and registers success/error callbacks */
+    const getCurrentLocation = () => {
+        if (isFetchingCurrentLocation) {
+            return;
+        }
+
+        setIsTyping(false);
+        setIsFocused(false);
+        setDisplayListViewBorder(false);
+        setIsFetchingCurrentLocation(true);
+
+        Keyboard.dismiss();
+
+        getCurrentPosition(
+            (successData) => {
+                if (!shouldTriggerGeolocationCallbacks.current) {
+                    return;
+                }
+
+                setIsFetchingCurrentLocation(false);
+                setLocationErrorCode(null);
+
+                const location = {
+                    lat: successData.coords.latitude,
+                    lng: successData.coords.longitude,
+                    address: CONST.YOUR_LOCATION_TEXT,
+                };
+                props.onPress(location);
+            },
+            (errorData) => {
+                if (!shouldTriggerGeolocationCallbacks.current) {
+                    return;
+                }
+
+                setIsFetchingCurrentLocation(false);
+                setLocationErrorCode(errorData.code);
+            },
+            {
+                maximumAge: 0, // No cache, always get fresh location info
+                timeout: 5000,
+            },
+        );
+    };
+
+    const renderHeaderComponent = () =>
+        props.predefinedPlaces.length > 0 && (
+            <>
+                {shouldShowCurrentLocationButton && (
+                    <CurrentLocationButton
+                        onPress={getCurrentLocation}
+                        isDisabled={props.network.isOffline}
+                    />
+                )}
+                {!props.value && <Text style={[styles.textLabel, styles.colorMuted, styles.pv2, styles.ph3, styles.overflowAuto]}>{props.translate('common.recentDestinations')}</Text>}
+            </>
+        );
+
+    // eslint-disable-next-line arrow-body-style
+    useEffect(() => {
+        return () => {
+            // If the component unmounts we don't want any of the callback for geolocation to run.
+            shouldTriggerGeolocationCallbacks.current = false;
+        };
+    }, []);
+
     return (
         /*
          * The GooglePlacesAutocomplete component uses a VirtualizedList internally,
@@ -302,12 +380,7 @@ function AddressSearch(props) {
                             />
                         </View>
                     }
-                    renderHeaderComponent={() =>
-                        !props.value &&
-                        props.predefinedPlaces && (
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.pt2, styles.ph3, styles.overflowAuto]}>{props.translate('common.recentDestinations')}</Text>
-                        )
-                    }
+                    renderHeaderComponent={renderHeaderComponent}
                     onPress={(data, details) => {
                         saveLocationDetails(data, details);
                         setIsTyping(false);
@@ -356,6 +429,7 @@ function AddressSearch(props) {
                         },
                         autoComplete: 'off',
                         onInputChange: (text) => {
+                            setSearchValue(text);
                             setIsTyping(true);
                             if (props.inputID) {
                                 props.onInputChange(text);
@@ -388,6 +462,11 @@ function AddressSearch(props) {
                         setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
                     }}
                 />
+                <LocationErrorMessage
+                    onClose={() => setLocationErrorCode(null)}
+                    locationErrorCode={locationErrorCode}
+                />
+                {isFetchingCurrentLocation && <FullScreenLoadingIndicator />}
             </View>
         </ScrollView>
     );
