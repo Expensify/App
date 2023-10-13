@@ -22,6 +22,7 @@ import usePrevious from '../../../../hooks/usePrevious';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import * as User from '../../../../libs/actions/User';
 import * as ReportUtils from '../../../../libs/ReportUtils';
+import * as SuggestionUtils from '../../../../libs/SuggestionUtils';
 import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import SilentCommentUpdater from './SilentCommentUpdater';
@@ -93,6 +94,7 @@ function ComposerWithSuggestions({
     handleSendMessage,
     shouldShowComposeInput,
     measureParentContainer,
+    listHeight,
     // Refs
     suggestionsRef,
     animatedRef,
@@ -102,8 +104,14 @@ function ComposerWithSuggestions({
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
-
-    const [value, setValue] = useState(() => getDraftComment(reportID) || '');
+    const emojisPresentBefore = useRef([]);
+    const [value, setValue] = useState(() => {
+        const draft = getDraftComment(reportID) || '';
+        if (draft) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(draft);
+        }
+        return draft;
+    });
     const commentRef = useRef(value);
 
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -127,6 +135,11 @@ function ComposerWithSuggestions({
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
+    const suggestions = lodashGet(suggestionsRef, 'current.getSuggestions', () => [])();
+
+    const hasEnoughSpaceForLargeSuggestion = SuggestionUtils.hasEnoughSpaceForLargeSuggestionMenu(listHeight, composerHeight, suggestions.length);
+
+    const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
@@ -153,14 +166,6 @@ function ComposerWithSuggestions({
         isScrollLikelyLayoutTriggered.current = true;
         debouncedLowerIsScrollLikelyLayoutTriggered();
     }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
-
-    const onInsertedEmoji = useCallback(
-        (emojiObject) => {
-            insertedEmojisRef.current = [...insertedEmojisRef.current, emojiObject];
-            debouncedUpdateFrequentlyUsedEmojis(emojiObject);
-        },
-        [debouncedUpdateFrequentlyUsedEmojis],
-    );
 
     /**
      * Set the TextInput Ref
@@ -206,10 +211,13 @@ function ComposerWithSuggestions({
             const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
-                insertedEmojisRef.current = [...insertedEmojisRef.current, ...emojis];
-                debouncedUpdateFrequentlyUsedEmojis();
+                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
+                if (!_.isEmpty(newEmojis)) {
+                    insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
+                    debouncedUpdateFrequentlyUsedEmojis();
+                }
             }
-
+            emojisPresentBefore.current = emojis;
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
@@ -550,8 +558,8 @@ function ComposerWithSuggestions({
                 isComposerFullSize={isComposerFullSize}
                 updateComment={updateComment}
                 composerHeight={composerHeight}
-                onInsertedEmoji={onInsertedEmoji}
                 measureParentContainer={measureParentContainer}
+                isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
                 // Input
                 value={value}
                 setValue={setValue}

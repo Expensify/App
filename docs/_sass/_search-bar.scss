@@ -88,11 +88,14 @@ $color-gray-label: $color-gray-label;
 /* All gsc id & class are Google Search relate gcse_0 is the search bar parent & gcse_1 is the search result list parent */
 #___gcse_0 {
     margin-left: 20px;
+    margin-top: -8px;
 }
 
 /* This input is in #___gcse_0 search bar */
 input#gsc-i-id1.gsc-input {
     background-color: $color-appBG;
+    padding: 15px 0px 0px !important;
+    pointer-events: auto;
     color: #E7ECE9;
     font-family: "ExpensifyNeue", "Segoe UI Emoji", "Noto Color Emoji" !important;
 }
@@ -102,23 +105,29 @@ input#gsc-i-id1.gsc-input {
     background-color: $color-appBG;
     border-bottom: $color-borders 2px solid;
     border-bottom-left-radius: 0px;
-    
+    pointer-events: none;
+
     &:focus-within {
         border-bottom: $color-accent 2px solid;
     }
 }
 
 .gsc-input-box .gsib_a {
-    padding: 5px 9px 4px 0px;
+    padding: 0px 0px 4px 0px;
 }
 
 .search-icon {
     margin-left: auto;
 }
 
+.gsst_b, .gsst_a {
+    padding: 0px !important;
+}
 /* This is the close icon on search bar */
 .gsib_b .gsst_a .gscb_a {
     color: $color-icons;
+    padding: 8px 6px 0px 6px !important;
+    pointer-events: auto;
 
     &:hover {
         color: $color-text;
@@ -148,6 +157,7 @@ label.search-label {
     font-family: "ExpensifyNeue", "Segoe UI Emoji", "Noto Color Emoji";
     transform: translateY(-50%);
     left: 20px;
+    pointer-events: none;
     color: $color-gray-label;
     transform-origin: left top;
     user-select: none;
@@ -181,7 +191,6 @@ label.search-label {
 /* Change the Google Search Button icon into Expensify icon button */
 .gsc-search-button.gsc-search-button-v2 {
     padding: 10px;
-    margin-top: -7px;
     margin-left: 15px;
     margin-right: 20px;
     border-radius: 25px;

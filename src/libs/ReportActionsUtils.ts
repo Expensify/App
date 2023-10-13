@@ -63,6 +63,10 @@ function isDeletedParentAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.message?.[0]?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
+function isReversedTransaction(reportAction: OnyxEntry<ReportAction>) {
+    return (reportAction?.message?.[0].isReversedTransaction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
+}
+
 function isPendingRemove(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
@@ -304,7 +308,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
-    return !isDeleted || isPending || isDeletedParentAction(reportAction);
+    return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
 /**
@@ -591,6 +595,7 @@ export {
     isMoneyRequestAction,
     isNotifiableReportAction,
     isPendingRemove,
+    isReversedTransaction,
     isReportActionAttachment,
     isReportActionDeprecated,
     isReportPreviewAction,
