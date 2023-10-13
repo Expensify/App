@@ -366,7 +366,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                             text={translate('walletPage.enableWallet')}
                                                             onPress={triggerKYCFlow}
                                                             style={styles.mh5}
-                                                            disabled={network.isOffline}
+                                                            isDisabled={network.isOffline}
                                                             success
                                                             large
                                                         />
