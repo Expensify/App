@@ -84,7 +84,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 stickySectionHeadersEnabled={false}
                 renderItem={renderItem}
                 getItemLayout={getItemLayout}
-                initialNumToRender={5}
+                initialNumToRender={12}
                 maxToRenderPerBatch={5}
                 windowSize={5}
             />
