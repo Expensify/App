@@ -1,7 +1,6 @@
-import React, {useState, useCallback, useRef, useImperativeHandle, useEffect} from 'react';
+import React, {useState, useCallback, useRef, useImperativeHandle, useEffect, useContext} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../../CONST';
 import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
 import MentionSuggestions from '../../../../components/MentionSuggestions';
@@ -9,9 +8,8 @@ import * as UserUtils from '../../../../libs/UserUtils';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 import useLocalize from '../../../../hooks/useLocalize';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import personalDetailsPropType from '../../../personalDetailsPropType';
 import * as SuggestionProps from './suggestionProps';
+import PersonalDetailsContext from './PersonalDetailsContext';
 
 /**
  * Check if this piece of string looks like a mention
@@ -28,9 +26,6 @@ const defaultSuggestionsValues = {
 };
 
 const propTypes = {
-    /** Personal details of all users */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** A ref to this component */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 
@@ -38,23 +33,11 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
     forwardedRef: null,
 };
 
-function SuggestionMention({
-    value,
-    setValue,
-    selection,
-    setSelection,
-    isComposerFullSize,
-    personalDetails,
-    updateComment,
-    composerHeight,
-    forwardedRef,
-    isAutoSuggestionPickerLarge,
-    measureParentContainer,
-}) {
+function SuggestionMention({value, setValue, selection, setSelection, isComposerFullSize, updateComment, composerHeight, forwardedRef, isAutoSuggestionPickerLarge, measureParentContainer}) {
+    const personalDetails = useContext(PersonalDetailsContext);
     const {translate} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
@@ -296,16 +279,10 @@ SuggestionMention.propTypes = propTypes;
 SuggestionMention.defaultProps = defaultProps;
 SuggestionMention.displayName = 'SuggestionMention';
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(
-    React.forwardRef((props, ref) => (
-        <SuggestionMention
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+export default React.forwardRef((props, ref) => (
+    <SuggestionMention
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
