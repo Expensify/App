@@ -46,6 +46,9 @@ function VerifyStep({account, session}) {
             Navigation.navigate(ROUTES.SETTINGS_2FA.ENABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
+        return () => {
+            Session.clearAccountMessages();
+        };
     }, []);
 
     useEffect(() => {
