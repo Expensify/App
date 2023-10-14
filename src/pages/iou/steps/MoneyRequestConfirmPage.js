@@ -66,6 +66,7 @@ function MoneyRequestConfirmPage(props) {
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
+    const isScanRequest = MoneyRequestUtils.isScanRequest(props.selectedTab);
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>
@@ -304,6 +305,10 @@ function MoneyRequestConfirmPage(props) {
             return props.translate('iou.split');
         }
 
+        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+            return props.translate('common.send');
+        }
+
         return props.translate('tabSelector.manual');
     };
 
@@ -374,8 +379,10 @@ function MoneyRequestConfirmPage(props) {
                                 bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
                                 iouMerchant={props.iou.merchant}
                                 iouCreated={props.iou.created}
+                                isScanRequest={isScanRequest}
                                 isDistanceRequest={isDistanceRequest}
                                 listStyles={[StyleUtils.getMaximumHeight(windowHeight / 3)]}
+                                shouldShowSmartScanFields={_.isEmpty(props.iou.receiptPath)}
                             />
                         </ScrollView>
                     </ScrollView>
