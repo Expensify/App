@@ -6,9 +6,9 @@ import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** Callback that runs when location button is clicked */
@@ -16,8 +16,6 @@ const propTypes = {
 
     /** Boolean to indicate if the button is clickable */
     isDisabled: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -25,7 +23,9 @@ const defaultProps = {
     onPress: () => {},
 };
 
-function CurrentLocationButton({onPress, isDisabled, translate}) {
+function CurrentLocationButton({onPress, isDisabled}) {
+    const {translate} = useLocalize();
+
     return (
         <PressableWithFeedback
             style={[styles.flexRow, styles.pv4, styles.ph3, isDisabled && styles.buttonOpacityDisabled]}
@@ -49,6 +49,4 @@ CurrentLocationButton.displayName = 'CurrentLocationButton';
 CurrentLocationButton.propTypes = propTypes;
 CurrentLocationButton.defaultProps = defaultProps;
 
-// This components gets used inside <Form/>, we are using an HOC (withLocalize) as function components with
-// hooks give hook errors when nested inside <Form/>.
-export default withLocalize(CurrentLocationButton);
+export default CurrentLocationButton;
