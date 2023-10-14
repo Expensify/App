@@ -43,11 +43,11 @@ function EditRequestReceiptPage({route, transactionID}) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
-                    <HeaderWithBackButton
-                        title={translate('common.receipt')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                        <HeaderWithBackButton
+                            title={translate('common.receipt')}
+                            onBackButtonPress={Navigation.goBack}
+                        />
                         <ReceiptSelector
                             route={route}
                             transactionID={transactionID}
