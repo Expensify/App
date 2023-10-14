@@ -13,7 +13,6 @@ import Icon from '../components/Icon';
 import * as Expensicons from '../components/Icon/Expensicons';
 import * as Illustrations from '../components/Icon/Illustrations';
 import useLocalize from '../hooks/useLocalize';
-import compose from '../libs/compose';
 import TextLink from '../components/TextLink';
 import ONYXKEYS from '../ONYXKEYS';
 
