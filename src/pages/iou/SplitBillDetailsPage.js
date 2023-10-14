@@ -90,10 +90,9 @@ function SplitBillDetailsPage(props) {
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
 
-    const isScanning =
-        TransactionUtils.hasReceipt(props.transaction) && TransactionUtils.isReceiptBeingScanned(props.transaction) && TransactionUtils.areRequiredFieldsEmpty(props.transaction);
+    const isScanning = TransactionUtils.hasReceipt(props.transaction) && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasSmartScanFailed = TransactionUtils.hasReceipt(props.transaction) && props.transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANFAILED;
-    const isEditingSplitBill = props.session.accountID === reportAction.actorAccountID && (TransactionUtils.areRequiredFieldsEmpty(props.transaction) || hasSmartScanFailed);
+    const isEditingSplitBill = props.session.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(props.transaction);
 
     const {
         amount: splitAmount,
@@ -135,7 +134,6 @@ function SplitBillDetailsPage(props) {
                             receiptPath={props.transaction.receipt && props.transaction.receipt.source}
                             receiptFilename={props.transaction.filename}
                             shouldShowFooter={false}
-                            isScanning={isScanning}
                             isEditingSplitBill={isEditingSplitBill}
                             hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
