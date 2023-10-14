@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState, useCallback} from 'react';
+import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {useIsFocused} from '@react-navigation/native';
 
 const COPY_DROP_EFFECT = 'copy';
@@ -8,15 +8,22 @@ const DRAG_OVER_EVENT = 'dragover';
 const DRAG_LEAVE_EVENT = 'dragleave';
 const DROP_EVENT = 'drop';
 
+type DragAndDropParams = {
+    dropZone: React.MutableRefObject<HTMLDivElement | null>;
+    onDrop?: (event?: DragEvent) => void;
+    shouldAllowDrop?: boolean;
+    isDisabled?: boolean;
+    shouldAcceptDrop?: (event?: DragEvent) => boolean;
+};
+
+type DragAndDropOptions = {
+    isDraggingOver: boolean;
+};
+
 /**
- * @param {Object} dropZone – ref to the dropZone component
- * @param {Function} [onDrop]
- * @param {Boolean} [shouldAllowDrop]
- * @param {Boolean} [isDisabled]
- * @param {Function} [shouldAcceptDrop]
- * @returns {{isDraggingOver: Boolean}}
+ * @param dropZone – ref to the dropZone component
  */
-export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}) {
+export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}: DragAndDropParams): DragAndDropOptions {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
@@ -36,23 +43,24 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
     }, [isFocused, isDisabled]);
 
     const setDropEffect = useCallback(
-        (event) => {
+        (event: DragEvent) => {
             const effect = shouldAllowDrop && shouldAcceptDrop(event) ? COPY_DROP_EFFECT : NONE_DROP_EFFECT;
-            // eslint-disable-next-line no-param-reassign
-            event.dataTransfer.dropEffect = effect;
-            // eslint-disable-next-line no-param-reassign
-            event.dataTransfer.effectAllowed = effect;
+
+            if (event.dataTransfer) {
+                // eslint-disable-next-line no-param-reassign
+                event.dataTransfer.dropEffect = effect;
+                // eslint-disable-next-line no-param-reassign
+                event.dataTransfer.effectAllowed = effect;
+            }
         },
         [shouldAllowDrop, shouldAcceptDrop],
     );
 
     /**
      * Handles all types of drag-N-drop events on the drop zone associated with composer
-     *
-     * @param {Object} event native Event
      */
     const dropZoneDragHandler = useCallback(
-        (event) => {
+        (event: DragEvent) => {
             if (!isFocused || isDisabled || !shouldAcceptDrop(event)) {
                 return;
             }
