@@ -46,27 +46,6 @@ const defaultProps = {
     ...optionsSelectorDefaultProps,
 };
 
-/*
- * The OptionsList component uses a SectionList which uses a VirtualizedList internally.
- * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
- * To work around this, we wrap the MoneyRequestConfirmationList component with a horizontal ScrollView.
- */
-function ScrollWrapper(props) {
-    if (!props.shouldAllowScrollingChildren) {
-        return props.children;
-    }
-    return (
-        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-            <ScrollView
-                horizontal
-                contentContainerStyle={[styles.flex1, styles.flexColumn]}
-            >
-                {props.children}
-            </ScrollView>
-        </ScrollView>
-    );
-}
-
 class BaseOptionsSelector extends Component {
     constructor(props) {
         super(props);
@@ -456,6 +435,16 @@ class BaseOptionsSelector extends Component {
             />
         );
 
+        const optionsAndInputsBelowThem = (
+            <>
+                <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
+                <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
+                    {this.props.children}
+                    {this.props.shouldShowTextInput && textInput}
+                </View>
+            </>
+        );
+
         return (
             <ArrowKeyFocusManager
                 disabledIndexes={this.disabledOptionsIndexes}
@@ -465,15 +454,25 @@ class BaseOptionsSelector extends Component {
                 shouldResetIndexOnEndReached={false}
             >
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
-                    {this.props.shouldTextInputAppearBelowOptions ? (
-                        <ScrollWrapper shouldAllowScrollingChildren={this.props.shouldAllowScrollingChildren}>
-                            <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
-                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
-                                {this.props.children}
-                                {this.props.shouldShowTextInput && textInput}
-                            </View>
-                        </ScrollWrapper>
-                    ) : (
+                    {/*
+                     * The OptionsList component uses a SectionList which uses a VirtualizedList internally.
+                     * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
+                     * To work around this, we wrap the OptionsList component with a horizontal ScrollView.
+                     */}
+                    {this.props.shouldTextInputAppearBelowOptions && this.props.shouldAllowScrollingChildren && (
+                        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                            <ScrollView
+                                horizontal
+                                contentContainerStyle={[styles.flex1, styles.flexColumn]}
+                            >
+                                {optionsAndInputsBelowThem}
+                            </ScrollView>
+                        </ScrollView>
+                    )}
+
+                    {this.props.shouldTextInputAppearBelowOptions && !this.props.shouldAllowScrollingChildren && optionsAndInputsBelowThem}
+
+                    {!this.props.shouldTextInputAppearBelowOptions && (
                         <>
                             <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
                                 {this.props.children}
