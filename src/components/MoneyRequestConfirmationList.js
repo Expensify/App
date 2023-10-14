@@ -593,8 +593,8 @@ function MoneyRequestConfirmationList(props) {
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && !transaction.modifiedAmount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    error={shouldDisplayFieldError && !transaction.modifiedAmount ? translate('common.error.enterAmount') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
                 />
             )}
             <MenuItemWithTopDescription
@@ -648,8 +648,8 @@ function MoneyRequestConfirmationList(props) {
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && _.isEmpty(transaction.modifiedCreated) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayFieldError && _.isEmpty(transaction.modifiedCreated) ? translate('common.error.enterDate') : ''}
+                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
                         />
                     )}
                     {props.isDistanceRequest && (
@@ -680,16 +680,8 @@ function MoneyRequestConfirmationList(props) {
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator={
-                                shouldDisplayFieldError && (transaction.modifiedMerchant === '' || transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)
-                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                    : ''
-                            }
-                            error={
-                                shouldDisplayFieldError && (transaction.modifiedMerchant === '' || transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)
-                                    ? translate('common.error.enterMerchant')
-                                    : ''
-                            }
+                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? translate('common.error.enterMerchant') : ''}
                         />
                     )}
                     {shouldShowCategories && (
