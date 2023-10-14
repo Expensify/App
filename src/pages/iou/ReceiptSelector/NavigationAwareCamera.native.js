@@ -9,15 +9,12 @@ const propTypes = {
     /* The index of the tab that contains this camera */
     cameraTabIndex: PropTypes.number.isRequired,
 
-    /* Forwarded ref */
-    forwardedRef: refPropTypes.isRequired,
-
     /* Whether we're in a tab navigator */
     isInTabNavigator: PropTypes.bool.isRequired,
 };
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
-const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, forwardedRef, isInTabNavigator, ...props}, ref) => {
+const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigator, ...props}, ref) => {
     // Get navigation to get initial isFocused value (only needed once during init!)
     const navigation = useNavigation();
     const [isCameraActive, setIsCameraActive] = useState(navigation.isFocused());
