@@ -15,6 +15,7 @@ import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import reportPropTypes from '../reportPropTypes';
 import transactionPropTypes from '../../components/transactionPropTypes';
 import withReportAndReportActionOrNotFound from '../home/report/withReportAndReportActionOrNotFound';
+import useLocalize from '../../hooks/useLocalize';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as IOU from '../../libs/actions/IOU';
@@ -72,6 +73,7 @@ const defaultProps = {
 };
 
 function SplitBillDetailsPage(props) {
+    const {translate} = useLocalize();
     const {reportID} = props.report;
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
@@ -116,7 +118,13 @@ function SplitBillDetailsPage(props) {
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
                 >
-                    {isScanning && <MoneyRequestHeaderStatusBar />}
+                    {isScanning && (
+                        <MoneyRequestHeaderStatusBar
+                            title={translate('iou.receiptStatusTitle')}
+                            description={translate('iou.receiptStatusText')}
+                            shouldShowBorderBottom
+                        />
+                    )}
                     {Boolean(participants.length) && (
                         <MoneyRequestConfirmationList
                             hasMultipleParticipants
