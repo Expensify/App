@@ -18,7 +18,6 @@ import TextInput from '../../components/TextInput';
 import CONST from '../../CONST';
 import Text from '../../components/Text';
 import Form from '../../components/Form';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import reportPropTypes from '../reportPropTypes';
 import personalDetailsPropType from '../personalDetailsPropType';
 import * as Report from '../../libs/actions/Report';
@@ -26,7 +25,7 @@ import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
 import ROUTES from '../../ROUTES';
-import * as ReportUtils from '../../libs/ReportUtils';
+import withReportAndPrivateNotesOrNotFound from '../home/report/withReportAndPrivateNotesOrNotFound';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -42,23 +41,14 @@ const propTypes = {
             accountID: PropTypes.string,
         }),
     }).isRequired,
-
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        /** Currently logged in user accountID */
-        accountID: PropTypes.number,
-    }),
 };
 
 const defaultProps = {
     report: {},
-    session: {
-        accountID: null,
-    },
     personalDetailsList: {},
 };
 
-function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
+function PrivateNotesEditPage({route, personalDetailsList, report}) {
     const {translate} = useLocalize();
 
     // We need to edit the note in markdown format, but display it in HTML format
@@ -79,8 +69,6 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
             }, 1000),
         [report.reportID],
     );
-
-    const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
 
     // To focus on the input field when the page loads
     const privateNotesInput = useRef(null);
@@ -118,72 +106,61 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
             includeSafeAreaPaddingBottom={false}
             testID={PrivateNotesEditPage.displayName}
         >
-            <FullPageNotFoundView
-                shouldShow={
-                    _.isEmpty(report) ||
-                    _.isEmpty(report.privateNotes) ||
-                    !_.has(report, ['privateNotes', route.params.accountID, 'note']) ||
-                    !isCurrentUserNote ||
-                    ReportUtils.isArchivedRoom(report)
-                }
-                subtitleKey="privateNotes.notesUnavailable"
+            <HeaderWithBackButton
+                title={translate('privateNotes.title')}
+                subtitle={translate('privateNotes.myNote')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.repotID, route.params.accountID))}
+                shouldShowBackButton
+                onCloseButtonPress={() => Navigation.dismissModal()}
+            />
+            <Form
+                formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
+                onSubmit={savePrivateNote}
+                style={[styles.flexGrow1, styles.ph5]}
+                submitButtonText={translate('common.save')}
+                enabledWhenOffline
             >
-                <HeaderWithBackButton
-                    title={translate('privateNotes.title')}
-                    subtitle={translate('privateNotes.myNote')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.repotID, route.params.accountID))}
-                    shouldShowBackButton
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <Form
-                    formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
-                    onSubmit={savePrivateNote}
-                    style={[styles.flexGrow1, styles.ph5]}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
+                <Text style={[styles.mb5]}>
+                    {translate(
+                        Str.extractEmailDomain(lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')) === CONST.EMAIL.GUIDES_DOMAIN
+                            ? 'privateNotes.sharedNoteMessage'
+                            : 'privateNotes.personalNoteMessage',
+                    )}
+                </Text>
+                <OfflineWithFeedback
+                    errors={{
+                        ...lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], ''),
+                    }}
+                    onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
+                    style={[styles.mb3]}
                 >
-                    <Text style={[styles.mb5]}>
-                        {translate(
-                            Str.extractEmailDomain(lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')) === CONST.EMAIL.GUIDES_DOMAIN
-                                ? 'privateNotes.sharedNoteMessage'
-                                : 'privateNotes.personalNoteMessage',
-                        )}
-                    </Text>
-                    <OfflineWithFeedback
-                        errors={{
-                            ...lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], ''),
+                    <TextInput
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        inputID="privateNotes"
+                        label={translate('privateNotes.composerLabel')}
+                        accessibilityLabel={translate('privateNotes.title')}
+                        autoCompleteType="off"
+                        maxLength={CONST.MAX_COMMENT_LENGTH}
+                        autoCorrect={false}
+                        autoGrowHeight
+                        textAlignVertical="top"
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        defaultValue={privateNote}
+                        value={privateNote}
+                        onChangeText={(text) => {
+                            debouncedSavePrivateNote(text);
+                            setPrivateNote(text);
                         }}
-                        onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
-                        style={[styles.mb3]}
-                    >
-                        <TextInput
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            inputID="privateNotes"
-                            label={translate('privateNotes.composerLabel')}
-                            accessibilityLabel={translate('privateNotes.title')}
-                            autoCompleteType="off"
-                            maxLength={CONST.MAX_COMMENT_LENGTH}
-                            autoCorrect={false}
-                            autoGrowHeight
-                            textAlignVertical="top"
-                            containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            defaultValue={privateNote}
-                            value={privateNote}
-                            onChangeText={(text) => {
-                                debouncedSavePrivateNote(text);
-                                setPrivateNote(text);
-                            }}
-                            ref={(el) => {
-                                if (!el) {
-                                    return;
-                                }
-                                privateNotesInput.current = el;
-                                updateMultilineInputRange(privateNotesInput.current);
-                            }}
-                        />
-                    </OfflineWithFeedback>
-                </Form>
-            </FullPageNotFoundView>
+                        ref={(el) => {
+                            if (!el) {
+                                return;
+                            }
+                            privateNotesInput.current = el;
+                            updateMultilineInputRange(privateNotesInput.current);
+                        }}
+                    />
+                </OfflineWithFeedback>
+            </Form>
         </ScreenWrapper>
     );
 }
@@ -194,13 +171,8 @@ PrivateNotesEditPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withReportAndPrivateNotesOrNotFound,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },

@@ -1,4 +1,4 @@
-import React, {useMemo, useEffect} from 'react';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -12,19 +12,15 @@ import compose from '../../libs/compose';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import MenuItem from '../../components/MenuItem';
 import useLocalize from '../../hooks/useLocalize';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import * as Report from '../../libs/actions/Report';
 import personalDetailsPropType from '../personalDetailsPropType';
 import * as UserUtils from '../../libs/UserUtils';
 import reportPropTypes from '../reportPropTypes';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
-import * as ReportUtils from '../../libs/ReportUtils';
+import withReportAndPrivateNotesOrNotFound from '../home/report/withReportAndPrivateNotesOrNotFound';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -47,8 +43,6 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
     ...withLocalizePropTypes,
 };
 
@@ -60,16 +54,8 @@ const defaultProps = {
     personalDetailsList: {},
 };
 
-function PrivateNotesListPage({report, personalDetailsList, network, session}) {
+function PrivateNotesListPage({report, personalDetailsList, session}) {
     const {translate} = useLocalize();
-
-    useEffect(() => {
-        if (network.isOffline && report.isLoadingPrivateNotes) {
-            return;
-        }
-        Report.getReportPrivateNote(report.reportID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add isLoadingPrivateNotes to dependencies
-    }, [report.reportID, network.isOffline]);
 
     /**
      * Gets the menu item for each workspace
@@ -124,26 +110,12 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
             includeSafeAreaPaddingBottom={false}
             testID={PrivateNotesListPage.displayName}
         >
-            <FullPageNotFoundView
-                shouldShow={
-                    _.isEmpty(report.reportID) ||
-                    (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {}))) ||
-                    ReportUtils.isArchivedRoom(report)
-                }
-            >
-                <HeaderWithBackButton
-                    title={translate('privateNotes.title')}
-                    shouldShowBackButton
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-                    ) : (
-                        _.map(privateNotes, (item, index) => getMenuItem(item, index))
-                    )}
-                </ScrollView>
-            </FullPageNotFoundView>
+            <HeaderWithBackButton
+                title={translate('privateNotes.title')}
+                shouldShowBackButton
+                onCloseButtonPress={() => Navigation.dismissModal()}
+            />
+            <ScrollView contentContainerStyle={styles.flexGrow1}>{_.map(privateNotes, (item, index) => getMenuItem(item, index))}</ScrollView>
         </ScreenWrapper>
     );
 }
@@ -154,13 +126,8 @@ PrivateNotesListPage.displayName = 'PrivateNotesListPage';
 
 export default compose(
     withLocalize,
+    withReportAndPrivateNotesOrNotFound,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
