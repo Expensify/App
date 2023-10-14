@@ -3,7 +3,6 @@ import {Camera} from 'react-native-vision-camera';
 import {useTabAnimation} from '@react-navigation/material-top-tabs';
 import {useNavigation} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import refPropTypes from '../../../components/refPropTypes';
 
 const propTypes = {
     /* The index of the tab that contains this camera */
