@@ -687,7 +687,7 @@ function sortCategories(categories) {
 }
 
 /**
- * Build the options for the category tree hierarchy via indents
+ * Builds the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
@@ -738,7 +738,7 @@ function getCategoryOptionTree(options, isOneLine = false) {
 }
 
 /**
- * Build the section list for categories
+ * Builds the section list for categories
  *
  * @param {Object<String, {name: String, enabled: Boolean}>} categories
  * @param {String[]} recentlyUsedCategories
