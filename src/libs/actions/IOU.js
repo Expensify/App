@@ -1418,7 +1418,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                 key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
                 value: {
                     errorFields: {
-                        createChat: ErrorUtils.getMicroSecondOnyxError('report.error.genericCreateReportFailureMessage'),
+                        createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                     },
                 },
             },
@@ -1430,7 +1430,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                         errors: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                     },
                     [splitIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('report.genericCreateFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                     },
                 },
             },
