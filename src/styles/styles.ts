@@ -3456,8 +3456,6 @@ const styles = (theme: ThemeDefault) =>
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,
-            ...flex.flexWrap,
-            ...flex.flex1,
             fontSize: variables.fontSizeXLarge,
             maxWidth: '100%',
             ...wordBreak.breakWord,
