@@ -743,13 +743,12 @@ function getCategoryOptionTree(options, isOneLine = false) {
  * @returns {Array<Object>}
  */
 function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
-    const categorySections = [];
-    const categoriesValues = _.chain(categories)
-        .values()
-        .filter((category) => category.enabled)
-        .value();
+    const sortedCategories = sortCategories(categories);
+    const enabledCategories = _.filter(sortedCategories, (category) => category.enabled);
 
-    const numberOfCategories = _.size(categoriesValues);
+    const categorySections = [];
+    const numberOfCategories = _.size(enabledCategories);
+
     let indexOffset = 0;
 
     if (numberOfCategories === 0 && selectedOptions.length > 0) {
@@ -765,7 +764,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
     }
 
     if (!_.isEmpty(searchInputValue)) {
-        const searchCategories = _.filter(categoriesValues, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchCategories = _.filter(enabledCategories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         categorySections.push({
             // "Search" section
@@ -784,7 +783,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(categoriesValues),
+            data: getCategoryOptionTree(enabledCategories),
         });
 
         return categorySections;
@@ -825,7 +824,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         indexOffset += filteredRecentlyUsedCategories.length;
     }
 
-    const filteredCategories = _.filter(categoriesValues, (category) => !_.includes(selectedOptionNames, category.name));
+    const filteredCategories = _.filter(enabledCategories, (category) => !_.includes(selectedOptionNames, category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
