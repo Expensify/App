@@ -433,7 +433,7 @@ class BaseOptionsSelector extends Component {
                 isLoadingNewOptions={this.props.isLoadingNewOptions}
                 shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
                 nestedScrollEnabled={this.props.nestedScrollEnabled}
-                bounces={this.props.bounces}
+                bounces={!this.props.shouldTextInputAppearBelowOptions || !this.props.shouldAllowScrollingChildren}
             />
         );
 
