@@ -354,6 +354,13 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                             )}
                                             <KYCWall
                                                 onSuccessfulKYC={navigateToTransferBalancePage}
+                                                onSelectPaymentMethod={(selectedPaymentMethod) => {
+                                                    if (!hasSilverWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+                                                        return;
+                                                    }
+                                                    // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
+                                                    BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(true);
+                                                }}
                                                 enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
                                                 addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
                                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}

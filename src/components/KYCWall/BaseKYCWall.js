@@ -148,6 +148,7 @@ class KYCWall extends React.Component {
                     anchorAlignment={this.props.anchorAlignment}
                     onItemSelected={(item) => {
                         this.setState({shouldShowAddPaymentMenu: false});
+                        this.props.onSelectPaymentMethod(item);
                         if (item === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
                             Navigation.navigate(this.props.addBankAccountRoute);
                         } else if (item === CONST.PAYMENT_METHODS.DEBIT_CARD) {

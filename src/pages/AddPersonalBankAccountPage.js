@@ -7,6 +7,7 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import * as BankAccounts from '../libs/actions/BankAccounts';
+import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
 import getPlaidOAuthReceivedRedirectURI from '../libs/getPlaidOAuthReceivedRedirectURI';
@@ -35,6 +36,9 @@ const propTypes = {
         /** Any reportID we should redirect to at the end of the flow */
         exitReportID: PropTypes.string,
 
+        /** Whether we should continue with KYC at the end of the flow  */
+        shouldContinueKYCOnSuccess: PropTypes.bool,
+
         /** Whether the form is loading */
         isLoading: PropTypes.bool,
 
@@ -51,6 +55,7 @@ const defaultProps = {
         isLoading: false,
         plaidAccountID: '',
         exitReportID: '',
+        shouldContinueKYCOnSuccess: false,
     },
 };
 
@@ -88,8 +93,13 @@ class AddPersonalBankAccountPage extends React.Component {
 
     exitFlow() {
         const exitReportID = lodashGet(this.props, 'personalBankAccount.exitReportID');
+        const shouldContinueKYCOnSuccess = lodashGet(this.props, 'personalBankAccount.shouldContinueKYCOnSuccess', false);
+        const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
+
         if (exitReportID) {
             Navigation.dismissModal(exitReportID);
+        } else if (shouldShowSuccess && shouldContinueKYCOnSuccess) {
+            PaymentMethods.continueSetup(ROUTES.SETTINGS_WALLET);
         } else {
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
         }

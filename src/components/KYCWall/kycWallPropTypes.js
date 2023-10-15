@@ -49,6 +49,9 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    /** Callback for when a payment method has been selected */
+    onSelectPaymentMethod: PropTypes.func,
 };
 
 const defaultProps = {
@@ -66,6 +69,7 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
+    onSelectPaymentMethod: () => {},
 };
 
 export {propTypes, defaultProps};
