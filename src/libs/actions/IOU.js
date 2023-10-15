@@ -1418,7 +1418,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                 key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
                 value: {
                     errorFields: {
-                        createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                        createChat: ErrorUtils.getMicroSecondOnyxError('report.error.genericCreateReportFailureMessage'),
                     },
                 },
             },
