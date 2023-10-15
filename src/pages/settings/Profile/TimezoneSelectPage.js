@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useState, useRef} from 'react';
+import React, {useState, useMemo} from 'react';
 import _ from 'underscore';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -36,18 +36,21 @@ const getUserTimezone = (currentUserPersonalDetails) => lodashGet(currentUserPer
 function TimezoneSelectPage(props) {
     const {translate} = useLocalize();
     const timezone = getUserTimezone(props.currentUserPersonalDetails);
-    const allTimezones = useRef(
-        _.chain(TIMEZONES)
-            .filter((tz) => !tz.startsWith('Etc/GMT'))
-            .map((text) => ({
-                text,
-                keyForList: getKey(text),
-                isSelected: text === timezone.selected,
-            }))
-            .value(),
+    const allTimezones = useMemo(
+        () =>
+            _.chain(TIMEZONES)
+                .filter((tz) => !tz.startsWith('Etc/GMT'))
+                .map((text) => ({
+                    text,
+                    keyForList: getKey(text),
+                    isSelected: text === timezone.selected,
+                }))
+                .value(),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
     );
     const [timezoneInputText, setTimezoneInputText] = useState('');
-    const [timezoneOptions, setTimezoneOptions] = useState(allTimezones.current);
+    const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
     /**
      * @param {Object} timezone
@@ -64,7 +67,7 @@ function TimezoneSelectPage(props) {
         setTimezoneInputText(searchText);
         const searchWords = searchText.toLowerCase().match(/[a-z0-9]+/g) || [];
         setTimezoneOptions(
-            _.filter(allTimezones.current, (tz) =>
+            _.filter(allTimezones, (tz) =>
                 _.every(
                     searchWords,
                     (word) =>

@@ -66,9 +66,11 @@ function ReportActionsView(props) {
     const reactionListRef = useContext(ReactionListContext);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
-    const hasCachedActions = useRef(_.size(props.reportActions) > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const hasCachedActions = useMemo(() => _.size(props.reportActions) > 0, []);
 
-    const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions), []);
     const prevNetworkRef = useRef(props.network);
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
