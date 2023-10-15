@@ -3416,7 +3416,7 @@ function getMoneyRequestOptions(report, reportParticipants) {
     if (
         (isChatRoom(report) && participants.length > 0) ||
         (hasMultipleParticipants && !isPolicyExpenseChat(report) && !isMoneyRequestReport(report)) ||
-        (isControlPolicyExpenseChat(report) && (report.isOwnPolicyExpenseChat || false))
+        (isControlPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat)
     ) {
         return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
