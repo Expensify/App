@@ -7,6 +7,7 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
+import CONST from '../../CONST';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -32,7 +33,10 @@ function MoneyReportView(props) {
     const {translate} = useLocalize();
 
     return (
-        <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
+        <View style={[
+            StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth),
+            StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT),
+        ]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                 <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
