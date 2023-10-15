@@ -68,6 +68,7 @@ function BaseOptionsList({
     isRowMultilineSupported,
     isLoadingNewOptions,
     nestedScrollEnabled,
+    bounces,
 }) {
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
@@ -278,6 +279,7 @@ function BaseOptionsList({
                         windowSize={5}
                         viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                         onViewableItemsChanged={onViewableItemsChanged}
+                        bounces={bounces}
                     />
                 </>
             )}

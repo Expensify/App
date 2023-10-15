@@ -134,6 +134,9 @@ const propTypes = {
 
     /** Whether nested scroll of options is enabled, true by default */
     nestedScrollEnabled: PropTypes.bool,
+
+    /** Whether the list should have a bounce effect on iOS */
+    bounces: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -173,6 +176,7 @@ const defaultProps = {
     shouldTextInputInterceptSwipe: false,
     shouldAllowScrollingChildren: false,
     nestedScrollEnabled: true,
+    bounces: true,
 };
 
 export {propTypes, defaultProps};

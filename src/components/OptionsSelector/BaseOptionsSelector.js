@@ -433,6 +433,7 @@ class BaseOptionsSelector extends Component {
                 isLoadingNewOptions={this.props.isLoadingNewOptions}
                 shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
                 nestedScrollEnabled={this.props.nestedScrollEnabled}
+                bounces={this.props.bounces}
             />
         );
 
@@ -464,6 +465,7 @@ class BaseOptionsSelector extends Component {
                         <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                             <ScrollView
                                 horizontal
+                                bounces={false}
                                 contentContainerStyle={[styles.flex1, styles.flexColumn]}
                             >
                                 {optionsAndInputsBelowThem}

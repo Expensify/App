@@ -558,6 +558,7 @@ function MoneyRequestConfirmationList(props) {
             footerContent={footerContent}
             listStyles={props.listStyles}
             shouldAllowScrollingChildren
+            bounces={false}
         >
             {props.isDistanceRequest && (
                 <View style={styles.confirmationListMapItem}>
