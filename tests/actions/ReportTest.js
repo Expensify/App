@@ -93,7 +93,7 @@ describe('actions/Report', () => {
 
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction.person).toEqual(REPORT_ACTION.person);
-                expect(resultAction.pendingAction).toBeNull();
+                expect(resultAction.pendingAction).toBeUndefined();
 
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
@@ -130,7 +130,7 @@ describe('actions/Report', () => {
                 const resultAction = reportActions[reportActionID];
 
                 // Verify that our action is no longer in the loading state
-                expect(resultAction.pendingAction).toBeNull();
+                expect(resultAction.pendingAction).toBeUndefined();
             });
     });
 
@@ -608,7 +608,7 @@ describe('actions/Report', () => {
                 // Expect the reaction to have null where the users reaction used to be
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
-                expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeNull();
+                expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             })
             .then(() => {
                 reportAction = _.first(_.values(reportActions));
@@ -650,7 +650,7 @@ describe('actions/Report', () => {
                         // Expect the reaction to have null where the users reaction used to be
                         expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
-                        expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeNull();
+                        expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
                     });
             });
     });
@@ -717,7 +717,7 @@ describe('actions/Report', () => {
                 // Expect the reaction to have null where the users reaction used to be
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`);
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`];
-                expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeNull();
+                expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             });
     });
 });

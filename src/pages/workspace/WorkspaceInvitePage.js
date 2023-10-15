@@ -84,12 +84,16 @@ function WorkspaceInvitePage(props) {
     const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails), [props.policyMembers, props.personalDetails]);
 
     useEffect(() => {
-        const emails = _.compact(
+        let emails = _.compact(
             searchTerm
                 .trim()
                 .replace(/\s*,\s*/g, ',')
                 .split(','),
         );
+
+        if (emails.length === 0) {
+            emails = [''];
+        }
 
         const newUsersToInviteDict = {};
         const newPersonalDetailsDict = {};

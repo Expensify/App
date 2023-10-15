@@ -226,6 +226,21 @@ function getCurrency(transaction: Transaction): string {
 }
 
 /**
+ * Return the original currency field from the transaction.
+ */
+function getOriginalCurrency(transaction: Transaction): string {
+    return transaction?.originalCurrency ?? '';
+}
+
+/**
+ * Return the absolute value of the original amount field from the transaction.
+ */
+function getOriginalAmount(transaction: Transaction): number {
+    const amount = transaction?.originalAmount ?? 0;
+    return Math.abs(amount);
+}
+
+/**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: Transaction): string {
@@ -293,6 +308,9 @@ function isDistanceRequest(transaction: Transaction): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
+/**
+ * Determine whether a transaction is made with an Expensify card.
+ */
 function isExpensifyCardTransaction(transaction: Transaction): boolean {
     if (!transaction.cardID) {
         return false;
@@ -300,6 +318,9 @@ function isExpensifyCardTransaction(transaction: Transaction): boolean {
     return isExpensifyCard(transaction.cardID);
 }
 
+/**
+ * Check if the transaction status is set to Pending.
+ */
 function isPending(transaction: Transaction): boolean {
     if (!transaction.status) {
         return false;
@@ -307,6 +328,9 @@ function isPending(transaction: Transaction): boolean {
     return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
 }
 
+/**
+ * Check if the transaction status is set to Posted.
+ */
 function isPosted(transaction: Transaction): boolean {
     if (!transaction.status) {
         return false;
@@ -428,6 +452,8 @@ export {
     getAmount,
     getCurrency,
     getCardID,
+    getOriginalCurrency,
+    getOriginalAmount,
     getMerchant,
     getMCCGroup,
     getCreated,

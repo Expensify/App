@@ -127,7 +127,7 @@ function ReportPreview(props) {
     const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID);
     const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || ''));
-
+    const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(props.iouReportID);
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
     const previewSubtitle = hasOnlyOneReceiptRequest
         ? TransactionUtils.getMerchant(transactionsWithReceipts[0])
@@ -166,7 +166,11 @@ function ReportPreview(props) {
             return props.translate('iou.managerApproved', {manager: ReportUtils.getDisplayNameForParticipant(managerID, true)});
         }
         const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
-        return props.translate(iouSettled || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
+        let paymentVerb = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
+        if (iouSettled || props.iouReport.isWaitingOnBankAccount) {
+            paymentVerb = 'iou.payerPaid';
+        }
+        return props.translate(paymentVerb, {payer: managerName});
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
