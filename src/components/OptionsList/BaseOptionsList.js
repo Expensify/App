@@ -261,6 +261,7 @@ function BaseOptionsList({
                         keyboardShouldPersistTaps="always"
                         keyboardDismissMode={keyboardDismissMode}
                         nestedScrollEnabled={nestedScrollEnabled}
+                        scrollEnabled={nestedScrollEnabled}
                         onScrollBeginDrag={onScrollBeginDrag}
                         onScroll={onScroll}
                         contentContainerStyle={contentContainerStyles}
