@@ -256,11 +256,11 @@ function BaseOptionsList({
                     ) : null}
                     <SectionList
                         ref={innerRef}
-                        nestedScrollEnabled={nestedScrollEnabled}
                         style={listStyles}
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
                         keyboardDismissMode={keyboardDismissMode}
+                        nestedScrollEnabled={nestedScrollEnabled}
                         onScrollBeginDrag={onScrollBeginDrag}
                         onScroll={onScroll}
                         contentContainerStyle={contentContainerStyles}
