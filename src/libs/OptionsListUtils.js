@@ -3,6 +3,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashGet from 'lodash/get';
+import lodashSet from 'lodash/set';
 import Str from 'expensify-common/lib/str';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import ONYXKEYS from '../ONYXKEYS';
@@ -627,6 +628,56 @@ function getEnabledCategoriesCount(options) {
  */
 function hasEnabledOptions(options) {
     return _.some(options, (option) => option.enabled);
+}
+
+/**
+ * Sorts categories
+ *
+ * @param {Object<String, {name: String, enabled: Boolean}>} categories
+ * @returns {Object[]}
+ */
+function sortCategories(categories) {
+    const hierarchy = {};
+
+    _.each(categories, (category) => {
+        const path = category.name.replaceAll(CONST.PARENT_CHILD_SEPARATOR, '.');
+        const existedValue = lodashGet(hierarchy, path, {});
+
+        lodashSet(hierarchy, path, {
+            ...existedValue,
+            name: category.name,
+        });
+    });
+
+    const flatHierarchy = (initialHierarchy) =>
+        _.reduce(
+            initialHierarchy,
+            (acc, category) => {
+                const {name, ...subcategories} = category;
+
+                if (!_.isEmpty(name)) {
+                    const categoryObject = {
+                        name,
+                        enabled: lodashGet(categories, `${name}.enabled`, false),
+                    };
+
+                    acc.push(categoryObject);
+                }
+
+                if (!_.isEmpty(subcategories)) {
+                    const nestedCategories = flatHierarchy(subcategories);
+
+                    acc.push(..._.sortBy(nestedCategories, 'name'));
+                }
+
+                return acc;
+            },
+            [],
+        );
+
+    const result = flatHierarchy(hierarchy);
+
+    return result;
 }
 
 /**
@@ -1548,6 +1599,7 @@ export {
     getLastMessageTextForReport,
     getEnabledCategoriesCount,
     hasEnabledOptions,
+    sortCategories,
     getCategoryOptionTree,
     formatMemberForList,
 };

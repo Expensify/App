@@ -1657,6 +1657,268 @@ describe('OptionsListUtils', () => {
         expect(OptionsListUtils.getCategoryOptionTree(categories, true)).toStrictEqual(resultOneLine);
     });
 
+    it('sortCategories', () => {
+        const categoriesIncorrectOrdering = {
+            Taxi: {
+                name: 'Taxi',
+                enabled: false,
+            },
+            'Test1: Subtest2': {
+                name: 'Test1: Subtest2',
+                enabled: true,
+            },
+            'Test: Test1: Subtest4': {
+                name: 'Test: Test1: Subtest4',
+                enabled: true,
+            },
+            Taxes: {
+                name: 'Taxes',
+                enabled: true,
+            },
+            Test: {
+                name: 'Test',
+                enabled: true,
+            },
+            Test1: {
+                name: 'Test1',
+                enabled: true,
+            },
+            'Travel: Nested-Travel': {
+                name: 'Travel: Nested-Travel',
+                enabled: true,
+            },
+            'Test1: Subtest1': {
+                name: 'Test1: Subtest1',
+                enabled: true,
+            },
+            'Test: Test1': {
+                name: 'Test: Test1',
+                enabled: true,
+            },
+            'Test: Test1: Subtest1': {
+                name: 'Test: Test1: Subtest1',
+                enabled: true,
+            },
+            'Test: Test1: Subtest3': {
+                name: 'Test: Test1: Subtest3',
+                enabled: false,
+            },
+            'Test: Test1: Subtest2': {
+                name: 'Test: Test1: Subtest2',
+                enabled: true,
+            },
+            'Test: Test2': {
+                name: 'Test: Test2',
+                enabled: true,
+            },
+            Travel: {
+                name: 'Travel',
+                enabled: true,
+            },
+            Utilities: {
+                name: 'Utilities',
+                enabled: true,
+            },
+            'Test: Test3: Subtest1': {
+                name: 'Test: Test3: Subtest1',
+                enabled: true,
+            },
+            'Test1: Subtest3': {
+                name: 'Test1: Subtest3',
+                enabled: true,
+            },
+        };
+        const result = [
+            {
+                name: 'Taxi',
+                enabled: false,
+            },
+            {
+                name: 'Test1',
+                enabled: true,
+            },
+            {
+                name: 'Test1: Subtest1',
+                enabled: true,
+            },
+            {
+                name: 'Test1: Subtest2',
+                enabled: true,
+            },
+            {
+                name: 'Test1: Subtest3',
+                enabled: true,
+            },
+            {
+                name: 'Test',
+                enabled: true,
+            },
+            {
+                name: 'Test: Test1',
+                enabled: true,
+            },
+            {
+                name: 'Test: Test1: Subtest1',
+                enabled: true,
+            },
+            {
+                name: 'Test: Test1: Subtest2',
+                enabled: true,
+            },
+            {
+                name: 'Test: Test1: Subtest3',
+                enabled: false,
+            },
+            {
+                name: 'Test: Test1: Subtest4',
+                enabled: true,
+            },
+            {
+                name: 'Test: Test2',
+                enabled: true,
+            },
+            {
+                name: 'Test: Test3: Subtest1',
+                enabled: true,
+            },
+            {
+                name: 'Taxes',
+                enabled: true,
+            },
+            {
+                name: 'Travel',
+                enabled: true,
+            },
+            {
+                name: 'Travel: Nested-Travel',
+                enabled: true,
+            },
+            {
+                name: 'Utilities',
+                enabled: true,
+            },
+        ];
+        const categoriesIncorrectOrdering2 = {
+            'Cars: BMW': {
+                enabled: false,
+                name: 'Cars: BMW',
+            },
+            Medical: {
+                enabled: false,
+                name: 'Medical',
+            },
+            'Travel: Meals: Lunch': {
+                enabled: true,
+                name: 'Travel: Meals: Lunch',
+            },
+            'Cars: Mercedes-Benz': {
+                enabled: true,
+                name: 'Cars: Mercedes-Benz',
+            },
+            Food: {
+                enabled: true,
+                name: 'Food',
+            },
+            'Food: Meat': {
+                enabled: true,
+                name: 'Food: Meat',
+            },
+            'Travel: Meals: Dinner': {
+                enabled: false,
+                name: 'Travel: Meals: Dinner',
+            },
+            'Food: Vegetables': {
+                enabled: false,
+                name: 'Food: Vegetables',
+            },
+            Restaurant: {
+                enabled: true,
+                name: 'Restaurant',
+            },
+            Taxi: {
+                enabled: false,
+                name: 'Taxi',
+            },
+            'Food: Milk': {
+                enabled: true,
+                name: 'Food: Milk',
+            },
+            'Travel: Meals': {
+                enabled: true,
+                name: 'Travel: Meals',
+            },
+            'Travel: Meals: Breakfast': {
+                enabled: true,
+                name: 'Travel: Meals: Breakfast',
+            },
+            'Cars: Audi': {
+                enabled: true,
+                name: 'Cars: Audi',
+            },
+        };
+        const result2 = [
+            {
+                enabled: true,
+                name: 'Cars: Audi',
+            },
+            {
+                enabled: false,
+                name: 'Cars: BMW',
+            },
+            {
+                enabled: true,
+                name: 'Cars: Mercedes-Benz',
+            },
+            {
+                enabled: false,
+                name: 'Medical',
+            },
+            {
+                enabled: true,
+                name: 'Travel: Meals',
+            },
+            {
+                enabled: true,
+                name: 'Travel: Meals: Breakfast',
+            },
+            {
+                enabled: false,
+                name: 'Travel: Meals: Dinner',
+            },
+            {
+                enabled: true,
+                name: 'Travel: Meals: Lunch',
+            },
+            {
+                enabled: true,
+                name: 'Food',
+            },
+            {
+                enabled: true,
+                name: 'Food: Meat',
+            },
+            {
+                enabled: true,
+                name: 'Food: Milk',
+            },
+            {
+                enabled: false,
+                name: 'Food: Vegetables',
+            },
+            {
+                enabled: true,
+                name: 'Restaurant',
+            },
+            {
+                enabled: false,
+                name: 'Taxi',
+            },
+        ];
+
+        expect(OptionsListUtils.sortCategories(categoriesIncorrectOrdering)).toStrictEqual(result);
+        expect(OptionsListUtils.sortCategories(categoriesIncorrectOrdering2)).toStrictEqual(result2);
+    });
+
     it('formatMemberForList()', () => {
         const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, {isSelected: key === '1'}));
 
