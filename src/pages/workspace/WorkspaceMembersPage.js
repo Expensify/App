@@ -85,11 +85,14 @@ function WorkspaceMembersPage(props) {
     function filterPersonalDetails(policyMembers, personalDetails) {
         return _.reduce(
             _.keys(policyMembers),
-            (value, key) => {
+            (result, key) => {
                 if (personalDetails[key]) {
-                    value[key] = personalDetails[key];
+                    return {
+                        ...result,
+                        [key]: personalDetails[key],
+                    };
                 }
-                return value;
+                return result;
             },
             {},
         );
