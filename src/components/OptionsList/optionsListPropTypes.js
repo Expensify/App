@@ -90,6 +90,9 @@ const propTypes = {
 
     /** Whether we are loading new options */
     isLoadingNewOptions: PropTypes.bool,
+
+    /** Whether nested scroll of options is enabled, true by default */
+    nestedScrollEnabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -117,6 +120,7 @@ const defaultProps = {
     showScrollIndicator: false,
     isRowMultilineSupported: false,
     isLoadingNewOptions: false,
+    nestedScrollEnabled: true,
 };
 
 export {propTypes, defaultProps};

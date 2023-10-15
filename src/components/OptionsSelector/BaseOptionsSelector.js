@@ -432,6 +432,7 @@ class BaseOptionsSelector extends Component {
                 isRowMultilineSupported={this.props.isRowMultilineSupported}
                 isLoadingNewOptions={this.props.isLoadingNewOptions}
                 shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
+                nestedScrollEnabled={this.props.nestedScrollEnabled}
             />
         );
 

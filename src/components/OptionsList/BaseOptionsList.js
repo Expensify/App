@@ -67,6 +67,7 @@ function BaseOptionsList({
     innerRef,
     isRowMultilineSupported,
     isLoadingNewOptions,
+    nestedScrollEnabled,
 }) {
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
@@ -255,7 +256,7 @@ function BaseOptionsList({
                     ) : null}
                     <SectionList
                         ref={innerRef}
-                        nestedScrollEnabled
+                        nestedScrollEnabled={nestedScrollEnabled}
                         style={listStyles}
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
