@@ -135,7 +135,9 @@ function WorkspaceMembersPage(props) {
             setRemoveMembersConfirmModalVisible(false);
         }
         setSelectedEmployees((prevSelected) => {
+            // Filter all personal details in order to use the elements needed for the current workspace
             const currentPersonalDetails = filterPersonalDetails(props.policyMembers, props.personalDetails);
+            // Checking selected elements. Necessary in cases where there is a transition from offline to online mode, since after this the id changes for new members
             const prevSelectedElements = _.map(prevSelected, (id) => {
                 const prevItem = lodashGet(prevPersonalDetails, id);
                 const res = _.find(_.values(currentPersonalDetails), (item) => lodashGet(prevItem, 'login') === lodashGet(item, 'login'));
