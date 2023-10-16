@@ -3,18 +3,14 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import {OnyxCollectionKey, OnyxKey, OnyxKeyValue, OnyxValues} from '../ONYXKEYS';
+import ChildrenProps from '../types/utils/ChildrenProps';
 
 type OnyxKeys = (OnyxKey | OnyxCollectionKey) & keyof OnyxValues;
 
 // Provider types
 type ProviderOnyxProps<TOnyxKey extends OnyxKeys> = Record<TOnyxKey, OnyxKeyValue<TOnyxKey>>;
 
-type ProviderProps = {
-    /** Rendered child component */
-    children: ReactNode;
-};
-
-type ProviderPropsWithOnyx<TOnyxKey extends OnyxKeys> = ProviderProps & ProviderOnyxProps<TOnyxKey>;
+type ProviderPropsWithOnyx<TOnyxKey extends OnyxKeys> = ChildrenProps & ProviderOnyxProps<TOnyxKey>;
 
 // withOnyxKey types
 type WithOnyxKeyProps<TOnyxKey extends OnyxKeys, TNewOnyxKey extends string, TTransformedValue> = {
