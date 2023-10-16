@@ -85,8 +85,12 @@ type ReportActionBase = {
     childVisibleActionCount?: number;
 
     pendingAction?: OnyxCommon.PendingAction;
+    errors?: OnyxCommon.Errors;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
 
+type ReportActions = Record<string, ReportAction>;
+
 export default ReportAction;
+export type {ReportActions};
