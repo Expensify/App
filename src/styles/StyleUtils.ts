@@ -1312,6 +1312,16 @@ function getTransparentColor(color: string) {
     return `${color}00`;
 }
 
+function getAvatarBackgroundColor(isFocused: boolean, hovered: boolean, focusedBackgroundColor: string, hoveredBackgroundColor: string, defaultBackgroundColor: string) {
+    if (isFocused) {
+        return focusedBackgroundColor;
+    }
+    if (hovered) {
+        return hoveredBackgroundColor;
+    }
+    return defaultBackgroundColor;
+}
+
 export {
     combineStyles,
     displayIfTrue,
@@ -1394,4 +1404,5 @@ export {
     getContainerStyles,
     getEReceiptColorStyles,
     getEReceiptColorCode,
+    getAvatarBackgroundColor,
 };

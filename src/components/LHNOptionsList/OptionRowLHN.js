@@ -152,16 +152,6 @@ function OptionRowLHN(props) {
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
     const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(optionItem);
 
-    const getSubscriptAvatarBackgroundColor = (hovered) => {
-        if (props.isFocused) {
-            return themeColors.activeComponentBG;
-        }
-        if (hovered || isContextMenuActive) {
-            return hoveredBackgroundColor;
-        }
-        return themeColors.sidebar;
-    };
-
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -212,7 +202,13 @@ function OptionRowLHN(props) {
                                 {!_.isEmpty(optionItem.icons) &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            backgroundColor={getSubscriptAvatarBackgroundColor(hovered)}
+                                            backgroundColor={StyleUtils.getAvatarBackgroundColor(
+                                                props.isFocused,
+                                                hovered || isContextMenuActive,
+                                                themeColors.activeComponentBG,
+                                                hoveredBackgroundColor,
+                                                themeColors.sidebar,
+                                            )}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
@@ -223,9 +219,15 @@ function OptionRowLHN(props) {
                                             isFocusMode={props.viewMode === CONST.OPTION_MODE.COMPACT}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
-                                                StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
-                                                props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                                (hovered || isContextMenuActive) && !props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                                StyleUtils.getBackgroundAndBorderStyle(
+                                                    StyleUtils.getAvatarBackgroundColor(
+                                                        props.isFocused,
+                                                        hovered || isContextMenuActive,
+                                                        focusedBackgroundColor,
+                                                        hoveredBackgroundColor,
+                                                        themeColors.sidebar,
+                                                    ),
+                                                ),
                                             ]}
                                             shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}
                                         />
