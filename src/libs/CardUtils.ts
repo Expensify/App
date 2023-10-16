@@ -1,6 +1,5 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
-import {Card} from '../types/onyx';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as OnyxTypes from '../types/onyx';
