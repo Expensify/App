@@ -195,9 +195,9 @@ function ReportPreview(props) {
                     {hasReceipts && (
                         <ReportActionItemImages
                             images={lastThreeReceipts}
-                            size={3}
                             total={transactionsWithReceipts.length}
                             isHovered={props.isHovered || isScanning}
+                            size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
                         />
                     )}
                     <View style={styles.reportPreviewBoxBody}>
@@ -241,7 +241,7 @@ function ReportPreview(props) {
                                 onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
-                                style={[styles.requestPreviewBox]}
+                                style={[styles.mt3]}
                                 anchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -253,7 +253,7 @@ function ReportPreview(props) {
                                 medium
                                 success={props.chatReport.isOwnPolicyExpenseChat}
                                 text={translate('common.submit')}
-                                style={styles.requestPreviewBox}
+                                style={styles.mt3}
                                 onPress={() => IOU.submitReport(props.iouReport)}
                             />
                         )}

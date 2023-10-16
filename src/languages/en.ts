@@ -479,8 +479,8 @@ export default {
     sidebarScreen: {
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
-        fabNewChat: 'Send message',
-        fabNewChatExplained: 'Send message (Floating action)',
+        fabNewChat: 'Start chat',
+        fabNewChatExplained: 'Start chat (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -852,6 +852,9 @@ export default {
         bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
         addBankAccount: 'Add bank account',
+        assignedCards: 'Assigned cards',
+        assignedCardsDescription: 'These are cards assigned by a Workspace admin to manage company spend.',
+        expensifyCard: 'Expensify Card',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
