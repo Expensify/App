@@ -1,10 +1,11 @@
+import positioning from '../utilities/positioning';
 import GetCardStyles from './types';
 
 /**
  * Get card style for cardStyleInterpolator
  */
 const getCardStyles: GetCardStyles = (screenWidth) => ({
-    position: 'fixed',
+    ...positioning.pFixed,
     width: screenWidth,
     height: '100%',
 });

@@ -44,6 +44,7 @@ const defaultProps = {
     shouldListenForResize: false,
     userWallet: {},
     bankAccountList: {},
+    cardList: {},
     fundList: null,
     walletTerms: {},
 };

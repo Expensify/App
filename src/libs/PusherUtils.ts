@@ -4,9 +4,7 @@ import Log from './Log';
 import NetworkConnection from './NetworkConnection';
 import * as Pusher from './Pusher/pusher';
 import CONST from '../CONST';
-import {OnyxUpdateEvent, OnyxUpdatesFromServer} from '../types/onyx';
-
-type PushJSON = OnyxUpdateEvent[] | OnyxUpdatesFromServer;
+import {PushJSON} from './Pusher/pusher';
 
 type Callback = (data: OnyxUpdate[]) => Promise<void>;
 

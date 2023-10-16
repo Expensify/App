@@ -251,9 +251,9 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (27.4.0)
-  - onfido-react-native-sdk (7.4.0):
-    - Onfido (= 27.4.0)
+  - Onfido (28.3.0)
+  - onfido-react-native-sdk (8.3.0):
+    - Onfido (~> 28.3.0)
     - React
   - OpenSSL-Universal (1.1.1100)
   - Plaid (4.1.0)
@@ -819,7 +819,7 @@ PODS:
     - SDWebImage/Core (~> 5.10)
   - SocketRocket (0.6.1)
   - Turf (2.6.1)
-  - VisionCamera (2.15.4):
+  - VisionCamera (2.16.2):
     - React
     - React-callinvoker
     - React-Core
@@ -1204,8 +1204,8 @@ SPEC CHECKSUMS:
   MapboxMaps: af50ec61a7eb3b032c3f7962c6bd671d93d2a209
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: e36f284b865adcf99d9c905590a64ac09d4a576b
-  onfido-react-native-sdk: 4ecde1a97435dcff9f00a878e3f8d1eb14fabbdc
+  Onfido: c7d010d9793790d44a07799d9be25aa8e3814ee7
+  onfido-react-native-sdk: b346a620af5669f9fecb6dc3052314a35a94ad9f
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Plaid: 7d340abeadb46c7aa1a91f896c5b22395a31fcf2
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
@@ -1287,7 +1287,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 469ce2c3d22e5e8e4818d5a3b254699a5c89efa4
-  VisionCamera: d3ec8883417a6a4a0e3a6ba37d81d22db7611601
+  VisionCamera: 95f969b8950b411285579d633a1014782fe0e634
   Yoga: 3efc43e0d48686ce2e8c60f99d4e6bd349aff981
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 

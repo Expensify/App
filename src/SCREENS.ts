@@ -19,6 +19,8 @@ export default {
         WORKSPACES: 'Settings_Workspaces',
         SECURITY: 'Settings_Security',
         STATUS: 'Settings_Status',
+        WALLET: 'Settings_Wallet',
+        WALLET_DOMAIN_CARDS: 'Settings_Wallet_DomainCards',
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
