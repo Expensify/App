@@ -312,6 +312,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
 
     const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
     const status = lodashGet(personalDetail, 'status', '');
@@ -334,7 +335,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
               }
             : null;
     }
-    if ((result.isExpenseRequest || result.isIOURequest) && visibleReportActionItems[report.reportID]) {
+    if ((result.isExpenseRequest || result.isIOURequest) && visibleReportActionItems[report.reportID] && isDeletedParentAction) {
         lastActorDetails = personalDetails[visibleReportActionItems[report.reportID].actorAccountID];
     }
     const lastActorDisplayName =
@@ -351,7 +352,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
         });
     }
 
-    if ((result.isExpenseRequest || result.isIOURequest) && visibleReportActionItems[report.reportID]) {
+    if ((result.isExpenseRequest || result.isIOURequest) && visibleReportActionItems[report.reportID] && isDeletedParentAction) {
         lastMessageText = lodashGet(visibleReportActionItems[report.reportID], 'message[0].text', '');
     }
 
@@ -370,7 +371,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
             result.alternateText = lastAction && lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
     } else {
-        if (!lastMessageText) {
+        if (!lastMessageText || ((result.isExpenseRequest || result.isIOURequest) && isDeletedParentAction)) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
             // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
             lastMessageText =

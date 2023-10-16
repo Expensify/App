@@ -178,7 +178,7 @@ function ReportScreen({
         }
         return parentReportActions[report.parentReportActionID];
     }, [report, parentReportActions]);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
+
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
