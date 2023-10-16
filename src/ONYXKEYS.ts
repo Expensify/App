@@ -235,6 +235,8 @@ const ONYXKEYS = {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
         POLICY_MEMBERS: 'policyMembers_',
+        POLICY_DRAFTS: 'policyDrafts_',
+        POLICY_MEMBERS_DRAFTS: 'policyMembersDrafts_',
         POLICY_CATEGORIES: 'policyCategories_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
