@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import Button from '../Button';
 import FixedFooter from '../FixedFooter';
 import OptionsList from '../OptionsList';
@@ -17,6 +17,7 @@ import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDe
 import setSelection from '../../libs/setSelection';
 import compose from '../../libs/compose';
 import getPlatform from '../../libs/getPlatform';
+import FormHelpMessage from '../FormHelpMessage';
 
 const propTypes = {
     /** padding bottom style of safe area */
@@ -392,6 +393,7 @@ class BaseOptionsSelector extends Component {
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
                 spellCheck={false}
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
+                isLoading={this.props.isLoadingNewOptions}
             />
         );
         const optionsList = (
@@ -428,9 +430,23 @@ class BaseOptionsSelector extends Component {
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
                 isRowMultilineSupported={this.props.isRowMultilineSupported}
+                isLoadingNewOptions={this.props.isLoadingNewOptions}
                 shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
+                nestedScrollEnabled={this.props.nestedScrollEnabled}
+                bounces={!this.props.shouldTextInputAppearBelowOptions || !this.props.shouldAllowScrollingChildren}
             />
         );
+
+        const optionsAndInputsBelowThem = (
+            <>
+                <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
+                <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
+                    {this.props.children}
+                    {this.props.shouldShowTextInput && textInput}
+                </View>
+            </>
+        );
+
         return (
             <ArrowKeyFocusManager
                 disabledIndexes={this.disabledOptionsIndexes}
@@ -440,19 +456,37 @@ class BaseOptionsSelector extends Component {
                 shouldResetIndexOnEndReached={false}
             >
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
-                    {this.props.shouldTextInputAppearBelowOptions ? (
-                        <>
-                            <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
-                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
-                                {this.props.children}
-                                {this.props.shouldShowTextInput && textInput}
-                            </View>
-                        </>
-                    ) : (
+                    {/*
+                     * The OptionsList component uses a SectionList which uses a VirtualizedList internally.
+                     * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
+                     * To work around this, we wrap the OptionsList component with a horizontal ScrollView.
+                     */}
+                    {this.props.shouldTextInputAppearBelowOptions && this.props.shouldAllowScrollingChildren && (
+                        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                            <ScrollView
+                                horizontal
+                                bounces={false}
+                                contentContainerStyle={[styles.flex1, styles.flexColumn]}
+                            >
+                                {optionsAndInputsBelowThem}
+                            </ScrollView>
+                        </ScrollView>
+                    )}
+
+                    {this.props.shouldTextInputAppearBelowOptions && !this.props.shouldAllowScrollingChildren && optionsAndInputsBelowThem}
+
+                    {!this.props.shouldTextInputAppearBelowOptions && (
                         <>
                             <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
                                 {this.props.children}
                                 {this.props.shouldShowTextInput && textInput}
+                                {Boolean(this.props.textInputAlert) && (
+                                    <FormHelpMessage
+                                        message={this.props.textInputAlert}
+                                        style={[styles.mb3]}
+                                        isError={false}
+                                    />
+                                )}
                             </View>
                             {optionsList}
                         </>

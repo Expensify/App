@@ -44,6 +44,19 @@ Onyx.connect({
     callback: (val) => (preferredLocale = val),
 });
 
+let priorityMode;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: (nextPriorityMode) => {
+        // When someone switches their priority mode we need to fetch all their chats because only #focus mode works with a subset of a user's chats. This is only possible via the OpenApp command.
+        if (nextPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
+            // eslint-disable-next-line no-use-before-define
+            openApp();
+        }
+        priorityMode = nextPriorityMode;
+    },
+});
+
 let resolveIsReadyPromise;
 const isReadyToOpenApp = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
@@ -207,7 +220,8 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
  */
 function openApp() {
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect(true));
+        const params = {enablePriorityModeFilter: true, ...policyParams};
+        API.read('OpenApp', params, getOnyxDataForOpenOrReconnect(true));
     });
 }
 
