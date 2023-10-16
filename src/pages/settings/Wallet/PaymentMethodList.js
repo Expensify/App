@@ -27,6 +27,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import getBankIcon from '../../../components/Icon/BankIcons';
 import assignedCardPropTypes from './assignedCardPropTypes';
+import * as CardUtils from '../../../libs/CardUtils';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -202,11 +203,12 @@ function PaymentMethodList({
             const assignedCards = _.filter(cardList, (card) => CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state));
             return _.map(assignedCards, (card) => {
                 const icon = getBankIcon(card.bank);
+                const isCompanyCard = CardUtils.isCompanyCard(card);
                 return {
                     key: card.key,
-                    title: translate('walletPage.expensifyCard'),
+                    title: isCompanyCard ? card.cardName : translate('walletPage.expensifyCard'),
                     description: card.domainName,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(card.domainName)),
+                    onPress: isCompanyCard ? () => {} : () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(card.domainName)),
                     ...icon,
                 };
             });
