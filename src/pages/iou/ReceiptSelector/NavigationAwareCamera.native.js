@@ -11,19 +11,29 @@ const propTypes = {
 
     /* Forwarded ref */
     forwardedRef: refPropTypes.isRequired,
+
+    /* Whether we're in a tab navigator */
+    isInTabNavigator: PropTypes.bool.isRequired,
 };
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
-function NavigationAwareCamera({cameraTabIndex, forwardedRef, ...props}) {
+function NavigationAwareCamera({cameraTabIndex, forwardedRef, isInTabNavigator, ...props}) {
     // Get navigation to get initial isFocused value (only needed once during init!)
     const navigation = useNavigation();
     const [isCameraActive, setIsCameraActive] = useState(navigation.isFocused());
 
     // Retrieve the animation value from the tab navigator, which ranges from 0 to the total number of pages displayed.
     // Even a minimal scroll towards the camera page (e.g., a value of 0.001 at start) should activate the camera for immediate responsiveness.
-    const tabPositionAnimation = useTabAnimation();
+
+    // STOP!!!!!!! This is not a pattern to be followed! We are conditionally rendering this hook becase when used in the edit flow we'll never be inside a tab navigator.
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const tabPositionAnimation = isInTabNavigator ? useTabAnimation() : null;
 
     useEffect(() => {
+        if (!isInTabNavigator) {
+            return;
+        }
+
         const listenerId = tabPositionAnimation.addListener(({value}) => {
             // Activate camera as soon the index is animating towards the `cameraTabIndex`
             setIsCameraActive(value > cameraTabIndex - 1 && value < cameraTabIndex + 1);
@@ -32,7 +42,7 @@ function NavigationAwareCamera({cameraTabIndex, forwardedRef, ...props}) {
         return () => {
             tabPositionAnimation.removeListener(listenerId);
         };
-    }, [cameraTabIndex, tabPositionAnimation]);
+    }, [cameraTabIndex, tabPositionAnimation, isInTabNavigator]);
 
     // Note: The useEffect can be removed once VisionCamera V3 is used.
     // Its only needed for android, because there is a native cameraX android bug. With out this flow would break the camera:
