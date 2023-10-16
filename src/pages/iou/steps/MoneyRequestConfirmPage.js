@@ -108,7 +108,7 @@ function MoneyRequestConfirmPage(props) {
                 setReceiptFile(receipt);
             }
         });
-    }, [props.iou.receiptPath, props.iou.receiptSource, isManualRequestDM]);
+    }, [props.iou.receiptPath, props.iou.receiptFilename, isManualRequestDM]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
