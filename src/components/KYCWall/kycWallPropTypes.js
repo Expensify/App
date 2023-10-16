@@ -53,6 +53,9 @@ const propTypes = {
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
+    /** Whether the option to add a debit card should be included */
+    shouldIncludeDebitCard: PropTypes.bool,
+
     /** Callback for when a payment method has been selected */
     onSelectPaymentMethod: PropTypes.func,
 };
@@ -72,6 +75,7 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
+    shouldIncludeDebitCard: true,
     onSelectPaymentMethod: () => {},
 };
 

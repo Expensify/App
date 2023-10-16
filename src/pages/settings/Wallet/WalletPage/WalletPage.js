@@ -365,6 +365,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                 addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
                                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                                 popoverPlacement="bottom"
+                                                shouldIncludeDebitCard={!hasSilverWallet}
                                             >
                                                 {(triggerKYCFlow, buttonRef) =>
                                                     hasSilverWallet ? (
