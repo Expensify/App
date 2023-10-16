@@ -117,7 +117,13 @@ function SplitBillDetailsPage(props) {
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
                 >
-                    {isScanning && <MoneyRequestHeaderStatusBar />}
+                    {isScanning && (
+                        <MoneyRequestHeaderStatusBar
+                            title={translate('iou.receiptStatusTitle')}
+                            description={translate('iou.receiptStatusText')}
+                            shouldShowBorderBottom
+                        />
+                    )}
                     {Boolean(participants.length) && (
                         <MoneyRequestConfirmationList
                             hasMultipleParticipants
