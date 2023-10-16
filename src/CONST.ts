@@ -1058,6 +1058,12 @@ const CONST = {
         },
     },
 
+    KYC_WALL_SOURCE: {
+        REPORT: 'REPORT',
+        ENABLE_WALLET: 'ENABLE_WALLET',
+        TRANSFER_BALANCE: 'TRANSFER_BALANCE',
+    },
+
     OS: {
         WINDOWS: 'Windows',
         MAC_OS: PLATFORM_OS_MACOS,

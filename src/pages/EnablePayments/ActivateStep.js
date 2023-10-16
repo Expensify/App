@@ -24,6 +24,7 @@ const propTypes = {
 const defaultProps = {
     userWallet: {},
     walletTerms: {
+        source: '',
         chatReportID: 0,
     },
 };

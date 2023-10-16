@@ -26,6 +26,9 @@ const propTypes = {
     /** The user's wallet */
     userWallet: userWalletPropTypes,
 
+    /** The source that triggered the KYC wall */
+    source: PropTypes.oneOf(_.values(CONST.KYC_WALL_SOURCE)).isRequired,
+
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID: PropTypes.string,
 
