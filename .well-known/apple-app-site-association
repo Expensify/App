@@ -79,6 +79,10 @@
                     {
                         "/": "/search/*",
                         "comment": "Search"
+                    },
+                    {
+                        "/": "/send/*",
+                        "comment": "Send money"
                     }
                 ]
             }
