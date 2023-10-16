@@ -209,6 +209,7 @@ function PaymentMethodList({
                     title: isCompanyCard ? card.cardName : translate('walletPage.expensifyCard'),
                     description: card.domainName,
                     onPress: isCompanyCard ? () => {} : () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(card.domainName)),
+                    shouldShowRightIcon: !isCompanyCard,
                     ...icon,
                 };
             });
@@ -288,13 +289,13 @@ function PaymentMethodList({
                     iconWidth={item.iconSize}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
                     wrapperStyle={styles.paymentMethod}
-                    shouldShowRightIcon={shouldShowAssignedCards}
+                    shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID === item.methodID}
                 />
             </OfflineWithFeedback>
         ),
-        [filteredPaymentMethods, translate, shouldShowAssignedCards, shouldShowSelectedState, selectedMethodID],
+        [filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
     );
 
     return (
