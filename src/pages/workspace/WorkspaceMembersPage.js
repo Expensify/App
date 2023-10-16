@@ -82,8 +82,14 @@ function WorkspaceMembersPage(props) {
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
     const prevPersonalDetails = usePrevious(props.personalDetails);
 
-    function filterPersonalDetails(policyMembers, personalDetails) {
-        return _.reduce(
+    /**
+     * Get filtered personalDetails list with current policyMembers
+     * @param {Object} policyMembers
+     * @param {Object} personalDetails
+     * @returns {Object}
+     */
+    const filterPersonalDetails = (policyMembers, personalDetails) =>
+        _.reduce(
             _.keys(policyMembers),
             (result, key) => {
                 if (personalDetails[key]) {
@@ -96,7 +102,6 @@ function WorkspaceMembersPage(props) {
             },
             {},
         );
-    }
 
     /**
      * Get members for the current workspace
