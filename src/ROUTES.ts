@@ -75,11 +75,19 @@ export default {
         route: '/settings/wallet/card/:domain',
         getRoute: (domain: string) => `/settings/wallet/card/${domain}`,
     },
+    SETTINGS_REPORT_FRAUD: {
+        route: '/settings/wallet/cards/:domain/report-virtual-fraud',
+        getRoute: (domain: string) => `/settings/wallet/cards/${domain}/report-virtual-fraud`,
+    },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
+    SETTINGS_WALLET_CARD_ACTIVATE: {
+        route: 'settings/wallet/cards/:domain/activate',
+        getRoute: (domain: string) => `settings/wallet/cards/${domain}/activate`,
+    },
     SETTINGS_PERSONAL_DETAILS: 'settings/profile/personal-details',
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: 'settings/profile/personal-details/legal-name',
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: 'settings/profile/personal-details/date-of-birth',
@@ -103,6 +111,8 @@ export default {
     SETTINGS_2FA: 'settings/security/two-factor-auth',
     SETTINGS_STATUS: 'settings/profile/status',
     SETTINGS_STATUS_SET: 'settings/profile/status/set',
+
+    KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
@@ -160,6 +170,14 @@ export default {
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}`,
+    },
+    EDIT_SPLIT_BILL: {
+        route: `r/:reportID/split/:reportActionID/edit/:field`,
+        getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${reportID}/split/${reportActionID}/edit/${field}`,
+    },
+    EDIT_SPLIT_BILL_CURRENCY: {
+        route: 'r/:reportID/split/:reportActionID/edit/currency',
+        getRoute: (reportID: string, reportActionID: string, currency: string, backTo: string) => `r/${reportID}/split/${reportActionID}/edit/currency?currency=${currency}&backTo=${backTo}`,
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
@@ -286,6 +304,10 @@ export default {
         route: 'workspace/:policyID/settings',
         getRoute: (policyID: string) => `workspace/${policyID}/settings`,
     },
+    WORKSPACE_SETTINGS_CURRENCY: {
+        route: 'workspace/:policyID/settings/currency',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/currency`,
+    },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
         getRoute: (policyID: string) => `workspace/${policyID}/card`,
@@ -315,9 +337,10 @@ export default {
         getRoute: (policyID: string) => `workspace/${policyID}/members`,
     },
 
-    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
+    // These are some one-off routes that will be removed once they're no longer needed (see GH issues for details)
     SAASTR: 'saastr',
     SBE: 'sbe',
+    MONEY2020: 'money2020',
 
     // Iframe screens from olddot
     HOME_OLDDOT: 'home',
