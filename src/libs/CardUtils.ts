@@ -60,10 +60,6 @@ function getYearFromExpirationDateString(expirationDateString: string) {
     return cardYear.length === 2 ? `20${cardYear}` : cardYear;
 }
 
-function isCompanyCard(card: Card) {
-    return card.bank !== CONST.EXPENSIFY_CARD.BANK;
-}
-
 /**
  * @param cardList - collection of assigned cards
  * @returns collection of assigned cards grouped by domain
@@ -93,4 +89,4 @@ function maskCard(lastFour = ''): string {
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
-export {isExpensifyCard, getDomainCards, isCompanyCard, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription};
+export {isExpensifyCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription};

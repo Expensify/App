@@ -205,18 +205,22 @@ function PaymentMethodList({
         const paymentCardList = fundList || {};
 
         if (shouldShowAssignedCards) {
-            const assignedCards = _.filter(cardList, (card) => CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state));
+            const assignedCards = _.chain(cardList)
+                .filter((card) => CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state))
+                .sortBy((card) => (CardUtils.isExpensifyCard(card.cardID) ? 0 : 1))
+                .value();
+
             return _.map(assignedCards, (card) => {
                 const icon = getBankIcon(card.bank);
-                const isCompanyCard = CardUtils.isCompanyCard(card);
+                const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
                 return {
                     key: card.key,
-                    title: isCompanyCard ? card.cardName : translate('walletPage.expensifyCard'),
+                    title: isExpensifyCard ? translate('walletPage.expensifyCard') : card.cardName,
                     description: card.domainName,
-                    onPress: isCompanyCard ? () => {} : () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(card.domainName)),
-                    shouldShowRightIcon: !isCompanyCard,
-                    interactive: !isCompanyCard,
-                    canDismissError: !isCompanyCard,
+                    onPress: isExpensifyCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(card.domainName)) : () => {},
+                    shouldShowRightIcon: isExpensifyCard,
+                    interactive: isExpensifyCard,
+                    canDismissError: isExpensifyCard,
                     ...icon,
                 };
             });
