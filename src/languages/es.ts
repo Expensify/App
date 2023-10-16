@@ -1231,7 +1231,7 @@ export default {
     },
     additionalDetailsStep: {
         headerTitle: 'Detalles adicionales',
-        helpText: 'Necesitamos confirmar la siguiente información antes de que podamos procesar el pago.',
+        helpText: 'Necesitamos confirmar la siguiente información antes de que puedas enviar y recibir dinero desde tu Billetera.',
         helpTextIdologyQuestions: 'Tenemos que preguntarte unas preguntas más para terminar de verificar tu identidad',
         helpLink: 'Obtén más información sobre por qué necesitamos esto.',
         legalFirstNameLabel: 'Primer nombre legal',

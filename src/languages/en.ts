@@ -1212,7 +1212,7 @@ export default {
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
-        helpText: 'We need to confirm the following information before we can process this payment.',
+        helpText: 'We need to confirm the following information before you can send and receive money from your Wallet.',
         helpTextIdologyQuestions: 'We need to ask you just a few more questions to finish validating your identity.',
         helpLink: 'Learn more about why we need this.',
         legalFirstNameLabel: 'Legal first name',
