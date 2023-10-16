@@ -69,8 +69,6 @@ const defaultProps = {
  * re-render if the data really changed.
  */
 function OptionRowLHNData({isFocused, fullReport, reportActions, personalDetails, preferredLocale, policy, receiptTransactions, parentReportActions, transaction, ...propsToForward}) {
-    const reportID = propsToForward.reportID;
-
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
     const optionItemRef = useRef();
