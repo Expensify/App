@@ -13,7 +13,6 @@ import compose from '../../libs/compose';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import reportPropTypes from '../reportPropTypes';
 import transactionPropTypes from '../../components/transactionPropTypes';
-import useLocalize from '../../hooks/useLocalize';
 import withReportAndReportActionOrNotFound from '../home/report/withReportAndReportActionOrNotFound';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
@@ -23,6 +22,7 @@ import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmat
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import MoneyRequestHeaderStatusBar from '../../components/MoneyRequestHeaderStatusBar';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /* Onyx Props */
