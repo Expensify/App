@@ -23,7 +23,6 @@ import DatePicker from '../../components/DatePicker';
 import Form from '../../components/Form';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import OfflineIndicator from '../../components/OfflineIndicator';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -148,6 +147,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
     if (!_.isEmpty(walletAdditionalDetails.questions)) {
         return (
             <ScreenWrapper
+                shouldShowOfflineIndicator={false}
                 style={[styles.flex1, styles.pt0]}
                 keyboardAvoidingViewBehavior="height"
                 testID={AdditionalDetailsStep.displayName}
@@ -243,7 +243,6 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         maxLength={shouldAskForFullSSN ? 9 : 4}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     />
-                    <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                 </Form>
             </View>
         </>

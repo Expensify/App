@@ -3455,8 +3455,6 @@ const styles = (theme: ThemeDefault) =>
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,
-            ...flex.flexWrap,
-            ...flex.flex1,
             fontSize: variables.fontSizeXLarge,
             maxWidth: '100%',
             ...wordBreak.breakWord,
@@ -3690,7 +3688,7 @@ const styles = (theme: ThemeDefault) =>
         reportPreviewBox: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
-            maxWidth: variables.sideBarWidth,
+            maxWidth: variables.reportPreviewMaxWidth,
             width: '100%',
         },
 

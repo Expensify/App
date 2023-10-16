@@ -342,9 +342,10 @@ export default {
         getRoute: (policyID: string) => `workspace/${policyID}/members`,
     },
 
-    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
+    // These are some one-off routes that will be removed once they're no longer needed (see GH issues for details)
     SAASTR: 'saastr',
     SBE: 'sbe',
+    MONEY2020: 'money2020',
 
     // Iframe screens from olddot
     HOME_OLDDOT: 'home',
