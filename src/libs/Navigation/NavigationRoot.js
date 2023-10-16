@@ -101,7 +101,7 @@ function NavigationRoot(props) {
 
     const animateStatusBarBackgroundColor = () => {
         const currentRoute = navigationRef.getCurrentRoute();
-        const currentScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
+        const currentScreenBackgroundColor = (currentRoute.params && currentRoute.params.backgroundColor) || themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
