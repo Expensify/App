@@ -15,8 +15,12 @@ export default {
             [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
             AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
             GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
+            SAMLSignIn: ROUTES.SAML_SIGN_IN,
             [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
+
+            // Demo routes
+            [CONST.DEMO_PAGES.MONEY2020]: ROUTES.MONEY2020,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -185,6 +189,9 @@ export default {
                             Workspace_Settings: {
                                 path: ROUTES.WORKSPACE_SETTINGS.route,
                             },
+                            Workspace_Settings_Currency: {
+                                path: ROUTES.WORKSPACE_SETTINGS_CURRENCY.route,
+                            },
                             Workspace_Card: {
                                 path: ROUTES.WORKSPACE_CARD.route,
                             },
@@ -218,6 +225,9 @@ export default {
                             },
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE.route,
+                            },
+                            KeyboardShortcuts: {
+                                path: ROUTES.KEYBOARD_SHORTCUTS,
                             },
                         },
                     },
@@ -352,6 +362,8 @@ export default {
                     SplitDetails: {
                         screens: {
                             SplitDetails_Root: ROUTES.SPLIT_BILL_DETAILS.route,
+                            SplitDetails_Edit_Request: ROUTES.EDIT_SPLIT_BILL.route,
+                            SplitDetails_Edit_Currency: ROUTES.EDIT_SPLIT_BILL_CURRENCY.route,
                         },
                     },
                     Task_Details: {
