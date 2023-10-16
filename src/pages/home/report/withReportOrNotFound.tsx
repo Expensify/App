@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import getComponentDisplayName from '../../../libs/getComponentDisplayName';
@@ -8,8 +8,37 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import reportPropTypes from '../../reportPropTypes';
 import FullscreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import * as OnyxTypes from '../../../types/onyx';
 
-export default function (WrappedComponent) {
+// export default function withNavigation<TProps extends WithNavigationProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+//     function WithNavigation(props: Omit<TProps, keyof WithNavigationProps>, ref: ForwardedRef<TRef>) {
+//         const navigation = useNavigation();
+//         return (
+//             <WrappedComponent
+//                 // eslint-disable-next-line react/jsx-props-no-spreading
+//                 {...(props as TProps)}
+//                 ref={ref}
+//                 navigation={navigation}
+//             />
+//         );
+//     }
+
+//     WithNavigation.displayName = `withNavigation(${getComponentDisplayName(WrappedComponent)})`;
+//     return React.forwardRef(WithNavigation);
+// }
+
+type WithReportOrNotFoundProps = {
+    /** The report currently being looked at */
+    report: OnyxTypes.Report;
+    /** The policies which the user has access to */
+    policies: OnyxTypes.Policy;
+    /** Beta features list */
+    betas: OnyxTypes.Beta[];
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: boolean;
+};
+
+export default function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
     const propTypes = {
         /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
          * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
@@ -45,7 +74,9 @@ export default function (WrappedComponent) {
     };
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithReportOrNotFound(props) {
+    function WithReportOrNotFound(props: WithReportOrNotFoundProps, ref: ForwardedRef<TRef>) {
+        console.log('***********!!!!!************');
+
         const contentShown = React.useRef(false);
 
         const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
@@ -75,7 +106,7 @@ export default function (WrappedComponent) {
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
-                ref={props.forwardedRef}
+                ref={ref}
             />
         );
     }
