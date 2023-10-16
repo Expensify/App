@@ -6,7 +6,9 @@ type WithNavigationFocusProps = {
     isFocused: boolean;
 };
 
-export default function withNavigationFocus<TProps extends WithNavigationFocusProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+export default function withNavigationFocus<TProps extends WithNavigationFocusProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): (props: Omit<TProps, keyof WithNavigationFocusProps> & React.RefAttributes<TRef>) => React.ReactElement | null {
     function WithNavigationFocus(props: Omit<TProps, keyof WithNavigationFocusProps>, ref: ForwardedRef<TRef>) {
         const isFocused = useIsFocused();
         return (
@@ -19,6 +21,6 @@ export default function withNavigationFocus<TProps extends WithNavigationFocusPr
         );
     }
 
-    WithNavigationFocus.displayName = `withNavigationFocus(${getComponentDisplayName(WrappedComponent as ComponentType)})`;
+    WithNavigationFocus.displayName = `withNavigationFocus(${getComponentDisplayName(WrappedComponent)})`;
     return React.forwardRef(WithNavigationFocus);
 }
