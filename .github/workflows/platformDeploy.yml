@@ -16,7 +16,7 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' }}
+      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' || github.actor == 'os-botify[bot]' }}
     steps:
       - name: Check if user is deployer
         id: isUserDeployer

@@ -285,6 +285,10 @@ function validateBankAccount(bankAccountID: number, validateCode: string) {
     API.write('ValidateBankAccountWithTransactions', parameters, onyxData);
 }
 
+function clearReimbursementAccount() {
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
+}
+
 function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subStep: ReimbursementAccountSubStep, localCurrentStep: ReimbursementAccountStep) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -428,6 +432,7 @@ export {
     deletePaymentBankAccount,
     handlePlaidError,
     openPersonalBankAccountSetupView,
+    clearReimbursementAccount,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
