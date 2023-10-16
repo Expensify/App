@@ -171,18 +171,16 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     // 5. Archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
-    const violationReports = [];
     const pinnedReports = [];
     const outstandingIOUReports = [];
     const draftReports = [];
     const nonArchivedReports = [];
     const archivedReports = [];
     reportsToDisplay.forEach((report) => {
-        if (ReportUtils.transactionThreadHasViolations(report)) {
-            violationReports.push(report);
-        } else if (report.isPinned) {
+        if (report.isPinned) {
             pinnedReports.push(report);
-        } else if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
+        // } else if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
+        } else if (report.brickRoadIndicator) {
             outstandingIOUReports.push(report);
         } else if (report.hasDraft) {
             draftReports.push(report);
@@ -194,7 +192,6 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     });
 
     // Sort each group of reports accordingly
-    violationReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     pinnedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     outstandingIOUReports.sort((a, b) => b.iouReportAmount - a.iouReportAmount || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     draftReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
@@ -212,7 +209,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [].concat(pinnedReports, violationReports, outstandingIOUReports, draftReports, nonArchivedReports, archivedReports).map((report) => report.reportID);
+    const LHNReports = [].concat(pinnedReports, outstandingIOUReports, draftReports, nonArchivedReports, archivedReports).map((report) => report.reportID);
     setWithLimit(reportIDsCache, cachedReportsKey, LHNReports);
     return LHNReports;
 }
