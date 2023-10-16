@@ -262,6 +262,7 @@ function WorkspaceMembersPage(props) {
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
+    const invitedPrimaryToSecondaryLogins = _.invert(props.policy.primaryLoginsInvited);
 
     const getMemberOptions = () => {
         let result = [];
@@ -354,6 +355,20 @@ function WorkspaceMembersPage(props) {
         return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
     };
 
+    const getHeaderContent = () => {
+        if (_.isEmpty(invitedPrimaryToSecondaryLogins)) {
+            return null;
+        }
+        return (
+            <DotIndicatorMessageWithClose
+                type="success"
+                messages={{0: props.translate('workspace.people.addedWithPrimary')}}
+                containerStyles={[styles.pb5, styles.ph5]}
+                onClose={() => Policy.dismissAddedWithPrimaryMessages(policyID)}
+            />
+        );
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -418,6 +433,7 @@ function WorkspaceMembersPage(props) {
                             textInputValue={searchValue}
                             onChangeText={setSearchValue}
                             headerMessage={getHeaderMessage()}
+                            headerContent={getHeaderContent()}
                             onSelectRow={(item) => toggleUser(item.keyForList)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
