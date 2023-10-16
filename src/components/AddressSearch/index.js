@@ -330,7 +330,7 @@ function AddressSearch(props) {
                         isDisabled={props.network.isOffline}
                     />
                 )}
-                {!props.value && <Text style={[styles.textLabel, styles.colorMuted, styles.pv2, styles.ph3, styles.overflowAuto]}>{props.translate('common.recentDestinations')}</Text>}
+                {!Boolean(props.value) && <Text style={[styles.textLabel, styles.colorMuted, styles.pv2, styles.ph3, styles.overflowAuto]}>{props.translate('common.recentDestinations')}</Text>}
             </>
         );
 
