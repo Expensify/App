@@ -6,7 +6,6 @@ const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
     REPORT_ATTACHMENTS: 'ReportAttachments',
-    TRANSITION: 'transition',
 } as const;
 
 export default {
