@@ -2718,6 +2718,7 @@ const CONST = {
     DEMO_PAGES: {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',
+        MONEY2020: 'Money2020DemoSetup',
     },
 
     MAPBOX: {
