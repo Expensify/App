@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import {Image} from 'expo-image';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import defaultTheme from '../../styles/themes/default';
 import styles from '../../styles/styles';
@@ -11,7 +12,6 @@ import variables from '../../styles/variables';
 import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
 import {qrSharePropTypes, qrShareDefaultProps} from './propTypes';
 import QRCode from '../QRCode';
-import {Image} from 'expo-image';
 
 const propTypes = {
     ...qrSharePropTypes,

@@ -54,7 +54,7 @@ const userListItemPropTypes = {
         /** Icons for the user (can be multiple if it's a Workspace) */
         icons: PropTypes.arrayOf(
             PropTypes.shape({
-                source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+                source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]).isRequired,
                 name: PropTypes.string,
                 type: PropTypes.string,
             }),

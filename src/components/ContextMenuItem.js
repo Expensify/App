@@ -50,6 +50,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    iconName: '',
     isMini: false,
     successIcon: null,
     successIconName: '',

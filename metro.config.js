@@ -2,7 +2,6 @@ const {getDefaultConfig} = require('expo/metro-config');
 const {mergeConfig} = require('@react-native/metro-config');
 const defaultAssetExts = require('metro-config/src/defaults/defaults').assetExts;
 const defaultSourceExts = require('metro-config/src/defaults/defaults').sourceExts;
-const _ = require('underscore');
 require('dotenv').config();
 
 const defaultConfig = getDefaultConfig(__dirname);

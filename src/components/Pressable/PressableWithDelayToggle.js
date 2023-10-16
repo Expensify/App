@@ -76,6 +76,7 @@ const defaultProps = {
     iconName: '',
     inline: true,
     iconChecked: Expensicons.Checkmark,
+    iconCheckedName: 'Checkmark',
     innerRef: () => {},
 };
 

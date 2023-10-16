@@ -66,24 +66,6 @@ function hashText(text: string, range: number): number {
 }
 
 /**
- * Helper method to return the default avatar associated with the given accountID
- * @param [accountID]
- * @returns
- */
-function getDefaultAvatar(accountID = -1): React.FC<SvgProps> {
-    if (accountID <= 0) {
-        return FallbackAvatar;
-    }
-    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
-        return ConciergeAvatar;
-    }
-
-    const accountIDHashBucket = getAccountIDHashBucket(accountID);
-
-    return defaultAvatars[`Avatar${accountIDHashBucket}`];
-}
-
-/**
  * Helper method to return default avatar id based on a modulo operation on account id
  * @param [accountID]
  * @returns
@@ -92,6 +74,24 @@ function getAccountIDHashBucket(accountID: number): AvatarRange {
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
     return ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
+}
+
+/**
+ * Helper method to return the default avatar associated with the given accountID
+ * @param [accountID]
+ * @returns
+ */
+function getDefaultAvatar(accountID = -1): string {
+    if (accountID <= 0) {
+        return FallbackAvatar as string;
+    }
+    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
+        return ConciergeAvatar as string;
+    }
+
+    const accountIDHashBucket = getAccountIDHashBucket(accountID);
+
+    return defaultAvatars[`Avatar${accountIDHashBucket}`] as string;
 }
 
 /**

@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {Image} from 'expo-image';
 import ProductionLogo from '../../assets/images/new-expensify.svg';
 import DevLogo from '../../assets/images/new-expensify-dev.svg';
 import StagingLogo from '../../assets/images/new-expensify-stg.svg';
 import AdhocLogo from '../../assets/images/new-expensify-adhoc.svg';
 import CONST from '../CONST';
 import useEnvironment from '../hooks/useEnvironment';
-import {Image} from 'expo-image';
 
 const propTypes = {
     /** Width of logo */

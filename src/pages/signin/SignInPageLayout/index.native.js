@@ -2,6 +2,7 @@ import React, {forwardRef, useRef, useEffect, useImperativeHandle} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
+import {Image} from 'expo-image';
 import compose from '../../../libs/compose';
 import SignInPageContent from './SignInPageContent';
 import Footer from './Footer';
@@ -16,7 +17,6 @@ import BackgroundImage from './BackgroundImage';
 import SignInGradient from '../../../../assets/images/home-fade-gradient.svg';
 import variables from '../../../styles/variables';
 import usePrevious from '../../../hooks/usePrevious';
-import {Image} from 'expo-image';
 
 const propTypes = {
     /** The children to show inside the layout */

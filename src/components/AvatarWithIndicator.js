@@ -27,6 +27,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    avatarImageName: '',
     tooltipText: '',
     fallbackIcon: Expensicons.FallbackAvatar,
     fallbackIconName: 'FallbackAvatar',

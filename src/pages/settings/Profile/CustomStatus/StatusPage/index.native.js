@@ -2,6 +2,7 @@ import React, {useMemo, useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import {Image} from 'expo-image';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../../../components/withCurrentUserPersonalDetails';
 import MenuItemWithTopDescription from '../../../../../components/MenuItemWithTopDescription';
 import HeaderPageLayout from '../../../../../components/HeaderPageLayout';
@@ -20,7 +21,6 @@ import compose from '../../../../../libs/compose';
 import ONYXKEYS from '../../../../../ONYXKEYS';
 import ROUTES from '../../../../../ROUTES';
 import SCREENS from '../../../../../SCREENS';
-import {Image} from 'expo-image';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,

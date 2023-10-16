@@ -3,6 +3,7 @@ import React, {useEffect, useRef, useCallback} from 'react';
 import {View, InteractionManager} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import {Image} from 'expo-image';
 import styles from '../../../../styles/styles';
 import * as StyleUtils from '../../../../styles/StyleUtils';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -29,7 +30,6 @@ import * as ReportActionContextMenu from '../../report/ContextMenu/ReportActionC
 import SignInOrAvatarWithOptionalStatus from '../SignInOrAvatarWithOptionalStatus';
 import useLocalize from '../../../../hooks/useLocalize';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import {Image} from 'expo-image';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */

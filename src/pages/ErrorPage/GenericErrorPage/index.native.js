@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useErrorBoundary} from 'react-error-boundary';
+import {Image} from 'expo-image';
 import Icon from '../../../components/Icon';
 import defaultTheme from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -16,7 +17,6 @@ import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import SafeAreaConsumer from '../../../components/SafeAreaConsumer';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import {Image} from 'expo-image';
 
 const propTypes = {
     ...withLocalizePropTypes,

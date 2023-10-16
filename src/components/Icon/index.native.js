@@ -1,12 +1,12 @@
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {Image} from 'expo-image';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import IconWrapperStyles from './IconWrapperStyles';
-import {Image} from 'expo-image';
 
 const propTypes = {
     /** The asset to render. */
@@ -27,17 +27,14 @@ const propTypes = {
     /** Is inline icon */
     inline: PropTypes.bool,
 
-    /** Is icon hovered */
-    hovered: PropTypes.bool,
-
-    /** Is icon pressed */
-    pressed: PropTypes.bool,
-
     // eslint-disable-next-line react/forbid-prop-types
     additionalStyles: PropTypes.arrayOf(PropTypes.object),
 
-    //** Icon name required to create the icon test ID */
+    /** Icon name required to create the icon test ID */
     name: PropTypes.string,
+
+    /** Determines how the image should be resized to fit its container */
+    contentFit: PropTypes.string,
 
     /** Is icon displayed in its own color */
     displayInDefaultIconColor: PropTypes.bool,
@@ -50,8 +47,6 @@ const defaultProps = {
     small: false,
     inline: false,
     additionalStyles: [],
-    hovered: false,
-    pressed: false,
     contentFit: 'cover',
     name: '',
     displayInDefaultIconColor: false,

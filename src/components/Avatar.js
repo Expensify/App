@@ -104,6 +104,7 @@ function Avatar(props) {
                 <View style={iconStyle}>
                     <Icon
                         src={imageError ? fallbackAvatar : props.source}
+                        name={imageError ? props.fallbackIconName : props.avatarImageName}
                         height={iconSize}
                         width={iconSize}
                         fill={imageError ? themeColors.offline : iconFillColor}

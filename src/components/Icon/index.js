@@ -37,9 +37,6 @@ const propTypes = {
 
     /** Icon name required to create the icon test ID  */
     name: PropTypes.string,
-
-    /** Is icon displayed in its own color */
-    displayInDefaultIconColor: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -52,7 +49,6 @@ const defaultProps = {
     hovered: false,
     pressed: false,
     name: '',
-    displayInDefaultIconColor: false,
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -62,6 +58,7 @@ class Icon extends PureComponent {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
         const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute, ...this.props.additionalStyles];
+        const IconComponent = this.props.src;
         if (this.props.inline) {
             return (
                 <View
@@ -69,7 +66,7 @@ class Icon extends PureComponent {
                     style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
                 >
                     <View style={iconStyles}>
-                        <this.props.src
+                        <IconComponent
                             width={width}
                             height={height}
                             fill={this.props.fill}
@@ -86,7 +83,7 @@ class Icon extends PureComponent {
                 testID={`Svg${this.props.name} Icon`}
                 style={this.props.additionalStyles}
             >
-                <this.props.src
+                <IconComponent
                     width={width}
                     height={height}
                     fill={this.props.fill}

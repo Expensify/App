@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import {imagePropTypes} from '../Image/imagePropTypes';
 
 const attachmentSourcePropType = PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.number]);
 const attachmentFilePropType = PropTypes.shape({
