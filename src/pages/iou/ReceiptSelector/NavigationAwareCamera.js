@@ -22,7 +22,7 @@ const defaultProps = {
 };
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
-function NavigationAwareCamera({torchOn, onTorchAvailability, ...props}, ref) {
+const NavigationAwareCamera = React.forwardRef(({torchOn, onTorchAvailability, ...props}, ref) => {
     const trackRef = useRef(null);
     const isCameraActive = useIsFocused();
 
@@ -66,10 +66,10 @@ function NavigationAwareCamera({torchOn, onTorchAvailability, ...props}, ref) {
             />
         </View>
     );
-}
+});
 
 NavigationAwareCamera.propTypes = propTypes;
 NavigationAwareCamera.displayName = 'NavigationAwareCamera';
 NavigationAwareCamera.defaultProps = defaultProps;
 
-export default React.forwardRef(NavigationAwareCamera);
+export default NavigationAwareCamera;
