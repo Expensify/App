@@ -1,4 +1,5 @@
 import lodashFindLast from 'lodash/findLast';
+import lodashLast from 'lodash/last';
 
 /**
  * Find the name of top most central pane route.
@@ -18,7 +19,7 @@ function getTopMostCentralPaneRouteName(state) {
 
     if (topMostCentralPane.state && topMostCentralPane.state.routes) {
         // State may don't have index in some cases. But in this case there will be only one route in state.
-        return topMostCentralPane.state.routes[topMostCentralPane.state.index || 0].name;
+        return lodashLast(topMostCentralPane.state.routes).name;
     }
 
     if (topMostCentralPane.params) {
