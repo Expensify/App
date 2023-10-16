@@ -30,5 +30,6 @@ function getVisibilityStatus(): Promise<VisibilityStatus> {
 export default {
     hide,
     getVisibilityStatus,
+    logoSizeRatio: 1,
     navigationBarHeight: 0,
 };
