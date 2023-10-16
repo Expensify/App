@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Navigation from '../libs/Navigation/Navigation';
@@ -40,17 +41,21 @@ function EditRequestReceiptPage({route, transactionID}) {
             testID={EditRequestReceiptPage.displayName}
             headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
         >
-            <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
-                <HeaderWithBackButton
-                    title={translate('common.receipt')}
-                    onBackButtonPress={Navigation.goBack}
-                />
-                <ReceiptSelector
-                    route={route}
-                    transactionID={transactionID}
-                    isInTabNavigator={false}
-                />
-            </DragAndDropProvider>
+            {({safeAreaPaddingBottomStyle}) => (
+                <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
+                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                        <HeaderWithBackButton
+                            title={translate('common.receipt')}
+                            onBackButtonPress={Navigation.goBack}
+                        />
+                        <ReceiptSelector
+                            route={route}
+                            transactionID={transactionID}
+                            isInTabNavigator={false}
+                        />
+                    </View>
+                </DragAndDropProvider>
+            )}
         </ScreenWrapper>
     );
 }
