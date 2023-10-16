@@ -2,6 +2,7 @@ import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import {Linking} from 'react-native';
 import {ValueOf} from 'type-fest';
 import throttle from 'lodash/throttle';
+import {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import clearCache from './clearCache';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
@@ -611,9 +612,7 @@ const reauthenticatePusher = throttle(
     {trailing: false},
 );
 
-type AuthenticatePusherCallback = (err: Error | null, response: Response | {auth: ''}) => void;
-
-function authenticatePusher(socketID: string, channelName: string, callback: AuthenticatePusherCallback) {
+function authenticatePusher(socketID: string, channelName: string, callback: ChannelAuthorizationCallback) {
     Log.info('[PusherAuthorizer] Attempting to authorize Pusher', false, {channelName});
 
     type AuthenticatePusherParams = {
