@@ -22,6 +22,7 @@ import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmat
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import MoneyRequestHeaderStatusBar from '../../components/MoneyRequestHeaderStatusBar';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /* Onyx Props */
@@ -70,6 +71,7 @@ const defaultProps = {
 
 function SplitBillDetailsPage(props) {
     const {reportID} = props.report;
+    const {translate} = useLocalize();
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
 
