@@ -7,7 +7,9 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Text from '../../Text';
 import styles from '../../../styles/styles';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
+import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
 import UserDetailsTooltip from '../../UserDetailsTooltip';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withCurrentUserPersonalDetails from '../../withCurrentUserPersonalDetails';
@@ -18,8 +20,6 @@ import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import useLocalize from '../../../hooks/useLocalize';
 import CONST from '../../../CONST';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
 
 const propTypes = {
     ...htmlRendererPropTypes,
@@ -59,7 +59,6 @@ function MentionUserRenderer(props) {
     const isOurMention = accountID === props.currentUserPersonalDetails.accountID;
 
     return (
-        // <Text>
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithSecondaryInteraction
@@ -94,7 +93,6 @@ function MentionUserRenderer(props) {
                 </PressableWithSecondaryInteraction>
             )}
         </ShowContextMenuContext.Consumer>
-        // </Text>
     );
 }
 
