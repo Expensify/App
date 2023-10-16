@@ -195,7 +195,6 @@ function ReportPreview(props) {
                     {hasReceipts && (
                         <ReportActionItemImages
                             images={lastThreeReceipts}
-                            size={3}
                             total={transactionsWithReceipts.length}
                             isHovered={props.isHovered || isScanning}
                         />
