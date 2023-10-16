@@ -267,7 +267,7 @@
     "react-native-performance-flipper-reporter": "^2.0.0",
     "react-native-svg-transformer": "^1.0.0",
     "react-test-renderer": "18.2.0",
-    "reassure": "^0.9.0",
+    "reassure": "^0.10.1",
     "setimmediate": "^1.0.5",
     "shellcheck": "^1.1.0",
     "style-loader": "^2.0.0",
