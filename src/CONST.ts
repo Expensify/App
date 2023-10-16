@@ -472,6 +472,7 @@ const CONST = {
         HAND_ICON_HEIGHT: 152,
         HAND_ICON_WIDTH: 200,
         SHUTTER_SIZE: 90,
+        MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
@@ -2718,6 +2719,7 @@ const CONST = {
     DEMO_PAGES: {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',
+        MONEY2020: 'Money2020DemoSetup',
     },
 
     MAPBOX: {

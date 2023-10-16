@@ -3689,7 +3689,7 @@ const styles = (theme: ThemeDefault) =>
         reportPreviewBox: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
-            maxWidth: variables.sideBarWidth,
+            maxWidth: variables.reportPreviewMaxWidth,
             width: '100%',
         },
 
