@@ -1330,7 +1330,7 @@ const styles = (theme: ThemeDefault) =>
 
         statusIndicator: (backgroundColor = theme.danger) =>
             ({
-                borderColor: theme.sidebar,
+                borderColor: theme.highlightBG,
                 backgroundColor,
                 borderRadius: 8,
                 borderWidth: 2,
@@ -1921,7 +1921,7 @@ const styles = (theme: ThemeDefault) =>
         },
 
         chatItemAttachmentPlaceholder: {
-            backgroundColor: theme.sidebar,
+            backgroundColor: theme.highlightBG,
             borderColor: theme.border,
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -2199,7 +2199,7 @@ const styles = (theme: ThemeDefault) =>
         },
 
         defaultAttachmentView: {
-            backgroundColor: theme.sidebar,
+            backgroundColor: theme.highlightBG,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
             borderColor: theme.border,

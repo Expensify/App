@@ -109,7 +109,7 @@ function OptionRowLHN(props) {
             ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
-    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : themeColors.sidebar;
+    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : themeColors.highlightBG;
     const focusedBackgroundColor = styles.sidebarLinkActiveLHN.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -189,7 +189,7 @@ function OptionRowLHN(props) {
                             styles.justifyContentBetween,
                             styles.sidebarLinkLHN,
                             styles.sidebarLinkInnerLHN,
-                            StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
+                            StyleUtils.getBackgroundColorStyle(themeColors.highlightBG),
                             props.isFocused ? styles.sidebarLinkActive : null,
                             (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
                         ]}
@@ -207,7 +207,7 @@ function OptionRowLHN(props) {
                                                 hovered || isContextMenuActive,
                                                 themeColors.activeComponentBG,
                                                 hoveredBackgroundColor,
-                                                themeColors.sidebar,
+                                                themeColors.highlightBG,
                                             )}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
@@ -224,7 +224,7 @@ function OptionRowLHN(props) {
                                                     hovered || isContextMenuActive,
                                                     focusedBackgroundColor,
                                                     hoveredBackgroundColor,
-                                                    themeColors.sidebar,
+                                                    themeColors.highlightBG,
                                                 ),
                                             )}
                                             shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}

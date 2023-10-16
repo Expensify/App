@@ -93,7 +93,7 @@ darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
     [SCREENS.SETTINGS.SECURITY]: colors.ice500,
     [SCREENS.SETTINGS.STATUS]: colors.green700,
-    [SCREENS.SETTINGS.ROOT]: colors.darkHighlightBackground,
+    [SCREENS.SETTINGS.ROOT]: darkTheme.highlightBG,
 };
 
 export default darkTheme;
