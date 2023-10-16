@@ -158,7 +158,6 @@ SplitBillDetailsPage.defaultProps = defaultProps;
 SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 
 export default compose(
-    withLocalize,
     withReportAndReportActionOrNotFound,
     withOnyx({
         report: {
