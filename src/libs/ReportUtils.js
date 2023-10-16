@@ -2162,7 +2162,7 @@ function buildOptimisticIOUReport(payeeAccountID, payerAccountID, total, chatRep
 
         // We don't translate reportName because the server response is always in English
         reportName: `${payerEmail} owes ${formattedTotal}`,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
     };
 }
@@ -2201,7 +2201,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
         total: storedTotal,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
     };
 }
@@ -2896,7 +2896,7 @@ function buildTransactionThread(reportAction, moneyRequestReportID) {
         '',
         undefined,
         undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         reportAction.reportActionID,
         moneyRequestReportID,
     );
