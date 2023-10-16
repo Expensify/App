@@ -127,7 +127,7 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
-    return String(lodashGet(route, 'params.reportID', null));
+    return String(lodashGet(route, 'params.reportID', ''));
 }
 
 function ReportScreen({
@@ -172,7 +172,6 @@ function ReportScreen({
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
@@ -189,7 +188,7 @@ function ReportScreen({
         />
     );
 
-    if (isSingleTransactionView && !isDeletedParentAction) {
+    if (isSingleTransactionView) {
         headerView = (
             <MoneyRequestHeader
                 report={report}
@@ -341,6 +340,9 @@ function ReportScreen({
     }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum, prevReport.parentReportID]);
 
     useEffect(() => {
+        if (!ReportUtils.isValidReportIDFromPath(reportID)) {
+            return;
+        }
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.

@@ -243,6 +243,7 @@ const CONST = {
         CUSTOM_STATUS: 'customStatus',
         NEW_DOT_CATEGORIES: 'newDotCategories',
         NEW_DOT_TAGS: 'newDotTags',
+        NEW_DOT_SAML: 'newDotSAML',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -472,6 +473,7 @@ const CONST = {
         HAND_ICON_HEIGHT: 152,
         HAND_ICON_WIDTH: 200,
         SHUTTER_SIZE: 90,
+        MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
@@ -675,6 +677,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
+        SEARCH_FOR_REPORTS_DEBOUNCE_TIME: 300,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1249,6 +1252,7 @@ const CONST = {
             CLOSED: 6,
             STATE_SUSPENDED: 7,
         },
+        ACTIVE_STATES: [2, 3, 4, 7],
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -2668,8 +2672,8 @@ const CONST = {
         ATTACHMENT: 'common.attachment',
     },
     TEACHERS_UNITE: {
-        PUBLIC_ROOM_ID: '207591744844000',
-        POLICY_ID: 'ABD1345ED7293535',
+        PUBLIC_ROOM_ID: '7470147100835202',
+        POLICY_ID: 'B795B6319125BDF2',
         POLICY_NAME: 'Expensify.org / Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
     },
@@ -2724,6 +2728,7 @@ const CONST = {
     DEMO_PAGES: {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',
+        MONEY2020: 'Money2020DemoSetup',
     },
 
     MAPBOX: {
