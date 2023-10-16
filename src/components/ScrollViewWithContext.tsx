@@ -4,17 +4,19 @@ import {NativeScrollEvent, NativeSyntheticEvent, ScrollView} from 'react-native'
 const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
 
 type ScrollContextValue = {
-    contentOffsetY?: number;
-    scrollViewRef?: ForwardedRef<ScrollView>;
+    contentOffsetY: number;
+    scrollViewRef: ForwardedRef<ScrollView>;
 };
 
-const ScrollContext = React.createContext<ScrollContextValue>({});
+const ScrollContext = React.createContext<ScrollContextValue>({
+    contentOffsetY: 0,
+    scrollViewRef: null,
+});
 
 type ScrollViewWithContextProps = {
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     children?: React.ReactNode;
     scrollEventThrottle: number;
-    innerRef: ForwardedRef<ScrollView>;
 } & Partial<ScrollView>;
 
 /*
@@ -24,10 +26,10 @@ type ScrollViewWithContextProps = {
  * Using this wrapper will automatically handle scrolling to the picker's <TextInput />
  * when the picker modal is opened
  */
-function ScrollViewWithContext({onScroll, scrollEventThrottle, children, innerRef, ...restProps}: ScrollViewWithContextProps) {
+function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ...restProps}: ScrollViewWithContextProps, ref: ForwardedRef<ScrollView>) {
     const [contentOffsetY, setContentOffsetY] = useState(0);
     const defaultScrollViewRef = useRef<ScrollView>(null);
-    const scrollViewRef = innerRef ?? defaultScrollViewRef;
+    const scrollViewRef = ref ?? defaultScrollViewRef;
 
     const setContextScrollPosition = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         if (onScroll) {
@@ -58,11 +60,5 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, innerRe
 
 ScrollViewWithContext.displayName = 'ScrollViewWithContext';
 
-export default React.forwardRef<ScrollView, ScrollViewWithContextProps>((props, ref) => (
-    <ScrollViewWithContext
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+export default React.forwardRef<ScrollView, ScrollViewWithContextProps>(ScrollViewWithContext);
 export {ScrollContext};
