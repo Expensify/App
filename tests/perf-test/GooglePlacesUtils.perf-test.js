@@ -143,6 +143,16 @@ const bigObjectToFind = {
     '25doesnt-exist': 'long_name',
 };
 
+/**
+ * This function will be executed 20 times and the average time will be used on the comparison.
+ * It will fail based on the CI configuration around Reassure:
+ * @see /.github/workflows/reassurePerformanceTests.yml
+ *
+ * Max deviation on the duration is set to 20% at the time of writing.
+ *
+ * More on the measureFunction API:
+ * @see https://callstack.github.io/reassure/docs/api#measurefunction-function
+ */
 test('getAddressComponents on a big dataset', async () => {
     await measureFunction(
         () => {
