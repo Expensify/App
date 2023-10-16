@@ -1,4 +1,4 @@
-import React, {ComponentType, RefAttributes, ReactNode, createContext, useState, useEffect, forwardRef, useContext, useMemo} from 'react';
+import React, {ComponentType, RefAttributes, ReactNode, ForwardedRef, createContext, useState, useEffect, forwardRef, useContext, useMemo} from 'react';
 import {ValueOf} from 'type-fest';
 import * as Environment from '../libs/Environment/Environment';
 import CONST from '../CONST';
@@ -21,7 +21,7 @@ type EnvironmentContextValue = {
 
 const EnvironmentContext = createContext<EnvironmentContextValue | null>(null);
 
-function EnvironmentProvider({children}: EnvironmentProviderProps) {
+function EnvironmentProvider({children}: EnvironmentProviderProps): React.JSX.Element {
     const [environment, setEnvironment] = useState<EnvironmentValue>(CONST.ENVIRONMENT.PRODUCTION);
     const [environmentURL, setEnvironmentURL] = useState(CONST.NEW_EXPENSIFY_URL);
 
@@ -43,24 +43,25 @@ function EnvironmentProvider({children}: EnvironmentProviderProps) {
 
 EnvironmentProvider.displayName = 'EnvironmentProvider';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export default function withEnvironment<TComponentProps extends EnvironmentContextValue>(WrappedComponent: ComponentType<TComponentProps>) {
-    const WithEnvironment: ComponentType<TComponentProps & RefAttributes<ComponentType<TComponentProps>>> = forwardRef((props, ref) => {
+export default function withEnvironment<TProps extends EnvironmentContextValue, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): (props: Omit<TProps, keyof EnvironmentContextValue> & React.RefAttributes<TRef>) => React.JSX.Element | null {
+    function WithEnvironment(props: Omit<TProps, keyof EnvironmentContextValue>, ref: ForwardedRef<TRef>): React.JSX.Element {
         const {environment, environmentURL} = useContext(EnvironmentContext) ?? {};
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...(props as TProps)}
                 ref={ref}
                 environment={environment}
                 environmentURL={environmentURL}
             />
         );
-    });
+    }
 
     WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithEnvironment;
+    return forwardRef(WithEnvironment);
 }
 
 export {EnvironmentContext, EnvironmentProvider};
