@@ -155,7 +155,7 @@ const propTypes = {
     shouldShowRightComponent: PropTypes.bool,
 
     /** Should check anonymous user in onPress function */
-    shouldCheckActionAllowedOnPress,
+    shouldCheckActionAllowedOnPress: PropTypes.bool,
 };
 
 export default propTypes;
