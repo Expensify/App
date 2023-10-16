@@ -73,8 +73,8 @@ function getCompanyCards(cardList: {string: Card}) {
  */
 function getDomainCards(cardList: Record<string, OnyxTypes.Card>) {
     // eslint-disable-next-line you-dont-need-lodash-underscore/filter
-    const activeCards = lodash.filter(cardList, (card) => [2, 3, 4, 7].includes(card.state));
-    return lodash.groupBy(activeCards, (card) => card.domainName.toLowerCase());
+    const activeCards = lodash.filter(cardList, (card) => (CONST.EXPENSIFY_CARD.ACTIVE_STATES as ReadonlyArray<OnyxTypes.Card['state']>).includes(card.state));
+    return lodash.groupBy(activeCards, (card) => card.domainName);
 }
 
 /**
