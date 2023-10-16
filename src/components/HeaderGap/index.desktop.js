@@ -8,7 +8,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     styles: PropTypes.arrayOf(PropTypes.object),
 
-    /** Is sidebar */
+    /** If the HeaderGap is placed in the LHP */
     isSidebar: PropTypes.bool,
 };
 
@@ -18,8 +18,7 @@ class HeaderGap extends PureComponent {
             return <View style={[styles.headerGap, ...this.props.styles]} />;
         }
         return (
-            // TODO: Check if this.props.styles is needed
-            <View style={[styles.headerGap, styles.globalAndSubNavigationContainer, styles.flexRow]}>
+            <View style={[styles.headerGap, styles.globalAndSubNavigationContainer, styles.flexRow, ...this.props.styles]}>
                 <View style={styles.globalNavigation} />
                 <View style={styles.headerGapLhpRight} />
             </View>
