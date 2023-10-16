@@ -1419,7 +1419,7 @@ const styles = (theme: ThemeDefault) =>
 
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
-                horizontal: 18 + variables.sideBarWidth,
+                horizontal: 18 + variables.lhpWidth,
                 vertical: windowHeight - 83,
             } satisfies AnchorPosition),
 
@@ -2391,7 +2391,6 @@ const styles = (theme: ThemeDefault) =>
         },
 
         rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.lhpWidth, flex: 1} satisfies ViewStyle),
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
         avatarInnerTextChat: {
             color: theme.textLight,

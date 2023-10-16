@@ -52,7 +52,7 @@ export default (isSmallScreenWidth) => ({
             ...getNavigationModalCardStyle(),
 
             // This is necessary to cover whole screen. Including translated sidebar.
-            marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
+            marginLeft: isSmallScreenWidth ? 0 : -variables.lhpWidth,
         },
     },
 
