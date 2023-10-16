@@ -69,15 +69,15 @@ platforms:
         icon: /assets/images/envelope-receipt.svg
         description: Master the art of overseeing employees and reports by utilizing Expensify’s automation features and approval workflows.
       
-      - href: policy-and-domain-settings
-        title: Policy & Domain Settings
-        icon: /assets/images/shield.svg
-        description: Discover how to set up and manage policies, define user permissions, and implement compliance rules to maintain a secure and compliant financial management landscape.
-      
       - href: send-payments
         title: Send Payments
         icon: /assets/images/money-wings.svg
         description: Uncover step-by-step guidance on sending direct reimbursements to employees, paying an invoice to a vendor, and utilizing third-party payment options.
+      
+      - href: workspace-and-domain-settings
+        title: Workspace & Domain Settings
+        icon: /assets/images/shield.svg
+        description: Discover how to set up and manage workspace, define user permissions, and implement compliance rules to maintain a secure and compliant financial management landscape.
   
   - href: new-expensify
     title: New Expensify
