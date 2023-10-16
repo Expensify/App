@@ -94,7 +94,7 @@ function MoneyReportView(props) {
                     <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
                             <Text
-                                style={[styles.textLabelSupporting, StyleUtils.getColorStyle(themeColors.textSupporting)]}
+                                style={[styles.textLabelSupporting]}
                                 numberOfLines={1}
                             >
                                 {translate('cardTransactions.companySpend')}
