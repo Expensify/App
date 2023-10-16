@@ -242,8 +242,13 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
         }
     }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType]);
 
-    const navigateToTransferBalancePage = () => {
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
+    /**
+     * Navigate to the appropriate page after completing the KYC flow, depending on what initiated it
+     *
+     * @param {String} source
+     */
+    const navigateToWalletOrTransferBalancePage = (source) => {
+        Navigation.navigate(source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET ? ROUTES.SETTINGS_WALLET : ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
 
     useEffect(() => {
@@ -353,7 +358,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                 </OfflineWithFeedback>
                                             )}
                                             <KYCWall
-                                                onSuccessfulKYC={navigateToTransferBalancePage}
+                                                onSuccessfulKYC={(_iouPaymentType, source) => navigateToWalletOrTransferBalancePage(source)}
                                                 onSelectPaymentMethod={(selectedPaymentMethod) => {
                                                     if (!hasSilverWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
                                                         return;
@@ -365,6 +370,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                 addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
                                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                                 popoverPlacement="bottom"
+                                                source={hasSilverWallet ? CONST.KYC_WALL_SOURCE.ENABLE_WALLET : CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE}
                                                 shouldIncludeDebitCard={!hasSilverWallet}
                                             >
                                                 {(triggerKYCFlow, buttonRef) =>

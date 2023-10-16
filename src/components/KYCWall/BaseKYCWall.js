@@ -39,7 +39,6 @@ class KYCWall extends React.Component {
         if (this.props.shouldListenForResize) {
             this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
         }
-        Wallet.setKYCWallSourceChatReportID(this.props.chatReportID);
     }
 
     componentWillUnmount() {
@@ -109,6 +108,14 @@ class KYCWall extends React.Component {
      * @param {String} iouPaymentType
      */
     continue(event, iouPaymentType) {
+        const currentSource = lodashGet(this.props.walletTerms, 'source', this.props.source);
+
+        /**
+         * Set the source, so we can tailor the process according to how we got here.
+         * We do not want to set this on mount, as the source can change upon completing the flow, e.g. when upgrading the wallet to Gold.
+         */
+        Wallet.setKYCWallSource(this.props.source, this.props.chatReportID);
+
         if (this.state.shouldShowAddPaymentMenu) {
             this.setState({shouldShowAddPaymentMenu: false});
             return;
@@ -148,7 +155,7 @@ class KYCWall extends React.Component {
             }
         }
         Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
-        this.props.onSuccessfulKYC(iouPaymentType);
+        this.props.onSuccessfulKYC(iouPaymentType, currentSource);
     }
 
     render() {
@@ -180,6 +187,9 @@ KYCWall.defaultProps = defaultProps;
 export default withOnyx({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
+    },
+    walletTerms: {
+        key: ONYXKEYS.WALLET_TERMS,
     },
     fundList: {
         key: ONYXKEYS.FUND_LIST,

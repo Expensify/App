@@ -5,6 +5,7 @@ import bankAccountPropTypes from '../bankAccountPropTypes';
 import cardPropTypes from '../cardPropTypes';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import reimbursementAccountPropTypes from '../../pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
+import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -25,6 +26,9 @@ const propTypes = {
 
     /** The user's wallet */
     userWallet: userWalletPropTypes,
+
+    /** Information related to the wallet activation flow */
+    walletTerms: walletTermsPropTypes,
 
     /** The source that triggered the KYC wall */
     source: PropTypes.oneOf(_.values(CONST.KYC_WALL_SOURCE)).isRequired,
@@ -62,6 +66,7 @@ const propTypes = {
 
 const defaultProps = {
     userWallet: {},
+    walletTerms: {},
     shouldListenForResize: false,
     isDisabled: false,
     chatReportID: '',
