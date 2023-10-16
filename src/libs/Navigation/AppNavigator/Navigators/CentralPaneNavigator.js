@@ -14,7 +14,6 @@ const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') :
 
 const commonOptions = {
     headerShown: false,
-    title: 'New Expensify',
 
     // Prevent unnecessary scrolling
     cardStyle: styles.cardStyleNavigator,
