@@ -372,6 +372,14 @@ export default {
         termsOfService: 'Términos de servicio',
         privacy: 'Privacidad',
     },
+    samlSignIn: {
+        welcomeSAMLEnabled: 'Continua iniciando sesión con el inicio de sesión único:',
+        orContinueWithMagicCode: 'O, opcionalmente, tu empresa te permite iniciar sesión con un código mágico',
+        useSingleSignOn: 'Usar el inicio de sesión único',
+        useMagicCode: 'Usar código mágico',
+        launching: 'Cargando...',
+        oneMoment: 'Un momento mientras te redirigimos al portal de inicio de sesión único de tu empresa.',
+    },
     reportActionCompose: {
         addAction: 'Acción',
         dropToUpload: 'Suelta el archivo aquí para compartirlo',
