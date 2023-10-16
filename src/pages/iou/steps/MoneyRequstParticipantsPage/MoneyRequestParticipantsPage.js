@@ -50,6 +50,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, selectedTab);
+    const isSendRequest = iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
@@ -60,8 +61,13 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
             return;
         }
 
+        if (isSendRequest) {
+            setHeaderTitle(translate('common.send'));
+            return;
+        }
+
         setHeaderTitle(_.isEmpty(iou.participants) ? translate('tabSelector.manual') : translate('iou.split'));
-    }, [iou.participants, isDistanceRequest, translate]);
+    }, [iou.participants, isDistanceRequest, isSendRequest, translate]);
 
     const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
