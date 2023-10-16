@@ -1,4 +1,4 @@
-import React, {ComponentType, RefAttributes, ReactNode, ForwardedRef, createContext, useState, useEffect, forwardRef, useContext, useMemo} from 'react';
+import React, {ComponentType, RefAttributes, ReactNode, ForwardedRef, ReactElement, createContext, useState, useEffect, forwardRef, useContext, useMemo} from 'react';
 import {ValueOf} from 'type-fest';
 import * as Environment from '../libs/Environment/Environment';
 import CONST from '../CONST';
@@ -21,7 +21,7 @@ type EnvironmentContextValue = {
 
 const EnvironmentContext = createContext<EnvironmentContextValue | null>(null);
 
-function EnvironmentProvider({children}: EnvironmentProviderProps): React.JSX.Element {
+function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement {
     const [environment, setEnvironment] = useState<EnvironmentValue>(CONST.ENVIRONMENT.PRODUCTION);
     const [environmentURL, setEnvironmentURL] = useState(CONST.NEW_EXPENSIFY_URL);
 
@@ -45,8 +45,8 @@ EnvironmentProvider.displayName = 'EnvironmentProvider';
 
 export default function withEnvironment<TProps extends EnvironmentContextValue, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): (props: Omit<TProps, keyof EnvironmentContextValue> & React.RefAttributes<TRef>) => React.JSX.Element | null {
-    function WithEnvironment(props: Omit<TProps, keyof EnvironmentContextValue>, ref: ForwardedRef<TRef>): React.JSX.Element {
+): (props: Omit<TProps, keyof EnvironmentContextValue> & React.RefAttributes<TRef>) => ReactElement | null {
+    function WithEnvironment(props: Omit<TProps, keyof EnvironmentContextValue>, ref: ForwardedRef<TRef>): ReactElement {
         const {environment, environmentURL} = useContext(EnvironmentContext) ?? {};
         return (
             <WrappedComponent
