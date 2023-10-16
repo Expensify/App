@@ -118,25 +118,17 @@ function transactionThreadHasViolations(report) {
     if (!transactionID) {
         return false;
     }
-    const violations = lodashGet(transactionViolations, `${transactionID}.violation`, []);
-    if (_.isEmpty(violations)) {
-        return false;
-    }
-
-    return true;
+    return transactionHasViolation(transactionID);
 }
 
 function reportHasViolations(reportID) {
     let transactions = TransactionUtils.getAllReportTransactions(reportID);
-    return _.some(transactions, (transaction) => {
-        const violations = lodashGet(transactionViolations, `${transaction.transactionID}.violation`, []);
-        return !_.isEmpty(violations);
-    });
+    return _.some(transactions, (transaction) => transactionHasViolation(transaction.transactionID));
 }
 
 function transactionHasViolation(transactionID) {
-    const violations = lodashGet(transactionViolations, `${transactionID}.violation`, []);
-    return !_.isEmpty(violations);
+    const violations = lodashGet(transactionViolations, transactionID, []);
+    return _.some(violations, violation => violation.type === 'violation');
 }
 
 function getChatType(report) {
