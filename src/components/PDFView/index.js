@@ -32,31 +32,20 @@ const PAGE_BORDER = 9;
  */
 const LARGE_SCREEN_SIDE_SPACING = 40;
 
-class PDFView extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            numPages: null,
-            pageViewports: [],
-            containerWidth: props.windowWidth,
-            containerHeight: props.windowHeight,
-            shouldRequestPassword: false,
-            isPasswordInvalid: false,
-            isKeyboardOpen: false,
-        };
-        this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
-        this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
-        this.attemptPDFLoad = this.attemptPDFLoad.bind(this);
-        this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
-        this.calculatePageHeight = this.calculatePageHeight.bind(this);
-        this.calculatePageWidth = this.calculatePageWidth.bind(this);
-        this.renderPage = this.renderPage.bind(this);
-        this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio);
-        this.setListAttributes = this.setListAttributes.bind(this);
+const [numPages, setNumPages] = useState(null);
+const [pageViewports, setPageViewports] = useState([]);
+const [containerWidth, setContainerWidth] = useState(props.windowWidth);
+const [containerHeight, setContainerHeight] = useState(props.windowHeight);
+const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
+const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
+const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
+
+function PDFView(props) {
+    constructor(props) {
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
-        this.retrieveCanvasLimits();
+        retrieveCanvasLimits();
     }
 
     componentDidUpdate(prevProps) {
@@ -129,9 +118,9 @@ class PDFView extends Component {
      */
     getDevicePixelRatio(width, height) {
         const nbPixels = width * height;
-        const ratioHeight = this.props.maxCanvasHeight / height;
-        const ratioWidth = this.props.maxCanvasWidth / width;
-        const ratioArea = Math.sqrt(this.props.maxCanvasArea / nbPixels);
+        const ratioHeight = maxCanvasHeight / height;
+        const ratioWidth = maxCanvasWidth / width;
+        const ratioArea = Math.sqrt(maxCanvasArea / nbPixels);
         const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
         return ratio > window.devicePixelRatio ? undefined : ratio;
     }
@@ -144,13 +133,13 @@ class PDFView extends Component {
      * @returns {Number}
      */
     calculatePageHeight(pageIndex) {
-        if (this.state.pageViewports.length === 0) {
+        if (pageViewports.length === 0) {
             Log.warn('Dev error: calculatePageHeight() in PDFView called too early');
 
             return 0;
         }
 
-        const pageViewport = this.state.pageViewports[pageIndex];
+        setPageViewport(pageIndex);
         const pageWidth = this.calculatePageWidth();
         const scale = pageWidth / pageViewport.width;
         const actualHeight = pageViewport.height * scale + PAGE_BORDER * 2;
