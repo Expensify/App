@@ -1641,6 +1641,10 @@ const styles = (theme: ThemeDefault) =>
             width: 18,
         },
 
+        chatContentScrollViewWithHeaderLoader: {
+            paddingTop: CONST.CHAT_HEADER_LOADER_HEIGHT,
+        },
+
         chatContentScrollView: {
             flexGrow: 1,
             justifyContent: 'flex-start',
@@ -3884,6 +3888,15 @@ const styles = (theme: ThemeDefault) =>
         draggableTopBar: {
             height: 30,
             width: '100%',
+        },
+
+        chatBottomLoader: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: CONST.CHAT_HEADER_LOADER_HEIGHT,
         },
 
         videoContainer: {
