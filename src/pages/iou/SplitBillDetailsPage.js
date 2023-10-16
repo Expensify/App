@@ -9,7 +9,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import reportPropTypes from '../reportPropTypes';
@@ -24,6 +23,7 @@ import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmat
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import MoneyRequestHeaderStatusBar from '../../components/MoneyRequestHeaderStatusBar';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /* Onyx Props */
@@ -62,8 +62,6 @@ const propTypes = {
         /** Currently logged in user email */
         email: PropTypes.string,
     }).isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -113,7 +111,7 @@ function SplitBillDetailsPage(props) {
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(reportID) || _.isEmpty(reportAction) || _.isEmpty(props.transaction)}>
-                <HeaderWithBackButton title={props.translate('common.details')} />
+                <HeaderWithBackButton title={translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
