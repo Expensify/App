@@ -471,8 +471,8 @@ export default {
     sidebarScreen: {
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
-        fabNewChat: 'Enviar mensaje',
-        fabNewChatExplained: 'Enviar mensaje',
+        fabNewChat: 'Iniciar chat',
+        fabNewChatExplained: 'Iniciar chat',
         chatPinned: 'Chat fijado',
         draftedMessage: 'Mensaje borrador',
         listOfChatMessages: 'Lista de mensajes del chat',
