@@ -1903,20 +1903,17 @@ function openReportFromDeepLink(url, isAuthenticated) {
         // If we're not opening a public room (no reportID) or the user is authenticated, we unblock the UI (hide splash screen)
         Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     }
-
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            Navigation.waitForProtectedRoutes()
-                .then(() => {
-                    const route = ReportUtils.getRouteFromLink(url);
-                    if (route === ROUTES.CONCIERGE) {
-                        navigateToConciergeChat(true);
-                        return;
-                    }
-                    Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
-                })
-                .catch((error) => Log.warn(error.message));
+            Navigation.waitForProtectedRoutes().then(() => {
+                const route = ReportUtils.getRouteFromLink(url);
+                if (route === ROUTES.CONCIERGE) {
+                    navigateToConciergeChat(true);
+                    return;
+                }
+                Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
+            });
         });
     });
 }

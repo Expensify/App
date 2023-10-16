@@ -286,34 +286,29 @@ function navContainsProtectedRoutes(state) {
  *
  * @function
  * @returns {Promise<void>} A promise that resolves to `true` when the Concierge route is present.
- *                             Rejects with an error if the navigation is not ready.
  *
  * @example
  * waitForProtectedRoutes()
  *   .then(() => console.log('Protected routes are present!'))
- *   .catch(error => console.error(error.message));
  */
 function waitForProtectedRoutes() {
-    return new Promise((resolve, reject) => {
-        const isReady = navigationRef.current && navigationRef.current.isReady();
-        if (!isReady) {
-            reject(new Error('[Navigation] is not ready yet!'));
-            return;
-        }
-        const currentState = navigationRef.current.getState();
-        if (navContainsProtectedRoutes(currentState)) {
-            resolve();
-            return;
-        }
-        let unsubscribe;
-        const handleStateChange = ({data}) => {
-            const state = lodashGet(data, 'state');
-            if (navContainsProtectedRoutes(state)) {
-                unsubscribe();
+    return new Promise((resolve) => {
+        isNavigationReady().then(() => {
+            const currentState = navigationRef.current.getState();
+            if (navContainsProtectedRoutes(currentState)) {
                 resolve();
+                return;
             }
-        };
-        unsubscribe = navigationRef.current.addListener('state', handleStateChange);
+            let unsubscribe;
+            const handleStateChange = ({data}) => {
+                const state = lodashGet(data, 'state');
+                if (navContainsProtectedRoutes(state)) {
+                    unsubscribe();
+                    resolve();
+                }
+            };
+            unsubscribe = navigationRef.current.addListener('state', handleStateChange);
+        });
     });
 }
 
