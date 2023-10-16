@@ -318,6 +318,7 @@ export default React.memo(
     withOnyx({
         draftReportIDs: {
             key: ONYXKEYS.DRAFT_REPORT_IDS,
+            initialValue: {},
         },
     })(OptionRowLHN),
 );
