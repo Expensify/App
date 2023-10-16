@@ -1,18 +1,12 @@
 import {useContext, useCallback} from 'react';
-import {ActionListContext, ActionListContextType} from '../../pages/home/ReportScreenContext';
-
-type ReportScrollManagerData = {
-    ref: ActionListContextType;
-    scrollToIndex: (index: number) => void;
-    scrollToBottom: () => void;
-};
+import {ActionListContext} from '../../pages/home/ReportScreenContext';
+import {ReportScrollManagerData} from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
     const flatListRef = useContext(ActionListContext);
 
     /**
      * Scroll to the provided index.
-     *
      */
     const scrollToIndex = (index: number) => {
         if (!flatListRef?.current) {
