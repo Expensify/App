@@ -10,7 +10,7 @@
 const fs = require('fs');
 const _ = require('underscore');
 const defaultConfig = require('./config');
-const compare = require('./compare/compare');
+// const compare = require('./compare/compare');
 const Logger = require('./utils/logger');
 const execAsync = require('./utils/execAsync');
 const killApp = require('./utils/killApp');
@@ -21,9 +21,25 @@ const math = require('./measure/math');
 const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
 const reversePort = require('./utils/androidReversePort');
-const getCurrentBranchName = require('./utils/getCurrentBranchName');
 
 const args = process.argv.slice(2);
+
+const indexOfBranchLabel = _.findIndex(args, (t) => t === '--branch');
+
+if (indexOfBranchLabel === -1) {
+    throw new Error('branch not specified, specify a branch with --branch [BRANCH NAME]');
+}
+
+let branch = 'main';
+
+if (args.includes('--branch')) {
+    branch = args[args.indexOf('--branch') + 1];
+}
+
+let label = branch;
+if (args.includes('--label')) {
+    label = args[args.indexOf('--label') + 1];
+}
 
 let config = defaultConfig;
 const setConfigPath = (configPathParam) => {
@@ -34,8 +50,6 @@ const setConfigPath = (configPathParam) => {
     const customConfig = require(configPath);
     config = _.extend(defaultConfig, customConfig);
 };
-
-let baselineBranch = process.env.baseline || config.DEFAULT_BASELINE_BRANCH;
 
 // There are three build modes:
 // 1. full: rebuilds the full native app in (e2e) release mode
@@ -49,7 +63,6 @@ let buildMode = 'full';
 const isDevMode = args.includes('--development');
 if (isDevMode) {
     setConfigPath('config.local.js');
-    baselineBranch = getCurrentBranchName();
     buildMode = 'js-only';
 }
 
@@ -59,16 +72,19 @@ if (args.includes('--config')) {
 }
 
 // Clear all files from previous jobs
-try {
-    fs.rmSync(config.OUTPUT_DIR, {recursive: true, force: true});
+if (!fs.existsSync(config.OUTPUT_DIR)) {
     fs.mkdirSync(config.OUTPUT_DIR);
+}
+
+try {
+    fs.rmSync(`${config.OUTPUT_DIR}/${label}.json`);
 } catch (error) {
     // Do nothing
     console.error(error);
 }
 
 if (isDevMode) {
-    Logger.note(`Running in development mode. Set baseline branch to same as current ${baselineBranch}`);
+    Logger.note(`Running in development mode.`);
 }
 
 const restartApp = async () => {
@@ -78,11 +94,15 @@ const restartApp = async () => {
     await launchApp('android', config.APP_PACKAGE);
 };
 
-const runTestsOnBranch = async (baselineOrCompare, branch) => {
+const runTests = async () => {
     if (args.includes('--buildMode')) {
         buildMode = args[args.indexOf('--buildMode') + 1];
     }
-    let appPath = baselineOrCompare === 'baseline' ? config.APP_PATHS.baseline : config.APP_PATHS.compare;
+
+    let appPath = config.APP_PATH;
+    if (args.includes('--appPath')) {
+        appPath = args[args.indexOf('--appPath') + 1];
+    }
 
     // check if using buildMode "js-only" or "none" is possible
     if (buildMode !== 'full') {
@@ -97,21 +117,21 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
 
     if (branch != null) {
         // Switch branch
-        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
+        Logger.log(`Preparing tests on branch '${branch}'`);
         await execAsync(`git checkout ${branch}`);
     }
 
     if (!args.includes('--skipInstallDeps')) {
-        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
+        Logger.log(`Preparing tests on branch '${branch}' - npm install`);
         await execAsync('npm i');
     }
 
     // Build app
     if (buildMode === 'full') {
-        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`);
+        Logger.log(`Preparing tests on branch '${branch}' - building app`);
         await execAsync('npm run android-build-e2e');
     } else if (buildMode === 'js-only') {
-        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building js bundle`);
+        Logger.log(`Preparing tests on branch '${branch}' - building js bundle`);
 
         // Build a new JS bundle
         const tempDir = `${config.OUTPUT_DIR}/temp`;
@@ -220,7 +240,7 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
 
     // Calculate statistics and write them to our work file
     progressLog = Logger.progressInfo('Calculating statics and writing results');
-    const outputFileName = `${config.OUTPUT_DIR}/${baselineOrCompare}.json`;
+    const outputFileName = `${config.OUTPUT_DIR}/${label}.json`;
     for (const testName of _.keys(durationsByTestName)) {
         const stats = math.getStats(durationsByTestName[testName]);
         await writeTestStats(
@@ -236,19 +256,11 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
     await server.stop();
 };
 
-const runTests = async () => {
+const run = async () => {
     Logger.info('Running e2e tests');
 
     try {
-        const skipCheckout = args.includes('--skipCheckout');
-
-        // Run tests on baseline branch
-        await runTestsOnBranch('baseline', skipCheckout ? null : baselineBranch);
-
-        // Run tests on current branch
-        await runTestsOnBranch('compare', skipCheckout ? null : '-');
-
-        await compare();
+        await runTests();
 
         process.exit(0);
     } catch (e) {
@@ -270,4 +282,4 @@ const runTests = async () => {
     }
 };
 
-runTests();
+run();
