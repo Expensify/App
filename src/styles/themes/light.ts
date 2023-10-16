@@ -42,7 +42,7 @@ const lightTheme = {
     hoverComponentBG: colors.lightHighlightBackground,
     activeComponentBG: colors.lightBorders,
     signInSidebar: colors.green800,
-    sidebar: colors.lightHighlightBackground,
+    sidebar: colors.lightAppBackground,
     sidebarHover: colors.lightBorders,
     heading: colors.lightPrimaryText,
     textLight: colors.white,
@@ -52,7 +52,6 @@ const lightTheme = {
     textMutedReversed: colors.lightIcons,
     textError: colors.red,
     offline: colors.lightIcons,
-    modalBackdrop: colors.lightHighlightBackground,
     modalBackground: colors.lightAppBackground,
     cardBG: colors.lightHighlightBackground,
     cardBorder: colors.lightHighlightBackground,
@@ -83,6 +82,7 @@ const lightTheme = {
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
     mapAttributionText: colors.black,
+    white: colors.white,
 
     PAGE_BACKGROUND_COLORS: {
         [SCREENS.HOME]: colors.lightHighlightBackground,

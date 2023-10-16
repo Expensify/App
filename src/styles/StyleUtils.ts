@@ -1,7 +1,7 @@
-import {Animated, FlexStyle, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
+import {CSSProperties} from 'react';
+import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
-import {CSSProperties} from 'react';
 import CONST from '../CONST';
 import * as Browser from '../libs/Browser';
 import * as UserUtils from '../libs/UserUtils';
@@ -13,9 +13,14 @@ import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
 import variables from './variables';
+import {Transaction} from '../types/onyx';
+
+type AllStyles = ViewStyle | TextStyle | ImageStyle;
+type ParsableStyle = AllStyles | ((state: PressableStateCallbackType) => AllStyles);
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
+type EReceiptColorName = ValueOf<typeof CONST.ERECEIPT_COLORS>;
 type AvatarSizeValue = ValueOf<
     Pick<
         typeof variables,
@@ -38,9 +43,9 @@ type ButtonSizeValue = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 type EmptyAvatarSizeName = ValueOf<Pick<typeof CONST.AVATAR_SIZE, 'SMALL' | 'MEDIUM' | 'LARGE'>>;
 type ButtonStateName = ValueOf<typeof CONST.BUTTON_STATES>;
 type AvatarSize = {width: number};
-type ParsableStyle = ViewStyle | ((state: PressableStateCallbackType) => ViewStyle);
 
 type WorkspaceColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
+type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue};
 
 type ModalPaddingStylesParams = {
     shouldAddBottomSafeAreaMargin: boolean;
@@ -90,6 +95,24 @@ const workspaceColorOptions: WorkspaceColorStyle[] = [
     {backgroundColor: colors.ice200, fill: colors.ice700},
     {backgroundColor: colors.ice400, fill: colors.ice800},
     {backgroundColor: colors.ice700, fill: colors.ice200},
+];
+
+const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
+    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow600, color: colors.yellow100},
+    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.blue800, color: colors.ice400},
+    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue400, color: colors.blue100},
+    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400},
+    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400},
+    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400},
+};
+
+const eReceiptColors: EReceiptColorName[] = [
+    CONST.ERECEIPT_COLORS.YELLOW,
+    CONST.ERECEIPT_COLORS.ICE,
+    CONST.ERECEIPT_COLORS.BLUE,
+    CONST.ERECEIPT_COLORS.GREEN,
+    CONST.ERECEIPT_COLORS.TANGERINE,
+    CONST.ERECEIPT_COLORS.PINK,
 ];
 
 const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
@@ -238,12 +261,30 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 }
 
 /**
- * Helper method to return old dot default avatar associated with login
+ * Helper method to return workspace avatar color styles
  */
 function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
     const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
+}
+
+/**
+ * Helper method to return eReceipt color code
+ */
+function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
+    const transactionID = transaction.parentTransactionID ?? transaction.transactionID ?? '';
+
+    const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
+
+    return eReceiptColors[colorHash];
+}
+
+/**
+ * Helper method to return eReceipt color styles
+ */
+function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyle | undefined {
+    return eReceiptColorStyles[colorCode];
 }
 
 /**
@@ -276,7 +317,7 @@ function getZoomCursorStyle(isZoomed: boolean, isDragging: boolean): ViewStyle {
     return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
 }
 
-// NOTE: asserting some web style properties to a valid type, because isn't possible to augment them.
+// NOTE: asserting some web style properties to a valid type, because it isn't possible to augment them.
 function getZoomSizingStyle(
     isZoomed: boolean,
     imgWidth: number,
@@ -290,23 +331,23 @@ function getZoomSizingStyle(
     if (isLoading || imgWidth === 0 || imgHeight === 0) {
         return undefined;
     }
-    const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px` as ViewStyle['top'];
-    const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px` as ViewStyle['left'];
+    const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px` as DimensionValue;
+    const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px` as DimensionValue;
 
     // Return different size and offset style based on zoomScale and isZoom.
     if (isZoomed) {
         // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
         if (zoomScale >= 1) {
             return {
-                height: `${imgHeight * zoomScale}px` as FlexStyle['height'],
-                width: `${imgWidth * zoomScale}px` as FlexStyle['width'],
+                height: `${imgHeight * zoomScale}px` as DimensionValue,
+                width: `${imgWidth * zoomScale}px` as DimensionValue,
             };
         }
 
         // If image height and width are bigger than container size, display image with original size because original size is bigger and position absolute.
         return {
-            height: `${imgHeight}px` as FlexStyle['height'],
-            width: `${imgWidth}px` as FlexStyle['width'],
+            height: `${imgHeight}px` as DimensionValue,
+            width: `${imgWidth}px` as DimensionValue,
             top,
             left,
         };
@@ -315,8 +356,8 @@ function getZoomSizingStyle(
     // If image is not zoomed in and image size is smaller than container size, display with original size based on offset and position absolute.
     if (zoomScale > 1) {
         return {
-            height: `${imgHeight}px` as FlexStyle['height'],
-            width: `${imgWidth}px` as FlexStyle['width'],
+            height: `${imgHeight}px` as DimensionValue,
+            width: `${imgWidth}px` as DimensionValue,
             top,
             left,
         };
@@ -324,11 +365,11 @@ function getZoomSizingStyle(
 
     // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
     // top, left offset should be different when displaying long or wide image.
-    const scaledTop = `${Math.max((containerHeight - imgHeight * zoomScale) / 2, 0)}px` as ViewStyle['top'];
-    const scaledLeft = `${Math.max((containerWidth - imgWidth * zoomScale) / 2, 0)}px` as ViewStyle['left'];
+    const scaledTop = `${Math.max((containerHeight - imgHeight * zoomScale) / 2, 0)}px` as DimensionValue;
+    const scaledLeft = `${Math.max((containerWidth - imgWidth * zoomScale) / 2, 0)}px` as DimensionValue;
     return {
-        height: `${imgHeight * zoomScale}px` as FlexStyle['height'],
-        width: `${imgWidth * zoomScale}px` as FlexStyle['width'],
+        height: `${imgHeight * zoomScale}px` as DimensionValue,
+        width: `${imgWidth * zoomScale}px` as DimensionValue,
         top: scaledTop,
         left: scaledLeft,
     };
@@ -452,8 +493,8 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
 /**
  * Generate a style for the background color of the Badge
  */
-function getBadgeColorStyle(success: boolean, error: boolean, isPressed = false, isAdHoc = false): ViewStyle {
-    if (success) {
+function getBadgeColorStyle(isSuccess: boolean, isError: boolean, isPressed = false, isAdHoc = false): ViewStyle {
+    if (isSuccess) {
         if (isAdHoc) {
             // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -463,7 +504,7 @@ function getBadgeColorStyle(success: boolean, error: boolean, isPressed = false,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
-    if (error) {
+    if (isError) {
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
@@ -520,7 +561,7 @@ function getAnimatedFABStyle(rotate: Animated.Value, backgroundColor: Animated.V
     };
 }
 
-function getWidthAndHeightStyle(width: number, height: number | undefined = undefined): ViewStyle {
+function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
     return {
         width,
         height: height ?? width,
@@ -584,7 +625,7 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
 /**
  * Generate the styles for the ReportActionItem wrapper view.
  */
-function getReportActionItemStyle(isHovered = false, isLoading = false): ViewStyle {
+function getReportActionItemStyle(isHovered = false): ViewStyle {
     // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -594,7 +635,7 @@ function getReportActionItemStyle(isHovered = false, isLoading = false): ViewSty
             ? themeColors.hoverComponentBG
             : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
               themeColors.transparent,
-        opacity: isLoading ? 0.5 : 1,
+        opacity: 1,
         ...styles.cursorInitial,
     };
 }
@@ -685,10 +726,10 @@ function extractValuesFromRGB(color: string): number[] | null {
  * @returns The theme color as an RGB value.
  */
 function getThemeBackgroundColor(bgColor: string = themeColors.appBG): string {
-    const backdropOpacity = variables.modalFullscreenBackdropOpacity;
+    const backdropOpacity = variables.overlayOpacity;
 
     const [backgroundRed, backgroundGreen, backgroundBlue] = extractValuesFromRGB(bgColor) ?? hexadecimalToRGBArray(bgColor) ?? [];
-    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop) ?? [];
+    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.overlay) ?? [];
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
     const [red, green, blue] = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
@@ -700,14 +741,14 @@ function getThemeBackgroundColor(bgColor: string = themeColors.appBG): string {
 /**
  * Parse styleParam and return Styles array
  */
-function parseStyleAsArray(styleParam: ViewStyle | ViewStyle[]): ViewStyle[] {
+function parseStyleAsArray<T extends AllStyles>(styleParam: T | T[]): T[] {
     return Array.isArray(styleParam) ? styleParam : [styleParam];
 }
 
 /**
  * Parse style function and return Styles object
  */
-function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): ViewStyle[] {
+function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): AllStyles[] {
     const functionAppliedStyle = typeof style === 'function' ? style(state) : style;
     return parseStyleAsArray(functionAppliedStyle);
 }
@@ -715,8 +756,8 @@ function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallb
 /**
  * Receives any number of object or array style objects and returns them all as an array
  */
-function combineStyles(...allStyles: Array<ViewStyle | ViewStyle[]>) {
-    let finalStyles: ViewStyle[][] = [];
+function combineStyles<T extends AllStyles>(...allStyles: Array<T | T[]>): T[] {
+    let finalStyles: T[] = [];
     allStyles.forEach((style) => {
         finalStyles = finalStyles.concat(parseStyleAsArray(style));
     });
@@ -759,6 +800,15 @@ function getMinimumHeight(minHeight: number): ViewStyle {
 }
 
 /**
+ * Get minimum width as style
+ */
+function getMinimumWidth(minWidth: number): ViewStyle | CSSProperties {
+    return {
+        minWidth,
+    };
+}
+
+/**
  * Get maximum height as style
  */
 function getMaximumHeight(maxHeight: number): ViewStyle {
@@ -783,16 +833,6 @@ function fade(fadeAnimation: Animated.Value): Animated.WithAnimatedValue<ViewSty
     return {
         opacity: fadeAnimation,
     };
-}
-
-/**
- * Return width for keyboard shortcuts modal.
- */
-function getKeyboardShortcutsModalWidth(isSmallScreenWidth: boolean): ViewStyle {
-    if (isSmallScreenWidth) {
-        return {maxWidth: '100%'};
-    }
-    return {maxWidth: 600};
 }
 
 function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}: AvatarBorderStyleParams): ViewStyle {
@@ -846,7 +886,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): View
     if (isSmallScreenWidth) {
         return {
             height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '100%',
+            width: '200%',
             position: 'absolute',
         };
     }
@@ -913,12 +953,12 @@ function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean): ViewStyle 
 /**
  * Gets styles for AutoCompleteSuggestion row
  */
-function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex: number, rowHeight: number, hovered: boolean, currentEmojiIndex: number): ViewStyle[] {
+function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex: number, rowHeight: number, isHovered: boolean, currentEmojiIndex: number): ViewStyle[] {
     let backgroundColor;
 
     if (currentEmojiIndex === highlightedEmojiIndex) {
         backgroundColor = themeColors.activeComponentBG;
-    } else if (hovered) {
+    } else if (isHovered) {
         backgroundColor = themeColors.hoverComponentBG;
     }
 
@@ -950,17 +990,17 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetB
 /**
  * Gets the correct position for auto complete suggestion container
  */
-function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle | CSSProperties {
+function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle {
     'worklet';
 
     const borderWidth = 2;
-    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + borderWidth;
+    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING),
+        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + borderWidth),
         height,
     };
 }
@@ -1025,7 +1065,7 @@ function getEmojiReactionCounterTextStyle(hasUserReacted: boolean): TextStyle {
  *
  * @param direction - The direction of the rotation (CONST.DIRECTION.LEFT or CONST.DIRECTION.RIGHT).
  */
-function getDirectionStyle(direction: string): ViewStyle {
+function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
         return {transform: [{rotate: '180deg'}]};
     }
@@ -1160,9 +1200,29 @@ function getDisabledLinkStyles(isDisabled = false): ViewStyle {
 }
 
 /**
+ * Returns color style
+ */
+function getColorStyle(color: string): ViewStyle | CSSProperties {
+    return {color};
+}
+
+/**
+ * Returns the checkbox pressable style
+ */
+function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
+    return {
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        // eslint-disable-next-line object-shorthand
+        borderRadius: borderRadius,
+    };
+}
+
+/**
  * Returns the checkbox container style
  */
-function getCheckboxContainerStyle(size: number, borderRadius: number): ViewStyle {
+function getCheckboxContainerStyle(size: number, borderRadius = 4): ViewStyle {
     return {
         backgroundColor: themeColors.componentBG,
         height: size,
@@ -1220,6 +1280,32 @@ function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: nu
 }
 
 /**
+ * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
+ */
+function getContainerStyles(size: string, isInReportAction = false): Array<ViewStyle | CSSProperties> {
+    let containerStyles: Array<ViewStyle | CSSProperties>;
+
+    switch (size) {
+        case CONST.AVATAR_SIZE.SMALL:
+            containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
+            break;
+        case CONST.AVATAR_SIZE.SMALLER:
+            containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
+            break;
+        case CONST.AVATAR_SIZE.MEDIUM:
+            containerStyles = [styles.emptyAvatarMedium, styles.emptyAvatarMargin];
+            break;
+        case CONST.AVATAR_SIZE.LARGE:
+            containerStyles = [styles.emptyAvatarLarge, styles.mb2, styles.mr2];
+            break;
+        default:
+            containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];
+    }
+
+    return containerStyles;
+}
+
+/**
  * Get transparent color by setting alpha value 0 of the passed hex(#xxxxxx) color code
  */
 function getTransparentColor(color: string) {
@@ -1229,7 +1315,6 @@ function getTransparentColor(color: string) {
 export {
     combineStyles,
     displayIfTrue,
-    fade,
     getAmountFontSizeAndLineHeight,
     getAnimatedFABStyle,
     getAutoCompleteSuggestionContainerStyle,
@@ -1246,12 +1331,28 @@ export {
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
     getBadgeColorStyle,
+    getButtonBackgroundColorStyle,
+    getPaddingLeft,
+    hasSafeAreas,
+    getHeight,
+    getMinimumHeight,
+    getMinimumWidth,
+    getMaximumHeight,
+    getMaximumWidth,
+    fade,
+    getHorizontalStackedAvatarBorderStyle,
+    getHorizontalStackedAvatarStyle,
+    getHorizontalStackedOverlayAvatarStyle,
+    getReportWelcomeBackgroundImageStyle,
+    getReportWelcomeTopMarginStyle,
+    getReportWelcomeContainerStyle,
     getBaseAutoCompleteSuggestionContainerStyle,
     getBorderColorStyle,
-    getButtonBackgroundColorStyle,
     getCheckboxContainerStyle,
+    getCheckboxPressableStyle,
     getColoredBackgroundStyle,
     getComposeTextAreaPadding,
+    getColorStyle,
     getDefaultWorkspaceAvatarColor,
     getDirectionStyle,
     getDisabledLinkStyles,
@@ -1266,29 +1367,17 @@ export {
     getFontFamilyMonospace,
     getFontSizeStyle,
     getGoogleListViewStyle,
-    getHeight,
     getHeightOfMagicCodeInput,
-    getHorizontalStackedAvatarBorderStyle,
-    getHorizontalStackedAvatarStyle,
-    getHorizontalStackedOverlayAvatarStyle,
     getIconFillColor,
-    getKeyboardShortcutsModalWidth,
     getLineHeightStyle,
-    getMaximumHeight,
-    getMaximumWidth,
     getMentionStyle,
     getMentionTextColor,
     getMenuItemTextContainerStyle,
     getMiniReportActionContextMenuWrapperStyle,
-    getMinimumHeight,
     getModalPaddingStyles,
     getOuterModalStyle,
-    getPaddingLeft,
     getPaymentMethodMenuWidth,
     getReportActionItemStyle,
-    getReportWelcomeBackgroundImageStyle,
-    getReportWelcomeContainerStyle,
-    getReportWelcomeTopMarginStyle,
     getSafeAreaMargins,
     getSafeAreaPadding,
     getSignInWordmarkWidthStyle,
@@ -1300,7 +1389,9 @@ export {
     getWrappingStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
-    hasSafeAreas,
     parseStyleAsArray,
     parseStyleFromFunction,
+    getContainerStyles,
+    getEReceiptColorStyles,
+    getEReceiptColorCode,
 };

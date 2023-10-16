@@ -75,6 +75,14 @@
                     {
                         "/": "/teachersunite/*",
                         "comment": "Teachers Unite!"
+                    },
+                    {
+                        "/": "/search/*",
+                        "comment": "Search"
+                    },
+                    {
+                        "/": "/money2020/*",
+                        "comment": "Money 2020"
                     }
                 ]
             }

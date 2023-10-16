@@ -15,13 +15,12 @@ import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
-import DistanceRequestPage from './DistanceRequestPage';
+import NewDistanceRequestPage from './NewDistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
-import themeColors from '../../styles/themes/default';
 import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
@@ -86,15 +85,7 @@ function MoneyRequestSelectorPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            headerGapStyles={
-                isDraggingOver
-                    ? [
-                          {
-                              backgroundColor: themeColors.receiptDropUIBG,
-                          },
-                      ]
-                    : []
-            }
+            headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
             testID={MoneyRequestSelectorPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
@@ -108,7 +99,7 @@ function MoneyRequestSelectorPage(props) {
                                 title={title[iouType]}
                                 onBackButtonPress={Navigation.dismissModal}
                             />
-                            {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
+                            {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST || iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
                                     selectedTab={props.selectedTab}
@@ -133,7 +124,7 @@ function MoneyRequestSelectorPage(props) {
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}
-                                            component={DistanceRequestPage}
+                                            component={NewDistanceRequestPage}
                                             initialParams={{reportID, iouType}}
                                         />
                                     )}

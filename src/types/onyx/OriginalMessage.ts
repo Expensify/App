@@ -13,7 +13,6 @@ type OriginalMessageIOU = {
         currency: string;
         lastModified?: string;
         participantAccountIDs?: number[];
-        participants?: string[];
         type: string;
     };
 };
@@ -53,6 +52,10 @@ type OriginalMessageAddComment = {
         whisperedTo: number[];
         reactions?: Reaction[];
     };
+};
+type OriginalMessageSubmitted = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+    originalMessage: unknown;
 };
 
 type OriginalMessageClosed = {
@@ -128,6 +131,7 @@ type OriginalMessagePolicyTask = {
 type OriginalMessage =
     | OriginalMessageIOU
     | OriginalMessageAddComment
+    | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
     | OriginalMessageRenamed

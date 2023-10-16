@@ -63,5 +63,6 @@ ExceededCommentLength.displayName = 'ExceededCommentLength';
 export default withOnyx({
     comment: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+        initialValue: '',
     },
 })(ExceededCommentLength);

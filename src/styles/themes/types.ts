@@ -50,7 +50,6 @@ type ThemeColors = {
     textMutedReversed: Color;
     textError: Color;
     offline: Color;
-    modalBackdrop: Color;
     modalBackground: Color;
     cardBG: Color;
     cardBorder: Color;
@@ -81,6 +80,7 @@ type ThemeColors = {
     starDefaultBG: Color;
     loungeAccessOverlay: Color;
     mapAttributionText: Color;
+    white: Color;
 
     PAGE_BACKGROUND_COLORS: Record<string, Color>;
 };

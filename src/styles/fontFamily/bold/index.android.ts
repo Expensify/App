@@ -1,5 +1,6 @@
 import FontFamilyBoldStyles from './types';
 
-const bold: FontFamilyBoldStyles = 'ExpensifyNeue-Bold';
+const singleBold: FontFamilyBoldStyles = 'ExpensifyNeue-Bold';
+const multiBold: FontFamilyBoldStyles = 'ExpensifyNeue-Bold';
 
-export default bold;
+export {singleBold, multiBold};

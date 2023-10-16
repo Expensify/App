@@ -35,6 +35,9 @@ const propTypes = {
     /* The workspace name */
     policyName: PropTypes.string,
 
+    /** Method to trigger when pressing back button of the header */
+    onBackButtonPress: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -63,6 +66,7 @@ function EnableStep(props) {
                 subtitle={props.policyName}
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+                onBackButtonPress={props.onBackButtonPress}
             />
             <ScrollView style={[styles.flex1]}>
                 <Section
