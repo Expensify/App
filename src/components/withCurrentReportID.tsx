@@ -60,7 +60,9 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
 
 CurrentReportIDContextProvider.displayName = 'CurrentReportIDContextProvider';
 
-export default function withCurrentReportID<TProps extends CurrentReportIDContextValue, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+export default function withCurrentReportID<TProps extends CurrentReportIDContextValue, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): (props: Omit<TProps, keyof CurrentReportIDContextValue> & React.RefAttributes<TRef>) => React.ReactElement | null {
     function WithCurrentReportID(props: Omit<TProps, keyof CurrentReportIDContextValue>, ref: ForwardedRef<TRef>) {
         return (
             <CurrentReportIDContext.Consumer>
