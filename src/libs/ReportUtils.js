@@ -3871,6 +3871,14 @@ function isReportDraft(report) {
     return isExpenseReport(report) && lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.OPEN && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.OPEN;
 }
 
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function shouldUseFullTitleToDisplay(report) {
+    return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4017,4 +4025,5 @@ export {
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
     isReportDraft,
+    shouldUseFullTitleToDisplay,
 };
