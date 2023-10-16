@@ -6,7 +6,9 @@ type WithNavigationProps = {
     navigation: NavigationProp<ReactNavigation.RootParamList>;
 };
 
-export default function withNavigation<TProps extends WithNavigationProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+export default function withNavigation<TProps extends WithNavigationProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): (props: Omit<TProps, keyof WithNavigationProps>, ref: ForwardedRef<TRef>) => React.JSX.Element | null {
     function WithNavigation(props: Omit<TProps, keyof WithNavigationProps>, ref: ForwardedRef<TRef>) {
         const navigation = useNavigation();
         return (
