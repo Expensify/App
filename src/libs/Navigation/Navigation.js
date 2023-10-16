@@ -262,11 +262,6 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
-function isTransitionFromOldDot(state) {
-    const currentRouteNames = lodashGet(state, 'routeNames', []);
-    return currentRouteNames.includes('/transition');
-}
-
 /**
  *  Checks if the navigation state contains routes that are protected (over the auth wall).
  *
@@ -282,7 +277,7 @@ function navContainsProtectedRoutes(state) {
     const protectedScreensNames = _.values(PROTECTED_SCREENS);
     const difference = _.difference(protectedScreensNames, state.routeNames);
 
-    return !difference.length || isTransitionFromOldDot(state);
+    return !difference.length;
 }
 
 /**

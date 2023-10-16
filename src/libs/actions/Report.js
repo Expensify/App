@@ -1885,6 +1885,17 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
 }
 
 /**
+ * @param {String} url - current url
+ */
+function handleReportDeeplinkReport(url) {
+    if (url === ROUTES.CONCIERGE) {
+        navigateToConciergeChat(true);
+        return;
+    }
+    Navigation.navigate(url, CONST.NAVIGATION.TYPE.PUSH);
+}
+
+/**
  * @param {String|null} url
  * @param {Boolean} isAuthenticated
  */
@@ -1905,18 +1916,19 @@ function openReportFromDeepLink(url, isAuthenticated) {
     }
 
     // Navigate to the report after sign-in/sign-up.
+
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            Navigation.waitForProtectedRoutes()
-                .then(() => {
-                    const route = ReportUtils.getRouteFromLink(url);
-                    if (route === ROUTES.CONCIERGE) {
-                        navigateToConciergeChat(true);
-                        return;
-                    }
-                    Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
-                })
-                .catch((error) => Log.warn(error.message));
+            const route = ReportUtils.getRouteFromLink(url);
+            if (!!url && url.includes('/transition')) {
+                handleReportDeeplinkReport(route);
+            } else {
+                Navigation.waitForProtectedRoutes()
+                    .then(() => {
+                        handleReportDeeplinkReport(route);
+                    })
+                    .catch((error) => Log.warn(error.message));
+            }
         });
     });
 }
