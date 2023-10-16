@@ -77,19 +77,18 @@ const propTypes = {
     /** Container styles */
     style: stylePropTypes,
 
+    /** Submit button container styles */
+    // eslint-disable-next-line react/forbid-prop-types
+    submitButtonStyles: PropTypes.arrayOf(PropTypes.object),
+
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** Style for the button */
-    submitButtonStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
     /** Style for the error message for submit button */
     errorMessageStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    submitButtonContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
 };
@@ -108,9 +107,8 @@ const defaultProps = {
     footerContent: null,
     style: [],
     errorMessageStyle: [],
+    submitButtonStyles: [],
     validate: () => ({}),
-    submitButtonStyle: {},
-    submitButtonContainerStyles: [],
     submitButtonText: '',
 };
 
@@ -484,7 +482,7 @@ const Form = forwardRef((props, forwardedRef) => {
                                 focusInput.focus();
                             }
                         }}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...props.submitButtonContainerStyles]}
+                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...props.submitButtonStyles]}
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
                         buttonStyles={[...StyleUtils.parseStyleAsArray(props.submitButtonStyle)]}
@@ -505,7 +503,6 @@ const Form = forwardRef((props, forwardedRef) => {
             inputValues,
             submit,
             props.style,
-            props.submitButtonContainerStyles,
             children,
             props.formState,
             props.footerContent,
@@ -513,9 +510,9 @@ const Form = forwardRef((props, forwardedRef) => {
             props.isSubmitActionDangerous,
             props.isSubmitButtonVisible,
             props.submitButtonText,
-            props.submitButtonStyle,
             props.useSmallerSubmitButtonSize,
             props.errorMessageStyle,
+            props.submitButtonStyles,
         ],
     );
 
