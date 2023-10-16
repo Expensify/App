@@ -7,7 +7,6 @@ import CONST from '../../../CONST';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Form from '../../../components/Form';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
