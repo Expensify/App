@@ -15,11 +15,8 @@ let currentShouldForceOffline: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
-        if (!network) {
-            return;
-        }
-        currentIsOffline = network.isOffline;
-        currentShouldForceOffline = Boolean(network.shouldForceOffline);
+        currentIsOffline = network?.isOffline;
+        currentShouldForceOffline = network?.shouldForceOffline;
     },
 });
 
