@@ -18,7 +18,6 @@ type UseArrowKeyFocusManager = [number, (index: number) => void];
  *
  * Recommendation: To ensure stability, wrap the `onFocusedIndexChange` function with the useCallback hook before using it with this hook.
  *
- * @param config
  * @param config.maxIndex – typically the number of items in your list
  * @param [config.onFocusedIndexChange] – optional callback to execute when focusedIndex changes
  * @param [config.initialFocusedIndex] – where to start in the list
