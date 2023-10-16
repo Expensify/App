@@ -381,6 +381,14 @@ export default {
         termsOfService: 'Terms of Service',
         privacy: 'Privacy',
     },
+    samlSignIn: {
+        welcomeSAMLEnabled: 'Continue logging in with single sign-on:',
+        orContinueWithMagicCode: 'Or optionally, your company allows signing in with a magic code',
+        useSingleSignOn: 'Use single sign-on',
+        useMagicCode: 'Use magic code',
+        launching: 'Launching...',
+        oneMoment: "One moment while we redirect you to your company's single sign-on portal.",
+    },
     reportActionCompose: {
         addAction: 'Actions',
         dropToUpload: 'Drop to upload',
@@ -479,8 +487,8 @@ export default {
     sidebarScreen: {
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
-        fabNewChat: 'Send message',
-        fabNewChatExplained: 'Send message (Floating action)',
+        fabNewChat: 'Start chat',
+        fabNewChatExplained: 'Start chat (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
