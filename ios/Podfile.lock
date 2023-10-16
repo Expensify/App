@@ -233,9 +233,9 @@ PODS:
   - libwebp/mux (1.2.4):
     - libwebp/demux
   - libwebp/webp (1.2.4)
-  - lottie-ios (3.4.4)
-  - lottie-react-native (5.1.6):
-    - lottie-ios (~> 3.4.0)
+  - lottie-ios (4.3.3)
+  - lottie-react-native (6.3.1):
+    - lottie-ios (~> 4.3.0)
     - React-Core
   - MapboxCommon (23.6.0)
   - MapboxCoreMaps (10.14.0):
@@ -251,19 +251,11 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (27.4.0)
-  - onfido-react-native-sdk (7.4.0):
-    - Onfido (= 27.4.0)
+  - Onfido (28.3.0)
+  - onfido-react-native-sdk (8.3.0):
+    - Onfido (~> 28.3.0)
     - React
   - OpenSSL-Universal (1.1.1100)
-  - Permission-Camera (3.6.1):
-    - RNPermissions
-  - Permission-LocationAccuracy (3.6.1):
-    - RNPermissions
-  - Permission-LocationAlways (3.6.1):
-    - RNPermissions
-  - Permission-LocationWhenInUse (3.6.1):
-    - RNPermissions
   - Plaid (4.1.0)
   - PromisesObjC (2.2.0)
   - RCT-Folly (2021.07.22.00):
@@ -587,7 +579,7 @@ PODS:
     - React
   - react-native-image-picker (5.1.0):
     - React-Core
-  - react-native-key-command (1.0.1):
+  - react-native-key-command (1.0.6):
     - React-Core
   - react-native-netinfo (9.3.10):
     - React-Core
@@ -730,7 +722,7 @@ PODS:
     - React-Core
   - RNCAsyncStorage (1.17.11):
     - React-Core
-  - RNCClipboard (1.5.1):
+  - RNCClipboard (1.12.1):
     - React-Core
   - RNCPicker (2.4.4):
     - React-Core
@@ -781,7 +773,7 @@ PODS:
     - React
     - React-Core
     - Turf
-  - RNPermissions (3.6.1):
+  - RNPermissions (3.9.3):
     - React-Core
   - RNReactNativeHapticFeedback (1.14.0):
     - React-Core
@@ -817,7 +809,7 @@ PODS:
   - RNScreens (3.21.0):
     - React-Core
     - React-RCTImage
-  - RNSVG (13.13.0):
+  - RNSVG (13.14.0):
     - React-Core
   - SDWebImage (5.11.1):
     - SDWebImage/Core (= 5.11.1)
@@ -827,7 +819,7 @@ PODS:
     - SDWebImage/Core (~> 5.10)
   - SocketRocket (0.6.1)
   - Turf (2.6.1)
-  - VisionCamera (2.15.4):
+  - VisionCamera (2.16.2):
     - React
     - React-callinvoker
     - React-Core
@@ -867,10 +859,6 @@ DEPENDENCIES:
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - OpenSSL-Universal (= 1.1.1100)
-  - Permission-Camera (from `../node_modules/react-native-permissions/ios/Camera`)
-  - Permission-LocationAccuracy (from `../node_modules/react-native-permissions/ios/LocationAccuracy`)
-  - Permission-LocationAlways (from `../node_modules/react-native-permissions/ios/LocationAlways`)
-  - Permission-LocationWhenInUse (from `../node_modules/react-native-permissions/ios/LocationWhenInUse`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
@@ -927,7 +915,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
-  - "RNCClipboard (from `../node_modules/@react-native-community/clipboard`)"
+  - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
@@ -1018,14 +1006,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/lottie-react-native"
   onfido-react-native-sdk:
     :path: "../node_modules/@onfido/react-native-sdk"
-  Permission-Camera:
-    :path: "../node_modules/react-native-permissions/ios/Camera"
-  Permission-LocationAccuracy:
-    :path: "../node_modules/react-native-permissions/ios/LocationAccuracy"
-  Permission-LocationAlways:
-    :path: "../node_modules/react-native-permissions/ios/LocationAlways"
-  Permission-LocationWhenInUse:
-    :path: "../node_modules/react-native-permissions/ios/LocationWhenInUse"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTRequired:
@@ -1135,7 +1115,7 @@ EXTERNAL SOURCES:
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCClipboard:
-    :path: "../node_modules/@react-native-community/clipboard"
+    :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
   RNDateTimePicker:
@@ -1217,20 +1197,16 @@ SPEC CHECKSUMS:
   hermes-engine: 81191603c4eaa01f5e4ae5737a9efcf64756c7b2
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   libwebp: f62cb61d0a484ba548448a4bd52aabf150ff6eef
-  lottie-ios: 8f97d3271e155c2d688875c29cd3c74908aef5f8
-  lottie-react-native: 8f9d4be452e23f6e5ca0fdc11669dc99ab52be81
+  lottie-ios: 25e7b2675dad5c3ddad369ac9baab03560c5bfdd
+  lottie-react-native: c9f1db4f4124dcce9f8159e65d8dc6e8bcb11fb4
   MapboxCommon: 4a0251dd470ee37e7fadda8e285c01921a5e1eb0
   MapboxCoreMaps: eb07203bbb0b1509395db5ab89cd3ad6c2e3c04c
   MapboxMaps: af50ec61a7eb3b032c3f7962c6bd671d93d2a209
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: e36f284b865adcf99d9c905590a64ac09d4a576b
-  onfido-react-native-sdk: 4ecde1a97435dcff9f00a878e3f8d1eb14fabbdc
+  Onfido: c7d010d9793790d44a07799d9be25aa8e3814ee7
+  onfido-react-native-sdk: b346a620af5669f9fecb6dc3052314a35a94ad9f
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  Permission-Camera: bf6791b17c7f614b6826019fcfdcc286d3a107f6
-  Permission-LocationAccuracy: 76df17de5c6b8bc2eee34e61ee92cdd7a864c73d
-  Permission-LocationAlways: 8d99b025c9f73c696e0cdb367e42525f2e9a26f2
-  Permission-LocationWhenInUse: 3ba99e45c852763f730eabecec2870c2382b7bd4
   Plaid: 7d340abeadb46c7aa1a91f896c5b22395a31fcf2
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
@@ -1257,7 +1233,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: 0f7fe8a4c2de477e278b0365cce27d089a8c5903
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
-  react-native-key-command: c2645ec01eb1fa664606c09480c05cb4220ef67b
+  react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
   react-native-netinfo: ccbe1085dffd16592791d550189772e13bf479e2
   react-native-pager-view: 0ccb8bf60e2ebd38b1f3669fa3650ecce81db2df
   react-native-pdf: 7c0e91ada997bac8bac3bb5bea5b6b81f5a3caae
@@ -1287,7 +1263,7 @@ SPEC CHECKSUMS:
   ReactCommon: 4b2bdcb50a3543e1c2b2849ad44533686610826d
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCAsyncStorage: 8616bd5a58af409453ea4e1b246521bb76578d60
-  RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
+  RNCClipboard: d77213bfa269013bf4b857b7a9ca37ee062d8ef1
   RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888
   RNDateTimePicker: 7658208086d86d09e1627b5c34ba0cf237c60140
   RNDeviceInfo: 4701f0bf2a06b34654745053db0ce4cb0c53ada7
@@ -1302,19 +1278,19 @@ SPEC CHECKSUMS:
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
-  RNPermissions: dcdb7b99796bbeda6975a6e79ad519c41b251b1c
+  RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNReanimated: ab2e96c6d5591c3dfbb38a464f54c8d17fb34a87
   RNScreens: d037903436160a4b039d32606668350d2a808806
-  RNSVG: ed492aaf3af9ca01bc945f7a149d76d62e73ec82
+  RNSVG: d00c8f91c3cbf6d476451313a18f04d220d4f396
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 469ce2c3d22e5e8e4818d5a3b254699a5c89efa4
-  VisionCamera: d3ec8883417a6a4a0e3a6ba37d81d22db7611601
+  VisionCamera: 95f969b8950b411285579d633a1014782fe0e634
   Yoga: 3efc43e0d48686ce2e8c60f99d4e6bd349aff981
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 2daf34c870819a933f3fefe426801d54b2ff2a14
+PODFILE CHECKSUM: ff769666b7221c15936ebc5576a8c8e467dc6879
 
 COCOAPODS: 1.12.1

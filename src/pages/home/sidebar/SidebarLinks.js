@@ -70,7 +70,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
-                if (_.isNull(modalArg)) {
+                if (_.isNull(modalArg) || typeof modalArg !== 'object') {
                     return;
                 }
                 modal.current = modalArg;

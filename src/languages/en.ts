@@ -27,6 +27,7 @@ import type {
     SettleExpensifyCardParams,
     RequestAmountParams,
     SplitAmountParams,
+    DidSplitAmountMessageParams,
     AmountEachParams,
     PayerOwesAmountParams,
     PayerOwesParams,
@@ -193,6 +194,7 @@ export default {
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
             characterLimit: ({limit}: CharacterLimitParams) => `Exceeds the maximum length of ${limit} characters`,
+            characterLimitExceedCounter: ({length, limit}) => `Character limit exceeded (${length}/${limit})`,
             dateInvalid: 'Please select a valid date',
             invalidCharacter: 'Invalid character',
             enterMerchant: 'Enter a merchant name',
@@ -262,6 +264,7 @@ export default {
         recent: 'Recent',
         all: 'All',
         tbd: 'TBD',
+        card: 'Card',
     },
     location: {
         useCurrent: 'Use current location',
@@ -441,7 +444,7 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
+        usePlusButton: '\n\nYou can also use the + button to send money, request money, or assign a task!',
     },
     reportAction: {
         asCopilot: 'as copilot for',
@@ -476,8 +479,8 @@ export default {
     sidebarScreen: {
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
-        fabNewChat: 'Send message',
-        fabNewChatExplained: 'Send message (Floating action)',
+        fabNewChat: 'Start chat',
+        fabNewChatExplained: 'Start chat (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -505,6 +508,8 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        deleteReceipt: 'Delete receipt',
+        deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
     },
     iou: {
@@ -512,6 +517,8 @@ export default {
         approve: 'Approve',
         approved: 'Approved',
         cash: 'Cash',
+        card: 'Card',
+        original: 'Original',
         split: 'Split',
         addToSplit: 'Add to split',
         splitBill: 'Split bill',
@@ -522,11 +529,14 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         pending: 'Pending',
+        posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         receiptScanning: 'Receipt scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
+        receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
+        transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',
@@ -537,11 +547,14 @@ export default {
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
+        didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} each`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} owes ${amount}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} paid ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} paid: `,
+        payerSpentAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} spent ${amount}`,
+        payerSpent: ({payer}: PayerPaidParams) => `${payer} spent: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} approved:`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
@@ -570,6 +583,8 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
+            duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
+            emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
         },
     },
     notificationPreferencesPage: {
@@ -827,12 +842,26 @@ export default {
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
         addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
+        getPaidFaster: 'Get paid faster',
+        addPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
+        getPaidBackFaster: 'Get paid back faster',
+        secureAccessToYourMoney: 'Secure access to your money',
+        receiveMoney: 'Receive money in your local currency',
+        expensifyWallet: 'Expensify Wallet',
+        sendAndReceiveMoney: 'Send and receive money from your Expensify Wallet.',
+        bankAccounts: 'Bank accounts',
+        addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
+        addBankAccount: 'Add bank account',
+        assignedCards: 'Assigned cards',
+        assignedCardsDescription: 'These are cards assigned by a Workspace admin to manage company spend.',
+        expensifyCard: 'Expensify Card',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
         availableSpend: 'Remaining spending power',
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
+        reportFraud: 'Report virtual card fraud',
         cardDetails: {
             cardNumber: 'Virtual card number',
             expiration: 'Expiration',
@@ -840,6 +869,20 @@ export default {
             address: 'Address',
             revealDetails: 'Reveal details',
             copyCardNumber: 'Copy card number',
+        },
+    },
+    reportFraudPage: {
+        title: 'Report virtual card fraud',
+        description: 'If your virtual card details have been stolen or compromised, we’ll permanently deactivate your existing card and provide you with a new virtual card and number.',
+        deactivateCard: 'Deactivate card',
+        reportVirtualCardFraud: 'Report virtual card fraud',
+    },
+    activateCardPage: {
+        activateCard: 'Activate card',
+        pleaseEnterLastFour: 'Please enter the last four digits of your card.',
+        activatePhysicalCard: 'Activate physical card',
+        error: {
+            thatDidntMatch: "That didn't match the last 4 digits on your card. Please try again.",
         },
     },
     transferAmountPage: {
@@ -888,6 +931,7 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Welcome message',
+        welcomeMessageOptional: 'Welcome message (optional)',
         explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
     },
     languagePage: {
@@ -995,7 +1039,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include letters.',
+            hasInvalidCharacter: 'Name can only include Latin characters.',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
@@ -1354,6 +1398,7 @@ export default {
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
             workspaceAvatar: 'Workspace avatar',
+            mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1572,7 +1617,7 @@ export default {
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
     },
-    keyboardShortcutModal: {
+    keyboardShortcutsPage: {
         title: 'Keyboard shortcuts',
         subtitle: 'Save time with these handy keyboard shortcuts:',
         shortcuts: {
@@ -1586,6 +1631,9 @@ export default {
     guides: {
         screenShare: 'Screen share',
         screenShareRequest: 'Expensify is inviting you to a screen share',
+    },
+    search: {
+        resultsAreLimited: 'Search results are limited.',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
@@ -1733,6 +1781,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
+        reversedTransaction: '[Reversed transaction]',
         deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
     },
@@ -1815,6 +1864,10 @@ export default {
         errors: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
+    },
+    eReceipt: {
+        guaranteed: 'Guaranteed eReceipt',
+        transactionDate: 'Transaction date',
     },
     globalNavigation: {
         home: 'Home',
