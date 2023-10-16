@@ -26,11 +26,7 @@ export default {
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
-<<<<<<< HEAD
-    VALIDATE_LOGIN: 'ValidateLogin',
-=======
     SAML_SIGN_IN: 'SAMLSignIn',
->>>>>>> a95d821 (Merge pull request #29706 from Expensify/francois-revert-28278)
 
     // Iframe screens from olddot
     HOME_OLDDOT: 'Home_OLDDOT',
