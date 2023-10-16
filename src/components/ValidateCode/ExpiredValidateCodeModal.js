@@ -37,6 +37,7 @@ function ExpiredValidateCodeModal(props) {
                     height={variables.modalWordmarkHeight}
                     fill={themeColors.success}
                     src={Expensicons.ExpensifyWordmark}
+                    name="ExpensifyWordmark"
                 />
             </View>
         </View>

@@ -75,9 +75,11 @@ const defaultProps = {
     hoverAndPressStyle: [],
     furtherDetails: '',
     furtherDetailsIcon: undefined,
+    furtherDetailsIconName: '',
     isAnonymousAction: false,
     isSmallAvatarSubscriptMenu: false,
     title: '',
+    titleIconName: '',
     numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
     error: '',
@@ -302,6 +304,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             {Boolean(props.shouldShowTitleIcon) && (
                                                 <View style={[styles.ml2]}>
                                                     <Icon
+                                                        name={props.titleIconName}
                                                         src={props.titleIcon}
                                                         fill={themeColors.iconSuccessFill}
                                                     />
@@ -324,6 +327,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         {Boolean(props.furtherDetails) && (
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                 <Icon
+                                                    name={props.furtherDetailsIconName}
                                                     src={props.furtherDetailsIcon}
                                                     height={variables.iconSizeNormal}
                                                     width={variables.iconSizeNormal}

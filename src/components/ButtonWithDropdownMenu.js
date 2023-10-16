@@ -133,8 +133,8 @@ function ButtonWithDropdownMenu(props) {
                             <View style={[styles.buttonDivider]} />
                             <View style={[styles.dropDownButtonArrowContain]}>
                                 <Icon
-                                    name="Down"
                                     src={Expensicons.DownArrow}
+                                    name="Down"
                                     fill={themeColors.textLight}
                                 />
                             </View>

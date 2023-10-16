@@ -157,8 +157,8 @@ function BankAccountStep(props) {
                     {!props.user.validated && (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                             <Icon
-                                name="Exclamation"
                                 src={Expensicons.Exclamation}
+                                name="Exclamation"
                                 fill={themeColors.danger}
                             />
                             <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{props.translate('bankAccount.validateAccountError')}</Text>
@@ -176,8 +176,8 @@ function BankAccountStep(props) {
                             </TextLink>
                             <View style={[styles.ml1]}>
                                 <Icon
-                                    name="Lock"
                                     src={Expensicons.Lock}
+                                    name="Lock"
                                     fill={themeColors.link}
                                 />
                             </View>

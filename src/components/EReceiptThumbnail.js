@@ -93,6 +93,7 @@ function EReceiptThumbnail({transaction}) {
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
+                        name="EReceiptIcon"
                         src={Expensicons.EReceiptIcon}
                         height={receiptIconHeight}
                         width={receiptIconWidth}

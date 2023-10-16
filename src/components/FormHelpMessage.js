@@ -41,8 +41,8 @@ function FormHelpMessage(props) {
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...props.style]}>
             {props.isError && (
                 <Icon
-                    name="DotIndicator"
                     src={Expensicons.DotIndicator}
+                    name="DotIndicator"
                     fill={themeColors.danger}
                 />
             )}

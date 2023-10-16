@@ -256,6 +256,7 @@ function HeaderView(props) {
                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
+                                        name="DotIndicator"
                                         fill={themeColors.danger}
                                     />
                                 </View>

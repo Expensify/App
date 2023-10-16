@@ -107,6 +107,7 @@ function DistanceEReceipt({transaction}) {
                             height={19.25}
                             fill={themeColors.textBrand}
                             src={Expensicons.ExpensifyWordmark}
+                            name="ExpensifyWordmark"
                         />
                         <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
                     </View>

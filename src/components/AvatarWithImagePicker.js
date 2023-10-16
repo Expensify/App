@@ -296,8 +296,8 @@ class AvatarWithImagePicker extends React.Component {
                                 </View>
                                 <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                     <Icon
-                                        name="Camera"
                                         src={Expensicons.Camera}
+                                        name="Camera"
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
                                         fill={themeColors.textLight}

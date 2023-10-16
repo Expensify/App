@@ -111,6 +111,7 @@ function AddReactionBubble(props) {
                         <Text style={[styles.opacity0, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{'\u2800\u2800'}</Text>
                         <View style={styles.pAbsolute}>
                             <Icon
+                                name="AddReaction"
                                 src={Expensicons.AddReaction}
                                 width={props.isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 height={props.isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}

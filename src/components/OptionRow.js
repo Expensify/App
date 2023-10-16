@@ -245,6 +245,7 @@ function OptionRow(props) {
                                 {props.option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
+                                            name="DotIndicator"
                                             src={Expensicons.DotIndicator}
                                             fill={themeColors.danger}
                                         />
@@ -274,6 +275,7 @@ function OptionRow(props) {
                                 {props.isSelected && props.highlightSelected && (
                                     <View style={styles.defaultCheckmarkWrapper}>
                                         <Icon
+                                            name="Checkmark"
                                             src={Expensicons.Checkmark}
                                             fill={themeColors.iconSuccessFill}
                                         />

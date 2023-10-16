@@ -88,6 +88,7 @@ function EReceipt({transaction, transactionID}) {
                         height={variables.eReceiptWordmarkHeight}
                         fill={secondaryColor}
                         src={Expensicons.ExpensifyWordmark}
+                        name="ExpensifyWordmark"
                     />
                     <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
                 </View>

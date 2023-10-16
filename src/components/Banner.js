@@ -77,8 +77,8 @@ function Banner(props) {
                             {props.shouldShowIcon && (
                                 <View style={[styles.mr3]}>
                                     <Icon
-                                        name="Exclamation"
                                         src={Expensicons.Exclamation}
+                                        name="Exclamation"
                                         fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
                                     />
                                 </View>
@@ -103,8 +103,8 @@ function Banner(props) {
                                     accessibilityLabel={props.translate('common.close')}
                                 >
                                     <Icon
-                                        name="Close"
                                         src={Expensicons.Close}
+                                        name="Close"
                                     />
                                 </PressableWithFeedback>
                             </Tooltip>

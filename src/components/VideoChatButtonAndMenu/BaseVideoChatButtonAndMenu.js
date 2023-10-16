@@ -106,8 +106,8 @@ function BaseVideoChatButtonAndMenu(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         <Icon
-                            name="Phone"
                             src={Expensicons.Phone}
+                            name="Phone"
                             fill={isVideoChatMenuActive ? themeColors.heading : themeColors.icon}
                         />
                     </PressableWithoutFeedback>

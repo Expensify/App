@@ -103,6 +103,7 @@ function MiniQuickEmojiReactions(props) {
                 {({hovered, pressed}) => (
                     <Icon
                         small
+                        name="AddReaction"
                         src={Expensicons.AddReaction}
                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
                     />

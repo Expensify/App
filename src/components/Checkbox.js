@@ -114,8 +114,8 @@ function Checkbox(props) {
                 >
                     {props.isChecked && (
                         <Icon
-                            name="Checkmark"
                             src={Expensicons.Checkmark}
+                            name="Checkmark"
                             fill={themeColors.textLight}
                             height={props.caretSize}
                             width={props.caretSize}

@@ -49,7 +49,7 @@ function ValidateCodeModal(props) {
                         width={variables.modalTopIconWidth}
                         height={variables.modalTopIconHeight}
                         src={Illustrations.MagicCode}
-                        iconName="MagicCode"
+                        name="MagicCode"
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{props.translate('validateCodeModal.title')}</Text>
@@ -74,7 +74,7 @@ function ValidateCodeModal(props) {
                     height={variables.modalWordmarkHeight}
                     fill={themeColors.success}
                     src={Expensicons.ExpensifyWordmark}
-                    iconName="ExpensifyWordmark"
+                    name="ExpensifyWordmark"
                 />
             </View>
         </View>

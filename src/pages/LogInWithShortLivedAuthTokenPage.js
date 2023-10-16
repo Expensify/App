@@ -112,6 +112,7 @@ function LogInWithShortLivedAuthTokenPage(props) {
                     height={34}
                     fill={themeColors.success}
                     src={Expensicons.ExpensifyWordmark}
+                    name="ExpensifyWordmark"
                 />
             </View>
         </View>
