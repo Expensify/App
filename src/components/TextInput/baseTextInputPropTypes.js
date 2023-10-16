@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import {imagePropTypes} from '../Image/imagePropTypes';
 
 const propTypes = {
     /** Input label */
@@ -20,7 +21,7 @@ const propTypes = {
     errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** Icon to display in right side of text input */
-    icon: PropTypes.func,
+    icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
 
     /** Customize the TextInput container */
     textInputContainerStyles: PropTypes.arrayOf(PropTypes.object),

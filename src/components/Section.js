@@ -69,7 +69,7 @@ const defaultProps = {
     iconFill: null,
 };
 
-function Section({children, childrenStyles, containerStyles, icon, iconName, IconComponent, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles}) {
+function Section({children, childrenStyles, containerStyles, icon, iconName, IconComponent, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles, iconFill}) {
     return (
         <>
             <View style={[styles.pageWrapper, styles.cardSection, ...containerStyles]}>
@@ -84,7 +84,7 @@ function Section({children, childrenStyles, containerStyles, icon, iconName, Ico
                                 name={iconName}
                                 height={68}
                                 width={68}
-                                fill={props.iconFill}
+                                fill={iconFill}
                             />
                         )}
                         {Boolean(IconComponent) && <IconComponent />}

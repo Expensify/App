@@ -21,7 +21,6 @@ import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
-import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
 import * as Environment from '../../../libs/Environment/Environment';
 
 const propTypes = {
@@ -55,7 +54,9 @@ function AboutPage(props) {
             translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
             icon: Expensicons.Keyboard,
             iconName: 'Keyboard',
-            action: KeyboardShortcuts.showKeyboardShortcutModal,
+            action: () => {
+                Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+            },
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.viewTheCode',

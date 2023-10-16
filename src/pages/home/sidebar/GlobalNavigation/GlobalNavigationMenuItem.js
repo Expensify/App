@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
+import {imagePropTypes} from '@components/Image/imagePropTypes';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import styles from '@styles/styles';
@@ -11,7 +12,7 @@ import CONST from '@src/CONST';
 
 const propTypes = {
     /** Icon to display */
-    icon: PropTypes.elementType,
+    icon: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]),
 
     /** Text to display for the item */
     title: PropTypes.string,
