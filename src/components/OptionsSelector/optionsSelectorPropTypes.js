@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import optionPropTypes from '../optionPropTypes';
 import styles from '../../styles/styles';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Callback to fire when a row is tapped */
@@ -127,6 +128,12 @@ const propTypes = {
 
     /** Whether the text input should intercept swipes or not */
     shouldTextInputInterceptSwipe: PropTypes.bool,
+
+    /** Whether we should allow the view wrapping the nested children to be scrollable */
+    shouldAllowScrollingChildren: PropTypes.bool,
+
+    /** Whether nested scroll of options is enabled, true by default */
+    nestedScrollEnabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -157,13 +164,15 @@ const defaultProps = {
     isDisabled: false,
     shouldHaveOptionSeparator: false,
     initiallyFocusedOptionKey: undefined,
-    maxLength: undefined,
+    maxLength: CONST.SEARCH_MAX_LENGTH,
     shouldShowTextInput: true,
     onChangeText: () => {},
     shouldUseStyleForChildren: true,
     isRowMultilineSupported: false,
     initialFocusedIndex: undefined,
     shouldTextInputInterceptSwipe: false,
+    shouldAllowScrollingChildren: false,
+    nestedScrollEnabled: true,
 };
 
 export {propTypes, defaultProps};
