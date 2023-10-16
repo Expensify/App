@@ -3,10 +3,11 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import RenderCommentHTML from './RenderCommentHTML';
+import reportActionSourcePropType from '../reportActionSourcePropType';
 
 const propTypes = {
     /** The reportAction's source */
-    source: PropTypes.oneOf(['Chronos', 'email', 'ios', 'android', 'web', 'email', '']).isRequired,
+    source: reportActionSourcePropType.isRequired,
 
     /** The message fragment's HTML */
     html: PropTypes.string.isRequired,

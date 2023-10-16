@@ -2,6 +2,7 @@ import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import reportActionFragmentPropTypes from '../reportActionFragmentPropTypes';
+import reportActionSourcePropType from '../reportActionSourcePropType';
 import styles from '../../../../styles/styles';
 import variables from '../../../../styles/variables';
 import themeColors from '../../../../styles/themes/default';
@@ -18,7 +19,7 @@ import RenderCommentHTML from './RenderCommentHTML';
 
 const propTypes = {
     /** The reportAction's source */
-    source: PropTypes.oneOf(['Chronos', 'email', 'ios', 'android', 'web', 'email', '']).isRequired,
+    source: reportActionSourcePropType.isRequired,
 
     /** The message fragment needing to be displayed */
     fragment: reportActionFragmentPropTypes.isRequired,

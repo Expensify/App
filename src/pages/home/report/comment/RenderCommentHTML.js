@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import RenderHTML from '../../../../components/RenderHTML';
+import reportActionSourcePropType from '../reportActionSourcePropType';
 
 const propTypes = {
     /** The reportAction's source */
-    source: PropTypes.oneOf(['Chronos', 'email', 'ios', 'android', 'web', 'email', '']).isRequired,
+    source: reportActionSourcePropType.isRequired,
 
     /** The comment's HTML */
     html: PropTypes.string.isRequired,
