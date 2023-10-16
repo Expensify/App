@@ -42,7 +42,7 @@ function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session
                         height={164}
                         src={Illustrations.RocketBlue}
                         name="RocketBlue"
-                        displayInDefaultIconColor={true}
+                        displayInDefaultIconColor
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>

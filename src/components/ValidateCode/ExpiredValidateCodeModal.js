@@ -19,7 +19,7 @@ function ExpiredValidateCodeModal(props) {
             <View style={styles.deeplinkWrapperMessage}>
                 <View style={styles.mb2}>
                     <Icon
-                        displayInDefaultIconColor={true}
+                        displayInDefaultIconColor
                         width={variables.modalTopIconWidth}
                         height={variables.modalTopIconHeight}
                         src={Illustrations.ToddBehindCloud}

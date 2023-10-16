@@ -17,7 +17,7 @@ function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps)
                 <BlockingView
                     icon={Expensicons.EmptyStateRoutePending}
                     iconName="EmptystateRoutepending"
-                    displayInDefaultIconColor={true}
+                    displayInDefaultIconColor
                     title={title}
                     subtitle={subtitle}
                     shouldShowLink={false}
@@ -25,7 +25,7 @@ function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps)
             ) : (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
                     <Icon
-                        displayInDefaultIconColor={true}
+                        displayInDefaultIconColor
                         src={Expensicons.EmptyStateRoutePending}
                         name="EmptystateRoutepending"
                         width={variables.iconSizeUltraLarge}

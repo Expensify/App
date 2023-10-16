@@ -32,7 +32,7 @@ function DistanceMapView(props) {
                     <BlockingView
                         icon={Expensicons.EmptyStateRoutePending}
                         iconName="EmptystateRoutepending"
-                        displayInDefaultIconColor={true}
+                        displayInDefaultIconColor
                         title={translate('distance.mapPending.title')}
                         subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
                         shouldShowLink={false}
