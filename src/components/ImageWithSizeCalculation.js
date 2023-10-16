@@ -51,7 +51,7 @@ function ImageWithSizeCalculation(props) {
     const [loadState, setLoadState] = useState(LoadState.INITIAL);
     const [isImageCached, setIsImageCached] = useState(true);
     const source = useMemo(() => ({ uri: props.url }), [props.url]);
-    const {isOffline} = useNetwork();
+    useNetwork({onReconnect: () => setLoadState(LoadState.LOADING)});
     
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url: props.url});
@@ -75,7 +75,6 @@ function ImageWithSizeCalculation(props) {
             if (loadState !== LoadState.LOADING) {
                 return;
             }
-            setLoadState(LoadState.ERRORED);
             setIsImageCached(false);
         }, 200);
         return () => clearTimeout(timeout);
@@ -89,18 +88,20 @@ function ImageWithSizeCalculation(props) {
                 isAuthTokenRequired={props.isAuthTokenRequired}
                 resizeMode={Image.resizeMode.cover}
                 onLoadStart={() => {
-                    if (loadState === LoadState.LOADED || isOffline) {
-                        setLoadState(LoadState.INITIAL);
+                    if (loadState === LoadState.LOADED || loadState === LoadState.ERRORED) {
+                        return;
                     } else {
                         setLoadState(LoadState.LOADING);
                     }
                 }}
                 onLoadEnd={() => {
-                    setLoadState(LoadState.LOADED);
                     setIsImageCached(true);
                 }}
                 onError={onError}
-                onLoad={imageLoadedSuccessfully}
+                onLoad={()=>{
+                    imageLoadedSuccessfully;
+                    setLoadState(LoadState.LOADED);
+                }}
             />
             {loadState === LoadState.LOADING && !isImageCached && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
         </View>
