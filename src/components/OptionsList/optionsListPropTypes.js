@@ -87,6 +87,15 @@ const propTypes = {
 
     /** Whether to wrap large text up to 2 lines */
     isRowMultilineSupported: PropTypes.bool,
+
+    /** Whether we are loading new options */
+    isLoadingNewOptions: PropTypes.bool,
+
+    /** Whether nested scroll of options is enabled, true by default */
+    nestedScrollEnabled: PropTypes.bool,
+
+    /** Whether the list should have a bounce effect on iOS */
+    bounces: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -113,6 +122,9 @@ const defaultProps = {
     shouldPreventDefaultFocusOnSelectRow: false,
     showScrollIndicator: false,
     isRowMultilineSupported: false,
+    isLoadingNewOptions: false,
+    nestedScrollEnabled: true,
+    bounces: true,
 };
 
 export {propTypes, defaultProps};
