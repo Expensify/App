@@ -125,11 +125,6 @@ const defaultProps = {
  * @param {Object} item
  */
 function dismissError(item) {
-    // Users can't dismiss company card errors because there's nothing they can do about it besides contacting their admin
-    if (item.canDismissError === false) {
-        return;
-    }
-
     const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT;
     const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
     const paymentID = isBankAccount ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
