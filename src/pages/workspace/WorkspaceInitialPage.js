@@ -201,7 +201,6 @@ function WorkspaceInitialPage(props) {
                         shouldShowThreeDotsButton={!isExecuting}
                         shouldShowGetAssistanceButton={!isExecuting}
                         singleExecution={singleExecution}
-                        waitForNavigate={waitForNavigate}
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
                         threeDotsMenuItems={threeDotsMenuItems}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
