@@ -46,11 +46,7 @@ function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
                 onPress={showStatusPage}
                 style={[styles.flex1, styles.sidebarStatusAvatar]}
             >
-                    <Text
-                        numberOfLines={1}
-                    >
-                        {emojiStatus}
-                    </Text>
+                <Text numberOfLines={1}>{emojiStatus}</Text>
             </PressableWithoutFeedback>
         </View>
     );

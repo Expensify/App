@@ -276,7 +276,7 @@ const mainWindow = () => {
                         sandbox: false,
                     },
                     titleBarStyle: 'hidden',
-                    trafficLightPosition: { x: 9, y: 5 }
+                    trafficLightPosition: {x: 9, y: 5},
                 });
 
                 ipcMain.handle(ELECTRON_EVENTS.REQUEST_DEVICE_ID, () => machineId());
