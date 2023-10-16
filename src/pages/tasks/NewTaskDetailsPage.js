@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -17,6 +17,7 @@ import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
 import CONST from '../../CONST';
 import * as Browser from '../../libs/Browser';
+import useAutoFocusInput from '../../hooks/useAutoFocusInput';
 
 const propTypes = {
     /** Beta features list */
@@ -37,9 +38,10 @@ const defaultProps = {
 };
 
 function NewTaskDetailsPage(props) {
-    const inputRef = useRef();
     const [taskTitle, setTaskTitle] = useState(props.task.title);
     const [taskDescription, setTaskDescription] = useState(props.task.description || '');
+
+    const {inputCallbackRef} = useAutoFocusInput();
 
     useEffect(() => {
         setTaskTitle(props.task.title);
@@ -74,7 +76,6 @@ function NewTaskDetailsPage(props) {
     }
     return (
         <ScreenWrapper
-            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={NewTaskDetailsPage.displayName}
@@ -95,7 +96,7 @@ function NewTaskDetailsPage(props) {
             >
                 <View style={styles.mb5}>
                     <TextInput
-                        ref={(el) => (inputRef.current = el)}
+                        ref={inputCallbackRef}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
