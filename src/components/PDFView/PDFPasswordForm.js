@@ -69,6 +69,10 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
         if (!textInputRef.current) {
             return;
         }
+        /**
+         * We recommend using setTimeout to wait for the animation to finish and then focus on the input
+         * Relevant thread: https://expensify.slack.com/archives/C01GTK53T8Q/p1694660990479979
+         */
         focusTimeoutRef.current = setTimeout(() => {
             textInputRef.current.focus();
         }, CONST.ANIMATED_TRANSITION);
