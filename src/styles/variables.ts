@@ -24,7 +24,7 @@ export default {
     componentBorderRadiusNormal: 8,
     componentBorderRadiusLarge: 16,
     componentBorderRadiusXLarge: 28,
-    componentBorderRadiusCard: 12,
+    componentBorderRadiusCard: 20,
     componentBorderRadiusRounded: 24,
     componentBorderWidth: 8,
     appModalAppIconSize: 48,
@@ -148,9 +148,11 @@ export default {
     listItemHeightNormal: 64,
     popoverWidth: 375,
     addPaymentPopoverTopSpacing: 8,
-    addPaymentPopoverRightSpacing: 13,
+    addPaymentPopoverRightSpacing: 23,
     anonymousReportFooterBreakpoint: 650,
     dropDownButtonDividerHeight: 28,
+    addPaymentMethodLeftSpacing: 2,
+    addBankAccountLeftSpacing: 3,
     eReceiptThumbnailSmallBreakpoint: 110,
     eReceiptThumbnailMediumBreakpoint: 335,
     eReceiptThumnailCenterReceiptBreakpoint: 200,
@@ -167,6 +169,10 @@ export default {
     eReceiptWordmarkWidth: 86,
     eReceiptBGHeight: 540,
     eReceiptBGHWidth: 335,
+    reportPreviewMaxWidth: 302,
+    reportActionImagesSingleImageHeight: 147,
+    reportActionImagesDoubleImageHeight: 138,
+    reportActionImagesMultipleImageHeight: 110,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility

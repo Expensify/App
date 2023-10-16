@@ -44,16 +44,9 @@ function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, no
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
     const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
     const containerStyle = StyleUtils.getContainerStyles(size);
-    // Default the margin style to what is normal for small or normal sized avatars
-    let marginStyle = isSmall ? styles.emptyAvatarMarginSmall : styles.emptyAvatarMargin;
-
-    // Some views like the chat view require that there be no margins
-    if (noMargin) {
-        marginStyle = {};
-    }
 
     return (
-        <View style={[containerStyle, marginStyle]}>
+        <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
                 accountID={lodashGet(mainAvatar, 'id', -1)}
