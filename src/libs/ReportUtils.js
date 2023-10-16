@@ -3596,7 +3596,8 @@ function shouldDisableWriteActions(report) {
  * @returns {String}
  */
 function getOriginalReportID(reportID, reportAction) {
-    return isThreadFirstChat(reportAction, reportID) ? lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'parentReportID']) : reportID;
+    const currentReportAction = ReportActionsUtils.getReportAction(reportID, reportAction.reportActionID);
+    return isThreadFirstChat(reportAction, reportID) && _.isEmpty(currentReportAction) ? lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'parentReportID']) : reportID;
 }
 
 /**
