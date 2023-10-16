@@ -1,22 +1,25 @@
-import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import React, {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
 import {View} from 'react-native';
 import styles from '../styles/styles';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
+import {SetOptional} from 'type-fest';
 
 type ToggleVisibilityViewPropTypes = {
     /** Whether the content is visible. */
     isVisible: boolean;
 };
 
-export default function withToggleVisibilityView<TProps extends ToggleVisibilityViewPropTypes, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): ComponentType<TProps> {
-    function WithToggleVisibilityView(props: Omit<TProps, keyof ToggleVisibilityViewPropTypes>, ref: ForwardedRef<TRef>) {
+export default function withToggleVisibilityView<TProps extends ToggleVisibilityViewPropTypes, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): (props: TProps & RefAttributes<TRef>) => ReactElement | null {
+    function WithToggleVisibilityView({isVisible = false, ...rest}: SetOptional<TProps, 'isVisible'>, ref: ForwardedRef<TRef>) {
         return (
-            <View style={!((props as TProps)?.isVisible ?? false) && styles.visuallyHidden}>
+            <View style={!isVisible && styles.visuallyHidden}>
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...(props as TProps)}
+                    {...(rest as TProps)}
                     ref={ref}
-                    isVisible={(props as TProps).isVisible ?? false}
+                    isVisible={isVisible}
                 />
             </View>
         );
