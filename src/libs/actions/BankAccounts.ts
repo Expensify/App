@@ -56,7 +56,7 @@ function openPersonalBankAccountSetupView(exitReportID: string) {
 }
 
 /**
- * @param {Boolean} shouldContinueKYCOnSuccess Whether after adding a bank account we should continue with the KYC flow
+ * Whether after adding a bank account we should continue with the KYC flow
  */
 function setPersonalBankAccountContinueKYCOnSuccess(shouldContinueKYCOnSuccess: boolean) {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {shouldContinueKYCOnSuccess});
