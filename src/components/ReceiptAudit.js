@@ -25,3 +25,8 @@ function ReceiptAudit(notice) {
 }
 
 
+ReceiptAudit.PropTypes = propTypes;
+ReceiptAudit.defaultProps = defaultProps;
+ReceiptAudit.displayName = 'ReceiptAudit';
+
+export default ReceiptAudit;
