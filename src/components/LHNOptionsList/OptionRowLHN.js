@@ -218,17 +218,15 @@ function OptionRowLHN(props) {
                                             icons={optionItem.icons}
                                             isFocusMode={props.viewMode === CONST.OPTION_MODE.COMPACT}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                            secondAvatarStyle={[
-                                                StyleUtils.getBackgroundAndBorderStyle(
-                                                    StyleUtils.getAvatarBackgroundColor(
-                                                        props.isFocused,
-                                                        hovered || isContextMenuActive,
-                                                        focusedBackgroundColor,
-                                                        hoveredBackgroundColor,
-                                                        themeColors.sidebar,
-                                                    ),
+                                            secondAvatarStyle={StyleUtils.getBackgroundAndBorderStyle(
+                                                StyleUtils.getAvatarBackgroundColor(
+                                                    props.isFocused,
+                                                    hovered || isContextMenuActive,
+                                                    focusedBackgroundColor,
+                                                    hoveredBackgroundColor,
+                                                    themeColors.sidebar,
                                                 ),
-                                            ]}
+                                            )}
                                             shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}
                                         />
                                     ))}
