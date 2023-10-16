@@ -214,13 +214,14 @@ function PaymentMethodList({
                 const icon = getBankIcon(card.bank);
                 const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
                 return {
-                    key: card.key,
+                    key: card.cardID,
                     title: isExpensifyCard ? translate('walletPage.expensifyCard') : card.cardName,
                     description: card.domainName,
                     onPress: isExpensifyCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(card.domainName)) : () => {},
                     shouldShowRightIcon: isExpensifyCard,
                     interactive: isExpensifyCard,
                     canDismissError: isExpensifyCard,
+                    errors: card.errors,
                     ...icon,
                 };
             });
