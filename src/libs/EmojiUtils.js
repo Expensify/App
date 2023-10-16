@@ -7,6 +7,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
 import * as Emojis from '../../assets/emojis';
+import React from 'react';
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({
@@ -108,6 +109,17 @@ const getEmojiUnicode = _.memoize((input) => {
  */
 function trimEmojiUnicode(emojiCode) {
     return emojiCode.replace(/(fe0f|1f3fb|1f3fc|1f3fd|1f3fe|1f3ff)$/, '').trim();
+}
+
+function firstLetterIsEmoji(message) {
+    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
+    const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
+
+    if (!match) {
+        return false;
+    }
+
+    return trimmedMessage.indexOf(match[0]) === 0;    
 }
 
 /**
@@ -497,4 +509,5 @@ export {
     replaceAndExtractEmojis,
     extractEmojis,
     getAddedEmojis,
+    firstLetterIsEmoji
 };
