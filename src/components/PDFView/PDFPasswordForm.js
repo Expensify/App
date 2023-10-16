@@ -95,11 +95,6 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
         onSubmit(password);
     };
 
-    const validateAndNotifyPasswordBlur = () => {
-        validate();
-        onPasswordFieldFocused(false);
-    };
-
     return shouldShowForm ? (
         <ScrollView
             keyboardShouldPersistTaps="handled"
@@ -126,12 +121,14 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 onSubmitEditing={submitPassword}
                 errorText={errorText}
                 onFocus={() => onPasswordFieldFocused(true)}
-                onBlur={validateAndNotifyPasswordBlur}
+                onBlur={() => onPasswordFieldFocused(false)}
                 autoFocus
                 shouldDelayFocus={shouldDelayFocus}
                 secureTextEntry
             />
             <Button
+                // Keep focus on the TextInput effectively keeping keyboard open
+                onMouseDown={(e) => e.preventDefault()}
                 text={translate('common.confirm')}
                 onPress={submitPassword}
                 style={styles.mt4}

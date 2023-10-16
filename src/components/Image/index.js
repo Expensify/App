@@ -22,7 +22,9 @@ function Image(props) {
             return {uri: `${propsSource.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
         return propsSource;
-    }, [propsSource, isAuthTokenRequired, session]);
+        // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [propsSource, isAuthTokenRequired]);
 
     /**
      * The natural image dimensions are retrieved using the updated source

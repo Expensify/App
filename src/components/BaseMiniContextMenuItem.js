@@ -8,6 +8,8 @@ import getButtonState from '../libs/getButtonState';
 import variables from '../styles/variables';
 import Tooltip from './Tooltip';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import ReportActionComposeFocusManager from '../libs/ReportActionComposeFocusManager';
+import DomUtils from '../libs/DomUtils';
 
 const propTypes = {
     /**
@@ -53,11 +55,25 @@ function BaseMiniContextMenuItem(props) {
             <PressableWithoutFeedback
                 ref={props.innerRef}
                 onPress={props.onPress}
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => {
+                    if (!ReportActionComposeFocusManager.isFocused() && !ReportActionComposeFocusManager.isEditFocused()) {
+                        DomUtils.getActiveElement().blur();
+                        return;
+                    }
+
+                    // Allow text input blur on right click
+                    if (!e || e.button === 2) {
+                        return;
+                    }
+
+                    // Prevent text input blur on left click
+                    e.preventDefault();
+                }}
                 accessibilityLabel={props.tooltipText}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
+                    props.isDelayButtonStateComplete && styles.cursorDefault,
                 ]}
             >
                 {(pressableState) => (

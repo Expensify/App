@@ -33,6 +33,7 @@ function OnyxTabNavigator({id, selectedTab, children, ...rest}) {
             id={id}
             initialRouteName={selectedTab}
             backBehavior="initialRoute"
+            keyboardDismissMode="none"
             screenListeners={{
                 state: (event) => {
                     const state = event.data.state;
@@ -54,6 +55,6 @@ OnyxTabNavigator.displayName = 'OnyxTabNavigator';
 
 export default withOnyx({
     selectedTab: {
-        key: ({id}) => `${ONYXKEYS.SELECTED_TAB}_${id}`,
+        key: ({id}) => `${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`,
     },
 })(OnyxTabNavigator);

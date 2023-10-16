@@ -22,13 +22,15 @@ const propTypes = {
      * When this value is false, the suggester will have a height of 2.5 items. When this value is true, the height can be up to 5 items.  */
     isSuggestionPickerLarge: PropTypes.bool.isRequired,
 
-    /** Show that we should include ReportRecipientLocalTime view height */
-    shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
-
     /** create accessibility label for each item */
     accessibilityLabelExtractor: PropTypes.func.isRequired,
+
+    /** Meaures the parent container's position and dimensions. */
+    measureParentContainer: PropTypes.func,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    measureParentContainer: () => {},
+};
 
 export {propTypes, defaultProps};

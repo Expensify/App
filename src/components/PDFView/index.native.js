@@ -127,6 +127,7 @@ function PDFView(props) {
                 )}
                 {shouldAttemptPDFLoad && (
                     <PDF
+                        fitPolicy={0}
                         trustAllCerts={false}
                         renderActivityIndicator={() => <FullScreenLoadingIndicator />}
                         source={{uri: props.sourceURL}}

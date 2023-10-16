@@ -2,10 +2,9 @@ import React, {useRef, useCallback, useState, useEffect} from 'react';
 import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import styles from '../../../styles/styles';
+import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import CarouselActions from './CarouselActions';
-import AttachmentView from '../AttachmentView';
 import withWindowDimensions from '../../withWindowDimensions';
 import CarouselButtons from './CarouselButtons';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
@@ -14,13 +13,14 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize from '../../withLocalize';
 import compose from '../../../libs/compose';
 import useCarouselArrows from './useCarouselArrows';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import CarouselItem from './CarouselItem';
 import Navigation from '../../../libs/Navigation/Navigation';
 import BlockingView from '../../BlockingViews/BlockingView';
 import * as Illustrations from '../../Icon/Illustrations';
 import variables from '../../../styles/variables';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
-const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
     // more than 95% visible. When that happens we update the page index in the state.
@@ -30,7 +30,7 @@ const viewabilityConfig = {
 function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
     const scrollRef = useRef(null);
 
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const [containerWidth, setContainerWidth] = useState(0);
     const [page, setPage] = useState(0);
@@ -38,13 +38,25 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     const [activeSource, setActiveSource] = useState(source);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
 
+    const compareImage = useCallback(
+        (attachment) => {
+            if (attachment.isReceipt) {
+                const action = ReportActionsUtils.getParentReportAction(report);
+                const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
+                return attachment.transactionID === transactionID;
+            }
+            return attachment.source === source;
+        },
+        [source, report],
+    );
+
     useEffect(() => {
         const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
 
-        const initialPage = _.findIndex(attachmentsFromReport, (a) => a.source === source);
+        const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
         // Dismiss the modal when deleting an attachment during its display in preview.
-        if (initialPage === -1 && _.find(attachments, (a) => a.source === source)) {
+        if (initialPage === -1 && _.find(attachments, compareImage)) {
             Navigation.dismissModal();
         } else {
             setPage(initialPage);
@@ -54,10 +66,12 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             setDownloadButtonVisibility(initialPage !== -1);
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (!_.isUndefined(attachmentsFromReport[initialPage])) onNavigate(attachmentsFromReport[initialPage]);
+            if (!_.isUndefined(attachmentsFromReport[initialPage])) {
+                onNavigate(attachmentsFromReport[initialPage]);
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report, reportActions, source]);
+    }, [reportActions, compareImage]);
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -99,7 +113,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
-        [attachments, page],
+        [attachments, canUseTouchScreen, page],
     );
 
     /**
@@ -118,49 +132,25 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     );
 
     /**
-     * Defines how a container for a single attachment should be rendered
-     * @param {Object} cellRendererProps
-     * @returns {JSX.Element}
-     */
-    const renderCell = useCallback(
-        (cellProps) => {
-            // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
-            // considering horizontal margin and border width in centered modal
-            const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
-            const style = [cellProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
-
-            return (
-                <View
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...cellProps}
-                    style={style}
-                />
-            );
-        },
-        [isSmallScreenWidth, windowWidth],
-    );
-
-    /**
      * Defines how a single attachment should be rendered
      * @param {Object} item
+     * @param {String} item.reportActionID
      * @param {Boolean} item.isAuthTokenRequired
      * @param {String} item.source
      * @param {Object} item.file
      * @param {String} item.file.name
+     * @param {Boolean} item.hasBeenFlagged
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
         ({item}) => (
-            <AttachmentView
-                source={item.source}
-                file={item.file}
-                isAuthTokenRequired={item.isAuthTokenRequired}
+            <CarouselItem
+                item={item}
                 isFocused={activeSource === item.source}
-                onPress={() => canUseTouchScreen && setShouldShowArrows(!shouldShowArrows)}
-                isUsedInCarousel
+                onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
             />
         ),
-        [activeSource, setShouldShowArrows, shouldShowArrows],
+        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
@@ -212,7 +202,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             windowSize={5}
                             maxToRenderPerBatch={3}
                             data={attachments}
-                            CellRendererComponent={renderCell}
+                            CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
                             getItemLayout={getItemLayout}
                             keyExtractor={(item) => item.source}

@@ -19,6 +19,7 @@ import * as User from '../../../libs/actions/User';
 import TextInput from '../../TextInput';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import useSingleExecution from '../../../hooks/useSingleExecution';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -49,6 +50,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
     const [filteredEmojis, setFilteredEmojis] = useState(allEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
     const {windowWidth} = useWindowDimensions();
+    const {singleExecution} = useSingleExecution();
 
     useEffect(() => {
         setFilteredEmojis(allEmojis);
@@ -83,16 +85,6 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
         setFilteredEmojis(newFilteredEmojiList);
         setHeaderIndices(undefined);
     }, 300);
-
-    /**
-     * @param {String} emoji
-     * @param {Object} emojiObject
-     */
-    const addToFrequentAndSelectEmoji = (emoji, emojiObject) => {
-        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-        User.updateFrequentlyUsedEmojis(frequentEmojiList);
-        onEmojiSelected(emoji, emojiObject);
-    };
 
     /**
      * @param {Number} skinTone
@@ -150,7 +142,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
 
         return (
             <EmojiPickerMenuItem
-                onPress={(emoji) => addToFrequentAndSelectEmoji(emoji, item)}
+                onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
                 emoji={emojiCode}
             />
         );
@@ -166,6 +158,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                     accessibilityLabel={translate('common.search')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     onChangeText={filterEmojis}
+                    blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
             {!isFiltered && (

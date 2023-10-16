@@ -1,28 +1,25 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import RadioButtons from '../../components/RadioButtons';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as ErrorUtils from '../../libs/ErrorUtils';
+import useLocalize from '../../hooks/useLocalize';
+import RadioButtons from '../../components/RadioButtons';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
 import FormScrollView from '../../components/FormScrollView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
 import OfflineIndicator from '../../components/OfflineIndicator';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 import FixedFooter from '../../components/FixedFooter';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     /** Questions returned by Idology */
     /** example: [{"answer":["1251","6253","113","None of the above","Skip Question"],"prompt":"Which number goes with your address on MASONIC AVE?","type":"street.number.b"}, ...] */
     questions: PropTypes.arrayOf(
@@ -54,149 +51,122 @@ const defaultProps = {
     walletAdditionalDetails: {},
 };
 
-class IdologyQuestions extends React.Component {
-    constructor(props) {
-        super(props);
-        this.submitAnswers = this.submitAnswers.bind(this);
+function IdologyQuestions({questions, walletAdditionalDetails, idNumber}) {
+    const formRef = useRef();
+    const {translate} = useLocalize();
 
-        this.state = {
-            /** Current question index to display. */
-            questionNumber: 0,
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [shouldHideSkipAnswer, setShouldHideSkipAnswer] = useState(false);
+    const [userAnswers, setUserAnswers] = useState([]);
+    const [error, setError] = useState('');
 
-            /** Should we hide the "Skip question" answer? Yes if the user already skipped MAX_SKIP questions. */
-            hideSkip: false,
+    const currentQuestion = questions[currentQuestionIndex] || {};
+    const possibleAnswers = _.filter(
+        _.map(currentQuestion.answer, (answer) => {
+            if (shouldHideSkipAnswer && answer === SKIP_QUESTION_TEXT) {
+                return;
+            }
 
-            /** Answers from the user */
-            answers: [],
-
-            /** Any error message */
-            errorMessage: '',
-        };
-    }
+            return {
+                label: answer,
+                value: answer,
+            };
+        }),
+    );
+    const errorMessage = ErrorUtils.getLatestErrorMessage(walletAdditionalDetails) || error;
 
     /**
      * Put question answer in the state.
-     * @param {Number} questionIndex
      * @param {String} answer
      */
-    chooseAnswer(questionIndex, answer) {
-        this.setState((prevState) => {
-            const answers = prevState.answers;
-            const question = this.props.questions[questionIndex];
-            answers[questionIndex] = {question: question.type, answer};
-            return {
-                answers,
-                errorMessage: '',
-            };
-        });
-    }
+    const chooseAnswer = (answer) => {
+        const tempAnswers = _.map(userAnswers, _.clone);
+
+        tempAnswers[currentQuestionIndex] = {question: currentQuestion.type, answer};
+
+        setUserAnswers(tempAnswers);
+        setError('');
+    };
 
     /**
      * Show next question or send all answers for Idology verifications when we've answered enough
      */
-    submitAnswers() {
-        this.setState((prevState) => {
-            // User must pick an answer
-            if (!prevState.answers[prevState.questionNumber]) {
-                return {
-                    errorMessage: this.props.translate('additionalDetailsStep.selectAnswer'),
-                };
-            }
-
+    const submitAnswers = () => {
+        if (!userAnswers[currentQuestionIndex]) {
+            setError(translate('additionalDetailsStep.selectAnswer'));
+        } else {
             // Get the number of questions that were skipped by the user.
-            const skippedQuestionsCount = _.filter(prevState.answers, (answer) => answer.answer === SKIP_QUESTION_TEXT).length;
+            const skippedQuestionsCount = _.filter(userAnswers, (answer) => answer.answer === SKIP_QUESTION_TEXT).length;
 
             // We have enough answers, let's call expectID KBA to verify them
-            if (prevState.answers.length - skippedQuestionsCount >= this.props.questions.length - MAX_SKIP) {
-                const answers = prevState.answers;
+            if (userAnswers.length - skippedQuestionsCount >= questions.length - MAX_SKIP) {
+                const tempAnswers = _.map(userAnswers, _.clone);
 
                 // Auto skip any remaining questions
-                if (answers.length < this.props.questions.length) {
-                    for (let i = answers.length; i < this.props.questions.length; i++) {
-                        answers[i] = {question: this.props.questions[i].type, answer: SKIP_QUESTION_TEXT};
+                if (tempAnswers.length < questions.length) {
+                    for (let i = tempAnswers.length; i < questions.length; i++) {
+                        tempAnswers[i] = {question: questions[i].type, answer: SKIP_QUESTION_TEXT};
                     }
                 }
 
-                BankAccounts.answerQuestionsForWallet(answers, this.props.idNumber);
-                return {answers};
+                BankAccounts.answerQuestionsForWallet(tempAnswers, idNumber);
+                setUserAnswers(tempAnswers);
+            } else {
+                // Else, show next question
+                setCurrentQuestionIndex(currentQuestionIndex + 1);
+                setShouldHideSkipAnswer(skippedQuestionsCount >= MAX_SKIP);
             }
+        }
+    };
 
-            // Else, show next question
-            return {
-                questionNumber: prevState.questionNumber + 1,
-                hideSkip: skippedQuestionsCount >= MAX_SKIP,
-            };
-        });
-    }
-
-    render() {
-        const questionIndex = this.state.questionNumber;
-        const question = this.props.questions[questionIndex] || {};
-        const possibleAnswers = _.filter(
-            _.map(question.answer, (answer) => {
-                if (this.state.hideSkip && answer === SKIP_QUESTION_TEXT) {
-                    return;
-                }
-
-                return {
-                    label: answer,
-                    value: answer,
-                };
-            }),
-        );
-
-        const errorMessage = ErrorUtils.getLatestErrorMessage(this.props.walletAdditionalDetails) || this.state.errorMessage;
-
-        return (
-            <View style={[styles.flex1]}>
-                <View style={[styles.ph5]}>
-                    <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpTextIdologyQuestions')}</Text>
-                    <TextLink
-                        style={styles.mb3}
-                        href="https://use.expensify.com/usa-patriot-act"
-                    >
-                        {this.props.translate('additionalDetailsStep.helpLink')}
-                    </TextLink>
-                </View>
-                <FormScrollView ref={(el) => (this.form = el)}>
-                    <View
-                        style={[styles.mh5, styles.mb5, styles.mt5]}
-                        key={question.type}
-                    >
-                        <Text style={[styles.textStrong, styles.mb5]}>{question.prompt}</Text>
-                        <RadioButtons
-                            items={possibleAnswers}
-                            key={questionIndex}
-                            onPress={(answer) => this.chooseAnswer(questionIndex, answer)}
-                        />
-                    </View>
-                </FormScrollView>
-                <FixedFooter>
-                    <FormAlertWithSubmitButton
-                        isAlertVisible={Boolean(errorMessage)}
-                        onSubmit={this.submitAnswers}
-                        onFixTheErrorsLinkPressed={() => {
-                            this.form.scrollTo({y: 0, animated: true});
-                        }}
-                        message={errorMessage}
-                        isLoading={this.props.walletAdditionalDetails.isLoading}
-                        buttonText={this.props.translate('common.saveAndContinue')}
-                        containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
-                    />
-                    <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
-                </FixedFooter>
+    return (
+        <View style={styles.flex1}>
+            <View style={styles.ph5}>
+                <Text style={styles.mb3}>{translate('additionalDetailsStep.helpTextIdologyQuestions')}</Text>
+                <TextLink
+                    style={styles.mb3}
+                    href="https://use.expensify.com/usa-patriot-act"
+                >
+                    {translate('additionalDetailsStep.helpLink')}
+                </TextLink>
             </View>
-        );
-    }
+            <FormScrollView ref={formRef}>
+                <View
+                    style={styles.m5}
+                    key={currentQuestion.type}
+                >
+                    <Text style={[styles.textStrong, styles.mb5]}>{currentQuestion.prompt}</Text>
+                    <RadioButtons
+                        items={possibleAnswers}
+                        key={currentQuestionIndex}
+                        onPress={chooseAnswer}
+                    />
+                </View>
+            </FormScrollView>
+            <FixedFooter>
+                <FormAlertWithSubmitButton
+                    isAlertVisible={Boolean(errorMessage)}
+                    onSubmit={submitAnswers}
+                    onFixTheErrorsLinkPressed={() => {
+                        formRef.current.scrollTo({y: 0, animated: true});
+                    }}
+                    message={errorMessage}
+                    isLoading={walletAdditionalDetails.isLoading}
+                    buttonText={translate('common.saveAndContinue')}
+                    containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
+                />
+                <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
+            </FixedFooter>
+        </View>
+    );
 }
 
+IdologyQuestions.displayName = 'IdologyQuestions';
 IdologyQuestions.propTypes = propTypes;
 IdologyQuestions.defaultProps = defaultProps;
-export default compose(
-    withLocalize,
-    withOnyx({
-        walletAdditionalDetails: {
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-        },
-    }),
-)(IdologyQuestions);
+
+export default withOnyx({
+    walletAdditionalDetails: {
+        key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+    },
+})(IdologyQuestions);

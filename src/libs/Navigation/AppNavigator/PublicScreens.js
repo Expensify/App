@@ -1,7 +1,6 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
-import DemoSetupPage from '../../../pages/signin/DemoSetupPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
 import SCREENS from '../../../SCREENS';
@@ -19,11 +18,6 @@ function PublicScreens() {
                 name={SCREENS.HOME}
                 options={defaultScreenOptions}
                 component={SignInPage}
-            />
-            <RootStack.Screen
-                name="SaaStrHome"
-                options={defaultScreenOptions}
-                component={DemoSetupPage}
             />
             <RootStack.Screen
                 name={SCREENS.TRANSITION_BETWEEN_APPS}

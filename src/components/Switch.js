@@ -4,6 +4,7 @@ import {Animated} from 'react-native';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import useNativeDriver from '../libs/useNativeDriver';
 
 const propTypes = {
     /** Whether the switch is toggled to the on position */
@@ -28,7 +29,7 @@ function Switch(props) {
         Animated.timing(offsetX.current, {
             toValue: props.isOn ? OFFSET_X.ON : OFFSET_X.OFF,
             duration: 300,
-            useNativeDriver: true,
+            useNativeDriver,
         }).start();
     }, [props.isOn]);
 

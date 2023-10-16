@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import enhanceParameters from '../../src/libs/Network/enhanceParameters';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import CONFIG from '../../src/CONFIG';
 
 beforeEach(() => Onyx.clear());
@@ -12,7 +12,7 @@ test('Enhance parameters adds correct parameters for Log command with no authTok
     const email = 'test-user@test.com';
     const authToken = 'test-token';
     Onyx.merge(ONYXKEYS.SESSION, {email, authToken});
-    return waitForPromisesToResolve().then(() => {
+    return waitForBatchedUpdates().then(() => {
         const finalParameters = enhanceParameters(command, parameters);
         expect(finalParameters).toEqual({
             testParameter: 'test',
@@ -30,7 +30,7 @@ test('Enhance parameters adds correct parameters for a command that requires aut
     const email = 'test-user@test.com';
     const authToken = 'test-token';
     Onyx.merge(ONYXKEYS.SESSION, {email, authToken});
-    return waitForPromisesToResolve().then(() => {
+    return waitForBatchedUpdates().then(() => {
         const finalParameters = enhanceParameters(command, parameters);
         expect(finalParameters).toEqual({
             testParameter: 'test',

@@ -38,6 +38,9 @@ const propTypes = {
 
     /** Function to call when pressing the navigation link */
     onLinkPress: PropTypes.func,
+
+    /** Whether we should embed the link with subtitle */
+    shouldEmbedLinkWithSubtitle: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -48,10 +51,30 @@ const defaultProps = {
     iconWidth: variables.iconSizeSuperLarge,
     iconHeight: variables.iconSizeSuperLarge,
     onLinkPress: () => Navigation.dismissModal(),
+    shouldEmbedLinkWithSubtitle: false,
 };
 
 function BlockingView(props) {
     const {translate} = useLocalize();
+    function renderContent() {
+        return (
+            <>
+                <AutoEmailLink
+                    style={[styles.textAlignCenter]}
+                    text={props.subtitle}
+                />
+                {props.shouldShowLink ? (
+                    <TextLink
+                        onPress={props.onLinkPress}
+                        style={[styles.link, styles.mt2]}
+                    >
+                        {translate(props.linkKey)}
+                    </TextLink>
+                ) : null}
+            </>
+        );
+    }
+
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
             <Icon
@@ -61,18 +84,12 @@ function BlockingView(props) {
                 height={props.iconHeight}
             />
             <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
-            <AutoEmailLink
-                style={[styles.textAlignCenter]}
-                text={props.subtitle}
-            />
-            {props.shouldShowLink ? (
-                <TextLink
-                    onPress={props.onLinkPress}
-                    style={[styles.link, styles.mt2]}
-                >
-                    {translate(props.linkKey)}
-                </TextLink>
-            ) : null}
+
+            {props.shouldEmbedLinkWithSubtitle ? (
+                <Text style={[styles.textAlignCenter]}>{renderContent()}</Text>
+            ) : (
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{renderContent()}</View>
+            )}
         </View>
     );
 }

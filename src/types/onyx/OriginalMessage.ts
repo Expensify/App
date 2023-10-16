@@ -1,5 +1,3 @@
-// TODO: Remove this after CONST.ts is migrated to TS
-/* eslint-disable @typescript-eslint/no-duplicate-type-constituents */
 import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 
@@ -15,7 +13,6 @@ type OriginalMessageIOU = {
         currency: string;
         lastModified?: string;
         participantAccountIDs?: number[];
-        participants?: string[];
         type: string;
     };
 };
@@ -55,6 +52,10 @@ type OriginalMessageAddComment = {
         whisperedTo: number[];
         reactions?: Reaction[];
     };
+};
+type OriginalMessageSubmitted = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+    originalMessage: unknown;
 };
 
 type OriginalMessageClosed = {
@@ -130,6 +131,7 @@ type OriginalMessagePolicyTask = {
 type OriginalMessage =
     | OriginalMessageIOU
     | OriginalMessageAddComment
+    | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
     | OriginalMessageRenamed
@@ -139,4 +141,4 @@ type OriginalMessage =
     | OriginalMessagePolicyTask;
 
 export default OriginalMessage;
-export type {Reaction};
+export type {Reaction, ChronosOOOEvent};

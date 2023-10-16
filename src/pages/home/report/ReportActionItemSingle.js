@@ -80,19 +80,20 @@ const defaultProps = {
 };
 
 const showUserDetails = (accountID) => {
-    Navigation.navigate(ROUTES.getProfileRoute(accountID));
+    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
 };
 
 const showWorkspaceDetails = (reportID) => {
-    Navigation.navigate(ROUTES.getReportDetailsRoute(reportID));
+    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
 };
 
 function ReportActionItemSingle(props) {
-    const actorAccountID = props.action.actorAccountID;
+    const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
     let {displayName} = props.personalDetailsList[actorAccountID] || {};
-    const {avatar, login, pendingFields, status} = props.personalDetailsList[actorAccountID] || {};
+    const {avatar, login, pendingFields, status, fallbackIcon} = props.personalDetailsList[actorAccountID] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
+    const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
+    const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && (!actorAccountID || displayAllActors);
     let avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
 
     if (isWorkspaceActor) {
@@ -111,22 +112,23 @@ function ReportActionItemSingle(props) {
 
     // If this is a report preview, display names and avatars of both people involved
     let secondaryAvatar = {};
-    const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
     const primaryDisplayName = displayName;
     if (displayAllActors) {
-        const secondaryUserDetails = props.personalDetailsList[props.iouReport.ownerAccountID] || {};
+        // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
+        const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
+        const secondaryUserDetails = props.personalDetailsList[secondaryAccountId] || {};
         const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
-            source: UserUtils.getAvatar(secondaryUserDetails.avatar, props.iouReport.ownerAccountID),
+            source: UserUtils.getAvatar(secondaryUserDetails.avatar, secondaryAccountId),
             type: CONST.ICON_TYPE_AVATAR,
             name: secondaryDisplayName,
-            id: props.iouReport.ownerAccountID,
+            id: secondaryAccountId,
         };
     } else if (!isWorkspaceActor) {
         secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1];
     }
-    const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: primaryDisplayName, id: actorAccountID};
+    const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: primaryDisplayName, id: isWorkspaceActor ? '' : actorAccountID};
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -140,18 +142,21 @@ function ReportActionItemSingle(props) {
           ]
         : props.action.person;
 
+    const reportID = props.report && props.report.reportID;
+    const iouReportID = props.iouReport && props.iouReport.reportID;
+
     const showActorDetails = useCallback(() => {
         if (isWorkspaceActor) {
-            showWorkspaceDetails(props.report.reportID);
+            showWorkspaceDetails(reportID);
         } else {
             // Show participants page IOU report preview
             if (displayAllActors) {
-                Navigation.navigate(ROUTES.getReportParticipantsRoute(props.iouReport.reportID));
+                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID));
                 return;
             }
             showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
         }
-    }, [isWorkspaceActor, props.report.reportID, actorAccountID, props.action.delegateAccountID, props.iouReport.reportID, displayAllActors]);
+    }, [isWorkspaceActor, reportID, actorAccountID, props.action.delegateAccountID, iouReportID, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
         () => !isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID),
@@ -195,6 +200,7 @@ function ReportActionItemSingle(props) {
                         source={icon.source}
                         type={icon.type}
                         name={icon.name}
+                        fallbackIcon={fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -235,8 +241,6 @@ function ReportActionItemSingle(props) {
                                     key={`person-${props.action.reportActionID}-${index}`}
                                     accountID={actorAccountID}
                                     fragment={fragment}
-                                    isAttachment={props.action.isAttachment}
-                                    isLoading={props.action.isLoading}
                                     delegateAccountID={props.action.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}

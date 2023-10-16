@@ -22,10 +22,7 @@ function fetchTag(tag) {
         console.log(`Running command: ${command}`);
         execSync(command);
     } catch (e) {
-        // This can happen if the tag was only created locally but does not exist in the remote. In this case, we'll fetch history of the staging branch instead
-        const command = `git fetch origin staging --no-tags --shallow-exclude=${previousPatchVersion}`;
-        console.log(`Running command: ${command}`);
-        execSync(command);
+        console.error(e);
     }
 }
 
@@ -79,7 +76,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
  * Parse merged PRs, excluding those from irrelevant branches.
  *
  * @param {Array<Object<{commit: String, subject: String, authorName: String}>>} commits
- * @returns {Array<String>}
+ * @returns {Array<Number>}
  */
 function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
@@ -94,7 +91,7 @@ function getValidMergedPRs(commits) {
             return;
         }
 
-        const pr = match[1];
+        const pr = Number.parseInt(match[1], 10);
         if (mergedPRs.has(pr)) {
             // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
             // That also means that we don't want to include it in the current checklist, so we remove it now.
@@ -113,16 +110,17 @@ function getValidMergedPRs(commits) {
  *
  * @param {String} fromTag
  * @param {String} toTag
- * @returns {Promise<Array<String>>} – Pull request numbers
+ * @returns {Promise<Array<Number>>} – Pull request numbers
  */
 function getPullRequestsMergedBetween(fromTag, toTag) {
+    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
     return getCommitHistoryAsJSON(fromTag, toTag).then((commitList) => {
         console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
         // Find which commit messages correspond to merged PR's
         const pullRequestNumbers = getValidMergedPRs(commitList);
         console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-        return pullRequestNumbers;
+        return _.map(pullRequestNumbers, (prNum) => Number.parseInt(prNum, 10));
     });
 }
 

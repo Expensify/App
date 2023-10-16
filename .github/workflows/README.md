@@ -85,7 +85,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository. To create updated versions of these encrypted files, refer to steps 1-4 of [this encrypted secrets help page](https://docs.github.com/en/actions/reference/encrypted-secrets#limits-for-secrets) using the `LARGE_SECRET_PASSPHRASE`.
    1. `android/app/my-upload-key.keystore.gpg`
    1. `android/app/android-fastlane-json-key.json.gpg`
-   1. `ios/chat_expensify_adhoc.mobileprovision.gpg`
+   1. `ios/expensify_chat_adhoc.mobileprovision.gpg`
    1. `ios/chat_expensify_appstore.mobileprovision.gpg`
    1. `ios/Certificates.p12.gpg`
 1. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM

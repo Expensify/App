@@ -1,10 +1,12 @@
 import _ from 'underscore';
 import React, {useState, useRef, useCallback, useMemo} from 'react';
-import {View, Alert, Linking} from 'react-native';
+import PropTypes from 'prop-types';
+import {View, Alert} from 'react-native';
 import RNDocumentPicker from 'react-native-document-picker';
 import RNFetchBlob from 'react-native-blob-util';
+import lodashCompact from 'lodash/compact';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
+import {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './attachmentPickerPropTypes';
 import CONST from '../../CONST';
 import * as FileUtils from '../../libs/fileDownload/FileUtils';
 import * as Expensicons from '../Icon/Expensicons';
@@ -19,6 +21,14 @@ import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
 
 const propTypes = {
     ...basePropTypes,
+
+    /** If this value is true, then we exclude Camera option. */
+    shouldHideCameraOption: PropTypes.bool,
+};
+
+const defaultProps = {
+    ...baseDefaultProps,
+    shouldHideCameraOption: false,
 };
 
 /**
@@ -90,35 +100,15 @@ const getDataForUpload = (fileData) => {
  * @param {propTypes} props
  * @returns {JSX.Element}
  */
-function AttachmentPicker({type, children}) {
+function AttachmentPicker({type, children, shouldHideCameraOption}) {
     const [isVisible, setIsVisible] = useState(false);
 
     const completeAttachmentSelection = useRef();
     const onModalHide = useRef();
+    const onCanceled = useRef();
 
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-
-    /**
-     * Inform the users when they need to grant camera access and guide them to settings
-     */
-    const showPermissionsAlert = useCallback(() => {
-        Alert.alert(
-            translate('attachmentPicker.cameraPermissionRequired'),
-            translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
-            [
-                {
-                    text: translate('common.cancel'),
-                    style: 'cancel',
-                },
-                {
-                    text: translate('common.settings'),
-                    onPress: () => Linking.openSettings(),
-                },
-            ],
-            {cancelable: false},
-        );
-    }, [translate]);
 
     /**
      * A generic handling when we don't know the exact reason for an error
@@ -144,7 +134,7 @@ function AttachmentPicker({type, children}) {
                     if (response.errorCode) {
                         switch (response.errorCode) {
                             case 'permission':
-                                showPermissionsAlert();
+                                FileUtils.showCameraPermissionsAlert();
                                 return resolve();
                             default:
                                 showGeneralAlert();
@@ -157,7 +147,7 @@ function AttachmentPicker({type, children}) {
                     return resolve(response.assets);
                 });
             }),
-        [showGeneralAlert, showPermissionsAlert, type],
+        [showGeneralAlert, type],
     );
 
     /**
@@ -179,8 +169,8 @@ function AttachmentPicker({type, children}) {
     );
 
     const menuItemData = useMemo(() => {
-        const data = [
-            {
+        const data = lodashCompact([
+            !shouldHideCameraOption && {
                 icon: Expensicons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => showImagePicker(launchCamera),
@@ -190,18 +180,15 @@ function AttachmentPicker({type, children}) {
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             },
-        ];
-
-        if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
-            data.push({
+            type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE && {
                 icon: Expensicons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
-            });
-        }
+            },
+        ]);
 
         return data;
-    }, [showDocumentPicker, showImagePicker, type]);
+    }, [showDocumentPicker, showImagePicker, type, shouldHideCameraOption]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -216,9 +203,11 @@ function AttachmentPicker({type, children}) {
      * Opens the attachment modal
      *
      * @param {function} onPickedHandler A callback that will be called with the selected attachment
+     * @param {function} onCanceledHandler A callback that will be called without a selected attachment
      */
-    const open = (onPickedHandler) => {
+    const open = (onPickedHandler, onCanceledHandler = () => {}) => {
         completeAttachmentSelection.current = onPickedHandler;
+        onCanceled.current = onCanceledHandler;
         setIsVisible(true);
     };
 
@@ -239,6 +228,7 @@ function AttachmentPicker({type, children}) {
     const pickAttachment = useCallback(
         (attachments = []) => {
             if (attachments.length === 0) {
+                onCanceled.current();
                 return Promise.resolve();
             }
 
@@ -308,13 +298,16 @@ function AttachmentPicker({type, children}) {
      */
     const renderChildren = () =>
         children({
-            openPicker: ({onPicked}) => open(onPicked),
+            openPicker: ({onPicked, onCanceled: newOnCanceled}) => open(onPicked, newOnCanceled),
         });
 
     return (
         <>
             <Popover
-                onClose={close}
+                onClose={() => {
+                    close();
+                    onCanceled.current();
+                }}
                 isVisible={isVisible}
                 anchorPosition={styles.createMenuPosition}
                 onModalHide={onModalHide.current}

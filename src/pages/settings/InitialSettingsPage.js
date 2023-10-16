@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -12,11 +12,11 @@ import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import Tooltip from '../../components/Tooltip';
 import Avatar from '../../components/Avatar';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import * as Expensicons from '../../components/Icon/Expensicons';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
+import themeColors from '../../styles/themes/default';
+import SCREENS from '../../SCREENS';
 import ROUTES from '../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -41,6 +41,9 @@ import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions'
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import useLocalize from '../../hooks/useLocalize';
+import useSingleExecution from '../../hooks/useSingleExecution';
+import useWaitForNavigation from '../../hooks/useWaitForNavigation';
+import HeaderPageLayout from '../../components/HeaderPageLayout';
 
 const propTypes = {
     /* Onyx Props */
@@ -93,13 +96,15 @@ const propTypes = {
     walletTerms: walletTermsPropTypes,
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.shape({
-        /** Date login was validated, used to show brickroad info status */
-        validatedDate: PropTypes.string,
+    loginList: PropTypes.objectOf(
+        PropTypes.shape({
+            /** Date login was validated, used to show brickroad info status */
+            validatedDate: PropTypes.string,
 
-        /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
-    }),
+            /** Field-specific server side errors keyed by microtime */
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        }),
+    ),
 
     /** Members keyed by accountID for all policies */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
@@ -125,6 +130,8 @@ const defaultProps = {
 };
 
 function InitialSettingsPage(props) {
+    const {isExecuting, singleExecution} = useSingleExecution();
+    const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
 
@@ -186,16 +193,16 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE);
-                },
+                }),
             },
             {
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Building,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
-                },
+                }),
                 floatRightAvatars: policiesAvatars,
                 shouldStackHorizontally: true,
                 avatarSize: CONST.AVATAR_SIZE.SMALLER,
@@ -204,31 +211,31 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-                },
+                }),
                 brickRoadIndicator: profileBrickRoadIndicator,
             },
             {
                 translationKey: 'common.preferences',
                 icon: Expensicons.Gear,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
-                },
+                }),
             },
             {
                 translationKey: 'initialSettingsPage.security',
                 icon: Expensicons.Lock,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_SECURITY);
-                },
+                }),
             },
             {
                 translationKey: 'common.wallet',
                 icon: Expensicons.Wallet,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_WALLET);
-                },
+                }),
                 brickRoadIndicator:
                     PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
                         ? 'error'
@@ -247,9 +254,9 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'initialSettingsPage.about',
                 icon: Expensicons.Info,
-                action: () => {
+                action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_ABOUT);
-                },
+                }),
             },
             {
                 translationKey: 'initialSettingsPage.signOut',
@@ -270,6 +277,7 @@ function InitialSettingsPage(props) {
         props.userWallet.errors,
         props.walletTerms.errors,
         signOut,
+        waitForNavigate,
     ]);
 
     const getMenuItems = useMemo(() => {
@@ -292,7 +300,8 @@ function InitialSettingsPage(props) {
                             title={keyTitle}
                             icon={item.icon}
                             iconType={item.iconType}
-                            onPress={item.action}
+                            disabled={isExecuting}
+                            onPress={singleExecution(item.action)}
                             iconStyles={item.iconStyles}
                             shouldShowRightIcon
                             iconRight={item.iconRight}
@@ -312,7 +321,7 @@ function InitialSettingsPage(props) {
                 })}
             </>
         );
-    }, [getDefaultMenuItems, props.betas, props.userWallet.currentBalance, translate]);
+    }, [getDefaultMenuItems, props.betas, props.userWallet.currentBalance, translate, isExecuting, singleExecution]);
 
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -320,79 +329,81 @@ function InitialSettingsPage(props) {
     if (_.isEmpty(props.currentUserPersonalDetails)) {
         return null;
     }
-
-    return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({safeAreaPaddingBottomStyle}) => (
+    const headerContent = (
+        <View style={[styles.avatarSectionWrapper, styles.justifyContentCenter]}>
+            {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
+                <CurrentUserPersonalDetailsSkeletonView
+                    backgroundColor={themeColors.appBG}
+                    avatarSize={CONST.AVATAR_SIZE.XLARGE}
+                />
+            ) : (
                 <>
-                    <HeaderWithBackButton title={translate('common.settings')} />
-                    <ScrollView
-                        contentContainerStyle={safeAreaPaddingBottomStyle}
-                        style={[styles.settingsPageBackground]}
+                    <Tooltip text={translate('common.profile')}>
+                        <PressableWithoutFeedback
+                            style={styles.mb3}
+                            onPress={openProfileSettings}
+                            accessibilityLabel={translate('common.profile')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        >
+                            <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                                <Avatar
+                                    imageStyles={[styles.avatarXLarge]}
+                                    source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
+                                    size={CONST.AVATAR_SIZE.XLARGE}
+                                    fallbackIcon={props.currentUserPersonalDetails.fallbackIcon}
+                                />
+                            </OfflineWithFeedback>
+                        </PressableWithoutFeedback>
+                    </Tooltip>
+                    <PressableWithoutFeedback
+                        style={[styles.mt1, styles.mw100]}
+                        onPress={openProfileSettings}
+                        accessibilityLabel={translate('common.profile')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                     >
-                        <View style={styles.w100}>
-                            {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
-                                <CurrentUserPersonalDetailsSkeletonView />
-                            ) : (
-                                <View style={styles.avatarSectionWrapper}>
-                                    <Tooltip text={translate('common.profile')}>
-                                        <PressableWithoutFeedback
-                                            style={[styles.mb3]}
-                                            onPress={openProfileSettings}
-                                            accessibilityLabel={translate('common.profile')}
-                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                        >
-                                            <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                                                <Avatar
-                                                    imageStyles={[styles.avatarLarge]}
-                                                    source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
-                                                    size={CONST.AVATAR_SIZE.LARGE}
-                                                />
-                                            </OfflineWithFeedback>
-                                        </PressableWithoutFeedback>
-                                    </Tooltip>
-                                    <PressableWithoutFeedback
-                                        style={[styles.mt1, styles.mw100]}
-                                        onPress={openProfileSettings}
-                                        accessibilityLabel={translate('common.profile')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-                                    >
-                                        <Tooltip text={translate('common.profile')}>
-                                            <Text
-                                                style={[styles.textHeadline, styles.pre]}
-                                                numberOfLines={1}
-                                            >
-                                                {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
-                                            </Text>
-                                        </Tooltip>
-                                    </PressableWithoutFeedback>
-                                    {Boolean(props.currentUserPersonalDetails.displayName) && (
-                                        <Text
-                                            style={[styles.textLabelSupporting, styles.mt1]}
-                                            numberOfLines={1}
-                                        >
-                                            {props.formatPhoneNumber(props.session.email)}
-                                        </Text>
-                                    )}
-                                </View>
-                            )}
-                            {getMenuItems}
-
-                            <ConfirmModal
-                                danger
-                                title={translate('common.areYouSure')}
-                                prompt={translate('initialSettingsPage.signOutConfirmationText')}
-                                confirmText={translate('initialSettingsPage.signOut')}
-                                cancelText={translate('common.cancel')}
-                                isVisible={shouldShowSignoutConfirmModal}
-                                onConfirm={() => signOut(true)}
-                                onCancel={() => toggleSignoutConfirmModal(false)}
-                            />
-                        </View>
-                    </ScrollView>
+                        <Tooltip text={translate('common.profile')}>
+                            <Text
+                                style={[styles.textHeadline, styles.pre]}
+                                numberOfLines={1}
+                            >
+                                {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
+                            </Text>
+                        </Tooltip>
+                    </PressableWithoutFeedback>
+                    {Boolean(props.currentUserPersonalDetails.displayName) && (
+                        <Text
+                            style={[styles.textLabelSupporting, styles.mt1]}
+                            numberOfLines={1}
+                        >
+                            {props.formatPhoneNumber(props.session.email)}
+                        </Text>
+                    )}
                 </>
             )}
-        </ScreenWrapper>
+        </View>
+    );
+
+    return (
+        <HeaderPageLayout
+            title={translate('common.settings')}
+            headerContent={headerContent}
+            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}
+        >
+            <View style={styles.w100}>
+                {getMenuItems}
+                <ConfirmModal
+                    danger
+                    title={translate('common.areYouSure')}
+                    prompt={translate('initialSettingsPage.signOutConfirmationText')}
+                    confirmText={translate('initialSettingsPage.signOut')}
+                    cancelText={translate('common.cancel')}
+                    isVisible={shouldShowSignoutConfirmModal}
+                    onConfirm={() => signOut(true)}
+                    onCancel={() => toggleSignoutConfirmModal(false)}
+                />
+            </View>
+        </HeaderPageLayout>
     );
 }
 

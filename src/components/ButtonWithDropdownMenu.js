@@ -19,6 +19,9 @@ const propTypes = {
     /** Callback to execute when the main button is pressed */
     onPress: PropTypes.func.isRequired,
 
+    /** Call the onPress function on main button when Enter key is pressed */
+    pressOnEnter: PropTypes.bool,
+
     /** Whether we should show a loading state for the main button */
     isLoading: PropTypes.bool,
 
@@ -32,7 +35,7 @@ const propTypes = {
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Menu options to display */
-    /** e.g. [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}] */
+    /** e.g. [{text: 'Pay with Expensify', icon: Wallet}] */
     options: PropTypes.arrayOf(
         PropTypes.shape({
             value: PropTypes.string.isRequired,
@@ -57,6 +60,7 @@ const propTypes = {
 const defaultProps = {
     isLoading: false,
     isDisabled: false,
+    pressOnEnter: false,
     menuHeaderText: '',
     style: [],
     buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
@@ -101,6 +105,7 @@ function ButtonWithDropdownMenu(props) {
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...props.style]}>
                     <Button
                         success
+                        pressOnEnter={props.pressOnEnter}
                         ref={props.buttonRef}
                         onPress={(event) => props.onPress(event, selectedItem.value)}
                         text={selectedItem.text}
@@ -108,7 +113,6 @@ function ButtonWithDropdownMenu(props) {
                         isLoading={props.isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
-                        pressOnEnter
                         large={isButtonSizeLarge}
                         medium={!isButtonSizeLarge}
                         innerStyles={[innerStyleDropButton]}
@@ -139,12 +143,13 @@ function ButtonWithDropdownMenu(props) {
             ) : (
                 <Button
                     success
+                    ref={props.buttonRef}
+                    pressOnEnter={props.pressOnEnter}
                     isDisabled={props.isDisabled}
                     style={[styles.w100, ...props.style]}
                     isLoading={props.isLoading}
                     text={selectedItem.text}
                     onPress={(event) => props.onPress(event, props.options[0].value)}
-                    pressOnEnter
                     large={isButtonSizeLarge}
                     medium={!isButtonSizeLarge}
                     innerStyles={[innerStyleDropButton]}

@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {LogBox, ScrollView, View, Text} from 'react-native';
+import {LogBox, ScrollView, View, Text, ActivityIndicator} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
 import compose from '../../libs/compose';
@@ -34,7 +34,7 @@ const propTypes = {
     onBlur: PropTypes.func,
 
     /** Error text to display */
-    errorText: PropTypes.string,
+    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** Hint text to display */
     hint: PropTypes.string,
@@ -61,6 +61,26 @@ const propTypes = {
     /** Should address search be limited to results in the USA */
     isLimitedToUSA: PropTypes.bool,
 
+    /** A list of predefined places that can be shown when the user isn't searching for something */
+    predefinedPlaces: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** A description of the location (usually the address) */
+            description: PropTypes.string,
+
+            /** Data required by the google auto complete plugin to know where to put the markers on the map */
+            geometry: PropTypes.shape({
+                /** Data about the location */
+                location: PropTypes.shape({
+                    /** Lattitude of the location */
+                    lat: PropTypes.number,
+
+                    /** Longitude of the location */
+                    lng: PropTypes.number,
+                }),
+            }),
+        }),
+    ),
+
     /** A map of inputID key names */
     renamedInputKeys: PropTypes.shape({
         street: PropTypes.string,
@@ -74,6 +94,9 @@ const propTypes = {
 
     /** Maximum number of characters allowed in search input */
     maxInputLength: PropTypes.number,
+
+    /** The result types to return from the Google Places Autocomplete request */
+    resultTypes: PropTypes.string,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -91,7 +114,7 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     containerStyles: [],
-    isLimitedToUSA: true,
+    isLimitedToUSA: false,
     renamedInputKeys: {
         street: 'addressStreet',
         street2: 'addressStreet2',
@@ -102,6 +125,8 @@ const defaultProps = {
         lng: 'addressLng',
     },
     maxInputLength: undefined,
+    predefinedPlaces: [],
+    resultTypes: 'address',
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -109,19 +134,30 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 function AddressSearch(props) {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
     const containerRef = useRef();
     const query = useMemo(
         () => ({
             language: props.preferredLocale,
-            types: 'address',
+            types: props.resultTypes,
             components: props.isLimitedToUSA ? 'country:us' : undefined,
         }),
-        [props.preferredLocale, props.isLimitedToUSA],
+        [props.preferredLocale, props.resultTypes, props.isLimitedToUSA],
     );
 
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
         if (!addressComponents) {
+            // When there are details, but no address_components, this indicates that some predefined options have been passed
+            // to this component which don't match the usual properties coming from auto-complete. In that case, only a limited
+            // amount of data massaging needs to happen for what the parent expects to get from this function.
+            if (_.size(details)) {
+                props.onPress({
+                    address: lodashGet(details, 'description', ''),
+                    lat: lodashGet(details, 'geometry.location.lat', 0),
+                    lng: lodashGet(details, 'geometry.location.lng', 0),
+                });
+            }
             return;
         }
 
@@ -173,14 +209,15 @@ function AddressSearch(props) {
 
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
-
+            // Make sure country is updated first, since city and state will be reset if the country changes
+            country: '',
             // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
             // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
             // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g.
             // Salagatan, Upssala, Sweden).
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
-            country: '',
+
             state: state || stateAutoCompleteFallback,
             lat: lodashGet(details, 'geometry.location.lat', 0),
             lng: lodashGet(details, 'geometry.location.lng', 0),
@@ -250,13 +287,29 @@ function AddressSearch(props) {
                     fetchDetails
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
-                    ListEmptyComponent={
-                        props.network.isOffline ? null : (
+                    predefinedPlaces={props.predefinedPlaces}
+                    listEmptyComponent={
+                        props.network.isOffline || !isTyping ? null : (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
+                        )
+                    }
+                    listLoaderComponent={
+                        <View style={[styles.pv4]}>
+                            <ActivityIndicator
+                                color={themeColors.spinner}
+                                size="small"
+                            />
+                        </View>
+                    }
+                    renderHeaderComponent={() =>
+                        !props.value &&
+                        props.predefinedPlaces && (
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.pt2, styles.ph3, styles.overflowAuto]}>{props.translate('common.recentDestinations')}</Text>
                         )
                     }
                     onPress={(data, details) => {
                         saveLocationDetails(data, details);
+                        setIsTyping(false);
 
                         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                         setDisplayListViewBorder(false);
@@ -264,7 +317,7 @@ function AddressSearch(props) {
                     query={query}
                     requestUrl={{
                         useOnPlatform: 'all',
-                        url: ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
+                        url: props.network.isOffline ? null : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
                     }}
                     textInputProps={{
                         InputComp: TextInput,
@@ -295,14 +348,15 @@ function AddressSearch(props) {
                         },
                         autoComplete: 'off',
                         onInputChange: (text) => {
+                            setIsTyping(true);
                             if (props.inputID) {
                                 props.onInputChange(text);
                             } else {
                                 props.onInputChange({street: text});
                             }
 
-                            // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
-                            if (_.isEmpty(text)) {
+                            // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
+                            if (_.isEmpty(text) && _.isEmpty(props.predefinedPlaces)) {
                                 setDisplayListViewBorder(false);
                             }
                         },

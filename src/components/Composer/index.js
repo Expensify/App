@@ -83,6 +83,9 @@ const propTypes = {
     /** Whether this is the report action compose */
     isReportActionCompose: PropTypes.bool,
 
+    /** Whether the sull composer is open */
+    isComposerFullSize: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -111,6 +114,7 @@ const defaultProps = {
     shouldCalculateCaretPosition: false,
     checkComposerVisibility: () => false,
     isReportActionCompose: false,
+    isComposerFullSize: false,
 };
 
 /**
@@ -161,6 +165,7 @@ function Composer({
     checkComposerVisibility,
     selection: selectionProp,
     isReportActionCompose,
+    isComposerFullSize,
     ...props
 }) {
     const textRef = useRef(null);
@@ -279,7 +284,14 @@ function Composer({
             }
 
             if (textInput.current !== event.target) {
-                return;
+                // To make sure the composer does not capture paste events from other inputs, we check where the event originated
+                // If it did originate in another input, we return early to prevent the composer from handling the paste
+                const isTargetInput = event.target.nodeName === 'INPUT' || event.target.nodeName === 'TEXTAREA' || event.target.contentEditable === 'true';
+                if (isTargetInput) {
+                    return;
+                }
+
+                textInput.current.focus();
             }
 
             event.preventDefault();
@@ -346,7 +358,7 @@ function Composer({
         const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
         setTextInputWidth(computedStyle.width);
 
-        const computedNumberOfLines = ComposerUtils.getNumberOfLines(maxLines, lineHeight, paddingTopAndBottom, textInput.current.scrollHeight);
+        const computedNumberOfLines = ComposerUtils.getNumberOfLines(lineHeight, paddingTopAndBottom, textInput.current.scrollHeight, maxLines);
         const generalNumberOfLines = computedNumberOfLines === 0 ? numberOfLinesProp : computedNumberOfLines;
 
         onNumberOfLinesChange(generalNumberOfLines);
@@ -406,7 +418,6 @@ function Composer({
         <View
             style={{
                 position: 'absolute',
-                bottom: -2000,
                 zIndex: -1,
                 opacity: 0,
             }}
@@ -433,9 +444,9 @@ function Composer({
             numberOfLines < maxLines ? styles.overflowHidden : {},
 
             StyleSheet.flatten([style, {outline: 'none'}]),
-            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp),
+            StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
         ],
-        [style, maxLines, numberOfLinesProp, numberOfLines],
+        [style, maxLines, numberOfLines, isComposerFullSize],
     );
 
     return (

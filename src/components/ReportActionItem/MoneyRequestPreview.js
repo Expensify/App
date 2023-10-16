@@ -23,6 +23,7 @@ import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
@@ -31,6 +32,11 @@ import refPropTypes from '../refPropTypes';
 import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
+import transactionPropTypes from '../transactionPropTypes';
+import * as StyleUtils from '../../styles/StyleUtils';
+import variables from '../../styles/variables';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
+import MoneyRequestSkeletonView from '../MoneyRequestSkeletonView';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -90,6 +96,9 @@ const propTypes = {
         }),
     ),
 
+    /** The transaction attached to the action.message.iouTransactionID */
+    transaction: transactionPropTypes,
+
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
@@ -99,13 +108,13 @@ const propTypes = {
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
 
-    /** Pending action, if any */
-    pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
-
     /** Whether or not an IOU report contains money requests in a different currency
      * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
      */
     shouldShowPendingConversionMessage: PropTypes.bool,
+
+    /** Whether a message is a whisper */
+    isWhisper: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -118,19 +127,23 @@ const defaultProps = {
     checkIfContextMenuActive: () => {},
     containerStyles: [],
     walletTerms: {},
-    pendingAction: null,
     isHovered: false,
     personalDetails: {},
     session: {
         email: null,
     },
+    transaction: {},
     shouldShowPendingConversionMessage: false,
+    isWhisper: false,
 };
 
 function MoneyRequestPreview(props) {
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
+
     const sessionAccountID = lodashGet(props.session, 'accountID', null);
     const managerID = props.iouReport.managerID || '';
     const ownerAccountID = props.iouReport.ownerAccountID || '';
@@ -145,21 +158,31 @@ function MoneyRequestPreview(props) {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const transaction = TransactionUtils.getLinkedTransaction(props.action);
-    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(transaction);
-    const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(props.transaction);
+    const description = requestComment;
+    const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
+    const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
+    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
+    const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
+    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
+    const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
+
+    // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
+    const shouldShowMerchant =
+        !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
+
+    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || '')] : [];
 
     const getSettledMessage = () => {
+        if (isExpensifyCardTransaction) {
+            return props.translate('common.done');
+        }
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
-            case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-                return props.translate('iou.settledPaypalMe');
-            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                return props.translate('iou.settledElsewhere');
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
                 return props.translate('iou.settledExpensify');
             default:
-                return '';
+                return props.translate('iou.settledElsewhere');
         }
     };
 
@@ -168,6 +191,10 @@ function MoneyRequestPreview(props) {
     };
 
     const getPreviewHeaderText = () => {
+        if (isDistanceRequest) {
+            return props.translate('common.distance');
+        }
+
         if (isScanning) {
             return props.translate('common.receipt');
         }
@@ -176,16 +203,28 @@ function MoneyRequestPreview(props) {
             return props.translate('iou.split');
         }
 
+        if (isExpensifyCardTransaction) {
+            let message = props.translate('iou.card');
+            if (TransactionUtils.isPending(props.transaction)) {
+                message += ` • ${props.translate('iou.pending')}`;
+            }
+            return message;
+        }
+
         let message = props.translate('iou.cash');
-        if (props.iouReport.isWaitingOnBankAccount) {
+        if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
+            message += ` • ${props.translate('iou.approved')}`;
+        } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
-        } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
-            message += ` • ${props.translate('iou.settledExpensify')}`;
         }
         return message;
     };
 
     const getDisplayAmountText = () => {
+        if (isDistanceRequest) {
+            return requestAmount ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : props.translate('common.tbd');
+        }
+
         if (isScanning) {
             return props.translate('iou.receiptScanning');
         }
@@ -196,7 +235,6 @@ function MoneyRequestPreview(props) {
     const childContainer = (
         <View>
             <OfflineWithFeedback
-                pendingAction={props.pendingAction}
                 errors={props.walletTerms.errors}
                 onClose={() => {
                     PaymentMethods.clearWalletTermsError();
@@ -205,79 +243,91 @@ function MoneyRequestPreview(props) {
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
             >
-                <View style={[styles.moneyRequestPreviewBox, isScanning ? styles.reportPreviewBoxHoverBorder : undefined, ...props.containerStyles]}>
+                <View
+                    style={[
+                        isScanning || props.isWhisper ? [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius] : undefined,
+                        !props.onPreviewPressed ? [styles.moneyRequestPreviewBox, ...props.containerStyles] : {},
+                    ]}
+                >
                     {hasReceipt && (
                         <ReportActionItemImages
-                            images={[ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename)]}
-                            isHovered={isScanning}
+                            images={receiptImages}
+                            isHovered={props.isHovered || isScanning}
+                            size={1}
                         />
                     )}
-                    <View style={styles.moneyRequestPreviewBoxText}>
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewHeaderText()}</Text>
-                                {Boolean(getSettledMessage()) && (
-                                    <>
-                                        <Icon
-                                            src={Expensicons.DotIndicator}
-                                            width={4}
-                                            height={4}
-                                            additionalStyles={[styles.mr1, styles.ml1]}
-                                        />
-                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getSettledMessage()}</Text>
-                                    </>
+                    {_.isEmpty(props.transaction) &&
+                    !ReportActionsUtils.isMessageDeleted(props.action) &&
+                    lodashGet(props.action, 'pendingAction') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
+                        <MoneyRequestSkeletonView />
+                    ) : (
+                        <View style={styles.moneyRequestPreviewBoxText}>
+                            <View style={[styles.flexRow]}>
+                                <Text style={[styles.textLabelSupporting, styles.lh20, styles.mb1]}>{getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}</Text>
+                                {hasFieldErrors && (
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={themeColors.danger}
+                                    />
                                 )}
                             </View>
-                            <Icon src={Expensicons.ArrowRight} />
-                        </View>
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={styles.textHeadline}>{getDisplayAmountText()}</Text>
-                                {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
-                                    <View style={styles.defaultCheckmarkWrapper}>
-                                        <Icon
-                                            src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
+                            <View style={[styles.flexRow]}>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                    <Text
+                                        style={[
+                                            styles.moneyRequestPreviewAmount,
+                                            StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth),
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {getDisplayAmountText()}
+                                    </Text>
+                                    {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
+                                        <View style={styles.defaultCheckmarkWrapper}>
+                                            <Icon
+                                                src={Expensicons.Checkmark}
+                                                fill={themeColors.iconSuccessFill}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+                                {props.isBillSplit && (
+                                    <View style={styles.moneyRequestPreviewBoxAvatar}>
+                                        <MultipleAvatars
+                                            icons={participantAvatars}
+                                            shouldStackHorizontally
+                                            size="small"
+                                            isHovered={props.isHovered}
+                                            shouldUseCardBackground
                                         />
                                     </View>
                                 )}
                             </View>
-                            {props.isBillSplit && (
-                                <View style={styles.moneyRequestPreviewBoxAvatar}>
-                                    <MultipleAvatars
-                                        icons={participantAvatars}
-                                        shouldStackHorizontally
-                                        size="small"
-                                        isHovered={props.isHovered}
-                                        shouldUseCardBackground
-                                    />
+                            {shouldShowMerchant && (
+                                <View style={[styles.flexRow]}>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>{requestMerchant}</Text>
                                 </View>
                             )}
-                        </View>
-                        {!props.isBillSplit && !_.isEmpty(requestMerchant) && (
-                            <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{requestMerchant}</Text>
-                            </View>
-                        )}
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1]}>
-                                {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                                    <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                            <View style={[styles.flexRow, styles.mt1]}>
+                                <View style={[styles.flex1]}>
+                                    {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
+                                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                                    )}
+                                    {shouldShowDescription && <Text style={[styles.colorMuted]}>{description}</Text>}
+                                </View>
+                                {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
+                                    <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
+                                        {props.translate('iou.amountEach', {
+                                            amount: CurrencyUtils.convertToDisplayString(
+                                                IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
+                                                requestCurrency,
+                                            ),
+                                        })}
+                                    </Text>
                                 )}
-                                {!_.isEmpty(requestComment) && <Text style={[styles.mt1, styles.colorMuted]}>{requestComment}</Text>}
                             </View>
-                            {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
-                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
-                                    {props.translate('iou.amountEach', {
-                                        amount: CurrencyUtils.convertToDisplayString(
-                                            IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
-                                            requestCurrency,
-                                        ),
-                                    })}
-                                </Text>
-                            )}
                         </View>
-                    </View>
+                    )}
                 </View>
             </OfflineWithFeedback>
         </View>
@@ -295,6 +345,7 @@ function MoneyRequestPreview(props) {
             onLongPress={showContextMenu}
             accessibilityLabel={props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
+            style={[styles.moneyRequestPreviewBox, ...props.containerStyles]}
         >
             {childContainer}
         </PressableWithFeedback>
@@ -319,6 +370,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        transaction: {
+            key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action && action.originalMessage && action.originalMessage.IOUTransactionID) || 0}`,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,

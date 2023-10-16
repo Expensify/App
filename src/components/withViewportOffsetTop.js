@@ -1,8 +1,9 @@
-import React, {Component} from 'react';
+import React, {useEffect, forwardRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import addViewportResizeListener from '../libs/VisualViewport';
+import refPropTypes from './refPropTypes';
 
 const viewportOffsetTopPropTypes = {
     // viewportOffsetTop returns the offset of the top edge of the visual viewport from the
@@ -12,54 +13,43 @@ const viewportOffsetTopPropTypes = {
 };
 
 export default function (WrappedComponent) {
-    class WithViewportOffsetTop extends Component {
-        constructor(props) {
-            super(props);
+    function WithViewportOffsetTop(props) {
+        const [viewportOffsetTop, setViewportOffsetTop] = useState(0);
 
-            this.updateDimensions = this.updateDimensions.bind(this);
-
-            this.state = {
-                viewportOffsetTop: 0,
+        useEffect(() => {
+            /**
+             * @param {SyntheticEvent} e
+             */
+            const updateDimensions = (e) => {
+                const targetOffsetTop = lodashGet(e, 'target.offsetTop', 0);
+                setViewportOffsetTop(targetOffsetTop);
             };
-        }
 
-        componentDidMount() {
-            this.removeViewportResizeListener = addViewportResizeListener(this.updateDimensions);
-        }
+            const removeViewportResizeListener = addViewportResizeListener(updateDimensions);
 
-        componentWillUnmount() {
-            this.removeViewportResizeListener();
-        }
+            return () => {
+                removeViewportResizeListener();
+            };
+        }, []);
 
-        /**
-         * @param {SyntheticEvent} e
-         */
-        updateDimensions(e) {
-            const viewportOffsetTop = lodashGet(e, 'target.offsetTop', 0);
-            this.setState({viewportOffsetTop});
-        }
-
-        render() {
-            return (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...this.props}
-                    ref={this.props.forwardedRef}
-                    viewportOffsetTop={this.state.viewportOffsetTop}
-                />
-            );
-        }
+        return (
+            <WrappedComponent
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                ref={props.forwardedRef}
+                viewportOffsetTop={viewportOffsetTop}
+            />
+        );
     }
 
     WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(WrappedComponent)})`;
     WithViewportOffsetTop.propTypes = {
-        // eslint-disable-next-line react/forbid-prop-types
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.any})]),
+        forwardedRef: refPropTypes,
     };
     WithViewportOffsetTop.defaultProps = {
         forwardedRef: undefined,
     };
-    return React.forwardRef((props, ref) => (
+    return forwardRef((props, ref) => (
         <WithViewportOffsetTop
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
