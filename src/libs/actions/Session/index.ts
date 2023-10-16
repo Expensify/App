@@ -596,7 +596,7 @@ function clearAccountMessages() {
     });
 }
 
-function setAccountError(error) {
+function setAccountError(error: string) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {errors: ErrorUtils.getMicroSecondOnyxError(error)});
 }
 
