@@ -112,7 +112,7 @@ function getOldDotURL(screenName, params) {
     }
 
     if (screenName === SCREENS.EXPENSES_OLDDOT || screenName === SCREENS.INSIGHTS_OLDDOT) {
-        return params ? `expenses/${params.param}` : 'expenses';
+        return params ? `expenses/param=${params.param}` : 'expenses';
     }
 
     if (screenName === SCREENS.INDIVIDUAL_WORKSPACE_OLDDOT || screenName === SCREENS.GROUPS_WORKSPACES_OLDDOT) {
@@ -139,7 +139,7 @@ function getOldDotURL(screenName, params) {
         }
 
         const param = {policyID: workspaceID};
-        return `policy/?param${JSON.stringify(param)}#${olddotSection}`;
+        return `policy/?param=${JSON.stringify(param)}#${olddotSection}`;
     }
 
     if (screenName === SCREENS.DOMAINS_OLDDOT) {
@@ -161,7 +161,7 @@ function getOldDotURL(screenName, params) {
                 olddotSection = section;
         }
 
-        return `domain/${olddotSection}`;
+        return `domain_${olddotSection}`;
     }
 
     if (screenName === SCREENS.REPORTS_OLDDOT) {
@@ -188,7 +188,7 @@ function getIframeRouteNameAndParams(state) {
     const routeName = getTopMostCentralPaneRouteName(state);
     if (routeName !== 'Report') {
         const topMostCentralPane = lodashFindLast(state.routes, (route) => route.name === 'CentralPaneNavigator');
-        if (topMostCentralPane.state) {
+        if (topMostCentralPane && topMostCentralPane.state) {
             const params = topMostCentralPane.state.routes[topMostCentralPane.state.index || 0].params;
             return {routeName, params};
         }
@@ -246,8 +246,8 @@ function IFrame({session}) {
     }, [routeName, params]);
 
     useEffect(() => {
-        document.cookie = `authToken=${session.authToken}; domain=expensify.com.dev; path=/;`;
-        document.cookie = `email=${session.email}; domain=expensify.com.dev; path=/;`;
+        document.cookie = `authToken=${session.authToken}; domain=expensify.com.dev; path=/;secure;`;
+        document.cookie = `email=${session.email}; domain=expensify.com.dev; path=/;secure;`;
     }, [session.authToken, session.email]);
 
     const [time] = useState(new Date().getSeconds());
