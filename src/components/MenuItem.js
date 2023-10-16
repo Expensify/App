@@ -25,6 +25,7 @@ import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import RenderHTML from './RenderHTML';
+import UserDetailsTooltip from './UserDetailsTooltip';
 
 const propTypes = menuItemPropTypes;
 
@@ -79,6 +80,8 @@ const defaultProps = {
     shouldRenderAsHTML: false,
     rightComponent: undefined,
     shouldShowRightComponent: false,
+    isTitleUserName: false,
+    titleUserNameId: '',
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -262,7 +265,16 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
                                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.interactive && props.disabled}}
                                                 >
-                                                    {convertToLTR(props.title)}
+                                                    {props.isTitleUserName && props.titleUserNameId ? (
+                                                        <UserDetailsTooltip
+                                                            accountID={props.titleUserNameId}
+                                                            icon={Boolean(props.icon) && _.isArray(props.icon) ? props.icon[0] : undefined}
+                                                        >
+                                                            <Text>{convertToLTR(props.title)}</Text>
+                                                        </UserDetailsTooltip>
+                                                    ) : (
+                                                        convertToLTR(props.title)
+                                                    )}
                                                 </Text>
                                             )}
                                             {Boolean(props.shouldShowTitleIcon) && (

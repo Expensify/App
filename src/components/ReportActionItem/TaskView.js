@@ -52,6 +52,7 @@ function TaskView(props) {
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
+
     return (
         <View>
             <OfflineWithFeedback
@@ -156,6 +157,8 @@ function TaskView(props) {
                             isSmallAvatarSubscriptMenu
                             shouldGreyOutWhenDisabled={false}
                             interactive={!isDisableInteractive}
+                            titleUserNameId={props.report.managerID}
+                            isTitleUserName
                         />
                     </OfflineWithFeedback>
                 ) : (
