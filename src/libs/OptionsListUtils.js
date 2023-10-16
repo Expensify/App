@@ -637,7 +637,9 @@ function hasEnabledOptions(options) {
 }
 
 /**
- * Sorts categories
+ * Sorts categories using a simple object.
+ * It builds an hierarchy (based on an object), where each category has a name and other keys as subcategories.
+ * Via the hierarchy we avoid duplicating and sort categories one by one. Subcategories are being sorted alphabetically.
  *
  * @param {Object<String, {name: String, enabled: Boolean}>} categories
  * @returns {Object[]}
@@ -681,9 +683,7 @@ function sortCategories(categories) {
             [],
         );
 
-    const result = flatHierarchy(hierarchy);
-
-    return result;
+    return flatHierarchy(hierarchy);
 }
 
 /**
@@ -809,11 +809,11 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
     const filteredRecentlyUsedCategories = _.chain(recentlyUsedCategories)
+        .filter((categoryName) => !_.includes(selectedOptionNames, categoryName) && lodashGet(categories, `${categoryName}.enabled`, false))
         .map((categoryName) => ({
             name: categoryName,
             enabled: lodashGet(categories, `${categoryName}.enabled`, false),
         }))
-        .filter((category) => !_.includes(selectedOptionNames, category) && category.enabled)
         .value();
 
     if (!_.isEmpty(filteredRecentlyUsedCategories)) {
