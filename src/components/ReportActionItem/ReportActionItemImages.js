@@ -47,8 +47,10 @@ const defaultProps = {
  */
 
 function ReportActionItemImages({images, size, total, isHovered}) {
-    const numberOfShownImages = size || images.length;
-    const shownImages = images.slice(0, size);
+    // Calculate the number of images to be shown, limited by the value of 'size' (if defined)
+    // or the total number of images.
+    const numberOfShownImages = Math.min(size || images.length, images.length);
+    const shownImages = images.slice(0, numberOfShownImages);
     const remaining = (total || images.length) - size;
     const MAX_REMAINING = 9;
 
