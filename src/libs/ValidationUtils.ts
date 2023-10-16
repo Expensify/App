@@ -383,36 +383,20 @@ const isTimeAtLeastOneMinuteInFuture = (inputTime: string, inputDateTime: string
         return false;
     }
     // Parse the hour and minute from the time input
-    const [hourStr, minuteStr, period] = inputTime.split(/[:\s]+/);
-    let hour = parseInt(hourStr, 10);
+    const [hourStr] = inputTime.split(/[:\s]+/);
+    const hour = parseInt(hourStr, 10);
 
     if (hour === 0) {
         return false;
     }
 
-    // Convert 12-hour format to 24-hour format
-    if (period.toUpperCase() === 'PM' && hour !== 12) {
-        hour += 12;
-    } else if (period.toUpperCase() === 'AM' && hour === 12) {
-        hour = 0;
-    }
-
-    const minute = parseInt(minuteStr, 10);
-
-    // Check if the inputDateTime contains a time portion or is just a date
-    const dateTimeFormat = inputDateTime.includes(':') ? 'yyyy-MM-dd HH:mm:ss' : 'yyyy-MM-dd';
-
-    // Parse the input date and time (or just date) accordingly
-    const parsedInputDateTime = parse(inputDateTime, dateTimeFormat, new Date());
-
-    // Set the hour and minute from the time input to the date from the date-time input
-    const combinedDate = set(parsedInputDateTime, {hours: hour, minutes: minute});
+    const combinedDate = DateUtils.combineDateAndTime(inputTime, inputDateTime);
 
     // Get current date and time
     const now = new Date();
 
     // Check if the combinedDate is at least one minute later than the current date and time
-    return isAfter(combinedDate, addMinutes(now, 1));
+    return isAfter(new Date(combinedDate), addMinutes(now, 1));
 };
 
 /**
@@ -429,7 +413,7 @@ const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): {dateValidati
     }
     const parsedInputData = parseISO(data);
 
-    const dateValidationErrorKey = DateUtils.getDateValidationErrorKey(parsedInputData);
+    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(parsedInputData);
     const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(parsedInputData);
     return {
         dateValidationErrorKey,

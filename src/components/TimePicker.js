@@ -44,8 +44,6 @@ const NUM_PAD_VIEW_ID = 'numPadView';
 
 function formatHour(hourText) {
     // If the integer value of hour is greater than 12, return the second digit with a leading 0
-
-    // return twoDigitHour;
     const hourNumber = parseInt(hourText, 10);
 
     // If the integer value of hour is greater than 12, subtract 10

@@ -19,8 +19,9 @@ import {
     addHours,
     parse,
     set,
-    isSameMinute,
+    isSameSecond,
     isValid,
+    getDayOfYear,
 } from 'date-fns';
 import Onyx from 'react-native-onyx';
 import throttle from 'lodash/throttle';
@@ -512,9 +513,9 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
 };
 
 /**
- * param {String} dateTime // 'HH:mm:ss'
+ * param {String} dateTime in 'HH:mm:ss' format
  * returns {Object}
- * example get12HourTimeObjectFromDate('11:10:00') // {hour: '11', minute: '10', period: 'AM'}
+ * example {hour: '11', minute: '10', period: 'AM'}
  */
 function get12HourTimeObjectFromDate(dateTime: string): {hour: string; minute: string; period: string} {
     if (!dateTime) {
@@ -551,7 +552,7 @@ function areDatesIdentical(dateTimeStringFirst: string, dateTimeStringSecond: st
     const date1 = parse(dateTimeStringFirst, 'yyyy-MM-dd HH:mm:ss', new Date());
     const date2 = parse(dateTimeStringSecond, 'yyyy-MM-dd HH:mm:ss', new Date());
 
-    return isSameMinute(date1, date2);
+    return isSameSecond(date1, date2);
 }
 
 /**
@@ -571,12 +572,12 @@ function hasDateExpired(dateTimeString: string): boolean {
  * param {Date} referenceDate - The date to compare against.
  * returns {string} - Returns an error key if validation fails, otherwise an empty string.
  */
-const getDateValidationErrorKey = (inputDate: Date): string => {
+const getDayValidationErrorKey = (inputDate: Date): string => {
     if (!inputDate) {
         return '';
     }
-    const currentYear = new Date().getFullYear();
-    const inputYear = inputDate.getFullYear();
+    const currentYear = getDayOfYear(new Date());
+    const inputYear = getDayOfYear(inputDate);
     if (inputYear < currentYear) {
         return 'common.error.invalidDateShouldBeFuture';
     }
@@ -590,8 +591,8 @@ const getDateValidationErrorKey = (inputDate: Date): string => {
  * returns {string} - Returns an error key if validation fails, otherwise an empty string.
  */
 const getTimeValidationErrorKey = (inputTime: Date): string => {
-    const startOfCurrentDay = addMinutes(new Date(), 1);
-    if (isBefore(inputTime, startOfCurrentDay)) {
+    const timeNowPlusOneMinute = addMinutes(new Date(), 1);
+    if (isBefore(inputTime, timeNowPlusOneMinute)) {
         return 'common.error.invalidTimeShouldBeFuture';
     }
     return '';
@@ -633,7 +634,7 @@ const DateUtils = {
     getLocalizedTimePeriodDescription,
     hasDateExpired,
     combineDateAndTime,
-    getDateValidationErrorKey,
+    getDayValidationErrorKey,
     getTimeValidationErrorKey,
     isToday,
     isTomorrow,
