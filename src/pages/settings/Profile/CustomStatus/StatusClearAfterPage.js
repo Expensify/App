@@ -164,6 +164,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                     item={item}
                     key={`${index}+${item.value}`}
                     onSelectRow={() => updateMode(item)}
+                    showTooltip={false}
                 />
             )),
         [statusType, updateMode],

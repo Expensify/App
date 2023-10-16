@@ -2,7 +2,7 @@
 import {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import {LineLayer} from 'react-map-gl';
-import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle, StyleSheet} from 'react-native';
 import {CustomAnimation} from 'react-native-animatable';
 import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
@@ -3672,7 +3672,6 @@ const styles = (theme: ThemeDefault) =>
             alignItems: 'center',
             paddingLeft: 10,
             paddingRight: 4,
-            marginBottom: 32,
             alignSelf: 'flex-start',
         },
 
@@ -3881,9 +3880,57 @@ const styles = (theme: ThemeDefault) =>
             fontSize: variables.fontSizeNormal,
             marginRight: 4,
         },
+        timePickerInput: {
+            fontSize: 69,
+            minWidth: 56,
+            alignSelf: 'center',
+        },
+        timePickerWidth100: {
+            width: 100,
+        },
+        timePickerHeight100: {
+            height: 100,
+        },
+        timePickerSemiDot: {
+            fontSize: 69,
+            height: 84,
+        },
+        timePickerSwitcherContainer: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+        },
+        selectionListRadioSeparator: {
+            height: StyleSheet.hairlineWidth,
+            backgroundColor: theme.border,
+            marginHorizontal: 20,
+        },
+
         draggableTopBar: {
             height: 30,
             width: '100%',
+        },
+        menuItemError: {
+            position: 'absolute',
+            bottom: -4,
+            left: 20,
+            right: 20,
+        },
+        formHelperMessage: {
+            height: 32,
+        },
+        timePickerInputExtraSmall: {
+            fontSize: 50,
+        },
+        setTimeFormButtonContainer: {
+            minHeight: 54,
+        },
+        timePickerInputsContainer: {
+            maxHeight: 70,
+        },
+        timePickerButtonErrorText: {
+            position: 'absolute',
+            top: -36,
         },
 
         videoContainer: {

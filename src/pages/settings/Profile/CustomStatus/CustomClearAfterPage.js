@@ -6,7 +6,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Form from '../../../../components/Form';
+import FormProvider from '../../../../components/Form/FormProvider';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as User from '../../../../libs/actions/User';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
@@ -49,7 +49,7 @@ function CustomClearAfterPage({translate, customStatus}) {
                 title={translate('statusPage.date')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
             />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM}
                 onSubmit={onSubmit}
@@ -64,7 +64,7 @@ function CustomClearAfterPage({translate, customStatus}) {
                     defaultValue={DateUtils.extractDate(customClearAfter)}
                     minDate={moment().toDate()}
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
