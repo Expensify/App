@@ -1542,6 +1542,9 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         if (_.isEmpty(linkedTransaction)) {
             return reportActionMessage;
         }
+        if (TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
+            return Localize.translateLocal('iou.receiptScanning');
+        }
         const {amount, currency, comment} = getTransactionDetails(linkedTransaction);
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
         return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment});
