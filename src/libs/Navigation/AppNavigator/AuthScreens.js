@@ -304,9 +304,9 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
                 />
                 <RootStack.Screen
                     name={CONST.DEMO_PAGES.MONEY2020}
-                        options={defaultScreenOptions}
-                        component={DemoSetupPage}
-                    />
+                    options={defaultScreenOptions}
+                    component={DemoSetupPage}
+                />
                 <RootStack.Screen
                     name={SCREENS.REPORT_ATTACHMENTS}
                     options={{
@@ -356,7 +356,7 @@ export default withOnyx({
     lastUpdateIDAppliedToClient: {
         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     },
-demoInfo: {
-                key: ONYXKEYS.DEMO_INFO,
-            },
-        })(AuthScreensMemoized);
+    demoInfo: {
+        key: ONYXKEYS.DEMO_INFO,
+    },
+})(AuthScreensMemoized);
