@@ -1699,15 +1699,23 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
         failureData.push(...oneOnOneFailureData);
     });
 
+    const {
+        amount: transactionAmount,
+        currency: transactionCurrency,
+        created: transactionCreated,
+        merchant: transactionMerchant,
+        comment: transactionComment,
+    } = ReportUtils.getTransactionDetails(updatedTransaction);
+
     API.write(
         'CompleteSplitBill',
         {
             transactionID,
-            amount: updatedTransaction.modifiedAmount,
-            currency: updatedTransaction.modifiedCurrency,
-            created: updatedTransaction.modifiedCreated,
-            merchant: updatedTransaction.modifiedMerchant,
-            comment: updatedTransaction.comment.comment,
+            amount: transactionAmount,
+            currency: transactionCurrency,
+            created: transactionCreated,
+            merchant: transactionMerchant,
+            comment: transactionComment,
             splits: JSON.stringify(splits),
         },
         {optimisticData, successData, failureData},
