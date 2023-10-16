@@ -96,7 +96,7 @@ function MoneyRequestConfirmPage(props) {
     }, [isOffline, participants, props.iou.billable, props.policy]);
 
     useEffect(() => {
-        if (!props.iou.receiptPath || !props.iou.receiptSource) {
+        if (!props.iou.receiptPath || !props.iou.receiptFilename) {
             return;
         }
         FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
