@@ -94,7 +94,7 @@ function IOUCurrencySelection(props) {
          * Do not dismiss the modal, when a current user can edit a money request.
          * To satisfy the condition below:
          * 1. "canEdit" must be "true". It checks common rules like if the user is a requestor or admin, etc.
-         * 2. When the current edit field is the "currency", the money request shouldn't be settled yet.
+         * 2. Settled requests cannot have their amount/currency edited.
          * */
         if (canEdit && !isSettled) {
             return;
