@@ -243,6 +243,7 @@ const CONST = {
         CUSTOM_STATUS: 'customStatus',
         NEW_DOT_CATEGORIES: 'newDotCategories',
         NEW_DOT_TAGS: 'newDotTags',
+        NEW_DOT_SAML: 'newDotSAML',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
