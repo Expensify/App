@@ -14,6 +14,9 @@ const propTypes = {
     /** The text to display in the title of the section */
     title: PropTypes.string.isRequired,
 
+    /** The text to display in the subtitle of the section */
+    subtitle: PropTypes.string,
+
     /** The icon to display along with the title */
     icon: PropTypes.func,
 
@@ -27,6 +30,18 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Customize the Section container */
+    // eslint-disable-next-line react/forbid-prop-types
+    titleStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Customize the Section container */
+    // eslint-disable-next-line react/forbid-prop-types
+    subtitleStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Customize the Section container */
+    // eslint-disable-next-line react/forbid-prop-types
+    childrenStyles: PropTypes.arrayOf(PropTypes.object),
+
     /** Customize the Icon container */
     // eslint-disable-next-line react/forbid-prop-types
     iconContainerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -39,21 +54,24 @@ const defaultProps = {
     IconComponent: null,
     containerStyles: [],
     iconContainerStyles: [],
+    titleStyles: [],
+    subtitleStyles: [],
+    childrenStyles: [],
+    subtitle: null,
 };
 
-function Section(props) {
-    const IconComponent = props.IconComponent;
+function Section({children, childrenStyles, containerStyles, icon, IconComponent, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles}) {
     return (
         <>
-            <View style={[styles.pageWrapper, styles.cardSection, ...props.containerStyles]}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
+            <View style={[styles.pageWrapper, styles.cardSection, ...containerStyles]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, ...titleStyles]}>
                     <View style={[styles.flexShrink1]}>
-                        <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{props.title}</Text>
+                        <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{title}</Text>
                     </View>
-                    <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd, ...props.iconContainerStyles]}>
-                        {Boolean(props.icon) && (
+                    <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd, ...iconContainerStyles]}>
+                        {Boolean(icon) && (
                             <Icon
-                                src={props.icon}
+                                src={icon}
                                 height={68}
                                 width={68}
                             />
@@ -62,9 +80,15 @@ function Section(props) {
                     </View>
                 </View>
 
-                <View style={[styles.w100]}>{props.children}</View>
+                {Boolean(subtitle) && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt4, ...subtitleStyles]}>
+                        <Text style={styles.textNormal}>{subtitle}</Text>
+                    </View>
+                )}
 
-                <View style={[styles.w100]}>{Boolean(props.menuItems) && <MenuItemList menuItems={props.menuItems} />}</View>
+                <View style={[styles.w100, ...childrenStyles]}>{children}</View>
+
+                <View style={[styles.w100]}>{Boolean(menuItems) && <MenuItemList menuItems={menuItems} />}</View>
             </View>
         </>
     );
