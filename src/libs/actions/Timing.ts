@@ -4,15 +4,20 @@ import Firebase from '../Firebase';
 import * as API from '../API';
 import Log from '../Log';
 
-let timestampData = {};
+type TimestampData = {
+    startTime: number;
+    shouldUseFirebase: boolean;
+};
+
+let timestampData: Record<string, TimestampData> = {};
 
 /**
  * Start a performance timing measurement
  *
- * @param {String} eventName
- * @param {Boolean} shouldUseFirebase - adds an additional trace in Firebase
+ * @param eventName
+ * @param shouldUseFirebase - adds an additional trace in Firebase
  */
-function start(eventName, shouldUseFirebase = false) {
+function start(eventName: string, shouldUseFirebase = false) {
     timestampData[eventName] = {startTime: Date.now(), shouldUseFirebase};
 
     if (!shouldUseFirebase) {
@@ -25,11 +30,11 @@ function start(eventName, shouldUseFirebase = false) {
 /**
  * End performance timing. Measure the time between event start/end in milliseconds, and push to Grafana
  *
- * @param {String} eventName - event name used as timestamp key
- * @param {String} [secondaryName] - optional secondary event name, passed to grafana
- * @param {number} [maxExecutionTime] - optional amount of time (ms) to wait before logging a warn
+ * @param eventName - event name used as timestamp key
+ * @param [secondaryName] - optional secondary event name, passed to grafana
+ * @param [maxExecutionTime] - optional amount of time (ms) to wait before logging a warn
  */
-function end(eventName, secondaryName = '', maxExecutionTime = 0) {
+function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
     if (!timestampData[eventName]) {
         return;
     }
