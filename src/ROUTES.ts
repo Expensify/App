@@ -322,7 +322,7 @@ export default {
     // Iframe screens from olddot
     HOME_OLDDOT: 'home',
 
-    // Spend tab
+    // Money tab
     EXPENSES_OLDDOT: 'expenses',
     REPORTS_OLDDOT: 'reports',
     INSIGHTS_OLDDOT: 'insights',
