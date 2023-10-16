@@ -3,6 +3,7 @@ import {View, ActivityIndicator} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import Icon from '../../Icon';
 import * as Expensicons from '../../Icon/Expensicons';
@@ -18,8 +19,11 @@ import AttachmentViewVideo from './AttachmentViewVideo';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
+import * as TransactionUtils from '../../../libs/TransactionUtils';
+import DistanceEReceipt from '../../DistanceEReceipt';
 import useNetwork from '../../../hooks/useNetwork';
 import {usePlaybackContext} from '../../PlaybackContext';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -40,6 +44,10 @@ const propTypes = {
 
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
+
+    /** The id of the transaction related to the attachment */
+    // eslint-disable-next-line react/no-unused-prop-types
+    transactionID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -49,6 +57,7 @@ const defaultProps = {
     onToggleKeyboard: () => {},
     containerStyles: [],
     isWorkspaceAvatar: false,
+    transactionID: '',
 };
 
 function AttachmentView({
@@ -66,6 +75,7 @@ function AttachmentView({
     isFocused,
     isWorkspaceAvatar,
     fallbackSource,
+    transaction,
 }) {
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const [loadComplete, setLoadComplete] = useState(false);
@@ -120,6 +130,10 @@ function AttachmentView({
                 onLoadComplete={() => !loadComplete && setLoadComplete(true)}
             />
         );
+    }
+
+    if (TransactionUtils.isDistanceRequest(transaction)) {
+        return <DistanceEReceipt transaction={transaction} />;
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
@@ -193,4 +207,12 @@ AttachmentView.propTypes = propTypes;
 AttachmentView.defaultProps = defaultProps;
 AttachmentView.displayName = 'AttachmentView';
 
-export default compose(memo, withLocalize)(AttachmentView);
+export default compose(
+    memo,
+    withLocalize,
+    withOnyx({
+        transaction: {
+            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        },
+    }),
+)(AttachmentView);

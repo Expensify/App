@@ -13,6 +13,9 @@ const propTypes = {
 
     /* Callback function passing torch/flashlight capability as bool param of the browser */
     onTorchAvailability: PropTypes.func,
+
+    /* Whether we're in a tab navigator */
+    isInTabNavigator: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {

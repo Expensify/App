@@ -171,6 +171,14 @@ export default {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}`,
     },
+    EDIT_SPLIT_BILL: {
+        route: `r/:reportID/split/:reportActionID/edit/:field`,
+        getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${reportID}/split/${reportActionID}/edit/${field}`,
+    },
+    EDIT_SPLIT_BILL_CURRENCY: {
+        route: 'r/:reportID/split/:reportActionID/edit/currency',
+        getRoute: (reportID: string, reportActionID: string, currency: string, backTo: string) => `r/${reportID}/split/${reportActionID}/edit/currency?currency=${currency}&backTo=${backTo}`,
+    },
     TASK_TITLE: {
         route: 'r/:reportID/title',
         getRoute: (reportID: string) => `r/${reportID}/title`,

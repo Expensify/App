@@ -26,6 +26,9 @@ const ONYXKEYS = {
     /** Boolean flag set whenever the sidebar has loaded */
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
+    /** Boolean flag set whenever we are searching for reports in the server */
+    IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
+
     /** Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe */
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
@@ -46,6 +49,9 @@ const ONYXKEYS = {
 
     // draft status
     CUSTOM_STATUS_DRAFT: 'customStatusDraft',
+
+    // keep edit message focus state
+    INPUT_FOCUSED: 'inputFocused',
 
     /** Contains all the personalDetails the user has access to, keyed by accountID */
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
@@ -249,6 +255,7 @@ const ONYXKEYS = {
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
+        SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
 
         // Manual request tab selector
@@ -311,6 +318,7 @@ type OnyxValues = {
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.CUSTOM_STATUS_DRAFT]: OnyxTypes.CustomStatusDraft;
+    [ONYXKEYS.INPUT_FOCUSED]: boolean;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: Record<string, OnyxTypes.PersonalDetails>;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
