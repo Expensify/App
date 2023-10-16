@@ -43,7 +43,7 @@ function GlobalNavigation() {
             },
             {
                 icon: Expensicons.Building,
-                text: translate('globalNavigation.workspaces'),
+                text: translate('workspace.common.workspace'),
                 value: CONST.GLOBAL_NAVIGATION_OPTION.WORKSPACES,
                 onSelected: () => {
                     Navigation.navigate(ROUTES.INDIVIDUALS_OLDDOT);
@@ -62,7 +62,7 @@ function GlobalNavigation() {
                         key={item.value}
                         icon={item.icon}
                         title={item.text}
-                        onPress={() => item.onSelected(item.value)}
+                        onPress={item.onSelected}
                         isFocused={sidebarNavigation.selectedGlobalNavigationOption === item.value}
                     />
                 ))}

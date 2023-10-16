@@ -74,7 +74,7 @@ function SubNavigation({onLinkClick, insets}) {
             </View>
             <View style={[StyleSheet.absoluteFillObject, StyleUtils.displayIfTrue(sidebarNavigation.selectedGlobalNavigationOption === CONST.GLOBAL_NAVIGATION_OPTION.WORKSPACES)]}>
                 <SubNavigationMenu
-                    title={translate('globalNavigation.workspaces')}
+                    title={translate('workspace.common.workspace')}
                     menuItems={[
                         {
                             icon: Expensicons.User,
