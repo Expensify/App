@@ -18,7 +18,7 @@ const getTopMostReportIDFromRHP = (state) => {
     if (!state) {
         return;
     }
-    const topmostRightPane = lodashFindLast(state.routes, (route) => route.name === 'RightModalNavigator');
+    const topmostRightPane = lodashFindLast(state.routes, (route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
     if (topmostRightPane) {
         return getTopMostReportIDFromRHP(topmostRightPane.state);
