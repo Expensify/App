@@ -440,14 +440,10 @@ function EmojiPickerMenu(props) {
                 <EmojiPickerMenuItem
                     onPress={(emoji) => onEmojiSelected(emoji, item)}
                     onHoverIn={() => {
-                        setHighlightedIndex(index);
-                        setIsUsingKeyboardMovement(false);
-                    }}
-                    onHoverOut={() => {
-                        if (arePointerEventsDisabled) {
+                        if (!isUsingKeyboardMovement) {
                             return;
                         }
-                        setHighlightedIndex(-1);
+                        setIsUsingKeyboardMovement(false);
                     }}
                     emoji={emojiCode}
                     onFocus={() => setHighlightedIndex(index)}
@@ -457,8 +453,6 @@ function EmojiPickerMenu(props) {
                         setHighlightedIndex((prevState) => (prevState === index ? -1 : prevState))
                     }
                     isFocused={isEmojiFocused}
-                    isHighlighted={index === highlightedIndex}
-                    isUsingKeyboardMovement={isUsingKeyboardMovement}
                 />
             );
         },
