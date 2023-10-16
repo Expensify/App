@@ -35,8 +35,8 @@ type WithOnyxKey<TOnyxKey extends OnyxKeys> = <TNewOnyxKey extends string = TOny
 // createOnyxContext return type
 type CreateOnyxContext<TOnyxKey extends OnyxKeys> = [WithOnyxKey<TOnyxKey>, ComponentType<Omit<ProviderPropsWithOnyx<TOnyxKey>, TOnyxKey>>, React.Context<OnyxKeyValue<TOnyxKey>>];
 
-export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey, defaultValue: OnyxKeyValue<TOnyxKey> = null): CreateOnyxContext<TOnyxKey> => {
-    const Context = createContext(defaultValue);
+export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey): CreateOnyxContext<TOnyxKey> => {
+    const Context = createContext<OnyxKeyValue<TOnyxKey>>(null);
     function Provider(props: ProviderPropsWithOnyx<TOnyxKey>): ReactNode {
         return <Context.Provider value={props[onyxKeyName]}>{props.children}</Context.Provider>;
     }
@@ -61,7 +61,7 @@ export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey, defaultValue: 
                         {(value) => {
                             const propsToPass = {
                                 ...props,
-                                [propName ?? onyxKeyName]: (transformValue ? transformValue(value, props) : value) ?? defaultValue,
+                                [propName ?? onyxKeyName]: transformValue ? transformValue(value, props) : value,
                             } as TProps;
 
                             return (
