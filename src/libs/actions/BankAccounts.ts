@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -11,6 +10,7 @@ import * as ReimbursementAccount from './ReimbursementAccount';
 import type PlaidBankAccount from '../../types/onyx/PlaidBankAccount';
 import type {ACHContractStepProps, BankAccountStepProps, CompanyStepProps, OnfidoData, ReimbursementAccountProps, RequestorStepProps} from '../../types/onyx/ReimbursementAccountDraft';
 import type {OnyxData} from '../../types/onyx/Request';
+import type {BankAccountStep, BankAccountSubStep} from '../../types/onyx/ReimbursementAccount';
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -29,9 +29,9 @@ export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTe
 
 type BankAccountCompanyInformation = BankAccountStepProps & CompanyStepProps & ReimbursementAccountProps;
 
-type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP> | '';
+type ReimbursementAccountStep = BankAccountStep | '';
 
-type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP> | '';
+type ReimbursementAccountSubStep = BankAccountSubStep | '';
 
 function clearPlaid(): Promise<void> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
@@ -67,7 +67,7 @@ function clearOnfidoToken() {
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  */
-function getVBBADataForOnyx(currentStep: BankAccountStep = undefined): OnyxData {
+function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
     return {
         optimisticData: [
             {
@@ -285,7 +285,7 @@ function validateBankAccount(bankAccountID: number, validateCode: string) {
     API.write('ValidateBankAccountWithTransactions', parameters, onyxData);
 }
 
-function openReimbursementAccountPage(stepToOpen: BankAccountStep, subStep: BankAccountSubStep, localCurrentStep: BankAccountStep) {
+function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subStep: ReimbursementAccountSubStep, localCurrentStep: ReimbursementAccountStep) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -317,9 +317,9 @@ function openReimbursementAccountPage(stepToOpen: BankAccountStep, subStep: Bank
     };
 
     type OpenReimbursementAccountPageParams = {
-        stepToOpen: BankAccountStep;
-        subStep: BankAccountSubStep;
-        localCurrentStep: BankAccountStep;
+        stepToOpen: ReimbursementAccountStep;
+        subStep: ReimbursementAccountSubStep;
+        localCurrentStep: ReimbursementAccountStep;
     };
 
     const parameters: OpenReimbursementAccountPageParams = {
