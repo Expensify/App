@@ -80,7 +80,7 @@ const getActiveRouteIndex = function (route, index) {
 /**
  * Main navigation method for redirecting to a route.
  * @param {String} route
- * @param {String} type - Type of action to perform. Currently UP is supported.
+ * @param {String} [type] - Type of action to perform. Currently UP is supported.
  */
 function navigate(route = ROUTES.HOME, type) {
     if (!canNavigate('navigate', {route})) {
