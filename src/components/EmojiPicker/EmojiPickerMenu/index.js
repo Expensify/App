@@ -461,7 +461,7 @@ class EmojiPickerMenu extends Component {
                     if (!this.state.isUsingKeyboardMovement) {
                         return;
                     }
-                    this.setState({highlightedIndex: -1, isUsingKeyboardMovement: false});
+                    this.setState({isUsingKeyboardMovement: false});
                 }}
                 emoji={emojiCode}
                 onFocus={() => this.setState({highlightedIndex: index})}
