@@ -77,8 +77,8 @@ function VideoPlayerControls({duration, position, updatePostiion, togglePlay, en
                     <IconButton
                         src={Expensicons.ThreeDots}
                         fill="white"
-                        accessibilityLabel="more options"
-                        onPress={() => toggleCreateMenu()}
+                        accessibilityLabel="More options"
+                        onPress={(e) => toggleCreateMenu(e)}
                     />
                 </View>
             </View>

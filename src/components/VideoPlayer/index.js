@@ -49,6 +49,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const [position, setPosition] = React.useState(0);
 
     const [isPlaybackMenuActive, setIsPlaybackMenuActive] = React.useState(false);
+    const [popoverAnchorPosition, setPopoverAnchorPosition] = React.useState({vertical: 0, horizontal: 0});
 
     const [isCreateMenuActive, setIsCreateMenuActive] = React.useState(false);
     const anchorRef = React.useRef(null);
@@ -77,10 +78,11 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const hideCreateMenu = () => {
         setIsCreateMenuActive(false);
     };
-    const toggleCreateMenu = () => {
+    const toggleCreateMenu = (e) => {
         if (isCreateMenuActive) {
             hideCreateMenu();
         } else {
+            setPopoverAnchorPosition({vertical: e.nativeEvent.pageY, horizontal: e.nativeEvent.pageX});
             showCreateMenu();
         }
     };
@@ -103,18 +105,6 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                 setIsPlaybackMenuActive(true);
             },
             shouldShowRightIcon: true,
-        },
-    ];
-
-    const playbackSpeedMenuItems = [
-        {
-            icon: Expensicons.Download,
-            text: 'TEST',
-            onSelected: () => {
-                console.log('Download');
-
-                hideCreateMenu();
-            },
         },
     ];
 
@@ -172,7 +162,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                         onClose={hideCreateMenu}
                         onItemSelected={hideCreateMenu}
                         isVisible={isCreateMenuActive}
-                        anchorPosition={{horizontal: 0, vertical: 0}}
+                        anchorPosition={popoverAnchorPosition}
                         fromSidebarMediumScreen={!isSmallScreenWidth}
                         menuItems={menuItems}
                         withoutOverlay
