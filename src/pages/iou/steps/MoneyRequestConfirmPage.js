@@ -99,7 +99,7 @@ function MoneyRequestConfirmPage(props) {
         if (!props.iou.receiptPath || !props.iou.receiptFilename) {
             return;
         }
-        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((file) => {
+        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((file) => {
             if (!file) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current));
             } else {
