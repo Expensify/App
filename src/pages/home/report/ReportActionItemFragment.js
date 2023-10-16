@@ -68,6 +68,7 @@ const propTypes = {
     /** localization props */
     ...withLocalizePropTypes,
 
+    /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: PropTypes.bool,
 };
 
@@ -91,6 +92,8 @@ const defaultProps = {
 function ReportActionItemFragment(props) {
     /**
      * Checks text element for presence of emoji as first characyter
+     * and insert Zero-Width character to avoid selection issue
+     * mentioned here https://github.com/Expensify/App/issues/29021
      *
      * @param {String} text
      * @param {Boolean} displayAsGroup
