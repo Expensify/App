@@ -125,6 +125,11 @@ const defaultProps = {
  * @param {Object} item
  */
 function dismissError(item) {
+    // Users can't dismiss company card errors because there's nothing they can do about it besides contacting their admin
+    if (item.canDismissError === false) {
+        return;
+    }
+
     const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT;
     const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
     const paymentID = isBankAccount ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
@@ -210,6 +215,8 @@ function PaymentMethodList({
                     description: card.domainName,
                     onPress: isCompanyCard ? () => {} : () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(card.domainName)),
                     shouldShowRightIcon: !isCompanyCard,
+                    interactive: !isCompanyCard,
+                    canDismissError: !isCompanyCard,
                     ...icon,
                 };
             });
@@ -277,6 +284,7 @@ function PaymentMethodList({
                 pendingAction={item.pendingAction}
                 errors={item.errors}
                 errorRowStyles={styles.ph6}
+                canDismissError={item.canDismissError}
             >
                 <MenuItem
                     onPress={item.onPress}
@@ -292,6 +300,7 @@ function PaymentMethodList({
                     shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID === item.methodID}
+                    interactive={item.interactive}
                 />
             </OfflineWithFeedback>
         ),
