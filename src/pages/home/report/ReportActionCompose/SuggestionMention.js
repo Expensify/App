@@ -234,10 +234,7 @@ function SuggestionMention({
 
     useEffect(() => {
         calculateMentionSuggestion(selection.end);
-
-        // We want this hook to run only on selection change.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selection]);
+    }, [selection, calculateMentionSuggestion]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -259,6 +256,8 @@ function SuggestionMention({
         setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}));
     }, []);
 
+    const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+
     useImperativeHandle(
         forwardedRef,
         () => ({
@@ -266,8 +265,9 @@ function SuggestionMention({
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
+            getSuggestions,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     if (!isMentionSuggestionsMenuVisible) {

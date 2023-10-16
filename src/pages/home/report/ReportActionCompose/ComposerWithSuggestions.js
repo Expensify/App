@@ -22,6 +22,7 @@ import usePrevious from '../../../../hooks/usePrevious';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import * as User from '../../../../libs/actions/User';
 import * as ReportUtils from '../../../../libs/ReportUtils';
+import * as SuggestionUtils from '../../../../libs/SuggestionUtils';
 import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import SilentCommentUpdater from './SilentCommentUpdater';
@@ -34,6 +35,7 @@ import {propTypes, defaultProps} from './composerWithSuggestionsProps';
 import focusWithDelay from '../../../../libs/focusWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
 import setDraftStatusForReportID from '../../../../libs/actions/DraftReports';
+import * as InputFocus from '../../../../libs/actions/InputFocus';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -91,20 +93,28 @@ function ComposerWithSuggestions({
     isFullComposerAvailable,
     setIsFullComposerAvailable,
     setIsCommentEmpty,
-    submitForm,
+    handleSendMessage,
     shouldShowComposeInput,
     measureParentContainer,
+    listHeight,
     // Refs
     suggestionsRef,
     animatedRef,
     forwardedRef,
     isNextModalWillOpenRef,
+    editFocused,
 }) {
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
-
-    const [value, setValue] = useState(() => getDraftComment(reportID) || '');
+    const emojisPresentBefore = useRef([]);
+    const [value, setValue] = useState(() => {
+        const draft = getDraftComment(reportID) || '';
+        if (draft) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(draft);
+        }
+        return draft;
+    });
     const commentRef = useRef(value);
 
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -128,6 +138,11 @@ function ComposerWithSuggestions({
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
+    const suggestions = lodashGet(suggestionsRef, 'current.getSuggestions', () => [])();
+
+    const hasEnoughSpaceForLargeSuggestion = SuggestionUtils.hasEnoughSpaceForLargeSuggestionMenu(listHeight, composerHeight, suggestions.length);
+
+    const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
@@ -154,14 +169,6 @@ function ComposerWithSuggestions({
         isScrollLikelyLayoutTriggered.current = true;
         debouncedLowerIsScrollLikelyLayoutTriggered();
     }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
-
-    const onInsertedEmoji = useCallback(
-        (emojiObject) => {
-            insertedEmojisRef.current = [...insertedEmojisRef.current, emojiObject];
-            debouncedUpdateFrequentlyUsedEmojis(emojiObject);
-        },
-        [debouncedUpdateFrequentlyUsedEmojis],
-    );
 
     /**
      * Set the TextInput Ref
@@ -207,8 +214,11 @@ function ComposerWithSuggestions({
             const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
-                insertedEmojisRef.current = [...insertedEmojisRef.current, ...emojis];
-                debouncedUpdateFrequentlyUsedEmojis();
+                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
+                if (!_.isEmpty(newEmojis)) {
+                    insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
+                    debouncedUpdateFrequentlyUsedEmojis();
+                }
             }
 
             const isNewCommentEmpty = !!newComment.match(/^(\s)*$/);
@@ -218,6 +228,7 @@ function ComposerWithSuggestions({
             if (isNewCommentEmpty !== isPrevCommentEmpty) {
                 setIsCommentEmpty(isNewCommentEmpty);
             }
+            emojisPresentBefore.current = emojis;
             setValue(newComment);
             if (commentValue !== newComment) {
                 // Ensure emoji suggestions are hidden even when the selection is not changed (so calculateEmojiSuggestion would not be called).
@@ -334,7 +345,7 @@ function ComposerWithSuggestions({
             // Submit the form when Enter is pressed
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
                 e.preventDefault();
-                submitForm();
+                handleSendMessage();
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
@@ -353,7 +364,7 @@ function ComposerWithSuggestions({
                 }
             }
         },
-        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, submitForm, suggestionsRef, valueRef],
+        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
     );
 
     const onSelectionChange = useCallback(
@@ -378,6 +389,7 @@ function ComposerWithSuggestions({
         if (!suggestionsRef.current) {
             return false;
         }
+        InputFocus.inputFocusChange(false);
         return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
 
@@ -484,9 +496,12 @@ function ComposerWithSuggestions({
             return;
         }
 
+        if (editFocused) {
+            InputFocus.inputFocusChange(false);
+            return;
+        }
         focus();
-    }, [focus, prevIsFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
-
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
     useEffect(() => {
         if (value.length === 0) {
             return;
@@ -555,8 +570,8 @@ function ComposerWithSuggestions({
                 isComposerFullSize={isComposerFullSize}
                 updateComment={updateComment}
                 composerHeight={composerHeight}
-                onInsertedEmoji={onInsertedEmoji}
                 measureParentContainer={measureParentContainer}
+                isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
                 // Input
                 value={value}
                 setValue={setValue}
@@ -595,6 +610,9 @@ export default compose(
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             selector: EmojiUtils.getPreferredSkinToneIndex,
+        },
+        editFocused: {
+            key: ONYXKEYS.INPUT_FOCUSED,
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,

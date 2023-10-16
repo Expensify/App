@@ -8,7 +8,6 @@ import {withReportCommentDrafts} from '../OnyxProvider';
 import SidebarUtils from '../../libs/SidebarUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../withCurrentReportID';
 import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
 import * as UserUtils from '../../libs/UserUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
@@ -21,8 +20,8 @@ import setDraftStatusForReportID from '../../libs/actions/DraftReports';
 import DraftReportUtils from '../../libs/DraftReportUtils';
 
 const propTypes = {
-    /** If true will disable ever setting the OptionRowLHN to focused */
-    shouldDisableFocusOptions: PropTypes.bool,
+    /** Whether row should be focused */
+    isFocused: PropTypes.bool,
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -52,20 +51,17 @@ const propTypes = {
         /** The ID of the transaction */
         transactionID: PropTypes.string,
     }),
-
-    ...withCurrentReportIDPropTypes,
     ...basePropTypes,
 };
 
 const defaultProps = {
-    shouldDisableFocusOptions: false,
+    isFocused: false,
     personalDetails: {},
     fullReport: {},
     policy: {},
     parentReportActions: {},
     transaction: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
-    ...withCurrentReportIDDefaultProps,
     ...baseDefaultProps,
 };
 
@@ -76,8 +72,7 @@ const defaultProps = {
  * re-render if the data really changed.
  */
 function OptionRowLHNData({
-    shouldDisableFocusOptions,
-    currentReportID,
+    isFocused,
     fullReport,
     reportActions,
     personalDetails,
@@ -90,9 +85,6 @@ function OptionRowLHNData({
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
-    // We only want to pass a boolean to the memoized component,
-    // instead of a changing number (so we prevent unnecessary re-renders).
-    const isFocused = !shouldDisableFocusOptions && currentReportID === reportID;
 
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
@@ -176,7 +168,6 @@ const personalDetailsSelector = (personalDetails) =>
  */
 export default React.memo(
     compose(
-        withCurrentReportID,
         withReportCommentDrafts({
             propName: 'comment',
             transformValue: (drafts, props) => {
@@ -186,7 +177,7 @@ export default React.memo(
         }),
         withOnyx({
             fullReport: {
-                key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
+                key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             },
             reportActions: {
                 key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,

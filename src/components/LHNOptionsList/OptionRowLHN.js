@@ -1,9 +1,10 @@
 import _ from 'underscore';
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -27,6 +28,7 @@ import useLocalize from '../../hooks/useLocalize';
 import Permissions from '../../libs/Permissions';
 import Tooltip from '../Tooltip';
 import ONYXKEYS from '../../ONYXKEYS';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Style for hovered state */
@@ -59,7 +61,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    hoverStyle: styles.sidebarLinkHover,
+    hoverStyle: styles.sidebarLinkHoverLHN,
     viewMode: 'default',
     onSelectRow: () => {},
     style: null,
@@ -71,11 +73,22 @@ const defaultProps = {
 
 function OptionRowLHN(props) {
     const popoverAnchor = useRef(null);
+    const isFocusedRef = useRef(true);
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const {translate} = useLocalize();
 
     const optionItem = props.optionItem;
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            isFocusedRef.current = true;
+            return () => {
+                isFocusedRef.current = false;
+            };
+        }, []),
+    );
 
     if (!optionItem) {
         return null;
@@ -103,17 +116,12 @@ function OptionRowLHN(props) {
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
     const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : themeColors.sidebar;
-    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const focusedBackgroundColor = styles.sidebarLinkActiveLHN.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const shouldShowGreenDotIndicator =
         !hasBrickError && (optionItem.isUnreadWithMention || optionItem.isWaitingForTaskCompleteFromAssignee || ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
-
-    const fullTitle =
-        optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.isArchivedRoom && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 1
-            ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips)
-            : optionItem.text;
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -121,6 +129,9 @@ function OptionRowLHN(props) {
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
+        if (!isFocusedRef.current && isSmallScreenWidth) {
+            return;
+        }
         setIsContextMenuActive(true);
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
@@ -167,13 +178,15 @@ function OptionRowLHN(props) {
                             props.onSelectRow(optionItem, popoverAnchor);
                         }}
                         onMouseDown={(e) => {
-                            if (!e) {
+                            // Allow composer blur on right click
+                            if (!e || e.button === 2) {
                                 return;
                             }
 
-                            // Prevent losing Composer focus
+                            // Prevent composer blur on left click
                             e.preventDefault();
                         }}
+                        testID={optionItem.reportID}
                         onSecondaryInteraction={(e) => showPopover(e)}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
@@ -181,8 +194,8 @@ function OptionRowLHN(props) {
                             styles.flexRow,
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
-                            styles.sidebarLink,
-                            styles.sidebarLinkInner,
+                            styles.sidebarLinkLHN,
+                            styles.sidebarLinkInnerLHN,
                             StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
                             (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
@@ -218,7 +231,7 @@ function OptionRowLHN(props) {
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
                                             accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={fullTitle}
+                                            fullTitle={optionItem.text}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
