@@ -11,4 +11,4 @@ export default {
     MULTIPLE_EVENT_TYPE: {
         ONYX_API_UPDATE: 'onyxApiUpdate',
     },
-};
+} as const;

@@ -1,6 +1,7 @@
 import {InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import lodashDebounce from 'lodash/debounce';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -1429,8 +1430,9 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
  * @param {String} visibility
  * @param {Array<Number>} policyMembersAccountIDs
  * @param {String} writeCapability
+ * @param {String} welcomeMessage
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL) {
+function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL, welcomeMessage = '') {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
     const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);
@@ -1447,6 +1449,9 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
 
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+        '',
+        '',
+        welcomeMessage,
     );
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
 
@@ -1511,6 +1516,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
             writeCapability,
+            welcomeMessage,
         },
         {optimisticData, successData, failureData},
     );
@@ -1883,7 +1889,6 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
  * @param {Boolean} isAuthenticated
  */
 function openReportFromDeepLink(url, isAuthenticated) {
-    const route = ReportUtils.getRouteFromLink(url);
     const reportID = ReportUtils.getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
@@ -1902,11 +1907,16 @@ function openReportFromDeepLink(url, isAuthenticated) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            if (route === ROUTES.CONCIERGE) {
-                navigateToConciergeChat(true);
-                return;
-            }
-            Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
+            Navigation.waitForProtectedRoutes()
+                .then(() => {
+                    const route = ReportUtils.getRouteFromLink(url);
+                    if (route === ROUTES.CONCIERGE) {
+                        navigateToConciergeChat(true);
+                        return;
+                    }
+                    Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
+                })
+                .catch((error) => Log.warn(error.message));
         });
     });
 }
@@ -2217,7 +2227,63 @@ function savePrivateNotesDraft(reportID, note) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${reportID}`, note);
 }
 
+/**
+ * @private
+ * @param {string} searchInput
+ */
+function searchForReports(searchInput) {
+    // We do not try to make this request while offline because it sets a loading indicator optimistically
+    if (isNetworkOffline) {
+        Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
+        return;
+    }
+
+    API.read(
+        'SearchForReports',
+        {searchInput},
+        {
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+                    value: false,
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+                    value: false,
+                },
+            ],
+        },
+    );
+}
+
+/**
+ * @private
+ * @param {string} searchInput
+ */
+const debouncedSearchInServer = lodashDebounce(searchForReports, CONST.TIMING.SEARCH_FOR_REPORTS_DEBOUNCE_TIME, {leading: false});
+
+/**
+ * @param {string} searchInput
+ */
+function searchInServer(searchInput) {
+    if (isNetworkOffline) {
+        Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
+        return;
+    }
+
+    // Why not set this in optimistic data? It won't run until the API request happens and while the API request is debounced
+    // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
+    // tell the user there are no options, then we start searching, and tell them there are no options again.
+    Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
+    debouncedSearchInServer(searchInput);
+}
+
 export {
+    searchInServer,
     addComment,
     addAttachment,
     reconnect,
