@@ -50,7 +50,7 @@ function HeaderWithBackButton({
     shouldEnableDetailPageNavigation = false,
     children = null,
     shouldOverlay = false,
-    singleExecution = (func) =>  func,
+    singleExecution = (func) => func,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
