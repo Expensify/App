@@ -15,6 +15,9 @@ type PersonalBankAccount = {
 
     /** Any reportID we should redirect to at the end of the flow */
     exitReportID?: string;
+
+    /** Whether after adding a bank account we should continue with the KYC flow */
+    shouldContinueKYCOnSuccess?: boolean;
 };
 
 export default PersonalBankAccount;
