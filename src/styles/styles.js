@@ -1463,7 +1463,7 @@ const styles = (theme) => ({
     },
 
     sidebarLinkActiveLHN: {
-        backgroundColor: theme.highlightBG,
+        backgroundColor: theme.activeComponentBG,
         textDecorationLine: 'none',
     },
 
@@ -3670,7 +3670,7 @@ const styles = (theme) => ({
     },
 
     emojiStatusLHN: {
-        fontSize: 22
+        fontSize: 22,
     },
     sidebarStatusAvatarContainer: {
         height: 44,
