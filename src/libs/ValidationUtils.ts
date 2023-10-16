@@ -1,4 +1,4 @@
-import {subYears, addYears, addMinutes, startOfDay, endOfMonth, isAfter, isBefore, isValid, isWithinInterval, isSameDay, parse, set, format, parseISO} from 'date-fns';
+import {subYears, addYears, addMinutes, startOfDay, endOfMonth, isAfter, isBefore, isValid, isWithinInterval, isSameDay, parse, format, parseISO} from 'date-fns';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import isDate from 'lodash/isDate';

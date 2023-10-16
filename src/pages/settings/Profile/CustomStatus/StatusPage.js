@@ -128,7 +128,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 style={styles.flexGrow1}
                 ref={formRef}
                 submitButtonText={localize.translate('statusPage.save')}
-                submitButtonStyle={styles.mh5}
+                submitButtonStyles={[styles.mh5]}
                 onSubmit={updateStatus}
                 validate={validateForm}
                 enabledWhenOffline
