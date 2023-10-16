@@ -80,6 +80,12 @@ const propTypes = {
     /** IOU Tag */
     iouTag: PropTypes.string,
 
+    /** IOU isBillable */
+    iouIsBillable: PropTypes.bool,
+
+    /** Callback to toggle the billable state */
+    onToggleBillable: PropTypes.func,
+
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
@@ -141,6 +147,9 @@ const propTypes = {
     /** Whether the money request is a distance request */
     isDistanceRequest: PropTypes.bool,
 
+    /** Whether the money request is a scan request */
+    isScanRequest: PropTypes.bool,
+
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields: PropTypes.bool,
 
@@ -162,6 +171,8 @@ const defaultProps = {
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     iouCategory: '',
     iouTag: '',
+    iouIsBillable: false,
+    onToggleBillable: () => {},
     payeePersonalDetails: null,
     canModifyParticipants: false,
     isReadOnly: false,
@@ -182,6 +193,7 @@ const defaultProps = {
     transaction: {},
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
     isDistanceRequest: false,
+    isScanRequest: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
 };
@@ -197,6 +209,8 @@ function MoneyRequestConfirmationList(props) {
     const isSplitBill = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
     const isTypeSend = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
 
+    const isSplitWithScan = isSplitBill && props.isScanRequest;
+
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
@@ -211,9 +225,9 @@ function MoneyRequestConfirmationList(props) {
     // Do not hide fields in case of send money request
     const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields || !props.shouldShowSmartScanFields || isTypeSend || props.isEditingSplitBill;
 
-    // In Send Money flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
-    const shouldShowDate = shouldShowAllFields && !isTypeSend;
-    const shouldShowMerchant = shouldShowAllFields && !isTypeSend && !props.isDistanceRequest;
+    // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
+    const shouldShowDate = shouldShowAllFields && !isTypeSend && !isSplitWithScan;
+    const shouldShowMerchant = shouldShowAllFields && !isTypeSend && !props.isDistanceRequest && !isSplitWithScan;
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(props.policyTags);
