@@ -70,8 +70,8 @@ const defaultProps = {
 };
 
 function SplitBillDetailsPage(props) {
-    const {translate} = useLocalize();
     const {reportID} = props.report;
+    const {translate} = useLocalize();
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
 
