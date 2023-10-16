@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 
 const propTypes = {
     children: PropTypes.node.isRequired,
@@ -25,7 +24,9 @@ function PopoverContextProvider(props) {
         }
 
         activePopoverRef.current.close();
-        lodashGet(activePopoverRef, 'current.onCloseCallback', () => {})();
+        if (activePopoverRef && activePopoverRef.current && activePopoverRef.current.onCloseCallback) {
+            activePopoverRef.current.onCloseCallback();
+        }
         activePopoverRef.current = null;
         setIsOpen(false);
     }, []);
@@ -109,7 +110,9 @@ function PopoverContextProvider(props) {
                 closePopover(activePopoverRef.current.anchorRef);
             }
             activePopoverRef.current = popoverParams;
-            lodashGet(activePopoverRef, 'current.onOpenCallback', () => {})();
+            if (popoverParams && popoverParams.onOpenCallback) {
+                popoverParams.onOpenCallback();
+            }
             setIsOpen(true);
         },
         [closePopover],
