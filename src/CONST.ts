@@ -472,6 +472,7 @@ const CONST = {
         HAND_ICON_HEIGHT: 152,
         HAND_ICON_WIDTH: 200,
         SHUTTER_SIZE: 90,
+        MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
