@@ -7,11 +7,7 @@ import type {PersonalDetails, Session} from '../types/onyx';
 
 type CurrentUserPersonalDetails = PersonalDetails | Record<string, never>;
 
-type WithCurrentUserPersonalDetailsProps = {
-    currentUserPersonalDetails: CurrentUserPersonalDetails;
-};
-
-type WithCurrentUserPersonalDetailsComponentProps = {
+type OnyxProps = {
     /** Personal details of all the users, including current user */
     personalDetails: Record<string, PersonalDetails> | null;
 
@@ -19,17 +15,25 @@ type WithCurrentUserPersonalDetailsComponentProps = {
     session: OnyxEntry<Session>;
 };
 
+type HOCProps = {
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+};
+
+type ComponentProps = OnyxProps & HOCProps;
+
 // TODO: remove when all components that use it will be migrated to TS
 const withCurrentUserPersonalDetailsPropTypes = {
     currentUserPersonalDetails: personalDetailsPropType,
 };
 
-const withCurrentUserPersonalDetailsDefaultProps: WithCurrentUserPersonalDetailsProps = {
+const withCurrentUserPersonalDetailsDefaultProps: HOCProps = {
     currentUserPersonalDetails: {},
 };
 
-export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
-    function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps> & WithCurrentUserPersonalDetailsComponentProps, ref: ForwardedRef<TRef>) {
+export default function <TProps extends ComponentProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): ComponentType<Omit<Omit<TProps, keyof HOCProps> & RefAttributes<TRef>, keyof OnyxProps>> {
+    function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof HOCProps>, ref: ForwardedRef<TRef>) {
         const accountID = props.session?.accountID ?? 0;
         const accountPersonalDetails = props.personalDetails?.[accountID];
         const currentUserPersonalDetails: CurrentUserPersonalDetails = useMemo(
@@ -39,7 +43,7 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRe
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as TProps & WithCurrentUserPersonalDetailsComponentProps)}
+                {...(props as TProps)}
                 ref={ref}
                 currentUserPersonalDetails={currentUserPersonalDetails}
             />
@@ -50,7 +54,7 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRe
 
     const withCurrentUserPersonalDetails = React.forwardRef(WithCurrentUserPersonalDetails);
 
-    return withOnyx<Omit<TProps, keyof WithCurrentUserPersonalDetailsProps> & WithCurrentUserPersonalDetailsComponentProps, WithCurrentUserPersonalDetailsComponentProps>({
+    return withOnyx<Omit<TProps, keyof HOCProps> & RefAttributes<TRef>, OnyxProps>({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
