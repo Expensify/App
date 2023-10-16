@@ -170,7 +170,6 @@ function dismissModal(targetReportID) {
     switch (lastRoute.name) {
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
         case SCREENS.NOT_FOUND:
-        case SCREENS.MOBILE_TEMP_SCREEN: // Go to Home Screen when clicked on `Go Back Home` on PlaceHolder screen
         case SCREENS.REPORT_ATTACHMENTS:
             // if we are not in the target report, we need to navigate to it after dismissing the modal
             if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {

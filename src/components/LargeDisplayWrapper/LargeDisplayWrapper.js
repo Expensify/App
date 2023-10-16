@@ -24,7 +24,7 @@ const propTypes = {
 const defaultProps = {
     children: null,
     shouldBlockContent: undefined,
-    onLinkPress: () => Navigation.dismissModal(),
+    onLinkPress: () => Navigation.goBack(),
 };
 
 function LargeDisplayWrapper({onLinkPress, children, shouldBlockContent}) {
