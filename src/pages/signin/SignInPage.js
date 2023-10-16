@@ -71,9 +71,9 @@ const defaultProps = {
  */
 function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, hasEmailDeliveryFailure, isClientTheLeader}) {
     const shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
-    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure;
-    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
-    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure;
+    const shouldShowEmailDeliveryFailurePage = isClientTheLeader && hasLogin && hasEmailDeliveryFailure;
+    const isUnvalidatedSecondaryLogin = isClientTheLeader && hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
+    const shouldShowValidateCodeForm = isClientTheLeader && hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
     const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || !isClientTheLeader;
     return {
