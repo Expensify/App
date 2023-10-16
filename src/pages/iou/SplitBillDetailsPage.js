@@ -15,6 +15,7 @@ import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import reportPropTypes from '../reportPropTypes';
 import transactionPropTypes from '../../components/transactionPropTypes';
 import withReportAndReportActionOrNotFound from '../home/report/withReportAndReportActionOrNotFound';
+import useLocalize from '../../hooks/useLocalize';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as IOU from '../../libs/actions/IOU';
@@ -41,7 +42,7 @@ const propTypes = {
     transaction: transactionPropTypes.isRequired,
 
     /** The draft transaction that holds data to be persisited on the current transaction */
-    draftTransaction: PropTypes.shape(transactionPropTypes),
+    draftTransaction: transactionPropTypes,
 
     /** Route params */
     route: PropTypes.shape({
@@ -92,10 +93,9 @@ function SplitBillDetailsPage(props) {
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
 
-    const isScanning =
-        TransactionUtils.hasReceipt(props.transaction) && TransactionUtils.isReceiptBeingScanned(props.transaction) && TransactionUtils.areRequiredFieldsEmpty(props.transaction);
+    const isScanning = TransactionUtils.hasReceipt(props.transaction) && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasSmartScanFailed = TransactionUtils.hasReceipt(props.transaction) && props.transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANFAILED;
-    const isEditingSplitBill = props.session.accountID === reportAction.actorAccountID && (TransactionUtils.areRequiredFieldsEmpty(props.transaction) || hasSmartScanFailed);
+    const isEditingSplitBill = props.session.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(props.transaction);
 
     const {
         amount: splitAmount,
@@ -143,7 +143,6 @@ function SplitBillDetailsPage(props) {
                             receiptPath={props.transaction.receipt && props.transaction.receipt.source}
                             receiptFilename={props.transaction.filename}
                             shouldShowFooter={false}
-                            isScanning={isScanning}
                             isEditingSplitBill={isEditingSplitBill}
                             hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
