@@ -32,7 +32,15 @@ const defaultProps = {
 function ActivateStep(props) {
     const isGoldWallet = props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
     const animation = isGoldWallet ? LottieAnimations.Fireworks : LottieAnimations.ReviewingBankInfo;
-    const continueButtonText = props.walletTerms.chatReportID ? props.translate('activateStep.continueToPayment') : props.translate('activateStep.continueToTransfer');
+    let continueButtonText = '';
+
+    if (props.walletTerms.chatReportID) {
+        continueButtonText = props.translate('activateStep.continueToPayment');
+    } else if (props.walletTerms.source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET) {
+        continueButtonText = props.translate('common.continue');
+    } else {
+        continueButtonText = props.translate('activateStep.continueToTransfer');
+    }
 
     return (
         <>
@@ -43,7 +51,7 @@ function ActivateStep(props) {
                 description={props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Message`)}
                 shouldShowButton={isGoldWallet}
                 buttonText={continueButtonText}
-                onButtonPress={PaymentMethods.continueSetup}
+                onButtonPress={() => PaymentMethods.continueSetup()}
             />
         </>
     );
