@@ -7,7 +7,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
 import * as Emojis from '../../assets/emojis';
-import React from 'react';
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({
@@ -119,7 +118,7 @@ function firstLetterIsEmoji(message) {
         return false;
     }
 
-    return trimmedMessage.indexOf(match[0]) === 0;    
+    return trimmedMessage.indexOf(match[0]) === 0;
 }
 
 /**
@@ -509,5 +508,5 @@ export {
     replaceAndExtractEmojis,
     extractEmojis,
     getAddedEmojis,
-    firstLetterIsEmoji
+    firstLetterIsEmoji,
 };

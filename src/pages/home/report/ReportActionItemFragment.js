@@ -18,7 +18,7 @@ import CONST from '../../../CONST';
 import editedLabelStyles from '../../../styles/editedLabelStyles';
 import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 import avatarPropTypes from '../../../components/avatarPropTypes';
-import { isMobile } from '../../../libs/Browser';
+import * as Browser from '../../../libs/Browser';
 
 const propTypes = {
     /** Users accountID */
@@ -68,7 +68,7 @@ const propTypes = {
     /** localization props */
     ...withLocalizePropTypes,
 
-    displayAsGroup: PropTypes.bool
+    displayAsGroup: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -85,10 +85,26 @@ const defaultProps = {
     delegateAccountID: 0,
     actorIcon: {},
     isThreadParentMessage: false,
-    displayAsGroup: false
+    displayAsGroup: false,
 };
 
 function ReportActionItemFragment(props) {
+    /**
+     * Checks text element for presence of emoji as first characyter
+     *
+     * @param {String} text
+     * @param {Boolean} displayAsGroup
+     * @returns {ReactNode | null} Text component with zero width character
+     */
+
+    function checkForEmojiForSelection(text, displayAsGroup) {
+        const firstLetterIsEmoji = EmojiUtils.firstLetterIsEmoji(text);
+        if (firstLetterIsEmoji && !displayAsGroup && !Browser.isMobile()) {
+            return <Text>&#x200b;</Text>;
+        }
+        return null;
+    }
+
     switch (props.fragment.type) {
         case 'COMMENT': {
             const {html, text} = props.fragment;
@@ -118,16 +134,6 @@ function ReportActionItemFragment(props) {
             }
             const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
 
-            /**
-             * Checks text element for presence of emoji as first characyter
-             * @returns {String} Text component with zero width character
-             */
-            function checkForEmojiForSelection (text, displayAsGroup) {
-                const firstLetterIsEmoji = EmojiUtils.firstLetterIsEmoji(text);
-                if (firstLetterIsEmoji && !displayAsGroup && !isMobile()) return <Text>&#x200b;</Text>;
-                return null;
-            }
-            
             return (
                 <Text style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}>
                     {checkForEmojiForSelection(text, props.displayAsGroup)}
