@@ -26,8 +26,8 @@ import compose from '../../libs/compose';
 import variables from '../../styles/variables';
 import useDelayedInputFocus from '../../hooks/useDelayedInputFocus';
 import ValuePicker from '../../components/ValuePicker';
-import FormProvider from "../../components/Form/FormProvider";
-import InputWrapper from "../../components/Form/InputWrapper";
+import FormProvider from '../../components/Form/FormProvider';
+import InputWrapper from '../../components/Form/InputWrapper';
 
 const propTypes = {
     /** All reports shared with the user */

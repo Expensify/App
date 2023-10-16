@@ -20,7 +20,7 @@ import * as Report from '../../../libs/actions/Report';
 import RoomNameInput from '../../../components/RoomNameInput';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import FormProvider from "../../../components/Form/FormProvider";
+import FormProvider from '../../../components/Form/FormProvider';
 
 const propTypes = {
     ...withLocalizePropTypes,

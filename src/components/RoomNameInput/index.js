@@ -5,7 +5,7 @@ import TextInput from '../TextInput';
 import useLocalize from '../../hooks/useLocalize';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
-import InputWrapper from "../Form/InputWrapper";
+import InputWrapper from '../Form/InputWrapper';
 
 function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus, inputID}) {
     const {translate} = useLocalize();
