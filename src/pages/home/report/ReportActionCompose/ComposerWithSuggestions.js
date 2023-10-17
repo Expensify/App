@@ -34,6 +34,7 @@ import withKeyboardState from '../../../../components/withKeyboardState';
 import {propTypes, defaultProps} from './composerWithSuggestionsProps';
 import focusWithDelay from '../../../../libs/focusWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
+import updateMultilineInputRange from '../../../../libs/UpdateMultilineInputRange';
 import * as InputFocus from '../../../../libs/actions/InputFocus';
 
 const {RNTextInputReset} = NativeModules;
@@ -496,9 +497,13 @@ function ComposerWithSuggestions({
         focus();
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
     useEffect(() => {
+        // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
+        updateMultilineInputRange(textInputRef.current, shouldAutoFocus);
+
         if (value.length === 0) {
             return;
         }
+
         Report.setReportWithDraft(reportID, true);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
