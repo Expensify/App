@@ -186,19 +186,19 @@ const propTypes = {
 // If the top most central pane route is not an iframe route, then it returns undefined.
 function getIframeRouteNameAndParams(state) {
     const routeName = getTopMostCentralPaneRouteName(state);
-    if (routeName !== 'Report') {
+    if (routeName !== undefined && routeName !== 'Report') {
         const topMostCentralPane = lodashFindLast(state.routes, (route) => route.name === 'CentralPaneNavigator');
         if (topMostCentralPane && topMostCentralPane.state) {
             const params = topMostCentralPane.state.routes[topMostCentralPane.state.index || 0].params;
-            return {routeName, params};
+            return {routeName, params, index: state.index};
         }
 
         const params = topMostCentralPane.params;
         if (params) {
-            return {routeName, params: params.params};
+            return {routeName, params: params.params, index: state.index};
         }
     }
-    return {routeName: undefined, params: undefined};
+    return {routeName: undefined, params: undefined, index: state.index};
 }
 
 // TODO: use proper URL
@@ -206,7 +206,7 @@ const BASE_IFRAME_URL = 'http://localhost:3000';
 
 function IFrame({session}) {
     const [oldDotURL, setOldDotURL] = useState(undefined);
-    const {routeName, params} = useNavigationState((state) => getIframeRouteNameAndParams(state));
+    const {routeName, params, index} = useNavigationState((state) => getIframeRouteNameAndParams(state));
 
     useEffect(() => {
         window.addEventListener('message', (event) => {
@@ -257,6 +257,8 @@ function IFrame({session}) {
             {/* TODO: Remove text with information */}
             <Text style={{fontSize: 40, color: 'white'}}>{`${routeName}\n${JSON.stringify(params)} \n${oldDotURL}\n${time}`}</Text>
             <iframe
+                // If we don't remount iframe it will mess up with the browser history.
+                key={`${routeName}-${index}`}
                 style={{flex: 1, borderWidth: 0}}
                 src={oldDotURL}
                 title="OldDot"
