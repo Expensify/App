@@ -211,11 +211,11 @@ export default {
     },
     ROOM_MEMBERS: {
         route: 'r/:reportID/members',
-        getRoute: (reportID: string) => `r/${reportID}/members`
+        getRoute: (reportID: string) => `r/${reportID}/members`,
     },
     ROOM_INVITE: {
         route: 'r/:reportID/invite',
-        getRoute: (reportID: string) => `r/${reportID}/invite`
+        getRoute: (reportID: string) => `r/${reportID}/invite`,
     },
 
     // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE

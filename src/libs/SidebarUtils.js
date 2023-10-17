@@ -354,14 +354,23 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
             result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}`;
         } else if (lastAction && lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
             result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}`;
-        } else if (lastAction && _.includes([
-            CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM,
-            CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM,
-            CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM,
-            CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
-        ], lastAction.actionName)) {
+        } else if (
+            lastAction &&
+            _.includes(
+                [
+                    CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM,
+                    CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM,
+                    CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM,
+                    CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM,
+                ],
+                lastAction.actionName,
+            )
+        ) {
             const targetAccountIDs = lodashGet(lastAction, 'originalMessage.targetAccountIDs', []);
-            const verb = (lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM) ? 'invited' : 'removed';
+            const verb =
+                lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                    ? 'invited'
+                    : 'removed';
             const users = targetAccountIDs.length > 1 ? 'users' : 'user';
             result.alternateText = `${verb} ${targetAccountIDs.length} ${users}`;
 

@@ -1940,20 +1940,21 @@ function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     // Instead, their notification preference just gets set to "hidden".
     const optimisticData = [
         isWorkspaceMemberLeavingWorkspaceRoom
-            ? ({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                },
-            }) : ({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                },
-            })
+            ? {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                  value: {
+                      notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                  },
+              }
+            : {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                  value: {
+                      stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                      statusNum: CONST.REPORT.STATUS.CLOSED,
+                  },
+              },
     ];
 
     API.write(
