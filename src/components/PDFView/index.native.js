@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
@@ -34,15 +34,14 @@ const propTypes = {
  * is (temporarily) rendered.
  */
 
-const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
-const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
-const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
-const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
-const [failedToLoadPDF, setFailedToLoadPDF] = useState(false);
-const [successToLoadPDF, setSuccessToLoadPDF] = useState(false);
-const [password, setPassword] = useState('');
-
 function PDFView(props) {
+    const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
+    const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
+    const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
+    const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
+    const [failedToLoadPDF, setFailedToLoadPDF] = useState(false);
+    const [successToLoadPDF, setSuccessToLoadPDF] = useState(false);
+    const [password, setPassword] = useState('');
 
     useEffect(() => {
         props.onToggleKeyboard(props.isKeyboardShown);
@@ -101,7 +100,7 @@ function PDFView(props) {
     function finishPDFLoad() {
         setShouldRequestPassword(false);
         setShouldShowLoadingIndicator(false);
-        setsuccessToLoadPDF(true);
+        setSuccessToLoadPDF(true);
         props.onLoadComplete();
     }
 
@@ -132,9 +131,9 @@ function PDFView(props) {
                         renderActivityIndicator={() => <FullScreenLoadingIndicator />}
                         source={{uri: props.sourceURL}}
                         style={pdfStyles}
-                        onError={handleFailureToLoadPDF}
-                        password={state.password}
-                        onLoadComplete={finishPDFLoad}
+                        onError={(error) => handleFailureToLoadPDF(error)}
+                        password={password}
+                        onLoadComplete={() => finishPDFLoad()}
                         onPageSingleTap={props.onPress}
                         onScaleChanged={props.onScaleChanged}
                     />
@@ -143,7 +142,7 @@ function PDFView(props) {
                     <KeyboardAvoidingView style={styles.flex1}>
                         <PDFPasswordForm
                             isFocused={props.isFocused}
-                            onSubmit={() => attemptPDFLoadWithPassword}
+                            onSubmit={() => attemptPDFLoadWithPassword()}
                             onPasswordUpdated={() => setIsPasswordInvalid(false)}
                             isPasswordInvalid={isPasswordInvalid}
                             shouldShowLoadingIndicator={shouldShowLoadingIndicator}
