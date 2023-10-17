@@ -39,40 +39,6 @@ type WithReportOrNotFoundProps = {
 };
 
 export default function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
-    const propTypes = {
-        /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
-         * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
-        forwardedRef: PropTypes.func,
-
-        /** The report currently being looked at */
-        report: reportPropTypes,
-
-        /** The policies which the user has access to */
-        policies: PropTypes.objectOf(
-            PropTypes.shape({
-                /** The policy name */
-                name: PropTypes.string,
-
-                /** The type of the policy */
-                type: PropTypes.string,
-            }),
-        ),
-
-        /** Beta features list */
-        betas: PropTypes.arrayOf(PropTypes.string),
-
-        /** Indicated whether the report data is loading */
-        isLoadingReportData: PropTypes.bool,
-    };
-
-    const defaultProps = {
-        forwardedRef: () => {},
-        report: {},
-        policies: {},
-        betas: [],
-        isLoadingReportData: true,
-    };
-
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithReportOrNotFound(props: WithReportOrNotFoundProps, ref: ForwardedRef<TRef>) {
         console.log('***********!!!!!************');
@@ -101,29 +67,20 @@ export default function <TProps extends WithReportOrNotFoundProps, TRef>(Wrapped
             contentShown.current = true;
         }
 
-        const rest = _.omit(props, ['forwardedRef']);
+        // const rest = _.omit(props, ['forwardedRef']);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...rest}
+                {...(props as TProps)}
                 ref={ref}
             />
         );
     }
 
-    WithReportOrNotFound.propTypes = propTypes;
-    WithReportOrNotFound.defaultProps = defaultProps;
-    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
-
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const withReportOrNotFound = React.forwardRef((props, ref) => (
-        <WithReportOrNotFound
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    ));
+    const withReportOrNotFound = React.forwardRef(WithReportOrNotFound);
 
+    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
     return withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
