@@ -91,13 +91,13 @@ class AddPersonalBankAccountPage extends React.Component {
         BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
     }
 
-    exitFlow(hasPressedContinue = false) {
+    exitFlow(shouldContinue = false) {
         const exitReportID = lodashGet(this.props, 'personalBankAccount.exitReportID');
         const shouldContinueKYCOnSuccess = lodashGet(this.props, 'personalBankAccount.shouldContinueKYCOnSuccess', false);
 
         if (exitReportID) {
             Navigation.dismissModal(exitReportID);
-        } else if (hasPressedContinue && shouldContinueKYCOnSuccess) {
+        } else if (shouldContinue && shouldContinueKYCOnSuccess) {
             PaymentMethods.continueSetup(ROUTES.SETTINGS_WALLET);
         } else {
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
