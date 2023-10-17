@@ -8,7 +8,6 @@ import reportPropTypes from '../../../pages/reportPropTypes';
 import {withNavigationPropTypes} from '../../../components/withNavigation';
 import * as App from '../../actions/App';
 import usePermissions from '../../../hooks/usePermissions';
-import CONST from '../../../CONST';
 import Navigation from '../Navigation';
 
 const propTypes = {
@@ -60,16 +59,13 @@ const defaultProps = {
  * @returns {Number}
  */
 const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom) => {
-    // If deeplink url is of an attachment, we should show the report that the attachment comes from.
+    // If deeplink url contains reportID params, we should show the report that has this reportID.
     const currentRoute = Navigation.getActiveRoute();
-    const matches = CONST.REGEX.ATTACHMENT_ROUTE.exec(currentRoute);
-    const reportID = lodashGet(matches, 1, null);
+    const {reportID} = ReportUtils.parseReportRouteParams(currentRoute);
     if (reportID) {
         return reportID;
     }
-
     const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom);
-
     return lodashGet(lastReport, 'reportID');
 };
 

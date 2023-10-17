@@ -4027,4 +4027,5 @@ export {
     isWaitingForTaskCompleteFromAssignee,
     isReportDraft,
     shouldUseFullTitleToDisplay,
+    parseReportRouteParams,
 };
