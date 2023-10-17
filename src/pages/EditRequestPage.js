@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo} from 'react';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
@@ -96,9 +95,6 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
     const transactionCreated = TransactionUtils.getCreated(transaction);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
-    const isSettled = ReportUtils.isSettled(parentReport.reportID);
-    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
-
     // For now, it always defaults to the first tag of the policy
     const policyTag = PolicyUtils.getTag(policyTags);
     const policyTagList = lodashGet(policyTag, 'tags', {});
@@ -115,18 +111,10 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
-        const isNonEditableFieldWhenSettled = _.includes(
-            [CONST.EDIT_REQUEST_FIELD.AMOUNT, CONST.EDIT_REQUEST_FIELD.DATE, CONST.EDIT_REQUEST_FIELD.RECEIPT, CONST.EDIT_REQUEST_FIELD.DISTANCE],
-            fieldToEdit,
-        );
+        const canEdit = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit);
 
-        /**
-         * Do not dismiss the modal, when a current user can edit a money request.
-         * To satisfy the condition below:
-         * 1. "canEdit" must be "true". It checks common rules like if the user is a requestor or admin, etc.
-         * 2. When the current edit field is the "amount" or "date" (created date), the money request shouldn't be settled yet.
-         * */
-        if (canEdit && (!isNonEditableFieldWhenSettled || !isSettled)) {
+        // Do not dismiss the modal, when a current user can edit a money request.
+        if (canEdit) {
             return;
         }
 
@@ -134,7 +122,7 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [canEdit, isSettled, fieldToEdit]);
+    }, [parentReportAction, parentReport.reportID, fieldToEdit]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {

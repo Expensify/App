@@ -87,16 +87,10 @@ function IOUCurrencySelection(props) {
 
         const report = ReportUtils.getReport(threadReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
-        const isSettled = ReportUtils.isSettled(report.parentReportID);
-        const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+        const canEdit = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, report.parentReportID, CONST.EDIT_REQUEST_FIELD.CURRENCY);
 
-        /**
-         * Do not dismiss the modal, when a current user can edit a money request.
-         * To satisfy the condition below:
-         * 1. "canEdit" must be "true". It checks common rules like if the user is a requestor or admin, etc.
-         * 2. Settled requests cannot have their amount/currency edited.
-         * */
-        if (canEdit && !isSettled) {
+        // Do not dismiss the modal, when a current user can edit a money request.
+        if (canEdit) {
             return;
         }
 

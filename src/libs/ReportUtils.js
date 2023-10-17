@@ -1474,6 +1474,43 @@ function canEditMoneyRequest(reportAction) {
 }
 
 /**
+ * Checks is the current user can edit the current field of a money request
+ *
+ * @param {Object} reportAction
+ * @param {String} reportID
+ * @param {String} fieldToEdit
+ * @returns {Boolean}
+ */
+function canEditFieldOfMoneyRequest(reportAction, reportID, fieldToEdit) {
+    // A list of fields that cannot be edited, once a money request has been settled
+    const nonEditableFieldsWhenSettled = [
+        CONST.EDIT_REQUEST_FIELD.AMOUNT,
+        CONST.EDIT_REQUEST_FIELD.CURRENCY,
+        CONST.EDIT_REQUEST_FIELD.DATE,
+        CONST.EDIT_REQUEST_FIELD.RECEIPT,
+        CONST.EDIT_REQUEST_FIELD.DISTANCE,
+    ];
+    // Checks if the current field is a restricted one
+    const isNonEditableFieldWhenSettled = _.includes(nonEditableFieldsWhenSettled, fieldToEdit);
+    // Checks if the current report is settled one
+    const isSettledMoneyRequest = isSettled(reportID);
+    // Checks common rules like if the user is a requestor or admin, etc
+    const canEdit = canEditMoneyRequest(reportAction);
+
+    /**
+     * To satisfy the condition below:
+     * 1. "canEdit" must be "true". It checks if the current user can, in general, edit a money request.
+     * 2. When the current edit field is one restricted, the money request shouldn't be settled yet.
+     * */
+    if (canEdit && (!isNonEditableFieldWhenSettled || !isSettledMoneyRequest)) {
+        return true;
+    }
+
+    // A current user cannot edit the current field of the money request
+    return false;
+}
+
+/**
  * Can only edit if:
  *
  * - It was written by the current user
@@ -4070,6 +4107,7 @@ export {
     getTaskAssigneeChatOnyxData,
     getParticipantsIDs,
     canEditMoneyRequest,
+    canEditFieldOfMoneyRequest,
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
