@@ -222,7 +222,7 @@ function ComposerWithSuggestions({
             }
             emojisPresentBefore.current = emojis;
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
-            setValue(Platform.OS === 'android' ?newComment : convertToLTR(newComment));
+            setValue(Platform.OS === 'android' ? newComment : convertToLTR(newComment));
             if (commentValue !== newComment) {
                 // Ensure emoji suggestions are hidden even when the selection is not changed (so calculateEmojiSuggestion would not be called).
                 if (suggestionsRef.current) {

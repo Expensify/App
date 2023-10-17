@@ -3146,7 +3146,7 @@ const styles = (theme: ThemeDefault) =>
         },
 
         cardMenuItem: {
-            paddingLeft: 0,
+            paddingLeft: 8,
             paddingRight: 0,
             borderRadius: variables.buttonBorderRadius,
             height: variables.componentSizeLarge,
@@ -3461,8 +3461,6 @@ const styles = (theme: ThemeDefault) =>
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,
-            ...flex.flexWrap,
-            ...flex.flex1,
             fontSize: variables.fontSizeXLarge,
             maxWidth: '100%',
             ...wordBreak.breakWord,
@@ -3696,7 +3694,7 @@ const styles = (theme: ThemeDefault) =>
         reportPreviewBox: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
-            maxWidth: variables.sideBarWidth,
+            maxWidth: variables.reportPreviewMaxWidth,
             width: '100%',
         },
 

@@ -80,7 +80,7 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.state;
 }
 
-function areRequiredFieldsEmpty(transaction: Transaction): boolean {
+function isMerchantMissing(transaction: Transaction) {
     const isMerchantEmpty =
         transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
 
@@ -90,10 +90,19 @@ function areRequiredFieldsEmpty(transaction: Transaction): boolean {
         transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
         transaction.modifiedMerchant === '';
 
-    const isModifiedAmountEmpty = !transaction.modifiedAmount || transaction.modifiedAmount === 0;
-    const isModifiedCreatedEmpty = !transaction.modifiedCreated || transaction.modifiedCreated === '';
+    return isMerchantEmpty && isModifiedMerchantEmpty;
+}
 
-    return (isModifiedMerchantEmpty && isMerchantEmpty) || (isModifiedAmountEmpty && transaction.amount === 0) || (isModifiedCreatedEmpty && transaction.created === '');
+function isAmountMissing(transaction: Transaction) {
+    return transaction.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
+}
+
+function isCreatedMissing(transaction: Transaction) {
+    return transaction.created === '' && (!transaction.created || transaction.modifiedCreated === '');
+}
+
+function areRequiredFieldsEmpty(transaction: Transaction): boolean {
+    return isMerchantMissing(transaction) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
 
 /**
@@ -226,6 +235,21 @@ function getCurrency(transaction: Transaction): string {
 }
 
 /**
+ * Return the original currency field from the transaction.
+ */
+function getOriginalCurrency(transaction: Transaction): string {
+    return transaction?.originalCurrency ?? '';
+}
+
+/**
+ * Return the absolute value of the original amount field from the transaction.
+ */
+function getOriginalAmount(transaction: Transaction): number {
+    const amount = transaction?.originalAmount ?? 0;
+    return Math.abs(amount);
+}
+
+/**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: Transaction): string {
@@ -293,6 +317,9 @@ function isDistanceRequest(transaction: Transaction): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
+/**
+ * Determine whether a transaction is made with an Expensify card.
+ */
 function isExpensifyCardTransaction(transaction: Transaction): boolean {
     if (!transaction.cardID) {
         return false;
@@ -300,6 +327,9 @@ function isExpensifyCardTransaction(transaction: Transaction): boolean {
     return isExpensifyCard(transaction.cardID);
 }
 
+/**
+ * Check if the transaction status is set to Pending.
+ */
 function isPending(transaction: Transaction): boolean {
     if (!transaction.status) {
         return false;
@@ -307,6 +337,9 @@ function isPending(transaction: Transaction): boolean {
     return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
 }
 
+/**
+ * Check if the transaction status is set to Posted.
+ */
 function isPosted(transaction: Transaction): boolean {
     if (!transaction.status) {
         return false;
@@ -428,6 +461,8 @@ export {
     getAmount,
     getCurrency,
     getCardID,
+    getOriginalCurrency,
+    getOriginalAmount,
     getMerchant,
     getMCCGroup,
     getCreated,
@@ -446,6 +481,9 @@ export {
     isPending,
     isPosted,
     getWaypoints,
+    isAmountMissing,
+    isMerchantMissing,
+    isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     getWaypointIndex,

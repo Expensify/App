@@ -20,6 +20,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as PolicyUtils from '../../libs/PolicyUtils';
+import * as CardUtils from '../../libs/CardUtils';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
@@ -90,6 +91,9 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
         billable: transactionBillable,
         category: transactionCategory,
         tag: transactionTag,
+        originalAmount: transactionOriginalAmount,
+        originalCurrency: transactionOriginalCurrency,
+        cardID: transactionCardID,
     } = ReportUtils.getTransactionDetails(transaction);
     const isEmptyMerchant =
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -98,9 +102,12 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     if (isDistanceRequest && !formattedTransactionAmount) {
         formattedTransactionAmount = translate('common.tbd');
     }
+    const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
+    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(transaction);
+    const cardProgramName = isExpensifyCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction) && !isExpensifyCardTransaction;
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -114,14 +121,24 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const shouldShowTag = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
     const shouldShowBillable = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
-    let description = `${translate('iou.amount')}`;
-    if (!isDistanceRequest) {
-        description += ` • ${translate('iou.cash')}`;
-    }
-    if (isSettled) {
-        description += ` • ${translate('iou.settledExpensify')}`;
-    } else if (report.isWaitingOnBankAccount) {
-        description += ` • ${translate('iou.pending')}`;
+    let amountDescription = `${translate('iou.amount')}`;
+
+    if (isExpensifyCardTransaction) {
+        if (formattedOriginalAmount) {
+            amountDescription += ` • ${translate('iou.original')} ${formattedOriginalAmount}`;
+        }
+        if (TransactionUtils.isPending(transaction)) {
+            amountDescription += ` • ${translate('iou.pending')}`;
+        }
+    } else {
+        if (!isDistanceRequest) {
+            amountDescription += ` • ${translate('iou.cash')}`;
+        }
+        if (isSettled) {
+            amountDescription += ` • ${translate('iou.settledExpensify')}`;
+        } else if (report.isWaitingOnBankAccount) {
+            amountDescription += ` • ${translate('iou.pending')}`;
+        }
     }
 
     // A temporary solution to hide the transaction detail
@@ -163,7 +180,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
                     shouldShowTitleIcon={isSettled}
                     titleIcon={Expensicons.Checkmark}
-                    description={description}
+                    description={amountDescription}
                     titleStyle={styles.newKansasLarge}
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
@@ -183,18 +200,6 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                     wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                     numberOfLinesTitle={0}
-                />
-            </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.created')}>
-                <MenuItemWithTopDescription
-                    description={translate('common.date')}
-                    title={transactionDate}
-                    interactive={canEdit}
-                    shouldShowRightIcon={canEdit}
-                    titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
-                    brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                 />
             </OfflineWithFeedback>
             {isDistanceRequest ? (
@@ -222,6 +227,18 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     />
                 </OfflineWithFeedback>
             )}
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.created')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.date')}
+                    title={transactionDate}
+                    interactive={canEdit}
+                    shouldShowRightIcon={canEdit}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                    brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
+                />
+            </OfflineWithFeedback>
             {shouldShowCategory && (
                 <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
                     <MenuItemWithTopDescription
@@ -246,6 +263,16 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     />
                 </OfflineWithFeedback>
             )}
+            {isExpensifyCardTransaction ? (
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.cardID')}>
+                    <MenuItemWithTopDescription
+                        description={translate('iou.card')}
+                        title={cardProgramName}
+                        titleStyle={styles.flex1}
+                        interactive={canEdit}
+                    />
+                </OfflineWithFeedback>
+            ) : null}
             {shouldShowBillable && (
                 <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                     <Text color={!transactionBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>

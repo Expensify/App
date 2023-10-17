@@ -7,7 +7,7 @@ const convertToLTR: ConvertToLTR = (text) => {
         return text;
     }
 
-    // // Add the LTR marker to the beginning of the text.
+    // Add the LTR marker to the beginning of the text.
     return `${CONST.UNICODE.LTR}${text}`;
 };
 export default convertToLTR;
