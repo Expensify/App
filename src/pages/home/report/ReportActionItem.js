@@ -606,6 +606,7 @@ function ReportActionItem(props) {
             preventDefaultContextMenu={!props.draftMessage && !hasErrors}
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={props.translate('accessibilityHints.chatMessage')}
+            testID={props.action.reportActionID}
         >
             <Hoverable
                 shouldHandleScroll
