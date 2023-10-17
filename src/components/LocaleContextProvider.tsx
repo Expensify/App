@@ -50,14 +50,32 @@ type ToLocaleDigit = (digit: string) => string;
 type FromLocaleDigit = (digit: string) => string;
 
 type LocaleContextProps = {
+    /** Returns translated string for given locale and phrase */
     translate: Translate;
+
+    /** Formats number formatted according to locale and options */
     numberFormat: NumberFormat;
+
+    /** Converts a datetime into a localized string representation that's relative to current moment in time */
     datetimeToRelative: DatetimeToRelative;
+
+    /** Formats a datetime to local date and time string */
     datetimeToCalendarTime: DatetimeToCalendarTime;
+
+    /** Updates date-fns internal locale */
     updateLocale: UpdateLocale;
+
+    /** Returns a locally converted phone number for numbers from the same region
+     * and an internationally converted phone number with the country code for numbers from other regions */
     formatPhoneNumber: FormatPhoneNumber;
+
+    /** Gets the locale digit corresponding to a standard digit */
     toLocaleDigit: ToLocaleDigit;
+
+    /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: FromLocaleDigit;
+
+    /** The user's preferred locale e.g. 'en', 'es-ES' */    
     preferredLocale: string;
 };
 
