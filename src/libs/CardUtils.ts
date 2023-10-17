@@ -1,6 +1,5 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
-import {Card} from '../types/onyx';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as OnyxTypes from '../types/onyx';
@@ -60,13 +59,6 @@ function getYearFromExpirationDateString(expirationDateString: string) {
     return cardYear.length === 2 ? `20${cardYear}` : cardYear;
 }
 
-function getCompanyCards(cardList: {string: Card}) {
-    if (!cardList) {
-        return [];
-    }
-    return Object.values(cardList).filter((card) => card.bank !== CONST.EXPENSIFY_CARD.BANK);
-}
-
 /**
  * @param cardList - collection of assigned cards
  * @returns collection of assigned cards grouped by domain
@@ -96,4 +88,4 @@ function maskCard(lastFour = ''): string {
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
-export {isExpensifyCard, getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription};
+export {isExpensifyCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription};
