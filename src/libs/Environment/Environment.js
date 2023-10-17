@@ -43,7 +43,7 @@ function isInternalTestBuild() {
  */
 function getEnvironmentURL() {
     return new Promise((resolve) => {
-        getEnvironment().then((env) => resolve(ENVIRONMENT_URLS[env]));
+        getEnvironment().then((environment) => resolve(ENVIRONMENT_URLS[environment]));
     });
 }
 
