@@ -15,6 +15,7 @@ import SCREENS from '../../../../SCREENS';
 import {SidebarNavigationContext} from '../SidebarNavigationContext';
 import * as StyleUtils from '../../../../styles/StyleUtils';
 import useLocalize from '../../../../hooks/useLocalize';
+import HeaderWithBreadcrumbs from './HeaderWithBreadcrumbs';
 
 const propTypes = {
     /** Function called when a pinned chat is selected. */
@@ -44,6 +45,15 @@ function SubNavigation({onLinkClick, insets}) {
             <View style={[StyleSheet.absoluteFillObject, StyleUtils.displayIfTrue(sidebarNavigation.selectedGlobalNavigationOption === CONST.GLOBAL_NAVIGATION_OPTION.MONEY)]}>
                 <SubNavigationMenu
                     title={translate('globalNavigation.money')}
+                    customHeader={
+                        <HeaderWithBreadcrumbs
+                            title="Expensify.com"
+                            breadcrumbs={['Workspaces', 'Groups']}
+                            onPress={() => {
+                                console.log('BREAD');
+                            }}
+                        />
+                    }
                     menuItems={[
                         {
                             icon: Expensicons.Receipt,

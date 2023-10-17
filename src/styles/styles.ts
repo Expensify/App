@@ -1291,8 +1291,8 @@ const styles = (theme: ThemeDefault) =>
 
         sidebarHeaderContainer: {
             flexDirection: 'row',
+            height: 64,
             paddingHorizontal: 20,
-            paddingVertical: 19,
             justifyContent: 'space-between',
             alignItems: 'center',
         },
@@ -1336,6 +1336,23 @@ const styles = (theme: ThemeDefault) =>
                 width: 16,
                 zIndex: 10,
             } satisfies ViewStyle),
+
+        breadcrumb: {
+            color: theme.link,
+            fontSize: variables.fontSizeSmall,
+            fontFamily: fontFamily.EXP_NEUE,
+            lineHeight: variables.lineHeightSmall,
+        },
+
+        breadcrumbContainer: {
+            flexDirection: 'row',
+            paddingBottom: 2,
+            alignItems: 'center',
+        },
+
+        breadcrumbIcon: {
+            paddingHorizontal: 2,
+        },
 
         floatingActionButtonContainer: {
             position: 'absolute',

@@ -27,10 +27,13 @@ const propTypes = {
             onSelected: PropTypes.func.isRequired,
         }),
     ).isRequired,
+
+    /** Custom header more advanced than just text */
+    customHeader: PropTypes.element,
     ...withLocalizePropTypes,
 };
 
-function SubNavigation({isSmallScreenWidth, menuItems, title}) {
+function SubNavigation({isSmallScreenWidth, menuItems, title, customHeader}) {
     const sidebarNavigation = useContext(SidebarNavigationContext);
 
     if (isSmallScreenWidth) {
@@ -40,11 +43,15 @@ function SubNavigation({isSmallScreenWidth, menuItems, title}) {
     return (
         <View style={styles.h100}>
             <View style={styles.sidebarHeaderContainer}>
-                <Header
-                    title={<Text style={styles.textHeadline}>{title}</Text>}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    shouldShowEnvironmentBadge
-                />
+                {customHeader ? (
+                    customHeader
+                ) : (
+                    <Header
+                        title={<Text style={styles.textHeadline}>{title}</Text>}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        shouldShowEnvironmentBadge
+                    />
+                )}
             </View>
             <View style={{}}>
                 {_.map(menuItems, (item) => (
