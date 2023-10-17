@@ -33,8 +33,8 @@ function GetPhysicalCardName({personalDetails: {firstName, lastName}}) {
             <TextInput
                 inputID="firstName"
                 name="firstName"
-                label={translate('getPhysicalCard.firstName')}
-                accessibilityLabel={translate('getPhysicalCard.firstName')}
+                label={translate('getPhysicalCard.legalFirstName')}
+                accessibilityLabel={translate('getPhysicalCard.legalFirstName')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 autoCapitalize="words"
                 defaultValue={firstName}
@@ -44,8 +44,8 @@ function GetPhysicalCardName({personalDetails: {firstName, lastName}}) {
             <TextInput
                 inputID="lastName"
                 name="lastName"
-                label={translate('getPhysicalCard.lastName')}
-                accessibilityLabel={translate('getPhysicalCard.lastName')}
+                label={translate('getPhysicalCard.legalLastName')}
+                accessibilityLabel={translate('getPhysicalCard.legalLastName')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 autoCapitalize="words"
                 defaultValue={lastName}
