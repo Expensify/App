@@ -118,6 +118,13 @@ function transactionThreadHasViolations(report) {
     if (!transactionID) {
         return false;
     }
+    const reportID = parentReportAction['originalMessage']['IOUReportID'] ?? 0;
+    if (!reportID) {
+        return false;
+    }
+    if (!isCurrentUserSubmitter(reportID)) {
+        return false;
+    }
     return transactionHasViolation(transactionID);
 }
 
