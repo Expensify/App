@@ -4,6 +4,7 @@ import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as OnyxTypes from '../types/onyx';
 import ONYXKEYS, {OnyxValues} from '../ONYXKEYS';
+import _ from 'underscore';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -64,9 +65,9 @@ function getYearFromExpirationDateString(expirationDateString: string) {
  * @returns collection of assigned cards grouped by domain
  */
 function getDomainCards(cardList: Record<string, OnyxTypes.Card>) {
-    // eslint-disable-next-line you-dont-need-lodash-underscore/filter
-    const activeCards = lodash.filter(cardList, (card) => (CONST.EXPENSIFY_CARD.ACTIVE_STATES as ReadonlyArray<OnyxTypes.Card['state']>).includes(card.state));
-    return lodash.groupBy(activeCards, (card) => card.domainName);
+    // Check for domainName to filter out personal credit cards.
+    const activeCards = _.filter(cardList, (card) => !!card.domainName && (CONST.EXPENSIFY_CARD.ACTIVE_STATES as ReadonlyArray<OnyxTypes.Card['state']>).includes(card.state));
+    return _.groupBy(activeCards, (card) => card.domainName);
 }
 
 /**
