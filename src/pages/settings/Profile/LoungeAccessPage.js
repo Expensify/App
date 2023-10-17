@@ -63,7 +63,15 @@ const menuItems = [
     },
 ];
 
-function LoungeAccessPage({ preferredLocale, user: { hasLoungeAccess, loungeCheckInDetails: { isCheckedIn, checkInsRemaining, nextCheckInReset } }, currentUserPersonalDetails: { avatar, displayName, fallbackIcon }, session: { accountID, email } }) {
+function LoungeAccessPage({
+    preferredLocale,
+    user: {
+        hasLoungeAccess,
+        loungeCheckInDetails: {isCheckedIn, checkInsRemaining, nextCheckInReset},
+    },
+    currentUserPersonalDetails: {avatar, displayName, fallbackIcon},
+    session: {accountID, email},
+}) {
     const {translate} = useLocalize();
 
     if (!hasLoungeAccess) {
