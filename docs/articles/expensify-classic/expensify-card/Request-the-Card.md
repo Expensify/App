@@ -12,7 +12,7 @@ This article covers how to request, activate, and replace your physical and virt
 
 An admin in your organization must first enable the Expensify Cards before you can receive a card. After that, an admin may assign you a card by setting a limit. You can think of setting a card limit as “unlocking” access to the card.
 
-If you haven’t been assigned a limit yet, look for the task on your account's homepage that says, “Ask your admin for the card!”. This task allows you to message your admin team to make that request.
+If you haven’t been assigned a limit yet, look for the task on your account's homepage that says, “Ask your admin for the card!” This task allows you to message your admin team to make that request.
 
 Once you’re assigned a card limit, we’ll notify you via email to let you know you can request a card. A link within the notification email will take you to your account’s homepage, where you can provide your shipping address for the physical card. Enter your address, and we’ll ship the card to arrive within 3-5 business days.
  
