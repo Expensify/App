@@ -10,7 +10,6 @@ import Text from './Text';
 import * as Localize from '../libs/Localize';
 import CONST from '../CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import addEncryptedAuthTokenToURL from "../libs/addEncryptedAuthTokenToURL";
 import fileDownload from '../libs/fileDownload';
 
 const propTypes = {

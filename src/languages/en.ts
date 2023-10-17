@@ -74,7 +74,6 @@ import type {
     FormattedMaxLengthParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
-    ReceiptCreateFailureMessageParams,
     TranslationBase,
     WalletProgramParams,
 } from './types';
