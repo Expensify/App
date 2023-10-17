@@ -5,13 +5,14 @@ import Picker from '../components/Picker';
 import StatePicker from '../components/StatePicker';
 import AddressSearch from '../components/AddressSearch';
 import DatePicker from '../components/DatePicker';
-import Form from '../components/Form';
 import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
 import CheckboxWithLabel from '../components/CheckboxWithLabel';
 import Text from '../components/Text';
 import NetworkConnection from '../libs/NetworkConnection';
 import CONST from '../CONST';
+import InputWrapper from '../components/Form/InputWrapper';
+import FormProvider from '../components/Form/FormProvider';
 import * as ValidationUtils from '../libs/ValidationUtils';
 
 /**
@@ -21,8 +22,9 @@ import * as ValidationUtils from '../libs/ValidationUtils';
  */
 const story = {
     title: 'Components/Form',
-    component: Form,
+    component: FormProvider,
     subcomponents: {
+        InputWrapper,
         TextInput,
         AddressSearch,
         CheckboxWithLabel,
@@ -41,9 +43,10 @@ function Template(args) {
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <Form {...args}>
+        <FormProvider {...args}>
             <View>
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     accessibilityLabel="Routing number"
                     label="Routing number"
@@ -51,26 +54,30 @@ function Template(args) {
                     shouldSaveDraft
                 />
             </View>
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 label="Account number"
                 accessibilityLabel="Account number"
                 inputID="accountNumber"
                 containerStyles={[styles.mt4]}
             />
-            <AddressSearch
+            <InputWrapper
+                InputComponent={AddressSearch}
                 label="Street"
                 inputID="street"
                 containerStyles={[styles.mt4]}
                 hint="No PO box"
             />
-            <DatePicker
+            <InputWrapper
+                InputComponent={DatePicker}
                 label="Date of birth"
                 inputID="dob"
                 containerStyles={[styles.mt4]}
             />
             <View>
-                <Picker
+                <InputWrapper
+                    InputComponent={Picker}
                     label="Fruit"
                     inputID="pickFruit"
                     containerStyles={[styles.mt4]}
@@ -91,7 +98,8 @@ function Template(args) {
                     ]}
                 />
             </View>
-            <Picker
+            <InputWrapper
+                InputComponent={Picker}
                 label="Another Fruit"
                 inputID="pickAnotherFruit"
                 containerStyles={[styles.mt4]}
@@ -111,17 +119,19 @@ function Template(args) {
                 ]}
             />
             <View style={styles.mt4}>
-                <StatePicker
+                <InputWrapper
+                    InputComponent={StatePicker}
                     inputID="state"
                     shouldSaveDraft
                 />
             </View>
-            <CheckboxWithLabel
+            <InputWrapper
+                InputComponent={CheckboxWithLabel}
                 inputID="checkbox"
                 style={[styles.mb4, styles.mt5]}
                 LabelComponent={() => <Text>I accept the Expensify Terms of Service</Text>}
             />
-        </Form>
+        </FormProvider>
     );
 }
 
@@ -141,8 +151,9 @@ function WithNativeEventHandler(args) {
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <Form {...args}>
-            <TextInput
+        <FormProvider {...args}>
+            <InputWrapper
+                InputComponent={TextInput}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 accessibilityLabel="Routing number"
                 label="Routing number"
@@ -151,7 +162,7 @@ function WithNativeEventHandler(args) {
                 shouldSaveDraft
             />
             <Text>{`Entered routing number: ${log}`}</Text>
-        </Form>
+        </FormProvider>
     );
 }
 

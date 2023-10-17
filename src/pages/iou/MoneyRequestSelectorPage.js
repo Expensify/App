@@ -99,7 +99,7 @@ function MoneyRequestSelectorPage(props) {
                                 title={title[iouType]}
                                 onBackButtonPress={Navigation.dismissModal}
                             />
-                            {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
+                            {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST || iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
                                     selectedTab={props.selectedTab}
