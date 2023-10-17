@@ -96,13 +96,13 @@ const notes = [
     'overLimit',
 ];
 
-function getViolationForField(transactionViolation, field) {
+function getViolationForField(transactionViolations, field) {
     const {translate} = useLocalize();
-    const fieldViolation = _.find(transactionViolation.violation, (violation) => violations[violation] === field);
-    return fieldViolation ? translate(fieldViolation) : '';
+    const fieldViolations = _.filter(transactionViolations, (violation) => violations[violation.name] === field);
+    return fieldViolations.map(violation => translate(violation.name));
 }
 
-function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy, transactionViolation}) {
+function MoneyRequestView({report, betas, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy, transactionViolations}) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -200,7 +200,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         />
                     </View>
                 </OfflineWithFeedback>
-                    <ReceiptAudit notice={transactionViolation.notice} />
+                    <ReceiptAudit notice={_.filter(transactionViolations, violation => violation.type === 'notice')} />
                 </>
             )}
             <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
@@ -216,9 +216,9 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                 />
-                {Boolean(transactionViolation) && Boolean(getViolationForField(transactionViolation, 'amount')) && (
+                {Boolean(transactionViolations) && Boolean(getViolationForField(transactionViolations, 'amount')) && (
                     <View>
-                        <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transactionViolation, 'amount')}</Text>
+                        <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transactionViolations, 'amount')}</Text>
                     </View>
                 )}
             </OfflineWithFeedback>
@@ -272,9 +272,9 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                 />
             </OfflineWithFeedback>
-            {Boolean(transactionViolation) && Boolean(getViolationForField(transactionViolation, 'date')) && (
+            {Boolean(transactionViolations) && Boolean(getViolationForField(transactionViolations, 'date')) && (
                 <View>
-                    <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transactionViolation, 'date')}</Text>
+                    <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transactionViolations, 'date')}</Text>
                 </View>
             )}
             {shouldShowCategory && (
@@ -289,9 +289,9 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     />
                 </OfflineWithFeedback>
             )}
-            {shouldShowCategory && Boolean(transactionViolation) && Boolean(getViolationForField(transactionViolation, 'category')) && (
+            {shouldShowCategory && Boolean(transactionViolations) && Boolean(getViolationForField(transactionViolations, 'category')) && (
                 <View>
-                <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transactionViolation, 'category')}</Text>
+                <Text style={[styles.ph5, styles.textLabelError]}>{getViolationForField(transactionViolations, 'category')}</Text>
                 </View>
             )}
             {shouldShowTag && (
@@ -363,7 +363,7 @@ export default compose(
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
         },
-        transactionViolation: {
+        transactionViolations: {
             key: ({report}) => {
                 const parentReportAction = ReportActionsUtils.getParentReportAction(report);
                 const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
