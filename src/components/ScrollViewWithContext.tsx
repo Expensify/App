@@ -60,5 +60,5 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ...rest
 
 ScrollViewWithContext.displayName = 'ScrollViewWithContext';
 
-export default React.forwardRef<ScrollView, ScrollViewWithContextProps>(ScrollViewWithContext);
+export default React.forwardRef(ScrollViewWithContext);
 export {ScrollContext};
