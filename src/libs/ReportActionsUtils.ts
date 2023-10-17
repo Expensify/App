@@ -541,7 +541,6 @@ function getAllReportActions(reportID: string): ReportActions {
 /**
  * Check whether a report action is an attachment (a file, such as an image or a zip).
  *
- * @param reportAction report action
  */
 function isReportActionAttachment(reportAction: OnyxEntry<ReportAction>): boolean {
     const message = reportAction?.message?.[0];
@@ -551,7 +550,7 @@ function isReportActionAttachment(reportAction: OnyxEntry<ReportAction>): boolea
     }
 
     if (message) {
-        return isReportMessageAttachment(message) ?? false;
+        return isReportMessageAttachment(message);
     }
 
     return false;
