@@ -1364,7 +1364,7 @@ function getMoneyRequestReportName(report, policy = undefined) {
     }
 
     if (hasNonReimbursableTransactions(report.reportID)) {
-        return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
+        return Localize.translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
     if (report.hasOutstandingIOU) {
