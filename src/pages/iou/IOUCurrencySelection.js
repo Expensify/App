@@ -80,6 +80,7 @@ function IOUCurrencySelection(props) {
         (option) => {
             const backTo = lodashGet(props.route, 'params.backTo', '');
             Keyboard.dismiss();
+
             // When we refresh the web, the money request route gets cleared from the navigation stack.
             // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
             // To prevent any negative experience, we have made the decision to simply close the currency selection page.
