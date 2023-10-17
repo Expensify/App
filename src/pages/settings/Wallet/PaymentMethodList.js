@@ -206,7 +206,7 @@ function PaymentMethodList({
                     key: card.key,
                     title: translate('walletPage.expensifyCard'),
                     description: card.domainName,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(card.domainName)),
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName)),
                     ...icon,
                 };
             });

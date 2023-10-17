@@ -21,6 +21,7 @@ import CardDetails from './WalletPage/CardDetails';
 import * as Card from '../../../libs/actions/Card';
 import CONST from '../../../CONST';
 import assignedCardPropTypes from './assignedCardPropTypes';
+import useNetwork from '../../../hooks/useNetwork';
 
 const propTypes = {
     /* Onyx Props */
@@ -46,6 +47,7 @@ function ExpensifyCardPage({
         params: {domain},
     },
 }) {
+    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
     const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
@@ -118,7 +120,7 @@ function ExpensifyCardPage({
                                                 medium
                                                 text={translate('cardPage.cardDetails.revealDetails')}
                                                 onPress={handleRevealDetails}
-                                                isDisabled={isLoading}
+                                                isDisabled={isLoading || isOffline}
                                                 isLoading={isLoading}
                                             />
                                         }
