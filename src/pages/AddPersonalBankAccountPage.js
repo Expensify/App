@@ -91,14 +91,13 @@ class AddPersonalBankAccountPage extends React.Component {
         BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
     }
 
-    exitFlow() {
+    exitFlow(hasPressedContinue = false) {
         const exitReportID = lodashGet(this.props, 'personalBankAccount.exitReportID');
         const shouldContinueKYCOnSuccess = lodashGet(this.props, 'personalBankAccount.shouldContinueKYCOnSuccess', false);
-        const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
 
         if (exitReportID) {
             Navigation.dismissModal(exitReportID);
-        } else if (shouldShowSuccess && shouldContinueKYCOnSuccess) {
+        } else if (hasPressedContinue && shouldContinueKYCOnSuccess) {
             PaymentMethods.continueSetup(ROUTES.SETTINGS_WALLET);
         } else {
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
@@ -125,7 +124,7 @@ class AddPersonalBankAccountPage extends React.Component {
                         description={this.props.translate('addPersonalBankAccountPage.successMessage')}
                         shouldShowButton
                         buttonText={this.props.translate('common.continue')}
-                        onButtonPress={this.exitFlow}
+                        onButtonPress={() => this.exitFlow(true)}
                     />
                 ) : (
                     <Form
