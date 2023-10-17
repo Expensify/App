@@ -1017,8 +1017,10 @@ const CONST = {
             ACTIVATE: 'ActivateStep',
         },
         TIER_NAME: {
+            PLATINUM: 'PLATINUM',
             GOLD: 'GOLD',
             SILVER: 'SILVER',
+            BRONZE: 'BRONZE',
         },
         WEB_MESSAGE_TYPE: {
             STATEMENT: 'STATEMENT_NAVIGATE',
@@ -1274,6 +1276,8 @@ const CONST = {
         ROOM_NAME: /^#[\p{Ll}0-9-]{1,80}$/u,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
+        EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
 
         TAX_ID: /^\d{9}$/,
@@ -1291,18 +1295,26 @@ const CONST = {
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
-        SPECIAL_CHAR_OR_EMOJI:
-            // eslint-disable-next-line no-misleading-character-class
-            /[\n\s,/?"{}[\]()&_~^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
 
-        SPACE_OR_EMOJI:
-            // eslint-disable-next-line no-misleading-character-class
-            /(\s+|(?:[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)+)/gu,
+        get SPECIAL_CHAR_OR_EMOJI() {
+            return new RegExp(`[_~\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
+        },
+
+        get SPACE_OR_EMOJI() {
+            return new RegExp(`(\\s+|(?:${this.EMOJI.source})+)`, 'gu');
+        },
+
+        // Define the regular expression pattern to find a potential end of a mention suggestion:
+        // It might be a space, a newline character, an emoji, or a special character (excluding underscores & tildes, which might be used in usernames)
+        get MENTION_BREAKER() {
+            return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
+        },
 
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        MENTION_REPLACER:
-            // eslint-disable-next-line no-misleading-character-class
-            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
+        get MENTION_REPLACER() {
+            return new RegExp(`^@[^\\n\\r]*?(?=$|\\s|${this.SPECIAL_CHAR.source}|${this.EMOJI.source})`, 'u');
+        },
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
 

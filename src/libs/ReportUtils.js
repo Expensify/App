@@ -3073,6 +3073,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     if (
         !report ||
         !report.reportID ||
+        !report.type ||
         report.isHidden ||
         (report.participantAccountIDs &&
             report.participantAccountIDs.length === 0 &&
@@ -3836,7 +3837,7 @@ function getIOUReportActionDisplayMessage(reportAction) {
         const {amount, currency, IOUReportID} = originalMessage;
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
         const iouReport = getReport(IOUReportID);
-        const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport.managerID);
+        const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport.managerID, true);
         let translationKey;
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -3869,6 +3870,14 @@ function getIOUReportActionDisplayMessage(reportAction) {
  */
 function isReportDraft(report) {
     return isExpenseReport(report) && lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.OPEN && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.OPEN;
+}
+
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function shouldUseFullTitleToDisplay(report) {
+    return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report);
 }
 
 export {
@@ -4017,4 +4026,5 @@ export {
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
     isReportDraft,
+    shouldUseFullTitleToDisplay,
 };
