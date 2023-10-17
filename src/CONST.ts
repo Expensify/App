@@ -1118,6 +1118,7 @@ const CONST = {
             DOCX: 'docx',
             SVG: 'svg',
         },
+        RECEIPT_ERROR: 'receiptError',
     },
 
     GROWL: {

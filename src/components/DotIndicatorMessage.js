@@ -10,6 +10,7 @@ import Text from './Text';
 import * as Localize from '../libs/Localize';
 import RenderHTML from './RenderHTML';
 import * as StringUtils from '../libs/StringUtils';
+import CONST from '../CONST';
 
 const propTypes = {
     /**
@@ -39,6 +40,13 @@ function DotIndicatorMessage(props) {
         return null;
     }
 
+    function isReceiptError (message) {
+        if (_.isString(message)) {
+            return false;
+        }
+        return _.get(message, 'error', '') === CONST.IOU.RECEIPT_ERROR;
+    }
+
     // To ensure messages are presented in order we are sort of destroying the data we are given
     // and rebuilding as an array so we can render the messages in order. We don't really care about
     // the microtime timestamps anyways so isn't the end of the world that we sort of lose them here.
@@ -64,13 +72,21 @@ function DotIndicatorMessage(props) {
             </View>
             <View style={styles.offlineFeedback.textContainer}>
                 {_.map(sortedMessages, (message, i) => (
+                    isReceiptError(message) ? (
+                        <Text
+                            key={i}
+                            style={styles.offlineFeedback.text}
+                        >
+                            bla
+                        </Text>
+                    ) : (
                     <Text
                         key={i}
                         style={styles.offlineFeedback.text}
                     >
-                        {StringUtils.hasHTML(message) ? <RenderHTML html={message} /> : message}
+                        {message}
                     </Text>
-                ))}
+                )))}
             </View>
         </View>
     );
