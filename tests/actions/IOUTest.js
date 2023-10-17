@@ -2188,7 +2188,17 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
+                    IOU.requestMoney(
+                        chatReport,
+                        amount,
+                        CONST.CURRENCY.USD,
+                        '',
+                        merchant,
+                        RORY_EMAIL,
+                        RORY_ACCOUNT_ID,
+                        {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
+                        comment,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -2199,7 +2209,7 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
-                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.EXPENSE);
                                     Onyx.merge(`report_${expenseReport.reportID}`, {
                                         statusNum: 0,
                                         stateNum: 0,
@@ -2217,7 +2227,8 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
-                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.EXPENSE);
+
                                     // Verify report is a draft
                                     expect(expenseReport.stateNum).toBe(0);
                                     expect(expenseReport.statusNum).toBe(0);
@@ -2238,7 +2249,8 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
-                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.EXPENSE);
+
                                     // Report was submitted correctly
                                     expect(expenseReport.stateNum).toBe(1);
                                     expect(expenseReport.statusNum).toBe(1);
@@ -2275,7 +2287,17 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
+                    IOU.requestMoney(
+                        chatReport,
+                        amount,
+                        CONST.CURRENCY.USD,
+                        '',
+                        merchant,
+                        RORY_EMAIL,
+                        RORY_ACCOUNT_ID,
+                        {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
+                        comment,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -2286,7 +2308,7 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
-                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.EXPENSE);
                                     Onyx.merge(`report_${expenseReport.reportID}`, {
                                         statusNum: 0,
                                         stateNum: 0,
@@ -2304,7 +2326,8 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
-                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.EXPENSE);
+
                                     // Verify report is a draft
                                     expect(expenseReport.stateNum).toBe(0);
                                     expect(expenseReport.statusNum).toBe(0);
@@ -2326,7 +2349,8 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
-                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.EXPENSE);
+
                                     // Report was submitted with some fail
                                     expect(expenseReport.stateNum).toBe(0);
                                     expect(expenseReport.statusNum).toBe(0);
