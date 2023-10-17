@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import lodashUniqBy from 'lodash/uniqBy';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
@@ -84,39 +83,7 @@ const getAllParticipants = (report, personalDetails, translate) =>
         .value();
 
 function ReportParticipantsPage(props) {
-    const getMemberOptions = () => {
-        let result = [];
-        _.each(props.policyMembers, (__, accountID) => {
-            const details = lodashGet(props.personalDetails, accountID, {displayName: props.personalDetails.displayName || props.translate('common.hidden'), avatar: ''});
-
-            result.push({
-                keyForList: accountID,
-                accountID: Number(accountID),
-                text: details.displayName,
-                displayName: details.displayName,
-                alternateText: details.login,
-                icons: [
-                    {
-                        id: accountID,
-                        source: UserUtils.getAvatar(details.avatar, accountID),
-                        name: details.login,
-                        type: CONST.ICON_TYPE_AVATAR,
-                    },
-                ],
-            });
-        });
-
-        result = _.sortBy(lodashUniqBy(result, 'alternateText'), (value) => (value.text || '').toLowerCase());
-
-        return result;
-    };
-
-    const data =
-        props.report.policyID && props.policyMembers && !ReportUtils.isAdminRoom(props.report)
-            ? getMemberOptions()
-            : getAllParticipants(props.report, props.personalDetails, props.translate);
-
-    const participants = _.map(data, (participant) => ({
+    const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => ({
         ...participant,
         isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
     }));
@@ -182,9 +149,6 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        policyMembers: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${props.report.policyID}`,
         },
     }),
 )(ReportParticipantsPage);
