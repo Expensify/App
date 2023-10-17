@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-interface */
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 declare module 'react-native-web-linear-gradient' {
     import type {ViewProps} from 'react-native';
