@@ -7,7 +7,7 @@ import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import SelectionList from '../../../../components/SelectionList';
 import searchCountryOptions from '../../../../libs/searchCountryOptions';
-import * as StringUtils from '../../../../libs/StringUtils';
+import StringUtils from '../../../../libs/StringUtils';
 import CONST from '../../../../CONST';
 import useLocalize from '../../../../hooks/useLocalize';
 

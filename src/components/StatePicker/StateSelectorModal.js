@@ -10,7 +10,7 @@ import useLocalize from '../../hooks/useLocalize';
 import ScreenWrapper from '../ScreenWrapper';
 import styles from '../../styles/styles';
 import searchCountryOptions from '../../libs/searchCountryOptions';
-import * as StringUtils from '../../libs/StringUtils';
+import StringUtils from '../../libs/StringUtils';
 
 const propTypes = {
     /** Whether the modal is visible */
