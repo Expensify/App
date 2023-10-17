@@ -30,15 +30,13 @@ import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFe
 import Permissions from '../libs/Permissions';
 import ParentNavigationSubtitle from '../components/ParentNavigationSubtitle';
 import MultipleAvatars from '../components/MultipleAvatars';
+import usePermissions from '../hooks/usePermissions';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -82,6 +80,8 @@ function ReportDetailsPage(props) {
     const participants = useMemo(() => ReportUtils.getParticipantsIDs(props.report), [props.report]);
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
+
+    const {canUsePolicyRooms} = usePermissions();
 
     const menuItems = useMemo(() => {
         const items = [];
