@@ -6,9 +6,9 @@ import AvatarWithDisplayName from './AvatarWithDisplayName';
 import ExpensifyWordmark from './ExpensifyWordmark';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import reportPropTypes from '../pages/reportPropTypes';
-import CONST from '../CONST';
 import styles from '../styles/styles';
 import * as Session from '../libs/actions/Session';
+import participantPropTypes from './participantPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -16,12 +16,16 @@ const propTypes = {
 
     isSmallSizeLayout: PropTypes.bool,
 
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
     isSmallSizeLayout: false,
+    personalDetails: {},
 };
 
 function AnonymousReportFooter(props) {
@@ -30,8 +34,9 @@ function AnonymousReportFooter(props) {
             <View style={[styles.flexRow, styles.flexShrink1]}>
                 <AvatarWithDisplayName
                     report={props.report}
-                    size={CONST.AVATAR_SIZE.MEDIUM}
+                    personalDetails={props.personalDetails}
                     isAnonymous
+                    shouldEnableDetailPageNavigation
                 />
             </View>
             <View style={styles.anonymousRoomFooterWordmarkAndLogoContainer(props.isSmallSizeLayout)}>

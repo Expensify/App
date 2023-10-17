@@ -3,7 +3,6 @@ import lodashGet from 'lodash/get';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import {getActionFromState} from '@react-navigation/core';
 import Log from '../Log';
-import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import linkingConfig from './linkingConfig';
@@ -81,7 +80,7 @@ const getActiveRouteIndex = function (route, index) {
 /**
  * Main navigation method for redirecting to a route.
  * @param {String} route
- * @param {String} type - Type of action to perform. Currently UP is supported.
+ * @param {String} [type] - Type of action to perform. Currently UP is supported.
  */
 function navigate(route = ROUTES.HOME, type) {
     if (!canNavigate('navigate', {route})) {
@@ -91,11 +90,6 @@ function navigate(route = ROUTES.HOME, type) {
         pendingRoute = route;
         return;
     }
-
-    // A pressed navigation button will remain focused, keeping its tooltip visible, even if it's supposed to be out of view.
-    // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is missing).
-    // More info: https://github.com/Expensify/App/issues/13146
-    DomUtils.blurActiveElement();
 
     linkTo(navigationRef.current, route, type);
 }
@@ -178,6 +172,11 @@ function dismissModal(targetReportID) {
                 const action = getActionFromState(state, linkingConfig.config);
                 action.type = 'REPLACE';
                 navigationRef.current.dispatch(action);
+                // If not-found page is in the route stack, we need to close it
+            } else if (targetReportID && _.some(rootState.routes, (route) => route.name === SCREENS.NOT_FOUND)) {
+                const lastRouteIndex = rootState.routes.length - 1;
+                const centralRouteIndex = _.findLastIndex(rootState.routes, (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+                navigationRef.current.dispatch({...StackActions.pop(lastRouteIndex - centralRouteIndex), target: rootState.key});
             } else {
                 navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key});
             }
