@@ -1,7 +1,6 @@
 import React, {useState, useCallback, useRef, useImperativeHandle, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../../CONST';
 import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
@@ -10,6 +9,7 @@ import * as UserUtils from '../../../../libs/UserUtils';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 import useLocalize from '../../../../hooks/useLocalize';
+import usePrevious from "../../../../hooks/usePrevious";
 import ONYXKEYS from '../../../../ONYXKEYS';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import * as SuggestionProps from './suggestionProps';
@@ -58,7 +58,7 @@ function SuggestionMention({
 }) {
     const {translate} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
-    const [shouldRecalculateSuggestions, setShouldRecalculateSuggestions] = useState(false);
+    const previousValue = usePrevious(value);
 
     const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowSuggestionMenu;
 
@@ -235,35 +235,14 @@ function SuggestionMention({
     );
 
     useEffect(() => {
-        console.log(`[Selection Handler] value: ${value}, selection: ${selection.end}`);
-
-        if (selection.end > 0 && !lodashGet(value, 'length', 0)) {
-            // This is a workaround for a known issue with iOS' first input.
-            // See: https://github.com/facebook/react-native/pull/36930#issuecomment-1593028467
-            setShouldRecalculateSuggestions(true);
-        }
-        calculateMentionSuggestion(selection.end);
-
-        // We want this hook to run only on selection change.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selection]);
-
-    useEffect(() => {
-        console.log(`[Value Handler] value: ${value}, selection: ${selection.end}, shouldRecalculateSuggestions: ${shouldRecalculateSuggestions}`);
-
-        // This hook solves the issue with iOS' first input:
-        // It enables showing the mention suggestions after the user enters '@' as a first char in the Composer.
-        // See: https://github.com/facebook/react-native/pull/36930#issuecomment-1593028467
-        if (!shouldRecalculateSuggestions) {
+        if (value.length < previousValue.length) {
+            console.log(`[Skipping] value: '${value}', selection: ${selection.end}`);
             return;
         }
 
-        setShouldRecalculateSuggestions(false);
+        console.log(`[Processing] value: '${value}', selection: ${selection.end}`);
         calculateMentionSuggestion(selection.end);
-
-        // We want this hook to run only on value change.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [value]);
+    }, [selection, calculateMentionSuggestion]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
