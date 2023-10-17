@@ -45,6 +45,7 @@ import MoneyBadge from '../../../assets/images/simple-illustrations/simple-illus
 import TreasureChest from '../../../assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import ThumbsUpStars from '../../../assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import Hands from '../../../assets/images/product-illustrations/home-illustration-hands.svg';
+import HandEarth from '../../../assets/images/simple-illustrations/simple-illustration__handearth.svg';
 
 export {
     Abracadabra,
@@ -94,4 +95,5 @@ export {
     TreasureChest,
     ThumbsUpStars,
     Hands,
+    HandEarth,
 };
