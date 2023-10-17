@@ -32,6 +32,21 @@ const propTypes = {
     /* Onyx Props */
     /** The details about the Expensify cards */
     cardList: PropTypes.objectOf(assignedCardPropTypes),
+    loginList: PropTypes.shape({}),
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        legalFirstName: PropTypes.string,
+        legalLastName: PropTypes.string,
+        phoneNumber: PropTypes.string,
+        /** User's home address */
+        address: PropTypes.shape({
+            street: PropTypes.string,
+            city: PropTypes.string,
+            state: PropTypes.string,
+            zip: PropTypes.string,
+            country: PropTypes.string,
+        }),
+    }),
 
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
@@ -44,10 +59,25 @@ const propTypes = {
 
 const defaultProps = {
     cardList: {},
+    loginList: {},
+    privatePersonalDetails: {
+        legalFirstName: '',
+        legalLastName: '',
+        phoneNumber: null,
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zip: '',
+            country: '',
+        },
+    },
 };
 
 function ExpensifyCardPage({
     cardList,
+    loginList,
+    privatePersonalDetails,
     route: {
         params: {domain},
     },
@@ -214,7 +244,7 @@ function ExpensifyCardPage({
                             success
                             text={translate('cardPage.getPhysicalCard')}
                             pressOnEnter
-                            onPress={() => Navigation.goToNextPhysicalCardRoute(domain)}
+                            onPress={() => Navigation.goToNextPhysicalCardRoute(privatePersonalDetails, loginList)}
                             style={[styles.mh5, styles.mb5]}
                         />
                     )}
@@ -231,5 +261,11 @@ ExpensifyCardPage.displayName = 'ExpensifyCardPage';
 export default withOnyx({
     cardList: {
         key: ONYXKEYS.CARD_LIST,
+    },
+    loginList: {
+        key: ONYXKEYS.LOGIN_LIST,
+    },
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },
 })(ExpensifyCardPage);
