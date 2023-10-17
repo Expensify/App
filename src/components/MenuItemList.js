@@ -10,6 +10,7 @@ import {CONTEXT_MENU_TYPES} from '../pages/home/report/ContextMenu/ContextMenuAc
 const propTypes = {
     /** An array of props that are pass to individual MenuItem components */
     menuItems: PropTypes.arrayOf(PropTypes.shape(menuItemPropTypes)),
+
     /** Whether or not to use the single execution hook */
     shouldUseSingleExecution: PropTypes.bool,
 };
