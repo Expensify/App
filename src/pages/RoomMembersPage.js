@@ -221,11 +221,13 @@ function RoomMembersPage(props) {
                 isDisabled: accountID === props.session.accountID,
                 text: props.formatPhoneNumber(details.displayName),
                 alternateText: props.formatPhoneNumber(details.login),
-                avatar: {
-                    source: UserUtils.getAvatar(details.avatar, accountID),
-                    name: details.login,
-                    type: CONST.ICON_TYPE_AVATAR,
-                },
+                icons: [
+                    {
+                        source: UserUtils.getAvatar(details.avatar, accountID),
+                        name: details.login,
+                        type: CONST.ICON_TYPE_AVATAR,
+                    },
+                ],
             });
         });
 
