@@ -1,16 +1,17 @@
 import React from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 import Text from './Text';
 import * as Localize from '../libs/Localize';
-import RenderHTML from './RenderHTML';
-import * as StringUtils from '../libs/StringUtils';
 import CONST from '../CONST';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import addEncryptedAuthTokenToURL from "../libs/addEncryptedAuthTokenToURL";
+import fileDownload from '../libs/fileDownload';
 
 const propTypes = {
     /**
@@ -40,12 +41,19 @@ function DotIndicatorMessage(props) {
         return null;
     }
 
-    function isReceiptError (message) {
+    const isReceiptError = (message) => {
         if (_.isString(message)) {
             return false;
         }
         return _.get(message, 'error', '') === CONST.IOU.RECEIPT_ERROR;
-    }
+    };
+
+    /**
+     * Download the failed receipt.
+     */
+    const downloadReceipt = (source, filename) => {
+        fileDownload(source, filename);
+    };
 
     // To ensure messages are presented in order we are sort of destroying the data we are given
     // and rebuilding as an array so we can render the messages in order. We don't really care about
@@ -73,12 +81,22 @@ function DotIndicatorMessage(props) {
             <View style={styles.offlineFeedback.textContainer}>
                 {_.map(sortedMessages, (message, i) => (
                     isReceiptError(message) ? (
-                        <Text
-                            key={i}
-                            style={styles.offlineFeedback.text}
+                        <PressableWithoutFeedback
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                            onPress={() => {
+                                downloadReceipt(message.source, message.filename)
+                            }}
                         >
-                            bla
-                        </Text>
+                            <Text
+                                key={i}
+                                style={styles.offlineFeedback.text}
+                                numberOfLines={1}
+                            >
+                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
+                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}>{Localize.translateLocal('iou.error.saveFileMessage')}</Text>
+                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
+                            </Text>
+                        </PressableWithoutFeedback>
                     ) : (
                     <Text
                         key={i}
