@@ -77,7 +77,9 @@ if (!fs.existsSync(config.OUTPUT_DIR)) {
 }
 
 try {
-    fs.rmSync(`${config.OUTPUT_DIR}/${label}.json`);
+    if (fs.existsSync(`${config.OUTPUT_DIR}/${label}.json`)) {
+        fs.rmSync(`${config.OUTPUT_DIR}/${label}.json`);
+    }
 } catch (error) {
     // Do nothing
     console.error(error);
