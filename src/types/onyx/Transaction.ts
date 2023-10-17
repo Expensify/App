@@ -3,7 +3,8 @@ import * as OnyxCommon from './OnyxCommon';
 import CONST from '../../CONST';
 import RecentWaypoint from './RecentWaypoint';
 
-type WaypointCollection = Record<string, RecentWaypoint | null>;
+// Default waypoint will be `{}`(empty object), that is why we are using Record<string, never>
+type WaypointCollection = Record<string, RecentWaypoint | Record<string, never>>;
 type Comment = {
     comment?: string;
     waypoints?: WaypointCollection;

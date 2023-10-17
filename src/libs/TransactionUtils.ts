@@ -399,7 +399,7 @@ function getAllReportTransactions(reportID?: string): Transaction[] {
 /**
  * Checks if a waypoint has a valid address
  */
-function waypointHasValidAddress(waypoint: RecentWaypoint | null): boolean {
+function waypointHasValidAddress(waypoint: RecentWaypoint | Record<string, never>): boolean {
     return !!waypoint?.address?.trim();
 }
 
@@ -423,7 +423,7 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
 
     let lastWaypointIndex = -1;
 
-    return waypointValues.reduce((acc, currentWaypoint, index) => {
+    return waypointValues.reduce<WaypointCollection>((acc, currentWaypoint, index) => {
         const previousWaypoint = waypointValues[lastWaypointIndex];
 
         // Check if the waypoint has a valid address
