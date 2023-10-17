@@ -80,7 +80,7 @@ const defaultProps = {
     credentials: {},
     isInModal: false,
     activeClients: [],
-    preferredLocale: ''
+    preferredLocale: '',
 };
 
 /**
@@ -157,7 +157,9 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
-        if (preferredLocale) {return;}
+        if (preferredLocale) {
+            return;
+        }
         App.setLocale(Localize.getDevicePreferredLocale());
     }, [preferredLocale]);
 
