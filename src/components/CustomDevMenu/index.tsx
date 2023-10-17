@@ -1,6 +1,6 @@
 import CustomDevMenuElement from './types';
 
-const CustomDevMenu = (): CustomDevMenuElement => {};
+const CustomDevMenu: CustomDevMenuElement = () => {};
 
 CustomDevMenu.displayName = 'CustomDevMenu';
 
