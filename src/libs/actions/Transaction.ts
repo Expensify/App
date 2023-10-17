@@ -32,8 +32,8 @@ function createInitialWaypoints(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
-                waypoint0: null,
-                waypoint1: null,
+                waypoint0: {},
+                waypoint1: {},
             },
         },
     });

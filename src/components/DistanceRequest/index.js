@@ -170,7 +170,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             const newWaypoints = {};
             _.each(data, (waypoint, index) => {
                 const newWaypoint = lodashGet(waypoints, waypoint, {});
-                newWaypoints[`waypoint${index}`] = lodashIsEmpty(newWaypoint) ? null : newWaypoint;
+                newWaypoints[`waypoint${index}`] = lodashIsEmpty(newWaypoint) ? {} : newWaypoint;
             });
 
             setOptimisticWaypoints(newWaypoints);
