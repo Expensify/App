@@ -3,6 +3,7 @@ import {Linking} from 'react-native';
 import {ValueOf} from 'type-fest';
 import throttle from 'lodash/throttle';
 import {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
+import {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import clearCache from './clearCache';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
@@ -641,7 +642,7 @@ function authenticatePusher(socketID: string, channelName: string, callback: Cha
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects('AuthenticatePusher', params)
         .then((response) => {
-            if (response.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+            if (response?.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher because authToken is expired');
                 callback(new Error('Pusher failed to authenticate because authToken is expired'), {auth: ''});
 
@@ -650,14 +651,14 @@ function authenticatePusher(socketID: string, channelName: string, callback: Cha
                 return;
             }
 
-            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher for reason other than expired session');
-                callback(new Error(`Pusher failed to authenticate because code: ${response.jsonCode} message: ${response.message}`), {auth: ''});
+                callback(new Error(`Pusher failed to authenticate because code: ${response?.jsonCode} message: ${response?.message}`), {auth: ''});
                 return;
             }
 
             Log.info('[PusherAuthorizer] Pusher authenticated successfully', false, {channelName});
-            callback(null, response);
+            callback(null, response as ChannelAuthorizationData);
         })
         .catch((error) => {
             Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
