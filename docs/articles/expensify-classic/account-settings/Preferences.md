@@ -1,11 +1,7 @@
 ---
-title: Preferences
+title: Account-Preferences.md
 description: Preferences
 ---
-
----
-title: Account-Preferences.md
---- 
 
 # Overview
 Customize your Expensify experience by updating your account details and preferences. Here you can update your profile picture, adjust contact preferences, and perform other actions to personalize your account.
@@ -21,7 +17,7 @@ Wherever you are, we'll time-stamp your report actions according to your local t
 To set your time zone:
 Navigate to **Settings > Account > Preferences > Scroll down to Time Zone**
 
-[Image 1: Image of the Time Zone setting]
+![ExpensifyHelp_Timezone](https://help.expensify.com/assets/images/ExpensifyHelp_Timezone.png){:width="100%"}
 
  **Note:** To set your time zone automatically based on your location, tick the box that says **Set my time zone automatically**.
 
@@ -29,7 +25,7 @@ If you prefer to set your time zone manually, leave the box unticked and select 
 
 When you add a comment to a report, all the report actions will be time-stamped in your local time. Adjusting your time zone to the appropriate location makes tracking and understanding submission and approval times much easier.
 
-[Image 2: Image showing how comments are time-stamped in your time]
+![ExpensifyHelp_Time](https://help.expensify.com/assets/images/ExpensifyHelp_Time.png){:width="100%"}
 
 # FAQ
 ## The profile picture on my account updated automatically. Why did this happen? 
