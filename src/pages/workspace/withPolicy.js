@@ -120,6 +120,12 @@ export default function (WrappedComponent) {
         policyMembers: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${getPolicyIDFromRoute(props.route)}`,
         },
+        policyDraft: {
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
+        },
+        policyMembersDraft: {
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
+        },
     })(withPolicy);
 }
 

@@ -11,6 +11,9 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import PressableWithDelayToggle from '../../../../components/Pressable/PressableWithDelayToggle';
 import styles from '../../../../styles/styles';
+import TextLink from '../../../../components/TextLink';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /** Card number */
@@ -33,6 +36,9 @@ const propTypes = {
             country: PropTypes.string,
         }),
     }),
+
+    /** Domain name */
+    domain: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -51,7 +57,7 @@ const defaultProps = {
     },
 };
 
-function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
+function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
 
@@ -92,6 +98,12 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails}) {
                 title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails)}
                 interactive={false}
             />
+            <TextLink
+                style={[styles.link, styles.mh5, styles.mb3]}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain))}
+            >
+                {translate('cardPage.cardDetails.updateAddress')}
+            </TextLink>
         </>
     );
 }
