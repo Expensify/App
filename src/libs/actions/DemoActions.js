@@ -63,7 +63,7 @@ function runDemoByURL(url = '') {
         });
     } else {
         // No demo is being run, so clear out demo info
-        Onyx.set(ONYXKEYS.DEMO_INFO, null);
+        Onyx.set(ONYXKEYS.DEMO_INFO, {});
     }
 }
 
