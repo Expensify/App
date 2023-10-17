@@ -70,6 +70,9 @@ const propTypes = {
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
+
+    /** The user's preferred locale */
+    preferredLocale: PropTypes.string,
 };
 
 const defaultProps = {
@@ -77,6 +80,7 @@ const defaultProps = {
     credentials: {},
     isInModal: false,
     activeClients: [],
+    preferredLocale: ''
 };
 
 /**
@@ -153,9 +157,9 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
-        if (preferredLocale) return;
+        if (preferredLocale) {return;}
         App.setLocale(Localize.getDevicePreferredLocale());
-    }, []);
+    }, [preferredLocale]);
 
     const {
         shouldShowLoginForm,
