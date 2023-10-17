@@ -106,6 +106,8 @@ type RequestedAmountMessageParams = {formattedAmount: string; comment: string};
 
 type SplitAmountParams = {amount: number};
 
+type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
+
 type AmountEachParams = {amount: number};
 
 type PayerOwesAmountParams = {payer: string; amount: number};
@@ -271,6 +273,7 @@ export type {
     RequestAmountParams,
     RequestedAmountMessageParams,
     SplitAmountParams,
+    DidSplitAmountMessageParams,
     AmountEachParams,
     PayerOwesAmountParams,
     PayerOwesParams,
