@@ -1,53 +1,47 @@
-import PropTypes from 'prop-types';
 import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../../../libs/getComponentDisplayName';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import ONYXKEYS from '../../../ONYXKEYS';
-import reportPropTypes from '../../reportPropTypes';
 import FullscreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as OnyxTypes from '../../../types/onyx';
 
-// export default function withNavigation<TProps extends WithNavigationProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
-//     function WithNavigation(props: Omit<TProps, keyof WithNavigationProps>, ref: ForwardedRef<TRef>) {
-//         const navigation = useNavigation();
-//         return (
-//             <WrappedComponent
-//                 // eslint-disable-next-line react/jsx-props-no-spreading
-//                 {...(props as TProps)}
-//                 ref={ref}
-//                 navigation={navigation}
-//             />
-//         );
-//     }
-
-//     WithNavigation.displayName = `withNavigation(${getComponentDisplayName(WrappedComponent)})`;
-//     return React.forwardRef(WithNavigation);
-// }
-
-type WithReportOrNotFoundProps = {
+type OnyxProps = {
     /** The report currently being looked at */
-    report: OnyxTypes.Report;
+    report: OnyxEntry<OnyxTypes.Report>;
     /** The policies which the user has access to */
-    policies: OnyxTypes.Policy;
+    // policies: OnyxTypes.Policy[];
+    policies: OnyxEntry<OnyxTypes.Policy>;
     /** Beta features list */
-    betas: OnyxTypes.Beta[];
+    // betas: OnyxTypes.Beta[];
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
     /** Indicated whether the report data is loading */
-    isLoadingReportData: boolean;
+    isLoadingReportData: OnyxEntry<boolean>;
 };
 
-export default function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+type RouteProps = {
+    route: {
+        params: {
+            reportID: string;
+        };
+    };
+};
+
+type HOCProps = {};
+
+type ComponentProps = OnyxProps & HOCProps;
+
+export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithReportOrNotFound(props: WithReportOrNotFoundProps, ref: ForwardedRef<TRef>) {
+    function WithReportOrNotFound(props: Omit<TProps, keyof HOCProps>, ref: ForwardedRef<TRef>) {
         console.log('***********!!!!!************');
 
         const contentShown = React.useRef(false);
 
-        const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
+        const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
         // eslint-disable-next-line rulesdir/no-negated-variables
-        const shouldShowNotFoundPage = _.isEmpty(props.report) || !props.report.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas);
+        const shouldShowNotFoundPage = _.isEmpty(props.report) || !props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {});
 
         // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
         // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
@@ -77,11 +71,12 @@ export default function <TProps extends WithReportOrNotFoundProps, TRef>(Wrapped
         );
     }
 
+    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const withReportOrNotFound = React.forwardRef(WithReportOrNotFound);
 
-    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
-    return withOnyx({
+    return withOnyx<Omit<TProps, keyof HOCProps> & RefAttributes<TRef> & RouteProps, OnyxProps>({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },

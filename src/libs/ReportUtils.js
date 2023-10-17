@@ -3018,8 +3018,8 @@ function canSeeDefaultRoom(report, policies, betas) {
 
 /**
  * @param {Object} report
- * @param {Array<Object>} policies
- * @param {Array<String>} betas
+ * @param {Object | null} policies
+ * @param {Array<String> | null} betas
  * @param {Object} allReportActions
  * @returns {Boolean}
  */
