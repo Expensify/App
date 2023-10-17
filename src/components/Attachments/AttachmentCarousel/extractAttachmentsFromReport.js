@@ -54,9 +54,10 @@ function extractAttachmentsFromReport(report, reportActions) {
             const transaction = TransactionUtils.getTransaction(transactionID);
             if (TransactionUtils.hasReceipt(transaction)) {
                 const {image} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+                const isLocalFile = image.startsWith('blob:') || image.startsWith('file:');
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(image),
-                    isAuthTokenRequired: true,
+                    isAuthTokenRequired: !isLocalFile,
                     file: {name: transaction.filename},
                     isReceipt: true,
                     transactionID,
