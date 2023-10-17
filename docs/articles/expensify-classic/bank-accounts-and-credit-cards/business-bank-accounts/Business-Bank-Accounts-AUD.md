@@ -1,5 +1,5 @@
 ---
-title: Add-a-Business-Bank-Account-(AUD).md
+title: Add a Business Bank Account
 description: This article provides insight on setting up and using an Australian Business Bank account in Expensify. 
 ---
 
