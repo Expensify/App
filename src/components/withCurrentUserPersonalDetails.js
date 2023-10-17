@@ -5,6 +5,8 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
 import refPropTypes from './refPropTypes';
+import compose from '../libs/compose';
+import {withPersonalDetails} from './OnyxProvider';
 
 const withCurrentUserPersonalDetailsPropTypes = {
     currentUserPersonalDetails: personalDetailsPropType,
@@ -61,14 +63,14 @@ export default function (WrappedComponent) {
         />
     ));
 
-    return withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    })(withCurrentUserPersonalDetails);
+    return compose(
+        withPersonalDetails(),
+        withOnyx({
+            session: {
+                key: ONYXKEYS.SESSION,
+            },
+        }),
+    )(withCurrentUserPersonalDetails);
 }
 
 export {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps};
