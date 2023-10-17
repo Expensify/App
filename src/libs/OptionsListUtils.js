@@ -1525,6 +1525,19 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
     return '';
 }
+/**
+ * Helper method that check if any search results match, and show the not found message.
+ *
+ * @param {Boolean} hasSelectableOptions
+ * @param {String} searchValue
+ * @return {String}
+ */
+function getHeaderMessageForNonUserList(hasSelectableOptions, searchValue) {
+    if (searchValue && !hasSelectableOptions) {
+        return Localize.translate(preferredLocale, 'common.noResultsFound');
+    }
+    return '';
+}
 
 /**
  * Helper method to check whether an option can show tooltip or not
@@ -1545,6 +1558,7 @@ export {
     getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,
+    getHeaderMessageForNonUserList,
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
