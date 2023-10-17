@@ -111,10 +111,8 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
-        const canEdit = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit);
-
         // Do not dismiss the modal, when a current user can edit a money request.
-        if (canEdit) {
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit)) {
             return;
         }
 
