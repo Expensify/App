@@ -1253,6 +1253,11 @@ function isWaitingForIOUActionFromCurrentUser(report) {
         return true;
     }
 
+    // Child report that is awaiting for current user to Pay
+    if (report.hasOutstandingChildRequest && report.ownerAccountID === currentUserAccountID) {
+        return true;
+    }
+
     return false;
 }
 
