@@ -295,7 +295,6 @@ function RoomMembersPage(props) {
                             headerMessage={headerMessage}
                             onSelectRow={(item) => toggleUser(item.keyForList)}
                             onSelectAll={() => toggleAllUsers(data)}
-                            // onDismissError={dismissError}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
                             showScrollIndicator
                         />
