@@ -12,6 +12,8 @@ import SCREENS from '../SCREENS';
 import ROUTES from '../ROUTES';
 import FullPageBiggerScreenView from './BlockingViews/FullPageBiggerScreenView';
 import styles from '../styles/styles';
+import Button from './Button';
+import navigation from '../libs/Navigation/Navigation';
 
 function getNewDotURL(url) {
     const urlObj = new URL(url);
@@ -170,6 +172,10 @@ function getOldDotURL(screenName, params) {
         return 'reports';
     }
 
+    if (screenName === SCREENS.OLD_DOT_TEST) {
+        return 'domain-test';
+    }
+
     return undefined;
 }
 
@@ -228,6 +234,9 @@ function IFrame({session}) {
             // TODO: use this value to navigate to a new path
             // eslint-disable-next-line no-unused-vars
             const newDotURL = getNewDotURL(url);
+
+            // TODO: The line below should be enough but I can't test it because of cookies issue.
+            // navigation.navigate(newDotURL);
         });
     }, []);
 
@@ -258,6 +267,10 @@ function IFrame({session}) {
         <FullPageBiggerScreenView>
             {/* TODO: Remove text with information */}
             <Text style={{fontSize: 40, color: 'white'}}>{`${routeName}\n${JSON.stringify(params)} \n${oldDotURL}\n${time}`}</Text>
+            <Button
+                text="go to nested domains"
+                onPress={() => navigation.navigate(ROUTES.DOMAIN_OLDDOT_TEST)}
+            />
             <iframe
                 // If we don't remount iframe it will mess up with the browser history.
                 key={`${routeName}-${index}`}

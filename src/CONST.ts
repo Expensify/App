@@ -2752,6 +2752,14 @@ const CONST = {
         WORKSPACES: 'workspaces',
     },
 
+    SUB_NAVIGATION_MENU: {
+        HOME: 'home',
+        CHATS: 'chats',
+        MONEY: 'money',
+        WORKSPACES: 'workspaces',
+        DOMAINS: 'domains',
+    },
+
     MISSING_TRANSLATION: 'MISSING TRANSLATION',
     SEARCH_MAX_LENGTH: 500,
 

@@ -45,6 +45,9 @@ export default {
     DOMAINS_OLDDOT: 'Domains_OLDDOT',
     DOMAIN_OLDDOT: 'Domain_OLDDOT',
 
+    // Breadcrumb screens
+    DOMAIN_OLDDOT_TEST: 'Domain_OLDDOT_TEST',
+
     WORKSPACE_OLDDOT: 'Workspace_OLDDOT',
 } as const;
 

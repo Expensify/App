@@ -365,4 +365,6 @@ export default {
         route: 'workspaces/:workspaceID/:section',
         getRoute: (workspaceID: string, section: string) => `workspaces/${workspaceID}/${section}`,
     },
+
+    DOMAIN_OLDDOT_TEST: 'domain_test',
 } as const;

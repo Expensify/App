@@ -32,6 +32,8 @@ const iframeScreens = [
     SCREENS.GROUPS_WORKSPACES_OLDDOT,
     SCREENS.DOMAINS_OLDDOT,
     SCREENS.WORKSPACE_OLDDOT,
+    // Breadcrumb screens
+    SCREENS.DOMAIN_OLDDOT_TEST,
 ];
 
 function CentralPaneNavigator() {

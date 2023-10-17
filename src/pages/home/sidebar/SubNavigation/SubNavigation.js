@@ -34,26 +34,19 @@ function SubNavigation({onLinkClick, insets}) {
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
     }, []);
 
+    console.log(sidebarNavigation);
+
     return (
         <View style={styles.subNavigationContainer}>
-            <View style={[StyleSheet.absoluteFillObject, StyleUtils.displayIfTrue(sidebarNavigation.selectedGlobalNavigationOption === CONST.GLOBAL_NAVIGATION_OPTION.CHATS)]}>
+            <View style={[StyleSheet.absoluteFillObject, StyleUtils.displayIfTrue(sidebarNavigation.selectedSubNavigationMenu === CONST.SUB_NAVIGATION_MENU.CHATS)]}>
                 <SidebarLinksData
                     insets={insets}
                     onLinkClick={onLinkClick}
                 />
             </View>
-            <View style={[StyleSheet.absoluteFillObject, StyleUtils.displayIfTrue(sidebarNavigation.selectedGlobalNavigationOption === CONST.GLOBAL_NAVIGATION_OPTION.MONEY)]}>
+            <View style={[StyleSheet.absoluteFillObject, StyleUtils.displayIfTrue(sidebarNavigation.selectedSubNavigationMenu === CONST.SUB_NAVIGATION_MENU.MONEY)]}>
                 <SubNavigationMenu
                     title={translate('globalNavigation.money')}
-                    customHeader={
-                        <HeaderWithBreadcrumbs
-                            title="Expensify.com"
-                            breadcrumbs={['Workspaces', 'Groups']}
-                            onPress={() => {
-                                console.log('BREAD');
-                            }}
-                        />
-                    }
                     menuItems={[
                         {
                             icon: Expensicons.Receipt,
@@ -82,7 +75,7 @@ function SubNavigation({onLinkClick, insets}) {
                     ]}
                 />
             </View>
-            <View style={[StyleSheet.absoluteFillObject, StyleUtils.displayIfTrue(sidebarNavigation.selectedGlobalNavigationOption === CONST.GLOBAL_NAVIGATION_OPTION.WORKSPACES)]}>
+            <View style={[StyleSheet.absoluteFillObject, StyleUtils.displayIfTrue(sidebarNavigation.selectedSubNavigationMenu === CONST.SUB_NAVIGATION_MENU.WORKSPACES)]}>
                 <SubNavigationMenu
                     title={translate('workspace.common.workspace')}
                     menuItems={[
@@ -108,6 +101,38 @@ function SubNavigation({onLinkClick, insets}) {
                             value: SCREENS.DOMAINS_OLDDOT,
                             onSelected: () => {
                                 Navigation.navigate(ROUTES.DOMAINS_OLDDOT);
+                            },
+                        },
+                    ]}
+                />
+            </View>
+            <View style={[StyleSheet.absoluteFillObject, StyleUtils.displayIfTrue(sidebarNavigation.selectedSubNavigationMenu === CONST.SUB_NAVIGATION_MENU.DOMAINS)]}>
+                <SubNavigationMenu
+                    title={translate('globalNavigation.money')}
+                    customHeader={
+                        <HeaderWithBreadcrumbs
+                            title="Expensify.com"
+                            breadcrumbs={['Workspaces', 'Groups']}
+                            onPress={() => {
+                                console.log('BREAD');
+                            }}
+                        />
+                    }
+                    menuItems={[
+                        {
+                            icon: Expensicons.Receipt,
+                            text: 'tmp1',
+                            value: SCREENS.DOMAIN_OLDDOT_TEST,
+                            onSelected: () => {
+                                Navigation.navigate(ROUTES.EXPENSES_OLDDOT);
+                            },
+                        },
+                        {
+                            icon: Expensicons.Document,
+                            text: 'tmp2',
+                            value: SCREENS.REPORTS_OLDDOT,
+                            onSelected: () => {
+                                Navigation.navigate(ROUTES.REPORTS_OLDDOT);
                             },
                         },
                     ]}

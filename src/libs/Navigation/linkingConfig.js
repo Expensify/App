@@ -40,6 +40,9 @@ export default {
                     [SCREENS.DOMAINS_OLDDOT]: ROUTES.DOMAINS_OLDDOT,
                     [SCREENS.DOMAIN_OLDDOT]: ROUTES.DOMAIN_OLDDOT.route,
                     [SCREENS.WORKSPACE_OLDDOT]: ROUTES.WORKSPACES_OLDDOT.route,
+
+                    // Breadcrumb screens
+                    [SCREENS.DOMAIN_OLDDOT_TEST]: ROUTES.DOMAIN_OLDDOT_TEST,
                 },
             },
             [SCREENS.NOT_FOUND]: '*',
