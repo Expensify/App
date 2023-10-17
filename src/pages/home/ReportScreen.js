@@ -34,7 +34,6 @@ import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import MoneyReportHeader from '../../components/MoneyReportHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
 import withHideKeyboardOnViewportScroll from '../../components/withBlockViewportScroll';
-import ReportScreenContext from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';

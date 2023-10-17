@@ -52,7 +52,9 @@ const startKeboardListeningService = () => {
 };
 
 const addListener = (eventName, callbackFn) => {
-    if ((eventName !== SHOW_EVENT_NAME && eventName !== HIDE_EVENT_NAME) || !callbackFn) return;
+    if ((eventName !== SHOW_EVENT_NAME && eventName !== HIDE_EVENT_NAME) || !callbackFn) {
+        return;
+    }
 
     if (eventName === SHOW_EVENT_NAME) {
         showListeners.push(callbackFn);

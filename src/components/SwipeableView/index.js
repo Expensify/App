@@ -25,7 +25,9 @@ const MIN_DELTA_Y = 25;
 
 const isTextSelection = () => {
     const focused = document.activeElement;
-    if (!focused) return false;
+    if (!focused) {
+        return false;
+    }
     if (typeof focused.selectionStart === 'number' && typeof focused.selectionEnd === 'number') {
         return focused.selectionStart !== focused.selectionEnd;
     }
@@ -67,7 +69,9 @@ function SwipeableView({onSwipeUp, onSwipeDown, style, children}) {
 
         const handleScroll = (event) => {
             isScrolling.current = true;
-            if (!event.target || scrollableChildRef.current) return;
+            if (!event.target || scrollableChildRef.current) {
+                return;
+            }
             scrollableChildRef.current = event.target;
         };
 
