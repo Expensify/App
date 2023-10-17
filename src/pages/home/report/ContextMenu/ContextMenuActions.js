@@ -170,7 +170,7 @@ export default [
                 });
                 return;
             }
-            
+
             ReportActionComposeFocusManager.focus();
             Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
         },
@@ -203,7 +203,7 @@ export default [
                 });
                 return;
             }
-            
+
             ReportActionComposeFocusManager.focus();
             Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
         },
