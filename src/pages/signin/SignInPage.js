@@ -243,16 +243,20 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
                     blurOnSubmit={account.validated === false}
                     scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}
                 />
-                {shouldShowValidateCodeForm && (
-                    <ValidateCodeForm
-                        isUsingRecoveryCode={isUsingRecoveryCode}
-                        setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                        setIsUsingMagicCode={setIsUsingMagicCode}
-                    />
+                {isClientTheLeader && (
+                    <>
+                        {shouldShowValidateCodeForm && (
+                            <ValidateCodeForm
+                                isUsingRecoveryCode={isUsingRecoveryCode}
+                                setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                                setIsUsingMagicCode={setIsUsingMagicCode}
+                            />
+                        )}
+                        {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
+                        {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
+                        {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
+                    </>
                 )}
-                {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
-                {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
         </View>
     );
