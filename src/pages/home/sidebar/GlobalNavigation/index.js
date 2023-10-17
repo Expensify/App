@@ -10,10 +10,12 @@ import useLocalize from '../../../../hooks/useLocalize';
 import GlobalNavigationMenuItem from './GlobalNavigationMenuItem';
 import {SidebarNavigationContext} from '../SidebarNavigationContext';
 import SignInOrAvatarWithOptionalStatus from '../SignInOrAvatarWithOptionalStatus';
+import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 
 function GlobalNavigation() {
     const sidebarNavigation = useContext(SidebarNavigationContext);
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const items = useMemo(
         () => [
@@ -53,11 +55,18 @@ function GlobalNavigation() {
         [translate],
     );
 
+    const itemsToDisplay = useMemo(() => {
+        if (isSmallScreenWidth) {
+            return _.filter(items, (item) => item.value === CONST.GLOBAL_NAVIGATION_OPTION.CHATS);
+        }
+        return items;
+    }, [isSmallScreenWidth, sidebarNavigation.selectedGlobalNavigationOption]);
+
     return (
         <View style={[styles.ph5, styles.pv3, styles.alignItemsCenter, styles.h100, styles.globalNavigation]}>
             <SignInOrAvatarWithOptionalStatus />
             <View style={styles.globalNavigationMenuContainer}>
-                {_.map(items, (item) => (
+                {_.map(itemsToDisplay, (item) => (
                     <GlobalNavigationMenuItem
                         key={item.value}
                         icon={item.icon}
