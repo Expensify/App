@@ -75,7 +75,7 @@ type LocaleContextProps = {
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: FromLocaleDigit;
 
-    /** The user's preferred locale e.g. 'en', 'es-ES' */    
+    /** The user's preferred locale e.g. 'en', 'es-ES' */
     preferredLocale: string;
 };
 
