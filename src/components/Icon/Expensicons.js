@@ -125,6 +125,7 @@ import Instagram from '../../../assets/images/social-instagram.svg';
 import AddReaction from '../../../assets/images/add-reaction.svg';
 import Task from '../../../assets/images/task.svg';
 import EReceiptIcon from '../../../assets/images/eReceiptIcon.svg';
+import ReceiptPlaceholderImage from '../../../assets/images/receipt-placeholder.svg';
 
 export {
     ActiveRoomAvatar,
@@ -229,6 +230,7 @@ export {
     QrCode,
     QuestionMark,
     Receipt,
+    ReceiptPlaceholderImage,
     ReceiptSearch,
     Rotate,
     RotateLeft,

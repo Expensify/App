@@ -8,7 +8,9 @@ import * as StyleUtils from '../styles/StyleUtils';
 import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import useNetwork from '../hooks/useNetwork';
-import ReceiptPlaceholderImage from '../../assets/images/receipt-placeholder.svg';
+import Icon from '../../src/components/Icon';
+import * as Expensicons from '../../src/components/Icon/Expensicons';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Source URL for the preview image */
@@ -29,13 +31,25 @@ const propTypes = {
 
     /** Should the image be resized on load or just fit container */
     shouldDynamicallyResize: PropTypes.bool,
+
+    /** Icon to use as a fallback when offline */
+    fallbackIcon: PropTypes.string,
+
+     /** Size of the icon container that will be rendered */
+    iconSize: PropTypes.number,
+
+      /** The fill color to pass into the icon. */
+    iconFill: PropTypes.string,
 };
 
 const defaultProps = {
+    iconFill: themeColors.textLight,
     style: {},
     imageWidth: 200,
     imageHeight: 200,
     shouldDynamicallyResize: true,
+    fallbackIcon: Expensicons.ReceiptPlaceholderImage, // Default fallback icon
+    iconSize: 100, // Default icon size
 };
 
 /**
@@ -99,12 +113,13 @@ function ThumbnailImage(props) {
         <View style={[props.style, styles.overflowHidden]}>
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 {isOffline ? (
-                    <ReceiptPlaceholderImage
-                        pointerEvents={'none'}
-                        width={100}
-                        style={styles.receiptPlaceholder}
+                    <Icon
+                        src={props.fallbackIcon}
+                        width={props.iconSize}
+                        height={props.iconSize}
+                        fill={props.iconFill}
                     />
-                    ) : (
+                ) : (
                     <ImageWithSizeCalculation
                         url={props.previewSourceURL}
                         onMeasure={updateImageSize}
