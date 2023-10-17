@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as NetworkStore from '../Network/NetworkStore';
 import * as MainQueue from '../Network/MainQueue';
@@ -6,15 +5,12 @@ import * as Authentication from '../Authentication';
 import * as Request from '../Request';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
+import Middleware from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
-let isAuthenticating = null;
+let isAuthenticating: Promise<void> | null = null;
 
-/**
- * @param {String} commandName
- * @returns {Promise}
- */
-function reauthenticate(commandName) {
+function reauthenticate(commandName?: string): Promise<void> {
     if (isAuthenticating) {
         return isAuthenticating;
     }
@@ -32,16 +28,8 @@ function reauthenticate(commandName) {
     return isAuthenticating;
 }
 
-/**
- * Reauthentication middleware
- *
- * @param {Promise} response
- * @param {Object} request
- * @param {Boolean} isFromSequentialQueue
- * @returns {Promise}
- */
-function Reauthentication(response, request, isFromSequentialQueue) {
-    return response
+const Reauthentication: Middleware = (response, request, isFromSequentialQueue) =>
+    response
         .then((data) => {
             // If there is no data for some reason then we cannot reauthenticate
             if (!data) {
@@ -58,13 +46,13 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 // There are some API requests that should not be retried when there is an auth failure like
                 // creating and deleting logins. In those cases, they should handle the original response instead
                 // of the new response created by handleExpiredAuthToken.
-                const shouldRetry = lodashGet(request, 'data.shouldRetry');
-                const apiRequestType = lodashGet(request, 'data.apiRequestType');
+                const shouldRetry = request?.data?.shouldRetry;
+                const apiRequestType = request?.data?.apiRequestType;
 
                 // For the SignInWithShortLivedAuthToken command, if the short token expires, the server returns a 407 error,
                 // and credentials are still empty at this time, which causes reauthenticate to throw an error (requireParameters),
                 // and the subsequent SaveResponseInOnyx also cannot be executed, so we need this parameter to skip the reauthentication logic.
-                const skipReauthentication = lodashGet(request, 'data.skipReauthentication');
+                const skipReauthentication = request?.data?.skipReauthentication;
                 if ((!shouldRetry && !apiRequestType) || skipReauthentication) {
                     if (isFromSequentialQueue) {
                         return data;
@@ -82,7 +70,7 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                     return data;
                 }
 
-                return reauthenticate(request.commandName)
+                return reauthenticate(request?.commandName)
                     .then((authenticateResponse) => {
                         if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
                             return Request.processWithMiddleware(request, isFromSequentialQueue);
@@ -128,6 +116,5 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 request.resolve({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
             }
         });
-}
 
 export default Reauthentication;

@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -17,6 +17,7 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as Report from '../libs/actions/Report';
+import * as Policy from '../libs/actions/Policy';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -79,7 +80,12 @@ function ReportDetailsPage(props) {
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
     const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
-    const participants = useMemo(() => ReportUtils.getParticipantsIDs(props.report), [props.report]);
+    const workspaceMembers = useMemo(() => _.keys(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)), [props.policyMembers, props.personalDetails]);
+
+    const participants = useMemo(
+        () => (props.report.policyID && !ReportUtils.isAdminRoom(props.report) ? workspaceMembers : ReportUtils.getParticipantsIDs(props.report)),
+        [props.report, workspaceMembers],
+    );
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
 
@@ -191,6 +197,16 @@ function ReportDetailsPage(props) {
             {chatRoomSubtitle}
         </Text>
     ) : null;
+    const getWorkspaceMembers = useCallback(() => {
+        Policy.openWorkspaceMembersPage(props.report.policyID, workspaceMembers);
+    }, [props.report.policyID, workspaceMembers]);
+
+    useEffect(() => {
+        if (!props.report.policyID || ReportUtils.isAdminRoom(props.report)) {
+            return;
+        }
+        getWorkspaceMembers();
+    }, [getWorkspaceMembers, props.report]);
 
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
@@ -280,6 +296,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        policyMembers: {
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${props.report.policyID}`,
         },
     }),
 )(ReportDetailsPage);

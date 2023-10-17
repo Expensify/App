@@ -76,8 +76,15 @@ function buildOptimisticTransaction(
     };
 }
 
+/**
+ * Check if the transaction has an Ereceipt
+ */
+function hasEReceipt(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.hasEReceipt;
+}
+
 function hasReceipt(transaction: Transaction | undefined | null): boolean {
-    return !!transaction?.receipt?.state;
+    return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
 function isMerchantMissing(transaction: Transaction) {
@@ -366,13 +373,6 @@ function hasRoute(transaction: Transaction): boolean {
 }
 
 /**
- * Check if the transaction has an Ereceipt
- */
-function hasEreceipt(transaction: Transaction): boolean {
-    return !!transaction?.hasEReceipt;
-}
-
-/**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
@@ -472,7 +472,7 @@ export {
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
-    hasEreceipt,
+    hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,

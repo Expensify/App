@@ -117,20 +117,21 @@ const MenuItem = React.forwardRef((props, ref) => {
             return;
         }
         const parser = new ExpensiMark();
-        setHtml(parser.replace(convertToLTR(props.title)));
+        setHtml(parser.replace(props.title));
         titleRef.current = props.title;
     }, [props.title, props.shouldParseTitle]);
 
     const getProcessedTitle = useMemo(() => {
+        let title = '';
         if (props.shouldRenderAsHTML) {
-            return convertToLTR(props.title);
+            title = convertToLTR(props.title);
         }
 
         if (props.shouldParseTitle) {
-            return html;
+            title = html;
         }
 
-        return '';
+        return title ? `<comment>${title}</comment>` : '';
     }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
 
     const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
