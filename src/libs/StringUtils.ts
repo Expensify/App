@@ -16,7 +16,7 @@ function sanitizeString(str: string): string {
  * @returns True if it contains html elements
  */
 function hasHTML(str: string): boolean {
-    const regex = new RegExp('/<\\/?[a-z][\\s\\S]*>/', 'i');
+    const regex = new RegExp('</?[a-z][\\s\\S]*>', 'i');
     return regex.test(str)
 }
 
