@@ -92,33 +92,6 @@ Onyx.connect({
 });
 
 /**
- * Get the option for a policy expense report.
- * @param {Object} report
- * @returns {Object}
- */
-function getPolicyExpenseReportOption(report) {
-    const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
-    const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
-    const reportName = ReportUtils.getReportName(expenseReport);
-    return {
-        ...expenseReport,
-        keyForList: expenseReport.policyID,
-        text: reportName,
-        alternateText: Localize.translateLocal('workspace.common.workspace'),
-        icons: [
-            {
-                source: policyExpenseChatAvatarSource,
-                name: reportName,
-                type: CONST.ICON_TYPE_WORKSPACE,
-            },
-        ],
-        selected: report.selected,
-        isPolicyExpenseChat: true,
-        searchText: report.searchText,
-    };
-}
-
-/**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
  *
  * @param {String} login
@@ -394,7 +367,14 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
+        const lastIOUMoneyReport = _.find(
+            allSortedReportActions[iouReport.reportID],
+            (reportAction, key) =>
+                ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                ReportActionUtils.isMoneyRequestAction(reportAction),
+        );
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
@@ -464,8 +444,10 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         isArchivedRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
+        isOwnPolicyExpenseChat: false,
         isExpenseReport: false,
         policyID: null,
+        isOptimisticPersonalDetail: false,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -476,17 +458,19 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     let reportName;
 
     result.participantsList = personalDetailList;
+    result.isOptimisticPersonalDetail = personalDetail.isOptimisticPersonalDetail;
 
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
-        result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.isExpenseReport = ReportUtils.isExpenseReport(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         result.isThread = ReportUtils.isChatThread(report);
         result.isTaskReport = ReportUtils.isTaskReport(report);
         result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
+        result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat || false;
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
@@ -551,6 +535,32 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     result.subtitle = subtitle;
 
     return result;
+}
+
+/**
+ * Get the option for a policy expense report.
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getPolicyExpenseReportOption(report) {
+    const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+
+    const option = createOption(
+        expenseReport.participantAccountIDs,
+        allPersonalDetails,
+        expenseReport,
+        {},
+        {
+            showChatPreviewLine: false,
+            forcePolicyNamePreview: false,
+        },
+    );
+
+    // Update text & alternateText because createOption returns workspace name only if report is owned by the user
+    option.text = ReportUtils.getPolicyName(expenseReport);
+    option.alternateText = Localize.translateLocal('workspace.common.workspace');
+    option.selected = report.selected;
+    return option;
 }
 
 /**
@@ -1166,6 +1176,7 @@ function getOptions(
             if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
                 return;
             }
+
             personalDetailsOptions.push(personalDetailOption);
         });
     }
@@ -1177,7 +1188,10 @@ function getOptions(
 
     let userToInvite = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
-    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase());
+    const noOptionsMatchExactly = !_.find(
+        personalDetailsOptions.concat(recentReportOptions),
+        (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase() || option.login === searchValue.toLowerCase(),
+    );
 
     if (
         searchValue &&
@@ -1246,7 +1260,7 @@ function getOptions(
     }
 
     return {
-        personalDetails: personalDetailsOptions,
+        personalDetails: _.filter(personalDetailsOptions, (personalDetailsOption) => !personalDetailsOption.isOptimisticPersonalDetail),
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,

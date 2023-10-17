@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import moment from 'moment';
+import {format, getMonth, getYear} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -19,6 +19,7 @@ import CONST from '../../CONST';
 import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import DateUtils from '../../libs/DateUtils';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -55,7 +56,7 @@ function WalletStatementPage(props) {
     const yearMonth = lodashGet(props.route.params, 'yearMonth', null);
 
     useEffect(() => {
-        const currentYearMonth = moment().format('YYYYMM');
+        const currentYearMonth = format(new Date(), CONST.DATE.YEAR_MONTH_FORMAT);
         if (!yearMonth || yearMonth.length !== 6 || yearMonth > currentYearMonth) {
             Navigation.dismissModal();
         }
@@ -63,7 +64,7 @@ function WalletStatementPage(props) {
     }, []);
 
     useEffect(() => {
-        moment.locale(props.preferredLocale);
+        DateUtils.setLocale(props.preferredLocale);
     }, [props.preferredLocale]);
 
     const processDownload = () => {
@@ -84,9 +85,9 @@ function WalletStatementPage(props) {
         User.generateStatementPDF(yearMonth);
     };
 
-    const year = yearMonth.substring(0, 4) || moment().year();
-    const month = yearMonth.substring(4) || moment().month();
-    const monthName = moment(month, 'M').format('MMMM');
+    const year = yearMonth.substring(0, 4) || getYear(new Date());
+    const month = yearMonth.substring(4) || getMonth(new Date());
+    const monthName = format(new Date(year, month), CONST.DATE.MONTH_FORMAT);
     const title = `${monthName} ${year} statement`;
     const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${yearMonth}`;
 
