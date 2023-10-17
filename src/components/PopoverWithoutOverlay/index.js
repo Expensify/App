@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {PopoverContext} from '../PopoverProvider';
@@ -10,8 +10,8 @@ import getModalStyles from '../../styles/getModalStyles';
 import withWindowDimensions from '../withWindowDimensions';
 
 function Popover(props) {
-    const ref = React.useRef(null);
     const {onOpen, close} = React.useContext(PopoverContext);
+    const firstRenderRef = useRef(true);
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
         'popover',
         {
@@ -28,7 +28,7 @@ function Popover(props) {
         if (props.isVisible) {
             props.onModalShow();
             onOpen({
-                ref,
+                ref: props.withoutOverlayRef,
                 close: props.onClose,
                 anchorRef: props.anchorRef,
             });
@@ -38,6 +38,13 @@ function Popover(props) {
             Modal.onModalDidClose();
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
+
+        // We prevent setting closeModal function to null when the component is invisible the first time it is rendered
+        if (!firstRenderRef.current || !props.isVisible) {
+            firstRenderRef.current = false;
+            return;
+        }
+        firstRenderRef.current = false;
         Modal.setCloseModal(props.isVisible ? () => props.onClose(props.anchorRef) : null);
 
         // We want this effect to run strictly ONLY when isVisible prop changes
@@ -51,7 +58,7 @@ function Popover(props) {
     return (
         <View
             style={[modalStyle, {zIndex: 1}]}
-            ref={ref}
+            ref={props.withoutOverlayRef}
         >
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {

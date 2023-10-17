@@ -72,7 +72,7 @@ const propTypes = {
     setIsCommentEmpty: PropTypes.func.isRequired,
 
     /** A method to call when the form is submitted */
-    submitForm: PropTypes.func.isRequired,
+    handleSendMessage: PropTypes.func.isRequired,
 
     /** Whether the compose input is shown or not */
     shouldShowComposeInput: PropTypes.bool.isRequired,

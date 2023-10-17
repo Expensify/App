@@ -10,8 +10,6 @@ import variables from '../../../styles/variables';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import compose from '../../../libs/compose';
 import Licenses from '../Licenses';
 import Socials from '../Socials';
 import Hoverable from '../../../components/Hoverable';
@@ -20,12 +18,14 @@ import * as Session from '../../../libs/actions/Session';
 import SignInGradient from '../../../../assets/images/home-fade-gradient--mobile.svg';
 
 const propTypes = {
-    ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     scrollPageToTop: PropTypes.func.isRequired,
+    shouldShowSmallScreen: PropTypes.bool,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    shouldShowSmallScreen: false,
+};
 
 const navigateHome = (scrollPageToTop) => {
     scrollPageToTop();
@@ -150,7 +150,7 @@ const columns = ({scrollPageToTop}) => [
 ];
 
 function Footer(props) {
-    const isVertical = props.isSmallScreenWidth;
+    const isVertical = props.shouldShowSmallScreen;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
@@ -225,4 +225,4 @@ Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
 Footer.defaultProps = defaultProps;
 
-export default compose(withLocalize, withWindowDimensions)(Footer);
+export default withLocalize(Footer);

@@ -62,12 +62,19 @@ function CloseAccountPage(props) {
         setReasonForLeaving(values.reasonForLeaving);
     };
 
+    /**
+     * Removes spaces and transform the input string to lowercase.
+     * @param {String} phoneOrEmail - The input string to be sanitized.
+     * @returns {String} The sanitized string
+     */
+    const sanitizePhoneOrEmail = (phoneOrEmail) => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
+
     const validate = (values) => {
         const requiredFields = ['phoneOrEmail'];
         const userEmailOrPhone = props.formatPhoneNumber(props.session.email);
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-        if (values.phoneOrEmail && userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()) {
+        if (values.phoneOrEmail && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
             errors.phoneOrEmail = 'closeAccountPage.enterYourDefaultContactMethod';
         }
         return errors;
