@@ -117,6 +117,13 @@ const propTypes = {
     /** The last Onyx update ID was applied to the client */
     lastUpdateIDAppliedToClient: PropTypes.number,
 
+    /** Information about any currently running demos */
+    demoInfo: PropTypes.shape({
+        money2020: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+    }),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -127,6 +134,7 @@ const defaultProps = {
     },
     lastOpenedPublicRoomID: null,
     lastUpdateIDAppliedToClient: null,
+    demoInfo: {},
 };
 
 class AuthScreens extends React.Component {
@@ -169,6 +177,10 @@ class AuthScreens extends React.Component {
         App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);
         App.redirectThirdPartyDesktopSignIn();
 
+        // Check if we should be running any demos immediately after signing in.
+        if (lodashGet(this.props.demoInfo, 'money2020.isBeginningDemo', false)) {
+            Navigation.navigate(ROUTES.MONEY2020, CONST.NAVIGATION.TYPE.FORCED_UP);
+        }
         if (this.props.lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
             Report.openLastOpenedPublicRoom(this.props.lastOpenedPublicRoomID);
@@ -300,6 +312,11 @@ class AuthScreens extends React.Component {
                         component={DemoSetupPage}
                     />
                     <RootStack.Screen
+                        name={CONST.DEMO_PAGES.MONEY2020}
+                        options={defaultScreenOptions}
+                        component={DemoSetupPage}
+                    />
+                    <RootStack.Screen
                         name={SCREENS.REPORT_ATTACHMENTS}
                         options={{
                             headerShown: false,
@@ -349,6 +366,9 @@ export default compose(
         },
         lastUpdateIDAppliedToClient: {
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+        },
+        demoInfo: {
+            key: ONYXKEYS.DEMO_INFO,
         },
     }),
 )(AuthScreens);

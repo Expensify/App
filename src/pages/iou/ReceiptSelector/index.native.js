@@ -159,7 +159,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
     return (
         <View style={styles.flex1}>
             {cameraPermissionStatus !== RESULTS.GRANTED && (
-                <View style={[styles.cameraView, styles.permissionView]}>
+                <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                     <Hand
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
                         height={CONST.RECEIPT.HAND_ICON_HEIGHT}
