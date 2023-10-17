@@ -70,6 +70,7 @@ import themeColors from '../../../styles/themes/default';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import RenderHTML from '../../../components/RenderHTML';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import {PersonalDetailsContext} from '../ReportScreen';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -107,7 +108,6 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     emojiReactions: EmojiReactionsPropTypes,
-    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** IOU report for this action, if any */
     iouReport: reportPropTypes,
@@ -120,7 +120,6 @@ const defaultProps = {
     draftMessage: '',
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     emojiReactions: {},
-    personalDetailsList: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
     iouReport: undefined,
@@ -128,6 +127,7 @@ const defaultProps = {
 };
 
 function ReportActionItem(props) {
+    const personalDetails = useContext(PersonalDetailsContext);
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -344,7 +344,7 @@ function ReportActionItem(props) {
                 />
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
             const shouldShowAddCreditBankAccountButton =
                 ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !store.hasCreditBankAccount() && !ReportUtils.isSettled(props.report.reportID);
 
@@ -467,7 +467,7 @@ function ReportActionItem(props) {
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
                             isHovered={hovered}
-                            icons={ReportUtils.getIconsForParticipants(oldestFourAccountIDs, props.personalDetailsList)}
+                            icons={ReportUtils.getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
                             onSecondaryInteraction={showPopover}
                         />
                     </View>
@@ -594,7 +594,7 @@ function ReportActionItem(props) {
     const isWhisper = whisperedToAccountIDs.length > 0;
     const isMultipleParticipant = whisperedToAccountIDs.length > 1;
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
-    const whisperedToPersonalDetails = isWhisper ? _.filter(props.personalDetailsList, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
+    const whisperedToPersonalDetails = isWhisper ? _.filter(personalDetails, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
     return (
         <PressableWithSecondaryInteraction
@@ -676,7 +676,6 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withNetwork(),
-    withPersonalDetails(),
     withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
     withReportActionsDrafts({
         propName: 'draftMessage',
