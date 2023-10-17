@@ -1331,7 +1331,9 @@ const CONST = {
 
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
 
-        INVISIBLE_CHARACTERS: /[\p{C}\p{Z}]/gu,
+        INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
+
+        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
     },
 
     PRONOUNS: {

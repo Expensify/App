@@ -85,5 +85,8 @@ describe('libs/isEmpty', () => {
         expect(isEmpty('\uDC6E')).toBe(true);
         expect(isEmpty('\uDC67')).toBe(true);
         expect(isEmpty('\uDC7F')).toBe(true);
+
+        // A special test, an invisible character from other Unicode categories than format and control
+        expect(isEmpty('\u3164')).toBe(true);
     });
 });
