@@ -62,7 +62,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
 
     const hasBankAccount = !_.isEmpty(bankAccountList) || !_.isEmpty(fundList);
     const hasWallet = userWallet.walletLinkedAccountID > 0;
-    const hasSilverWallet = userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER;
+    const hasActivatedWallet = _.contains([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM], userWallet.tierName);
     const hasAssignedCard = !_.isEmpty(cardList);
     const shouldShowEmptyState = !hasBankAccount && !hasWallet && !hasAssignedCard;
 
@@ -336,7 +336,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                 {hasWallet && (
                                     <WalletSection
                                         icon={Illustrations.MoneyIntoWallet}
-                                        subtitle={translate(`walletPage.${hasSilverWallet ? 'enableWalletToSendAndReceiveMoney' : 'sendAndReceiveMoney'}`)}
+                                        subtitle={translate(`walletPage.${hasActivatedWallet ? 'sendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
                                         title={translate('walletPage.expensifyWallet')}
                                     >
                                         <>
@@ -360,7 +360,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                             <KYCWall
                                                 onSuccessfulKYC={(_iouPaymentType, source) => navigateToWalletOrTransferBalancePage(source)}
                                                 onSelectPaymentMethod={(selectedPaymentMethod) => {
-                                                    if (!hasSilverWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+                                                    if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
                                                         return;
                                                     }
                                                     // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
@@ -370,21 +370,11 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                 addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
                                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                                 popoverPlacement="bottom"
-                                                source={hasSilverWallet ? CONST.KYC_WALL_SOURCE.ENABLE_WALLET : CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE}
-                                                shouldIncludeDebitCard={!hasSilverWallet}
+                                                source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
+                                                shouldIncludeDebitCard={hasActivatedWallet}
                                             >
                                                 {(triggerKYCFlow, buttonRef) =>
-                                                    hasSilverWallet ? (
-                                                        <Button
-                                                            ref={buttonRef}
-                                                            text={translate('walletPage.enableWallet')}
-                                                            onPress={triggerKYCFlow}
-                                                            style={styles.mh5}
-                                                            isDisabled={network.isOffline}
-                                                            success
-                                                            large
-                                                        />
-                                                    ) : (
+                                                    hasActivatedWallet ? (
                                                         <MenuItem
                                                             ref={buttonRef}
                                                             title={translate('common.transferBalance')}
@@ -393,6 +383,16 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                             shouldShowRightIcon
                                                             disabled={network.isOffline}
                                                             wrapperStyle={styles.transferBalance}
+                                                        />
+                                                    ) : (
+                                                        <Button
+                                                            ref={buttonRef}
+                                                            text={translate('walletPage.enableWallet')}
+                                                            onPress={triggerKYCFlow}
+                                                            style={styles.mh5}
+                                                            isDisabled={network.isOffline}
+                                                            success
+                                                            large
                                                         />
                                                     )
                                                 }
