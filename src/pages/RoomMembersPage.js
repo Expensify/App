@@ -1,6 +1,5 @@
 import React, {useMemo, useState, useCallback, useEffect} from 'react';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -26,6 +25,7 @@ import * as PolicyUtils from '../libs/PolicyUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as UserUtils from '../libs/UserUtils';
 import * as Report from '../libs/actions/Report';
+import * as ReportUtils from '../libs/ReportUtils';
 import Permissions from '../libs/Permissions';
 import Log from '../libs/Log';
 
@@ -252,7 +252,7 @@ function RoomMembersPage(props) {
             >
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.members')}
-                    subtitle={lodashGet(props.report, 'reportName')}
+                    subtitle={ReportUtils.getReportName(props.report)}
                     onBackButtonPress={() => {
                         setSearchValue('');
                         Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));

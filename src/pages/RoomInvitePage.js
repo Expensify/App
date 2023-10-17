@@ -22,6 +22,7 @@ import * as PolicyUtils from '../libs/PolicyUtils';
 import useLocalize from '../hooks/useLocalize';
 import SelectionList from '../components/SelectionList';
 import * as Report from '../libs/actions/Report';
+import * as ReportUtils from '../libs/ReportUtils';
 import Permissions from '../libs/Permissions';
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -221,7 +222,7 @@ function RoomInvitePage(props) {
                     >
                         <HeaderWithBackButton
                             title={translate('workspace.invite.invitePeople')}
-                            subtitle={lodashGet(props.report, 'reportName')}
+                            subtitle={ReportUtils.getReportName(props.report)}
                             onBackButtonPress={() => {
                                 // Policy.clearErrors(props.route.params.policyID);
                                 Navigation.goBack(backRoute);
