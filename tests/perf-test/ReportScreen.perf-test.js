@@ -27,11 +27,45 @@ jest.mock('../../src/hooks/useNetwork', () =>
     })),
 );
 
+jest.mock('../../src/hooks/useKeyboardState', () =>
+    jest.fn(() => ({
+        isKeyboardShown: false,
+    })),
+);
+
+jest.mock('../../src/hooks/useWindowDimensions', () =>
+    jest.fn(() => ({
+        windowHeight: 1000,
+        isSmallScreenWidth: false,
+        isMediumScreenWidth: false,
+        isLargeScreenWidth: false,
+    })),
+);
+
 jest.mock('../../src/components/withLocalize', () => (Component) => (props) => (
     <Component
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         translate={(text) => text}
+    />
+));
+
+jest.mock('../../src/components/withWindowDimensions', () => (Component) => (props) => (
+    <Component
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        windowHeight={1000}
+        isSmallScreenWidth={false}
+        isMediumScreenWidth={false}
+        isLargeScreenWidth={false}
+    />
+));
+
+jest.mock('../../src/components/withKeyboardState', () => (Component) => (props) => (
+    <Component
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        isKeyboardShown={false}
     />
 ));
 
@@ -75,7 +109,8 @@ beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        registerStorageEventListener: () => {},
+        registerStorageEventListener: () => {
+        },
     }),
 );
 
@@ -92,5 +127,5 @@ test('should render report screen', () => {
         await screen.findByTestId('report-actions-list');
         await screen.findByTestId('composer');
     };
-    measurePerformance(<ReportScreen />, {scenario});
+    measurePerformance(<ReportScreen/>, {scenario});
 });
