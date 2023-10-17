@@ -1,119 +1,78 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../../../../CONST';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import TextInput from '../../../../components/TextInput';
+import AddressForm from '../../../../components/AddressForm';
 import useLocalize from '../../../../hooks/useLocalize';
-import styles from '../../../../styles/styles';
+import ONYXKEYS from '../../../../ONYXKEYS';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
-import AddressSearch from '../../../../components/AddressSearch';
 
 const propTypes = {
-    personalDetails: PropTypes.shape({
-        address: PropTypes.string,
+    /* Onyx Props */
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        /** User's home address */
+        address: PropTypes.shape({
+            street: PropTypes.string,
+            city: PropTypes.string,
+            state: PropTypes.string,
+            zip: PropTypes.string,
+            country: PropTypes.string,
+        }),
     }),
+
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Currently selected country */
+            country: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
-    personalDetails: {
-        address: '',
+    privatePersonalDetails: {
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zip: '',
+            country: '',
+        },
     },
 };
 
-function GetPhysicalCardAddress({personalDetails: {address}}) {
+function GetPhysicalCardAddress({privatePersonalDetails, route}) {
     const {translate} = useLocalize();
+    const countryFromUrl = lodashGet(route, 'params.country');
+    const {street, city, state, zip, country} = lodashGet(privatePersonalDetails, 'address') || {};
+    const [street1, street2] = (street || '').split('\n');
+
+    const renderContent = useCallback(
+        (onSubmit, submitButtonText) => (
+            <AddressForm
+                formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
+                onSubmit={onSubmit}
+                submitButtonText={submitButtonText}
+                city={city}
+                country={countryFromUrl || country}
+                state={state}
+                street1={street1}
+                street2={street2}
+                zip={zip}
+            />
+        ),
+        [city, country, countryFromUrl, state, street1, street2, zip],
+    );
+
     return (
         <BaseGetPhysicalCard
             headline={translate('getPhysicalCard.addressMessage')}
+            renderContent={renderContent}
             submitButtonText={translate('getPhysicalCard.next')}
             title={translate('getPhysicalCard.header')}
-        >
-            <View>
-                <AddressSearch
-                    inputID="streetName"
-                    shouldSaveDraft
-                    label={translate('getPhysicalCard.streetAddress')}
-                    containerStyles={[styles.mt5]}
-                    value={address}
-                    defaultValue=""
-                    // onInputChange={props.onFieldChange}
-                    // errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
-                    // hint={props.translate('common.noPO')}
-                    // renamedInputKeys={props.inputKeys}
-                    renamedInputKeys={{
-                        street: 'streetName',
-                        city: 'city',
-                        state: 'state',
-                        zipCode: 'zipCode',
-                    }}
-                    maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                />
-            </View>
-            <TextInput
-                inputID="city"
-                shouldSaveDraft
-                label={translate('getPhysicalCard.city')}
-                accessibilityLabel={translate('getPhysicalCard.city')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                // value={city}
-                defaultValue=""
-                // onChangeText={(value) => props.onFieldChange({city: value})}
-                // errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
-                containerStyles={[styles.mt4]}
-            />
-
-            <View style={[styles.flexRow, styles.mt4]}>
-                <View style={[styles.flex1, styles.mr4]}>
-                    <TextInput
-                        inputID="state"
-                        shouldSaveDraft
-                        label={translate('getPhysicalCard.state')}
-                        accessibilityLabel={translate('getPhysicalCard.state')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        // value={zipCode}
-                        defaultValue=""
-                        // onChangeText={(value) => props.onFieldChange({zipCode: value})}
-                        // errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                        // hint={props.translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
-                    />
-                </View>
-                <View style={[styles.w40]}>
-                    <TextInput
-                        inputID="zipCode"
-                        shouldSaveDraft
-                        label={translate('getPhysicalCard.zipPostcode')}
-                        accessibilityLabel={translate('getPhysicalCard.zipPostcode')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        // value={zipCode}
-                        defaultValue=""
-                        // onChangeText={(value) => props.onFieldChange({zipCode: value})}
-                        // errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                        // hint={props.translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
-                    />
-                </View>
-            </View>
-            <TextInput
-                inputID="country"
-                shouldSaveDraft
-                label={translate('getPhysicalCard.country')}
-                accessibilityLabel={translate('getPhysicalCard.country')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                // value={zipCode}
-                defaultValue=""
-                // onChangeText={(value) => props.onFieldChange({zipCode: value})}
-                // errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
-                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                // hint={props.translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
-                containerStyles={[styles.mt4]}
-            />
-        </BaseGetPhysicalCard>
+        />
     );
 }
 
@@ -122,7 +81,7 @@ GetPhysicalCardAddress.displayName = 'GetPhysicalCardAddress';
 GetPhysicalCardAddress.propTypes = propTypes;
 
 export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },
 })(GetPhysicalCardAddress);
