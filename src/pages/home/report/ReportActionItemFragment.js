@@ -91,7 +91,7 @@ const defaultProps = {
 
 function ReportActionItemFragment(props) {
     /**
-     * Checks text element for presence of emoji as first characyter
+     * Checks text element for presence of emoji as first character
      * and insert Zero-Width character to avoid selection issue
      * mentioned here https://github.com/Expensify/App/issues/29021
      *
