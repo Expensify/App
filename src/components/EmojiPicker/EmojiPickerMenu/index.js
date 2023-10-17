@@ -18,6 +18,7 @@ import getOperatingSystem from '../../../libs/getOperatingSystem';
 import * as User from '../../../libs/actions/User';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import * as Browser from '../../../libs/Browser';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
 import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
@@ -48,6 +49,7 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     frequentlyUsedEmojis: [],
 };
+const throttleTime = Browser.isMobile() ? 200 : 50;
 
 class EmojiPickerMenu extends Component {
     constructor(props) {
@@ -63,7 +65,7 @@ class EmojiPickerMenu extends Component {
         // prevent auto focus when open picker for mobile device
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-        this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
+        this.filterEmojis = _.throttle(this.filterEmojis.bind(this), throttleTime);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
         this.setupEventHandlers = this.setupEventHandlers.bind(this);
         this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
