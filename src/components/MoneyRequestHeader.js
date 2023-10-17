@@ -166,10 +166,10 @@ export default withOnyx({
         key: ONYXKEYS.SESSION,
     },
     parentReport: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : 0}`,
     },
     parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
         canEvict: false,
     },
     transaction: {
