@@ -133,7 +133,7 @@ function PDFView(props) {
                         source={{uri: props.sourceURL}}
                         style={pdfStyles}
                         onError={handleFailureToLoadPDF}
-                        password={password}
+                        password={state.password}
                         onLoadComplete={finishPDFLoad}
                         onPageSingleTap={props.onPress}
                         onScaleChanged={props.onScaleChanged}
