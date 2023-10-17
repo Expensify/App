@@ -26,6 +26,7 @@ import ROUTES from '../../ROUTES';
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import * as ActiveClientManager from '../../libs/ActiveClientManager';
 import * as Session from '../../libs/actions/Session';
+import Permissions from '../../libs/Permissions';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -87,9 +88,10 @@ const defaultProps = {
  * @param {Boolean} isUsingMagicCode
  * @param {Boolean} hasInitiatedSAMLLogin
  * @param {Boolean} hasEmailDeliveryFailure
+ * @param {Array} betas
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, isUsingMagicCode, hasInitiatedSAMLLogin, isClientTheLeader}) {
+function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, isUsingMagicCode, hasInitiatedSAMLLogin, isClientTheLeader, betas}) {
     const hasAccount = !_.isEmpty(account);
     const isSAMLEnabled = Boolean(account.isSAMLEnabled);
     const isSAMLRequired = Boolean(account.isSAMLRequired);
@@ -99,7 +101,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     let shouldShowChooseSSOOrMagicCode = false;
     let shouldInitiateSAMLLogin = false;
     const platform = getPlatform();
-    if (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP) {
+    if (Permissions.canUseSAML(betas) && (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP)) {
         // True if the user has SAML required and we haven't already initiated SAML for their account
         shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && account.isLoading;
         shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
@@ -108,7 +110,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
     // SSO provider's login page
-    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
+    if (Permissions.canUseSAML(betas) && hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
         Session.clearSignInData();
     }
 
@@ -131,7 +133,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     };
 }
 
-function SignInPage({credentials, account, isInModal, activeClients}) {
+function SignInPage({credentials, account, isInModal, activeClients, betas}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
@@ -173,9 +175,10 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
         isUsingMagicCode,
         hasInitiatedSAMLLogin,
         isClientTheLeader,
+        betas,
     });
 
-    if (shouldInitiateSAMLLogin) {
+    if (Permissions.canUseSAML(betas) && shouldInitiateSAMLLogin) {
         setHasInitiatedSAMLLogin(true);
         Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.SAML_SIGN_IN));
     }
@@ -273,4 +276,5 @@ export default withOnyx({
     We use that function to prevent repeating code that checks which client is the leader.
     */
     activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS},
+    betas: {key: ONYXKEYS.BETAS},
 })(SignInPage);
