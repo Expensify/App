@@ -71,6 +71,9 @@ const propTypes = {
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -78,6 +81,7 @@ const defaultProps = {
     credentials: {},
     isInModal: false,
     activeClients: [],
+    betas: [],
 };
 
 /**
