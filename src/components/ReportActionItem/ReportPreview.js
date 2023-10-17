@@ -295,7 +295,7 @@ export default compose(
         },
         nextStepButtons: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_NEXT_STEP}${iouReportID}`,
-            selector: (nextStep) => lodashGet(nextStep, 'buttons'),
+            selector: (nextStep) => lodashGet(nextStep, 'buttons', {}),
         },
     }),
 )(ReportPreview);

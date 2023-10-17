@@ -188,7 +188,7 @@ export default compose(
         },
         nextStepButtons: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_NEXT_STEP}${report.reportID}`,
-            selector: (nextStep) => lodashGet(nextStep, 'buttons'),
+            selector: (nextStep) => lodashGet(nextStep, 'buttons', {}),
         },
     }),
 )(MoneyReportHeader);
