@@ -181,12 +181,12 @@ jobs:
           test_spec_file: tests/e2e/TestSpecMain.yml
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
-          file_artifacts: mainArtifacts.zip
+          file_artifacts: Customer Artifacts.zip
           cleanup: true
 
-      - name: Unzip AWS Device Farm results
+      - name: Unzip AWS Device Farm main results
         if: ${{ always() }}
-        run: unzip mainArtifacts.zip -d mainResults
+        run: unzip "Customer Artifacts.zip" -d mainResults
       
       - name: Schedule AWS Device Farm test run on delta branch
         uses: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
@@ -202,12 +202,12 @@ jobs:
           test_spec_file: tests/e2e/TestSpecDelta.yml
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
-          file_artifacts: deltaArtifacts.zip
+          file_artifacts: Customer Artifacts.zip
           cleanup: true
 
-      - name: Unzip AWS Device Farm results
+      - name: Unzip AWS Device Farm delta results
         if: ${{ always() }}
-        run: unzip deltaArtifacts.zip -d deltaResults
+        run: unzip "Customer Artifacts.zip" -d deltaResults
 
         
       - name: Compare results
