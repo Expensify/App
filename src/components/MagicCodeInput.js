@@ -95,7 +95,7 @@ function MagicCodeInput(props) {
     const [input, setInput] = useState('');
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
-    const [firstSubmit, setFirstSubmit] = useState(true);
+    const [wasSubmitted, setWasSubmitted] = useState(true);
 
     const blurMagicCodeInput = () => {
         inputRefs.current[editIndex].blur();
