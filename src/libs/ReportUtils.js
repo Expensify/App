@@ -1164,20 +1164,9 @@ function getPersonalDetailsForAccountID(accountID) {
     return (
         (allPersonalDetails && allPersonalDetails[accountID]) || {
             avatar: UserUtils.getDefaultAvatar(accountID),
+            isOptimisticPersonalDetail: true,
         }
     );
-}
-
-/**
- * Checks if the personalDetailsObject has only one key named `avatar` and returns a bool flag.
- * This can be used to check if the user account is an "invite" one - is not a Expensify account yet.
- *
- * @param {Object} personalDetailsObject
- * @returns {Boolean}
- */
-function hasOnlyAvatarField(personalDetailsObject) {
-    const keys = _.keys(personalDetailsObject);
-    return keys.length === 1 && keys[0] === 'avatar';
 }
 
 /**
@@ -1194,7 +1183,7 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, sho
     }
     const personalDetails = getPersonalDetailsForAccountID(accountID);
     // check if it's an invite account
-    if (hasOnlyAvatarField(personalDetails)) {
+    if (lodashGet(personalDetails, 'isOptimisticPersonalDetail') === true) {
         return '';
     }
     const longName = personalDetails.displayName;
