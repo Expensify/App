@@ -22,7 +22,7 @@ const defaultProps = {
 
 function SelectCircle(props) {
     return (
-        <View style={[styles.selectCircle, styles.alignSelfCenter, props.styles]}>
+        <View style={[styles.selectCircle, styles.alignSelfCenter, ...props.styles]}>
             {props.isChecked && (
                 <Icon
                     src={Expensicons.Checkmark}
