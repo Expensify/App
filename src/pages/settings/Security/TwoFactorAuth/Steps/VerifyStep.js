@@ -39,6 +39,9 @@ function VerifyStep({account, session}) {
 
     useEffect(() => {
         Session.clearAccountMessages();
+        return () => {
+            Session.clearAccountMessages();
+        };
     }, []);
 
     useEffect(() => {

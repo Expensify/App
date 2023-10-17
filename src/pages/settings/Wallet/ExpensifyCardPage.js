@@ -103,6 +103,7 @@ function ExpensifyCardPage({
                                         expiration={details.expiration}
                                         cvv={details.cvv}
                                         privatePersonalDetails={{address: details.address}}
+                                        domain={domain}
                                     />
                                 ) : (
                                     <MenuItemWithTopDescription

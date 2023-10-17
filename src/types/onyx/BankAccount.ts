@@ -1,3 +1,4 @@
+import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 
 type AdditionalData = {
@@ -69,6 +70,10 @@ type BankAccount = {
 
     /** All data related to the bank account */
     accountData?: AccountData;
+
+    /** Action that is waiting to happen on the bank account */
+    pendingAction?: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
 };
 
 export default BankAccount;
+export type {AccountData};

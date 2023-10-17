@@ -1,18 +1,16 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import CONST from '../../CONST';
-import Picker from '../../components/Picker';
 import TextInput from '../../components/TextInput';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
@@ -25,17 +23,29 @@ import Avatar from '../../components/Avatar';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
+import Text from '../../components/Text';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
-    // The currency list constant object from Onyx
+    /** Constant, list of available currencies */
     currencyList: PropTypes.objectOf(
         PropTypes.shape({
-            // Symbol for the currency
-            symbol: PropTypes.string,
+            /** Symbol of the currency */
+            symbol: PropTypes.string.isRequired,
         }),
     ),
+
+    /** The route object passed to this page from the navigator */
+    route: PropTypes.shape({
+        /** Each parameter passed via the URL */
+        params: PropTypes.shape({
+            /** The policyID that is being configured */
+            policyID: PropTypes.string.isRequired,
+        }).isRequired,
+    }).isRequired,
+
     ...policyPropTypes,
-    ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
 
@@ -44,26 +54,22 @@ const defaultProps = {
     ...policyDefaultProps,
 };
 
-function WorkspaceSettingsPage(props) {
-    const currencyItems = useMemo(() => {
-        const currencyListKeys = _.keys(props.currencyList);
-        return _.map(currencyListKeys, (currencyCode) => ({
-            value: currencyCode,
-            label: `${currencyCode} - ${props.currencyList[currencyCode].symbol}`,
-        }));
-    }, [props.currencyList]);
+function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
+    const {translate} = useLocalize();
+
+    const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
 
     const submit = useCallback(
         (values) => {
-            if (props.policy.isPolicyUpdating) {
+            if (policy.isPolicyUpdating) {
                 return;
             }
-            const outputCurrency = values.currency;
-            Policy.updateGeneralSettings(props.policy.id, values.name.trim(), outputCurrency);
+
+            Policy.updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
             Keyboard.dismiss();
-            Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(props.policy.id));
+            Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id));
         },
-        [props.policy.id, props.policy.isPolicyUpdating],
+        [policy.id, policy.isPolicyUpdating, policy.outputCurrency],
     );
 
     const validate = useCallback((values) => {
@@ -81,33 +87,36 @@ function WorkspaceSettingsPage(props) {
         return errors;
     }, []);
 
-    const policyName = lodashGet(props.policy, 'name', '');
+    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS_CURRENCY.getRoute(policy.id)), [policy.id]);
+
+    const policyName = lodashGet(policy, 'name', '');
 
     return (
         <WorkspacePageWithSections
-            headerText={props.translate('workspace.common.settings')}
-            route={props.route}
+            headerText={translate('workspace.common.settings')}
+            route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
         >
             {(hasVBA) => (
                 <Form
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
-                    submitButtonText={props.translate('workspace.editor.save')}
-                    style={[styles.mh5, styles.flexGrow1]}
+                    submitButtonText={translate('workspace.editor.save')}
+                    style={styles.flexGrow1}
+                    submitButtonStyles={[styles.mh5]}
                     scrollContextEnabled
                     validate={validate}
                     onSubmit={submit}
                     enabledWhenOffline
                 >
                     <AvatarWithImagePicker
-                        isUploading={props.policy.isAvatarUploading}
-                        source={lodashGet(props.policy, 'avatar')}
+                        isUploading={policy.isAvatarUploading}
+                        source={lodashGet(policy, 'avatar')}
                         size={CONST.AVATAR_SIZE.LARGE}
                         DefaultAvatar={() => (
                             <Avatar
                                 containerStyles={styles.avatarLarge}
                                 imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                source={props.policy.avatar ? props.policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                                source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 name={policyName}
@@ -117,39 +126,41 @@ function WorkspaceSettingsPage(props) {
                         type={CONST.ICON_TYPE_WORKSPACE}
                         fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                         style={[styles.mb3]}
-                        anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
+                        anchorPosition={styles.createMenuPositionProfile(windowWidth)}
                         anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                        isUsingDefaultAvatar={!lodashGet(props.policy, 'avatar', null)}
-                        onImageSelected={(file) => Policy.updateWorkspaceAvatar(lodashGet(props.policy, 'id', ''), file)}
-                        onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(props.policy, 'id', ''))}
+                        isUsingDefaultAvatar={!lodashGet(policy, 'avatar', null)}
+                        onImageSelected={(file) => Policy.updateWorkspaceAvatar(lodashGet(policy, 'id', ''), file)}
+                        onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(policy, 'id', ''))}
                         editorMaskImage={Expensicons.ImageCropSquareMask}
-                        pendingAction={lodashGet(props.policy, 'pendingFields.avatar', null)}
-                        errors={lodashGet(props.policy, 'errorFields.avatar', null)}
-                        onErrorClose={() => Policy.clearAvatarErrors(props.policy.id)}
-                        previewSource={UserUtils.getFullSizeAvatar(props.policy.avatar, '')}
-                        headerTitle={props.translate('workspace.common.workspaceAvatar')}
-                        originalFileName={props.policy.originalFileName}
+                        pendingAction={lodashGet(policy, 'pendingFields.avatar', null)}
+                        errors={lodashGet(policy, 'errorFields.avatar', null)}
+                        onErrorClose={() => Policy.clearAvatarErrors(policy.id)}
+                        previewSource={UserUtils.getFullSizeAvatar(policy.avatar, '')}
+                        headerTitle={translate('workspace.common.workspaceAvatar')}
+                        originalFileName={policy.originalFileName}
                     />
-                    <OfflineWithFeedback pendingAction={lodashGet(props.policy, 'pendingFields.generalSettings')}>
+                    <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
                         <TextInput
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             inputID="name"
-                            label={props.translate('workspace.editor.nameInputLabel')}
-                            accessibilityLabel={props.translate('workspace.editor.nameInputLabel')}
-                            containerStyles={[styles.mt4]}
-                            defaultValue={props.policy.name}
+                            label={translate('workspace.editor.nameInputLabel')}
+                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                            containerStyles={[styles.mt4, styles.mh5]}
+                            defaultValue={policy.name}
                             maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                             spellCheck={false}
                         />
                         <View style={[styles.mt4]}>
-                            <Picker
-                                inputID="currency"
-                                label={props.translate('workspace.editor.currencyInputLabel')}
-                                items={currencyItems}
-                                isDisabled={hasVBA}
-                                defaultValue={props.policy.outputCurrency}
-                                hintText={hasVBA ? props.translate('workspace.editor.currencyInputDisabledText') : props.translate('workspace.editor.currencyInputHelpText')}
+                            <MenuItemWithTopDescription
+                                title={formattedCurrency}
+                                description={translate('workspace.editor.currencyInputLabel')}
+                                shouldShowRightIcon
+                                disabled={hasVBA}
+                                onPress={onPressCurrency}
                             />
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.mt2, styles.mh5]}>
+                                {hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
+                            </Text>
                         </View>
                     </OfflineWithFeedback>
                 </Form>
@@ -168,6 +179,5 @@ export default compose(
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
-    withLocalize,
     withNetwork(),
 )(WorkspaceSettingsPage);

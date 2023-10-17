@@ -141,6 +141,7 @@ const CONST = {
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
         MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
+        MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
@@ -242,6 +243,7 @@ const CONST = {
         CUSTOM_STATUS: 'customStatus',
         NEW_DOT_CATEGORIES: 'newDotCategories',
         NEW_DOT_TAGS: 'newDotTags',
+        NEW_DOT_SAML: 'newDotSAML',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -304,7 +306,7 @@ const CONST = {
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
-        SHORTCUT_MODAL: {
+        SHORTCUTS: {
             descriptionKey: 'openShortcutDialog',
             shortcutKey: 'J',
             modifiers: ['CTRL'],
@@ -471,6 +473,7 @@ const CONST = {
         HAND_ICON_HEIGHT: 152,
         HAND_ICON_WIDTH: 200,
         SHUTTER_SIZE: 90,
+        MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
@@ -667,6 +670,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
+        SEARCH_FOR_REPORTS_DEBOUNCE_TIME: 300,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -903,6 +907,8 @@ const CONST = {
         HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,
+    CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
+    CHAT_FOOTER_SECONDARY_ROW_PADDING: 5,
     CHAT_FOOTER_MIN_HEIGHT: 65,
     CHAT_SKELETON_VIEW: {
         AVERAGE_ROW_HEIGHT: 80,
@@ -1011,8 +1017,10 @@ const CONST = {
             ACTIVATE: 'ActivateStep',
         },
         TIER_NAME: {
+            PLATINUM: 'PLATINUM',
             GOLD: 'GOLD',
             SILVER: 'SILVER',
+            BRONZE: 'BRONZE',
         },
         WEB_MESSAGE_TYPE: {
             STATEMENT: 'STATEMENT_NAVIGATE',
@@ -1239,6 +1247,7 @@ const CONST = {
             CLOSED: 6,
             STATE_SUSPENDED: 7,
         },
+        ACTIVE_STATES: [2, 3, 4, 7],
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -1267,6 +1276,8 @@ const CONST = {
         ROOM_NAME: /^#[\p{Ll}0-9-]{1,80}$/u,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
+        EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
 
         TAX_ID: /^\d{9}$/,
@@ -1284,18 +1295,26 @@ const CONST = {
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
-        SPECIAL_CHAR_OR_EMOJI:
-            // eslint-disable-next-line no-misleading-character-class
-            /[\n\s,/?"{}[\]()&_~^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
 
-        SPACE_OR_EMOJI:
-            // eslint-disable-next-line no-misleading-character-class
-            /(\s+|(?:[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)+)/gu,
+        get SPECIAL_CHAR_OR_EMOJI() {
+            return new RegExp(`[_~\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
+        },
+
+        get SPACE_OR_EMOJI() {
+            return new RegExp(`(\\s+|(?:${this.EMOJI.source})+)`, 'gu');
+        },
+
+        // Define the regular expression pattern to find a potential end of a mention suggestion:
+        // It might be a space, a newline character, an emoji, or a special character (excluding underscores & tildes, which might be used in usernames)
+        get MENTION_BREAKER() {
+            return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
+        },
 
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        MENTION_REPLACER:
-            // eslint-disable-next-line no-misleading-character-class
-            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
+        get MENTION_REPLACER() {
+            return new RegExp(`^@[^\\n\\r]*?(?=$|\\s|${this.SPECIAL_CHAR.source}|${this.EMOJI.source})`, 'u');
+        },
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
 
@@ -1473,6 +1492,15 @@ const CONST = {
         READ: 'read',
         WRITE: 'write',
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
+    },
+
+    ERECEIPT_COLORS: {
+        YELLOW: 'Yellow',
+        ICE: 'Ice',
+        BLUE: 'Blue',
+        GREEN: 'Green',
+        TANGERINE: 'Tangerine',
+        PINK: 'Pink',
     },
 
     MAP_PADDING: 50,
@@ -2648,8 +2676,8 @@ const CONST = {
         ATTACHMENT: 'common.attachment',
     },
     TEACHERS_UNITE: {
-        PUBLIC_ROOM_ID: '207591744844000',
-        POLICY_ID: 'ABD1345ED7293535',
+        PUBLIC_ROOM_ID: '7470147100835202',
+        POLICY_ID: 'B795B6319125BDF2',
         POLICY_NAME: 'Expensify.org / Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
     },
@@ -2704,6 +2732,7 @@ const CONST = {
     DEMO_PAGES: {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',
+        MONEY2020: 'Money2020DemoSetup',
     },
 
     MAPBOX: {
