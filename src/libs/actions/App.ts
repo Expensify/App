@@ -20,12 +20,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
 import * as Browser from '../Browser';
 import * as OnyxTypes from '../../types/onyx';
-
-type OnyxData = {
-    successData?: OnyxUpdate[];
-    failureData?: OnyxUpdate[];
-    optimisticData?: OnyxUpdate[];
-};
+import type {OnyxData} from '../../types/onyx/Request';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -272,7 +267,7 @@ function reconnectApp(updateIDFrom = 0) {
  * because it will follow patterns that are not recommended so we can be sure we're not putting the app in a unusable
  * state because of race conditions between reconnectApp and other pusher updates being applied at the same time.
  */
-function finalReconnectAppAfterActivatingReliableUpdates(): Promise<unknown> {
+function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response> {
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
     return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         type ReconnectAppParams = PolicyParamsForOpenOrReconnect & {mostRecentReportActionLastModified?: string};
@@ -302,7 +297,7 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<unknown> {
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
-function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0): Promise<unknown> {
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0): Promise<void | OnyxTypes.Response> {
     console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
 
     type GetMissingOnyxMessagesParams = {
@@ -370,9 +365,9 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
 /**
  * Create a new draft workspace and navigate to it
  *
- * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param {String} [policyName] Optional, custom policy name we will use for created workspace
- * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
+ * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param [policyName] Optional, custom policy name we will use for created workspace
+ * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
  */
 function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false) {
     const policyID = Policy.generatePolicyID();
@@ -392,12 +387,12 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
 /**
  * Create a new workspace and delete the draft
  *
- * @param {String} [policyID] the ID of the policy to use
- * @param {String} [policyName] custom policy name we will use for created workspace
- * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param [policyID] the ID of the policy to use
+ * @param [policyName] custom policy name we will use for created workspace
+ * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
-function savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail = '', makeMeAdmin = false) {
+function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false) {
     Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
 }
 
@@ -492,7 +487,8 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
     const parameters: OpenProfileParams = {
         timezone: JSON.stringify(newTimezoneData),
     };
-    const onyxData: OnyxData = {
+
+    API.write('OpenProfile', parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -515,9 +511,7 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
                 },
             },
         ],
-    };
-
-    API.write('OpenProfile', parameters, onyxData);
+    });
 }
 
 /**

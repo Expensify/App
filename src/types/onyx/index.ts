@@ -46,6 +46,7 @@ import RecentWaypoint from './RecentWaypoint';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
 import RecentlyUsedTags from './RecentlyUsedTags';
 import PolicyTag from './PolicyTag';
+import Response from './Response';
 
 export type {
     Account,
@@ -98,4 +99,5 @@ export type {
     RecentlyUsedCategories,
     RecentlyUsedTags,
     PolicyTag,
+    Response,
 };
