@@ -47,7 +47,7 @@ function ExpensifyWordmark(props) {
                 ]}
             >
                 <Image
-                    contentFit='contain'
+                    contentFit="contain"
                     source={LogoComponent}
                     style={{width: '100%', height: '100%'}}
                 />

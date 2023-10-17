@@ -78,7 +78,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             onBackButtonPress={navigateBackToSettingsPage}
             headerContent={
                 <Image
-                    contentFit='contain'
+                    contentFit="contain"
                     style={[styles.staticHeaderImage, {aspectRatio: 1}]}
                     source={MobileBackgroundImage}
                 />

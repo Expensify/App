@@ -21,7 +21,7 @@ const propTypes = {
     /** icon for the popup trigger */
     icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, imagePropTypes.source]),
 
-     /** Icon name required to create the icon test ID  */
+    /** Icon name required to create the icon test ID  */
     iconName: PropTypes.string,
 
     /** Any additional styles to pass to the icon container. */

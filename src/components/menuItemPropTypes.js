@@ -77,7 +77,7 @@ const propTypes = {
     /** Overrides the icon for shouldShowRightIcon */
     iconRight: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]),
 
-     /** Right icon name required to create the icon test ID  */
+    /** Right icon name required to create the icon test ID  */
     iconRightName: PropTypes.string,
 
     /** A description text to show under the title */

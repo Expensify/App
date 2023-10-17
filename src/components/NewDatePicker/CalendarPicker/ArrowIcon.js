@@ -23,7 +23,10 @@ const defaultProps = {
 function ArrowIcon(props) {
     return (
         <View style={[styles.p1, StyleUtils.getDirectionStyle(props.direction), props.disabled ? styles.buttonOpacityDisabled : {}]}>
-            <Icon name="ArrowRight" src={Expensicons.ArrowRight} />
+            <Icon
+                name="ArrowRight"
+                src={Expensicons.ArrowRight}
+            />
         </View>
     );
 }
