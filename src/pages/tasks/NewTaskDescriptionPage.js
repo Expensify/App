@@ -18,6 +18,7 @@ import * as Task from '../../libs/actions/Task';
 import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
 import CONST from '../../CONST';
 import * as Browser from '../../libs/Browser';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -61,6 +62,20 @@ function NewTaskDescriptionPage(props) {
         }, []),
     );
 
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
+     */
+    function validate(values) {
+        const errors = {};
+        const tasksDesciption = values.taskDescription.trim();
+
+        if (tasksDesciption && tasksDesciption.length > CONST.SUPPORTING_TEXT_MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'taskDescription', ['common.error.characterLimitExceedCounter', {length: tasksDesciption.length, limit: CONST.SUPPORTING_TEXT_MAX_LENGTH}]);
+        }
+        return errors;
+    }
+
     const onSubmit = (values) => {
         Task.setDescriptionValue(values.taskDescription);
         Navigation.goBack(ROUTES.NEW_TASK);
@@ -87,6 +102,7 @@ function NewTaskDescriptionPage(props) {
                     submitButtonText={props.translate('common.next')}
                     style={[styles.mh5, styles.flexGrow1]}
                     onSubmit={(values) => onSubmit(values)}
+                    validate={(values) => validate(values)}
                     enabledWhenOffline
                 >
                     <View style={styles.mb5}>
@@ -107,6 +123,7 @@ function NewTaskDescriptionPage(props) {
                             submitOnEnter={!Browser.isMobile()}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                             textAlignVertical="top"
+                            maxLength={CONST.SUPPORTING_TEXT_MAX_LENGTH + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
                         />
                     </View>
                 </Form>

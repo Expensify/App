@@ -21,6 +21,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Current user session */
@@ -41,7 +42,19 @@ const defaultProps = {
 };
 
 function TaskDescriptionPage(props) {
-    const validate = useCallback(() => ({}), []);
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
+     */
+    const validate = useCallback((values) => {
+        const errors = {};
+        const tasksDesciption = values.description.trim();
+
+        if (tasksDesciption && tasksDesciption.length > CONST.SUPPORTING_TEXT_MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: tasksDesciption.length, limit: CONST.SUPPORTING_TEXT_MAX_LENGTH}]);
+        }
+        return errors;
+    }, []);
 
     const submit = useCallback(
         (values) => {
@@ -115,6 +128,7 @@ function TaskDescriptionPage(props) {
                             submitOnEnter={!Browser.isMobile()}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                             textAlignVertical="top"
+                            maxLength={CONST.SUPPORTING_TEXT_MAX_LENGTH + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
                         />
                     </View>
                 </Form>
