@@ -381,6 +381,14 @@ export default {
         termsOfService: 'Terms of Service',
         privacy: 'Privacy',
     },
+    samlSignIn: {
+        welcomeSAMLEnabled: 'Continue logging in with single sign-on:',
+        orContinueWithMagicCode: 'Or optionally, your company allows signing in with a magic code',
+        useSingleSignOn: 'Use single sign-on',
+        useMagicCode: 'Use magic code',
+        launching: 'Launching...',
+        oneMoment: "One moment while we redirect you to your company's single sign-on portal.",
+    },
     reportActionCompose: {
         addAction: 'Actions',
         dropToUpload: 'Drop to upload',
@@ -479,8 +487,8 @@ export default {
     sidebarScreen: {
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
-        fabNewChat: 'Send message',
-        fabNewChatExplained: 'Send message (Floating action)',
+        fabNewChat: 'Start chat',
+        fabNewChatExplained: 'Start chat (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -518,6 +526,7 @@ export default {
         approved: 'Approved',
         cash: 'Cash',
         card: 'Card',
+        original: 'Original',
         split: 'Split',
         addToSplit: 'Add to split',
         splitBill: 'Split bill',
@@ -535,6 +544,7 @@ export default {
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
+        transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',
@@ -551,6 +561,8 @@ export default {
         payerOwes: ({payer}: PayerOwesParams) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} paid ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} paid: `,
+        payerSpentAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} spent ${amount}`,
+        payerSpent: ({payer}: PayerPaidParams) => `${payer} spent: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} approved:`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
@@ -838,6 +850,19 @@ export default {
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
         addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
+        getPaidFaster: 'Get paid faster',
+        addPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
+        getPaidBackFaster: 'Get paid back faster',
+        secureAccessToYourMoney: 'Secure access to your money',
+        receiveMoney: 'Receive money in your local currency',
+        expensifyWallet: 'Expensify Wallet',
+        sendAndReceiveMoney: 'Send and receive money from your Expensify Wallet.',
+        bankAccounts: 'Bank accounts',
+        addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
+        addBankAccount: 'Add bank account',
+        assignedCards: 'Assigned cards',
+        assignedCardsDescription: 'These are cards assigned by a Workspace admin to manage company spend.',
+        expensifyCard: 'Expensify Card',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -852,6 +877,7 @@ export default {
             address: 'Address',
             revealDetails: 'Reveal details',
             copyCardNumber: 'Copy card number',
+            updateAddress: 'Update address',
         },
     },
     reportFraudPage: {
@@ -914,6 +940,7 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Welcome message',
+        welcomeMessageOptional: 'Welcome message (optional)',
         explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
     },
     languagePage: {
@@ -1017,7 +1044,7 @@ export default {
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
-        homeAddress: 'Home address',
+        address: 'Address',
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
@@ -1847,11 +1874,11 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
     },
-    globalNavigationOptions: {
-        chats: 'Chats',
-    },
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',
         transactionDate: 'Transaction date',
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
     },
 } satisfies TranslationBase;
