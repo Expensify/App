@@ -54,12 +54,19 @@ function NewTaskDetailsPage(props) {
      */
     function validate(values) {
         const errors = {};
+        const tasksTitle = values.taskTitle.trim();
+        const tasksDesciption = values.taskDescription.trim();
 
-        if (!values.taskTitle) {
+        if (!tasksTitle) {
             // We error if the user doesn't enter a task name
             ErrorUtils.addErrorMessage(errors, 'taskTitle', 'newTaskPage.pleaseEnterTaskName');
+        } else if (tasksTitle.length > CONST.TITLE_MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'taskTitle', ['common.error.characterLimitExceedCounter', {length: tasksTitle.length, limit: CONST.TITLE_MAX_LENGTH}]);
         }
 
+        if (tasksDesciption && tasksDesciption.length > CONST.SUPPORTING_TEXT_MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'taskDescription', ['common.error.characterLimitExceedCounter', {length: tasksDesciption.length, limit: CONST.SUPPORTING_TEXT_MAX_LENGTH}]);
+        }
         return errors;
     }
 
@@ -103,6 +110,7 @@ function NewTaskDetailsPage(props) {
                         accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
+                        maxLength={CONST.TITLE_MAX_LENGTH + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
                     />
                 </View>
                 <View style={styles.mb5}>
@@ -117,6 +125,7 @@ function NewTaskDetailsPage(props) {
                         textAlignVertical="top"
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
+                        maxLength={CONST.SUPPORTING_TEXT_MAX_LENGTH + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
                     />
                 </View>
             </Form>
