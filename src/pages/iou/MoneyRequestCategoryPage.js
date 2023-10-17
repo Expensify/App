@@ -88,10 +88,6 @@ export default withOnyx({
         key: ONYXKEYS.IOU,
     },
     report: {
-        key: ({route, iou}) => {
-            const reportID = IOU.getIOUReportID(iou, route);
-
-            return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-        },
+        key: ({route, iou}) => `${ONYXKEYS.COLLECTION.REPORT}${IOU.getIOUReportID(iou, route)}`,
     },
 })(MoneyRequestCategoryPage);
