@@ -1,5 +1,6 @@
 import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
+import * as OnyxCommon from './OnyxCommon';
 
 type AutoAuthState = ValueOf<typeof CONST.AUTO_AUTH_STATE>;
 
@@ -21,6 +22,9 @@ type Session = {
     accountID?: number;
 
     autoAuthState?: AutoAuthState;
+
+    /** Server side errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
 };
 
 export default Session;

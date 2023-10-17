@@ -73,22 +73,26 @@ export default {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_WALLET_DOMAINCARDS: {
+    SETTINGS_WALLET_DOMAINCARD: {
         route: '/settings/wallet/card/:domain',
         getRoute: (domain: string) => `/settings/wallet/card/${domain}`,
     },
     SETTINGS_REPORT_FRAUD: {
-        route: '/settings/wallet/cards/:domain/report-virtual-fraud',
-        getRoute: (domain: string) => `/settings/wallet/cards/${domain}/report-virtual-fraud`,
+        route: '/settings/wallet/card/:domain/report-virtual-fraud',
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-virtual-fraud`,
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
+        route: 'settings/wallet/card/:domain/digital-details/update-address',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address`,
+    },
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
     SETTINGS_WALLET_CARD_ACTIVATE: {
-        route: 'settings/wallet/cards/:domain/activate',
-        getRoute: (domain: string) => `settings/wallet/cards/${domain}/activate`,
+        route: 'settings/wallet/card/:domain/activate',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/activate`,
     },
     SETTINGS_PERSONAL_DETAILS: 'settings/profile/personal-details',
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: 'settings/profile/personal-details/legal-name',
