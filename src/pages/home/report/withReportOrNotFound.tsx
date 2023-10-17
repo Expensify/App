@@ -36,12 +36,11 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithReportOrNotFound(props: Omit<TProps, keyof HOCProps>, ref: ForwardedRef<TRef>) {
         console.log('***********!!!!!************');
-
         const contentShown = React.useRef(false);
 
         const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
         // eslint-disable-next-line rulesdir/no-negated-variables
-        const shouldShowNotFoundPage = _.isEmpty(props.report) || !props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {});
+        const shouldShowNotFoundPage = !Object.entries(props.report ?? {}).length || !props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {});
 
         // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
         // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
