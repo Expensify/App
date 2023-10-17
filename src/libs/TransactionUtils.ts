@@ -80,7 +80,7 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.state;
 }
 
-function areRequiredFieldsEmpty(transaction: Transaction): boolean {
+function isMerchantMissing(transaction: Transaction) {
     const isMerchantEmpty =
         transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
 
@@ -90,10 +90,19 @@ function areRequiredFieldsEmpty(transaction: Transaction): boolean {
         transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
         transaction.modifiedMerchant === '';
 
-    const isModifiedAmountEmpty = !transaction.modifiedAmount || transaction.modifiedAmount === 0;
-    const isModifiedCreatedEmpty = !transaction.modifiedCreated || transaction.modifiedCreated === '';
+    return isMerchantEmpty && isModifiedMerchantEmpty;
+}
 
-    return (isModifiedMerchantEmpty && isMerchantEmpty) || (isModifiedAmountEmpty && transaction.amount === 0) || (isModifiedCreatedEmpty && transaction.created === '');
+function isAmountMissing(transaction: Transaction) {
+    return transaction.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
+}
+
+function isCreatedMissing(transaction: Transaction) {
+    return transaction.created === '' && (!transaction.created || transaction.modifiedCreated === '');
+}
+
+function areRequiredFieldsEmpty(transaction: Transaction): boolean {
+    return isMerchantMissing(transaction) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
 
 /**
@@ -472,6 +481,9 @@ export {
     isPending,
     isPosted,
     getWaypoints,
+    isAmountMissing,
+    isMerchantMissing,
+    isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     getWaypointIndex,
