@@ -28,7 +28,7 @@ module.exports = {
         compare: './app-e2eRelease-compare.apk',
     },
 
-    ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.js',
+    ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.ts',
 
     // The port of the testing server that communicates with the app
     SERVER_PORT: 4723,
