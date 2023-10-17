@@ -381,6 +381,14 @@ export default {
         termsOfService: 'Terms of Service',
         privacy: 'Privacy',
     },
+    samlSignIn: {
+        welcomeSAMLEnabled: 'Continue logging in with single sign-on:',
+        orContinueWithMagicCode: 'Or optionally, your company allows signing in with a magic code',
+        useSingleSignOn: 'Use single sign-on',
+        useMagicCode: 'Use magic code',
+        launching: 'Launching...',
+        oneMoment: "One moment while we redirect you to your company's single sign-on portal.",
+    },
     reportActionCompose: {
         addAction: 'Actions',
         dropToUpload: 'Drop to upload',
@@ -869,6 +877,7 @@ export default {
             address: 'Address',
             revealDetails: 'Reveal details',
             copyCardNumber: 'Copy card number',
+            updateAddress: 'Update address',
         },
     },
     reportFraudPage: {
@@ -1035,7 +1044,7 @@ export default {
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
-        homeAddress: 'Home address',
+        address: 'Address',
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,

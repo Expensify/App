@@ -165,7 +165,6 @@ function ReceiptSelector({route, transactionID, iou, report}) {
 
     const panResponder = useRef(
         PanResponder.create({
-            onMoveShouldSetPanResponder: () => true,
             onPanResponderTerminationRequest: () => false,
         }),
     ).current;
@@ -181,7 +180,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     />
                 )}
                 {cameraPermissionState === 'denied' && (
-                    <View style={[styles.flex1, styles.permissionView]}>
+                    <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
                         <Icon
                             src={Hand}
                             width={CONST.RECEIPT.HAND_ICON_WIDTH}
@@ -267,7 +266,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
             </View>
 
             <View
-                style={styles.receiptViewTextContainer}
+                style={[styles.receiptViewTextContainer, styles.userSelectNone]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
