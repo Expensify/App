@@ -28,14 +28,9 @@ type RouteProps = {
     };
 };
 
-type HOCProps = {};
-
-type ComponentProps = OnyxProps & HOCProps;
-
-export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+export default function <TProps extends OnyxProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithReportOrNotFound(props: Omit<TProps, keyof HOCProps>, ref: ForwardedRef<TRef>) {
-        console.log('***********!!!!!************');
+    function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const contentShown = React.useRef(false);
 
         const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
@@ -60,11 +55,10 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
             contentShown.current = true;
         }
 
-        // const rest = _.omit(props, ['forwardedRef']);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as TProps)}
+                {...props}
                 ref={ref}
             />
         );
@@ -75,7 +69,7 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const withReportOrNotFound = React.forwardRef(WithReportOrNotFound);
 
-    return withOnyx<Omit<TProps, keyof HOCProps> & RefAttributes<TRef> & RouteProps, OnyxProps>({
+    return withOnyx<TProps & RefAttributes<TRef> & RouteProps, OnyxProps>({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
