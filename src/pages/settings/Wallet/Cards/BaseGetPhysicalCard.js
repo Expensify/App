@@ -38,6 +38,7 @@ function BaseGetPhysicalCard({children, headline, isConfirmation, loginList, sub
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator={false}
+            testID={BaseGetPhysicalCard.displayName}
         >
             <HeaderWithBackButton
                 title={title}
