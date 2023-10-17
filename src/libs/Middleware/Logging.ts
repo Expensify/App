@@ -1,30 +1,26 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import Log from '../Log';
 import CONST from '../../CONST';
+import Request from '../../types/onyx/Request';
+import Response from '../../types/onyx/Response';
+import Middleware from './types';
 
-/**
- * @param {String} message
- * @param {Object} request
- * @param {Object} [response]
- */
-function logRequestDetails(message, request, response = {}) {
+function logRequestDetails(message: string, request: Request, response?: Response | void) {
     // Don't log about log or else we'd cause an infinite loop
     if (request.command === 'Log') {
         return;
     }
 
-    const logParams = {
+    const logParams: Record<string, unknown> = {
         command: request.command,
         shouldUseSecure: request.shouldUseSecure,
     };
 
-    const returnValueList = lodashGet(request, 'data.returnValueList');
+    const returnValueList = request?.data?.returnValueList;
     if (returnValueList) {
         logParams.returnValueList = returnValueList;
     }
 
-    const nvpNames = lodashGet(request, 'data.nvpNames');
+    const nvpNames = request?.data?.nvpNames;
     if (nvpNames) {
         logParams.nvpNames = nvpNames;
     }
@@ -37,14 +33,7 @@ function logRequestDetails(message, request, response = {}) {
     Log.info(message, false, logParams);
 }
 
-/**
- * Logging middleware
- *
- * @param {Promise} response
- * @param {Object} request
- * @returns {Promise}
- */
-function Logging(response, request) {
+const Logging: Middleware = (response, request) => {
     logRequestDetails('Making API request', request);
     return response
         .then((data) => {
@@ -52,7 +41,7 @@ function Logging(response, request) {
             return data;
         })
         .catch((error) => {
-            const logParams = {
+            const logParams: Record<string, unknown> = {
                 message: error.message,
                 status: error.status,
                 title: error.title,
@@ -73,21 +62,18 @@ function Logging(response, request) {
                 // incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 Log.hmmm('[Network] API request error: Failed to fetch', logParams);
             } else if (
-                _.contains(
-                    [
-                        CONST.ERROR.IOS_NETWORK_CONNECTION_LOST,
-                        CONST.ERROR.NETWORK_REQUEST_FAILED,
-                        CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_RUSSIAN,
-                        CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SWEDISH,
-                        CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SPANISH,
-                    ],
-                    error.message,
-                )
+                [
+                    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST,
+                    CONST.ERROR.NETWORK_REQUEST_FAILED,
+                    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_RUSSIAN,
+                    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SWEDISH,
+                    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SPANISH,
+                ].includes(error.message)
             ) {
                 // These errors seem to happen for native devices with interrupted connections. Often we will see logs about Pusher disconnecting together with these.
                 // This type of error may also indicate a problem with SSL certs.
                 Log.hmmm('[Network] API request error: Connection interruption likely', logParams);
-            } else if (_.contains([CONST.ERROR.FIREFOX_DOCUMENT_LOAD_ABORTED, CONST.ERROR.SAFARI_DOCUMENT_LOAD_ABORTED], error.message)) {
+            } else if ([CONST.ERROR.FIREFOX_DOCUMENT_LOAD_ABORTED, CONST.ERROR.SAFARI_DOCUMENT_LOAD_ABORTED].includes(error.message)) {
                 // This message can be observed page load is interrupted (closed or navigated away).
                 Log.hmmm('[Network] API request error: User likely navigated away from or closed browser', logParams);
             } else if (error.message === CONST.ERROR.IOS_LOAD_FAILED) {
@@ -123,6 +109,6 @@ function Logging(response, request) {
             // Re-throw this error so the next handler can manage it
             throw error;
         });
-}
+};
 
 export default Logging;

@@ -1283,7 +1283,7 @@ function hasNonReimbursableTransactions(iouReportID) {
  * @param {Object} allReportsDict
  * @returns {Number}
  */
-function getMoneyRequestTotal(report, allReportsDict = null) {
+function getMoneyRequestReimbursableTotal(report, allReportsDict = null) {
     const allAvailableReports = allReportsDict || allReports;
     let moneyRequestReport;
     if (isMoneyRequestReport(report)) {
@@ -1294,7 +1294,6 @@ function getMoneyRequestTotal(report, allReportsDict = null) {
     }
     if (moneyRequestReport) {
         const total = lodashGet(moneyRequestReport, 'total', 0);
-
         if (total !== 0) {
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
@@ -1303,6 +1302,45 @@ function getMoneyRequestTotal(report, allReportsDict = null) {
         }
     }
     return 0;
+}
+
+/**
+ * @param {Object} report
+ * @param {Object} allReportsDict
+ * @returns {Object}
+ */
+function getMoneyRequestSpendBreakdown(report, allReportsDict = null) {
+    const allAvailableReports = allReportsDict || allReports;
+    let moneyRequestReport;
+    if (isMoneyRequestReport(report)) {
+        moneyRequestReport = report;
+    }
+    if (allAvailableReports && report.hasOutstandingIOU && report.iouReportID) {
+        moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+    }
+    if (moneyRequestReport) {
+        let nonReimbursableSpend = lodashGet(moneyRequestReport, 'nonReimbursableTotal', 0);
+        let reimbursableSpend = lodashGet(moneyRequestReport, 'total', 0);
+
+        if (nonReimbursableSpend + reimbursableSpend !== 0) {
+            // There is a possibility that if the Expense report has a negative total.
+            // This is because there are instances where you can get a credit back on your card,
+            // or you enter a negative expense to “offset” future expenses
+            nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
+            reimbursableSpend = isExpenseReport(moneyRequestReport) ? reimbursableSpend * -1 : Math.abs(reimbursableSpend);
+            const totalDisplaySpend = nonReimbursableSpend + reimbursableSpend;
+            return {
+                nonReimbursableSpend,
+                reimbursableSpend,
+                totalDisplaySpend,
+            };
+        }
+    }
+    return {
+        nonReimbursableSpend: 0,
+        reimbursableSpend: 0,
+        totalDisplaySpend: 0,
+    };
 }
 
 /**
@@ -1344,7 +1382,7 @@ function getPolicyExpenseChatName(report, policy = undefined) {
  * @returns  {String}
  */
 function getMoneyRequestReportName(report, policy = undefined) {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(report), report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
     const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerName,
@@ -1550,7 +1588,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment});
     }
 
-    const totalAmount = getMoneyRequestTotal(report);
+    const totalAmount = getMoneyRequestReimbursableTotal(report);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
@@ -2219,7 +2257,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
 function getIOUReportActionMessage(iouReportID, type, total, comment, currency, paymentType = '', isSettlingUp = false) {
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY
-            ? CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(getReport(iouReportID)), currency)
+            ? CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(getReport(iouReportID)), currency)
             : CurrencyUtils.convertToDisplayString(total, currency);
 
     let paymentMethodMessage;
@@ -3802,29 +3840,6 @@ function getParticipantsIDs(report) {
 }
 
 /**
- * Get the last 3 transactions with receipts of an IOU report that will be displayed on the report preview
- *
- * @param {Object} reportPreviewAction
- * @returns {Object}
- */
-function getReportPreviewDisplayTransactions(reportPreviewAction) {
-    const transactionIDs = lodashGet(reportPreviewAction, ['childRecentReceiptTransactionIDs']);
-    return _.reduce(
-        _.keys(transactionIDs),
-        (transactions, transactionID) => {
-            if (transactionIDs[transactionID] !== null) {
-                const transaction = TransactionUtils.getTransaction(transactionID);
-                if (TransactionUtils.hasReceipt(transaction)) {
-                    transactions.push(transaction);
-                }
-            }
-            return transactions;
-        },
-        [],
-    );
-}
-
-/**
  * Return iou report action display message
  *
  * @param {Object} reportAction report action
@@ -3912,7 +3927,8 @@ export {
     hasExpensifyGuidesEmails,
     isWaitingForIOUActionFromCurrentUser,
     isIOUOwnedByCurrentUser,
-    getMoneyRequestTotal,
+    getMoneyRequestReimbursableTotal,
+    getMoneyRequestSpendBreakdown,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
@@ -4019,7 +4035,6 @@ export {
     canEditMoneyRequest,
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
-    getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
