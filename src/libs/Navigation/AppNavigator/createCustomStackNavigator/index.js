@@ -90,7 +90,7 @@ function ResponsiveStackNavigator(props) {
 
         // If the top most central pane route is an iframe route, we will include it in the state.
         // It won't render any screen because screens for iframe routes are null but it will set a proper url in the adress bar.
-        // We will aslo use modified version of this route with stable key to render stable iframe.
+        // We will also use modified version of this route with stable key to render stable iframe.
         const isIframeTopRoute = getTopMostCentralPaneRouteName(state) !== SCREENS.REPORT;
         if (isIframeTopRoute) {
             const newState = {
@@ -101,11 +101,10 @@ function ResponsiveStackNavigator(props) {
             return {newState, newDescriptors};
         }
 
-        // If not iframe is not on a top, we will hide stable iframe route to prevent unmounting.
         const newState = {
             ...state,
             index: otherRoutes.length + rhpRoutes.length,
-            // To avoid unmounting of the iframe route we will move it to the bottom of stack to hide it.
+            // To avoid unmounting of the iframe route, we will move it to the bottom of stack to hide it.
             routes: [stableIframeRoute, ...otherRoutes, ...rhpRoutes],
         };
         return {newState, newDescriptors};
