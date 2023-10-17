@@ -14,10 +14,11 @@ import withWindowDimensions from '../withWindowDimensions';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import withLocalize from '../withLocalize';
 import CONST from '../../CONST';
+
 const propTypes = {
     ...pdfViewPropTypes,
     ...keyboardStatePropTypes,
-}
+};
 /**
  * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
  * password-protected we render a PDFPasswordForm to request a password
@@ -34,7 +35,6 @@ const propTypes = {
  */
 
 function PDFView(props) {
-
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
@@ -45,7 +45,7 @@ function PDFView(props) {
 
     useEffect(() => {
         props.onToggleKeyboard(props.isKeyboardShown);
-     },);
+    });
 
     /**
      * Initiate password challenge if message received from react-native-pdf/PDF
@@ -71,7 +71,7 @@ function PDFView(props) {
         if (error.message.match(/password/i)) {
             initiatePasswordChallenge();
             return;
-        };
+        }
         setFailedToLoadPDF(true);
         setShouldShowLoadingIndicator(false);
         setShouldRequestPassword(false);
@@ -83,21 +83,20 @@ function PDFView(props) {
      * in state and attempt to load the PDF. Also show the loading indicator
      * since react-native-pdf/PDF will need to reload the PDF.
      *
-     * @param {String} password Password submitted via PDFPasswordForm
+     * @param {String} pdfPassword Password submitted via PDFPasswordForm
      */
-    function attemptPDFLoadWithPassword(password) {
+    function attemptPDFLoadWithPassword(pdfPassword) {
         // Render react-native-pdf/PDF so that it can validate the password.
         // Note that at this point in the password challenge, shouldRequestPassword is true.
         // Thus react-native-pdf/PDF will be rendered - but not visible.
-        setPassword(password),
+        setPassword(pdfPassword);
         setShouldAttemptPDFLoad(true);
         setShouldShowLoadingIndicator(true);
-
     }
-        /**
-         * After the PDF is successfully loaded hide PDFPasswordForm and the loading
-         * indicator.
-         */
+    /**
+     * After the PDF is successfully loaded hide PDFPasswordForm and the loading
+     * indicator.
+     */
     function finishPDFLoad() {
         setShouldRequestPassword(false);
         setShouldShowLoadingIndicator(false);
@@ -132,9 +131,9 @@ function PDFView(props) {
                         renderActivityIndicator={() => <FullScreenLoadingIndicator />}
                         source={{uri: props.sourceURL}}
                         style={pdfStyles}
-                        onError={handleFailureToLoadPDF}
+                        onError={() => handleFailureToLoadPDF}
                         password={password}
-                        onLoadComplete={finishPDFLoad}
+                        onLoadComplete={() => finishPDFLoad}
                         onPageSingleTap={props.onPress}
                         onScaleChanged={props.onScaleChanged}
                     />
@@ -143,7 +142,7 @@ function PDFView(props) {
                     <KeyboardAvoidingView style={styles.flex1}>
                         <PDFPasswordForm
                             isFocused={props.isFocused}
-                            onSubmit={attemptPDFLoadWithPassword}
+                            onSubmit={() => attemptPDFLoadWithPassword}
                             onPasswordUpdated={() => setIsPasswordInvalid(false)}
                             isPasswordInvalid={isPasswordInvalid}
                             shouldShowLoadingIndicator={shouldShowLoadingIndicator}
