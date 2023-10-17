@@ -7,7 +7,7 @@ import stylePropTypes from '../styles/stylePropTypes';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
-import DotIndicatorMessageWithClose from './DotIndicatorMessageWithClose';
+import MessagesRow from './MessagesRow';
 import useNetwork from '../hooks/useNetwork';
 
 /**
@@ -118,7 +118,7 @@ function OfflineWithFeedback(props) {
                 </View>
             )}
             {props.shouldShowErrorMessages && hasErrorMessages && (
-                <DotIndicatorMessageWithClose
+                <MessagesRow
                     messages={errorMessages}
                     type="error"
                     onClose={props.onClose}

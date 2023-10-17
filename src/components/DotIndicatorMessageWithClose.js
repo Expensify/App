@@ -33,7 +33,7 @@ const defaultProps = {
     containerStyles: [],
 };
 
-function DotIndicatorMessageWithClose({messages, type, onClose, containerStyles}) {
+function MessagesRow({messages, type, onClose, containerStyles}) {
     const {translate} = useLocalize();
     if (_.isEmpty(messages)) {
         return null;
@@ -60,8 +60,8 @@ function DotIndicatorMessageWithClose({messages, type, onClose, containerStyles}
     );
 }
 
-DotIndicatorMessageWithClose.propTypes = propTypes;
-DotIndicatorMessageWithClose.defaultProps = defaultProps;
-DotIndicatorMessageWithClose.displayName = 'DotIndicatorMessageWithClose';
+MessagesRow.propTypes = propTypes;
+MessagesRow.defaultProps = defaultProps;
+MessagesRow.displayName = 'MessagesRow';
 
-export default DotIndicatorMessageWithClose;
+export default MessagesRow;

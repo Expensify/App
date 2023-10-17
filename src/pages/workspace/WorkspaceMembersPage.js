@@ -29,7 +29,7 @@ import * as PolicyUtils from '../../libs/PolicyUtils';
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import DotIndicatorMessageWithClose from '../../components/DotIndicatorMessageWithClose';
+import MessagesRow from '../../components/MessagesRow';
 import SelectionList from '../../components/SelectionList';
 import Text from '../../components/Text';
 import * as Browser from '../../libs/Browser';
@@ -360,7 +360,7 @@ function WorkspaceMembersPage(props) {
             return null;
         }
         return (
-            <DotIndicatorMessageWithClose
+            <MessagesRow
                 type="success"
                 messages={{0: props.translate('workspace.people.addedWithPrimary')}}
                 containerStyles={[styles.pb5, styles.ph5]}
