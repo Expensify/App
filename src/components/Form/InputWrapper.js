@@ -7,7 +7,7 @@ const propTypes = {
     inputID: PropTypes.string.isRequired,
     valueType: PropTypes.string,
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
-    valueParser: PropTypes.func
+    valueParser: PropTypes.func,
 };
 
 const defaultProps = {

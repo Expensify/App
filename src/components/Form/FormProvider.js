@@ -276,14 +276,16 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
                     setInputValues((prevState) => {
-                        const newState = _.isFunction(propsToParse.valueParser) ? {
-                            ...prevState,
-                            [inputKey]: propsToParse.valueParser(value),
-                            [`${inputKey}ToDisplay`]: value,
-                        } : {
-                            ...prevState,
-                            [inputKey]: value,
-                        };
+                        const newState = _.isFunction(propsToParse.valueParser)
+                            ? {
+                                  ...prevState,
+                                  [inputKey]: propsToParse.valueParser(value),
+                                  [`${inputKey}ToDisplay`]: value,
+                              }
+                            : {
+                                  ...prevState,
+                                  [inputKey]: value,
+                              };
 
                         if (shouldValidateOnChange) {
                             onValidate(newState);
