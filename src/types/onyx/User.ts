@@ -27,6 +27,9 @@ type User = {
 
         /** Number of lounge check-ins remaining in the current period */
         checkInsRemaining: number;
+
+        /** Date in "2023-12-01" format for when the check-ins count is reset */
+        nextCheckInReset: string;
     };
 
     /** error associated with adding a secondary login */
