@@ -1,8 +1,4 @@
-import SwipeableViewComponent from './types';
+import SwipeableViewProps from './types';
 
 // Swipeable View is available just on Android/iOS for now.
-const SwipeableView: SwipeableViewComponent = ({children}) => children;
-
-SwipeableView.displayName = 'SwipeableView';
-
-export default SwipeableView;
+export default ({children}: SwipeableViewProps) => children;

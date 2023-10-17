@@ -8,8 +8,4 @@ type SwipeableViewProps = {
     onSwipeDown: () => void;
 };
 
-type SwipeableViewComponent = React.FC<SwipeableViewProps>;
-
-export default SwipeableViewComponent;
-
-export type {SwipeableViewProps};
+export default SwipeableViewProps;

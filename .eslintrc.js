@@ -165,7 +165,6 @@ module.exports = {
                 ],
                 curly: 'error',
                 'you-dont-need-lodash-underscore/throttle': 'off',
-                'react/prop-types': 'off',
             },
         },
         {
