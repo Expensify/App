@@ -13,7 +13,7 @@ export default PropTypes.shape({
     /** The title for the next step */
     title: PropTypes.string,
 
-    /** Whether the the user must take some sort of action in order to unblock the report */
+    /** Whether the user should take some sort of action in order to unblock the report */
     requiresUserAction: PropTypes.bool,
 
     /** The type of next step */
@@ -22,7 +22,7 @@ export default PropTypes.shape({
     /** If the "Undo submit" button should be visible */
     showUndoSubmit: PropTypes.bool,
 
-    /** If the next step  should be displayed on mobile */
+    /** Deprecated - If the next step should be displayed on mobile, related to OldApp */
     showForMobile: PropTypes.bool,
 
     /** If the next step should be displayed at the expense level */

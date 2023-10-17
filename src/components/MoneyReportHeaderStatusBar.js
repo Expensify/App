@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
 import {Text, View} from 'react-native';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
+import * as NextStepUtils from '../libs/NextStepUtils';
 import useLocalize from '../hooks/useLocalize';
 import nextStepPropTypes from '../pages/nextStepPropTypes';
 import RenderHTML from './RenderHTML';
@@ -20,18 +20,8 @@ function MoneyReportHeaderStatusBar({nextStep}) {
     const {translate} = useLocalize();
 
     const messageContent = useMemo(() => {
-        let nextStepHTML = '';
-
         const messageArray = _.isEmpty(nextStep.expenseMessage) ? nextStep.message : nextStep.expenseMessage;
-        _.each(messageArray, (part) => {
-            const tagType = part.type || 'span';
-            nextStepHTML += `<${tagType}>${Str.safeEscape(part.text)}</${tagType}>`;
-        });
-
-        return nextStepHTML
-            .replace(/%expenses/g, 'this expense')
-            .replace(/%Expenses/g, 'This expense')
-            .replace(/%tobe/g, 'is');
+        return NextStepUtils.parseMessage(messageArray);
     }, [nextStep.expenseMessage, nextStep.message]);
 
     return (
