@@ -63,11 +63,10 @@ const menuItems = [
     },
 ];
 
-function LoungeAccessPage(props) {
+function LoungeAccessPage({ preferredLocale, user: { hasLoungeAccess, loungeCheckInDetails: { isCheckedIn, checkInsRemaining, nextCheckInReset } }, currentUserPersonalDetails: { avatar, displayName, fallbackIcon }, session: { accountID, email } }) {
     const {translate} = useLocalize();
-    const {checkInsRemaining, isCheckedIn} = props.user.loungeCheckInDetails;
 
-    if (!props.user.hasLoungeAccess) {
+    if (!hasLoungeAccess) {
         return <NotFoundPage />;
     }
 
@@ -83,21 +82,21 @@ function LoungeAccessPage(props) {
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pt5, styles.ph5]}>
                 <Avatar
                     imageStyles={[styles.avatarLarge]}
-                    source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
+                    source={UserUtils.getAvatar(avatar, accountID)}
                     size={CONST.AVATAR_SIZE.LARGE}
-                    fallbackIcon={props.currentUserPersonalDetails.fallbackIcon}
+                    fallbackIcon={fallbackIcon}
                 />
                 <Text
                     style={[styles.textHeadline, styles.pre, styles.mt2]}
                     numberOfLines={1}
                 >
-                    {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : LocalePhoneNumber.formatPhoneNumber(props.session.email)}
+                    {displayName || LocalePhoneNumber.formatPhoneNumber(email)}
                 </Text>
                 <Text
                     style={[styles.textLabelSupporting, styles.mt1]}
                     numberOfLines={1}
                 >
-                    {LocalePhoneNumber.formatPhoneNumber(props.session.email)}
+                    {LocalePhoneNumber.formatPhoneNumber(email)}
                 </Text>
             </View>
         </LinearGradient>
@@ -114,7 +113,7 @@ function LoungeAccessPage(props) {
         // The .format('LL') returns localized format of the date:
         // - November 1, 2023 - for English language
         // - 1 de noviembre de 2023 - for Spanish language
-        const dayMonthYear = moment(props.user.loungeCheckInDetails.nextCheckInReset).locale(props.preferredLocale).format('LL');
+        const dayMonthYear = moment(nextCheckInReset).locale(preferredLocale).format('LL');
 
         // We only care about the day and the month, so we
         // get rid of the year for both languages:
@@ -146,7 +145,7 @@ function LoungeAccessPage(props) {
                             ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn', {checkInsRemaining})
                             : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn', {checkInsRemaining})}{' '}
                         <Text style={[styles.textStrong]}>
-                            {NumberFormatUtils.format(props.preferredLocale, checkInsRemaining)}{' '}
+                            {NumberFormatUtils.format(preferredLocale, checkInsRemaining)}{' '}
                             {checkInsRemaining === 1 ? translate('loungeAccessPage.nextCheckInNumberCountSingular') : translate('loungeAccessPage.nextCheckInNumberCountPlural')}
                         </Text>{' '}
                         {translate('loungeAccessPage.nextCheckInAfterNumber')}
