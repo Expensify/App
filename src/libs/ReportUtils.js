@@ -1213,19 +1213,38 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
 }
 
 /**
- * @param {String} reportID
- * @param {Object} [actionsToMerge]
+ * For a deleted parent report action within a chat report,
+ * let us return the appropriate display message
+ *
+ * @param {Object} reportAction - The deleted report action of a chat report for which we need to return message.
+ * @return {String}
+ */
+function getDeletedParentActionMessageForChatReport(reportAction) {
+    // By default, let us display [Deleted message]
+    let deletedMessageText = Localize.translateLocal('parentReportAction.deletedMessage');
+    if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
+        // For canceled task report, let us display [Deleted task]
+        deletedMessageText = Localize.translateLocal('parentReportAction.deletedTask');
+    }
+    return deletedMessageText;
+}
+
+/**
+ * Returns the last visible message for a given report after considering the given optimistic actions
+ *
+ * @param {String} reportID - the report for which last visible message has to be fetched
+ * @param {Object} [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
  * @return {Object}
  */
 function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     const report = getReport(reportID);
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, actionsToMerge);
 
-    // For Chat Report, let us return [Deleted message] when the last visible action
-    // is a deleted parent which has visible child actions
+    // For Chat Report with deleted parent actions, let us fetch the correct message
     if (ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && isChatReport(report)) {
+        const lastMessageText = getDeletedParentActionMessageForChatReport(lastVisibleAction);
         return {
-            lastMessageText: Localize.translateLocal('parentReportAction.deletedMessage'),
+            lastMessageText,
         };
     }
 
@@ -3948,6 +3967,7 @@ export {
     getReport,
     getReportIDFromLink,
     getRouteFromLink,
+    getDeletedParentActionMessageForChatReport,
     getLastVisibleMessage,
     navigateToDetailsPage,
     generateReportID,
