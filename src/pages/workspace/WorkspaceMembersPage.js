@@ -339,6 +339,9 @@ function WorkspaceMembersPage(props) {
                 ],
                 errors: policyMember.errors,
                 pendingAction: policyMember.pendingAction,
+
+                // Note which secondary login was used to invite this primary login
+                invitedSecondaryLogin: invitedPrimaryToSecondaryLogins[details.login] || '',
             });
         });
 
