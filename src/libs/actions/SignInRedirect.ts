@@ -1,7 +1,5 @@
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import ONYXKEYS from '../../ONYXKEYS';
+import ONYXKEYS, {OnyxKey} from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
 import * as PersistedRequests from './PersistedRequests';
 import NetworkConnection from '../NetworkConnection';
@@ -12,27 +10,21 @@ import Navigation from '../Navigation/Navigation';
 import * as ErrorUtils from '../ErrorUtils';
 import * as SessionUtils from '../SessionUtils';
 
-let currentIsOffline;
-let currentShouldForceOffline;
+let currentIsOffline: boolean | undefined;
+let currentShouldForceOffline: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
-        if (!network) {
-            return;
-        }
-        currentIsOffline = network.isOffline;
-        currentShouldForceOffline = Boolean(network.shouldForceOffline);
+        currentIsOffline = network?.isOffline;
+        currentShouldForceOffline = network?.shouldForceOffline;
     },
 });
 
-/**
- * @param {String} errorMessage
- */
-function clearStorageAndRedirect(errorMessage) {
+function clearStorageAndRedirect(errorMessage?: string) {
     // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
     // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
     // flashes of unwanted default state.
-    const keysToPreserve = [];
+    const keysToPreserve: OnyxKey[] = [];
     keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
     keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     keysToPreserve.push(ONYXKEYS.DEVICE_ID);
@@ -58,15 +50,15 @@ function clearStorageAndRedirect(errorMessage) {
  */
 function resetHomeRouteParams() {
     Navigation.isNavigationReady().then(() => {
-        const routes = navigationRef.current && lodashGet(navigationRef.current.getState(), 'routes');
-        const homeRoute = _.find(routes, (route) => route.name === SCREENS.HOME);
+        const routes = navigationRef.current?.getState().routes;
+        const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
 
-        const emptyParams = {};
-        _.keys(lodashGet(homeRoute, 'params')).forEach((paramKey) => {
+        const emptyParams: Record<string, undefined> = {};
+        Object.keys(homeRoute?.params ?? {}).forEach((paramKey) => {
             emptyParams[paramKey] = undefined;
         });
 
-        Navigation.setParams(emptyParams, lodashGet(homeRoute, 'key', ''));
+        Navigation.setParams(emptyParams, homeRoute?.key ?? '');
         Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     });
 }
@@ -79,9 +71,9 @@ function resetHomeRouteParams() {
  *
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
- * @param {String} [errorMessage] error message to be displayed on the sign in page
+ * @param [errorMessage] error message to be displayed on the sign in page
  */
-function redirectToSignIn(errorMessage) {
+function redirectToSignIn(errorMessage?: string) {
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     PersistedRequests.clear();
