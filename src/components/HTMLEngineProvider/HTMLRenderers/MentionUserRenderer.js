@@ -71,8 +71,6 @@ function MentionUserRenderer(props) {
                     }}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                     accessibilityLabel={`/${navigationRoute}`}
-                    onPressIn={props.onPressIn}
-                    onPressOut={props.onPressOut}
                 >
                     <UserDetailsTooltip
                         accountID={accountID}
@@ -84,6 +82,7 @@ function MentionUserRenderer(props) {
                             style={[styles.link, _.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                             testID="span"
+                            href={`/${navigationRoute}`}
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...defaultRendererProps}
                         >
