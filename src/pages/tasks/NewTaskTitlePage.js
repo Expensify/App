@@ -46,10 +46,13 @@ function NewTaskTitlePage(props) {
      */
     function validate(values) {
         const errors = {};
+        const tasksTitle = values.taskTitle;
 
-        if (!values.taskTitle) {
+        if (!tasksTitle) {
             // We error if the user doesn't enter a task name
             ErrorUtils.addErrorMessage(errors, 'taskTitle', 'newTaskPage.pleaseEnterTaskName');
+        } else if (tasksTitle.length > CONST.TITLE_MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'taskTitle', ['common.error.characterLimitExceedCounter', {length: tasksTitle.length, limit: CONST.TITLE_MAX_LENGTH}]);
         }
 
         return errors;
@@ -101,6 +104,7 @@ function NewTaskTitlePage(props) {
                         inputID="taskTitle"
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
+                        maxLength={CONST.TITLE_MAX_LENGTH + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
                     />
                 </View>
             </Form>

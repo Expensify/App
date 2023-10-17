@@ -19,6 +19,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -46,9 +47,12 @@ function TaskTitlePage(props) {
      */
     const validate = useCallback((values) => {
         const errors = {};
+        const tasksTitle = values.title;
 
         if (_.isEmpty(values.title)) {
             errors.title = 'newTaskPage.pleaseEnterTaskName';
+        } else if (tasksTitle.length > CONST.TITLE_MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'title', ['common.error.characterLimitExceedCounter', {length: tasksTitle.length, limit: CONST.TITLE_MAX_LENGTH}]);
         }
 
         return errors;
@@ -109,6 +113,7 @@ function TaskTitlePage(props) {
                                     }
                                     inputRef.current = el;
                                 }}
+                                maxLength={CONST.TITLE_MAX_LENGTH + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
                             />
                         </View>
                     </Form>
