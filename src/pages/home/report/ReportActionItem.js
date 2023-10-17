@@ -70,6 +70,8 @@ import themeColors from '../../../styles/themes/default';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import RenderHTML from '../../../components/RenderHTML';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import ROUTES from '../../../ROUTES';
+import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -345,12 +347,14 @@ function ReportActionItem(props) {
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
+            const paymentType = lodashGet(props.action, 'originalMessage.paymentType', '');
             const shouldShowAddCreditBankAccountButton =
-                ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !store.hasCreditBankAccount() && !ReportUtils.isSettled(props.report.reportID);
-            const shouldShowEnableWalletButton =
                 ReportUtils.isCurrentUserSubmitter(props.report.reportID) &&
-                lodashGet(props.action, 'paymentType', '') === CONST.IOU.PAYMENT_TYPE.EXPENSIFY &&
-                !ReportUtils.isSettled(props.report.reportID);
+                !store.hasCreditBankAccount() &&
+                !ReportUtils.isSettled(props.report.reportID) &&
+                paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+            const shouldShowEnableWalletButton =
+                ReportUtils.isCurrentUserSubmitter(props.report.reportID) && paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY && !ReportUtils.isSettled(props.report.reportID);
             children = (
                 <ReportActionItemBasicMessage
                     message={
@@ -373,7 +377,7 @@ function ReportActionItem(props) {
                             success
                             style={[styles.w100, styles.requestPreviewBox]}
                             text={props.translate('iou.enableWallet')}
-                            onPress={() => BankAccounts.openPersonalBankAccountSetupView(props.report.reportID)}
+                            onPress={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
                             pressOnEnter
                         />
                     )}
