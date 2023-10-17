@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -32,13 +32,11 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import DateUtils from '../../../libs/DateUtils';
+import {PersonalDetailsContext} from '../ReportScreen';
 
 const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
-
-    /** All of the personalDetails */
-    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** Styles for the outermost View */
     // eslint-disable-next-line react/forbid-prop-types
@@ -69,7 +67,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetailsList: {},
     wrapperStyles: [styles.chatItem],
     showHeader: true,
     shouldShowSubscriptAvatar: false,
@@ -88,9 +85,10 @@ const showWorkspaceDetails = (reportID) => {
 };
 
 function ReportActionItemSingle(props) {
+    const personalDetails = useContext(PersonalDetailsContext);
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
-    let {displayName} = props.personalDetailsList[actorAccountID] || {};
-    const {avatar, login, pendingFields, status, fallbackIcon} = props.personalDetailsList[actorAccountID] || {};
+    let {displayName} = personalDetails[actorAccountID] || {};
+    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && (!actorAccountID || displayAllActors);
@@ -100,10 +98,10 @@ function ReportActionItemSingle(props) {
         displayName = ReportUtils.getPolicyName(props.report);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceAvatar(props.report);
-    } else if (props.action.delegateAccountID && props.personalDetailsList[props.action.delegateAccountID]) {
+    } else if (props.action.delegateAccountID && personalDetails[props.action.delegateAccountID]) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
-        const delegateDetails = props.personalDetailsList[props.action.delegateAccountID];
+        const delegateDetails = personalDetails[props.action.delegateAccountID];
         const delegateDisplayName = delegateDetails.displayName;
         actorHint = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
         displayName = actorHint;
@@ -116,7 +114,7 @@ function ReportActionItemSingle(props) {
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
-        const secondaryUserDetails = props.personalDetailsList[secondaryAccountId] || {};
+        const secondaryUserDetails = personalDetails[secondaryAccountId] || {};
         const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
@@ -270,7 +268,6 @@ ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
 export default compose(
     withLocalize,
-    withPersonalDetails(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
