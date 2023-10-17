@@ -77,7 +77,7 @@ function MentionSuggestions(props) {
                         size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
                         name={item.icons[0].name}
                         type={item.icons[0].type}
-                        fill={themeColors.success}
+                        // fill={themeColors.success}
                         fallbackIcon={item.icons[0].fallbackIcon}
                     />
                 </View>

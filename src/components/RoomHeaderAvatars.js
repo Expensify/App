@@ -45,7 +45,7 @@ function RoomHeaderAvatars(props) {
                         <Avatar
                             source={props.icons[0].source}
                             imageStyles={[styles.avatarLarge]}
-                            fill={themeColors.iconSuccessFill}
+                            // fill={themeColors.iconSuccessFill}
                             size={CONST.AVATAR_SIZE.LARGE}
                             name={props.icons[0].name}
                             type={props.icons[0].type}
@@ -89,7 +89,7 @@ function RoomHeaderAvatars(props) {
                                 >
                                     <Avatar
                                         source={icon.source}
-                                        fill={themeColors.iconSuccessFill}
+                                        // fill={themeColors.iconSuccessFill}
                                         size={CONST.AVATAR_SIZE.LARGE}
                                         containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                         name={icon.name}

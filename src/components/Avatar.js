@@ -63,7 +63,7 @@ const defaultProps = {
     iconAdditionalStyles: [],
     containerStyles: [],
     size: CONST.AVATAR_SIZE.DEFAULT,
-    fill: themeColors.icon,
+    fill: null,
     fallbackIcon: Expensicons.FallbackAvatar,
     fallbackIconName: 'FallbackAvatar',
     type: CONST.ICON_TYPE_AVATAR,
@@ -100,7 +100,7 @@ function Avatar(props) {
             pointerEvents="none"
             style={props.containerStyles}
         >
-            {_.isFunction(props.source) || (imageError && _.isFunction(fallbackAvatar)) ? (
+            {_.isFunction(props.source) || _.isNumber(props.source) || (imageError && (_.isFunction(fallbackAvatar) || _.isNumber(fallbackAvatar))) ? (
                 <View style={iconStyle}>
                     <Icon
                         src={imageError ? fallbackAvatar : props.source}

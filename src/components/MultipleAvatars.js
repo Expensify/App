@@ -138,7 +138,7 @@ function MultipleAvatars(props) {
                     <Avatar
                         source={props.icons[0].source}
                         size={props.size}
-                        fill={themeColors.iconSuccessFill}
+                        // fill={themeColors.iconSuccessFill}
                         name={props.icons[0].name}
                         type={props.icons[0].type}
                         fallbackIcon={props.icons[0].fallbackIcon}
@@ -188,7 +188,7 @@ function MultipleAvatars(props) {
                                             StyleUtils.getAvatarBorderWidth(props.size),
                                         ]}
                                         source={icon.source || props.fallbackIcon}
-                                        fill={themeColors.iconSuccessFill}
+                                        // fill={themeColors.iconSuccessFill}
                                         size={props.size}
                                         name={icon.name}
                                         type={icon.type}
@@ -253,7 +253,7 @@ function MultipleAvatars(props) {
                             <View>
                                 <Avatar
                                     source={props.icons[0].source || props.fallbackIcon}
-                                    fill={themeColors.iconSuccessFill}
+                                    // fill={themeColors.iconSuccessFill}
                                     size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
                                     name={props.icons[0].name}
@@ -281,7 +281,7 @@ function MultipleAvatars(props) {
                                     <View>
                                         <Avatar
                                             source={props.icons[1].source || props.fallbackIcon}
-                                            fill={themeColors.iconSuccessFill}
+                                            // fill={themeColors.iconSuccessFill}
                                             size={avatarSize}
                                             imageStyles={[singleAvatarStyle]}
                                             name={props.icons[1].name}
