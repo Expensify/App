@@ -11,6 +11,7 @@ import getTopMostCentralPaneRouteName from '../libs/Navigation/getTopMostCentral
 import SCREENS from '../SCREENS';
 import ROUTES from '../ROUTES';
 import FullPageBiggerScreenView from './BlockingViews/FullPageBiggerScreenView';
+import styles from '../styles/styles';
 
 function getNewDotURL(url) {
     const urlObj = new URL(url);
@@ -260,7 +261,7 @@ function IFrame({session}) {
             <iframe
                 // If we don't remount iframe it will mess up with the browser history.
                 key={`${routeName}-${index}`}
-                style={{flex: 1, borderWidth: 0}}
+                style={styles.iframe}
                 src={oldDotURL}
                 title="OldDot"
             />

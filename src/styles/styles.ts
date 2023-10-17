@@ -1354,6 +1354,8 @@ const styles = (theme: ThemeDefault) =>
             paddingHorizontal: 2,
         },
 
+        iframe: {flex: 1, borderWidth: 0},
+
         floatingActionButtonContainer: {
             position: 'absolute',
             left: 16,
