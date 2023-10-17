@@ -131,7 +131,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     };
 }
 
-function SignInPage({credentials, account, isInModal, activeClients}) {
+function SignInPage({credentials, account, isInModal, activeClients, preferredLocale}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
@@ -153,6 +153,7 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
+        if (preferredLocale) return;
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
 
@@ -273,4 +274,7 @@ export default withOnyx({
     We use that function to prevent repeating code that checks which client is the leader.
     */
     activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS},
+    preferredLocale: {
+        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    },
 })(SignInPage);
