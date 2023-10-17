@@ -3,6 +3,47 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 
 /**
+ * @param {Number} cardID
+ */
+function reportVirtualExpensifyCardFraud(cardID) {
+    API.write(
+        'ReportVirtualExpensifyCardFraud',
+        {
+            cardID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+                    value: {
+                        isLoading: true,
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
  * Activates the physical Expensify card based on the last four digits of the card number
  *
  * @param {Number} lastFourDigits
@@ -60,4 +101,4 @@ function clearCardListErrors(cardID) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
 }
 
-export {activatePhysicalExpensifyCard, clearCardListErrors};
+export {reportVirtualExpensifyCardFraud, activatePhysicalExpensifyCard, clearCardListErrors};
