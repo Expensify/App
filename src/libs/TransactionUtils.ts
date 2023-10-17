@@ -6,7 +6,7 @@ import DateUtils from './DateUtils';
 import {isExpensifyCard} from './CardUtils';
 import * as NumberUtils from './NumberUtils';
 import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
-import {Receipt, Comment, WaypointCollection} from '../types/onyx/Transaction';
+import {Receipt, Comment, WaypointCollection, Waypoint} from '../types/onyx/Transaction';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
 
@@ -399,7 +399,7 @@ function getAllReportTransactions(reportID?: string): Transaction[] {
 /**
  * Checks if a waypoint has a valid address
  */
-function waypointHasValidAddress(waypoint: RecentWaypoint | Record<string, never>): boolean {
+function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
 

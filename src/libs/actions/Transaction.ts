@@ -110,13 +110,12 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
 
     const waypointValues = Object.values(existingWaypoints);
     const removed = waypointValues.splice(index, 1);
+    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0] ?? {});
 
     // When there are only two waypoints we are adding empty waypoint back
     if (totalWaypoints === 2 && (index === 0 || index === totalWaypoints - 1)) {
         waypointValues.splice(index, 0, {});
     }
-
-    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0] ?? {});
 
     const reIndexedWaypoints: WaypointCollection = {};
     waypointValues.forEach((waypoint, idx) => {
