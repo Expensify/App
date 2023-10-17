@@ -9,20 +9,20 @@ import styles from '../../../../styles/styles';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 const propTypes = {
-    personalDetails: PropTypes.shape({
-        firstName: PropTypes.string,
-        lastName: PropTypes.string,
+    privatePersonalDetails: PropTypes.shape({
+        legalFirstName: PropTypes.string,
+        legalLastName: PropTypes.string,
     }),
 };
 
 const defaultProps = {
-    personalDetails: {
-        firstName: '',
-        lastName: '',
+    privatePersonalDetails: {
+        legalFirstName: '',
+        legalLastName: '',
     },
 };
 
-function GetPhysicalCardName({personalDetails: {firstName, lastName}}) {
+function GetPhysicalCardName({privatePersonalDetails: {legalFirstName, legalLastName}}) {
     const {translate} = useLocalize();
     return (
         <BaseGetPhysicalCard
@@ -37,8 +37,7 @@ function GetPhysicalCardName({personalDetails: {firstName, lastName}}) {
                 accessibilityLabel={translate('getPhysicalCard.legalFirstName')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 autoCapitalize="words"
-                defaultValue={firstName}
-                shouldSaveDraft
+                defaultValue={legalFirstName}
                 containerStyles={[styles.mt5]}
             />
             <TextInput
@@ -48,8 +47,7 @@ function GetPhysicalCardName({personalDetails: {firstName, lastName}}) {
                 accessibilityLabel={translate('getPhysicalCard.legalLastName')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 autoCapitalize="words"
-                defaultValue={lastName}
-                shouldSaveDraft
+                defaultValue={legalLastName}
                 containerStyles={[styles.mt5]}
             />
         </BaseGetPhysicalCard>
@@ -61,8 +59,8 @@ GetPhysicalCardName.displayName = 'GetPhysicalCardName';
 GetPhysicalCardName.propTypes = propTypes;
 
 export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },
     loginList: {
         key: ONYXKEYS.LOGIN_LIST,

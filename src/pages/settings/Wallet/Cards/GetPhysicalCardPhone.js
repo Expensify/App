@@ -7,21 +7,25 @@ import TextInput from '../../../../components/TextInput';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
+import * as UserUtils from '../../../../libs/UserUtils';
 
 const propTypes = {
-    personalDetails: PropTypes.shape({
+    privatePersonalDetails: PropTypes.shape({
         phoneNumber: PropTypes.string,
     }),
+    loginList: PropTypes.shape({}),
 };
 
 const defaultProps = {
-    personalDetails: {
+    privatePersonalDetails: {
         phoneNumber: '',
     },
+    loginList: {},
 };
 
-function GetPhysicalCardPhone({personalDetails: {phoneNumber}}) {
+function GetPhysicalCardPhone({privatePersonalDetails: {phoneNumber}, loginList}) {
     const {translate} = useLocalize();
+
     return (
         <BaseGetPhysicalCard
             headline={translate('getPhysicalCard.phoneMessage')}
@@ -34,8 +38,7 @@ function GetPhysicalCardPhone({personalDetails: {phoneNumber}}) {
                 label={translate('getPhysicalCard.phoneNumber')}
                 accessibilityLabel={translate('getPhysicalCard.phoneNumber')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                defaultValue={phoneNumber}
-                shouldSaveDraft
+                defaultValue={phoneNumber || UserUtils.getSecondaryPhoneLogin(loginList)}
                 containerStyles={[styles.mt5]}
             />
         </BaseGetPhysicalCard>
@@ -47,7 +50,10 @@ GetPhysicalCardPhone.displayName = 'GetPhysicalCardPhone';
 GetPhysicalCardPhone.propTypes = propTypes;
 
 export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+    loginList: {
+        key: ONYXKEYS.LOGIN_LIST,
     },
 })(GetPhysicalCardPhone);

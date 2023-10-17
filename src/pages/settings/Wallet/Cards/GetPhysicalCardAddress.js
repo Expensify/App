@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import AddressForm from '../../../../components/AddressForm';
 import useLocalize from '../../../../hooks/useLocalize';

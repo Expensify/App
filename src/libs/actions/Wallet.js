@@ -330,9 +330,15 @@ function answerQuestionsForWallet(answers, idNumber) {
     );
 }
 
-function requestPhysicalExpensifyCard(cardID, updatedPersonalDetails) {
-    // TODO: confirm required parameters
-    const parameters = {};
+function requestPhysicalExpensifyCard(cardID, {legalFirstName, legalLastName, phoneNumber, address: {city, street, zip}}) {
+    const params = {
+        legalFirstName,
+        legalLastName,
+        phoneNumber,
+        addressCity: city,
+        addressStreet: street,
+        addressZip: zip,
+    };
     const onyxData = {
         optimisticData: [
             {
@@ -347,12 +353,11 @@ function requestPhysicalExpensifyCard(cardID, updatedPersonalDetails) {
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: updatedPersonalDetails,
+                value: params,
             },
         ],
     };
-
-    API.write('RequestPhysicalExpensifyCard', parameters, onyxData);
+    API.write('RequestPhysicalExpensifyCard', params, onyxData);
 }
 
 export {

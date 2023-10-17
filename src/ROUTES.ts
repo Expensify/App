@@ -82,6 +82,7 @@ export default {
     SETTINGS_REPORT_FRAUD: {
         route: '/settings/wallet/card/:domain/report-virtual-fraud',
         getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-virtual-fraud`,
+    },
     SETTINGS_WALLET_CARDS_GET_PHYSICAL_NAME: {
         route: '/settings/wallet/cards/:domain/get-physical/name',
         getRoute: (domain: string) => `/settings/wallet/cards/${domain}/get-physical/name`,

@@ -8,51 +8,81 @@ import Text from '../../../../components/Text';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import navigationRef from '../../../../libs/Navigation/navigationRef';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
+import * as UserUtils from '../../../../libs/UserUtils';
 
-const getDomainFromRoute = () => {
-    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
-    return (currentRoute && currentRoute.params && currentRoute.params.domain) || '';
+const goToGetPhysicalCardName = (domain) => {
+    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_NAME.getRoute(domain));
 };
 
-const goToGetPhysicalCardName = () => {
-    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_NAME.getRoute(getDomainFromRoute()));
+const goToGetPhysicalCardPhone = (domain) => {
+    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_PHONE.getRoute(domain));
 };
 
-const goToGetPhysicalCardPhone = () => {
-    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_PHONE.getRoute(getDomainFromRoute()));
-};
-
-const goToGetPhysicalCardAddress = () => {
-    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_ADDRESS.getRoute(getDomainFromRoute()));
+const goToGetPhysicalCardAddress = (domain) => {
+    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_ADDRESS.getRoute(domain));
 };
 
 const propTypes = {
-    draftValues: PropTypes.shape({
-        address: PropTypes.string,
-        firstName: PropTypes.string,
-        lastName: PropTypes.string,
+    /* Onyx Props */
+    loginList: PropTypes.shape({}),
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        legalFirstName: PropTypes.string,
+        legalLastName: PropTypes.string,
         phoneNumber: PropTypes.string,
+        /** User's home address */
+        address: PropTypes.shape({
+            street: PropTypes.string,
+            city: PropTypes.string,
+            state: PropTypes.string,
+            zip: PropTypes.string,
+            country: PropTypes.string,
+        }),
     }),
+
+    /** Navigation route context info provided by react navigation */
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            /** domain passed via route /settings/wallet/card/:domain */
+            domain: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
-    draftValues: {
-        address: '',
-        firstName: '',
-        lastName: '',
-        phoneNumber: '',
+    loginList: {},
+    privatePersonalDetails: {
+        legalFirstName: '',
+        legalLastName: '',
+        phoneNumber: null,
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zip: '',
+            country: '',
+        },
     },
 };
 
-function GetPhysicalCardConfirm({draftValues: {address, firstName, lastName, phoneNumber}}) {
+function GetPhysicalCardConfirm({
+    loginList,
+    privatePersonalDetails,
+    route: {
+        params: {domain},
+    },
+}) {
+    const {legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails;
     const {translate} = useLocalize();
 
     return (
         <BaseGetPhysicalCard
+            domain={domain}
             headline={translate('getPhysicalCard.confirmMessage')}
+            isConfirmation
             submitButtonText={translate('getPhysicalCard.shipCard')}
             title={translate('getPhysicalCard.header')}
         >
@@ -60,26 +90,26 @@ function GetPhysicalCardConfirm({draftValues: {address, firstName, lastName, pho
             <MenuItemWithTopDescription
                 description={translate('getPhysicalCard.legalName')}
                 iconRight={Expensicons.ArrowRight}
-                onPress={goToGetPhysicalCardName}
+                onPress={() => goToGetPhysicalCardName(domain)}
                 shouldShowRightIcon
                 style={[styles.flexRow, styles.justifyContentBetween, styles.mt5]}
-                title={`${firstName} ${lastName}`}
+                title={`${legalFirstName} ${legalLastName}`}
             />
             <MenuItemWithTopDescription
                 description={translate('getPhysicalCard.phoneNumber')}
                 iconRight={Expensicons.ArrowRight}
-                onPress={goToGetPhysicalCardPhone}
+                onPress={() => goToGetPhysicalCardPhone(domain)}
                 shouldShowRightIcon
                 style={[styles.flexRow, styles.justifyContentBetween, styles.mt5]}
-                title={phoneNumber}
+                title={phoneNumber || UserUtils.getSecondaryPhoneLogin(loginList)}
             />
             <MenuItemWithTopDescription
                 description={translate('getPhysicalCard.address')}
                 iconRight={Expensicons.ArrowRight}
-                onPress={goToGetPhysicalCardAddress}
+                onPress={() => goToGetPhysicalCardAddress(domain)}
                 shouldShowRightIcon
                 style={[styles.flexRow, styles.justifyContentBetween, styles.mt5]}
-                title={address}
+                title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails)}
             />
         </BaseGetPhysicalCard>
     );
@@ -90,7 +120,10 @@ GetPhysicalCardConfirm.displayName = 'GetPhysicalCardConfirm';
 GetPhysicalCardConfirm.propTypes = propTypes;
 
 export default withOnyx({
-    draftValues: {
-        key: `${ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}Draft`,
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+    loginList: {
+        key: ONYXKEYS.LOGIN_LIST,
     },
 })(GetPhysicalCardConfirm);

@@ -3,6 +3,7 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
 import Log from '@libs/Log';
+import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
@@ -306,19 +307,19 @@ function setIsNavigationReady() {
 }
 
 /**
- * @param {{address: String, firstName: String, lastName: String, phoneNumber: String}} formData
+ * @param {{address: Object, legalFirstName: String, legalLastName: String, phoneNumber: String}} privatePersonalDetails
  * @param {Array<String>} loginList
  */
-function goToNextPhysicalCardRoute(formData, loginList) {
-    const {address, firstName, lastName, phoneNumber} = formData;
+function goToNextPhysicalCardRoute(privatePersonalDetails, loginList) {
+    const {address, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails;
     const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
     const {domain} = (currentRoute && currentRoute.params) || {domain: ''};
 
-    if (!firstName && !lastName) {
+    if (!legalFirstName && !legalLastName) {
         navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_NAME.getRoute(domain));
         return;
     }
-    if (!phoneNumber && !getSecondaryPhoneLogin(loginList)) {
+    if (!phoneNumber && !UserUtils.getSecondaryPhoneLogin(loginList)) {
         navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_PHONE.getRoute(domain));
         return;
     }

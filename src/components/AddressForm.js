@@ -92,13 +92,14 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, state, 
 
     return (
         <Form
-            style={[styles.flexGrow1, styles.mh5]}
+            style={[styles.flexGrow1, styles.mh5, styles.mt5]}
             formID={formID}
             validate={validator}
             onSubmit={onSubmit}
             submitButtonText={submitButtonText}
             enabledWhenOffline
         >
+            <View style={styles.formSpaceVertical} />
             <View>
                 <AddressSearch
                     inputID="addressLine1"
