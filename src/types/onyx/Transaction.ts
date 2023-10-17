@@ -7,6 +7,7 @@ type WaypointCollection = Record<string, RecentWaypoint | null>;
 type Comment = {
     comment?: string;
     waypoints?: WaypointCollection;
+    isLoading?: boolean;
     type?: string;
     customUnit?: Record<string, unknown>;
     source?: string;
@@ -63,7 +64,7 @@ type Transaction = {
     parentTransactionID?: string;
     reimbursable?: boolean;
     /** The CC for this transaction */
-    cardID?: string;
+    cardID?: number;
     /** If the transaction is pending or posted */
     status?: ValueOf<typeof CONST.TRANSACTION.STATUS>;
     /** If an EReceipt should be generated for this transaction */
