@@ -71,15 +71,11 @@ if (args.includes('--config')) {
     setConfigPath(configPath);
 }
 
-// Clear all files from previous jobs
-if (!fs.existsSync(config.OUTPUT_DIR)) {
-    fs.mkdirSync(config.OUTPUT_DIR);
-}
-
 try {
-    if (fs.existsSync(`${config.OUTPUT_DIR}/${label}.json`)) {
-        fs.rmSync(`${config.OUTPUT_DIR}/${label}.json`);
-    }
+    // Clear all files from previous jobs
+    fs.rmSync(config.OUTPUT_DIR, {recursive: true, force: true});
+
+    fs.mkdirSync(config.OUTPUT_DIR);
 } catch (error) {
     // Do nothing
     console.error(error);
