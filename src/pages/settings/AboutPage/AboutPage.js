@@ -41,7 +41,7 @@ function getFlavor() {
 }
 
 function AboutPage(props) {
-    const {translate, isShortcutsModalOpen} = props;
+    const {translate} = props;
     const popoverAnchor = useRef(null);
     const waitForNavigate = useWaitForNavigation();
 
@@ -85,14 +85,13 @@ function AboutPage(props) {
             title: translate(item.translationKey),
             icon: item.icon,
             iconRight: item.iconRight,
-            disabled: isShortcutsModalOpen,
             onPress: item.action,
             shouldShowRightIcon: true,
             onSecondaryInteraction: !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined,
             ref: popoverAnchor,
             shouldBlockSelection: Boolean(item.link),
         }));
-    }, [isShortcutsModalOpen, translate, waitForNavigate]);
+    }, [translate, waitForNavigate]);
 
     return (
         <ScreenWrapper
