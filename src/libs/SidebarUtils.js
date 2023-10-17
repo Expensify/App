@@ -376,7 +376,10 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
 
             const roomName = lodashGet(lastAction, 'originalMessage.roomName', '');
             if (roomName) {
-                const preposition = CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ? ' to' : ' from';
+                const preposition =
+                    lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                        ? ' to'
+                        : ' from';
                 result.alternateText += `${preposition} ${roomName}`;
             }
         } else if (lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
