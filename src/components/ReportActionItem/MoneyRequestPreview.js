@@ -175,7 +175,7 @@ function MoneyRequestPreview(props) {
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || '')] : [];
 
     const getSettledMessage = () => {
-        if (isExpensifyCardTransaction || isDistanceRequest) {
+        if (isExpensifyCardTransaction) {
             return props.translate('common.done');
         }
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -222,7 +222,7 @@ function MoneyRequestPreview(props) {
 
     const getDisplayAmountText = () => {
         if (isDistanceRequest) {
-            return CurrencyUtils.convertToDisplayString(TransactionUtils.getAmount(props.transaction), props.transaction.currency);
+            return requestAmount ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : props.translate('common.tbd');
         }
 
         if (isScanning) {
@@ -252,7 +252,8 @@ function MoneyRequestPreview(props) {
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={receiptImages}
-                            isHovered={isScanning}
+                            isHovered={props.isHovered || isScanning}
+                            size={1}
                         />
                     )}
                     {_.isEmpty(props.transaction) &&
@@ -262,20 +263,7 @@ function MoneyRequestPreview(props) {
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewHeaderText()}</Text>
-                                    {isSettled && (
-                                        <>
-                                            <Icon
-                                                src={Expensicons.DotIndicator}
-                                                width={4}
-                                                height={4}
-                                                additionalStyles={[styles.mr1, styles.ml1]}
-                                            />
-                                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getSettledMessage()}</Text>
-                                        </>
-                                    )}
-                                </View>
+                                <Text style={[styles.textLabelSupporting, styles.lh20, styles.mb1]}>{getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}</Text>
                                 {hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}

@@ -44,6 +44,19 @@ Onyx.connect({
     callback: (val) => (preferredLocale = val),
 });
 
+let priorityMode;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: (nextPriorityMode) => {
+        // When someone switches their priority mode we need to fetch all their chats because only #focus mode works with a subset of a user's chats. This is only possible via the OpenApp command.
+        if (nextPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
+            // eslint-disable-next-line no-use-before-define
+            openApp();
+        }
+        priorityMode = nextPriorityMode;
+    },
+});
+
 let resolveIsReadyPromise;
 const isReadyToOpenApp = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
@@ -207,7 +220,8 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
  */
 function openApp() {
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect(true));
+        const params = {enablePriorityModeFilter: true, ...policyParams};
+        API.read('OpenApp', params, getOnyxDataForOpenOrReconnect(true));
     });
 }
 
@@ -334,6 +348,40 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
             Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
         })
         .then(endSignOnTransition);
+}
+
+/**
+ * Create a new draft workspace and navigate to it
+ *
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {String} [policyName] Optional, custom policy name we will use for created workspace
+ * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
+ */
+function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false) {
+    const policyID = Policy.generatePolicyID();
+    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID);
+
+    Navigation.isNavigationReady()
+        .then(() => {
+            if (transitionFromOldDot) {
+                // We must call goBack() to remove the /transition route from history
+                Navigation.goBack(ROUTES.HOME);
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        })
+        .then(endSignOnTransition);
+}
+
+/**
+ * Create a new workspace and delete the draft
+ *
+ * @param {String} [policyID] the ID of the policy to use
+ * @param {String} [policyName] custom policy name we will use for created workspace
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ */
+function savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail = '', makeMeAdmin = false) {
+    Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
 }
 
 /**
@@ -513,4 +561,6 @@ export {
     createWorkspaceAndNavigateToIt,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,
+    savePolicyDraftByNewWorkspace,
+    createWorkspaceWithPolicyDraftAndNavigateToIt,
 };

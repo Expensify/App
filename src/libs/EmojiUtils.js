@@ -426,7 +426,7 @@ function suggestEmojis(text, lang, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMO
  * @returns {Number}
  */
 const getPreferredSkinToneIndex = (val) => {
-    if (!_.isNull(val) && Number.isInteger(Number(val))) {
+    if (!_.isNull(val) && !_.isUndefined(val) && Number.isInteger(Number(val))) {
         return val;
     }
 
