@@ -22,10 +22,6 @@ import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickE
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import * as Task from '../../../../libs/actions/Task';
-import * as Localize from '../../../../libs/Localize';
-import * as TransactionUtils from '../../../../libs/TransactionUtils';
-import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
-import Log from '../../../../libs/Log';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -156,7 +152,7 @@ export default [
         successIcon: null,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
             const childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
-            const subscribed = childReportNotificationPreference && (childReportNotificationPreference !== "hidden");
+            const subscribed = childReportNotificationPreference && childReportNotificationPreference !== 'hidden';
             if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
             }
@@ -173,10 +169,10 @@ export default [
                     Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
                 });
                 return;
-            } else {
-                ReportActionComposeFocusManager.focus();
-                Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
             }
+            
+            ReportActionComposeFocusManager.focus();
+            Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
         },
         getDescription: () => {},
     },
@@ -189,7 +185,7 @@ export default [
         successIcon: null,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
             const childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
-            const subscribed = childReportNotificationPreference && (childReportNotificationPreference !== "hidden");
+            const subscribed = childReportNotificationPreference && childReportNotificationPreference !== 'hidden';
             if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
             }
@@ -206,10 +202,10 @@ export default [
                     Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
                 });
                 return;
-            } else {
-                ReportActionComposeFocusManager.focus();
-                Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
             }
+            
+            ReportActionComposeFocusManager.focus();
+            Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
         },
         getDescription: () => {},
     },

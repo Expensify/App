@@ -1352,9 +1352,9 @@ function toggleSubscribeToChildReport(childReportID = '0', parentReportAction = 
     if (childReportID !== '0') {
         openReport(childReportID);
         if (!prevNotificationPreference || prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
-            updateNotificationPreference(childReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false)
+            updateNotificationPreference(childReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false);
         } else {
-            updateNotificationPreference(childReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, false)
+            updateNotificationPreference(childReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, false);
         }
     } else {
         const participantAccountIDs = _.uniq([currentUserAccountID, Number(parentReportAction.actorAccountID)]);
