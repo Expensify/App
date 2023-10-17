@@ -48,10 +48,14 @@ const propTypes = {
 
     /** Whether the popover menu should overlay the current view */
     shouldOverlay: PropTypes.bool,
+
+    /** Whether the menu is disabled */
+    disabled: PropTypes.bool,
 };
 
 const defaultProps = {
     iconTooltip: 'common.more',
+    disabled: false,
     iconFill: undefined,
     iconStyles: [],
     icon: Expensicons.ThreeDots,
@@ -63,7 +67,7 @@ const defaultProps = {
     shouldOverlay: false,
 };
 
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, disabled, anchorPosition, anchorAlignment, shouldOverlay}) {
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();
@@ -91,6 +95,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                                 onIconPress();
                             }
                         }}
+                        disabled={disabled}
                         ref={buttonRef}
                         style={[styles.touchableButtonImage, ...iconStyles]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}

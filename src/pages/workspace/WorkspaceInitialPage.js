@@ -173,7 +173,7 @@ function WorkspaceInitialPage(props) {
             icon: Expensicons.Bank,
             action: () =>
                 policy.outputCurrency === CONST.CURRENCY.USD
-                    ? waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, '', waitForNavigate)))()
+                    ? waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, '')))()
                     : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
@@ -210,9 +210,11 @@ function WorkspaceInitialPage(props) {
                 >
                     <HeaderWithBackButton
                         title={props.translate('workspace.common.workspace')}
-                        shouldShowThreeDotsButton={!isExecuting}
-                        shouldShowGetAssistanceButton={!isExecuting}
+                        shouldShowThreeDotsButton
+                        shouldShowGetAssistanceButton
                         singleExecution={singleExecution}
+                        shouldDisableGetAssistanceButton={isExecuting}
+                        shouldDisableThreeDotsButton={isExecuting}
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
                         threeDotsMenuItems={threeDotsMenuItems}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
@@ -268,7 +270,7 @@ function WorkspaceInitialPage(props) {
                                     </View>
                                 </View>
                                 {/*
-                                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation Actions.
+                                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                                     But Here we need to have a `isExecuting` for profile details click actions also so we are directly mapping menuItems.
                                 */}
                                 {_.map(menuItems, (item) => (

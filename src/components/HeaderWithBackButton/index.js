@@ -36,8 +36,10 @@ function HeaderWithBackButton({
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
     shouldShowGetAssistanceButton = false,
+    shouldDisableGetAssistanceButton = false,
     shouldShowPinButton = false,
     shouldShowThreeDotsButton = false,
+    shouldDisableThreeDotsButton = false,
     stepCounter = null,
     subtitle = '',
     title = '',
@@ -124,6 +126,7 @@ function HeaderWithBackButton({
                     {shouldShowGetAssistanceButton && (
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
+                                disabled={shouldDisableGetAssistanceButton}
                                 onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))))}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
@@ -139,6 +142,7 @@ function HeaderWithBackButton({
                     {shouldShowPinButton && <PinButton report={report} />}
                     {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu
+                            disabled={shouldDisableThreeDotsButton}
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}

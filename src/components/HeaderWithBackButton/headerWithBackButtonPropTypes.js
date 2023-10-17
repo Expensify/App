@@ -31,11 +31,17 @@ const propTypes = {
     /** Whether we should show a get assistance (question mark) button */
     shouldShowGetAssistanceButton: PropTypes.bool,
 
+    /** Whether we should disable the get assistance (question mark) button */
+    shouldDisableGetAssistanceButton: PropTypes.bool,
+
     /** Whether we should show a pin button */
     shouldShowPinButton: PropTypes.bool,
 
     /** Whether we should show a more options (threedots) button */
     shouldShowThreeDotsButton: PropTypes.bool,
+
+    /** Whether we should disable the more options (threedots) button */
+    shouldDisableThreeDotsButton: PropTypes.bool,
 
     /** List of menu items for more(three dots) menu */
     threeDotsMenuItems: ThreeDotsMenuItemPropTypes,
