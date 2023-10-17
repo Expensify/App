@@ -2041,7 +2041,7 @@ function removeFromRoom(reportID, targetAccountIDs) {
     const report = lodashGet(allReports, [reportID], {});
 
     const {participants, participantAccountIDs} = report;
-    const participantAccountIDsAfterRemoval = _.filter(participantAccountIDs, (accountID) => !targetAccountIDs.includes(accountID));
+    const participantAccountIDsAfterRemoval = _.difference(participantAccountIDs, targetAccountIDs);
 
     const targetEmails = _.map(participantAccountIDs, (accountID) => allPersonalDetails[accountID].login);
     const participantsAfterRemoval = _.filter(participants, (email) => !targetEmails.includes(email));
