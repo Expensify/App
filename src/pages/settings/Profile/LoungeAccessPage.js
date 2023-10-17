@@ -114,7 +114,7 @@ function LoungeAccessPage(props) {
         // The .format('LL') returns localized format of the date:
         // - November 1, 2023 - for English language
         // - 1 de noviembre de 2023 - for Spanish language
-        const dayMonthYear = moment().locale(props.preferredLocale).add(1, 'months').startOf('month').format('LL');
+        const dayMonthYear = moment(props.user.loungeCheckInDetails.nextCheckInReset).locale(props.preferredLocale).format('LL');
 
         // We only care about the day and the month, so we
         // get rid of the year for both languages:
