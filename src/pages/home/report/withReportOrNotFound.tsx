@@ -11,10 +11,8 @@ type OnyxProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
     /** The policies which the user has access to */
-    // policies: OnyxTypes.Policy[];
     policies: OnyxEntry<OnyxTypes.Policy>;
     /** Beta features list */
-    // betas: OnyxTypes.Beta[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
