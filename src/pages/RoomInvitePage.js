@@ -76,7 +76,8 @@ function RoomInvitePage(props) {
     const [personalDetails, setPersonalDetails] = useState([]);
     const [userToInvite, setUserToInvite] = useState(null);
 
-    const excludedUsers = useMemo(() => lodashGet(props.report, 'participants', []), [props.report]);
+    // Any existing participants and Expensify emails should not be eligible for invitation
+    const excludedUsers = useMemo(() => [...lodashGet(props.report, 'participants', []), ...CONST.EXPENSIFY_EMAILS], [props.report]);
 
     useEffect(() => {
         // Kick the user out if they tried to navigate to this via the URL
