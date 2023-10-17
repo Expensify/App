@@ -1,15 +1,15 @@
 import PropTypes from 'prop-types';
-import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { withOnyx } from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {subYears} from 'date-fns';
+import { subYears } from 'date-fns';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withLocalize, { withLocalizePropTypes } from '../../../../components/withLocalize';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
@@ -20,6 +20,14 @@ import FullscreenLoadingIndicator from '../../../../components/FullscreenLoading
 import FormProvider from '../../../../components/Form/FormProvider';
 
 const propTypes = {
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Currently selected country */
+            year: PropTypes.string,
+        }),
+    }).isRequired,
     /* Onyx Props */
 
     /** User's private personal details */
@@ -36,9 +44,10 @@ const defaultProps = {
     },
 };
 
-function DateOfBirthPage({translate, privatePersonalDetails}) {
+function DateOfBirthPage({ translate, privatePersonalDetails, route }) {
     usePrivatePersonalDetails();
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
+    const yearFromRoute = lodashGet(route, 'params.year')
 
     /**
      * @param {Object} values
@@ -59,7 +68,6 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
 
         return errors;
     }, []);
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -86,6 +94,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                         defaultValue={privatePersonalDetails.dob || ''}
                         minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
                         maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
+                        selectedYear={yearFromRoute}
                     />
                 </FormProvider>
             )}

@@ -17,6 +17,7 @@ export default function withNavigation(WrappedComponent) {
                 {...props}
                 ref={props.forwardedRef}
                 navigation={navigation}
+                currentRoute={navigation.getState().routes[navigation.getState().index]}
             />
         );
     }

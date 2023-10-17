@@ -44,7 +44,7 @@ const datePickerDefaultProps = {
     value: undefined,
 };
 
-function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
+function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value, selectedYear}) {
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
     useEffect(() => {
@@ -92,6 +92,7 @@ function NewDatePicker({containerStyles, defaultValue, disabled, errorText, inpu
                     maxDate={maxDate}
                     value={selectedDate}
                     onSelected={setSelectedDate}
+                    selectedYear={selectedYear}
                 />
             </View>
         </View>
