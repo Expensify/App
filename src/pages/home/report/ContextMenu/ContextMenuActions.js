@@ -155,7 +155,8 @@ export default [
         successTextTranslateKey: '',
         successIcon: null,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
-            const subscribed = lodashGet(reportAction, 'childReportNotificationPreference', '') !== "hidden";
+            const childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            const subscribed = childReportNotificationPreference && (childReportNotificationPreference !== "hidden");
             if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
             }
@@ -165,17 +166,17 @@ export default [
             return !subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
-            Log.info("sparsisparsi start");
-            Log.info(lodashGet(reportAction, 'childReportNotificationPreference', '0'));
-            Log.info("sparsisparsi done");
-            debugger;
-            // if (closePopover) {
-            //     hideContextMenu(false, () => {
-            //         ReportActionComposeFocusManager.focus();
-            //         Report.subscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
-            //     });
-            //     return;
-            // }
+            const childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    ReportActionComposeFocusManager.focus();
+                    Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
+                });
+                return;
+            } else {
+                ReportActionComposeFocusManager.focus();
+                Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
+            }
         },
         getDescription: () => {},
     },
@@ -187,7 +188,8 @@ export default [
         successTextTranslateKey: '',
         successIcon: null,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
-            const subscribed = lodashGet(reportAction, 'childReportNotificationPreference', '0') !== "hidden";
+            const childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            const subscribed = childReportNotificationPreference && (childReportNotificationPreference !== "hidden");
             if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
             }
@@ -197,17 +199,17 @@ export default [
             return subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
-            Log.info("sparsisparsi start");
-            Log.info(lodashGet(reportAction, 'childReportNotificationPreference', '0'));
-            Log.info("sparsisparsi done");
-            debugger;
-            // if (closePopover) {
-            //     hideContextMenu(false, () => {
-            //         ReportActionComposeFocusManager.focus();
-            //         Report.subscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
-            //     });
-            //     return;
-            // }
+            const childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    ReportActionComposeFocusManager.focus();
+                    Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
+                });
+                return;
+            } else {
+                ReportActionComposeFocusManager.focus();
+                Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
+            }
         },
         getDescription: () => {},
     },

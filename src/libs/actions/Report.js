@@ -1351,7 +1351,7 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
 function toggleSubscribeToChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0', prevNotificationPreference) {
     if (childReportID !== '0') {
         openReport(childReportID);
-        if (prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        if (!prevNotificationPreference || prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             updateNotificationPreference(childReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false)
         } else {
             updateNotificationPreference(childReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, false)
