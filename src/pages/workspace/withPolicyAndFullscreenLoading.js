@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import isEmpty from 'lodash/isEmpty';
+import omit from 'lodash/omit';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
@@ -27,11 +28,11 @@ export default function (WrappedComponent) {
     };
 
     function WithPolicyAndFullscreenLoading(props) {
-        if (props.isLoadingReportData && _.isEmpty(props.policy)) {
+        if (props.isLoadingReportData && isEmpty(props.policy) && isEmpty(props.policyDraft)) {
             return <FullscreenLoadingIndicator />;
         }
 
-        const rest = _.omit(props, ['forwardedRef']);
+        const rest = omit(props, ['forwardedRef']);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading

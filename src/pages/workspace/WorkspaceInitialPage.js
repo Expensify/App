@@ -1,38 +1,39 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useState} from 'react';
-import {ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
+import lodashGet from 'lodash/get';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View, ScrollView} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
+import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import styles from '../../styles/styles';
+import Tooltip from '../../components/Tooltip';
+import Text from '../../components/Text';
+import ConfirmModal from '../../components/ConfirmModal';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import * as App from '../../libs/actions/App';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import MenuItem from '../../components/MenuItem';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '../../components/ConfirmModal';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import MenuItem from '../../components/MenuItem';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import reportPropTypes from '../reportPropTypes';
+import * as Policy from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
+import CONST from '../../CONST';
+import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
+import ONYXKEYS from '../../ONYXKEYS';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import Text from '../../components/Text';
-import Tooltip from '../../components/Tooltip';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReportUtils from '../../libs/ReportUtils';
 import withWindowDimensions from '../../components/withWindowDimensions';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import useSingleExecution from '../../hooks/useSingleExecution';
 import useWaitForNavigation from '../../hooks/useWaitForNavigation';
-import Navigation from '../../libs/Navigation/Navigation';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as Policy from '../../libs/actions/Policy';
-import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
-import compose from '../../libs/compose';
-import styles from '../../styles/styles';
-import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
-import reportPropTypes from '../reportPropTypes';
-import {policyDefaultProps, policyPropTypes} from './withPolicy';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
     ...policyPropTypes,
@@ -67,7 +68,7 @@ function dismissError(policyID) {
 }
 
 function WorkspaceInitialPage(props) {
-    const policy = props.policy;
+    const policy = props.policyDraft && props.policyDraft.id ? props.policyDraft : props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
@@ -84,6 +85,17 @@ function WorkspaceInitialPage(props) {
         // Pop the deleted workspace page before opening workspace settings.
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     }, [props.reports, policy]);
+
+    useEffect(() => {
+        const policyDraftId = lodashGet(props.policyDraft, 'id', null);
+        if (!policyDraftId) {
+            return;
+        }
+
+        App.savePolicyDraftByNewWorkspace(props.policyDraft.id, props.policyDraft.name, '', false);
+        // We only care when the component renders the first time
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (!isCurrencyModalOpen || policy.outputCurrency !== CONST.CURRENCY.USD) {
@@ -193,8 +205,8 @@ function WorkspaceInitialPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
-                    subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
+                    shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
                     <HeaderWithBackButton
                         title={props.translate('workspace.common.workspace')}
