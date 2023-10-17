@@ -301,9 +301,6 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         report: {
             key: ({route, session}) => {
                 const accountID = Number(lodashGet(route.params, 'accountID', 0));

@@ -6,7 +6,6 @@ import lodashGet from 'lodash/get';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
-import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
 import participantPropTypes from './participantPropTypes';
 import styles from '../styles/styles';
@@ -162,26 +161,21 @@ MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 MoneyRequestHeader.propTypes = propTypes;
 MoneyRequestHeader.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    parentReport: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+    },
+    parentReportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+        canEvict: false,
+    },
+    transaction: {
+        key: ({report, parentReportActions}) => {
+            const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
         },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
-            canEvict: false,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        transaction: {
-            key: ({report, parentReportActions}) => {
-                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
-            },
-        },
-    }),
-)(MoneyRequestHeader);
+    },
+})(MoneyRequestHeader);

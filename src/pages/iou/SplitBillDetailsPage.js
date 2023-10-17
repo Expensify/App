@@ -173,9 +173,6 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         transaction: {
             key: ({route, reportActions}) => {
                 const reportAction = reportActions[`${route.params.reportActionID.toString()}`];

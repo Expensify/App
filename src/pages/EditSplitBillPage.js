@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
-import compose from '../libs/compose';
 import transactionPropTypes from '../components/transactionPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as IOU from '../libs/actions/IOU';
@@ -136,26 +135,21 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
 EditSplitBillPage.displayName = 'EditSplitBillPage';
 EditSplitBillPage.propTypes = propTypes;
 EditSplitBillPage.defaultProps = defaultProps;
-export default compose(
-    withOnyx({
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
-            canEvict: false,
+export default withOnyx({
+    reportActions: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
+        canEvict: false,
+    },
+    transaction: {
+        key: ({route, reportActions}) => {
+            const reportAction = reportActions[`${route.params.reportActionID.toString()}`];
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(reportAction, 'originalMessage.IOUTransactionID', 0)}`;
         },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        transaction: {
-            key: ({route, reportActions}) => {
-                const reportAction = reportActions[`${route.params.reportActionID.toString()}`];
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(reportAction, 'originalMessage.IOUTransactionID', 0)}`;
-            },
+    },
+    draftTransaction: {
+        key: ({route, reportActions}) => {
+            const reportAction = reportActions[`${route.params.reportActionID.toString()}`];
+            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${lodashGet(reportAction, 'originalMessage.IOUTransactionID', 0)}`;
         },
-        draftTransaction: {
-            key: ({route, reportActions}) => {
-                const reportAction = reportActions[`${route.params.reportActionID.toString()}`];
-                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${lodashGet(reportAction, 'originalMessage.IOUTransactionID', 0)}`;
-            },
-        },
-    }),
-)(EditSplitBillPage);
+    },
+})(EditSplitBillPage);

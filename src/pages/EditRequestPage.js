@@ -308,9 +308,6 @@ export default compose(
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
         },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         policy: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${props.report ? props.report.policyID : '0'}`,
         },
@@ -327,9 +324,6 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
             canEvict: false,
         },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         transaction: {
             key: ({report, parentReportActions}) => {
                 const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
