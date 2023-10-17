@@ -456,7 +456,7 @@ function EmojiPickerMenu(props) {
                 />
             );
         },
-        [arePointerEventsDisabled, isUsingKeyboardMovement, highlightedIndex, onEmojiSelected, preferredSkinTone, translate],
+        [isUsingKeyboardMovement, highlightedIndex, onEmojiSelected, preferredSkinTone, translate],
     );
 
     const isFiltered = emojis.current.length !== filteredEmojis.length;
