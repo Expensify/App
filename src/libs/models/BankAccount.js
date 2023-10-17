@@ -122,15 +122,6 @@ class BankAccount {
     }
 
     /**
-     * Is this the bank account that is linked to the user's wallet?
-     *
-     * @returns {Boolean}
-     */
-    isLinkedToWallet() {
-        return this.json.isDefault === true;
-    }
-
-    /**
      * Is it the account to use by default to receive money?
      *
      * @returns {Boolean}
