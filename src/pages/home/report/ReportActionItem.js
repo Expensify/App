@@ -258,7 +258,7 @@ function ReportActionItem(props) {
                 props.action.reportActionID,
                 originalReportID,
                 props.draftMessage,
-                () => {},
+                () => setIsContextMenuActive(true),
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(originalReport),
                 ReportUtils.chatIncludesChronos(originalReport),
@@ -442,7 +442,7 @@ function ReportActionItem(props) {
                 {!ReportActionsUtils.isMessageDeleted(props.action) && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemEmojiReactions
-                            reportActionID={props.action.reportActionID}
+                            reportAction={props.action}
                             emojiReactions={props.emojiReactions}
                             shouldBlockReactions={hasErrors}
                             toggleReaction={(emoji) => {
@@ -550,14 +550,14 @@ function ReportActionItem(props) {
                         <View style={styles.reportHorizontalRule} />
                     </>
                 );
+            } else {
+                content = (
+                    <TaskView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                );
             }
-
-            content = (
-                <TaskView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
-            );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
             content = (
@@ -730,6 +730,7 @@ export default compose(
             prevProps.report.managerEmail === nextProps.report.managerEmail &&
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
             lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0) &&
+            lodashGet(prevProps.report, 'nonReimbursableTotal', 0) === lodashGet(nextProps.report, 'nonReimbursableTotal', 0) &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID,
     ),
 );

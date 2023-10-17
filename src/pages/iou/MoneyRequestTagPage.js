@@ -97,7 +97,7 @@ MoneyRequestTagPage.defaultProps = defaultProps;
 
 export default withOnyx({
     report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
+        key: ({route, iou}) => `${ONYXKEYS.COLLECTION.REPORT}${IOU.getIOUReportID(iou, route)}`,
     },
     iou: {
         key: ONYXKEYS.IOU,
