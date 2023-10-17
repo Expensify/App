@@ -9,7 +9,7 @@ type CurrentUserPersonalDetails = PersonalDetails | Record<string, never>;
 
 type OnyxProps = {
     /** Personal details of all the users, including current user */
-    personalDetails: Record<string, PersonalDetails> | null;
+    personalDetails: OnyxEntry<Record<string, PersonalDetails>>;
 
     /** Session of the current user */
     session: OnyxEntry<Session>;
