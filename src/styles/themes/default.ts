@@ -1,6 +1,6 @@
 import SCREENS from '../../SCREENS';
 import colors from '../colors';
-import type {ThemeBase} from './types';
+import type {PageBackgroundColors, ThemeBase} from './types';
 
 const darkTheme = {
     // Figma keys
@@ -82,7 +82,7 @@ const darkTheme = {
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
     mapAttributionText: colors.black,
-    PAGE_BACKGROUND_COLORS: {},
+    PAGE_BACKGROUND_COLORS: {} as PageBackgroundColors,
     white: colors.white,
 } satisfies ThemeBase;
 
@@ -94,6 +94,7 @@ darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.SETTINGS.SECURITY]: colors.ice500,
     [SCREENS.SETTINGS.STATUS]: colors.green700,
     [SCREENS.SETTINGS.ROOT]: darkTheme.sidebar,
+    [SCREENS.SETTINGS.WALLET]: '',
 };
 
 export default darkTheme;
