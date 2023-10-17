@@ -224,7 +224,6 @@ function RoomInvitePage(props) {
                             title={translate('workspace.invite.invitePeople')}
                             subtitle={ReportUtils.getReportName(props.report)}
                             onBackButtonPress={() => {
-                                // Policy.clearErrors(props.route.params.policyID);
                                 Navigation.goBack(backRoute);
                             }}
                         />
@@ -246,7 +245,6 @@ function RoomInvitePage(props) {
                                 isAlertVisible={shouldShowAlertPrompt}
                                 buttonText={translate('common.invite')}
                                 onSubmit={inviteUsers}
-                                // message={props.policy.alertMessage}
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
                                 enabledWhenOffline
                                 disablePressOnEnter
