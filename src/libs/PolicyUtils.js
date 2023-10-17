@@ -161,7 +161,7 @@ const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROL
  * @param {Object} policies
  * @returns {Boolean}
  */
-const isPolicyMember = (policyID, policies) => _.reduce(policies, (isMember, policy) => isMember || policy.id === policyID, false);
+const isPolicyMember = (policyID, policies) => _.some(policies, (policy) => policy.id === policyID);
 
 /**
  * @param {Object} policyMembers
