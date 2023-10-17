@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 import useLocalize from '../../hooks/useLocalize';
@@ -83,11 +84,20 @@ MoneyRequestCategoryPage.displayName = 'MoneyRequestCategoryPage';
 MoneyRequestCategoryPage.propTypes = propTypes;
 MoneyRequestCategoryPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-    },
-    iou: {
-        key: ONYXKEYS.IOU,
-    },
-})(MoneyRequestCategoryPage);
+export default compose(
+    withOnyx({
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        report: {
+            key: ({route, iou}) => {
+                const reportID = IOU.getIOUReportID(iou, route);
+
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            },
+        },
+    }),
+)(MoneyRequestCategoryPage);

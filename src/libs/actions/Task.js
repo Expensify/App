@@ -774,8 +774,8 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
             value: {
-                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport.reportID, {[parentReportAction.reportActionID]: null}).lastMessageText,
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport.reportID, {[parentReportAction.reportActionID]: null}).created,
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport.reportID, optimisticReportActions).lastMessageText,
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport.reportID, optimisticReportActions).created,
             },
         },
         {
