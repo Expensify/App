@@ -4026,6 +4026,5 @@ export {
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
     isReportDraft,
-    isIOURequest,
     shouldUseFullTitleToDisplay,
 };
