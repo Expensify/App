@@ -877,6 +877,7 @@ export default {
             address: 'Address',
             revealDetails: 'Reveal details',
             copyCardNumber: 'Copy card number',
+            updateAddress: 'Update address',
         },
     },
     reportFraudPage: {
@@ -1043,7 +1044,7 @@ export default {
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
-        homeAddress: 'Home address',
+        address: 'Address',
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
@@ -1851,7 +1852,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'Not activated',
-        outOfPocketSpend: 'Out-of-pocket spend',
+        outOfPocket: 'Out of pocket',
         companySpend: 'Company spend',
     },
     distance: {
