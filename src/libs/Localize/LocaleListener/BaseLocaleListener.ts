@@ -8,7 +8,7 @@ let preferredLocale: BaseLocale = CONST.LOCALES.DEFAULT;
 /**
  * Adds event listener for changes to the locale. Callbacks are executed when the locale changes in Onyx.
  */
-const connect = (callbackAfterChange: (arg1?: BaseLocale) => void = () => {}) => {
+const connect = (callbackAfterChange: (locale?: BaseLocale) => void = () => {}) => {
     Onyx.connect({
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         callback: (val) => {

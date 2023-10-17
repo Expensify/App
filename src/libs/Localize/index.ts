@@ -6,6 +6,7 @@ import translations from '../../languages/translations';
 import CONST from '../../CONST';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
+import {TranslationFlatObject, TranslationPaths} from '../../languages/types';
 
 // Listener when an update in Onyx happens so we use the updated locale when translating/localizing items.
 LocaleListener.connect();
@@ -28,31 +29,32 @@ function init() {
     }, {});
 }
 
+type PhraseParameters<T> = T extends (arg: infer A) => string ? A : never;
+
 /**
  * Return translated string for given locale and phrase
  *
  * @param [desiredLanguage] eg 'en', 'es-ES'
  * @param [phraseParameters] Parameters to supply if the phrase is a template literal.
  */
-function translate(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: string, phraseParameters: unknown = {}): string {
+function translate<TKey extends TranslationPaths>(
+    desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES',
+    phraseKey: TKey,
+    phraseParameters: PhraseParameters<TranslationFlatObject[TKey]> = {} as PhraseParameters<TranslationFlatObject[TKey]>,
+): string {
     const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
-    let translatedPhrase;
 
     // Search phrase in full locale e.g. es-ES
-    const desiredLanguageDictionary = translations?.[desiredLanguage as keyof typeof translations] ?? {};
-    translatedPhrase = desiredLanguageDictionary?.[phraseKey as keyof typeof desiredLanguageDictionary];
+    const desiredLanguageDictionary = translations?.[desiredLanguage];
+    let translatedPhrase = desiredLanguageDictionary[phraseKey];
     if (translatedPhrase) {
-        // console.log('1translatedPhrase=', translatedPhrase);
-        // console.log('1phraseParameters=', phraseParameters);
         return Str.result(translatedPhrase, phraseParameters);
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
     const fallbackLanguageDictionary = translations[languageAbbreviation] || {};
-    translatedPhrase = fallbackLanguageDictionary?.[phraseKey as keyof typeof fallbackLanguageDictionary] ?? '';
+    translatedPhrase = fallbackLanguageDictionary?.[phraseKey] ?? '';
     if (translatedPhrase) {
-        // console.log('2translatedPhrase=', translatedPhrase);
-        // console.log('2phraseParameters=', phraseParameters);
         return Str.result(translatedPhrase, phraseParameters);
     }
     if (languageAbbreviation !== CONST.LOCALES.DEFAULT) {
@@ -61,18 +63,14 @@ function translate(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: 
 
     // Phrase is not translated, search it in default language (en)
     const defaultLanguageDictionary = translations[CONST.LOCALES.DEFAULT] || {};
-    translatedPhrase = defaultLanguageDictionary[phraseKey as keyof typeof defaultLanguageDictionary] ?? '';
+    translatedPhrase = defaultLanguageDictionary[phraseKey] ?? '';
     if (translatedPhrase) {
-        // console.log('3translatedPhrase=', translatedPhrase);
-        // console.log('3phraseParameters=', phraseParameters);
         return Str.result(translatedPhrase, phraseParameters);
     }
 
     // Phrase is not found in default language, on production log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION) {
-        // console.log('4translatedPhrase=', translatedPhrase);
-        // console.log('4phraseParameters=', phraseParameters);
         const phraseString = Array.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
         Log.alert(`${phraseString} was not found in the en locale`);
         return phraseString;
@@ -83,7 +81,7 @@ function translate(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: 
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
-function translateLocal(phrase: string, variables: unknown) {
+function translateLocal<TKey extends TranslationPaths>(phrase: TKey, variables: PhraseParameters<TranslationFlatObject[TKey]> = {} as PhraseParameters<TranslationFlatObject[TKey]>) {
     return translate(BaseLocaleListener.getPreferredLocale(), phrase, variables);
 }
 
