@@ -78,10 +78,10 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
 
         if (!name || !name.length) {
             errors.name = 'workspace.editor.nameIsRequiredError';
-        } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+        } else if ([...name].length > CONST.TITLE_MAX_LENGTH) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
             // code units.
-            errors.name = 'workspace.editor.nameIsTooLongError';
+            errors.name = ['common.error.characterLimitExceedCounter', {length: name.length, limit: CONST.TITLE_MAX_LENGTH}];
         }
 
         return errors;
@@ -147,7 +147,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                             containerStyles={[styles.mt4, styles.mh5]}
                             defaultValue={policy.name}
-                            maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
+                            maxLength={CONST.TITLE_MAX_LENGTH + CONST.ADDITIONAL_ALLOWED_CHARACTERS}
                             spellCheck={false}
                         />
                         <View style={[styles.mt4]}>
