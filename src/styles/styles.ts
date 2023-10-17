@@ -3925,8 +3925,11 @@ const styles = (theme: ThemeDefault) =>
         },
 
         walletCardMenuItem: {
+            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontWeight: fontWeightBold,
             color: theme.text,
             fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         walletCardHolder: {
@@ -3944,6 +3947,33 @@ const styles = (theme: ThemeDefault) =>
             fontSize: 45,
             paddingTop: 0,
             paddingBottom: 0,
+        },
+
+        walletDangerSection: {
+            backgroundColor: theme.dangerSection,
+            color: theme.dangerSection,
+            borderRadius: variables.componentBorderRadiusCard,
+            width: 'auto',
+            marginHorizontal: 20,
+            marginBottom: 6,
+        },
+
+        walletDangerSectionTitle: {
+            fontSize: variables.fontSizeNormal,
+            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontWeight: fontWeightBold,
+            lineHeight: variables.lineHeightXLarge,
+        },
+
+        walletDangerSectionText: {
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
+
+        walletLockedMessage: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         aspectRatioLottie: (source) => {

@@ -866,6 +866,10 @@ export default {
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
         reportFraud: 'Reportar fraude con la tarjeta virtual',
+        reviewTransaction: 'Revisar transacción',
+        suspiciousBannerTitle: 'Transacción sospechosa',
+        suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haga click abajo para revisarla.',
+        cardLocked: "Your card is temporarily locked while our team reviews your company's account.",
         cardDetails: {
             cardNumber: 'Número de tarjeta virtual',
             expiration: 'Expiración',

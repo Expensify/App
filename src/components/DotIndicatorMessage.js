@@ -25,11 +25,16 @@ const propTypes = {
     // Additional styles to apply to the container */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
+
+    // Additional styles to apply to the text
+    // eslint-disable-next-line react/forbid-prop-types
+    textStyle: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     messages: {},
     style: [],
+    textStyle: [],
 };
 
 function DotIndicatorMessage(props) {
@@ -64,7 +69,7 @@ function DotIndicatorMessage(props) {
                 {_.map(sortedMessages, (message, i) => (
                     <Text
                         key={i}
-                        style={styles.offlineFeedback.text}
+                        style={[styles.offlineFeedback.text, ...props.textStyle]}
                     >
                         {message}
                     </Text>
