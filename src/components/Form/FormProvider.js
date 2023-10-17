@@ -233,7 +233,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 inputID,
                 key: propsToParse.key || inputID,
                 errorText: errors[inputID] || fieldErrorMessage,
-                value: inputValues[inputID],
+                value: propsToParse.valueParser && !_.isUndefined(inputValues[`${inputID}ToDisplay`]) ? inputValues[`${inputID}ToDisplay`] : inputValues[inputID],
                 // As the text input is controlled, we never set the defaultValue prop
                 // as this is already happening by the value prop.
                 defaultValue: undefined,
@@ -276,7 +276,11 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
                     setInputValues((prevState) => {
-                        const newState = {
+                        const newState = _.isFunction(propsToParse.valueParser) ? {
+                            ...prevState,
+                            [inputKey]: propsToParse.valueParser(value),
+                            [`${inputKey}ToDisplay`]: value,
+                        } : {
                             ...prevState,
                             [inputKey]: value,
                         };
