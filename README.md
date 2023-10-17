@@ -11,6 +11,7 @@
 
 #### Table of Contents
 * [Local Development](#local-development)
+* [Testing on browsers on simulators and emulators](#testing-on-browsers-on-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
@@ -110,6 +111,47 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
 - `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing. 
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
+
+----
+
+# Testing on browsers on simulators and emulators
+
+The development server is reached through the HTTPS protocol, and any client that access the development server needs a certificate.
+
+You create this certificate by following the instructions in [`Configuring HTTPS`](#configuring-https) of this readme. When accessing the website served from the development server on browsers on iOS simulator or Android emulator, these virtual devices need to have the same certificate installed. Follow the steps below to install to do so.
+
+#### Pre-requisite for Android flow
+1. Open any emulator using Android Studio
+2. Use `adb push "$(mkcert -CAROOT)/rootCA.pem" /storage/emulated/0/Download/` to push certificate to install in Download folder.
+3. Install the certificate as CA certificate from the settings.
+4. Close the emulator.
+
+Note - If you want to run app on `https://127.0.0.1:8082`, then just install the certificate and use `adb reverse tcp:8082 tcp:8082` on every startup.
+
+#### Android Flow
+1. Run `npm run setupNewDotWebForEmulators android`
+2. Select the emulator you want to run if prompted. (If single emulator is available, then it will open automatically)
+3. Let the script execute till the message `🎉 Done!`.
+4. Check the emulator is closed.
+
+Note - If you want to run app on `https://new.expensify.com.dev:8082`, then just do the Android flow and use `npm run startAndroidEmulator` to start the Android Emulator every time (It will configure the emulator).
+
+
+Possible Scenario:
+1. It may run the second flow on a new device, then to check first flow just run the flow again and select the same device.
+2. It may fail to root with error `adbd cannot run as root in production builds`, then it will point to https://stackoverflow.com/a/45668555 in the console.
+
+#### iOS Flow
+1. Run `npm run setupNewDotWebForEmulators ios`
+2. Select the emulator you want to run if prompted. (If single emulator is available, then it will open automatically)
+3. Let the script execute till the message `🎉 Done!`.
+4. Check the emulator is closed.
+
+#### All Flow
+1. Run `npm run setupNewDotWebForEmulators all` or `npm run setupNewDotWebForEmulators`
+2. Check if the iOS flow runs first and then Android flow runs.
+3. Let the script execute till the message `🎉 Done!`.
+4. Check the emulator is closed.
 
 ----
 
