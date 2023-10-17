@@ -1,32 +1,28 @@
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
+import Credentials from '../../types/onyx/Credentials';
 
-let credentials;
-let authToken;
-let supportAuthToken;
-let currentUserEmail;
+let credentials: Credentials | null = null;
+let authToken: string | null = null;
+let supportAuthToken: string | null = null;
+let currentUserEmail: string | null = null;
 let offline = false;
 let authenticating = false;
 
 // Allow code that is outside of the network listen for when a reconnection happens so that it can execute any side-effects (like flushing the sequential network queue)
-let reconnectCallback;
+let reconnectCallback: () => void;
 function triggerReconnectCallback() {
-    if (!_.isFunction(reconnectCallback)) {
+    if (typeof reconnectCallback !== 'function') {
         return;
     }
     return reconnectCallback();
 }
 
-/**
- * @param {Function} callbackFunction
- */
-function onReconnection(callbackFunction) {
+function onReconnection(callbackFunction: () => void) {
     reconnectCallback = callbackFunction;
 }
 
-let resolveIsReadyPromise;
+let resolveIsReadyPromise: (args?: unknown[]) => void;
 let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
 });
@@ -36,7 +32,7 @@ let isReadyPromise = new Promise((resolve) => {
  * If the values are undefined we haven't read them yet. If they are null or have a value then we have and the network is "ready".
  */
 function checkRequiredData() {
-    if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
+    if (authToken === undefined || credentials === undefined) {
         return;
     }
 
@@ -53,9 +49,9 @@ function resetHasReadRequiredDataFromStorage() {
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        authToken = lodashGet(val, 'authToken', null);
-        supportAuthToken = lodashGet(val, 'supportAuthToken', null);
-        currentUserEmail = lodashGet(val, 'email', null);
+        authToken = val?.authToken ?? null;
+        supportAuthToken = val?.supportAuthToken ?? null;
+        currentUserEmail = val?.email ?? null;
         checkRequiredData();
     },
 });
@@ -63,7 +59,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
-        credentials = val || {};
+        credentials = val;
         checkRequiredData();
     },
 });
@@ -82,85 +78,51 @@ Onyx.connect({
             triggerReconnectCallback();
         }
 
-        offline = Boolean(network.shouldForceOffline) || network.isOffline;
+        offline = Boolean(network.shouldForceOffline) || !!network.isOffline;
     },
 });
 
-/**
- * @returns {Object}
- */
-function getCredentials() {
+function getCredentials(): Credentials | null {
     return credentials;
 }
 
-/**
- * @returns {Boolean}
- */
-function isOffline() {
+function isOffline(): boolean {
     return offline;
 }
 
-/**
- * @returns {String}
- */
-function getAuthToken() {
+function getAuthToken(): string | null {
     return authToken;
 }
 
-/**
- * @param {String} command
- * @returns {[String]}
- */
-function isSupportRequest(command) {
-    return _.contains(['OpenApp', 'ReconnectApp', 'OpenReport'], command);
+function isSupportRequest(command: string): boolean {
+    return ['OpenApp', 'ReconnectApp', 'OpenReport'].includes(command);
 }
 
-/**
- * @returns {String}
- */
-function getSupportAuthToken() {
+function getSupportAuthToken(): string | null {
     return supportAuthToken;
 }
 
-/**
- * @param {String} newSupportAuthToken
- */
-function setSupportAuthToken(newSupportAuthToken) {
+function setSupportAuthToken(newSupportAuthToken: string) {
     supportAuthToken = newSupportAuthToken;
 }
 
-/**
- * @param {String} newAuthToken
- */
-function setAuthToken(newAuthToken) {
+function setAuthToken(newAuthToken: string | null) {
     authToken = newAuthToken;
 }
 
-/**
- * @returns {String}
- */
-function getCurrentUserEmail() {
+function getCurrentUserEmail(): string | null {
     return currentUserEmail;
 }
 
-/**
- * @returns {Promise}
- */
-function hasReadRequiredDataFromStorage() {
+function hasReadRequiredDataFromStorage(): Promise<unknown> {
     return isReadyPromise;
 }
 
-/**
- * @returns {Boolean}
- */
-function isAuthenticating() {
+function isAuthenticating(): boolean {
     return authenticating;
 }
 
-/**
- * @param {Boolean} val
- */
-function setIsAuthenticating(val) {
+function setIsAuthenticating(val: boolean) {
     authenticating = val;
 }
 
