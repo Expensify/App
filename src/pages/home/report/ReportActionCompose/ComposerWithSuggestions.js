@@ -206,6 +206,7 @@ function ComposerWithSuggestions({
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
+                    // Ensure emoji suggestions are hidden after inserting emoji even when the selection is not changed
                     if (suggestionsRef.current) {
                         suggestionsRef.current.resetSuggestions();
                     }
