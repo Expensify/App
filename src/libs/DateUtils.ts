@@ -15,6 +15,8 @@ import {
     isSameDay,
     isAfter,
     isSameYear,
+    eachMonthOfInterval,
+    eachDayOfInterval,
 } from 'date-fns';
 
 import Onyx from 'react-native-onyx';
@@ -255,6 +257,38 @@ function getCurrentTimezone(): Required<Timezone> {
     return timezone;
 }
 
+/**
+ * @returns [January, Fabruary, March, April, May, June, July, August, ...]
+ */
+function getMonthNames(preferredLocale: string): string[] {
+    if (preferredLocale) {
+        setLocale(preferredLocale);
+    }
+    const fullYear = new Date().getFullYear();
+    const monthsArray = eachMonthOfInterval({
+        start: new Date(fullYear, 0, 1), // January 1st of the current year
+        end: new Date(fullYear, 11, 31), // December 31st of the current year
+    });
+
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
+}
+
+/**
+ * @returns [Monday, Thuesday, Wednesday, ...]
+ */
+function getDaysOfWeek(preferredLocale: string): string[] {
+    if (preferredLocale) {
+        setLocale(preferredLocale);
+    }
+    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
+
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    return daysOfWeek.map((date) => format(date, 'eeee'));
+}
+
 // Used to throttle updates to the timezone when necessary
 let lastUpdatedTimezoneTime = new Date();
 
@@ -357,6 +391,8 @@ const DateUtils = {
     isToday,
     isTomorrow,
     isYesterday,
+    getMonthNames,
+    getDaysOfWeek,
 };
 
 export default DateUtils;

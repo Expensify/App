@@ -5,6 +5,7 @@ import lodashValues from 'lodash/values';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import ROUTES from '../ROUTES';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
@@ -30,6 +31,7 @@ import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import categoryPropTypes from '../components/categoryPropTypes';
 import ScreenWrapper from '../components/ScreenWrapper';
+import transactionPropTypes from '../components/transactionPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -75,6 +77,9 @@ const propTypes = {
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
 
+    /** The original transaction that is being edited */
+    transaction: transactionPropTypes,
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -88,11 +93,12 @@ const defaultProps = {
     },
     policyCategories: {},
     policyTags: {},
+    transaction: {},
 };
 
-function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags}) {
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags, parentReportActions, transaction}) {
+    const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
+    const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
@@ -200,6 +206,10 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
                         currency: defaultCurrency,
                     });
                 }}
+                onNavigateToCurrency={() => {
+                    const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+                    Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
+                }}
             />
         );
     }
@@ -292,18 +302,15 @@ EditRequestPage.defaultProps = defaultProps;
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
-        },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
@@ -312,6 +319,23 @@ export default compose(
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        transaction: {
+            key: ({report, parentReportActions}) => {
+                const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
+                const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
+            },
         },
     }),
 )(EditRequestPage);
