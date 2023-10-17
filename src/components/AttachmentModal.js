@@ -376,7 +376,7 @@ function AttachmentModal(props) {
             text: props.translate('common.download'),
             onSelected: () => downloadAttachment(source),
         });
-        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction) && ReportUtils.isOwnerReportAction(parentReportAction)) {
+        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction) && canEdit) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('receipt.deleteReceipt'),

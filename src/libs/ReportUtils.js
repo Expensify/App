@@ -3918,14 +3918,6 @@ function shouldUseFullTitleToDisplay(report) {
     return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report);
 }
 
-/**
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function isOwnerReportAction(reportAction) {
-    return reportAction.actorAccountID === currentUserAccountID;
-}
-
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4074,5 +4066,4 @@ export {
     isWaitingForTaskCompleteFromAssignee,
     isReportDraft,
     shouldUseFullTitleToDisplay,
-    isOwnerReportAction,
 };
