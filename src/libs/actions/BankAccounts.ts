@@ -7,6 +7,10 @@ import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropT
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as ReimbursementAccount from './ReimbursementAccount';
+import type PlaidBankAccount from '../../types/onyx/PlaidBankAccount';
+import type {ACHContractStepProps, BankAccountStepProps, CompanyStepProps, OnfidoData, ReimbursementAccountProps, RequestorStepProps} from '../../types/onyx/ReimbursementAccountDraft';
+import type {OnyxData} from '../../types/onyx/Request';
+import type {BankAccountStep, BankAccountSubStep} from '../../types/onyx/ReimbursementAccount';
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -23,7 +27,13 @@ export {
 export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
 export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
 
-function clearPlaid() {
+type BankAccountCompanyInformation = BankAccountStepProps & CompanyStepProps & ReimbursementAccountProps;
+
+type ReimbursementAccountStep = BankAccountStep | '';
+
+type ReimbursementAccountSubStep = BankAccountSubStep | '';
+
+function clearPlaid(): Promise<void> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
 
     return Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
@@ -35,9 +45,8 @@ function openPlaidView() {
 
 /**
  * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
- * @param {String} exitReportID
  */
-function openPersonalBankAccountSetupView(exitReportID) {
+function openPersonalBankAccountSetupView(exitReportID: string) {
     clearPlaid().then(() => {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
@@ -57,10 +66,8 @@ function clearOnfidoToken() {
 
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
- * @param {String | undefined} currentStep The name of the bank account setup step for which we will update the draft value when we receive the response from the API.
- * @returns {Object}
  */
-function getVBBADataForOnyx(currentStep = undefined) {
+function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
     return {
         optimisticData: [
             {
@@ -103,14 +110,20 @@ function getVBBADataForOnyx(currentStep = undefined) {
 
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
- *
- * @param {Number} bankAccountID
- * @param {Object} selectedPlaidBankAccount
  */
-function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
+function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount) {
     const commandName = 'ConnectBankAccountWithPlaid';
 
-    const parameters = {
+    type ConnectBankAccountWithPlaidParams = {
+        bankAccountID: number;
+        routingNumber: string;
+        accountNumber: string;
+        bank?: string;
+        plaidAccountID: string;
+        plaidAccessToken: string;
+    };
+
+    const parameters: ConnectBankAccountWithPlaidParams = {
         bankAccountID,
         routingNumber: selectedPlaidBankAccount.routingNumber,
         accountNumber: selectedPlaidBankAccount.accountNumber,
@@ -125,13 +138,23 @@ function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
 /**
  * Adds a bank account via Plaid
  *
- * @param {Object} account
  * @TODO offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account) {
+function addPersonalBankAccount(account: PlaidBankAccount) {
     const commandName = 'AddPersonalBankAccount';
 
-    const parameters = {
+    type AddPersonalBankAccountParams = {
+        addressName: string;
+        routingNumber: string;
+        accountNumber: string;
+        isSavings: boolean;
+        setupType: string;
+        bank?: string;
+        plaidAccountID: string;
+        plaidAccessToken: string;
+    };
+
+    const parameters: AddPersonalBankAccountParams = {
         addressName: account.addressName,
         routingNumber: account.routingNumber,
         accountNumber: account.accountNumber,
@@ -142,7 +165,7 @@ function addPersonalBankAccount(account) {
         plaidAccessToken: account.plaidAccessToken,
     };
 
-    const onyxData = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -180,107 +203,94 @@ function addPersonalBankAccount(account) {
     API.write(commandName, parameters, onyxData);
 }
 
-function deletePaymentBankAccount(bankAccountID) {
-    API.write(
-        'DeletePaymentBankAccount',
-        {
-            bankAccountID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
-                    value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
-                },
-            ],
+function deletePaymentBankAccount(bankAccountID: number) {
+    type DeletePaymentBankAccountParams = {bankAccountID: number};
 
-            // Sometimes pusher updates aren't received when we close the App while still offline,
-            // so we are setting the bankAccount to null here to ensure that it gets cleared out once we come back online.
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
-                    value: {[bankAccountID]: null},
-                },
-            ],
-        },
-    );
+    const parameters: DeletePaymentBankAccountParams = {bankAccountID};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            },
+        ],
+
+        // Sometimes pusher updates aren't received when we close the App while still offline,
+        // so we are setting the bankAccount to null here to ensure that it gets cleared out once we come back online.
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: null},
+            },
+        ],
+    };
+
+    API.write('DeletePaymentBankAccount', parameters, onyxData);
 }
 
 /**
  * Update the user's personal information on the bank account in database.
  *
  * This action is called by the requestor step in the Verified Bank Account flow
- *
- * @param {Object} params
- *
- * @param {String} [params.dob]
- * @param {String} [params.firstName]
- * @param {String} [params.lastName]
- * @param {String} [params.requestorAddressStreet]
- * @param {String} [params.requestorAddressCity]
- * @param {String} [params.requestorAddressState]
- * @param {String} [params.requestorAddressZipCode]
- * @param {String} [params.ssnLast4]
- * @param {String} [params.isControllingOfficer]
- * @param {Object} [params.onfidoData]
- * @param {Boolean} [params.isOnfidoSetupComplete]
  */
-function updatePersonalInformationForBankAccount(params) {
+function updatePersonalInformationForBankAccount(params: RequestorStepProps) {
     API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR));
 }
 
-/**
- * @param {Number} bankAccountID
- * @param {String} validateCode
- */
-function validateBankAccount(bankAccountID, validateCode) {
-    API.write(
-        'ValidateBankAccountWithTransactions',
-        {
-            bankAccountID,
-            validateCode,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {
-                        isLoading: true,
-                        errors: null,
-                    },
+function validateBankAccount(bankAccountID: number, validateCode: string) {
+    type ValidateBankAccountWithTransactionsParams = {
+        bankAccountID: number;
+        validateCode: string;
+    };
+
+    const parameters: ValidateBankAccountWithTransactionsParams = {
+        bankAccountID,
+        validateCode,
+    };
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
                 },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {
-                        isLoading: false,
-                    },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
                 },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {
-                        isLoading: false,
-                    },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
                 },
-            ],
-        },
-    );
+            },
+        ],
+    };
+
+    API.write('ValidateBankAccountWithTransactions', parameters, onyxData);
 }
 
 function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
 }
 
-function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
-    const onyxData = {
+function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subStep: ReimbursementAccountSubStep, localCurrentStep: ReimbursementAccountStep) {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -310,122 +320,104 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
         ],
     };
 
-    const param = {
+    type OpenReimbursementAccountPageParams = {
+        stepToOpen: ReimbursementAccountStep;
+        subStep: ReimbursementAccountSubStep;
+        localCurrentStep: ReimbursementAccountStep;
+    };
+
+    const parameters: OpenReimbursementAccountPageParams = {
         stepToOpen,
         subStep,
         localCurrentStep,
     };
 
-    return API.read('OpenReimbursementAccountPage', param, onyxData);
+    return API.read('OpenReimbursementAccountPage', parameters, onyxData);
 }
 
 /**
  * Updates the bank account in the database with the company step data
- *
- * @param {Object} bankAccount
- * @param {Number} [bankAccount.bankAccountID]
- *
- * Fields from BankAccount step
- * @param {String} [bankAccount.routingNumber]
- * @param {String} [bankAccount.accountNumber]
- * @param {String} [bankAccount.bankName]
- * @param {String} [bankAccount.plaidAccountID]
- * @param {String} [bankAccount.plaidAccessToken]
- * @param {Boolean} [bankAccount.isSavings]
- *
- * Fields from Company step
- * @param {String} [bankAccount.companyName]
- * @param {String} [bankAccount.addressStreet]
- * @param {String} [bankAccount.addressCity]
- * @param {String} [bankAccount.addressState]
- * @param {String} [bankAccount.addressZipCode]
- * @param {String} [bankAccount.companyPhone]
- * @param {String} [bankAccount.website]
- * @param {String} [bankAccount.companyTaxID]
- * @param {String} [bankAccount.incorporationType]
- * @param {String} [bankAccount.incorporationState]
- * @param {String} [bankAccount.incorporationDate]
- * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
- * @param {String} policyID
  */
-function updateCompanyInformationForBankAccount(bankAccount, policyID) {
-    API.write('UpdateCompanyInformationForBankAccount', {...bankAccount, policyID}, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY));
+function updateCompanyInformationForBankAccount(bankAccount: BankAccountCompanyInformation, policyID: string) {
+    type UpdateCompanyInformationForBankAccountParams = BankAccountCompanyInformation & {policyID: string};
+
+    const parameters: UpdateCompanyInformationForBankAccountParams = {...bankAccount, policyID};
+
+    API.write('UpdateCompanyInformationForBankAccount', parameters, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY));
 }
 
 /**
  * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
- *
- * @param {Object} params
- *
- * // ACH Contract Step
- * @param {Boolean} [params.ownsMoreThan25Percent]
- * @param {Boolean} [params.hasOtherBeneficialOwners]
- * @param {Boolean} [params.acceptTermsAndConditions]
- * @param {Boolean} [params.certifyTrueInformation]
- * @param {String}  [params.beneficialOwners]
  */
-function updateBeneficialOwnersForBankAccount(params) {
-    API.write('UpdateBeneficialOwnersForBankAccount', {...params}, getVBBADataForOnyx());
+function updateBeneficialOwnersForBankAccount(params: ACHContractStepProps) {
+    API.write('UpdateBeneficialOwnersForBankAccount', params, getVBBADataForOnyx());
 }
 
 /**
  * Create the bank account with manually entered data.
  *
- * @param {number} [bankAccountID]
- * @param {String} [accountNumber]
- * @param {String} [routingNumber]
- * @param {String} [plaidMask]
- *
  */
-function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask) {
-    API.write(
-        'ConnectBankAccountManually',
-        {
-            bankAccountID,
-            accountNumber,
-            routingNumber,
-            plaidMask,
-        },
-        getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT),
-    );
+function connectBankAccountManually(bankAccountID: number, accountNumber?: string, routingNumber?: string, plaidMask?: string) {
+    type ConnectBankAccountManuallyParams = {
+        bankAccountID: number;
+        accountNumber?: string;
+        routingNumber?: string;
+        plaidMask?: string;
+    };
+
+    const parameters: ConnectBankAccountManuallyParams = {
+        bankAccountID,
+        accountNumber,
+        routingNumber,
+        plaidMask,
+    };
+
+    API.write('ConnectBankAccountManually', parameters, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT));
 }
 
 /**
  * Verify the user's identity via Onfido
- *
- * @param {Number} bankAccountID
- * @param {Object} onfidoData
  */
-function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
-    API.write(
-        'VerifyIdentityForBankAccount',
-        {
-            bankAccountID,
-            onfidoData: JSON.stringify(onfidoData),
-        },
-        getVBBADataForOnyx(),
-    );
+function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoData) {
+    type VerifyIdentityForBankAccountParams = {
+        bankAccountID: number;
+        onfidoData: string;
+    };
+
+    const parameters: VerifyIdentityForBankAccountParams = {
+        bankAccountID,
+        onfidoData: JSON.stringify(onfidoData),
+    };
+
+    API.write('VerifyIdentityForBankAccount', parameters, getVBBADataForOnyx());
 }
 
 function openWorkspaceView() {
-    API.read('OpenWorkspaceView');
+    API.read('OpenWorkspaceView', {}, {});
 }
 
-function handlePlaidError(bankAccountID, error, error_description, plaidRequestID) {
-    API.write('BankAccount_HandlePlaidError', {
+function handlePlaidError(bankAccountID: number, error: string, errorDescription: string, plaidRequestID: string) {
+    type BankAccountHandlePlaidErrorParams = {
+        bankAccountID: number;
+        error: string;
+        errorDescription: string;
+        plaidRequestID: string;
+    };
+
+    const parameters: BankAccountHandlePlaidErrorParams = {
         bankAccountID,
         error,
-        error_description,
+        errorDescription,
         plaidRequestID,
-    });
+    };
+
+    API.write('BankAccount_HandlePlaidError', parameters);
 }
 
 /**
  * Set the reimbursement account loading so that it happens right away, instead of when the API command is processed.
- *
- * @param {Boolean} isLoading
  */
-function setReimbursementAccountLoading(isLoading) {
+function setReimbursementAccountLoading(isLoading: boolean) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading});
 }
 
