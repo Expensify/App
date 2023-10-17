@@ -10,6 +10,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import getTopMostCentralPaneRouteName from '../libs/Navigation/getTopMostCentralPaneRouteName';
 import SCREENS from '../SCREENS';
 import ROUTES from '../ROUTES';
+import FullPageBiggerScreenView from './BlockingViews/FullPageBiggerScreenView';
 
 function getNewDotURL(url) {
     const urlObj = new URL(url);
@@ -253,7 +254,7 @@ function IFrame({session}) {
     const [time] = useState(new Date().getSeconds());
 
     return (
-        <>
+        <FullPageBiggerScreenView>
             {/* TODO: Remove text with information */}
             <Text style={{fontSize: 40, color: 'white'}}>{`${routeName}\n${JSON.stringify(params)} \n${oldDotURL}\n${time}`}</Text>
             <iframe
@@ -263,7 +264,7 @@ function IFrame({session}) {
                 src={oldDotURL}
                 title="OldDot"
             />
-        </>
+        </FullPageBiggerScreenView>
     );
 }
 

@@ -46,12 +46,14 @@ import TreasureChest from '../../../assets/images/simple-illustrations/simple-il
 import ThumbsUpStars from '../../../assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import Hands from '../../../assets/images/product-illustrations/home-illustration-hands.svg';
 import HandEarth from '../../../assets/images/simple-illustrations/simple-illustration__handearth.svg';
+import BiggerScreen from '../../../assets/images/empty-state__biggerscreen.svg';
 
 export {
     Abracadabra,
     BankArrowPink,
     BankMouseGreen,
     BankUserGreen,
+    BiggerScreen,
     ChatBubbles,
     CoffeeMug,
     ConciergeBlue,

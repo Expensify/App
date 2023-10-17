@@ -220,6 +220,10 @@ export default {
         maxParticipantsReached: ({count}: MaxParticipantsReachedParams) => `Has seleccionado el número máximo (${count}) de participantes.`,
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
+        biggerScreenNeeded: {
+            title: `Vas a necesitar una pantalla más grande`,
+            subtitle: 'Esta página sólo está disponible en navegadores más amplios, como su ordenador portátil o de sobremesa. Inténtelo de nuevo desde allí.',
+        },
         areYouSure: '¿Estás seguro?',
         verify: 'Verifique',
         yesContinue: 'Sí, continuar',
