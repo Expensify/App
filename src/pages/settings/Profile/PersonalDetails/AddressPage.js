@@ -88,6 +88,7 @@ function AddressPage({privatePersonalDetails, route}) {
         }
         setState(address.state);
         setCurrentCountry(address.country);
+        setCity(address.city);
     }, [address]);
 
     /**
@@ -165,7 +166,7 @@ function AddressPage({privatePersonalDetails, route}) {
             testID={AddressPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('privatePersonalDetails.homeAddress')}
+                title={translate('privatePersonalDetails.address')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
