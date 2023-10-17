@@ -74,6 +74,7 @@ import type {
     FormattedMaxLengthParams,
     RequestedAmountMessageParams,
     TagSelectionParams,
+    ReceiptCreateFailureMessageParams,
     TranslationBase,
     WalletProgramParams,
 } from './types';
@@ -567,6 +568,7 @@ export default {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
+            receiptCreateFailureMessage: ({receiptUrl}: ReceiptCreateFailureMessageParams) => `The receipt didn't upload. <a href="${receiptUrl}">Save the file</a> or dismiss this error and lose it.`,
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',

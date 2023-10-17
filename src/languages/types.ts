@@ -198,6 +198,8 @@ type FormattedMaxLengthParams = {formattedMaxLength: string};
 
 type TagSelectionParams = {tagName: string};
 
+type ReceiptCreateFailureMessageParams = {tagName: string};
+
 type WalletProgramParams = {walletProgram: string};
 
 /* Translation Object types */
@@ -313,6 +315,7 @@ export type {
     RemovedTheRequestParams,
     FormattedMaxLengthParams,
     TagSelectionParams,
+    ReceiptCreateFailureMessageParams,
     SetTheDistanceParams,
     UpdatedTheDistanceParams,
     WalletProgramParams,
