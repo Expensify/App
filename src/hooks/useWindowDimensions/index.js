@@ -3,8 +3,18 @@ import {Dimensions, useWindowDimensions} from 'react-native';
 import variables from '../../styles/variables';
 
 /**
+ * @typedef {Object} WindowDimensions
+ * @property {number} windowWidth
+ * @property {number} windowHeight
+ * @property {boolean} isExtraSmallScreenHeight
+ * @property {boolean} isSmallScreenWidth
+ * @property {boolean} isMediumScreenWidth
+ * @property {boolean} isLargeScreenWidth
+ */
+
+/**
  * A convenience wrapper around React Native's useWindowDimensions hook that also provides booleans for our breakpoints.
- * @returns {Object}
+ * @returns {WindowDimensions}
  */
 export default function () {
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
