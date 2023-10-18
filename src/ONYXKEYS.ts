@@ -1,4 +1,5 @@
 import {ValueOf} from 'type-fest';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import DeepValueOf from './types/utils/DeepValueOf';
 import * as OnyxTypes from './types/onyx';
 import CONST from './CONST';
@@ -26,6 +27,9 @@ const ONYXKEYS = {
     /** Boolean flag set whenever the sidebar has loaded */
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
+    /** Boolean flag set whenever we are searching for reports in the server */
+    IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
+
     /** Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe */
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
@@ -46,6 +50,9 @@ const ONYXKEYS = {
 
     // draft status
     CUSTOM_STATUS_DRAFT: 'customStatusDraft',
+
+    // keep edit message focus state
+    INPUT_FOCUSED: 'inputFocused',
 
     /** Contains all the personalDetails the user has access to, keyed by accountID */
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
@@ -229,6 +236,8 @@ const ONYXKEYS = {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
         POLICY_MEMBERS: 'policyMembers_',
+        POLICY_DRAFTS: 'policyDrafts_',
+        POLICY_MEMBERS_DRAFTS: 'policyMembersDrafts_',
         POLICY_CATEGORIES: 'policyCategories_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
@@ -312,6 +321,7 @@ type OnyxValues = {
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.CUSTOM_STATUS_DRAFT]: OnyxTypes.CustomStatusDraft;
+    [ONYXKEYS.INPUT_FOCUSED]: boolean;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: Record<string, OnyxTypes.PersonalDetails>;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
@@ -422,5 +432,7 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: OnyxTypes.Form;
 };
 
+type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;
+
 export default ONYXKEYS;
-export type {OnyxKey, OnyxCollectionKey, OnyxValues};
+export type {OnyxKey, OnyxCollectionKey, OnyxValues, OnyxKeyValue};
