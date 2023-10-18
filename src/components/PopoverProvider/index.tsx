@@ -1,24 +1,18 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import {AnchorRef, PopoverContextProps, PopoverContextValue} from './types';
 
-const propTypes = {
-    children: PropTypes.node.isRequired,
-};
-
-const defaultProps = {};
-
-const PopoverContext = React.createContext({
+const PopoverContext = React.createContext<PopoverContextValue>({
     onOpen: () => {},
-    popover: {},
+    popover: null,
     close: () => {},
     isOpen: false,
 });
 
-function PopoverContextProvider(props) {
+function PopoverContextProvider(props: PopoverContextProps) {
     const [isOpen, setIsOpen] = React.useState(false);
-    const activePopoverRef = React.useRef(null);
+    const activePopoverRef = React.useRef<AnchorRef | null>(null);
 
-    const closePopover = React.useCallback((anchorRef) => {
+    const closePopover = React.useCallback((anchorRef?: React.RefObject<HTMLElement>) => {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
             return;
         }
@@ -28,17 +22,12 @@ function PopoverContextProvider(props) {
     }, []);
 
     React.useEffect(() => {
-        const listener = (e) => {
-            if (
-                !activePopoverRef.current ||
-                !activePopoverRef.current.ref ||
-                !activePopoverRef.current.ref.current ||
-                activePopoverRef.current.ref.current.contains(e.target) ||
-                (activePopoverRef.current.anchorRef && activePopoverRef.current.anchorRef.current && activePopoverRef.current.anchorRef.current.contains(e.target))
-            ) {
+        const listener = (e: Event) => {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if (activePopoverRef.current?.ref?.current?.contains(e.target as Node) || activePopoverRef.current?.anchorRef?.current?.contains(e.target as Node)) {
                 return;
             }
-            const ref = activePopoverRef.current.anchorRef;
+            const ref = activePopoverRef.current?.anchorRef;
             closePopover(ref);
         };
         document.addEventListener('click', listener, true);
@@ -48,8 +37,8 @@ function PopoverContextProvider(props) {
     }, [closePopover]);
 
     React.useEffect(() => {
-        const listener = (e) => {
-            if (!activePopoverRef.current || !activePopoverRef.current.ref || !activePopoverRef.current.ref.current || activePopoverRef.current.ref.current.contains(e.target)) {
+        const listener = (e: Event) => {
+            if (activePopoverRef.current?.ref?.current?.contains(e.target as Node)) {
                 return;
             }
             closePopover();
@@ -61,7 +50,7 @@ function PopoverContextProvider(props) {
     }, [closePopover]);
 
     React.useEffect(() => {
-        const listener = (e) => {
+        const listener = (e: KeyboardEvent) => {
             if (e.key !== 'Escape') {
                 return;
             }
@@ -87,8 +76,8 @@ function PopoverContextProvider(props) {
     }, [closePopover]);
 
     React.useEffect(() => {
-        const listener = (e) => {
-            if (activePopoverRef.current && activePopoverRef.current.ref && activePopoverRef.current.ref.current && activePopoverRef.current.ref.current.contains(e.target)) {
+        const listener = (e: Event) => {
+            if (activePopoverRef.current?.ref?.current?.contains(e.target as Node)) {
                 return;
             }
 
@@ -101,8 +90,8 @@ function PopoverContextProvider(props) {
     }, [closePopover]);
 
     const onOpen = React.useCallback(
-        (popoverParams) => {
-            if (activePopoverRef.current && activePopoverRef.current.ref !== popoverParams.ref) {
+        (popoverParams: AnchorRef) => {
+            if (activePopoverRef.current && activePopoverRef.current.ref !== popoverParams?.ref) {
                 closePopover(activePopoverRef.current.anchorRef);
             }
             activePopoverRef.current = popoverParams;
@@ -125,8 +114,6 @@ function PopoverContextProvider(props) {
     );
 }
 
-PopoverContextProvider.defaultProps = defaultProps;
-PopoverContextProvider.propTypes = propTypes;
 PopoverContextProvider.displayName = 'PopoverContextProvider';
 
 export default PopoverContextProvider;
