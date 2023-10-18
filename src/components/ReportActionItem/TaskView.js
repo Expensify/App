@@ -47,6 +47,7 @@ function TaskView(props) {
     }, [props.report]);
 
     const taskTitle = convertToLTR(props.report.reportName || '');
+    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.managerID], props.personalDetails), false);
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
@@ -157,7 +158,7 @@ function TaskView(props) {
                             isSmallAvatarSubscriptMenu
                             shouldGreyOutWhenDisabled={false}
                             interactive={!isDisableInteractive}
-                            useIconForTitleTooltip
+                            titleWithTooltips={assigneeTooltipDetails}
                         />
                     </OfflineWithFeedback>
                 ) : (

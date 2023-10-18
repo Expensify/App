@@ -16,6 +16,7 @@ import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 import MenuItem from '../../components/MenuItem';
 import reportPropTypes from '../reportPropTypes';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as Task from '../../libs/actions/Task';
 import * as ReportUtils from '../../libs/ReportUtils';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
@@ -64,6 +65,7 @@ const defaultProps = {
 
 function NewTaskPage(props) {
     const [assignee, setAssignee] = useState({});
+    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([props.task.assigneeAccountID], props.personalDetails), false);
     const [shareDestination, setShareDestination] = useState({});
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -185,7 +187,7 @@ function NewTaskPage(props) {
                                 icon={assignee.icons}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
                                 shouldShowRightIcon
-                                useIconForTitleTooltip
+                                titleWithTooltips={assigneeTooltipDetails}
                             />
                             <MenuItem
                                 label={shareDestination.displayName ? props.translate('newTaskPage.shareSomewhere') : ''}
@@ -196,7 +198,7 @@ function NewTaskPage(props) {
                                 interactive={!props.task.parentReportID}
                                 shouldShowRightIcon={!props.task.parentReportID}
                                 shouldUseFullTitle={shareDestination.shouldShowDestinationTooltip}
-                                useIconForTitleTooltip
+                                titleWithTooltips={shareDestination.displayNamesWithTooltips}
                             />
                         </View>
                     </View>

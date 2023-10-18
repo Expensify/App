@@ -81,7 +81,7 @@ const defaultProps = {
     rightComponent: undefined,
     shouldShowRightComponent: false,
     shouldUseFullTitle: false,
-    useIconForTitleTooltip: false,
+    titleWithTooltips: [],
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -139,13 +139,13 @@ const MenuItem = React.forwardRef((props, ref) => {
     const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
 
     const renderTitleContent = () => {
-        if (props.useIconForTitleTooltip && props.icon && _.isArray(props.icon) && props.icon.length > 0 && !props.shouldUseFullTitle) {
-            return _.map(props.icon, (accountIdOrUserObject, index) => (
+        if (props.titleWithTooltips && _.isArray(props.titleWithTooltips) && props.titleWithTooltips.length > 0 && !props.shouldUseFullTitle) {
+            return _.map(props.titleWithTooltips, (accountIdOrUserObject, index) => (
                 <Text>
-                    <UserDetailsTooltip accountID={accountIdOrUserObject.id}>
-                        <Text>{convertToLTR(accountIdOrUserObject.name)}</Text>
+                    <UserDetailsTooltip accountID={accountIdOrUserObject.accountID}>
+                        <Text>{convertToLTR(accountIdOrUserObject.displayName)}</Text>
                     </UserDetailsTooltip>
-                    {index < props.icon.length - 1 && <Text style>,&nbsp;</Text>}
+                    {index < props.titleWithTooltips.length - 1 && <Text style>,&nbsp;</Text>}
                 </Text>
             ));
         }
