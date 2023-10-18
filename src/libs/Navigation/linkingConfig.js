@@ -73,7 +73,7 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
-                            Settings_Wallet_DomainCards: {
+                            Settings_Wallet_DomainCard: {
                                 path: ROUTES.SETTINGS_WALLET_DOMAINCARD.route,
                                 exact: true,
                             },

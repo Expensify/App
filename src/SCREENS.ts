@@ -18,7 +18,7 @@ export default {
         SECURITY: 'Settings_Security',
         STATUS: 'Settings_Status',
         WALLET: 'Settings_Wallet',
-        WALLET_DOMAIN_CARDS: 'Settings_Wallet_DomainCards',
+        WALLET_DOMAIN_CARD: 'Settings_Wallet_DomainCard',
         WALLET_CARDS_GET_PHYSICAL: {
             NAME: 'Settings_Cards_Get_Physical_Name',
             PHONE: 'Settings_Cards_Get_Physical_Phone',

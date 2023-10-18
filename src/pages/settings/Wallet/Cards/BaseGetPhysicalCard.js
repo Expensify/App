@@ -65,7 +65,7 @@ function BaseGetPhysicalCard({cardList, children, domain, headline, isConfirmati
             const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
             const cardID = virtualCard.cardID;
             Wallet.requestPhysicalExpensifyCard(cardID, privatePersonalDetails);
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
             return;
         }
         Navigation.goToNextPhysicalCardRoute(privatePersonalDetails, loginList);
