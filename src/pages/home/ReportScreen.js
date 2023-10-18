@@ -127,7 +127,7 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
-    // reportID shouldn't be empty string as null says Onyx to return empty object
+    // // The reportID is used inside a collection key and should not be empty, as an empty reportID will result in the entire collection being returned.
     return String(lodashGet(route, 'params.reportID', null));
 }
 
