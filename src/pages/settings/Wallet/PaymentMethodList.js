@@ -28,7 +28,6 @@ import ROUTES from '../../../ROUTES';
 import getBankIcon from '../../../components/Icon/BankIcons';
 import assignedCardPropTypes from './assignedCardPropTypes';
 import * as CardUtils from '../../../libs/CardUtils';
-import variables from '../../../styles/variables';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
