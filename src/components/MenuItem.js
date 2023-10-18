@@ -79,6 +79,7 @@ const defaultProps = {
     shouldRenderAsHTML: false,
     rightComponent: undefined,
     shouldShowRightComponent: false,
+    shouldCheckActionAllowedOnPress: true,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -136,21 +137,23 @@ const MenuItem = React.forwardRef((props, ref) => {
 
     const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
 
+    const onPressAction = (e) => {
+        if (props.disabled || !props.interactive) {
+            return;
+        }
+
+        if (e && e.type === 'click') {
+            e.currentTarget.blur();
+        }
+
+        props.onPress(e);
+    };
+
     return (
         <Hoverable>
             {(isHovered) => (
                 <PressableWithSecondaryInteraction
-                    onPress={Session.checkIfActionIsAllowed((e) => {
-                        if (props.disabled || !props.interactive) {
-                            return;
-                        }
-
-                        if (e && e.type === 'click') {
-                            e.currentTarget.blur();
-                        }
-
-                        props.onPress(e);
-                    }, props.isAnonymousAction)}
+                    onPress={props.shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, props.isAnonymousAction) : onPressAction}
                     onPressIn={() => props.shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={props.onSecondaryInteraction}
