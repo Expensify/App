@@ -13,6 +13,8 @@ import useCurrentReportID from '../../hooks/useCurrentReportID';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import {SidebarNavigationContext} from '../../pages/home/sidebar/SidebarNavigationContext';
 import * as Session from '../actions/Session';
+import getCurrentUrl from './currentUrl';
+import ROUTES from '../../ROUTES';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -102,7 +104,7 @@ function NavigationRoot(props) {
 
     const animateStatusBarBackgroundColor = () => {
         const currentRoute = navigationRef.getCurrentRoute();
-        const currentScreenBackgroundColor = (currentRoute.params && currentRoute.params.backgroundColor) || themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
+        const currentScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
@@ -136,7 +138,7 @@ function NavigationRoot(props) {
         globalNavigation.updateFromNavigationState(state);
 
         const route = Navigation.getActiveRoute();
-        if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
+        if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route) && !getCurrentUrl().includes(ROUTES.SIGN_IN_MODAL)) {
             Session.signOutAndRedirectToSignIn();
         }
     };
