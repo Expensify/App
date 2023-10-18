@@ -95,7 +95,7 @@ function ReportDetailsPage(props) {
             return items;
         }
 
-        if (participants.length) {
+        if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && isPolicyMember)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
@@ -103,14 +103,14 @@ function ReportDetailsPage(props) {
                 subtitle: participants.length,
                 isAnonymousAction: false,
                 action: () => {
-                    if (isUserCreatedPolicyRoom) {
+                    if (isUserCreatedPolicyRoom && !props.report.parentReportID) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(props.report.reportID));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(props.report.reportID));
                     }
                 },
             });
-        } else if (isUserCreatedPolicyRoom) {
+        } else if ((!participants.length || !isPolicyMember) && isUserCreatedPolicyRoom && !props.report.parentReportID) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
@@ -156,7 +156,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [props.report, isMoneyRequestReport, participants.length, isArchivedRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom, props.policies, isGroupDMChat, isPolicyMember]);
+    }, [props.report, isMoneyRequestReport, participants.length, isArchivedRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom, isGroupDMChat, isPolicyMember]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;

@@ -165,7 +165,7 @@ function RoomInvitePage(props) {
     const reportID = props.report.reportID;
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
     const backRoute = useMemo(() => (isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)), [isPolicyMember, reportID]);
-    const reportName = useMemo(() => ReportUtils.getReportName(props.report));
+    const reportName = useMemo(() => ReportUtils.getReportName(props.report), [props.report]);
     const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;
@@ -192,7 +192,7 @@ function RoomInvitePage(props) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
-    }, [excludedUsers, translate, searchTerm, userToInvite, personalDetails]);
+    }, [excludedUsers, translate, searchTerm, userToInvite, personalDetails, reportName]);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
