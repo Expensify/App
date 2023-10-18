@@ -312,7 +312,7 @@ function ReportScreen({
             // non-optimistic case
             (!prevUserLeavingStatus && userLeavingStatus) ||
             // optimistic case
-            (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && prevReport.statusNum === CONST.REPORT.STATUS.OPEN)
+            (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && prevReport.statusNum === CONST.REPORT.STATUS.OPEN && (report.statusNum === CONST.REPORT.STATUS.CLOSED || !report.statusNum))
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
