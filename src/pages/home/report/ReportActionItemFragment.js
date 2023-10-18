@@ -100,8 +100,8 @@ function ReportActionItemFragment(props) {
      * @returns {ReactNode | null} Text component with zero width character
      */
 
-    function checkForEmojiForSelection(text, displayAsGroup) {
-        const firstLetterIsEmoji = EmojiUtils.firstLetterIsEmoji(text);
+    const checkForEmojiForSelection = (text, displayAsGroup) => {
+        const firstLetterIsEmoji = EmojiUtils.isFirstLetterEmoji(text);
         if (firstLetterIsEmoji && !displayAsGroup && !Browser.isMobile()) {
             return <Text>&#x200b;</Text>;
         }

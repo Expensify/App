@@ -116,7 +116,7 @@ function trimEmojiUnicode(emojiCode) {
  * @param {String} message
  * @returns {Boolean}
  */
-function firstLetterIsEmoji(message) {
+function isFirstLetterEmoji(message) {
     const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
     const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
 
@@ -514,5 +514,5 @@ export {
     replaceAndExtractEmojis,
     extractEmojis,
     getAddedEmojis,
-    firstLetterIsEmoji,
+    isFirstLetterEmoji,
 };
