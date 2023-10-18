@@ -11,7 +11,7 @@ import CONST from './CONST';
  * @param backTo
  * @returns
  */
-function getBackToParam(backTo = ''): string {
+function getBackToParam(backTo?: string): string {
     return backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
 }
 
@@ -30,7 +30,7 @@ export default {
     },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID: string | number, backTo = '') => `a/${accountID}${getBackToParam(backTo)}`,
+        getRoute: (accountID: string | number, backTo?: string) => `a/${accountID}${getBackToParam(backTo)}`,
     },
 
     TRANSITION_BETWEEN_APPS: 'transition',
@@ -56,7 +56,7 @@ export default {
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
-        getRoute: (stepToOpen = '', policyID = '', backTo = ''): string => `bank-account/${stepToOpen}?policyID=${policyID}${getBackToParam(backTo)}`,
+        getRoute: (stepToOpen = '', policyID = '', backTo?: string): string => `bank-account/${stepToOpen}?policyID=${policyID}${getBackToParam(backTo)}`,
     },
 
     SETTINGS: 'settings',
