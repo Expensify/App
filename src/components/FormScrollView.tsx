@@ -1,8 +1,8 @@
 import React, {ForwardedRef} from 'react';
-import {ScrollView} from 'react-native';
+import {ScrollView, ScrollViewProps} from 'react-native';
 import styles from '../styles/styles';
 
-type FormScrollViewProps = Partial<ScrollView> & {
+type FormScrollViewProps = ScrollViewProps & {
     /** Form elements */
     children: React.ReactNode;
 };
