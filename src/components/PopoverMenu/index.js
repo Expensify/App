@@ -98,7 +98,9 @@ function PopoverMenu(props) {
                         icon={item.icon}
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
+                        iconFill={item.iconFill}
                         title={item.text}
+                        shouldCheckActionAllowedOnPress={false}
                         description={item.description}
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}

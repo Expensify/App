@@ -32,6 +32,9 @@ type Message = {
     isEdited: boolean;
 
     isDeletedParentAction: boolean;
+
+    /** Whether the pending transaction was reversed and didn't post to the card */
+    isReversedTransaction?: boolean;
     whisperedTo: number[];
     reactions: Reaction[];
 };
@@ -45,6 +48,9 @@ type Person = {
 type ReportActionBase = {
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID?: string;
+
+    /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
+    previousReportActionID?: string;
 
     actorAccountID?: number;
 
@@ -70,6 +76,7 @@ type ReportActionBase = {
     automatic?: boolean;
     shouldShow?: boolean;
     childReportID?: string;
+    childReportName?: string;
     childType?: string;
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;

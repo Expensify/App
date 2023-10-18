@@ -5,7 +5,6 @@ import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
-import * as Browser from '../../../../libs/Browser';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import NAVIGATORS from '../../../../NAVIGATORS';
@@ -61,11 +60,15 @@ const propTypes = {
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
-    /** For first time users, whether the download app banner should show */
-    shouldShowDownloadAppBanner: PropTypes.bool,
-
     /** Forwarded ref to FloatingActionButtonAndPopover */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
+    /** Information about any currently running demos */
+    demoInfo: PropTypes.shape({
+        money2020: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+    }),
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -74,7 +77,7 @@ const defaultProps = {
     betas: [],
     isLoading: false,
     innerRef: null,
-    shouldShowDownloadAppBanner: true,
+    demoInfo: {},
 };
 
 /**
@@ -157,12 +160,12 @@ function FloatingActionButtonAndPopover(props) {
         if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
             return;
         }
-        // Avoid rendering the create menu for first-time users until they have dismissed the download app banner (mWeb only).
-        if (props.shouldShowDownloadAppBanner && Browser.isMobile()) {
+        if (lodashGet(props.demoInfo, 'money2020.isBeginningDemo', false)) {
             return;
         }
         Welcome.show({routes, showCreateMenu});
-    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu, props.demoInfo]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.isLoading]);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
@@ -193,24 +196,15 @@ function FloatingActionButtonAndPopover(props) {
                         text: props.translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
-                    ...(Permissions.canUseIOUSend(props.betas)
-                        ? [
-                              {
-                                  icon: Expensicons.Send,
-                                  text: props.translate('iou.sendMoney'),
-                                  onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
-                              },
-                          ]
-                        : []),
                     {
                         icon: Expensicons.MoneyCircle,
                         text: props.translate('iou.requestMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
                     },
                     {
-                        icon: Expensicons.Heart,
-                        text: props.translate('sidebarScreen.saveTheWorld'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
+                        icon: Expensicons.Send,
+                        text: props.translate('iou.sendMoney'),
+                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
                     },
                     ...(Permissions.canUseTasks(props.betas)
                         ? [
@@ -221,6 +215,11 @@ function FloatingActionButtonAndPopover(props) {
                               },
                           ]
                         : []),
+                    {
+                        icon: Expensicons.Heart,
+                        text: props.translate('sidebarScreen.saveTheWorld'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
+                    },
                     ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
                         ? [
                               {
@@ -274,8 +273,8 @@ export default compose(
         isLoading: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
-        shouldShowDownloadAppBanner: {
-            key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
+        demoInfo: {
+            key: ONYXKEYS.DEMO_INFO,
         },
     }),
 )(

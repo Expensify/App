@@ -16,6 +16,7 @@ import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import * as Policy from '../../../libs/actions/Policy';
+import * as PolicyUtils from '../../../libs/PolicyUtils';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -71,39 +72,15 @@ function WorkspaceReimburseView(props) {
     const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
     const {translate, toLocaleDigit} = props;
 
-    const getNumericValue = useCallback(
-        (value) => {
-            const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
-            if (Number.isNaN(numValue)) {
-                return NaN;
-            }
-            return numValue.toFixed(3);
-        },
-        [toLocaleDigit],
-    );
-
-    const getRateDisplayValue = useCallback(
-        (value) => {
-            const numValue = getNumericValue(value);
-            if (Number.isNaN(numValue)) {
-                return '';
-            }
-            return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.length);
-        },
-        [getNumericValue, toLocaleDigit],
-    );
-
-    const getRateLabel = useCallback((customUnitRate) => getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET), [getRateDisplayValue]);
-
     const getUnitLabel = useCallback((value) => translate(`common.${value}`), [translate]);
 
     const getCurrentRatePerUnitLabel = useCallback(() => {
         const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', '{}'), (rate) => rate && rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
         const currentUnit = getUnitLabel(lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES));
-        const currentRate = getRateLabel(customUnitRate);
+        const currentRate = PolicyUtils.getUnitRateValue(customUnitRate, toLocaleDigit);
         const perWord = translate('common.per');
         return `${currentRate} ${perWord} ${currentUnit}`;
-    }, [translate, distanceCustomUnit, getUnitLabel, getRateLabel]);
+    }, [translate, distanceCustomUnit, toLocaleDigit, getUnitLabel]);
 
     const fetchData = useCallback(() => {
         // Instead of setting the reimbursement account loading within the optimistic data of the API command, use a separate action so that the Onyx value is updated right away.
@@ -168,7 +145,7 @@ function WorkspaceReimburseView(props) {
                         title={currentRatePerUnit}
                         description={translate('workspace.reimburse.trackDistanceRate')}
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.getWorkspaceRateAndUnitRoute(props.policy.id))}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy.id))}
                         wrapperStyle={[styles.mhn5, styles.wAuto]}
                         brickRoadIndicator={(lodashGet(distanceCustomUnit, 'errors') || lodashGet(distanceCustomRate, 'errors')) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
                     />

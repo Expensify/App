@@ -12,7 +12,9 @@ const isReadyPromise = new Promise((resolve) => {
 });
 
 function setIsReady() {
-    if (!resolveIsReadyPromise) return;
+    if (!resolveIsReadyPromise) {
+        return;
+    }
     resolveIsReadyPromise();
 }
 
@@ -21,7 +23,9 @@ function setIsReady() {
  */
 function show(bodyText: string, type: string, duration: number = CONST.GROWL.DURATION) {
     isReadyPromise.then(() => {
-        if (!growlRef?.current?.show) return;
+        if (!growlRef?.current?.show) {
+            return;
+        }
         growlRef.current.show(bodyText, type, duration);
     });
 }

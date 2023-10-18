@@ -360,7 +360,7 @@ function Composer({
         const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
         setTextInputWidth(computedStyle.width);
 
-        const computedNumberOfLines = ComposerUtils.getNumberOfLines(maxLines, lineHeight, paddingTopAndBottom, textInput.current.scrollHeight);
+        const computedNumberOfLines = ComposerUtils.getNumberOfLines(lineHeight, paddingTopAndBottom, textInput.current.scrollHeight, maxLines);
         const generalNumberOfLines = computedNumberOfLines === 0 ? numberOfLinesProp : computedNumberOfLines;
 
         onNumberOfLinesChange(generalNumberOfLines);
@@ -446,9 +446,9 @@ function Composer({
             numberOfLines < maxLines ? styles.overflowHidden : {},
 
             StyleSheet.flatten([style, {outline: 'none'}]),
-            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp, isComposerFullSize),
+            StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
         ],
-        [style, maxLines, numberOfLinesProp, numberOfLines, isComposerFullSize],
+        [style, maxLines, numberOfLines, isComposerFullSize],
     );
 
     return (

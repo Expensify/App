@@ -98,7 +98,7 @@ function MoneyRequestAction({
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
             const reportActionID = lodashGet(action, 'reportActionID', '0');
-            Navigation.navigate(ROUTES.getSplitBillDetailsRoute(chatReportID, reportActionID));
+            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID));
             return;
         }
 
@@ -108,15 +108,16 @@ function MoneyRequestAction({
             const thread = ReportUtils.buildTransactionThread(action, requestReportID);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             Report.openReport(thread.reportID, userLogins, thread, action.reportActionID);
-            Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
             return;
         }
         Report.openReport(childReportID);
-        Navigation.navigate(ROUTES.getReportRoute(childReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };
 
     let shouldShowPendingConversionMessage = false;
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
+    const isReversedTransaction = ReportActionsUtils.isReversedTransaction(action);
     if (
         !_.isEmpty(iouReport) &&
         !_.isEmpty(reportActions) &&
@@ -128,8 +129,8 @@ function MoneyRequestAction({
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(iouReport);
     }
 
-    return isDeletedParentAction ? (
-        <RenderHTML html={`<comment>${translate('parentReportAction.deletedRequest')}</comment>`} />
+    return isDeletedParentAction || isReversedTransaction ? (
+        <RenderHTML html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`} />
     ) : (
         <MoneyRequestPreview
             iouReportID={requestReportID}

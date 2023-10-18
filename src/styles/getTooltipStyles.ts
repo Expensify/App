@@ -1,11 +1,11 @@
-import {CSSProperties} from 'react';
 import {TextStyle, View, ViewStyle} from 'react-native';
-import spacing from './utilities/spacing';
+import fontFamily from './fontFamily';
+import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 import styles from './styles';
 import themeColors from './themes/default';
-import fontFamily from './fontFamily';
+import positioning from './utilities/positioning';
+import spacing from './utilities/spacing';
 import variables from './variables';
-import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 
 /** This defines the proximity with the edge of the window in which tooltips should not be displayed.
  * If a tooltip is too close to the edge of the screen, we'll shift it towards the center. */
@@ -95,9 +95,9 @@ function isOverlappingAtTop(tooltip: View | HTMLDivElement, xOffset: number, yOf
 
 type TooltipStyles = {
     animationStyle: ViewStyle;
-    rootWrapperStyle: ViewStyle | CSSProperties;
+    rootWrapperStyle: ViewStyle;
     textStyle: TextStyle;
-    pointerWrapperStyle: ViewStyle | CSSProperties;
+    pointerWrapperStyle: ViewStyle;
     pointerStyle: ViewStyle;
 };
 
@@ -237,7 +237,7 @@ export default function getTooltipStyles(
             transform: [{scale}],
         },
         rootWrapperStyle: {
-            position: 'fixed',
+            ...positioning.pFixed,
             backgroundColor: themeColors.heading,
             borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
@@ -257,9 +257,10 @@ export default function getTooltipStyles(
             fontSize: variables.fontSizeSmall,
             overflow: 'hidden',
             lineHeight: variables.lineHeightSmall,
+            textAlign: 'center',
         },
         pointerWrapperStyle: {
-            position: 'fixed',
+            ...positioning.pFixed,
             top: pointerWrapperTop,
             left: pointerWrapperLeft,
         },

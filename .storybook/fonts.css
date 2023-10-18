@@ -40,6 +40,13 @@
     src: url('../assets/fonts/web/ExpensifyMono-Bold.woff2') format('woff2'),  url('../assets/fonts/web/ExpensifyMono-Bold.woff') format('woff');
 }
 
+@font-face {
+    font-family: ExpensifyNewKansas-Medium;
+    font-weight: 400;
+    font-style: normal;
+    src: url('../assets/fonts/web/ExpensifyNewKansas-Medium.woff2') format('woff2'),  url('../assets/fonts/web/ExpensifyNewKansas-Medium.woff') format('woff');
+}
+
 * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

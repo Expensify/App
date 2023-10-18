@@ -58,10 +58,10 @@ function navigateBack() {
         return;
     }
 
-    const hubs = JSON.parse(document.getElementById('hubs-data').value);
-    const hubToNavigate = hubs.find((hub) => window.location.pathname.includes(hub)); // eslint-disable-line rulesdir/prefer-underscore-method
-    if (hubToNavigate) {
-        window.location.href = `/hubs/${hubToNavigate}`;
+    // Path name is of the form /articles/[platform]/[hub]/[resource]
+    const path = window.location.pathname.split('/');
+    if (path[2] && path[3]) {
+        window.location.href = `/${path[2]}/hubs/${path[3]}`;
     } else {
         window.location.href = '/';
     }
