@@ -60,7 +60,7 @@ function GlobalNavigation() {
             return _.filter(items, (item) => item.value === CONST.GLOBAL_NAVIGATION_OPTION.CHATS);
         }
         return items;
-    }, [isSmallScreenWidth, sidebarNavigation.selectedGlobalNavigationOption]);
+    }, [isSmallScreenWidth, items]);
 
     return (
         <View style={[styles.ph5, styles.pv3, styles.alignItemsCenter, styles.h100, styles.globalNavigation]}>

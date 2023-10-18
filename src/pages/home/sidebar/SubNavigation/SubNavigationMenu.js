@@ -33,7 +33,11 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function SubNavigation({isSmallScreenWidth, menuItems, title, customHeader}) {
+const defaultProps = {
+    customHeader: null,
+};
+
+function SubNavigationMenu({isSmallScreenWidth, menuItems, title, customHeader}) {
     const sidebarNavigation = useContext(SidebarNavigationContext);
 
     if (isSmallScreenWidth) {
@@ -43,9 +47,7 @@ function SubNavigation({isSmallScreenWidth, menuItems, title, customHeader}) {
     return (
         <View style={styles.h100}>
             <View style={styles.sidebarHeaderContainer}>
-                {customHeader ? (
-                    customHeader
-                ) : (
+                {customHeader || (
                     <Header
                         title={<Text style={styles.textHeadline}>{title}</Text>}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -68,7 +70,8 @@ function SubNavigation({isSmallScreenWidth, menuItems, title, customHeader}) {
     );
 }
 
-SubNavigation.propTypes = propTypes;
-SubNavigation.displayName = 'SubNavigation';
+SubNavigationMenu.propTypes = propTypes;
+SubNavigationMenu.defaultProps = defaultProps;
+SubNavigationMenu.displayName = 'SubNavigation';
 
-export default withLocalize(SubNavigation);
+export default withLocalize(SubNavigationMenu);

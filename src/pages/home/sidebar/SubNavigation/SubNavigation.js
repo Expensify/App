@@ -34,8 +34,6 @@ function SubNavigation({onLinkClick, insets}) {
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
     }, []);
 
-    console.log(sidebarNavigation);
-
     return (
         <View style={styles.subNavigationContainer}>
             <View style={[StyleSheet.absoluteFillObject, StyleUtils.displayIfTrue(sidebarNavigation.selectedSubNavigationMenu === CONST.SUB_NAVIGATION_MENU.CHATS)]}>
@@ -114,7 +112,8 @@ function SubNavigation({onLinkClick, insets}) {
                             title="Expensify.com"
                             breadcrumbs={['Workspaces', 'Groups']}
                             onPress={() => {
-                                console.log('BREAD');
+                                // TODO: decide where to go
+                                // navigation.navigate('somwhere')
                             }}
                         />
                     }
