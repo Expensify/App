@@ -3339,16 +3339,12 @@ const styles = (theme: ThemeDefault) =>
         eReceiptAmountLarge: {
             ...headlineFont,
             fontSize: variables.fontSizeEReceiptLarge,
-            lineHeight: variables.lineHeightXXLarge,
-            wordBreak: 'break-word',
             textAlign: 'center',
         },
 
         eReceiptCurrency: {
             ...headlineFont,
             fontSize: variables.fontSizeXXLarge,
-            lineHeight: variables.lineHeightXXLarge,
-            wordBreak: 'break-all',
         },
 
         eReceiptMerchant: {
@@ -3406,7 +3402,6 @@ const styles = (theme: ThemeDefault) =>
         },
 
         eReceiptContainer: {
-            flex: 1,
             width: 335,
             minHeight: 540,
             borderRadius: 20,

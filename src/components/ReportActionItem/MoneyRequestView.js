@@ -153,7 +153,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     let receiptURIs;
     let hasErrors = false;
     if (hasReceipt) {
-        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
         hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
@@ -172,6 +172,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         <ReportActionItemImage
                             thumbnail={receiptURIs.thumbnail}
                             image={receiptURIs.image}
+                            transaction={transaction}
                             enablePreviewModal
                         />
                     </View>

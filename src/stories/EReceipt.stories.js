@@ -13,6 +13,7 @@ const transactionData = {
         merchant: 'United Airlines',
         mccGroup: 'Goods',
         created: '2023-07-24 13:46:20',
+        hasEReceipt: true,
     },
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_2`]: {
         transactionID: 'FAKE_2',
@@ -22,6 +23,7 @@ const transactionData = {
         merchant: 'United Airlines',
         mccGroup: 'Airlines',
         created: '2023-07-24 13:46:20',
+        hasEReceipt: true,
     },
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_3`]: {
         transactionID: 'FAKE_3',
@@ -31,6 +33,7 @@ const transactionData = {
         merchant: 'United Airlines',
         mccGroup: 'Commuter',
         created: '2023-07-24 13:46:20',
+        hasEReceipt: true,
     },
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_4`]: {transactionID: 'FAKE_4', amount: 444444, currency: 'USD', cardID: 4, merchant: 'Chevron', mccGroup: 'Gas', created: '2023-07-24 13:46:20'},
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_5`]: {
@@ -41,6 +44,7 @@ const transactionData = {
         merchant: 'Barnes and Noble',
         mccGroup: 'Goods',
         created: '2022-03-21 13:46:20',
+        hasEReceipt: true,
     },
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_6`]: {
         transactionID: 'FAKE_6',
@@ -50,6 +54,7 @@ const transactionData = {
         merchant: 'Trader Joes',
         mccGroup: 'Groceries',
         created: '2023-12-24 13:46:20',
+        hasEReceipt: true,
     },
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_7`]: {
         transactionID: 'FAKE_7',
@@ -59,6 +64,7 @@ const transactionData = {
         merchant: "Linda's Place",
         mccGroup: 'Hotel',
         created: '2023-03-24 13:46:20',
+        hasEReceipt: true,
     },
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_8`]: {
         transactionID: 'FAKE_8',
@@ -68,6 +74,7 @@ const transactionData = {
         merchant: 'United Post Office',
         mccGroup: 'Mail',
         created: '2023-09-24 13:46:20',
+        hasEReceipt: true,
     },
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_9`]: {
         transactionID: 'FAKE_9',
@@ -77,6 +84,7 @@ const transactionData = {
         merchant: 'Dishoom',
         mccGroup: 'Meals',
         created: '2023-07-24 13:46:20',
+        hasEReceipt: true,
     },
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_10`]: {
         transactionID: 'FAKE_10',
@@ -86,6 +94,7 @@ const transactionData = {
         merchant: 'Hertz',
         mccGroup: 'Rental',
         created: '2023-07-24 13:46:20',
+        hasEReceipt: true,
     },
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_11`]: {
         transactionID: 'FAKE_11',
@@ -95,6 +104,7 @@ const transactionData = {
         merchant: 'Laundromat',
         mccGroup: 'Services',
         created: '2023-07-24 13:46:20',
+        hasEReceipt: true,
     },
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_12`]: {transactionID: 'FAKE_12', amount: 1000, currency: 'USD', cardID: 4, merchant: 'Uber', mccGroup: 'Taxi', created: '2023-07-24 13:46:20'},
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_13`]: {
@@ -105,6 +115,7 @@ const transactionData = {
         merchant: 'Pirate Party Store',
         mccGroup: 'Miscellaneous',
         created: '2023-10-31 13:46:20',
+        hasEReceipt: true,
     },
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_14`]: {
         transactionID: 'FAKE_14',
@@ -123,6 +134,7 @@ const transactionData = {
         merchant: 'Invalid MCC',
         mccGroup: 'invalidMCC',
         created: '2023-01-11 13:46:20',
+        hasEReceipt: true,
     },
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_16`]: {
         transactionID: 'FAKE_16',
@@ -132,6 +144,7 @@ const transactionData = {
         merchant: 'This is a very very very very very very very very long merchant name, why would you ever shop at a store with a sign this long?',
         mccGroup: 'invalidMCC',
         created: '2023-01-11 13:46:20',
+        hasEReceipt: true,
     },
 };
 

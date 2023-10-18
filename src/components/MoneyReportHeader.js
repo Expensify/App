@@ -71,7 +71,7 @@ const defaultProps = {
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, report: moneyRequestReport, isSmallScreenWidth, nextStepButtons}) {
     const {translate} = useLocalize();
-    const reportTotal = ReportUtils.getMoneyRequestTotal(moneyRequestReport);
+    const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policyType = lodashGet(policy, 'type');
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
@@ -79,22 +79,15 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
     const isPayer = isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isReportDraft(moneyRequestReport);
     const shouldShowPayButtonForFreePlan = useMemo(
-        () =>
-            isPayer &&
-            !isDraft &&
-            !isSettled &&
-            !moneyRequestReport.isWaitingOnBankAccount &&
-            reportTotal !== 0 &&
-            !ReportUtils.isArchivedRoom(chatReport) &&
-            policyType === CONST.POLICY.TYPE.PERSONAL,
-        [isPayer, isDraft, isSettled, moneyRequestReport, reportTotal, chatReport, policyType],
+        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport) && policyType === CONST.POLICY.TYPE.PERSONAL,
+        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport, policyType],
     );
-    const shouldShowSubmitButton = isDraft && reportTotal !== 0;
-    const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
-    const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
     const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || !!nextStepButtons.approve || !!nextStepButtons.reimburse;
+    const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowSubmitButton;
     const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || !!nextStepButtons.reimburse;
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
 
     return (
         <View style={[styles.pt0]}>
