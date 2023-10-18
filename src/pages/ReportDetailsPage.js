@@ -160,7 +160,18 @@ function ReportDetailsPage(props) {
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
-                <HeaderWithBackButton title={props.translate('common.details')} />
+                <HeaderWithBackButton
+                    title={props.translate('common.details')}
+                    onBackButtonPress={() => {
+                        const topMostReportID = Navigation.getTopmostReportId();
+                        if (topMostReportID) {
+                            Navigation.goBack(ROUTES.HOME);
+                            return;
+                        }
+                        Navigation.goBack();
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.report.reportID));
+                    }}
+                />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
                         <View style={styles.mb3}>
