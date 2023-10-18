@@ -5,6 +5,9 @@ import _ from 'underscore';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import ReportActionItemImage from './ReportActionItemImage';
+import * as StyleUtils from '../../styles/StyleUtils';
+import variables from '../../styles/variables';
+import transactionPropTypes from '../transactionPropTypes';
 
 const propTypes = {
     /** array of image and thumbnail URIs */
@@ -12,6 +15,7 @@ const propTypes = {
         PropTypes.shape({
             thumbnail: PropTypes.string,
             image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            transaction: transactionPropTypes,
         }),
     ).isRequired,
 
@@ -45,14 +49,28 @@ const defaultProps = {
  */
 
 function ReportActionItemImages({images, size, total, isHovered}) {
-    const numberOfShownImages = size || images.length;
-    const shownImages = images.slice(0, size);
+    // Calculate the number of images to be shown, limited by the value of 'size' (if defined)
+    // or the total number of images.
+    const numberOfShownImages = Math.min(size || images.length, images.length);
+    const shownImages = images.slice(0, numberOfShownImages);
     const remaining = (total || images.length) - size;
+    const MAX_REMAINING = 9;
+
+    // The height varies depending on the number of images we are displaying.
+    let heightStyle = {};
+    if (numberOfShownImages === 1) {
+        heightStyle = StyleUtils.getHeight(variables.reportActionImagesSingleImageHeight);
+    } else if (numberOfShownImages === 2) {
+        heightStyle = StyleUtils.getHeight(variables.reportActionImagesDoubleImageHeight);
+    } else if (numberOfShownImages > 2) {
+        heightStyle = StyleUtils.getHeight(variables.reportActionImagesMultipleImageHeight);
+    }
 
     const hoverStyle = isHovered ? styles.reportPreviewBoxHoverBorder : undefined;
+
     return (
-        <View style={[styles.reportActionItemImages, hoverStyle]}>
-            {_.map(shownImages, ({thumbnail, image}, index) => {
+        <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
+            {_.map(shownImages, ({thumbnail, image, transaction}, index) => {
                 const isLastImage = index === numberOfShownImages - 1;
 
                 // Show a border to separate multiple images. Shown to the right for each except the last.
@@ -66,10 +84,13 @@ function ReportActionItemImages({images, size, total, isHovered}) {
                         <ReportActionItemImage
                             thumbnail={thumbnail}
                             image={image}
+                            transaction={transaction}
                         />
                         {isLastImage && remaining > 0 && (
-                            <View style={[styles.reportActionItemImagesMore, hoverStyle]}>
-                                <Text>+{remaining}</Text>
+                            <View style={[styles.reportActionItemImagesMoreContainer]}>
+                                <View style={[styles.reportActionItemImagesMore, isHovered ? styles.reportActionItemImagesMoreHovered : {}]} />
+                                <View style={[styles.reportActionItemImagesMoreCornerTriangle, isHovered ? styles.reportActionItemImagesMoreCornerTriangleHighlighted : {}]} />
+                                <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>{remaining > MAX_REMAINING ? `${MAX_REMAINING}+` : `+${remaining}`}</Text>
                             </View>
                         )}
                     </View>
