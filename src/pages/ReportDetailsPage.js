@@ -81,8 +81,6 @@ function ReportDetailsPage(props) {
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
 
-    const {canUsePolicyRooms} = usePermissions();
-
     const menuItems = useMemo(() => {
         const items = [];
 
@@ -108,7 +106,7 @@ function ReportDetailsPage(props) {
                 subtitle: participants.length,
                 isAnonymousAction: false,
                 action: () => {
-                    if (isUserCreatedPolicyRoom && Permissions.canUsePolicyRooms(props.betas)) {
+                    if (isUserCreatedPolicyRoom) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(props.report.reportID));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(props.report.reportID));
