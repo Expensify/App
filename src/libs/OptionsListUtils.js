@@ -667,7 +667,8 @@ function sortCategories(categories) {
      * }
      */
     _.each(categories, (category) => {
-        const path = category.name.replaceAll(CONST.PARENT_CHILD_SEPARATOR, '.');
+        const safeCategoryName = category.name.replaceAll(CONST.PATH_DOT, CONST.PATH_DOT_REPLACER);
+        const path = safeCategoryName.replaceAll(CONST.PARENT_CHILD_SEPARATOR, CONST.PATH_DOT);
         const existedValue = lodashGet(hierarchy, path, {});
 
         lodashSet(hierarchy, path, {
@@ -693,7 +694,7 @@ function sortCategories(categories) {
                 if (!_.isEmpty(name)) {
                     const categoryObject = {
                         name,
-                        enabled: lodashGet(categories, `${name}.enabled`, false),
+                        enabled: lodashGet(categories, [name, 'enabled'], false),
                     };
 
                     acc.push(categoryObject);

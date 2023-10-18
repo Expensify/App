@@ -1928,9 +1928,54 @@ describe('OptionsListUtils', () => {
                 name: 'Taxi',
             },
         ];
+        const categoriesIncorrectOrdering3 = {
+            'Movies: Mr. Nobody': {
+                enabled: true,
+                name: 'Movies: Mr. Nobody',
+            },
+            Movies: {
+                enabled: true,
+                name: 'Movies',
+            },
+            'Dr. House': {
+                enabled: true,
+                name: 'Dr. House',
+            },
+            'Many.dots.on.the.way.': {
+                enabled: true,
+                name: 'Many.dots.on.the.way.',
+            },
+            'More.Many.dots.on.the.way.': {
+                enabled: false,
+                name: 'More.Many.dots.on.the.way.',
+            },
+        };
+        const result3 = [
+            {
+                enabled: true,
+                name: 'Movies',
+            },
+            {
+                enabled: true,
+                name: 'Movies: Mr. Nobody',
+            },
+            {
+                enabled: true,
+                name: 'Dr. House',
+            },
+            {
+                enabled: true,
+                name: 'Many.dots.on.the.way.',
+            },
+            {
+                enabled: false,
+                name: 'More.Many.dots.on.the.way.',
+            },
+        ];
 
         expect(OptionsListUtils.sortCategories(categoriesIncorrectOrdering)).toStrictEqual(result);
         expect(OptionsListUtils.sortCategories(categoriesIncorrectOrdering2)).toStrictEqual(result2);
+        expect(OptionsListUtils.sortCategories(categoriesIncorrectOrdering3)).toStrictEqual(result3);
     });
 
     it('formatMemberForList()', () => {
