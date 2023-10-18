@@ -106,7 +106,7 @@ function ExpensifyCardPage({
                                     icon={Expensicons.MagnifyingGlass}
                                     iconFill={theme.icon}
                                     shouldShowRightIcon
-                                    brickRoadIndicator='error'
+                                    brickRoadIndicator="error"
                                     onPress={() => Link.openOldDotLink('inbox')}
                                 />
                             </>

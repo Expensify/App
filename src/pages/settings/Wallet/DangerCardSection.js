@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { View} from 'react-native';
+import {View} from 'react-native';
 import styles from '../../../styles/styles';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Text from '../../../components/Text';
