@@ -133,39 +133,39 @@ function WorkspaceInitialPage(props) {
         {
             translationKey: 'workspace.common.settings',
             icon: Expensicons.Gear,
-            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
-            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policy.id))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policy.id)))),
         },
         {
             translationKey: 'workspace.common.reimburse',
             icon: Expensicons.Receipt,
-            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policy.id))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policy.id)))),
             error: hasCustomUnitsError,
         },
         {
             translationKey: 'workspace.common.bills',
             icon: Expensicons.Bill,
-            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policy.id))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policy.id)))),
         },
         {
             translationKey: 'workspace.common.invoices',
             icon: Expensicons.Invoice,
-            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policy.id))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policy.id)))),
         },
         {
             translationKey: 'workspace.common.travel',
             icon: Expensicons.Luggage,
-            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policy.id))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policy.id)))),
         },
         {
             translationKey: 'workspace.common.members',
             icon: Expensicons.Users,
-            action: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id)))),
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
         {
@@ -173,7 +173,7 @@ function WorkspaceInitialPage(props) {
             icon: Expensicons.Bank,
             action: () =>
                 policy.outputCurrency === CONST.CURRENCY.USD
-                    ? waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, '')))()
+                    ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, ''))))()
                     : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
@@ -276,12 +276,12 @@ function WorkspaceInitialPage(props) {
                                 {_.map(menuItems, (item) => (
                                     <MenuItem
                                         key={item.translationKey}
-                                        disabled={hasPolicyCreationError || isExecuting || isCurrencyModalOpen}
+                                        disabled={hasPolicyCreationError || isExecuting}
                                         interactive={!hasPolicyCreationError}
                                         title={props.translate(item.translationKey)}
                                         icon={item.icon}
                                         iconRight={item.iconRight}
-                                        onPress={singleExecution(item.action)}
+                                        onPress={item.action}
                                         shouldShowRightIcon
                                         brickRoadIndicator={item.brickRoadIndicator}
                                     />
