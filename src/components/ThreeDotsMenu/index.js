@@ -97,6 +97,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                             }
                         }}
                         onMouseDown={(e) => {
+                            /* Keep the focus state on mWeb like we did on the native apps. */
                             if (!Browser.isMobile()) {
                                 return;
                             }
