@@ -66,8 +66,8 @@ function ExpensifyCardPage({
         setShouldShowCardDetails(true);
     };
 
-    const detectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
-    const detectedIndividualFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
+    const isDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
+    const isDetectedIndividualFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
 
     return (
         <ScreenWrapper
@@ -85,7 +85,7 @@ function ExpensifyCardPage({
                             <CardPreview />
                         </View>
 
-                        {detectedDomainFraud && (
+                        {isDetectedDomainFraud && (
                             <DotIndicatorMessage
                                 style={[styles.pageWrapper]}
                                 textStyle={[styles.walletLockedMessage]}
@@ -94,7 +94,7 @@ function ExpensifyCardPage({
                             />
                         )}
 
-                        {detectedIndividualFraud && !detectedDomainFraud && (
+                        {isDetectedIndividualFraud && !isDetectedDomainFraud && (
                             <>
                                 <DangerCardSection
                                     title={translate('cardPage.suspiciousBannerTitle')}
@@ -112,7 +112,7 @@ function ExpensifyCardPage({
                             </>
                         )}
 
-                        {!detectedDomainFraud && (
+                        {!isDetectedDomainFraud && (
                             <>
                                 <MenuItemWithTopDescription
                                     description={translate('cardPage.availableSpend')}
