@@ -4,6 +4,7 @@ import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as OnyxTypes from '../types/onyx';
 import ONYXKEYS, {OnyxValues} from '../ONYXKEYS';
+import {Card} from '../types/onyx';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -88,4 +89,13 @@ function maskCard(lastFour = ''): string {
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
-export {isExpensifyCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription};
+/**
+ * Finds physical card in a list of cards
+ *
+ * @returns a physical card object (or undefined if none is found)
+ */
+function findPhysicalCard(cards: Card[]) {
+    return cards.find((card) => !card.isVirtual);
+}
+
+export {isExpensifyCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription, findPhysicalCard};
