@@ -4,9 +4,11 @@ import Permissions from '../libs/Permissions';
 import {BetasContext} from '../components/OnyxProvider';
 
 export default function usePermissions() {
+    console.log('****!!!!****')
     const betas = useContext(BetasContext);
     return useMemo(() => {
         const permissions = {};
+
         _.each(Permissions, (checkerFunction, beta) => {
             permissions[beta] = checkerFunction(betas);
         });
