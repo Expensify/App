@@ -92,33 +92,6 @@ Onyx.connect({
 });
 
 /**
- * Get the option for a policy expense report.
- * @param {Object} report
- * @returns {Object}
- */
-function getPolicyExpenseReportOption(report) {
-    const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
-    const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
-    const reportName = ReportUtils.getReportName(expenseReport);
-    return {
-        ...expenseReport,
-        keyForList: expenseReport.policyID,
-        text: reportName,
-        alternateText: Localize.translateLocal('workspace.common.workspace'),
-        icons: [
-            {
-                source: policyExpenseChatAvatarSource,
-                name: reportName,
-                type: CONST.ICON_TYPE_WORKSPACE,
-            },
-        ],
-        selected: report.selected,
-        isPolicyExpenseChat: true,
-        searchText: report.searchText,
-    };
-}
-
-/**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
  *
  * @param {String} login
@@ -391,7 +364,8 @@ function getLastMessageTextForReport(report) {
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
+        const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
+        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         const lastIOUMoneyReport = _.find(
@@ -402,6 +376,8 @@ function getLastMessageTextForReport(report) {
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true);
+    } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
+        lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
@@ -471,6 +447,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         isArchivedRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
+        isOwnPolicyExpenseChat: false,
         isExpenseReport: false,
         policyID: null,
         isOptimisticPersonalDetail: false,
@@ -490,12 +467,13 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
-        result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.isExpenseReport = ReportUtils.isExpenseReport(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         result.isThread = ReportUtils.isChatThread(report);
         result.isTaskReport = ReportUtils.isTaskReport(report);
         result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
+        result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat || false;
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
@@ -546,7 +524,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
@@ -560,6 +538,32 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     result.subtitle = subtitle;
 
     return result;
+}
+
+/**
+ * Get the option for a policy expense report.
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getPolicyExpenseReportOption(report) {
+    const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+
+    const option = createOption(
+        expenseReport.participantAccountIDs,
+        allPersonalDetails,
+        expenseReport,
+        {},
+        {
+            showChatPreviewLine: false,
+            forcePolicyNamePreview: false,
+        },
+    );
+
+    // Update text & alternateText because createOption returns workspace name only if report is owned by the user
+    option.text = ReportUtils.getPolicyName(expenseReport);
+    option.alternateText = Localize.translateLocal('workspace.common.workspace');
+    option.selected = report.selected;
+    return option;
 }
 
 /**
@@ -1525,6 +1529,20 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 }
 
 /**
+ * Helper method for non-user lists (eg. categories and tags) that returns the text to be used for the header's message and title (if any)
+ *
+ * @param {Boolean} hasSelectableOptions
+ * @param {String} searchValue
+ * @return {String}
+ */
+function getHeaderMessageForNonUserList(hasSelectableOptions, searchValue) {
+    if (searchValue && !hasSelectableOptions) {
+        return Localize.translate(preferredLocale, 'common.noResultsFound');
+    }
+    return '';
+}
+
+/**
  * Helper method to check whether an option can show tooltip or not
  * @param {Object} option
  * @returns {Boolean}
@@ -1543,6 +1561,7 @@ export {
     getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,
+    getHeaderMessageForNonUserList,
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
