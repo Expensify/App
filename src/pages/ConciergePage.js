@@ -32,8 +32,10 @@ function ConciergePage(props) {
     useFocusEffect(() => {
         if (_.has(props.session, 'authToken')) {
             // Pop the concierge loading page before opening the concierge report.
-            Navigation.goBack(ROUTES.HOME);
-            Report.navigateToConciergeChat();
+            Navigation.isNavigationReady().then(() => {
+                Navigation.goBack(ROUTES.HOME);
+                Report.navigateToConciergeChat();
+            });
         } else {
             Navigation.navigate();
         }

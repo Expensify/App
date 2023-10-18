@@ -1,5 +1,5 @@
-import {View, Text, PanResponder, PixelRatio} from 'react-native';
-import React, {useContext, useRef, useState} from 'react';
+import {View, Text, PixelRatio, ActivityIndicator, PanResponder} from 'react-native';
+import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -21,6 +21,14 @@ import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import Icon from '../../../components/Icon';
+import themeColors from '../../../styles/themes/default';
+import Shutter from '../../../../assets/images/shutter.svg';
+import NavigationAwareCamera from './NavigationAwareCamera';
+import * as Browser from '../../../libs/Browser';
+import Hand from '../../../../assets/images/hand.svg';
+import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** The report on which the request is initiated on */
@@ -59,15 +67,23 @@ const defaultProps = {
     isInTabNavigator: true,
 };
 
-function ReceiptSelector(props) {
-    const iouType = lodashGet(props.route, 'params.iouType', '');
+function ReceiptSelector({route, transactionID, iou, report}) {
+    const iouType = lodashGet(route, 'params.iouType', '');
+
+    // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentValidReason] = useState('');
+
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
+
+    const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
+    const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
+    const [isTorchAvailable, setIsTorchAvailable] = useState(true);
+    const cameraRef = useRef(null);
 
     const hideReciptModal = () => {
         setIsAttachmentInvalid(false);
@@ -108,10 +124,10 @@ function ReceiptSelector(props) {
     /**
      * Sets the Receipt objects and navigates the user to the next page
      * @param {Object} file
-     * @param {Object} iou
-     * @param {Object} report
+     * @param {Object} iouObject
+     * @param {Object} reportObject
      */
-    const setReceiptAndNavigate = (file, iou, report) => {
+    const setReceiptAndNavigate = (file, iouObject, reportObject) => {
         if (!validateReceipt(file)) {
             return;
         }
@@ -119,75 +135,180 @@ function ReceiptSelector(props) {
         const filePath = URL.createObjectURL(file);
         IOU.setMoneyRequestReceipt(filePath, file.name);
 
-        if (props.transactionID) {
-            IOU.replaceReceipt(props.transactionID, file, filePath);
+        if (transactionID) {
+            IOU.replaceReceipt(transactionID, file, filePath);
             Navigation.dismissModal();
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, report, props.route.path);
+        IOU.navigateToNextPage(iouObject, iouType, reportObject, route.path);
     };
+
+    const capturePhoto = useCallback(() => {
+        if (!cameraRef.current.getScreenshot) {
+            return;
+        }
+        const imageBase64 = cameraRef.current.getScreenshot();
+        const filename = `receipt_${Date.now()}.png`;
+        const imageFile = FileUtils.base64ToFile(imageBase64, filename);
+        const filePath = URL.createObjectURL(imageFile);
+        IOU.setMoneyRequestReceipt(filePath, imageFile.name);
+
+        if (transactionID) {
+            IOU.replaceReceipt(transactionID, imageFile, filePath);
+            Navigation.dismissModal();
+            return;
+        }
+
+        IOU.navigateToNextPage(iou, iouType, report, route.path);
+    }, [cameraRef, iou, report, iouType, transactionID, route.path]);
 
     const panResponder = useRef(
         PanResponder.create({
-            onMoveShouldSetPanResponder: () => true,
             onPanResponderTerminationRequest: () => false,
         }),
     ).current;
 
-    return (
-        <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
-            {!isDraggingOver ? (
-                <>
-                    <View
-                        onLayout={({nativeEvent}) => {
-                            setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top));
-                        }}
-                    >
-                        <ReceiptUpload
-                            width={CONST.RECEIPT.ICON_SIZE}
-                            height={CONST.RECEIPT.ICON_SIZE}
+    const mobileCameraView = () => (
+        <>
+            <View style={[styles.cameraView]}>
+                {(cameraPermissionState === 'prompt' || !cameraPermissionState) && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={themeColors.textSupporting}
+                    />
+                )}
+                {cameraPermissionState === 'denied' && (
+                    <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
+                        <Icon
+                            src={Hand}
+                            width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                            height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                            style={[styles.pb5]}
                         />
+                        <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
+                        <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
                     </View>
-                    <View
-                        style={styles.receiptViewTextContainer}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...panResponder.panHandlers}
-                    >
-                        <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
-                        <Text style={[styles.subTextReceiptUpload]}>
-                            {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
-                            <CopyTextToClipboard
-                                text={CONST.EMAIL.RECEIPTS}
-                                textStyles={[styles.textBlue]}
+                )}
+                <NavigationAwareCamera
+                    onUserMedia={() => setCameraPermissionState('granted')}
+                    onUserMediaError={() => setCameraPermissionState('denied')}
+                    style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
+                    ref={cameraRef}
+                    screenshotFormat="image/png"
+                    videoConstraints={{facingMode: {exact: 'environment'}}}
+                    torchOn={isFlashLightOn}
+                    onTorchAvailability={setIsTorchAvailable}
+                    forceScreenshotSourceSize
+                />
+            </View>
+
+            <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
+                <AttachmentPicker>
+                    {({openPicker}) => (
+                        <PressableWithFeedback
+                            accessibilityLabel={translate('receipt.chooseFile')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            onPress={() => {
+                                openPicker({
+                                    onPicked: (file) => {
+                                        setReceiptAndNavigate(file, iou, report);
+                                    },
+                                });
+                            }}
+                        >
+                            <Icon
+                                height={32}
+                                width={32}
+                                src={Expensicons.Gallery}
+                                fill={themeColors.textSupporting}
                             />
-                            {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
-                        </Text>
-                    </View>
-                    <AttachmentPicker>
-                        {({openPicker}) => (
-                            <Button
-                                medium
-                                success
-                                text={translate('receipt.chooseFile')}
-                                accessibilityLabel={translate('receipt.chooseFile')}
-                                style={[styles.p9]}
-                                onPress={() => {
-                                    openPicker({
-                                        onPicked: (file) => {
-                                            setReceiptAndNavigate(file, props.iou, props.report);
-                                        },
-                                    });
-                                }}
-                            />
-                        )}
-                    </AttachmentPicker>
-                </>
-            ) : null}
+                        </PressableWithFeedback>
+                    )}
+                </AttachmentPicker>
+                <PressableWithFeedback
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    accessibilityLabel={translate('receipt.shutter')}
+                    style={[styles.alignItemsCenter]}
+                    onPress={capturePhoto}
+                >
+                    <Shutter
+                        width={CONST.RECEIPT.SHUTTER_SIZE}
+                        height={CONST.RECEIPT.SHUTTER_SIZE}
+                    />
+                </PressableWithFeedback>
+                <PressableWithFeedback
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    accessibilityLabel={translate('receipt.flash')}
+                    style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
+                    onPress={toggleFlashlight}
+                    disabled={!isTorchAvailable}
+                >
+                    <Icon
+                        height={32}
+                        width={32}
+                        src={Expensicons.Bolt}
+                        fill={isFlashLightOn ? themeColors.iconHovered : themeColors.textSupporting}
+                    />
+                </PressableWithFeedback>
+            </View>
+        </>
+    );
+
+    const desktopUploadView = () => (
+        <>
+            <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top))}>
+                <ReceiptUpload
+                    width={CONST.RECEIPT.ICON_SIZE}
+                    height={CONST.RECEIPT.ICON_SIZE}
+                />
+            </View>
+
+            <View
+                style={[styles.receiptViewTextContainer, styles.userSelectNone]}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...panResponder.panHandlers}
+            >
+                <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
+                <Text style={[styles.subTextReceiptUpload]}>
+                    {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+                    <CopyTextToClipboard
+                        text={CONST.EMAIL.RECEIPTS}
+                        textStyles={[styles.textBlue]}
+                    />
+                    {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
+                </Text>
+            </View>
+
+            <AttachmentPicker>
+                {({openPicker}) => (
+                    <Button
+                        medium
+                        success
+                        text={translate('receipt.chooseFile')}
+                        accessibilityLabel={translate('receipt.chooseFile')}
+                        style={[styles.p9]}
+                        onPress={() => {
+                            openPicker({
+                                onPicked: (file) => {
+                                    setReceiptAndNavigate(file, iou, report);
+                                },
+                            });
+                        }}
+                    />
+                )}
+            </AttachmentPicker>
+        </>
+    );
+
+    return (
+        <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
+            {!isDraggingOver && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
             <ReceiptDropUI
                 onDrop={(e) => {
                     const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                    setReceiptAndNavigate(file, props.iou, props.report);
+                    setReceiptAndNavigate(file, iou, report);
                 }}
                 receiptImageTopPosition={receiptImageTopPosition}
             />
