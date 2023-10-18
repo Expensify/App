@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
+import ImageSVG from '@components/ImageSVG';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -49,7 +50,9 @@ class QRShare extends Component {
                 onLayout={this.onLayout}
             >
                 <View style={styles.expensifyQrLogo}>
-                    <ExpensifyWordmark
+                    <ImageSVG
+                        contentFit="contain"
+                        src={ExpensifyWordmark}
                         fill={defaultTheme.QRLogo}
                         width="100%"
                         height="100%"

@@ -6,10 +6,12 @@ import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import IconWrapperStyles from './IconWrapperStyles';
+import ImageSVG from '../ImageSVG';
+import {imagePropTypes} from '../Image/imagePropTypes';
 
 const propTypes = {
     /** The asset to render. */
-    src: PropTypes.func.isRequired,
+    src: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]).isRequired,
 
     /** The width of the icon. */
     width: PropTypes.number,
@@ -35,6 +37,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     additionalStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Determines how the image should be resized to fit its container */
+    contentFit: PropTypes.string,
+
     /** Icon name required to create the icon test ID  */
     name: PropTypes.string,
 };
@@ -48,6 +53,7 @@ const defaultProps = {
     additionalStyles: [],
     hovered: false,
     pressed: false,
+    contentFit: 'cover',
     name: '',
 };
 
@@ -58,7 +64,6 @@ class Icon extends PureComponent {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
         const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute, ...this.props.additionalStyles];
-        const IconComponent = this.props.src;
         if (this.props.inline) {
             return (
                 <View
@@ -66,12 +71,14 @@ class Icon extends PureComponent {
                     style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
                 >
                     <View style={iconStyles}>
-                        <IconComponent
+                        <ImageSVG
+                            src={this.props.src}
                             width={width}
                             height={height}
                             fill={this.props.fill}
-                            hovered={this.props.hovered.toString()}
-                            pressed={this.props.pressed.toString()}
+                            hovered={this.props.hovered}
+                            pressed={this.props.pressed}
+                            contentFit={this.props.contentFit}
                         />
                     </View>
                 </View>
@@ -83,12 +90,14 @@ class Icon extends PureComponent {
                 testID={`Svg${this.props.name} Icon`}
                 style={this.props.additionalStyles}
             >
-                <IconComponent
+                <ImageSVG
+                    src={this.props.src}
                     width={width}
                     height={height}
                     fill={this.props.fill}
-                    hovered={this.props.hovered.toString()}
-                    pressed={this.props.pressed.toString()}
+                    hovered={this.props.hovered}
+                    pressed={this.props.pressed}
+                    contentFit={this.props.contentFit}
                 />
             </View>
         );

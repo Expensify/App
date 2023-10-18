@@ -1,4 +1,3 @@
-import {Image} from 'expo-image';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -12,6 +11,7 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
@@ -165,12 +165,12 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
         <View style={styles.flex1}>
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
-                    <Image
+                    <ImageSVG
                         contentFit="contain"
                         source={Hand}
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
                         height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                        style={[styles.pb5, {width: CONST.RECEIPT.HAND_ICON_WIDTH, height: CONST.RECEIPT.HAND_ICON_HEIGHT}]}
+                        style={styles.pb5}
                     />
                     <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
                     <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
@@ -245,10 +245,11 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                     style={[styles.alignItemsCenter]}
                     onPress={takePhoto}
                 >
-                    <Image
+                    <ImageSVG
                         contentFit="contain"
                         source={Shutter}
-                        style={{width: CONST.RECEIPT.SHUTTER_SIZE, height: CONST.RECEIPT.SHUTTER_SIZE}}
+                        width={CONST.RECEIPT.SHUTTER_SIZE}
+                        height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback

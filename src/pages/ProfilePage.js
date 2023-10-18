@@ -274,7 +274,7 @@ function ProfilePage(props) {
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
                         iconName="ToddBehindCloud"
-                        displayInDefaultIconColor
+                        iconColor={undefined}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={props.translate('notFound.notHere')}

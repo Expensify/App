@@ -38,13 +38,13 @@ function Image(props) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             source={imageSource}
-            // onLoad={(evt) => {
-            //     const {width, height} = evt.nativeEvent;
-            //     dimensionsCache.set(source.uri, {width, height});
-            //     if (props.onLoad) {
-            //         props.onLoad(evt);
-            //     }
-            // }}
+            onLoad={(evt) => {
+                const {width, height} = evt.nativeEvent;
+                dimensionsCache.set(source.uri, {width, height});
+                if (props.onLoad) {
+                    props.onLoad(evt);
+                }
+            }}
         />
     );
 }

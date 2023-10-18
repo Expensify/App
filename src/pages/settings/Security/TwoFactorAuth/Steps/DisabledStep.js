@@ -17,7 +17,7 @@ function DisabledStep() {
             <BlockingView
                 icon={Illustrations.LockOpen}
                 iconName="SimpleIllustrationLockopen"
-                displayInDefaultIconColor
+                iconColor={undefined}
                 iconWidth={variables.modalTopIconWidth}
                 iconHeight={variables.modalTopIconHeight}
                 title={translate('twoFactorAuth.disabled')}

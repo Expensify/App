@@ -45,9 +45,6 @@ const propTypes = {
 
     /** Whether we should embed the link with subtitle */
     shouldEmbedLinkWithSubtitle: PropTypes.bool,
-
-    /** Is icon displayed in its own color */
-    displayInDefaultIconColor: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -60,7 +57,6 @@ const defaultProps = {
     iconHeight: variables.iconSizeSuperLarge,
     onLinkPress: () => Navigation.dismissModal(),
     shouldEmbedLinkWithSubtitle: false,
-    displayInDefaultIconColor: false,
 };
 
 function BlockingView(props) {
@@ -92,7 +88,6 @@ function BlockingView(props) {
                 fill={props.iconColor}
                 width={props.iconWidth}
                 height={props.iconHeight}
-                displayInDefaultIconColor={props.displayInDefaultIconColor}
             />
             <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
 

@@ -29,7 +29,7 @@ function ImTeacherUpdateEmailPage() {
                 shouldEmbedLinkWithSubtitle
                 icon={Illustrations.EmailAddress}
                 iconName="SimpleIllustrationEmailAddress"
-                displayInDefaultIconColor
+                iconColor={undefined}
                 title={translate('teachersUnitePage.updateYourEmail')}
                 subtitle={translate('teachersUnitePage.schoolMailAsDefault')}
                 linkKey="teachersUnitePage.contactMethods"

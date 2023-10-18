@@ -1,4 +1,3 @@
-import {Image} from 'expo-image';
 import React, {useMemo, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
@@ -6,6 +5,7 @@ import _ from 'underscore';
 import Logo from '@assets/images/new-expensify.svg';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -109,9 +109,10 @@ function AboutPage(props) {
                         <View style={[styles.flex1]}>
                             <View style={styles.pageWrapper}>
                                 <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
-                                    <Image
-                                        source={Logo}
-                                        style={{height: 80, width: 80}}
+                                    <ImageSVG
+                                        src={Logo}
+                                        height={80}
+                                        width={80}
                                     />
                                     <Text
                                         selectable

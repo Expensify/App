@@ -5,6 +5,7 @@ import LogoWordmark from '@assets/images/expensify-wordmark.svg';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -33,7 +34,6 @@ function GenericErrorPage({translate}) {
                             <View style={styles.mb5}>
                                 <Icon
                                     src={Expensicons.Bug}
-                                    name="Bug"
                                     height={variables.componentSizeNormal}
                                     width={variables.componentSizeNormal}
                                     fill={defaultTheme.iconSuccessFill}
@@ -77,7 +77,8 @@ function GenericErrorPage({translate}) {
                     </View>
                     <View styles={styles.alignSelfEnd}>
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
-                            <LogoWordmark
+                            <ImageSVG
+                                src={LogoWordmark}
                                 height={30}
                                 width={80}
                                 fill={defaultTheme.textLight}

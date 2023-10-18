@@ -12,6 +12,7 @@ import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ImageSVG from './ImageSVG';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
@@ -46,7 +47,10 @@ function ExpensifyWordmark(props) {
                     ...(_.isArray(props.style) ? props.style : [props.style]),
                 ]}
             >
-                <LogoComponent fill={themeColors.success} />
+                <ImageSVG
+                    contentFit="contain"
+                    src={LogoComponent}
+                />
             </View>
         </>
     );

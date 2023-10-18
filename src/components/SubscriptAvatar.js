@@ -82,7 +82,6 @@ function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, no
                         source={secondaryAvatar.source}
                         avatarImageName={secondaryAvatar.avatarImageName}
                         size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
-                        // fill={themeColors.iconSuccessFill}
                         name={secondaryAvatar.name}
                         type={secondaryAvatar.type}
                         fallbackIcon={secondaryAvatar.fallbackIcon}

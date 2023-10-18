@@ -229,13 +229,14 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     name={props.iconName}
                                                     width={props.iconWidth}
                                                     height={props.iconHeight}
-                                                    displayInDefaultIconColor={props.displayInDefaultIconColor}
                                                     fill={
-                                                        props.iconFill ||
-                                                        StyleUtils.getIconFillColor(
-                                                            getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive),
-                                                            true,
-                                                        )
+                                                        props.displayInDefaultIconColor
+                                                            ? null
+                                                            : props.iconFill ||
+                                                              StyleUtils.getIconFillColor(
+                                                                  getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive),
+                                                                  true,
+                                                              )
                                                     }
                                                 />
                                             )}

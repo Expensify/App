@@ -1,4 +1,3 @@
-import {Image} from 'expo-image';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
@@ -6,6 +5,7 @@ import _ from 'underscore';
 import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
 import Hoverable from '@components/Hoverable';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -155,14 +155,15 @@ function Footer(props) {
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
     const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(themeColors.signInPage), styles.overflowHidden] : [];
+
     return (
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>
                 {isVertical ? (
                     <View style={[styles.signInPageGradientMobile]}>
-                        <Image
-                            source={SignInGradient}
-                            style={{height: '100%', width: '100%'}}
+                        <ImageSVG
+                            src={SignInGradient}
+                            height="100%"
                         />
                     </View>
                 ) : null}
@@ -206,12 +207,12 @@ function Footer(props) {
                     </View>
                     <View style={[!isVertical && styles.footerBottomLogo]}>
                         {!isVertical ? (
-                            <Image source={Expensicons.ExpensifyFooterLogo} />
+                            <ImageSVG src={Expensicons.ExpensifyFooterLogo} />
                         ) : (
-                            <Image
-                                contentFit="contain"
-                                source={Expensicons.ExpensifyFooterLogoVertical}
-                                style={{height: variables.verticalLogoHeight, width: variables.verticalLogoWidth}}
+                            <ImageSVG
+                                src={Expensicons.ExpensifyFooterLogoVertical}
+                                height={variables.verticalLogoHeight}
+                                width={variables.verticalLogoWidth}
                             />
                         )}
                     </View>
