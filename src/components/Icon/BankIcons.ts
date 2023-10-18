@@ -1,5 +1,6 @@
 import {SvgProps} from 'react-native-svg';
-import * as Expensicons from './Expensicons';
+import {CSSProperties} from 'react';
+import {ViewStyle} from 'react-native';
 import AmericanExpress from '../../../assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '../../../assets/images/bankicons/bank-of-america.svg';
 import BB_T from '../../../assets/images/bankicons/bb-t.svg';
@@ -20,31 +21,35 @@ import TdBank from '../../../assets/images/bankicons/td-bank.svg';
 import USBank from '../../../assets/images/bankicons/us-bank.svg';
 import USAA from '../../../assets/images/bankicons/usaa.svg';
 // Card Icons
-import AmericanExpressCard from '../../../assets/images/bankicons/american-express-card.svg';
-import BankOfAmericaCard from '../../../assets/images/bankicons/bank-of-america-card.svg';
-import BB_TCard from '../../../assets/images/bankicons/bb-t-card.svg';
-import CapitalOneCard from '../../../assets/images/bankicons/capital-one-card.svg';
-import CharlesSchwabCard from '../../../assets/images/bankicons/charles-schwab-card.svg';
-import ChaseCard from '../../../assets/images/bankicons/chase-card.svg';
-import CitiBankCard from '../../../assets/images/bankicons/citibank-card.svg';
-import CitizensBankCard from '../../../assets/images/bankicons/citizens-card.svg';
-import DiscoverCard from '../../../assets/images/bankicons/discover-card.svg';
-import FidelityCard from '../../../assets/images/bankicons/fidelity-card.svg';
-import HuntingtonBankCard from '../../../assets/images/bankicons/huntington-bank-card.svg';
-import NavyFederalCreditUnionCard from '../../../assets/images/bankicons/navy-federal-credit-union-card.svg';
-import PNCCard from '../../../assets/images/bankicons/pnc-card.svg';
-import RegionsBankCard from '../../../assets/images/bankicons/regions-bank-card.svg';
-import SunTrustCard from '../../../assets/images/bankicons/suntrust-card.svg';
-import TdBankCard from '../../../assets/images/bankicons/td-bank-card.svg';
-import USBankCard from '../../../assets/images/bankicons/us-bank-card.svg';
-import USAACard from '../../../assets/images/bankicons/usaa-card.svg';
-import ExpensifyCardImage from '../../../assets/images/bankicons/expensify-card-dark.svg';
-
+import AmericanExpressCard from '../../../assets/images/cardicons/american-express.svg';
+import BankOfAmericaCard from '../../../assets/images/cardicons/bank-of-america.svg';
+import BB_TCard from '../../../assets/images/cardicons/bb-t.svg';
+import CapitalOneCard from '../../../assets/images/cardicons/capital-one.svg';
+import CharlesSchwabCard from '../../../assets/images/cardicons/charles-schwab.svg';
+import ChaseCard from '../../../assets/images/cardicons/chase.svg';
+import CitiBankCard from '../../../assets/images/cardicons/citibank.svg';
+import CitizensBankCard from '../../../assets/images/cardicons/citizens.svg';
+import DiscoverCard from '../../../assets/images/cardicons/discover.svg';
+import FidelityCard from '../../../assets/images/cardicons/fidelity.svg';
+import HuntingtonBankCard from '../../../assets/images/cardicons/huntington-bank.svg';
+import GenericBankCard from '../../../assets/images/cardicons/generic-bank-card.svg';
+import NavyFederalCreditUnionCard from '../../../assets/images/cardicons/navy-federal-credit-union.svg';
+import PNCCard from '../../../assets/images/cardicons/pnc.svg';
+import RegionsBankCard from '../../../assets/images/cardicons/regions-bank.svg';
+import SunTrustCard from '../../../assets/images/cardicons/suntrust.svg';
+import TdBankCard from '../../../assets/images/cardicons/td-bank.svg';
+import USBankCard from '../../../assets/images/cardicons/us-bank.svg';
+import USAACard from '../../../assets/images/cardicons/usaa.svg';
+import ExpensifyCardImage from '../../../assets/images/cardicons/expensify-card-dark.svg';
+import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 
 type BankIcon = {
     icon: React.FC<SvgProps>;
     iconSize?: number;
+    iconHeight?: number;
+    iconWidth?: number;
+    iconStyles?: Array<ViewStyle | CSSProperties>;
 };
 
 /**
@@ -128,7 +133,7 @@ function getAssetIcon(bankName: string, isCard: boolean): React.FC<SvgProps> {
         return isCard ? USAACard : USAA;
     }
 
-    return isCard ? Expensicons.CreditCard : GenericBank;
+    return isCard ? GenericBankCard : GenericBank;
 }
 
 /**
@@ -137,7 +142,7 @@ function getAssetIcon(bankName: string, isCard: boolean): React.FC<SvgProps> {
 
 export default function getBankIcon(bankName: string, isCard = false): BankIcon {
     const bankIcon: BankIcon = {
-        icon: isCard ? Expensicons.CreditCard : GenericBank,
+        icon: isCard ? GenericBankCard : GenericBank,
     };
 
     if (bankName) {
@@ -145,8 +150,13 @@ export default function getBankIcon(bankName: string, isCard = false): BankIcon 
     }
 
     // For default Credit Card icon the icon size should not be set.
-    if (![Expensicons.CreditCard].includes(bankIcon.icon)) {
+    if (!isCard) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
+        bankIcon.iconStyles = [styles.bankIconContainer];
+    } else {
+        bankIcon.iconHeight = variables.bankCardHeight;
+        bankIcon.iconWidth = variables.bankCardWidth;
+        bankIcon.iconStyles = [styles.assignedCardsIconContainer];
     }
 
     return bankIcon;

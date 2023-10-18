@@ -207,14 +207,11 @@ function PaymentMethodList({
                 .sortBy((card) => !CardUtils.isExpensifyCard(card.cardID))
                 .value();
 
-            const numberPhysicalExpensifyCards = _.filter(cardList, (card) => CardUtils.isExpensifyCard(card.cardID)).length;
+            const numberPhysicalExpensifyCards = _.filter(assignedCards, (card) => CardUtils.isExpensifyCard(card.cardID)).length;
 
             return _.map(assignedCards, (card) => {
                 const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
                 const icon = getBankIcon(card.bank, true);
-                icon.iconHeight = variables.bankCardHeight;
-                icon.iconWidth = variables.bankCardWidth;
-                icon.iconStyles = [styles.assignedCardsIconContainer];
 
                 // In the case a user has been assigned multiple physical Expensify Cards under one domain, display the Card with PAN
                 const expensifyCardDescription = numberPhysicalExpensifyCards > 1 ? CardUtils.getCardDescription(card.cardID) : translate('walletPage.expensifyCard');

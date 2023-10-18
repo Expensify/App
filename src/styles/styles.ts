@@ -3778,6 +3778,14 @@ const styles = (theme: ThemeDefault) =>
             alignSelf: 'center',
         },
 
+        bankIconContainer: {
+            height: variables.bankCardWidth,
+            width: variables.bankCardWidth,
+            borderRadius: 8,
+            overflow: 'hidden',
+            alignSelf: 'center',
+        },
+
         moneyRequestHeaderStatusBarBadge: {
             paddingHorizontal: 8,
             borderRadius: variables.componentBorderRadiusSmall,
