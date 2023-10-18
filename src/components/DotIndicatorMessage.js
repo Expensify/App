@@ -92,7 +92,6 @@ function DotIndicatorMessage(props) {
                             <Text
                                 key={i}
                                 style={styles.offlineFeedback.text}
-                                numberOfLines={1}
                             >
                                 <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
                                 <Text style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}>{Localize.translateLocal('iou.error.saveFileMessage')}</Text>
