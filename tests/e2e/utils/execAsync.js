@@ -10,7 +10,9 @@ const Logger = require('./logger');
 module.exports = (command) => {
     let process;
     const promise = new Promise((resolve, reject) => {
-        Logger.log('Output of command:', command);
+        Logger.log(`\nRunning command:`);
+        Logger.important(command);
+
         process = exec(
             command,
             {
@@ -22,11 +24,11 @@ module.exports = (command) => {
                     if (error && error.killed) {
                         resolve();
                     } else {
-                        Logger.log(`failed with error: ${error}`);
+                        Logger.error(`failed with error: ${error}`);
                         reject(error);
                     }
                 } else {
-                    Logger.log(stdout);
+                    Logger.note(stdout);
                     resolve(stdout);
                 }
             },

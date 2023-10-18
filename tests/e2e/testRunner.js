@@ -207,7 +207,7 @@ const runTests = async () => {
 
         const warmupLogs = Logger.progressInfo(`Running warmup '${testConfig.name}'`);
 
-        let progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${testConfig.name}'`;
+        let progressText = `Warmup for suite '${testConfig.name}' [${testIndex + 1}/${numOfTests}]\n`;
         warmupLogs.updateText(progressText);
 
         await restartApp();
@@ -227,7 +227,7 @@ const runTests = async () => {
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
         for (let i = 0; i < config.RUNS; i++) {
-            progressText = `(${testIndex + 1}/${numOfTests}) Running test '${testConfig.name}' (iteration ${i + 1}/${config.RUNS})`;
+            progressText = `Suite '${testConfig.name}' [${testIndex + 1}/${numOfTests}], iteration [${i + 1}/${config.RUNS}]\n`;
             testLog.updateText(progressText);
 
             await restartApp();
