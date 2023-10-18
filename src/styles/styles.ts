@@ -527,7 +527,7 @@ const styles = (theme: ThemeDefault) =>
             paddingTop: 8,
             paddingRight: 10,
             paddingBottom: 8,
-            paddingLeft: 18,
+            paddingLeft: 10,
             backgroundColor: theme.buttonDefaultBG,
         },
 
