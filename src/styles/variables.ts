@@ -167,6 +167,7 @@ export default {
     eReceiptWordmarkWidth: 86,
     eReceiptBGHeight: 540,
     eReceiptBGHWidth: 335,
+    eReceiptTextContainerWidth: 263,
     reportPreviewMaxWidth: 335,
     reportActionImagesSingleImageHeight: 147,
     reportActionImagesDoubleImageHeight: 138,
