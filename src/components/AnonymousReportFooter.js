@@ -36,6 +36,7 @@ function AnonymousReportFooter(props) {
                     report={props.report}
                     personalDetails={props.personalDetails}
                     isAnonymous
+                    shouldEnableDetailPageNavigation
                 />
             </View>
             <View style={styles.anonymousRoomFooterWordmarkAndLogoContainer(props.isSmallSizeLayout)}>

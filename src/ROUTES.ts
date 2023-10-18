@@ -36,6 +36,8 @@ export default {
     APPLE_SIGN_IN: 'sign-in-with-apple',
     GOOGLE_SIGN_IN: 'sign-in-with-google',
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
+    SAML_SIGN_IN: 'sign-in-with-saml',
+
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
     ENABLE_PAYMENTS: 'enable-payments',
@@ -71,22 +73,26 @@ export default {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_WALLET_DOMAINCARDS: {
+    SETTINGS_WALLET_DOMAINCARD: {
         route: '/settings/wallet/card/:domain',
         getRoute: (domain: string) => `/settings/wallet/card/${domain}`,
     },
     SETTINGS_REPORT_FRAUD: {
-        route: '/settings/wallet/cards/:domain/report-virtual-fraud',
-        getRoute: (domain: string) => `/settings/wallet/cards/${domain}/report-virtual-fraud`,
+        route: '/settings/wallet/card/:domain/report-virtual-fraud',
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-virtual-fraud`,
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
+        route: 'settings/wallet/card/:domain/digital-details/update-address',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address`,
+    },
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
     SETTINGS_WALLET_CARD_ACTIVATE: {
-        route: 'settings/wallet/cards/:domain/activate',
-        getRoute: (domain: string) => `settings/wallet/cards/${domain}/activate`,
+        route: 'settings/wallet/card/:domain/activate',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/activate`,
     },
     SETTINGS_PERSONAL_DETAILS: 'settings/profile/personal-details',
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: 'settings/profile/personal-details/legal-name',
@@ -204,7 +210,7 @@ export default {
         getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`,
     },
 
-    // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
+    // To see the available iouType, please refer to CONST.IOU.TYPE
     MONEY_REQUEST: {
         route: ':iouType/new/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}`,
@@ -286,6 +292,11 @@ export default {
     I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',
     INTRO_SCHOOL_PRINCIPAL: 'teachersunite/intro-school-principal',
 
+    ERECEIPT: {
+        route: 'eReceipt/:transactionID',
+        getRoute: (transactionID: string) => `eReceipt/${transactionID}`,
+    },
+
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
@@ -337,9 +348,10 @@ export default {
         getRoute: (policyID: string) => `workspace/${policyID}/members`,
     },
 
-    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
+    // These are some one-off routes that will be removed once they're no longer needed (see GH issues for details)
     SAASTR: 'saastr',
     SBE: 'sbe',
+    MONEY2020: 'money2020',
 
     // Iframe screens from olddot
     HOME_OLDDOT: 'home',
