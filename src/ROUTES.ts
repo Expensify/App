@@ -210,7 +210,7 @@ export default {
         getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`,
     },
 
-    // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
+    // To see the available iouType, please refer to CONST.IOU.TYPE
     MONEY_REQUEST: {
         route: ':iouType/new/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}`,
@@ -291,6 +291,11 @@ export default {
     I_KNOW_A_TEACHER: 'teachersunite/i-know-a-teacher',
     I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',
     INTRO_SCHOOL_PRINCIPAL: 'teachersunite/intro-school-principal',
+
+    ERECEIPT: {
+        route: 'eReceipt/:transactionID',
+        getRoute: (transactionID: string) => `eReceipt/${transactionID}`,
+    },
 
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
