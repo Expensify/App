@@ -153,6 +153,12 @@ const propTypes = {
 
     /** Should render component on the right */
     shouldShowRightComponent: PropTypes.bool,
+
+    /** Should render title without tooltip or not, we don't show tooltip on some items like, workspace and few more */
+    shouldUseFullTitle: PropTypes.bool,
+
+    /** Render title with tooltips for menu items like, asignee & share somewhere menu */
+    titleWithTooltips: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default propTypes;
