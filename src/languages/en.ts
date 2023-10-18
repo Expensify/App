@@ -550,7 +550,7 @@ export default {
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
-        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`,
+        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         payElsewhere: 'Pay elsewhere',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
