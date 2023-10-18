@@ -179,7 +179,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     reportsToDisplay.forEach((report) => {
         if (report.isPinned) {
             pinnedReports.push(report);
-        } else if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
+        } else if (ReportUtils.shouldShowGBR(report)) {
             outstandingIOUReports.push(report);
         } else if (report.hasDraft) {
             draftReports.push(report);

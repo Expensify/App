@@ -1213,12 +1213,12 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
 }
 
 /**
- * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
+ * Determines if a report child has an outstanding request that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
  * @returns {boolean}
  */
-function isWaitingForIOUActionFromCurrentUser(report) {
+function shouldShowGBR(report) {
     if (!report) {
         return false;
     }
@@ -1227,34 +1227,13 @@ function isWaitingForIOUActionFromCurrentUser(report) {
         return false;
     }
 
-    const policy = getPolicy(report.policyID);
-    if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
-        // If the report is already settled, there's no action required from any user.
-        if (isSettled(report.reportID)) {
-            return false;
-        }
-
-        // Report is pending approval and the current user is the manager
-        if (isReportManager(report) && !isReportApproved(report)) {
-            return true;
-        }
-
-        // Current user is an admin and the report has been approved but not settled yet
-        return policy.role === CONST.POLICY.ROLE.ADMIN && isReportApproved(report);
-    }
-
     // Money request waiting for current user to add their credit bank account
     if (report.hasOutstandingIOU && report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
         return true;
     }
 
-    // Money request waiting for current user to Pay (from expense or iou report)
-    if (report.hasOutstandingIOU && report.ownerAccountID && (report.ownerAccountID !== currentUserAccountID || currentUserAccountID === report.managerID)) {
-        return true;
-    }
-
     // Child report that is awaiting for current user to Pay
-    if (report.hasOutstandingChildRequest && report.ownerAccountID === currentUserAccountID) {
+    if (report.hasOutstandingChildRequest) {
         return true;
     }
 
@@ -3141,7 +3120,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     }
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft, having an outstanding IOU, or being assigned to an open task.
-    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
+    if (report.hasDraft || shouldShowGBR(report) || isWaitingForTaskCompleteFromAssignee(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
@@ -3953,7 +3932,7 @@ export {
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
-    isWaitingForIOUActionFromCurrentUser,
+    shouldShowGBR,
     isIOUOwnedByCurrentUser,
     getMoneyRequestReimbursableTotal,
     getMoneyRequestSpendBreakdown,
