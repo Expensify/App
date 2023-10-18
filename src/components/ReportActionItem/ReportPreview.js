@@ -184,7 +184,8 @@ function ReportPreview(props) {
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowPayButtonForFreePlan = !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
+    const shouldShowPayButtonForFreePlan =
+        !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
     const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || props.nextStepButtons.approve || props.nextStepButtons.reimburse;
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>

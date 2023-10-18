@@ -79,7 +79,14 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
     const isPayer = isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isReportDraft(moneyRequestReport);
     const shouldShowPayButtonForFreePlan = useMemo(
-        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport) && policyType === CONST.POLICY.TYPE.PERSONAL,
+        () =>
+            isPayer &&
+            !isDraft &&
+            !isSettled &&
+            !moneyRequestReport.isWaitingOnBankAccount &&
+            reimbursableTotal !== 0 &&
+            !ReportUtils.isArchivedRoom(chatReport) &&
+            policyType === CONST.POLICY.TYPE.PERSONAL,
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport, policyType],
     );
     const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || !!nextStepButtons.approve || !!nextStepButtons.reimburse;
