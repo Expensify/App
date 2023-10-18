@@ -349,12 +349,16 @@ function buildOnyxDataForMoneyRequest(
                               errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
                           [iouAction.reportActionID]: {
-                              errors: transaction.receipt ? ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename}) : ErrorUtils.getMicroSecondOnyxError(null),
+                              errors: transaction.receipt
+                                  ? ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename})
+                                  : ErrorUtils.getMicroSecondOnyxError(null),
                           },
                       }
                     : {
                           [iouAction.reportActionID]: {
-                              errors: transaction.receipt ? ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename}) :  ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: transaction.receipt
+                                  ? ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename})
+                                  : ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
                       }),
             },

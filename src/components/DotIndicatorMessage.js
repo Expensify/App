@@ -81,12 +81,12 @@ function DotIndicatorMessage(props) {
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
-                {_.map(sortedMessages, (message, i) => (
+                {_.map(sortedMessages, (message, i) =>
                     isReceiptError(message) ? (
                         <PressableWithoutFeedback
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                             onPress={() => {
-                                downloadReceipt(message.source, message.filename)
+                                downloadReceipt(message.source, message.filename);
                             }}
                         >
                             <Text
@@ -100,13 +100,14 @@ function DotIndicatorMessage(props) {
                             </Text>
                         </PressableWithoutFeedback>
                     ) : (
-                    <Text
-                        key={i}
-                        style={styles.offlineFeedback.text}
-                    >
-                        {message}
-                    </Text>
-                )))}
+                        <Text
+                            key={i}
+                            style={styles.offlineFeedback.text}
+                        >
+                            {message}
+                        </Text>
+                    ),
+                )}
             </View>
         </View>
     );
