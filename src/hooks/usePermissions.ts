@@ -2,11 +2,13 @@ import {useContext, useMemo} from 'react';
 import Permissions from '../libs/Permissions';
 import {BetasContext} from '../components/OnyxProvider';
 
-export default function usePermissions() {
+let permissionKey: keyof typeof Permissions;
+type UsePermissions = Partial<Record<typeof permissionKey, boolean>>;
+
+export default function usePermissions(): UsePermissions {
     const betas = useContext(BetasContext);
     return useMemo(() => {
-        let permissionKey: keyof typeof Permissions;
-        const permissions: Partial<Record<typeof permissionKey, boolean>> = {};
+        const permissions: UsePermissions = {};
 
         for (permissionKey in Permissions) {
             if (betas) {
