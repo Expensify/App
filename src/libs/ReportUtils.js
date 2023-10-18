@@ -1538,12 +1538,7 @@ function canEditFieldOfMoneyRequest(reportAction, reportID, fieldToEdit) {
 
     // Checks if the report is settled
     // Checks if the provided property is a restricted one
-    if (!isSettled(reportID) || !nonEditableFieldsWhenSettled.includes(fieldToEdit)) {
-        return true; // User can edit
-    }
-
-    // Current user cannot edit the provided property of the money request
-    return false;
+    return !isSettled(reportID) || !nonEditableFieldsWhenSettled.includes(fieldToEdit);
 }
 
 /**
