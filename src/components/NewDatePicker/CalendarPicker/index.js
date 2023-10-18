@@ -205,7 +205,7 @@ class CalendarPicker extends React.PureComponent {
                             const isBeforeMinDate = currentDate < startOfDay(new Date(this.props.minDate));
                             const isAfterMaxDate = currentDate > startOfDay(new Date(this.props.maxDate));
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                            const isSelected = isSameDay(new Date(this.props.value), new Date(currentYearView, currentMonthView, day));
+                            const isSelected = this.props.value === format(currentDate, CONST.DATE.FNS_FORMAT_STRING);
 
                             return (
                                 <PressableWithoutFeedback
