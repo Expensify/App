@@ -73,6 +73,13 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCategories = val),
 });
 
+let networkStatus = {};
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    waitForCollectionCallback: true,
+    callback: (val) => (networkStatus = val),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
@@ -766,7 +773,7 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            lastModified,
+            ...(!networkStatus.isOffline && {lastModified}),
             customUnit: JSON.stringify(newCustomUnitParam),
             customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },
@@ -910,6 +917,48 @@ function buildOptimisticCustomUnits() {
 }
 
 /**
+ * Optimistically creates a Policy Draft for a new workspace
+ *
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {String} [policyName] Optional, custom policy name we will use for created workspace
+ * @param {String} [policyID] Optional, custom policy id we will use for created workspace
+ */
+function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID()) {
+    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
+    const {customUnits} = buildOptimisticCustomUnits();
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+            value: {
+                id: policyID,
+                type: CONST.POLICY.TYPE.FREE,
+                name: workspaceName,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: sessionEmail,
+                isPolicyExpenseChatEnabled: true,
+                outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                customUnits,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
+            value: {
+                [sessionAccountID]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    errors: {},
+                },
+            },
+        },
+    ];
+
+    Onyx.update(optimisticData);
+}
+
+/**
  * Optimistically creates a new workspace and default workspace chats
  *
  * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
@@ -1027,6 +1076,16 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
                     value: expenseReportActionData,
                 },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
+                    value: null,
+                },
             ],
             successData: [
                 {
@@ -1131,6 +1190,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             ],
         },
     );
+
     return adminsChatReportID;
 }
 
@@ -1259,4 +1319,5 @@ export {
     clearErrors,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
+    createDraftInitialWorkspace,
 };

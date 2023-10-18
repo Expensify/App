@@ -1,5 +1,7 @@
+import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 import * as OnyxCommon from './OnyxCommon';
+import PaymentMethod from './PaymentMethod';
 
 type WalletTransfer = {
     /** Selected accountID for transfer */
@@ -9,7 +11,7 @@ type WalletTransfer = {
     selectedAccountType?: string;
 
     /** Type to filter the payment Method list */
-    filterPaymentMethodType?: typeof CONST.PAYMENT_METHODS.DEBIT_CARD | typeof CONST.PAYMENT_METHODS.BANK_ACCOUNT;
+    filterPaymentMethodType?: FilterMethodPaymentType;
 
     /** Whether the success screen is shown to user. */
     shouldShowSuccess?: boolean;
@@ -19,6 +21,12 @@ type WalletTransfer = {
 
     /** Whether or not data is loading */
     loading?: boolean;
+
+    paymentMethodType?: ValueOf<Pick<PaymentMethod, 'accountType'>>;
 };
 
+type FilterMethodPaymentType = typeof CONST.PAYMENT_METHODS.DEBIT_CARD | typeof CONST.PAYMENT_METHODS.BANK_ACCOUNT | null;
+
 export default WalletTransfer;
+
+export type {FilterMethodPaymentType};
