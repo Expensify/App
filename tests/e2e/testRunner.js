@@ -28,10 +28,10 @@ const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
 const reversePort = require('./utils/androidReversePort');
 
+// VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
 
 let branch = 'main';
-
 if (args.includes('--branch')) {
     branch = args[args.indexOf('--branch') + 1];
 }
@@ -53,6 +53,8 @@ const setConfigPath = (configPathParam) => {
 
 const skipCheckout = args.includes('--skipCheckout');
 
+const skipInstallDeps = args.includes('--skipInstallDeps');
+
 // There are three build modes:
 // 1. full: rebuilds the full native app in (e2e) release mode
 // 2. js-only: only rebuilds the js bundle, and then re-packages
@@ -60,6 +62,15 @@ const skipCheckout = args.includes('--skipCheckout');
 //             is no existing native app, it will fallback to mode "full"
 // 3. skip: does not rebuild anything, and just runs the existing native app
 let buildMode = 'full';
+
+if (args.includes('--buildMode')) {
+    buildMode = args[args.indexOf('--buildMode') + 1];
+}
+
+let appPath = config.APP_PATH;
+if (args.includes('--appPath')) {
+    appPath = args[args.indexOf('--appPath') + 1];
+}
 
 // When we are in dev mode we want to apply certain default params and configs
 const isDevMode = args.includes('--development');
@@ -98,6 +109,8 @@ if (isDevMode) {
     }
 }
 
+// START OF TEST CODE
+
 const restartApp = async () => {
     Logger.log('Killing app …');
     await killApp('android', config.APP_PACKAGE);
@@ -106,15 +119,6 @@ const restartApp = async () => {
 };
 
 const runTests = async () => {
-    if (args.includes('--buildMode')) {
-        buildMode = args[args.indexOf('--buildMode') + 1];
-    }
-
-    let appPath = config.APP_PATH;
-    if (args.includes('--appPath')) {
-        appPath = args[args.indexOf('--appPath') + 1];
-    }
-
     // check if using buildMode "js-only" or "none" is possible
     if (buildMode !== 'full') {
         const appExists = fs.existsSync(appPath);
@@ -132,7 +136,7 @@ const runTests = async () => {
         await execAsync(`git checkout ${branch}`);
     }
 
-    if (!args.includes('--skipInstallDeps')) {
+    if (!skipInstallDeps) {
         Logger.log(`Preparing tests on branch '${branch}' - npm install`);
         await execAsync('npm i');
     }
