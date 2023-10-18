@@ -348,20 +348,14 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
             const paymentType = lodashGet(props.action, 'originalMessage.paymentType', '');
-            const shouldShowAddCreditBankAccountButton =
-                ReportUtils.isCurrentUserSubmitter(props.report.reportID) &&
-                !store.hasCreditBankAccount() &&
-                !ReportUtils.isSettled(props.report.reportID) &&
-                paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-            const shouldShowEnableWalletButton =
-                ReportUtils.isCurrentUserSubmitter(props.report.reportID) && paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY && !ReportUtils.isSettled(props.report.reportID);
+
+            const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !ReportUtils.isSettled(props.report.reportID);
+            const shouldShowAddCreditBankAccountButton = isSubmitterOfUnsettledReport && !store.hasCreditBankAccount() && paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+            const shouldShowEnableWalletButton = isSubmitterOfUnsettledReport && props.userWallet.tierName == CONST.WALLET.TIER_NAME.SILVER && paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+
             children = (
                 <ReportActionItemBasicMessage
-                    message={
-                        shouldShowEnableWalletButton
-                            ? props.translate('iou.waitingOnEnableWallet', {submitterDisplayName})
-                            : props.translate('iou.waitingOnBankAccount', {submitterDisplayName})
-                    }
+                    message={props.translate(shouldShowEnableWalletButton ? 'iou.waitingOnEnableWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
                 >
                     {shouldShowAddCreditBankAccountButton && (
                         <Button
