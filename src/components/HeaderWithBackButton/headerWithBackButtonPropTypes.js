@@ -31,7 +31,7 @@ const propTypes = {
     /** Whether we should show a get assistance (question mark) button */
     shouldShowGetAssistanceButton: PropTypes.bool,
 
-    /** Whether we should disable the get assistance (question mark) button */
+    /** Whether we should disable the get assistance button */
     shouldDisableGetAssistanceButton: PropTypes.bool,
 
     /** Whether we should show a pin button */
