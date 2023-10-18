@@ -85,7 +85,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
     // Check and dismiss modal
     useEffect(() => {
-        if (!ReportUtils.shouldDisableWriteActions(report)) {
+        if (!ReportUtils.canUserPerformWriteAction(report)) {
             return;
         }
         Navigation.dismissModal(reportID);
