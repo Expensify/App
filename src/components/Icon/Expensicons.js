@@ -25,6 +25,7 @@ import Checkmark from '../../../assets/images/checkmark.svg';
 import Chair from '../../../assets/images/chair.svg';
 import Close from '../../../assets/images/close.svg';
 import ClosedSign from '../../../assets/images/closed-sign.svg';
+import Coins from '../../../assets/images/coins.svg';
 import Collapse from '../../../assets/images/collapse.svg';
 import Concierge from '../../../assets/images/concierge.svg';
 import ConciergeAvatar from '../../../assets/images/avatars/concierge-avatar.svg';
@@ -32,6 +33,7 @@ import Connect from '../../../assets/images/connect.svg';
 import Copy from '../../../assets/images/copy.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
 import Document from '../../../assets/images/document.svg';
+import DocumentGear from '../../../assets/images/document-gear.svg';
 import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
 import DomainRoomAvatar from '../../../assets/images/avatars/domain-room.svg';
 import DotIndicator from '../../../assets/images/dot-indicator.svg';
@@ -53,6 +55,7 @@ import Flag from '../../../assets/images/flag.svg';
 import FlagLevelOne from '../../../assets/images/flag_level_01.svg';
 import FlagLevelTwo from '../../../assets/images/flag_level_02.svg';
 import FlagLevelThree from '../../../assets/images/flag_level_03.svg';
+import Folder from '../../../assets/images/folder.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
 import Globe from '../../../assets/images/globe.svg';
@@ -60,6 +63,7 @@ import GoogleLogo from '../../../assets/images/signIn/google-logo.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
 import Heart from '../../../assets/images/heart.svg';
 import History from '../../../assets/images/history.svg';
+import Home from '../../../assets/images/home.svg';
 import Hourglass from '../../../assets/images/hourglass.svg';
 import ImageCropCircleMask from '../../../assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '../../../assets/images/image-crop-square-mask.svg';
@@ -90,6 +94,7 @@ import Paycheck from '../../../assets/images/paycheck.svg';
 import Pencil from '../../../assets/images/pencil.svg';
 import Phone from '../../../assets/images/phone.svg';
 import Pin from '../../../assets/images/pin.svg';
+import Plane from '../../../assets/images/plane.svg';
 import Plus from '../../../assets/images/plus.svg';
 import Printer from '../../../assets/images/printer.svg';
 import Profile from '../../../assets/images/profile.svg';
@@ -102,6 +107,8 @@ import RotateLeft from '../../../assets/images/rotate-left.svg';
 import Send from '../../../assets/images/send.svg';
 import Shield from '../../../assets/images/shield.svg';
 import Sync from '../../../assets/images/sync.svg';
+import Table from '../../../assets/images/table.svg';
+import Tag from '../../../assets/images/tag.svg';
 import ThreeDots from '../../../assets/images/three-dots.svg';
 import Transfer from '../../../assets/images/transfer.svg';
 import Trashcan from '../../../assets/images/trashcan.svg';
@@ -158,6 +165,7 @@ export {
     Chair,
     Close,
     ClosedSign,
+    Coins,
     Collapse,
     Concierge,
     ConciergeAvatar,
@@ -166,6 +174,7 @@ export {
     CreditCard,
     DeletedRoomAvatar,
     Document,
+    DocumentGear,
     DomainRoomAvatar,
     DotIndicator,
     DotIndicatorUnfilled,
@@ -192,6 +201,7 @@ export {
     FlagLevelOne,
     FlagLevelTwo,
     FlagLevelThree,
+    Folder,
     Gallery,
     Gear,
     Globe,
@@ -199,6 +209,7 @@ export {
     Hashtag,
     Heart,
     History,
+    Home,
     Hourglass,
     ImageCropCircleMask,
     ImageCropSquareMask,
@@ -229,6 +240,7 @@ export {
     Pencil,
     Phone,
     Pin,
+    Plane,
     Plus,
     Printer,
     Profile,
@@ -241,6 +253,8 @@ export {
     Send,
     Shield,
     Sync,
+    Table,
+    Tag,
     Task,
     ThreeDots,
     Transfer,
