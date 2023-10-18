@@ -118,7 +118,7 @@ function revealVirtualCardDetails(cardID) {
         API.makeRequestWithSideEffects('RevealVirtualCardDetails', {cardID})
             .then((response) => {
                 if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    reject(response.message || Localize.translateLocal('cardPage.cardDetailsLoadingFailure'));
+                    reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure'));
                     return;
                 }
                 resolve(response);
