@@ -86,7 +86,7 @@ function RoomMembersPage(props) {
      */
     const getRoomMembers = useCallback(() => {
         Report.openRoomMembersPage(props.report.reportID);
-    }, [props.report]);
+    }, [props.report.reportID]);
 
     useEffect(() => {
         // Kick the user out if they tried to navigate to this via the URL
@@ -236,7 +236,7 @@ function RoomMembersPage(props) {
         return result;
     };
 
-    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
+    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
     const data = getMemberOptions();
     const headerMessage = searchValue.trim() && !data.length ? props.translate('roomMembersPage.memberNotFound') : '';
     return (
@@ -297,6 +297,7 @@ function RoomMembersPage(props) {
                             onSelectAll={() => toggleAllUsers(data)}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
                             showScrollIndicator
+                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                         />
                     </View>
                 </View>
@@ -319,9 +320,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

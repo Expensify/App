@@ -24,14 +24,14 @@ import SelectionList from '../components/SelectionList';
 import * as Report from '../libs/actions/Report';
 import * as ReportUtils from '../libs/ReportUtils';
 import Permissions from '../libs/Permissions';
-import participantPropTypes from '../components/participantPropTypes';
+import personalDetailsPropType from './personalDetailsPropType';
 
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** URL Route params */
     route: PropTypes.shape({
