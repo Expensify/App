@@ -28,6 +28,7 @@ import * as Report from '../libs/actions/Report';
 import * as ReportUtils from '../libs/ReportUtils';
 import Permissions from '../libs/Permissions';
 import Log from '../libs/Log';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     /** All personal details asssociated with user */

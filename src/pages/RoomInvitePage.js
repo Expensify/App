@@ -25,6 +25,7 @@ import * as Report from '../libs/actions/Report';
 import * as ReportUtils from '../libs/ReportUtils';
 import Permissions from '../libs/Permissions';
 import personalDetailsPropType from './personalDetailsPropType';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     /** Beta features list */
@@ -223,6 +224,7 @@ function RoomInvitePage(props) {
                             onSelectRow={toggleOption}
                             onConfirm={inviteUsers}
                             showScrollIndicator
+                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                             showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
                         />
                         <View style={[styles.flexShrink0]}>
