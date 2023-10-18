@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
-import moment from 'moment';
+import {setYear, format, getYear, subMonths, addMonths, startOfDay, endOfMonth, setDate, isSameDay} from 'date-fns';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import Text from '../../Text';
@@ -11,6 +11,7 @@ import styles from '../../../styles/styles';
 import generateMonthMatrix from './generateMonthMatrix';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import CONST from '../../../CONST';
+import DateUtils from '../../../libs/DateUtils';
 import getButtonState from '../../../libs/getButtonState';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import PressableWithFeedback from '../../Pressable/PressableWithFeedback';
@@ -34,8 +35,8 @@ const propTypes = {
 
 const defaultProps = {
     value: new Date(),
-    minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
-    maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
+    minDate: setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
+    maxDate: setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected: () => {},
 };
 
@@ -46,16 +47,15 @@ class CalendarPicker extends React.PureComponent {
         if (props.minDate >= props.maxDate) {
             throw new Error('Minimum date cannot be greater than the maximum date.');
         }
-
-        let currentDateView = moment(props.value, CONST.DATE.MOMENT_FORMAT_STRING).toDate();
+        let currentDateView = new Date(props.value);
         if (props.maxDate < currentDateView) {
             currentDateView = props.maxDate;
         } else if (props.minDate > currentDateView) {
             currentDateView = props.minDate;
         }
 
-        const minYear = moment(this.props.minDate).year();
-        const maxYear = moment(this.props.maxDate).year();
+        const minYear = getYear(new Date(this.props.minDate));
+        const maxYear = getYear(new Date(this.props.maxDate));
 
         this.state = {
             currentDateView,
@@ -79,7 +79,7 @@ class CalendarPicker extends React.PureComponent {
 
     onYearSelected(year) {
         this.setState((prev) => {
-            const newCurrentDateView = moment(prev.currentDateView).set('year', year).toDate();
+            const newCurrentDateView = setYear(new Date(prev.currentDateView), year);
 
             return {
                 currentDateView: newCurrentDateView,
@@ -99,9 +99,9 @@ class CalendarPicker extends React.PureComponent {
     onDayPressed(day) {
         this.setState(
             (prev) => ({
-                currentDateView: moment(prev.currentDateView).set('date', day).toDate(),
+                currentDateView: setDate(new Date(prev.currentDateView), day),
             }),
-            () => this.props.onSelected(moment(this.state.currentDateView).format('YYYY-MM-DD')),
+            () => this.props.onSelected(format(new Date(this.state.currentDateView), CONST.DATE.FNS_FORMAT_STRING)),
         );
     }
 
@@ -109,24 +109,24 @@ class CalendarPicker extends React.PureComponent {
      * Handles the user pressing the previous month arrow of the calendar picker.
      */
     moveToPrevMonth() {
-        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).subtract(1, 'months').toDate()}));
+        this.setState((prev) => ({currentDateView: subMonths(new Date(prev.currentDateView), 1)}));
     }
 
     /**
      * Handles the user pressing the next month arrow of the calendar picker.
      */
     moveToNextMonth() {
-        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).add(1, 'months').toDate()}));
+        this.setState((prev) => ({currentDateView: addMonths(new Date(prev.currentDateView), 1)}));
     }
 
     render() {
-        const monthNames = _.map(moment.localeData(this.props.preferredLocale).months(), Str.recapitalize);
-        const daysOfWeek = _.map(moment.localeData(this.props.preferredLocale).weekdays(), (day) => day.toUpperCase());
+        const monthNames = _.map(DateUtils.getMonthNames(this.props.preferredLocale), Str.recapitalize);
+        const daysOfWeek = _.map(DateUtils.getDaysOfWeek(this.props.preferredLocale), (day) => day.toUpperCase());
         const currentMonthView = this.state.currentDateView.getMonth();
         const currentYearView = this.state.currentDateView.getFullYear();
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-        const hasAvailableDatesNextMonth = moment(this.props.maxDate).endOf('month').endOf('day') >= moment(this.state.currentDateView).add(1, 'months');
-        const hasAvailableDatesPrevMonth = moment(this.props.minDate).startOf('month').startOf('day') <= moment(this.state.currentDateView).subtract(1, 'months');
+        const hasAvailableDatesNextMonth = startOfDay(endOfMonth(new Date(this.props.maxDate))) > addMonths(new Date(this.state.currentDateView), 1);
+        const hasAvailableDatesPrevMonth = startOfDay(new Date(this.props.minDate)) < endOfMonth(subMonths(new Date(this.state.currentDateView), 1));
 
         return (
             <View>
@@ -201,11 +201,11 @@ class CalendarPicker extends React.PureComponent {
                         style={styles.flexRow}
                     >
                         {_.map(week, (day, index) => {
-                            const currentDate = moment([currentYearView, currentMonthView, day]);
-                            const isBeforeMinDate = currentDate < moment(this.props.minDate).startOf('day');
-                            const isAfterMaxDate = currentDate > moment(this.props.maxDate).startOf('day');
+                            const currentDate = new Date(currentYearView, currentMonthView, day);
+                            const isBeforeMinDate = currentDate < startOfDay(new Date(this.props.minDate));
+                            const isAfterMaxDate = currentDate > startOfDay(new Date(this.props.maxDate));
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                            const isSelected = moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day');
+                            const isSelected = isSameDay(new Date(this.props.value), new Date(currentYearView, currentMonthView, day));
 
                             return (
                                 <PressableWithoutFeedback

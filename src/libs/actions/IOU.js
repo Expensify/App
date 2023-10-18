@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import lodashHas from 'lodash/has';
 import Str from 'expensify-common/lib/str';
 import {format} from 'date-fns';
 import CONST from '../../CONST';
@@ -1064,6 +1065,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         let oneOnOneChatReport;
         let isNewOneOnOneChatReport = false;
         let shouldCreateOptimisticPersonalDetails = false;
+        const personalDetailExists = lodashHas(allPersonalDetails, accountID);
 
         // If this is a split between two people only and the function
         // wasn't provided with an existing group chat report id
@@ -1072,11 +1074,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // entering code that creates optimistic personal details
         if ((!hasMultipleParticipants && !existingSplitChatReportID) || isOwnPolicyExpenseChat) {
             oneOnOneChatReport = splitChatReport;
-            shouldCreateOptimisticPersonalDetails = !existingSplitChatReport;
+            shouldCreateOptimisticPersonalDetails = !existingSplitChatReport && !personalDetailExists;
         } else {
             const existingChatReport = ReportUtils.getChatByParticipants([accountID]);
             isNewOneOnOneChatReport = !existingChatReport;
-            shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport;
+            shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport && !personalDetailExists;
             oneOnOneChatReport = existingChatReport || ReportUtils.buildOptimisticChatReport([accountID]);
         }
 
@@ -1104,7 +1106,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneIOUReport.reportID,
             comment,
             '',
-            CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
+            CONST.IOU.TYPE.SPLIT,
             splitTransaction.transactionID,
             undefined,
             undefined,
@@ -1303,7 +1305,18 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     const receiptObject = {state, source};
 
     // ReportID is -2 (aka "deleted") on the group transaction
-    const splitTransaction = TransactionUtils.buildOptimisticTransaction(0, CONST.CURRENCY.USD, CONST.REPORT.SPLIT_REPORTID, comment, '', '', '', '', receiptObject, filename);
+    const splitTransaction = TransactionUtils.buildOptimisticTransaction(
+        0,
+        CONST.CURRENCY.USD,
+        CONST.REPORT.SPLIT_REPORTID,
+        comment,
+        '',
+        '',
+        '',
+        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        receiptObject,
+        filename,
+    );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const splitChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
@@ -1419,7 +1432,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                         errors: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                     },
                     [splitIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('report.genericCreateFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                     },
                 },
             },
@@ -1628,7 +1641,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
             oneOnOneIOUReport.reportID,
             updatedTransaction.comment.comment,
             updatedTransaction.modifiedCreated,
-            CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
+            CONST.IOU.TYPE.SPLIT,
             transactionID,
             updatedTransaction.modifiedMerchant,
             {...updatedTransaction.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
@@ -1688,15 +1701,23 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
         failureData.push(...oneOnOneFailureData);
     });
 
+    const {
+        amount: transactionAmount,
+        currency: transactionCurrency,
+        created: transactionCreated,
+        merchant: transactionMerchant,
+        comment: transactionComment,
+    } = ReportUtils.getTransactionDetails(updatedTransaction);
+
     API.write(
         'CompleteSplitBill',
         {
             transactionID,
-            amount: updatedTransaction.modifiedAmount,
-            currency: updatedTransaction.modifiedCurrency,
-            created: updatedTransaction.modifiedCreated,
-            merchant: updatedTransaction.modifiedMerchant,
-            comment: updatedTransaction.comment.comment,
+            amount: transactionAmount,
+            currency: transactionCurrency,
+            created: transactionCreated,
+            merchant: transactionMerchant,
+            comment: transactionComment,
             splits: JSON.stringify(splits),
         },
         {optimisticData, successData, failureData},
@@ -1767,7 +1788,8 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         updatedMoneyRequestReport.lastMessageHtml = lastMessage[0].html;
 
         // Update the last message of the chat report
-        const messageText = Localize.translateLocal('iou.payerOwesAmount', {
+        const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
+        const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
             payer: updatedMoneyRequestReport.managerEmail,
             amount: CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedMoneyRequestReport.currency),
         });
@@ -1987,7 +2009,8 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction.created;
 
         updatedReportPreviewAction = {...reportPreviewAction};
-        const messageText = Localize.translateLocal('iou.payerOwesAmount', {
+        const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
+        const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
             payer: updatedIOUReport.managerEmail,
             amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
         });
@@ -2624,7 +2647,7 @@ function submitReport(expenseReport) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                state: CONST.REPORT.STATE.OPEN,
+                statusNum: CONST.REPORT.STATUS.OPEN,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             },
         },
