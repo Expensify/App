@@ -1,3 +1,4 @@
+import {ReportAction} from '../types/onyx';
 import en from './en';
 
 type AddressLineParams = {
@@ -42,15 +43,15 @@ type LocalTimeParams = {
 };
 
 type EditActionParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type DeleteActionParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type DeleteConfirmationParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type BeginningOfChatHistoryDomainRoomPartOneParams = {

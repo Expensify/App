@@ -375,8 +375,8 @@ function addActions(reportID, text = '', file) {
     const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
     if (lastMessageText || lastMessageTranslationKey) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
-        const lastVisibleActionCreated = lastVisibleAction.created;
-        const lastActorAccountID = lastVisibleAction.actorAccountID;
+        const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+        const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
         failureReport = {
             lastMessageTranslationKey,
             lastMessageText,
@@ -1057,8 +1057,8 @@ function deleteReportComment(reportID, reportAction) {
         const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
         if (lastMessageText || lastMessageTranslationKey) {
             const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-            const lastVisibleActionCreated = lastVisibleAction.created;
-            const lastActorAccountID = lastVisibleAction.actorAccountID;
+            const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+            const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
             optimisticReport = {
                 lastMessageTranslationKey,
                 lastMessageText,
@@ -1239,7 +1239,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     ];
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-    if (reportActionID === lastVisibleAction.reportActionID) {
+    if (reportActionID === lodashGet(lastVisibleAction, 'reportActionID')) {
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
             lastMessageTranslationKey: '',

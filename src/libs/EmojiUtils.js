@@ -111,6 +111,23 @@ function trimEmojiUnicode(emojiCode) {
 }
 
 /**
+ * Validates first character is emoji in text string
+ *
+ * @param {String} message
+ * @returns {Boolean}
+ */
+function isFirstLetterEmoji(message) {
+    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
+    const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
+
+    if (!match) {
+        return false;
+    }
+
+    return trimmedMessage.indexOf(match[0]) === 0;
+}
+
+/**
  * Validates that this message contains only emojis
  *
  * @param {String} message
@@ -497,4 +514,5 @@ export {
     replaceAndExtractEmojis,
     extractEmojis,
     getAddedEmojis,
+    isFirstLetterEmoji,
 };
