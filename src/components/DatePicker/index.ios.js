@@ -1,147 +1,136 @@
-import React from 'react';
-// eslint-disable-next-line no-restricted-imports
+import React, {useState, useRef, useCallback, useEffect} from 'react';
 import {Button, View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
-import moment from 'moment';
-import _ from 'underscore';
-import compose from '../../libs/compose';
+import {format} from 'date-fns';
+import isFunction from 'lodash/isFunction';
 import TextInput from '../TextInput';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Popover from '../Popover';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import {propTypes, defaultProps} from './datepickerPropTypes';
-import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
+import useKeyboardState from '../../hooks/useKeyboardState';
+import useLocalize from '../../hooks/useLocalize';
 
-const datepickerPropTypes = {
-    ...propTypes,
-    ...withLocalizePropTypes,
-    ...keyboardStatePropTypes,
-};
+function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLocale, minDate, maxDate, label, disabled, onBlur, placeholder, containerStyles, errorText}) {
+    const dateValue = value || defaultValue;
+    const [isPickerVisible, setIsPickerVisible] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(dateValue ? new Date(dateValue) : new Date());
+    const {isKeyboardShown} = useKeyboardState();
+    const {translate} = useLocalize();
+    const initialValue = useRef(null);
+    const inputRef = useRef(null);
 
-class DatePicker extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            isPickerVisible: false,
-            selectedDate: props.value || props.defaultValue ? moment(props.value || props.defaultValue).toDate() : new Date(),
-        };
-
-        this.showPicker = this.showPicker.bind(this);
-        this.reset = this.reset.bind(this);
-        this.selectDate = this.selectDate.bind(this);
-        this.updateLocalDate = this.updateLocalDate.bind(this);
-    }
-
-    showPicker() {
-        this.initialValue = this.state.selectedDate;
+    const showPicker = useCallback(() => {
+        initialValue.current = selectedDate;
 
         // Opens the popover only after the keyboard is hidden to avoid a "blinking" effect where the keyboard was on iOS
         // See https://github.com/Expensify/App/issues/14084 for more context
-        if (!this.props.isKeyboardShown) {
-            this.setState({isPickerVisible: true});
+        if (!isKeyboardShown) {
+            setIsPickerVisible(true);
             return;
         }
+
         const listener = Keyboard.addListener('keyboardDidHide', () => {
-            this.setState({isPickerVisible: true});
+            setIsPickerVisible(true);
             listener.remove();
         });
         Keyboard.dismiss();
-    }
+    }, [isKeyboardShown, selectedDate]);
+
+    useEffect(() => {
+        if (!isFunction(innerRef)) {
+            return;
+        }
+
+        const input = inputRef.current;
+
+        if (input && input.focus && isFunction(input.focus)) {
+            innerRef({...input, focus: showPicker});
+            return;
+        }
+
+        innerRef(input);
+    }, [innerRef, showPicker]);
 
     /**
      * Reset the date spinner to the initial value
      */
-    reset() {
-        this.setState({selectedDate: this.initialValue});
-    }
+    const reset = () => {
+        setSelectedDate(initialValue.current);
+    };
 
     /**
      * Accept the current spinner changes, close the spinner and propagate the change
-     * to the parent component (props.onInputChange)
+     * to the parent component (onInputChange)
      */
-    selectDate() {
-        this.setState({isPickerVisible: false});
-        const asMoment = moment(this.state.selectedDate, true);
-        this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
-    }
+    const selectDate = () => {
+        setIsPickerVisible(false);
+        onInputChange(format(selectedDate, CONST.DATE.FNS_FORMAT_STRING));
+    };
 
     /**
      * @param {Event} event
-     * @param {Date} selectedDate
+     * @param {Date} date
      */
-    updateLocalDate(event, selectedDate) {
-        this.setState({selectedDate});
-    }
+    const updateLocalDate = (event, date) => {
+        setSelectedDate(date);
+    };
 
-    render() {
-        const dateAsText = this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
-        return (
-            <>
-                <TextInput
-                    forceActiveLabel
-                    label={this.props.label}
-                    accessibilityLabel={this.props.label}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    value={dateAsText}
-                    placeholder={this.props.placeholder}
-                    errorText={this.props.errorText}
-                    containerStyles={this.props.containerStyles}
-                    textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
-                    onPress={this.showPicker}
-                    editable={false}
-                    disabled={this.props.disabled}
-                    onBlur={this.props.onBlur}
-                    ref={(el) => {
-                        if (!_.isFunction(this.props.innerRef)) {
-                            return;
-                        }
-                        if (el && el.focus && typeof el.focus === 'function') {
-                            let inputRef = {...el};
-                            inputRef = {...inputRef, focus: this.showPicker};
-                            this.props.innerRef(inputRef);
-                            return;
-                        }
+    const dateAsText = dateValue ? format(new Date(dateValue), CONST.DATE.FNS_FORMAT_STRING) : '';
 
-                        this.props.innerRef(el);
-                    }}
-                />
-                <Popover
-                    isVisible={this.state.isPickerVisible}
-                    onClose={this.selectDate}
-                >
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.borderBottom, styles.pb1, styles.ph4]}>
-                        <Button
-                            title={this.props.translate('common.reset')}
-                            color={themeColors.textError}
-                            onPress={this.reset}
-                        />
-                        <Button
-                            title={this.props.translate('common.done')}
-                            color={themeColors.link}
-                            onPress={this.selectDate}
-                        />
-                    </View>
-                    <RNDatePicker
-                        value={this.state.selectedDate}
-                        mode="date"
-                        display="spinner"
-                        themeVariant="dark"
-                        onChange={this.updateLocalDate}
-                        locale={this.props.preferredLocale}
-                        maximumDate={this.props.maxDate}
-                        minimumDate={this.props.minDate}
+    return (
+        <>
+            <TextInput
+                forceActiveLabel
+                label={label}
+                accessibilityLabel={label}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                value={dateAsText}
+                placeholder={placeholder}
+                errorText={errorText}
+                containerStyles={containerStyles}
+                textInputContainerStyles={[isPickerVisible && styles.borderColorFocus]}
+                onPress={showPicker}
+                editable={false}
+                disabled={disabled}
+                onBlur={onBlur}
+                ref={inputRef}
+            />
+            <Popover
+                isVisible={isPickerVisible}
+                onClose={selectDate}
+            >
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.borderBottom, styles.pb1, styles.ph4]}>
+                    <Button
+                        title={translate('common.reset')}
+                        color={themeColors.textError}
+                        onPress={reset}
                     />
-                </Popover>
-            </>
-        );
-    }
+                    <Button
+                        title={translate('common.done')}
+                        color={themeColors.link}
+                        onPress={selectDate}
+                    />
+                </View>
+                <RNDatePicker
+                    value={selectedDate}
+                    mode="date"
+                    display="spinner"
+                    themeVariant="dark"
+                    onChange={updateLocalDate}
+                    locale={preferredLocale}
+                    maximumDate={maxDate}
+                    minimumDate={minDate}
+                />
+            </Popover>
+        </>
+    );
 }
 
-DatePicker.propTypes = datepickerPropTypes;
+DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = defaultProps;
+DatePicker.displayName = 'DatePicker';
 
 /**
  * We're applying localization here because we present a modal (with buttons) ourselves
@@ -149,15 +138,10 @@ DatePicker.defaultProps = defaultProps;
  * locale. Otherwise the spinner would be present in the system locale and it would be weird if it happens
  * that the modal buttons are in one locale (app) while the (spinner) month names are another (system)
  */
-export default compose(
-    withLocalize,
-    withKeyboardState,
-)(
-    React.forwardRef((props, ref) => (
-        <DatePicker
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+export default React.forwardRef((props, ref) => (
+    <DatePicker
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));

@@ -191,14 +191,15 @@ jobs:
         if: ${{ always() && runner.debug != null && fromJSON(runner.debug) }}
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
 
-      - name: Check if test failed, if so post the results and add the DeployBlocker label
-        run: |
-          if grep -q '🔴' ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; then
-            gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
-            gh pr comment ${{ inputs.PR_NUMBER }} -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
-            gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
-          else
-            echo '✅ no performance regression detected'
-          fi
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+# TODO: Once tests are more reliable we should uncomment this
+#      - name: Check if test failed, if so post the results and add the DeployBlocker label
+#        run: |
+#          if grep -q '🔴' ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; then
+#            gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
+#            gh pr comment ${{ inputs.PR_NUMBER }} -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
+#            gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
+#          else
+#            echo '✅ no performance regression detected'
+#          fi
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}

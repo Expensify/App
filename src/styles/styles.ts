@@ -3145,7 +3145,7 @@ const styles = (theme: ThemeDefault) =>
         },
 
         cardMenuItem: {
-            paddingLeft: 0,
+            paddingLeft: 8,
             paddingRight: 0,
             borderRadius: variables.buttonBorderRadius,
             height: variables.componentSizeLarge,
@@ -3343,16 +3343,12 @@ const styles = (theme: ThemeDefault) =>
         eReceiptAmountLarge: {
             ...headlineFont,
             fontSize: variables.fontSizeEReceiptLarge,
-            lineHeight: variables.lineHeightXXLarge,
-            wordBreak: 'break-word',
             textAlign: 'center',
         },
 
         eReceiptCurrency: {
             ...headlineFont,
             fontSize: variables.fontSizeXXLarge,
-            lineHeight: variables.lineHeightXXLarge,
-            wordBreak: 'break-all',
         },
 
         eReceiptMerchant: {
@@ -3410,7 +3406,6 @@ const styles = (theme: ThemeDefault) =>
         },
 
         eReceiptContainer: {
-            flex: 1,
             width: 335,
             minHeight: 540,
             borderRadius: 20,
@@ -3460,8 +3455,6 @@ const styles = (theme: ThemeDefault) =>
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,
-            ...flex.flexWrap,
-            ...flex.flex1,
             fontSize: variables.fontSizeXLarge,
             maxWidth: '100%',
             ...wordBreak.breakWord,
@@ -3680,6 +3673,7 @@ const styles = (theme: ThemeDefault) =>
             paddingRight: 4,
             marginBottom: 32,
             alignSelf: 'flex-start',
+            ...userSelect.userSelectNone,
         },
 
         emojiPickerButtonDropdownIcon: {
@@ -3695,7 +3689,7 @@ const styles = (theme: ThemeDefault) =>
         reportPreviewBox: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
-            maxWidth: variables.sideBarWidth,
+            maxWidth: variables.reportPreviewMaxWidth,
             width: '100%',
         },
 
@@ -3714,8 +3708,7 @@ const styles = (theme: ThemeDefault) =>
 
         reportActionItemImages: {
             flexDirection: 'row',
-            borderWidth: 4,
-            borderColor: theme.transparent,
+            margin: 4,
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
             overflow: 'hidden',
