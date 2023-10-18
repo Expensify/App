@@ -1,9 +1,11 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import lodashValues from 'lodash/values';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import ROUTES from '../ROUTES';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
@@ -13,6 +15,8 @@ import * as TransactionUtils from '../libs/TransactionUtils';
 import * as Policy from '../libs/actions/Policy';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
+import Permissions from '../libs/Permissions';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
 import tagPropTypes from '../components/tagPropTypes';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
@@ -25,6 +29,9 @@ import reportPropTypes from './reportPropTypes';
 import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestTagPage from './EditRequestTagPage';
+import categoryPropTypes from '../components/categoryPropTypes';
+import ScreenWrapper from '../components/ScreenWrapper';
+import transactionPropTypes from '../components/transactionPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -40,6 +47,9 @@ const propTypes = {
     }).isRequired,
 
     /** Onyx props */
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     /** The report object for the thread report */
     report: reportPropTypes,
 
@@ -61,25 +71,34 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** Collection of categories attached to a policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
+
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
+
+    /** The original transaction that is being edited */
+    transaction: transactionPropTypes,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
+    betas: [],
     report: {},
     parentReport: {},
     policy: null,
     session: {
         email: null,
     },
+    policyCategories: {},
     policyTags: {},
+    transaction: {},
 };
 
-function EditRequestPage({report, route, parentReport, policy, session, policyTags}) {
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags, parentReportActions, transaction}) {
+    const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
+    const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
@@ -103,7 +122,18 @@ function EditRequestPage({report, route, parentReport, policy, session, policyTa
     const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
 
     // For now, it always defaults to the first tag of the policy
+    const policyTag = PolicyUtils.getTag(policyTags);
+    const policyTagList = lodashGet(policyTag, 'tags', {});
     const tagListName = PolicyUtils.getTagListName(policyTags);
+
+    // A flag for verifying that the current report is a sub-report of a workspace chat
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+
+    // A flag for showing the categories page
+    const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
+
+    // A flag for showing the tags page
+    const shouldShowTags = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
 
     // Dismiss the modal when the request is paid or deleted
     useEffect(() => {
@@ -176,6 +206,10 @@ function EditRequestPage({report, route, parentReport, policy, session, policyTa
                         currency: defaultCurrency,
                     });
                 }}
+                onNavigateToCurrency={() => {
+                    const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+                    Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
+                }}
             />
         );
     }
@@ -196,7 +230,7 @@ function EditRequestPage({report, route, parentReport, policy, session, policyTa
         );
     }
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.CATEGORY && shouldShowCategories) {
         return (
             <EditRequestCategoryPage
                 defaultCategory={transactionCategory}
@@ -213,7 +247,7 @@ function EditRequestPage({report, route, parentReport, policy, session, policyTa
         );
     }
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG) {
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG && shouldShowTags) {
         return (
             <EditRequestTagPage
                 defaultTag={transactionTag}
@@ -251,7 +285,15 @@ function EditRequestPage({report, route, parentReport, policy, session, policyTa
         );
     }
 
-    return <FullPageNotFoundView shouldShow />;
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID={EditRequestPage.displayName}
+        >
+            <FullPageNotFoundView shouldShow />
+        </ScreenWrapper>
+    );
 }
 
 EditRequestPage.displayName = 'EditRequestPage';
@@ -260,20 +302,40 @@ EditRequestPage.defaultProps = defaultProps;
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
-        },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
+        policyCategories: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        transaction: {
+            key: ({report, parentReportActions}) => {
+                const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
+                const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
+            },
         },
     }),
 )(EditRequestPage);

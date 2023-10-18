@@ -4,7 +4,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import {PersonalDetails, Policy, PolicyMembers, PolicyTags} from '../types/onyx';
 
-type MemberEmailsToAccountIDs = Record<string, string>;
+type MemberEmailsToAccountIDs = Record<string, number>;
 type PersonalDetailsList = Record<string, PersonalDetails>;
 type UnitRate = {rate: number};
 
@@ -126,7 +126,7 @@ function getMemberAccountIDsForWorkspace(policyMembers: OnyxEntry<PolicyMembers>
         if (!personalDetail?.login) {
             return;
         }
-        memberEmailsToAccountIDs[personalDetail.login] = accountID;
+        memberEmailsToAccountIDs[personalDetail.login] = Number(accountID);
     });
     return memberEmailsToAccountIDs;
 }

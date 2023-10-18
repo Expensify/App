@@ -1,3 +1,6 @@
+import {ValueOf} from 'type-fest';
+import CONST from '../../CONST';
+
 type AdditionalData = {
     isP2PDebitCard?: boolean;
     beneficialOwners?: string[];
@@ -49,7 +52,7 @@ type AccountData = {
 
 type BankAccount = {
     /** The bank account type */
-    accountType?: string;
+    accountType?: typeof CONST.PAYMENT_METHODS.BANK_ACCOUNT;
 
     /** string like 'Account ending in XXXX' */
     description?: string;
@@ -67,6 +70,10 @@ type BankAccount = {
 
     /** All data related to the bank account */
     accountData?: AccountData;
+
+    /** Action that is waiting to happen on the bank account */
+    pendingAction?: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
 };
 
 export default BankAccount;
+export type {AccountData};

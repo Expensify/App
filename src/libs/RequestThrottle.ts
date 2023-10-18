@@ -2,9 +2,11 @@ import CONST from '../CONST';
 import {generateRandomInt} from './NumberUtils';
 
 let requestWaitTime = 0;
+let requestRetryCount = 0;
 
 function clear() {
     requestWaitTime = 0;
+    requestRetryCount = 0;
 }
 
 function getRequestWaitTime() {
@@ -21,7 +23,13 @@ function getLastRequestWaitTime() {
 }
 
 function sleep(): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, getRequestWaitTime()));
+    requestRetryCount++;
+    return new Promise((resolve, reject) => {
+        if (requestRetryCount <= CONST.NETWORK.MAX_REQUEST_RETRIES) {
+            return setTimeout(resolve, getRequestWaitTime());
+        }
+        return reject();
+    });
 }
 
 export {clear, getRequestWaitTime, sleep, getLastRequestWaitTime};

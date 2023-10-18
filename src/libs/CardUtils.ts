@@ -1,13 +1,53 @@
 import lodash from 'lodash';
+import Onyx from 'react-native-onyx';
 import {Card} from '../types/onyx';
 import CONST from '../CONST';
+import * as Localize from './Localize';
 import * as OnyxTypes from '../types/onyx';
+import ONYXKEYS, {OnyxValues} from '../ONYXKEYS';
+
+let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
+Onyx.connect({
+    key: ONYXKEYS.CARD_LIST,
+    callback: (val) => {
+        if (!val || Object.keys(val).length === 0) {
+            return;
+        }
+
+        allCards = val;
+    },
+});
 
 /**
  * @returns string with a month in MM format
  */
 function getMonthFromExpirationDateString(expirationDateString: string) {
     return expirationDateString.substring(0, 2);
+}
+
+/**
+ * @param cardID
+ * @returns boolean
+ */
+function isExpensifyCard(cardID: number) {
+    const card = allCards[cardID];
+    if (!card) {
+        return false;
+    }
+    return card.bank === CONST.EXPENSIFY_CARD.BANK;
+}
+
+/**
+ * @param cardID
+ * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
+ */
+function getCardDescription(cardID: number) {
+    const card = allCards[cardID];
+    if (!card) {
+        return '';
+    }
+    const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? Localize.translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
+    return `${card.bank} - ${cardDescriptor}`;
 }
 
 /**
@@ -33,8 +73,8 @@ function getCompanyCards(cardList: {string: Card}) {
  */
 function getDomainCards(cardList: Record<string, OnyxTypes.Card>) {
     // eslint-disable-next-line you-dont-need-lodash-underscore/filter
-    const activeCards = lodash.filter(cardList, (card) => [2, 3, 4, 7].includes(card.state));
-    return lodash.groupBy(activeCards, (card) => card.domainName.toLowerCase());
+    const activeCards = lodash.filter(cardList, (card) => (CONST.EXPENSIFY_CARD.ACTIVE_STATES as ReadonlyArray<OnyxTypes.Card['state']>).includes(card.state));
+    return lodash.groupBy(activeCards, (card) => card.domainName);
 }
 
 /**
@@ -56,4 +96,4 @@ function maskCard(lastFour = ''): string {
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
-export {getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard};
+export {isExpensifyCard, getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription};
