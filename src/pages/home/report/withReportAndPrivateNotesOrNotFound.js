@@ -15,42 +15,42 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import networkPropTypes from '../../../components/networkPropTypes';
 import ONYXKEYS from '../../../ONYXKEYS';
 
-export default function (WrappedComponent) {
-    const propTypes = {
-        /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
-         * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
-        forwardedRef: PropTypes.func,
+const propTypes = {
+    /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
+     * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
+    forwardedRef: PropTypes.func,
 
-        /** The report currently being looked at */
-        report: reportPropTypes,
+    /** The report currently being looked at */
+    report: reportPropTypes,
 
-        /** Information about the network */
-        network: networkPropTypes.isRequired,
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
-        /** Session of currently logged in user */
-        session: PropTypes.shape({
-            /** Currently logged in user accountID */
-            accountID: PropTypes.number,
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+    }),
+
+    route: PropTypes.shape({
+        /** Params from the URL path */
+        params: PropTypes.shape({
+            /** reportID and accountID passed via route: /r/:reportID/notes */
+            reportID: PropTypes.string,
+            accountID: PropTypes.string,
         }),
+    }).isRequired,
+};
 
-        route: PropTypes.shape({
-            /** Params from the URL path */
-            params: PropTypes.shape({
-                /** reportID and accountID passed via route: /r/:reportID/notes */
-                reportID: PropTypes.string,
-                accountID: PropTypes.string,
-            }),
-        }).isRequired,
-    };
+const defaultProps = {
+    forwardedRef: () => {},
+    report: {},
+    session: {
+        accountID: null,
+    },
+};
 
-    const defaultProps = {
-        forwardedRef: () => {},
-        report: {},
-        session: {
-            accountID: null,
-        },
-    };
-
+export default function (WrappedComponent) {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithReportAndPrivateNotesOrNotFound(props) {
         const {route, report, network, session} = props;
