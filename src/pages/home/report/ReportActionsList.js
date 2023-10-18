@@ -327,7 +327,7 @@ function ReportActionsList({
 
             return shouldDisplay;
         },
-        [currentUnreadMarker, sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread],
+        [currentUnreadMarker, sortedReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread],
     );
 
     useEffect(() => {
@@ -343,7 +343,7 @@ function ReportActionsList({
                 setCurrentUnreadMarker(reportAction.reportActionID);
             }
         });
-    }, [sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
+    }, [sortedReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (
