@@ -271,7 +271,7 @@ function WorkspaceInitialPage(props) {
                                 </View>
                                 {/*
                                     Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
-                                    But Here we need to have a `isExecuting` for profile details click actions also so we are directly mapping menuItems.
+                                    In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                                 */}
                                 {_.map(menuItems, (item) => (
                                     <MenuItem
