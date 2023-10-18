@@ -1,32 +1,24 @@
-import React from 'react';
-import _ from 'underscore';
+import React, {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {TextInput} from 'react-native';
-import Animated from 'react-native-reanimated';
-import PropTypes from 'prop-types';
+import {TextInput, TextInputProps} from 'react-native';
+import Animated, {AnimateProps} from 'react-native-reanimated';
 
-const propTypes = {
-    /** A ref to forward to the text input */
-    forwardedRef: PropTypes.func,
-};
-
-const defaultProps = {
-    forwardedRef: () => {},
-};
+type RNTextInputProps = Record<string, unknown>;
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
-function RNTextInput(props) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function RNTextInput(props: RNTextInputProps, ref: ForwardedRef<React.Component<AnimateProps<TextInputProps>>>) {
     return (
         <AnimatedTextInput
             allowFontScaling={false}
             textBreakStrategy="simple"
-            ref={(ref) => {
-                if (!_.isFunction(props.forwardedRef)) {
+            ref={(refHandle) => {
+                if (typeof ref !== 'function') {
                     return;
                 }
-                props.forwardedRef(ref);
+                ref(refHandle);
             }}
             // eslint-disable-next-line
             {...props}
@@ -34,14 +26,6 @@ function RNTextInput(props) {
     );
 }
 
-RNTextInput.propTypes = propTypes;
-RNTextInput.defaultProps = defaultProps;
 RNTextInput.displayName = 'RNTextInput';
 
-export default React.forwardRef((props, ref) => (
-    <RNTextInput
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
+export default React.forwardRef(RNTextInput);
