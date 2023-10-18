@@ -6,7 +6,6 @@ import CONST from '../../../../CONST';
 import useNetwork from '../../../../hooks/useNetwork';
 import styles, {stylesGenerator} from '../../../../styles/styles';
 import themeColors from '../../../../styles/themes/default';
-import boundaryLoaderStyles from '../../../../styles/boundaryLoaderStyle/index';
 
 const propTypes = {
     /** type of rendered loader. Can be 'header' or 'footer' */
@@ -59,7 +58,7 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
         // applied for a header of the list, i.e. when you scroll to the bottom of the list
         // the styles for android and the rest components are different that's why we use two different components
         return (
-            <View style={[stylesGenerator.alignItemsCenter, styles.justifyContentCenter, styles.chatBottomLoader, boundaryLoaderStyles]}>
+            <View style={[stylesGenerator.alignItemsCenter, styles.justifyContentCenter, styles.chatBottomLoader]}>
                 <ActivityIndicator
                     color={themeColors.spinner}
                     size="small"
