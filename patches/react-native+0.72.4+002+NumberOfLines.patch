@@ -921,7 +921,7 @@ index 368c334..a1bb33e 100644
  #pragma mark - Private
  
 -- (NSTextStorage *)_textStorageForNSAttributesString:(NSAttributedString *)attributedString
-++- (NSTextStorage *)_textStorageForNSAttributesString:(NSAttributedString *)inputAttributedString
++- (NSTextStorage *)_textStorageForNSAttributesString:(NSAttributedString *)inputAttributedString
                                   paragraphAttributes:(ParagraphAttributes)paragraphAttributes
                                                  size:(CGSize)size
  {
