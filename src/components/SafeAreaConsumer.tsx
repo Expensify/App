@@ -1,6 +1,6 @@
 import React from 'react';
 import {EdgeInsets, SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import {DimensionValue} from 'react-native';
+import type {DimensionValue} from 'react-native';
 import * as StyleUtils from '../styles/StyleUtils';
 
 type ChildrenProps = {
@@ -13,7 +13,7 @@ type ChildrenProps = {
 };
 
 type SafeAreaConsumerProps = {
-    children: (props: ChildrenProps) => React.ReactNode;
+    children: React.FC<ChildrenProps>;
 };
 
 /**
