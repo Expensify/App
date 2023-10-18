@@ -2017,7 +2017,7 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
             ],
             failureData: [
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         participantAccountIDs,
