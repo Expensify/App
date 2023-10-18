@@ -92,7 +92,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, state, 
 
     return (
         <Form
-            style={[styles.flexGrow1, styles.mh5, styles.mt5]}
+            style={[styles.flexGrow1, styles.mh5]}
             formID={formID}
             validate={validator}
             onSubmit={onSubmit}
