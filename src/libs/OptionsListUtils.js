@@ -1114,7 +1114,10 @@ function getOptions(
     // Exclude the current user from the personal details list
     const optionsToExclude = [{login: currentUserLogin}];
 
-    if (!includeSelectedOptions) {
+    // If we're including selected options from the search results, we only want to exclude them if the search input is empty
+    // This is because on certain pages, we show the selected options when the search input is empty
+    // Prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
+    if (includeSelectedOptions && searchInputValue === '') {
         optionsToExclude.push(...selectedOptions);
     }
 
