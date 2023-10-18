@@ -27,10 +27,8 @@ import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
-import Permissions from '../libs/Permissions';
 import ParentNavigationSubtitle from '../components/ParentNavigationSubtitle';
 import MultipleAvatars from '../components/MultipleAvatars';
-import usePermissions from '../hooks/usePermissions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -59,7 +57,6 @@ const propTypes = {
 const defaultProps = {
     policies: {},
     personalDetails: {},
-    betas: [],
 };
 
 function ReportDetailsPage(props) {
@@ -275,9 +272,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(ReportDetailsPage);
