@@ -6,7 +6,8 @@ import Logger from 'expensify-common/lib/Logger';
 import getPlatform from './getPlatform';
 import pkg from '../../package.json';
 import requireParameters from './requireParameters';
-import * as Network from './Network';
+// eslint-disable-next-line import/no-cycle
+import * as API from './API';
 
 let timeout: NodeJS.Timeout;
 
@@ -19,9 +20,7 @@ function LogCommand(parameters: LogCommandParameters): Promise<{requestID: strin
     const commandName = 'Log';
     requireParameters(['logPacket', 'expensifyCashAppVersion'], parameters, commandName);
 
-    // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
-    // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs
-    return Network.post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
+    return API.makeRequestWithSideEffects('Log', parameters);
 }
 
 // eslint-disable-next-line

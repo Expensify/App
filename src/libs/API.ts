@@ -114,7 +114,10 @@ function makeRequestWithSideEffects(
     onyxData: OnyxData = {},
     apiRequestType: ApiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS,
 ): Promise<void | Response> {
-    Log.info('Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
+    if (command !== 'Log') {
+        Log.info('Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
+    }
+
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
 
     // Optimistically update Onyx
