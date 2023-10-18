@@ -19,6 +19,27 @@ import SunTrust from '../../../assets/images/bankicons/suntrust.svg';
 import TdBank from '../../../assets/images/bankicons/td-bank.svg';
 import USBank from '../../../assets/images/bankicons/us-bank.svg';
 import USAA from '../../../assets/images/bankicons/usaa.svg';
+// Card Icons
+import AmericanExpressCard from '../../../assets/images/bankicons/american-express-card.svg';
+import BankOfAmericaCard from '../../../assets/images/bankicons/bank-of-america-card.svg';
+import BB_TCard from '../../../assets/images/bankicons/bb-t-card.svg';
+import CapitalOneCard from '../../../assets/images/bankicons/capital-one-card.svg';
+import CharlesSchwabCard from '../../../assets/images/bankicons/charles-schwab-card.svg';
+import ChaseCard from '../../../assets/images/bankicons/chase-card.svg';
+import CitiBankCard from '../../../assets/images/bankicons/citibank-card.svg';
+import CitizensBankCard from '../../../assets/images/bankicons/citizens-card.svg';
+import DiscoverCard from '../../../assets/images/bankicons/discover-card.svg';
+import FidelityCard from '../../../assets/images/bankicons/fidelity-card.svg';
+import HuntingtonBankCard from '../../../assets/images/bankicons/huntington-bank-card.svg';
+import NavyFederalCreditUnionCard from '../../../assets/images/bankicons/navy-federal-credit-union-card.svg';
+import PNCCard from '../../../assets/images/bankicons/pnc-card.svg';
+import RegionsBankCard from '../../../assets/images/bankicons/regions-bank-card.svg';
+import SunTrustCard from '../../../assets/images/bankicons/suntrust-card.svg';
+import TdBankCard from '../../../assets/images/bankicons/td-bank-card.svg';
+import USBankCard from '../../../assets/images/bankicons/us-bank-card.svg';
+import USAACard from '../../../assets/images/bankicons/usaa-card.svg';
+import ExpensifyCardImage from '../../../assets/images/bankicons/expensify-card-dark.svg';
+
 import variables from '../../styles/variables';
 
 type BankIcon = {
@@ -31,76 +52,80 @@ type BankIcon = {
  */
 
 function getAssetIcon(bankName: string, isCard: boolean): React.FC<SvgProps> {
+    if (bankName.includes('expensify')) {
+        return ExpensifyCardImage;
+    }
+
     if (bankName.includes('americanexpress')) {
-        return AmericanExpress;
+        return isCard ? AmericanExpressCard : AmericanExpress;
     }
 
     if (bankName.includes('bank of america') || bankName.includes('bankofamerica')) {
-        return BankOfAmerica;
+        return isCard ? BankOfAmericaCard : BankOfAmerica;
     }
 
     if (bankName.startsWith('bbt')) {
-        return BB_T;
+        return isCard ? BB_TCard : BB_T;
     }
 
     if (bankName.startsWith('capital one') || bankName.includes('capitalone')) {
-        return CapitalOne;
+        return isCard ? CapitalOneCard : CapitalOne;
     }
 
     if (bankName.startsWith('chase') || bankName.includes('chase')) {
-        return Chase;
+        return isCard ? ChaseCard : Chase;
     }
 
     if (bankName.includes('charles schwab') || bankName.includes('charlesschwab')) {
-        return CharlesSchwab;
+        return isCard ? CharlesSchwabCard : CharlesSchwab;
     }
 
     if (bankName.startsWith('citibank') || bankName.includes('citibank')) {
-        return CitiBank;
+        return isCard ? CitiBankCard : CitiBank;
     }
 
     if (bankName.startsWith('citizens bank') || bankName.includes('citizensbank')) {
-        return CitizensBank;
+        return isCard ? CitizensBankCard : CitizensBank;
     }
 
     if (bankName.startsWith('discover ') || bankName.includes('discover.') || bankName === 'discover') {
-        return Discover;
+        return isCard ? DiscoverCard : Discover;
     }
 
     if (bankName.startsWith('fidelity')) {
-        return Fidelity;
+        return isCard ? FidelityCard : Fidelity;
     }
 
     if (bankName.startsWith('huntington bank') || bankName.includes('huntingtonnational') || bankName.includes('huntington national')) {
-        return HuntingtonBank;
+        return isCard ? HuntingtonBankCard : HuntingtonBank;
     }
 
     if (bankName.startsWith('navy federal credit union') || bankName.includes('navy federal credit union')) {
-        return NavyFederalCreditUnion;
+        return isCard ? NavyFederalCreditUnionCard : NavyFederalCreditUnion;
     }
 
     if (bankName.startsWith('pnc') || bankName.includes('pnc')) {
-        return PNC;
+        return isCard ? PNCCard : PNC;
     }
 
     if (bankName.startsWith('regions bank') || bankName.includes('regionsbank')) {
-        return RegionsBank;
+        return isCard ? RegionsBankCard : RegionsBank;
     }
 
     if (bankName.startsWith('suntrust') || bankName.includes('suntrust')) {
-        return SunTrust;
+        return isCard ? SunTrustCard : SunTrust;
     }
 
     if (bankName.startsWith('td bank') || bankName.startsWith('tdbank') || bankName.includes('tdbank')) {
-        return TdBank;
+        return isCard ? TdBankCard : TdBank;
     }
 
     if (bankName.startsWith('us bank') || bankName.startsWith('usbank')) {
-        return USBank;
+        return isCard ? USBankCard : USBank;
     }
 
     if (bankName.includes('usaa')) {
-        return USAA;
+        return isCard ? USAACard : USAA;
     }
 
     return isCard ? Expensicons.CreditCard : GenericBank;

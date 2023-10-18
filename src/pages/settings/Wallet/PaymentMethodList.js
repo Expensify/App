@@ -28,6 +28,7 @@ import ROUTES from '../../../ROUTES';
 import getBankIcon from '../../../components/Icon/BankIcons';
 import assignedCardPropTypes from './assignedCardPropTypes';
 import * as CardUtils from '../../../libs/CardUtils';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -209,8 +210,12 @@ function PaymentMethodList({
             const numberPhysicalExpensifyCards = _.filter(cardList, card => CardUtils.isExpensifyCard(card.cardID)).length;
 
             return _.map(assignedCards, (card) => {
-                const icon = getBankIcon(card.bank);
                 const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
+                const icon = getBankIcon(card.bank, true);
+                icon.iconHeight = variables.bankCardHeight;
+                icon.iconWidth = variables.bankCardWidth;
+                icon.iconStyles = [styles.assignedCardsIconContainer];
+
                 // In the case a user has been assigned multiple physical Expensify Cards under one domain, display the Card with PAN
                 const expensifyCardDescription = numberPhysicalExpensifyCards > 1 ? CardUtils.getCardDescription(card.cardID) : translate('walletPage.expensifyCard');
                 return {
@@ -298,8 +303,9 @@ function PaymentMethodList({
                     icon={item.icon}
                     disabled={item.disabled}
                     iconFill={item.iconFill}
-                    iconHeight={item.iconSize}
-                    iconWidth={item.iconSize}
+                    iconHeight={item.iconHeight || item.iconSize}
+                    iconWidth={item.iconWidth || item.iconSize}
+                    iconStyles={item.iconStyles}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
                     wrapperStyle={styles.paymentMethod}
                     shouldShowRightIcon={item.shouldShowRightIcon}
