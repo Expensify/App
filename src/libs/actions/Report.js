@@ -2037,11 +2037,8 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
 function removeFromRoom(reportID, targetAccountIDs) {
     const report = lodashGet(allReports, [reportID], {});
 
-    const {participants, participantAccountIDs} = report;
+    const {participantAccountIDs} = report;
     const participantAccountIDsAfterRemoval = _.difference(participantAccountIDs, targetAccountIDs);
-
-    const targetEmails = _.map(participantAccountIDs, (accountID) => allPersonalDetails[accountID].login);
-    const participantsAfterRemoval = _.filter(participants, (email) => !targetEmails.includes(email));
 
     API.write(
         'RemoveFromRoom',
@@ -2055,17 +2052,15 @@ function removeFromRoom(reportID, targetAccountIDs) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        participants: participantsAfterRemoval,
                         participantAccountIDs: participantAccountIDsAfterRemoval,
                     },
                 },
             ],
             failureData: [
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        participants,
                         participantAccountIDs,
                     },
                 },
@@ -2290,7 +2285,7 @@ function getReportPrivateNote(reportID) {
 /**
  * Loads necessary data for rendering the RoomMembersPage
  *
- * @param {Number} reportID
+ * @param {String|Number} reportID
  */
 function openRoomMembersPage(reportID) {
     API.read('OpenRoomMembersPage', {
