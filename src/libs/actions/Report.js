@@ -1391,7 +1391,7 @@ function toggleSubscribeToChildReport(childReportID = '0', parentReportAction = 
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat.participantAccountIDs);
         openReport(newChat.reportID, participantLogins, newChat, parentReportAction.reportActionID);
-        Navigation.navigate(ROUTES.getReportRoute(newChat.reportID));
+        updateNotificationPreference(newChat.reportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, parentReportID, parentReportAction.reportActionID);
     }
 }
 
