@@ -13,7 +13,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import CONST from '../CONST';
-import withPolicy, {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
+import {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import reportPropTypes from './reportPropTypes';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';

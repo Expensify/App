@@ -54,10 +54,6 @@ Onyx.connect({
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
 
-/**
- * @param {Object} reportAction
- * @returns {Boolean}
- */
 function isCreatedAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
