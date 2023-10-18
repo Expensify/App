@@ -27,7 +27,7 @@ const propTypes = {
     /** The user's wallet */
     userWallet: userWalletPropTypes,
 
-    /** Information related to the wallet activation flow */
+    /** Information related to the last step of the wallet activation flow */
     walletTerms: walletTermsPropTypes,
 
     /** The source that triggered the KYC wall */
