@@ -299,6 +299,7 @@ const ONYXKEYS = {
         PRIVATE_NOTES_FORM: 'privateNotesForm',
         I_KNOW_A_TEACHER_FORM: 'iKnowTeacherForm',
         INTRO_SCHOOL_PRINCIPAL_FORM: 'introSchoolPrincipalForm',
+        REPORT_PHYSICAL_CARD_FORM: 'requestPhysicalCardForm',
         REPORT_VIRTUAL_CARD_FRAUD: 'reportVirtualCardFraudForm',
     },
 } as const;
@@ -389,7 +390,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
-    [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportAction;
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: string;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: string;
@@ -430,6 +431,7 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_AFTER_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
 };
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;

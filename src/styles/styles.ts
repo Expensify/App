@@ -3888,6 +3888,13 @@ const styles = (theme: ThemeDefault) =>
             ...objectFit.oFCover,
         },
 
+        singleOptionSelectorRow: {
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            gap: 12,
+            marginBottom: 16,
+        },
+
         globalNavigation: {
             width: variables.globalNavigationWidth,
             backgroundColor: theme.highlightBG,
@@ -3958,6 +3965,10 @@ const styles = (theme: ThemeDefault) =>
 
         checkboxWithLabelCheckboxStyle: {
             marginLeft: -2,
+        },
+
+        singleOptionSelectorCircle: {
+            borderColor: theme.icon,
         },
     } satisfies Styles);
 
