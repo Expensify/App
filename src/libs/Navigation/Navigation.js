@@ -12,7 +12,7 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import originalGetTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import getStateFromPath from './getStateFromPath';
-import SCREENS, {PROTECTED_SCREENS} from '../../SCREENS';
+import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
 
 let resolveNavigationIsReadyPromise;
@@ -80,7 +80,7 @@ const getActiveRouteIndex = function (route, index) {
 /**
  * Main navigation method for redirecting to a route.
  * @param {String} route
- * @param {String} type - Type of action to perform. Currently UP is supported.
+ * @param {String} [type] - Type of action to perform. Currently UP is supported.
  */
 function navigate(route = ROUTES.HOME, type) {
     if (!canNavigate('navigate', {route})) {
@@ -262,61 +262,6 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
-/**
- *  Checks if the navigation state contains routes that are protected (over the auth wall).
- *
- *  @function
- *  @param {Object} state - react-navigation state object
- *
- *  @returns {Boolean}
- */
-function navContainsProtectedRoutes(state) {
-    if (!state || !state.routeNames || !_.isArray(state.routeNames)) {
-        return false;
-    }
-    const protectedScreensNames = _.values(PROTECTED_SCREENS);
-    const difference = _.difference(protectedScreensNames, state.routeNames);
-
-    return !difference.length;
-}
-
-/**
- * Waits for the navigation state to contain protected routes specified in PROTECTED_SCREENS constant
- * If the navigation is in a state, where protected routes are available, the promise will resolve immediately.
- *
- * @function
- * @returns {Promise<void>} A promise that resolves to `true` when the Concierge route is present.
- *                             Rejects with an error if the navigation is not ready.
- *
- * @example
- * waitForProtectedRoutes()
- *   .then(() => console.log('Protected routes are present!'))
- *   .catch(error => console.error(error.message));
- */
-function waitForProtectedRoutes() {
-    return new Promise((resolve, reject) => {
-        const isReady = navigationRef.current && navigationRef.current.isReady();
-        if (!isReady) {
-            reject(new Error('[Navigation] is not ready yet!'));
-            return;
-        }
-        const currentState = navigationRef.current.getState();
-        if (navContainsProtectedRoutes(currentState)) {
-            resolve();
-            return;
-        }
-        let unsubscribe;
-        const handleStateChange = ({data}) => {
-            const state = lodashGet(data, 'state');
-            if (navContainsProtectedRoutes(state)) {
-                unsubscribe();
-                resolve();
-            }
-        };
-        unsubscribe = navigationRef.current.addListener('state', handleStateChange);
-    });
-}
-
 export default {
     setShouldPopAllStateOnUP,
     canNavigate,
@@ -330,7 +275,6 @@ export default {
     setIsNavigationReady,
     getTopmostReportId,
     getRouteNameFromStateEvent,
-    waitForProtectedRoutes,
     getTopMostCentralPaneRouteName,
     getTopmostReportActionId,
 };
