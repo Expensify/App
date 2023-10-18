@@ -38,7 +38,7 @@ function GetPhysicalCardName({privatePersonalDetails: {legalFirstName, legalLast
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 autoCapitalize="words"
                 defaultValue={legalFirstName}
-                containerStyles={[styles.mt5]}
+                containerStyles={[styles.mt5, styles.mh5]}
             />
             <TextInput
                 inputID="lastName"
@@ -48,7 +48,7 @@ function GetPhysicalCardName({privatePersonalDetails: {legalFirstName, legalLast
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 autoCapitalize="words"
                 defaultValue={legalLastName}
-                containerStyles={[styles.mt5]}
+                containerStyles={[styles.mt5, styles.mh5]}
             />
         </BaseGetPhysicalCard>
     );

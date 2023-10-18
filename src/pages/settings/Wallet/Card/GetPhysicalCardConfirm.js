@@ -86,13 +86,12 @@ function GetPhysicalCardConfirm({
             submitButtonText={translate('getPhysicalCard.shipCard')}
             title={translate('getPhysicalCard.header')}
         >
-            <Text style={[styles.baseFontStyle, styles.mt5]}>{translate('getPhysicalCard.estimatedDeliveryMessage')}</Text>
+            <Text style={[styles.baseFontStyle, styles.mv5, styles.mh5]}>{translate('getPhysicalCard.estimatedDeliveryMessage')}</Text>
             <MenuItemWithTopDescription
                 description={translate('getPhysicalCard.legalName')}
                 iconRight={Expensicons.ArrowRight}
                 onPress={() => goToGetPhysicalCardName(domain)}
                 shouldShowRightIcon
-                style={[styles.flexRow, styles.justifyContentBetween, styles.mt5]}
                 title={`${legalFirstName} ${legalLastName}`}
             />
             <MenuItemWithTopDescription
@@ -100,7 +99,6 @@ function GetPhysicalCardConfirm({
                 iconRight={Expensicons.ArrowRight}
                 onPress={() => goToGetPhysicalCardPhone(domain)}
                 shouldShowRightIcon
-                style={[styles.flexRow, styles.justifyContentBetween, styles.mt5]}
                 title={phoneNumber || UserUtils.getSecondaryPhoneLogin(loginList)}
             />
             <MenuItemWithTopDescription
@@ -108,7 +106,6 @@ function GetPhysicalCardConfirm({
                 iconRight={Expensicons.ArrowRight}
                 onPress={() => goToGetPhysicalCardAddress(domain)}
                 shouldShowRightIcon
-                style={[styles.flexRow, styles.justifyContentBetween, styles.mt5]}
                 title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails)}
             />
         </BaseGetPhysicalCard>

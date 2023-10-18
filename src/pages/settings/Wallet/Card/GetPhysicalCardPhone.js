@@ -39,7 +39,7 @@ function GetPhysicalCardPhone({privatePersonalDetails: {phoneNumber}, loginList}
                 accessibilityLabel={translate('getPhysicalCard.phoneNumber')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 defaultValue={phoneNumber || UserUtils.getSecondaryPhoneLogin(loginList)}
-                containerStyles={[styles.mt5]}
+                containerStyles={[styles.mt5, styles.mh5]}
             />
         </BaseGetPhysicalCard>
     );

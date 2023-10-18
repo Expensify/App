@@ -57,7 +57,8 @@ const defaultProps = {
             formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
             submitButtonText={submitButtonText}
             onSubmit={onSubmit}
-            style={[styles.mh5, styles.flex1]}
+            style={styles.flex1}
+            submitButtonStyles={[styles.mh5]}
         >
             {children}
         </Form>
