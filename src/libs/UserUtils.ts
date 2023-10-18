@@ -195,7 +195,7 @@ function generateAccountID(searchValue: string): number {
  * Gets the secondary phone login number
  */
 function getSecondaryPhoneLogin(loginList: Record<string, Login>): string | undefined {
-    const parsedLoginList = Object.keys(loginList).map((login) => login.replace('@expensify.sms', ''));
+    const parsedLoginList = Object.keys(loginList).map((login) => Str.removeSMSDomain(login));
     return parsedLoginList.find((login) => Str.isValidPhone(login));
 }
 
