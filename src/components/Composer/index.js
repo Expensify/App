@@ -19,7 +19,6 @@ import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileCom
 import CONST from '../../CONST';
 import withNavigation from '../withNavigation';
 import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
-import hasPassiveEventListenerSupport from '../../libs/DeviceCapabilities/hasPassiveEventListenerSupport';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -140,8 +139,6 @@ const getNextChars = (str, cursorPos) => {
     // If there is a space or new line, return the substring up to the space or new line
     return substr.substring(0, spaceIndex);
 };
-
-const supportsPassive = hasPassiveEventListenerSupport();
 
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -386,7 +383,7 @@ function Composer({
 
         if (textInput.current) {
             document.addEventListener('paste', handlePaste);
-            textInput.current.addEventListener('wheel', handleWheel, supportsPassive ? {passive: true} : false);
+            textInput.current.addEventListener('wheel', handleWheel, {passive: true});
         }
 
         return () => {
