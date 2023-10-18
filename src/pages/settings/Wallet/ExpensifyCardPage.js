@@ -94,7 +94,7 @@ function ExpensifyCardPage({
                             />
                         )}
 
-                        {detectedIndividualFraud && (
+                        {detectedIndividualFraud && !detectedDomainFraud && (
                             <>
                                 <DangerCardSection
                                     title={translate('cardPage.suspiciousBannerTitle')}
