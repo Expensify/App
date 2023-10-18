@@ -5,6 +5,9 @@ import ControlSelection from '../../../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import BasePreRenderer from './BasePreRenderer';
+import hasPassiveEventListenerSupport from '../../../../libs/DeviceCapabilities/hasPassiveEventListenerSupport';
+
+const supportsPassive = hasPassiveEventListenerSupport();
 
 const isScrollingVertically = (event) =>
     // Mark as vertical scrolling only when absolute value of deltaY is more than the double of absolute
@@ -42,7 +45,7 @@ function PreRenderer(props) {
         if (!eventListenerRefValue) {
             return;
         }
-        eventListenerRefValue.getScrollableNode().addEventListener('wheel', scrollNode);
+        eventListenerRefValue.getScrollableNode().addEventListener('wheel', scrollNode, supportsPassive ? {passive: true} : false);
 
         return () => {
             if (!eventListenerRefValue.getScrollableNode()) {
