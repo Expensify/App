@@ -123,7 +123,7 @@ You create this certificate by following the instructions in [`Configuring HTTPS
 #### Pre-requisite for Android flow
 1. Open any emulator using Android Studio
 2. Use `adb push "$(mkcert -CAROOT)/rootCA.pem" /storage/emulated/0/Download/` to push certificate to install in Download folder.
-3. Install the certificate as CA certificate from the settings.
+3. Install the certificate as CA certificate from the settings. On the Android emulator, this option can be found in Settings > Security > Encryption & Credentials > Install a certificate > CA certificate.  
 4. Close the emulator.
 
 Note - If you want to run app on `https://127.0.0.1:8082`, then just install the certificate and use `adb reverse tcp:8082 tcp:8082` on every startup.
@@ -132,26 +132,22 @@ Note - If you want to run app on `https://127.0.0.1:8082`, then just install the
 1. Run `npm run setupNewDotWebForEmulators android`
 2. Select the emulator you want to run if prompted. (If single emulator is available, then it will open automatically)
 3. Let the script execute till the message `🎉 Done!`.
-4. Check the emulator is closed.
 
 Note - If you want to run app on `https://new.expensify.com.dev:8082`, then just do the Android flow and use `npm run startAndroidEmulator` to start the Android Emulator every time (It will configure the emulator).
 
 
 Possible Scenario:
-1. It may run the second flow on a new device, then to check first flow just run the flow again and select the same device.
-2. It may fail to root with error `adbd cannot run as root in production builds`, then it will point to https://stackoverflow.com/a/45668555 in the console.
+The flow may fail to root with error `adbd cannot run as root in production builds`. In this case, please refer to https://stackoverflow.com/a/45668555. Or use `https://127.0.0.1:8082` for less hassle.
 
 #### iOS Flow
 1. Run `npm run setupNewDotWebForEmulators ios`
 2. Select the emulator you want to run if prompted. (If single emulator is available, then it will open automatically)
 3. Let the script execute till the message `🎉 Done!`.
-4. Check the emulator is closed.
 
 #### All Flow
 1. Run `npm run setupNewDotWebForEmulators all` or `npm run setupNewDotWebForEmulators`
 2. Check if the iOS flow runs first and then Android flow runs.
 3. Let the script execute till the message `🎉 Done!`.
-4. Check the emulator is closed.
 
 ----
 
