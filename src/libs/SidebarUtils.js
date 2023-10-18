@@ -158,7 +158,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReportsDict);
+        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReportsDict);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -347,17 +347,17 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
         const lastAction = visibleReportActionItems[report.reportID];
-        if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+        if (lastAction && lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lodashGet(lastAction, 'originalMessage.newName', '');
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
-        } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
+        } else if (lastAction && lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
             result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}`;
-        } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
+        } else if (lastAction && lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
             result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}`;
-        } else if (lodashGet(lastAction, 'actionName', '') !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
+        } else if (lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
-            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = lastAction && lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
     } else {
         if (!lastMessageText) {
@@ -384,7 +384,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result);
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail.accountID;

@@ -60,6 +60,7 @@ type Report = {
     /** The report type */
     type?: string;
 
+    lastMessageTranslationKey?: string;
     parentReportID?: string;
     parentReportActionID?: string;
     isOptimisticReport?: boolean;
