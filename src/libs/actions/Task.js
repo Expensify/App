@@ -590,10 +590,11 @@ function setDescriptionValue(description) {
 /**
  * Sets the shareDestination value for the task
  * @param {string} shareDestination
+ * @param {string} shouldShowDestinationTooltip
  */
-function setShareDestinationValue(shareDestination) {
+function setShareDestinationValue(shareDestination, shouldShowDestinationTooltip) {
     // This is only needed for creation of a new task and so it should only be stored locally
-    Onyx.merge(ONYXKEYS.TASK, {shareDestination});
+    Onyx.merge(ONYXKEYS.TASK, {shareDestination, shouldShowDestinationTooltip});
 }
 
 /* Sets the assigneeChatReport details for the task
@@ -708,6 +709,7 @@ function getAssignee(assigneeAccountID, personalDetails) {
  * */
 function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
+
     let subtitle = '';
     if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
         const participantAccountID = lodashGet(report, 'participantAccountIDs[0]');
@@ -721,6 +723,12 @@ function getShareDestination(reportID, reports, personalDetails) {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
         displayName: ReportUtils.getReportName(report),
         subtitle,
+        shouldShowDestinationTooltip:
+            ReportUtils.isChatThread(report) ||
+            ReportUtils.isPolicyExpenseChat(report) ||
+            ReportUtils.isMoneyRequestReport(report) ||
+            ReportUtils.isThread(report) ||
+            ReportUtils.isTaskReport(report),
     };
 }
 
