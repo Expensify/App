@@ -16,7 +16,7 @@ import assignedCardPropTypes from '../assignedCardPropTypes';
 
 const propTypes = {
     cardList: PropTypes.objectOf(assignedCardPropTypes),
-    children: PropTypes.element,
+    children: PropTypes.node,
     domain: PropTypes.string,
     headline: PropTypes.string.isRequired,
     isConfirmation: PropTypes.bool,
