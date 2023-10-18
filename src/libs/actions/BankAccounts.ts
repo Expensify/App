@@ -58,8 +58,8 @@ function openPersonalBankAccountSetupView(exitReportID: string) {
 /**
  * Whether after adding a bank account we should continue with the KYC flow
  */
-function setPersonalBankAccountContinueKYCOnSuccess(shouldContinueKYCOnSuccess: boolean, onSuccessFallbackRoute: string) {
-    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {shouldContinueKYCOnSuccess, onSuccessFallbackRoute});
+function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: string) {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute});
 }
 
 function clearPersonalBankAccount() {

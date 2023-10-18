@@ -89,12 +89,11 @@ class AddPersonalBankAccountPage extends React.Component {
 
     exitFlow(shouldContinue = false) {
         const exitReportID = lodashGet(this.props, 'personalBankAccount.exitReportID');
-        const shouldContinueKYCOnSuccess = lodashGet(this.props, 'personalBankAccount.shouldContinueKYCOnSuccess', false);
         const onSuccessFallbackRoute = lodashGet(this.props, 'personalBankAccount.onSuccessFallbackRoute', '');
 
         if (exitReportID) {
             Navigation.dismissModal(exitReportID);
-        } else if (shouldContinue && onSuccessFallbackRoute && shouldContinueKYCOnSuccess) {
+        } else if (shouldContinue && onSuccessFallbackRoute) {
             PaymentMethods.continueSetup(onSuccessFallbackRoute);
         } else {
             Navigation.goBack(ROUTES.SETTINGS_WALLET);

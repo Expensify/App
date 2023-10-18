@@ -193,7 +193,7 @@ function SettlementButton({
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
-            BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(true, ROUTES.ENABLE_PAYMENTS);
+            BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             return;
         }
 
