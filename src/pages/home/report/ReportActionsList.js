@@ -322,7 +322,9 @@ function ReportActionsList({
                 const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
 
                 if (!currentUnreadMarker && shouldDisplayNewMarker && canDisplayMarker) {
+                    cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
                     setCurrentUnreadMarker(reportAction.reportActionID);
+                    shouldDisplayNewMarker = true;
                 }
             } else {
                 shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker;
