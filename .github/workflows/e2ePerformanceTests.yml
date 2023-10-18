@@ -125,10 +125,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Make zip directory for everything to send to AWS Device Farm
         run: mkdir zip
@@ -189,7 +187,7 @@ jobs:
 
       - name: Delete Customer Artifacts.zip
         run: rm "Customer Artifacts.zip"
-      
+
       - name: Schedule AWS Device Farm test run on delta branch
         uses: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
         with:
@@ -209,17 +207,16 @@ jobs:
 
       - name: Unzip AWS Device Farm delta results
         run: unzip "Customer Artifacts.zip" -d deltaResults
-        
+
       - name: Compare results
         run: node tests/e2e/merge.js --mainPath ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/main.json --deltaPath ./deltaResults//Host_Machine_Files/\$WORKING_DIRECTORY/delta.json --outputPath ./output.md
 
       - name: Print results
         run: cat "./output.md"
-        
+
       # - name: Print AWS Device Farm verbose run results
       #   if: ${{ always() && runner.debug != null && fromJSON(runner.debug) }}
       #   run: cat "./Host_Machine_Files/debug.log"
-
 # TODO: Once tests are more reliable we should uncomment this
 #      - name: Check if test failed, if so post the results and add the DeployBlocker label
 #        run: |
