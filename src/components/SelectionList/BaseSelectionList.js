@@ -174,11 +174,8 @@ function BaseSelectionList({
             }
 
             listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
-
-            // If we don't disable dependencies here, we would need to make sure that the `sections` prop is stable in every usage of this component.
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
-        [flattenedSections.allOptions],
+        [flattenedSections.allOptions, sections],
     );
 
     /**
