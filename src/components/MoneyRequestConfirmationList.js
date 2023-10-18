@@ -536,8 +536,7 @@ function MoneyRequestConfirmationList(props) {
         );
     }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, translate, formError]);
 
-    const {image: receiptImage, thumbnail: receiptThumbnail} =
-        props.receiptPath && props.receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptFilename) : {};
+    const {image: receiptImage, thumbnail: receiptThumbnail} = props.receiptPath && props.receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction) : {};
 
     return (
         <OptionsSelector

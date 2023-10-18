@@ -1,5 +1,5 @@
-import _ from 'underscore';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxUpdate} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import Log from './Log';
 import * as Request from './Request';
 import * as Middleware from './Middleware';
@@ -7,6 +7,8 @@ import * as SequentialQueue from './Network/SequentialQueue';
 import pkg from '../../package.json';
 import CONST from '../CONST';
 import * as Pusher from './Pusher/pusher';
+import OnyxRequest from '../types/onyx/Request';
+import Response from '../types/onyx/Response';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -28,25 +30,34 @@ Request.use(Middleware.HandleUnusedOptimisticID);
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 Request.use(Middleware.SaveResponseInOnyx);
 
+type OnyxData = {
+    optimisticData?: OnyxUpdate[];
+    successData?: OnyxUpdate[];
+    failureData?: OnyxUpdate[];
+};
+
+type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
+
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
  *
- * @param {String} command - Name of API command to call.
- * @param {Object} apiCommandParameters - Parameters to send to the API.
- * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
+ * @param command - Name of API command to call.
+ * @param apiCommandParameters - Parameters to send to the API.
+ * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
  *                             into Onyx before and after a request is made. Each nested object will be formatted in
  *                             the same way as an API response.
- * @param {Object} [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param {Object} [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
+ * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
+ * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
+ * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
-function write(command, apiCommandParameters = {}, onyxData = {}) {
+function write(command: string, apiCommandParameters: Record<string, unknown> = {}, onyxData: OnyxData = {}) {
     Log.info('Called API write', false, {command, ...apiCommandParameters});
+    const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
 
     // Optimistically update Onyx
-    if (onyxData.optimisticData) {
-        Onyx.update(onyxData.optimisticData);
+    if (optimisticData) {
+        Onyx.update(optimisticData);
     }
 
     // Assemble the data we'll send to the API
@@ -61,7 +72,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
     };
 
     // Assemble all the request data we'll be storing in the queue
-    const request = {
+    const request: OnyxRequest = {
         command,
         data: {
             ...data,
@@ -70,7 +81,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
             shouldRetry: true,
             canCancel: true,
         },
-        ..._.omit(onyxData, 'optimisticData'),
+        ...onyxDataWithoutOptimisticData,
     };
 
     // Write commands can be saved and retried, so push it to the SequentialQueue
@@ -85,24 +96,30 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
  * Using this method is discouraged and will throw an ESLint error. Use it sparingly and only when all other alternatives have been exhausted.
  * It is best to discuss it in Slack anytime you are tempted to use this method.
  *
- * @param {String} command - Name of API command to call.
- * @param {Object} apiCommandParameters - Parameters to send to the API.
- * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
+ * @param command - Name of API command to call.
+ * @param apiCommandParameters - Parameters to send to the API.
+ * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
  *                             into Onyx before and after a request is made. Each nested object will be formatted in
  *                             the same way as an API response.
- * @param {Object} [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param {Object} [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
- * @param {String} [apiRequestType] - Can be either 'read', 'write', or 'makeRequestWithSideEffects'. We use this to either return the chained
+ * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
+ * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
+ * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
+ * @param [apiRequestType] - Can be either 'read', 'write', or 'makeRequestWithSideEffects'. We use this to either return the chained
  *                                    response back to the caller or to trigger reconnection callbacks when re-authentication is required.
- * @returns {Promise}
+ * @returns
  */
-function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData = {}, apiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+function makeRequestWithSideEffects(
+    command: string,
+    apiCommandParameters = {},
+    onyxData: OnyxData = {},
+    apiRequestType: ApiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS,
+): Promise<void | Response> {
     Log.info('Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
+    const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
 
     // Optimistically update Onyx
-    if (onyxData.optimisticData) {
-        Onyx.update(onyxData.optimisticData);
+    if (optimisticData) {
+        Onyx.update(optimisticData);
     }
 
     // Assemble the data we'll send to the API
@@ -113,10 +130,10 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
     };
 
     // Assemble all the request data we'll be storing
-    const request = {
+    const request: OnyxRequest = {
         command,
         data,
-        ..._.omit(onyxData, 'optimisticData'),
+        ...onyxDataWithoutOptimisticData,
     };
 
     // Return a promise containing the response from HTTPS
@@ -126,16 +143,16 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
 /**
  * Requests made with this method are not be persisted to disk. If there is no network connectivity, the request is ignored and discarded.
  *
- * @param {String} command - Name of API command to call.
- * @param {Object} apiCommandParameters - Parameters to send to the API.
- * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
+ * @param command - Name of API command to call.
+ * @param apiCommandParameters - Parameters to send to the API.
+ * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
  *                             into Onyx before and after a request is made. Each nested object will be formatted in
  *                             the same way as an API response.
- * @param {Object} [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param {Object} [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
+ * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
+ * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
+ * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
-function read(command, apiCommandParameters, onyxData) {
+function read(command: string, apiCommandParameters: Record<string, unknown>, onyxData: OnyxData = {}) {
     // Ensure all write requests on the sequential queue have finished responding before running read requests.
     // Responses from read requests can overwrite the optimistic data inserted by
     // write requests that use the same Onyx keys and haven't responded yet.

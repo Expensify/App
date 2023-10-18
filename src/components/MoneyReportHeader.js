@@ -62,7 +62,7 @@ const defaultProps = {
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, report: moneyRequestReport, isSmallScreenWidth}) {
     const {translate} = useLocalize();
-    const reportTotal = ReportUtils.getMoneyRequestTotal(moneyRequestReport);
+    const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policyType = lodashGet(policy, 'type');
@@ -71,8 +71,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
     const isPayer = policyType === CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isReportDraft(moneyRequestReport);
     const shouldShowSettlementButton = useMemo(
-        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
-        [isPayer, isDraft, isSettled, moneyRequestReport, reportTotal, chatReport],
+        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
+        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (policyType !== CONST.POLICY.TYPE.CORPORATE) {
@@ -80,10 +80,10 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
         }
         return isManager && !isDraft && !isApproved && !isSettled;
     }, [policyType, isManager, isDraft, isApproved, isSettled]);
-    const shouldShowSubmitButton = isDraft && reportTotal !== 0;
+    const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
-    const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
 
     return (
         <View style={[styles.pt0]}>
