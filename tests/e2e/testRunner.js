@@ -30,12 +30,6 @@ const reversePort = require('./utils/androidReversePort');
 
 const args = process.argv.slice(2);
 
-const indexOfBranchLabel = _.findIndex(args, (t) => t === '--branch');
-
-if (indexOfBranchLabel === -1) {
-    throw new Error('branch not specified, specify a branch with --branch [BRANCH NAME]');
-}
-
 let branch = 'main';
 
 if (args.includes('--branch')) {
