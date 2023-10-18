@@ -176,7 +176,7 @@ function BaseSelectionList({
 
         // If we don't disable dependencies here, we would need to make sure that the `sections` prop is stable in every usage of this component.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [flattenedSections.allOptions]);
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
