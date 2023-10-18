@@ -211,10 +211,10 @@ jobs:
         run: unzip "Customer Artifacts.zip" -d deltaResults
         
       - name: Compare results
-        run: node "./Host_Machine_File/tests/e2e/merge.js --mainPath ../../mainResults/\$WORKING_DIRECTORY/main.json --deltaPath ../../deltaResults/\$WORKING_DIRECTORY/delta.json --outputPath ./Host_Machine_Files/output.md"
+        run: node tests/e2e/merge.js --mainPath ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/main.json --deltaPath ./deltaResults//Host_Machine_Files/\$WORKING_DIRECTORY/delta.json --outputPath ./output.md
 
       - name: Print results
-        run: cat "./Host_Machine_Files/output.md"
+        run: cat "./output.md"
         
       # - name: Print AWS Device Farm verbose run results
       #   if: ${{ always() && runner.debug != null && fromJSON(runner.debug) }}
