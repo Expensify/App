@@ -71,13 +71,16 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         const sectionsList = [];
         let indexOffset = 0;
 
-        sectionsList.push({
-            title: undefined,
-            data: selectedOptions,
-            shouldShow: !_.isEmpty(selectedOptions),
-            indexOffset,
-        });
-        indexOffset += selectedOptions.length;
+        // Only show the selected participants if the search is empty
+        if (searchTerm === '') {
+            sectionsList.push({
+                title: undefined,
+                data: selectedOptions,
+                shouldShow: !_.isEmpty(selectedOptions),
+                indexOffset,
+            });
+            indexOffset += selectedOptions.length;
+        }
 
         if (maxParticipantsReached) {
             return sectionsList;
@@ -130,7 +133,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             recentReports,
             personalDetails: newChatPersonalDetails,
             userToInvite,
-        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, newSelectedOptions, excludedGroupEmails);
+        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, newSelectedOptions, excludedGroupEmails, false, true, false, {}, [], false, {}, [], true, true);
 
         setSelectedOptions(newSelectedOptions);
         setFilteredRecentReports(recentReports);

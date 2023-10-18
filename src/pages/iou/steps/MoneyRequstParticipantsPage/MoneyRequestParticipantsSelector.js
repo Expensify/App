@@ -104,6 +104,7 @@ function MoneyRequestParticipantsSelector({
         const newSections = [];
         let indexOffset = 0;
 
+        // Only show the selected participants if the search is empty
         if (searchTerm === '') {
             newSections.push({
                 title: undefined,
