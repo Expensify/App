@@ -1115,9 +1115,9 @@ function getOptions(
     const optionsToExclude = [{login: currentUserLogin}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
-    // This is because on certain pages, we show the selected options when the search input is empty
-    // Prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
-    if (includeSelectedOptions && searchInputValue === '') {
+    // This is because on certain pages, we show the selected options at the top when the search input is empty
+    // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
+    if (!includeSelectedOptions || searchInputValue === '') {
         optionsToExclude.push(...selectedOptions);
     }
 
