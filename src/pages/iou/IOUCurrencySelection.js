@@ -1,4 +1,5 @@
 import React, {useState, useMemo, useCallback, useRef} from 'react';
+import {Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -78,6 +79,8 @@ function IOUCurrencySelection(props) {
     const confirmCurrencySelection = useCallback(
         (option) => {
             const backTo = lodashGet(props.route, 'params.backTo', '');
+            Keyboard.dismiss();
+
             // When we refresh the web, the money request route gets cleared from the navigation stack.
             // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
             // To prevent any negative experience, we have made the decision to simply close the currency selection page.
