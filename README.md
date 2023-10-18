@@ -118,7 +118,7 @@ variables referenced here get updated since your local `.env` file is ignored.
 
 The development server is reached through the HTTPS protocol, and any client that access the development server needs a certificate.
 
-You create this certificate by following the instructions in [`Configuring HTTPS`](#configuring-https) of this readme. When accessing the website served from the development server on browsers on iOS simulator or Android emulator, these virtual devices need to have the same certificate installed. Follow the steps below to install to do so.
+You create this certificate by following the instructions in [`Configuring HTTPS`](#configuring-https) of this readme. When accessing the website served from the development server on browsers in iOS simulator or Android emulator, these virtual devices need to have the same certificate installed. Follow the steps below to install them.
 
 #### Pre-requisite for Android flow
 1. Open any emulator using Android Studio
