@@ -9,12 +9,12 @@ import PaymentMethod from '../types/onyx/PaymentMethod';
 type AccountType = BankAccount['accountType'] | Fund['accountType'];
 
 /**
- * Check to see if user has either a debit card or personal bank account added
+ * Check to see if user has either a debit card or personal bank account added that can be used with a wallet.
  */
 function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountList: Record<string, BankAccount>): boolean {
     const validBankAccount = Object.values(bankAccountList).some((bankAccountJSON) => {
         const bankAccount = new BankAccountModel(bankAccountJSON);
-        return bankAccount.isDefaultCredit();
+        return bankAccount.isOpen() && bankAccount.getType() === "PERSONAL";
     });
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
