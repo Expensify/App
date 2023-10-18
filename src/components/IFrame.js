@@ -15,6 +15,12 @@ import styles from '../styles/styles';
 import Button from './Button';
 import navigation from '../libs/Navigation/Navigation';
 
+function addIsNewDotParam(url) {
+    const urlObj = new URL(url);
+    urlObj.searchParams.append('isNewDot', true);
+    return urlObj.toString();
+}
+
 function getNewDotURL(url) {
     const urlObj = new URL(url);
     const paramString = urlObj.searchParams.get('param') ?? '';
@@ -248,12 +254,13 @@ function IFrame({session}) {
         }
 
         const newOldDotURL = getOldDotURL(routeName, params);
+
         if (!newOldDotURL) {
             console.error(`No old dot URL found for routeName: ${routeName} and params: ${JSON.stringify(params)}`);
             return;
         }
 
-        setOldDotURL(`${BASE_IFRAME_URL}/${newOldDotURL}`);
+        setOldDotURL(addIsNewDotParam(`${BASE_IFRAME_URL}/${newOldDotURL}`));
     }, [routeName, params]);
 
     useEffect(() => {
