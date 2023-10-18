@@ -9,7 +9,6 @@ import Text from '../../Text';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
-import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
 import UserDetailsTooltip from '../../UserDetailsTooltip';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withCurrentUserPersonalDetails from '../../withCurrentUserPersonalDetails';
@@ -61,10 +60,9 @@ function MentionUserRenderer(props) {
     return (
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
-                <PressableWithSecondaryInteraction
-                    inline
+                <Text
                     suppressHighlighting
-                    onSecondaryInteraction={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                     onPress={(event) => {
                         event.preventDefault();
                         Navigation.navigate(navigationRoute);
@@ -89,7 +87,7 @@ function MentionUserRenderer(props) {
                             {!_.isEmpty(htmlAttribAccountID) ? `@${displayNameOrLogin}` : <TNodeChildrenRenderer tnode={props.tnode} />}
                         </Text>
                     </UserDetailsTooltip>
-                </PressableWithSecondaryInteraction>
+                </Text>
             )}
         </ShowContextMenuContext.Consumer>
     );
