@@ -24,10 +24,23 @@ import SelectionList from '../components/SelectionList';
 import * as Report from '../libs/actions/Report';
 import * as ReportUtils from '../libs/ReportUtils';
 import Permissions from '../libs/Permissions';
+import participantPropTypes from '../components/participantPropTypes';
 
-const personalDetailsPropTypes = PropTypes.shape({
-    /** The login of the person (either email or phone number) */
-    login: PropTypes.string,
+const propTypes = {
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** All of the personal details for everyone */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
+    /** URL Route params */
+    route: PropTypes.shape({
+        /** Params from the URL path */
+        params: PropTypes.shape({
+            /** policyID passed via route: /workspace/:policyID/invite */
+            policyID: PropTypes.string,
+        }),
+    }).isRequired,
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -38,29 +51,6 @@ const personalDetailsPropTypes = PropTypes.shape({
         id: PropTypes.string,
     }).isRequired,
 
-    /** The URL of the person's avatar (there should already be a default avatar if
-    the person doesn't have their own avatar uploaded yet, except for anon users) */
-    avatar: PropTypes.string,
-
-    /** This is either the user's full name, or their login if full name is an empty string */
-    displayName: PropTypes.string,
-});
-
-const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
-
-    /** URL Route params */
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** policyID passed via route: /workspace/:policyID/invite */
-            policyID: PropTypes.string,
-        }),
-    }).isRequired,
     ...policyPropTypes,
 };
 
@@ -105,7 +95,7 @@ function RoomInvitePage(props) {
         setPersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [props.personalDetails, props.betas, searchTerm, excludedUsers, props.report]);
+    }, [props.personalDetails, props.betas, searchTerm, excludedUsers]);
 
     const getSections = () => {
         const sections = [];
@@ -171,9 +161,10 @@ function RoomInvitePage(props) {
     }, [selectedOptions]);
 
     // Non policy members should not be able to view the participants of a room
-    const reportID = useMemo(() => props.report.reportID, [props.report]);
-    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report, props.policies]);
+    const reportID = props.report.reportID;
+    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
     const backRoute = useMemo(() => (isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)), [isPolicyMember, reportID]);
+    const reportName = useMemo(() => ReportUtils.getReportName(props.report));
     const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;
@@ -188,13 +179,8 @@ function RoomInvitePage(props) {
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         Report.inviteToRoom(props.report.reportID, invitedEmailsToAccountIDs);
-        Navigation.goBack(backRoute);
-    }, [selectedOptions, backRoute, props.report, validate]);
-
-    const [policyName, shouldShowAlertPrompt] = useMemo(
-        () => [lodashGet(props.policy, 'name'), _.size(lodashGet(props.policy, 'errors', {})) > 0 || lodashGet(props.policy, 'alertMessage', '').length > 0],
-        [props.policy],
-    );
+        Navigation.navigate(backRoute);
+    }, [selectedOptions, backRoute, props.report.reportID, validate]);
 
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();
@@ -202,10 +188,10 @@ function RoomInvitePage(props) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (!userToInvite && excludedUsers.includes(searchValue)) {
-            return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
+            return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
-    }, [excludedUsers, translate, searchTerm, policyName, userToInvite, personalDetails]);
+    }, [excludedUsers, translate, searchTerm, userToInvite, personalDetails]);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -222,7 +208,7 @@ function RoomInvitePage(props) {
                     >
                         <HeaderWithBackButton
                             title={translate('workspace.invite.invitePeople')}
-                            subtitle={ReportUtils.getReportName(props.report)}
+                            subtitle={reportName}
                             onBackButtonPress={() => {
                                 Navigation.goBack(backRoute);
                             }}
@@ -242,7 +228,6 @@ function RoomInvitePage(props) {
                         <View style={[styles.flexShrink0]}>
                             <FormAlertWithSubmitButton
                                 isDisabled={!selectedOptions.length}
-                                isAlertVisible={shouldShowAlertPrompt}
                                 buttonText={translate('common.invite')}
                                 onSubmit={inviteUsers}
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
@@ -270,9 +255,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
