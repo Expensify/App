@@ -28,7 +28,7 @@ import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMe
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
-import {withBlockedFromConcierge, withNetwork, withPersonalDetails, withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {usePersonalDetails, withBlockedFromConcierge, withNetwork, withPersonalDetails, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
@@ -127,7 +127,7 @@ const defaultProps = {
 };
 
 function ReportActionItem(props) {
-    const personalDetails = useContext(PersonalDetailsContext);
+    const personalDetails = usePersonalDetails();
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);

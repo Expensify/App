@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -9,12 +9,11 @@ import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
 import ReportActionItemDate from './ReportActionItemDate';
 import Avatar from '../../../components/Avatar';
-import personalDetailsPropType from '../../personalDetailsPropType';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
+import {usePersonalDetails} from '../../../components/OnyxProvider';
 import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -32,7 +31,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import DateUtils from '../../../libs/DateUtils';
-import {PersonalDetailsContext} from '../ReportScreen';
 
 const propTypes = {
     /** All the data of the action */
@@ -85,7 +83,7 @@ const showWorkspaceDetails = (reportID) => {
 };
 
 function ReportActionItemSingle(props) {
-    const personalDetails = useContext(PersonalDetailsContext);
+    const personalDetails = usePersonalDetails();
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
     let {displayName} = personalDetails[actorAccountID] || {};
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] || {};
