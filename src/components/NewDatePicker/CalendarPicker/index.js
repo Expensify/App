@@ -1,25 +1,20 @@
 import _ from 'underscore';
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import Text from '../../Text';
 import YearPickerModal from './YearPickerModal';
-import lodashGet from 'lodash/get';
-import compose from '../../../libs/compose';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../../styles/styles';
 import generateMonthMatrix from './generateMonthMatrix';
-import Navigation from '../../../libs/Navigation/Navigation';
-import withLocalize, { withLocalizePropTypes } from '../../withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import CONST from '../../../CONST';
-import ROUTES from '../../../ROUTES';
 import getButtonState from '../../../libs/getButtonState';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import PressableWithFeedback from '../../Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
-import withNavigation from '../../withNavigation';
 
 const propTypes = {
     /** An initial value of date string */
@@ -41,7 +36,7 @@ const defaultProps = {
     value: new Date(),
     minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
     maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
-    onSelected: () => { },
+    onSelected: () => {},
 };
 
 class CalendarPicker extends React.PureComponent {
@@ -66,7 +61,7 @@ class CalendarPicker extends React.PureComponent {
             currentDateView,
             isYearPickerVisible: false,
             years: _.map(
-                Array.from({ length: maxYear - minYear + 1 }, (v, i) => i + minYear),
+                Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear),
                 (value) => ({
                     text: value.toString(),
                     value,
@@ -97,24 +92,6 @@ class CalendarPicker extends React.PureComponent {
         });
     }
 
-    componentDidMount() {
-        const yearFromRoute = lodashGet(this.props, 'currentRoute.params.year');
-        if (!yearFromRoute || yearFromRoute === this.state.currentDateView.getFullYear()) {
-            return;
-        }
-        this.onYearSelected(yearFromRoute);
-    }
-
-    componentDidUpdate(prevProps) {
-        const yearFromRoute = lodashGet(this.props, 'currentRoute.params.year');
-        const prevYearFromRoute = lodashGet(prevProps, 'currentRoute.params.year');
-        console.log('yearFromRoute', yearFromRoute, prevYearFromRoute)
-        if (!yearFromRoute || yearFromRoute === this.state.currentDateView.getFullYear() || yearFromRoute === prevYearFromRoute) {
-            return;
-        }
-        this.onYearSelected(yearFromRoute);
-    }
-
     /**
      * Calls the onSelected function with the selected date.
      * @param {Number} day - The day of the month that was selected.
@@ -132,14 +109,14 @@ class CalendarPicker extends React.PureComponent {
      * Handles the user pressing the previous month arrow of the calendar picker.
      */
     moveToPrevMonth() {
-        this.setState((prev) => ({ currentDateView: moment(prev.currentDateView).subtract(1, 'months').toDate() }));
+        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).subtract(1, 'months').toDate()}));
     }
 
     /**
      * Handles the user pressing the next month arrow of the calendar picker.
      */
     moveToNextMonth() {
-        this.setState((prev) => ({ currentDateView: moment(prev.currentDateView).add(1, 'months').toDate() }));
+        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).add(1, 'months').toDate()}));
     }
 
     render() {
@@ -155,14 +132,10 @@ class CalendarPicker extends React.PureComponent {
             <View>
                 <View
                     style={[styles.calendarHeader, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph4, styles.pr1]}
-                    dataSet={{ [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true }}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 >
                     <PressableWithFeedback
-                        onPress={() => {
-                            const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
-                            const year = moment(this.state.currentDateView).year();
-                            Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_SELECT_YEAR.getRoute(year, activeRoute));
-                        }}
+                        onPress={() => this.setState({isYearPickerVisible: true})}
                         style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
                         wrapperStyle={[styles.alignItemsCenter]}
                         hoverDimmingValue={1}
@@ -216,7 +189,7 @@ class CalendarPicker extends React.PureComponent {
                         <View
                             key={dayOfWeek}
                             style={[styles.calendarDayRoot, styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
-                            dataSet={{ [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true }}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={styles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
                         </View>
@@ -243,9 +216,9 @@ class CalendarPicker extends React.PureComponent {
                                     accessibilityLabel={day ? day.toString() : undefined}
                                     focusable={Boolean(day)}
                                     accessible={Boolean(day)}
-                                    dataSet={{ [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true }}
+                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 >
-                                    {({ hovered, pressed }) => (
+                                    {({hovered, pressed}) => (
                                         <View
                                             style={[
                                                 styles.calendarDayContainer,
@@ -261,13 +234,13 @@ class CalendarPicker extends React.PureComponent {
                         })}
                     </View>
                 ))}
-                {/* <YearPickerModal
+                <YearPickerModal
                     isVisible={this.state.isYearPickerVisible}
                     years={this.state.years}
                     currentYear={currentYearView}
                     onYearChange={this.onYearSelected}
                     onClose={() => this.setState({isYearPickerVisible: false})}
-                /> */}
+                />
             </View>
         );
     }
@@ -276,7 +249,4 @@ class CalendarPicker extends React.PureComponent {
 CalendarPicker.propTypes = propTypes;
 CalendarPicker.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withNavigation,
-)(CalendarPicker);
+export default withLocalize(CalendarPicker);

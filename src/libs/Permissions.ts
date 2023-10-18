@@ -2,8 +2,7 @@ import CONST from '../CONST';
 import Beta from '../types/onyx/Beta';
 
 function canUseAllBetas(betas: Beta[]): boolean {
-    // return betas?.includes(CONST.BETAS.ALL);
-    return true;
+    return betas?.includes(CONST.BETAS.ALL);
 }
 
 function canUseChronos(betas: Beta[]): boolean {
