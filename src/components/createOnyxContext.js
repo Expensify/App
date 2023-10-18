@@ -1,4 +1,4 @@
-import React, {createContext, forwardRef} from 'react';
+import React, {createContext, forwardRef, useContext} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -54,5 +54,13 @@ export default (onyxKeyName, defaultValue) => {
             return Consumer;
         };
 
-    return [withOnyxKey, ProviderWithOnyx, Context];
+    const useOnyxContext = () => {
+        const context = useContext(Context);
+        if (context === null) {
+            throw new Error(`useOnyxContext must be used within a OnyxProvider [key: ${onyxKeyName}]`);
+        }
+        return context;
+    };
+
+    return [withOnyxKey, ProviderWithOnyx, Context, useOnyxContext];
 };
