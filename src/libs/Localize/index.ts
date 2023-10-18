@@ -1,4 +1,3 @@
-import Str from 'expensify-common/lib/str';
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
@@ -14,12 +13,11 @@ import ONYXKEYS from '../../ONYXKEYS';
 let userEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    waitForCollectionCallback: true,
     callback: (val) => {
         if (!val) {
             return;
         }
-        userEmail = val?.email;
+        userEmail = val?.email ?? '';
     },
 });
 
@@ -44,7 +42,8 @@ function init() {
     }, {});
 }
 
-type PhraseParameters<T> = T extends (arg: infer A) => string ? A : never;
+type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
+type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
 /**
  * Return translated string for given locale and phrase
@@ -52,35 +51,29 @@ type PhraseParameters<T> = T extends (arg: infer A) => string ? A : never;
  * @param [desiredLanguage] eg 'en', 'es-ES'
  * @param [phraseParameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TKey extends TranslationPaths>(
-    desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES',
-    phraseKey: TKey,
-    phraseParameters: PhraseParameters<TranslationFlatObject[TKey]> = {} as PhraseParameters<TranslationFlatObject[TKey]>,
-): string {
-    const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
-
+function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>): string {
     // Search phrase in full locale e.g. es-ES
-    const desiredLanguageDictionary = translations?.[desiredLanguage];
-    let translatedPhrase = desiredLanguageDictionary[phraseKey];
+    const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
+    let translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
     if (translatedPhrase) {
-        return Str.result(translatedPhrase, phraseParameters);
+        return typeof translatedPhrase === 'function' ? translatedPhrase(...phraseParameters) : translatedPhrase;
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbackLanguageDictionary = translations[languageAbbreviation] || {};
-    translatedPhrase = fallbackLanguageDictionary?.[phraseKey] ?? '';
+    const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
+    translatedPhrase = translations?.[languageAbbreviation]?.[phraseKey] as Phrase<TKey>;
     if (translatedPhrase) {
-        return Str.result(translatedPhrase, phraseParameters);
+        return typeof translatedPhrase === 'function' ? translatedPhrase(...phraseParameters) : translatedPhrase;
     }
+
     if (languageAbbreviation !== CONST.LOCALES.DEFAULT) {
         Log.alert(`${phraseKey} was not found in the ${languageAbbreviation} locale`);
     }
 
     // Phrase is not translated, search it in default language (en)
-    const defaultLanguageDictionary = translations[CONST.LOCALES.DEFAULT] || {};
-    translatedPhrase = defaultLanguageDictionary[phraseKey] ?? '';
+    translatedPhrase = translations?.[CONST.LOCALES.DEFAULT]?.[phraseKey] as Phrase<TKey>;
     if (translatedPhrase) {
-        return Str.result(translatedPhrase, phraseParameters);
+        return typeof translatedPhrase === 'function' ? translatedPhrase(...phraseParameters) : translatedPhrase;
     }
 
     // Phrase is not found in default language, on production and staging log an alert to server
