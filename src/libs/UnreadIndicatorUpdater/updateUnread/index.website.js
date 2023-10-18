@@ -3,6 +3,7 @@
  */
 import CONFIG from '../../../CONFIG';
 
+let unreadTotalCount = 0;
 /**
  * Set the page title on web
  *
@@ -10,7 +11,7 @@ import CONFIG from '../../../CONFIG';
  */
 function updateUnread(totalCount) {
     const hasUnread = totalCount !== 0;
-
+    unreadTotalCount = totalCount;
     // This setTimeout is required because due to how react rendering messes with the DOM, the document title can't be modified synchronously, and we must wait until all JS is done
     // running before setting the title.
     setTimeout(() => {
@@ -21,5 +22,9 @@ function updateUnread(totalCount) {
         document.getElementById('favicon').href = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
     }, 0);
 }
+
+window.addEventListener('popstate', () => {
+    updateUnread(unreadTotalCount);
+});
 
 export default updateUnread;

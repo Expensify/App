@@ -3,10 +3,22 @@ import * as OnyxCommon from './OnyxCommon';
 import CONST from '../../CONST';
 import RecentWaypoint from './RecentWaypoint';
 
-type WaypointCollection = Record<string, RecentWaypoint | null>;
+type Waypoint = {
+    /** The full address of the waypoint */
+    address?: string;
+
+    /** The lattitude of the waypoint */
+    lat?: number;
+
+    /** The longitude of the waypoint */
+    lng?: number;
+};
+
+type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
 type Comment = {
     comment?: string;
     waypoints?: WaypointCollection;
+    isLoading?: boolean;
     type?: string;
     customUnit?: Record<string, unknown>;
     source?: string;
@@ -77,4 +89,4 @@ type Transaction = {
 };
 
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt};
+export type {WaypointCollection, Comment, Receipt, Waypoint};

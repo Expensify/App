@@ -22,6 +22,12 @@ import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Log from '../../../libs/Log';
+import stylePropTypes from '../../../styles/stylePropTypes';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import getBankIcon from '../../../components/Icon/BankIcons';
+import assignedCardPropTypes from './assignedCardPropTypes';
+import * as CardUtils from '../../../libs/CardUtils';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -30,11 +36,23 @@ const propTypes = {
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
+    /** List of assigned cards */
+    cardList: PropTypes.objectOf(assignedCardPropTypes),
+
     /** List of user's cards */
     fundList: PropTypes.objectOf(cardPropTypes),
 
+    /** Whether the add bank account button should be shown on the list */
+    shouldShowAddBankAccount: PropTypes.bool,
+
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
+
+    /** Whether the assigned cards should be shown on the list */
+    shouldShowAssignedCards: PropTypes.bool,
+
+    /** Whether the empty list message should be shown when the list is empty */
+    shouldShowEmptyListMessage: PropTypes.bool,
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
@@ -69,18 +87,28 @@ const propTypes = {
     /** React ref being forwarded to the PaymentMethodList Button */
     buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
+    /** To enable/disable scrolling */
+    shouldEnableScroll: PropTypes.bool,
+
+    /** List container style */
+    style: stylePropTypes,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     bankAccountList: {},
+    cardList: {},
     fundList: null,
     userWallet: {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
     },
     isLoadingPaymentMethods: true,
+    shouldShowAddBankAccount: true,
     shouldShowAddPaymentMethodButton: true,
+    shouldShowAssignedCards: false,
+    shouldShowEmptyListMessage: true,
     filterType: '',
     actionPaymentMethodType: '',
     activePaymentMethodID: '',
@@ -88,6 +116,8 @@ const defaultProps = {
     listHeaderComponent: null,
     buttonRef: () => {},
     onListContentSizeChange: () => {},
+    shouldEnableScroll: true,
+    style: {},
 };
 
 /**
@@ -143,11 +173,55 @@ function shouldShowDefaultBadge(filteredPaymentMethods, isDefault = false) {
 function isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod) {
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
-function PaymentMethodList(props) {
-    const {actionPaymentMethodType, activePaymentMethodID, bankAccountList, fundList, filterType, network, onPress, shouldShowSelectedState, selectedMethodID, translate} = props;
-
+function PaymentMethodList({
+    actionPaymentMethodType,
+    activePaymentMethodID,
+    bankAccountList,
+    buttonRef,
+    cardList,
+    fundList,
+    filterType,
+    isLoadingPaymentMethods,
+    listHeaderComponent,
+    network,
+    onListContentSizeChange,
+    onPress,
+    shouldEnableScroll,
+    shouldShowSelectedState,
+    shouldShowAddPaymentMethodButton,
+    shouldShowAddBankAccount,
+    shouldShowEmptyListMessage,
+    shouldShowAssignedCards,
+    selectedMethodID,
+    style,
+    translate,
+}) {
     const filteredPaymentMethods = useMemo(() => {
         const paymentCardList = fundList || {};
+
+        if (shouldShowAssignedCards) {
+            const assignedCards = _.chain(cardList)
+                .filter((card) => CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state))
+                .sortBy((card) => (CardUtils.isExpensifyCard(card.cardID) ? 0 : 1))
+                .value();
+
+            return _.map(assignedCards, (card) => {
+                const icon = getBankIcon(card.bank);
+                const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
+                return {
+                    key: card.cardID,
+                    title: isExpensifyCard ? translate('walletPage.expensifyCard') : card.cardName,
+                    description: card.domainName,
+                    onPress: isExpensifyCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(card.domainName)) : () => {},
+                    shouldShowRightIcon: isExpensifyCard,
+                    interactive: isExpensifyCard,
+                    canDismissError: isExpensifyCard,
+                    errors: card.errors,
+                    ...icon,
+                };
+            });
+        }
+
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
         const filteredCardList = _.filter(paymentCardList, (card) => card.accountData.additionalData.isP2PDebitCard);
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, filteredCardList);
@@ -174,14 +248,26 @@ function PaymentMethodList(props) {
         }));
 
         return combinedPaymentMethods;
-    }, [actionPaymentMethodType, activePaymentMethodID, bankAccountList, filterType, network, onPress, fundList]);
+    }, [fundList, shouldShowAssignedCards, bankAccountList, filterType, network.isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, onPress]);
 
     /**
      * Render placeholder when there are no payments methods
      *
      * @return {React.Component}
      */
-    const renderListEmptyComponent = useCallback(() => <Text style={[styles.popoverMenuItem]}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>, [translate]);
+    const renderListEmptyComponent = () => <Text style={[styles.popoverMenuItem]}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>;
+
+    const renderListFooterComponent = useCallback(
+        () => (
+            <MenuItem
+                onPress={onPress}
+                title={translate('walletPage.addBankAccount')}
+                icon={Expensicons.Plus}
+                wrapperStyle={styles.paymentMethod}
+            />
+        ),
+        [onPress, translate],
+    );
 
     /**
      * Create a menuItem for each passed paymentMethod
@@ -198,6 +284,7 @@ function PaymentMethodList(props) {
                 pendingAction={item.pendingAction}
                 errors={item.errors}
                 errorRowStyles={styles.ph6}
+                canDismissError={item.canDismissError}
             >
                 <MenuItem
                     onPress={item.onPress}
@@ -209,13 +296,15 @@ function PaymentMethodList(props) {
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
-                    wrapperStyle={item.wrapperStyle}
+                    wrapperStyle={styles.paymentMethod}
+                    shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID === item.methodID}
+                    interactive={item.interactive}
                 />
             </OfflineWithFeedback>
         ),
-        [shouldShowSelectedState, selectedMethodID, filteredPaymentMethods, translate],
+        [filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
     );
 
     return (
@@ -224,25 +313,28 @@ function PaymentMethodList(props) {
                 data={filteredPaymentMethods}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.key}
-                ListEmptyComponent={renderListEmptyComponent(translate)}
-                ListHeaderComponent={props.listHeaderComponent}
-                onContentSizeChange={props.onListContentSizeChange}
+                ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
+                ListHeaderComponent={listHeaderComponent}
+                ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : null}
+                onContentSizeChange={onListContentSizeChange}
+                scrollEnabled={shouldEnableScroll}
+                style={style}
             />
-            {props.shouldShowAddPaymentMethodButton && (
+            {shouldShowAddPaymentMethodButton && (
                 <FormAlertWrapper>
                     {(isOffline) => (
                         <Button
                             text={translate('paymentMethodList.addPaymentMethod')}
                             icon={Expensicons.CreditCard}
-                            onPress={props.onPress}
-                            isDisabled={props.isLoadingPaymentMethods || isOffline}
+                            onPress={onPress}
+                            isDisabled={isLoadingPaymentMethods || isOffline}
                             style={[styles.mh4, styles.buttonCTA]}
                             iconStyles={[styles.buttonCTAIcon]}
                             key="addPaymentMethodButton"
                             success
                             shouldShowRightIcon
                             large
-                            ref={props.buttonRef}
+                            ref={buttonRef}
                         />
                     )}
                 </FormAlertWrapper>
@@ -261,6 +353,9 @@ export default compose(
     withOnyx({
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
         },
         fundList: {
             key: ONYXKEYS.FUND_LIST,

@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
-import {Animated, View, StyleSheet} from 'react-native';
+import {Animated, View, StyleSheet, ActivityIndicator} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import TextInputLabel from './TextInputLabel';
@@ -47,19 +47,11 @@ function BaseTextInput(props) {
             return;
         }
 
-        let focusTimeout;
         if (props.shouldDelayFocus) {
-            focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
-            return;
+            const focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
+            return () => clearTimeout(focusTimeout);
         }
         input.current.focus();
-
-        return () => {
-            if (!focusTimeout) {
-                return;
-            }
-            clearTimeout(focusTimeout);
-        };
         // We only want this to run on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -372,6 +364,13 @@ function BaseTextInput(props) {
                                 // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
                                 dataSet={{submitOnEnter: isMultiline && props.submitOnEnter}}
                             />
+                            {props.isLoading && (
+                                <ActivityIndicator
+                                    size="small"
+                                    color={themeColors.iconSuccessFill}
+                                    style={[styles.mt4, styles.ml1]}
+                                />
+                            )}
                             {Boolean(props.secureTextEntry) && (
                                 <Checkbox
                                     style={[styles.flex1, styles.textInputIconContainer]}
