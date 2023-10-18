@@ -50,7 +50,7 @@ function SingleOptionSelector({options, selectedOptionKey, onSelectOption, trans
                     >
                         <SelectCircle
                             isChecked={selectedOptionKey ? selectedOptionKey === option.key : false}
-                            styles={[styles.ml0]}
+                            styles={[styles.ml0, styles.singleOptionSelectorCircle]}
                         />
                         <Text>{translate(option.label)}</Text>
                     </PressableWithoutFeedback>

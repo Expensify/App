@@ -3967,6 +3967,10 @@ const styles = (theme: ThemeDefault) =>
         checkboxWithLabelCheckboxStyle: {
             marginLeft: -2,
         },
+
+        singleOptionSelectorCircle: {
+            borderColor: theme.icon,
+        },
     } satisfies Styles);
 
 // For now we need to export the styles function that takes the theme as an argument
