@@ -123,6 +123,8 @@ function ReportPreview(props) {
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
+    const distanceRequestTransactions = ReportUtils.getDistanceRequestTransactions(props.iouReportID);
+    const hasOnlyDistanceRequests = numberOfRequests === _.size(distanceRequestTransactions);
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
     const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
@@ -144,6 +146,9 @@ function ReportPreview(props) {
         }
         if (isScanning) {
             return props.translate('iou.receiptScanning');
+        }
+        if (hasOnlyDistanceRequests) {
+            return props.translate('common.tbd');
         }
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")

@@ -34,7 +34,7 @@ function MoneyReportView(props) {
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.report);
 
     const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend;
-    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.report.currency);
+    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.report.currency, ReportUtils.hasOnlyDistanceRequestTransactions(props.report.reportID));
     const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, props.report.currency);
     const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, props.report.currency);
 
