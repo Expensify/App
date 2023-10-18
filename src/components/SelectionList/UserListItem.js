@@ -6,10 +6,8 @@ import Text from '../Text';
 import {userListItemPropTypes} from './selectionListPropTypes';
 import Tooltip from '../Tooltip';
 import SubscriptAvatar from '../SubscriptAvatar';
-import useLocalize from '../../hooks/useLocalize';
 
 function UserListItem({item, isFocused = false, showTooltip}) {
-    const {translate} = useLocalize();
     return (
         <>
             {Boolean(item.icons) && (
@@ -43,9 +41,6 @@ function UserListItem({item, isFocused = false, showTooltip}) {
                             {item.alternateText}
                         </Text>
                     </Tooltip>
-                )}
-                {Boolean(item.invitedSecondaryLogin) && (
-                    <Text style={styles.textLabelSupporting}>{translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}</Text>
                 )}
             </View>
             {Boolean(item.rightElement) && item.rightElement}
