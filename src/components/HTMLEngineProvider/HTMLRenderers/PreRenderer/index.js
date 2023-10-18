@@ -35,7 +35,6 @@ function PreRenderer(props) {
         const horizontalOverflow = node.scrollWidth > node.offsetWidth;
         if (event.currentTarget === node && horizontalOverflow && !debouncedIsScrollingVertically(event)) {
             node.scrollLeft += event.deltaX;
-            event.preventDefault();
             event.stopPropagation();
         }
     }, []);
