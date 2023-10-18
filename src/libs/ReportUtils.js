@@ -661,6 +661,17 @@ function hasSingleParticipant(report) {
 }
 
 /**
+ * Checks whether all the transactions linked to the IOU report are of the Distance Request type
+ *
+ * @param {string|null} iouReportID
+ * @returns {boolean}
+ */
+function hasOnlyDistanceRequestTransactions(iouReportID) {
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.all(allTransactions, (transaction) => TransactionUtils.isDistanceRequest(transaction));
+}
+
+/**
  * If the report is a thread and has a chat type set, it is a workspace chat.
  *
  * @param {Object} report
@@ -1543,17 +1554,6 @@ function getTransactionsWithReceipts(iouReportID) {
 function getDistanceRequestTransactions(iouReportID) {
     const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     return _.filter(allTransactions, (transaction) => TransactionUtils.isDistanceRequest(transaction));
-}
-
-/**
- * Checks whether all the transactions linked to the IOU report are of the Distance Request type
- *
- * @param {string|null} iouReportID
- * @returns {boolean}
- */
-function hasOnlyDistanceRequestTransactions(iouReportID) {
-    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return _.all(allTransactions, (transaction) => TransactionUtils.isDistanceRequest(transaction));
 }
 
 /**
