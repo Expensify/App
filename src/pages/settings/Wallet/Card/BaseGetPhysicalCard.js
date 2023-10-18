@@ -33,6 +33,11 @@ const propTypes = {
             country: PropTypes.string,
         }),
     }),
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user authToken */
+        authToken: PropTypes.string,
+    }),
     loginList: PropTypes.shape({}),
     renderContent: PropTypes.func,
     submitButtonText: PropTypes.string.isRequired,
@@ -44,6 +49,7 @@ const defaultProps = {
     children: null,
     domain: '',
     privatePersonalDetails: {},
+    session: {},
     loginList: {},
     isConfirmation: false,
     renderContent: (onSubmit, submitButtonText, children = () => {}) => (
@@ -58,13 +64,13 @@ const defaultProps = {
     ),
 };
 
-function BaseGetPhysicalCard({cardList, children, domain, headline, isConfirmation, loginList, privatePersonalDetails, renderContent, submitButtonText, title}) {
+function BaseGetPhysicalCard({cardList, children, domain, headline, isConfirmation, loginList, privatePersonalDetails, renderContent, session: {authToken}, submitButtonText, title}) {
     const onSubmit = () => {
         if (isConfirmation) {
             const domainCards = CardUtils.getDomainCards(cardList)[domain];
             const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
             const cardID = virtualCard.cardID;
-            Wallet.requestPhysicalExpensifyCard(cardID, privatePersonalDetails);
+            Wallet.requestPhysicalExpensifyCard(cardID, authToken, privatePersonalDetails);
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
             return;
         }
@@ -100,5 +106,8 @@ export default withOnyx({
     },
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
     },
 })(BaseGetPhysicalCard);

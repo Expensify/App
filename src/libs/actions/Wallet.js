@@ -330,12 +330,21 @@ function answerQuestionsForWallet(answers, idNumber) {
     );
 }
 
-function requestPhysicalExpensifyCard(cardID, {legalFirstName, legalLastName, phoneNumber, address: {city, street, zip}}) {
+function requestPhysicalExpensifyCard(cardID, authToken, privatePersonalDetails) {
+    const {
+        legalFirstName,
+        legalLastName,
+        phoneNumber,
+        address: {city, country, state, street, zip},
+    } = privatePersonalDetails;
     const params = {
+        authToken,
         legalFirstName,
         legalLastName,
         phoneNumber,
         addressCity: city,
+        addressCountry: country,
+        addressState: state,
         addressStreet: street,
         addressZip: zip,
     };
@@ -353,7 +362,7 @@ function requestPhysicalExpensifyCard(cardID, {legalFirstName, legalLastName, ph
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: params,
+                value: privatePersonalDetails,
             },
         ],
     };
