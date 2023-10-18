@@ -356,7 +356,7 @@ function ReportActionItem(props) {
 
             children = (
                 <ReportActionItemBasicMessage
-                    message={props.translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnableWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
+                    message={props.translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
                 >
                     {shouldShowAddCreditBankAccountButton && (
                         <Button
