@@ -227,13 +227,15 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                     .first()
                     .value() || '';
 
+            const value = !_.isUndefined(inputValues[`${inputID}ToDisplay`]) ? inputValues[`${inputID}ToDisplay`] : inputValues[inputID];
+
             return {
                 ...propsToParse,
                 ref: newRef,
                 inputID,
                 key: propsToParse.key || inputID,
                 errorText: errors[inputID] || fieldErrorMessage,
-                value: propsToParse.valueParser && !_.isUndefined(inputValues[`${inputID}ToDisplay`]) ? inputValues[`${inputID}ToDisplay`] : inputValues[inputID],
+                value,
                 // As the text input is controlled, we never set the defaultValue prop
                 // as this is already happening by the value prop.
                 defaultValue: undefined,
@@ -273,18 +275,18 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                         propsToParse.onBlur(event);
                     }
                 },
-                onInputChange: (value, key) => {
+                onInputChange: (inputValue, key) => {
                     const inputKey = key || inputID;
                     setInputValues((prevState) => {
                         const newState = _.isFunction(propsToParse.valueParser)
                             ? {
                                   ...prevState,
-                                  [inputKey]: propsToParse.valueParser(value),
-                                  [`${inputKey}ToDisplay`]: value,
+                                  [inputKey]: propsToParse.valueParser(inputValue),
+                                  [`${inputKey}ToDisplay`]: inputValue,
                               }
                             : {
                                   ...prevState,
-                                  [inputKey]: value,
+                                  [inputKey]: inputValue,
                               };
 
                         if (shouldValidateOnChange) {
@@ -294,11 +296,11 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                     });
 
                     if (propsToParse.shouldSaveDraft) {
-                        FormActions.setDraftValues(propsToParse.formID, {[inputKey]: value});
+                        FormActions.setDraftValues(propsToParse.formID, {[inputKey]: inputValue});
                     }
 
                     if (_.isFunction(propsToParse.onValueChange)) {
-                        propsToParse.onValueChange(value, inputKey);
+                        propsToParse.onValueChange(inputValue, inputKey);
                     }
                 },
             };
