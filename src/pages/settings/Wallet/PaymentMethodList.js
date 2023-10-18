@@ -204,10 +204,10 @@ function PaymentMethodList({
             const assignedCards = _.chain(cardList)
                 // Filter by physical, active cards associated with a domain
                 .filter((card) => !card.isVirtual && card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state))
-                .sortBy((card) => (!CardUtils.isExpensifyCard(card.cardID)))
+                .sortBy((card) => !CardUtils.isExpensifyCard(card.cardID))
                 .value();
 
-            const numberPhysicalExpensifyCards = _.filter(cardList, card => CardUtils.isExpensifyCard(card.cardID)).length;
+            const numberPhysicalExpensifyCards = _.filter(cardList, (card) => CardUtils.isExpensifyCard(card.cardID)).length;
 
             return _.map(assignedCards, (card) => {
                 const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
