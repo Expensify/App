@@ -223,7 +223,7 @@ function MoneyRequestParticipantsSelector({
 
             // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to request money from their admin on their own Workspace Chat.
-            iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+            iouType === CONST.IOU.TYPE.REQUEST,
 
             // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
             !isDistanceRequest,
@@ -240,7 +240,7 @@ function MoneyRequestParticipantsSelector({
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowConfirmButton = !(participants.length > 1 && hasPolicyExpenseChatParticipant);
-    const isAllowedToSplit = !isDistanceRequest && iouType !== CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+    const isAllowedToSplit = !isDistanceRequest && iouType !== CONST.IOU.TYPE.SEND;
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
