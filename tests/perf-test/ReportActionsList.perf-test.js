@@ -13,30 +13,28 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 import PusherHelper from '../utils/PusherHelper';
 import variables from '../../src/styles/variables';
 import {ActionListContext, ReactionListContext} from '../../src/pages/home/ReportScreenContext';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import * as Localize from '../../src/libs/Localize';
 
-const ONYXKEYS = {
-    PERSONAL_DETAILS_LIST: 'personalDetailsList',
-    SESSION: 'session',
-    COLLECTION: {
-        REPORT: 'report_',
-        REPORT_ACTIONS: 'reportActions_',
-    },
-    NETWORK: 'network',
-};
+jest.setTimeout(60000);
+
+const mockedNavigate = jest.fn();
+
+jest.mock('../../src/components/withNavigationFocus', () => (Component) => (props) => (
+    <Component
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        isFocused={false}
+    />
+));
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
-        useRoute: () => jest.fn(),
+        useRoute: () => mockedNavigate,
     };
 });
-
-jest.mock('../../src/hooks/useLocalize', () =>
-    jest.fn(() => ({
-        translate: jest.fn(),
-    })),
-);
 
 beforeAll(() =>
     Onyx.init({
@@ -64,7 +62,6 @@ beforeEach(() => {
 
 // Clear out Onyx after each test so that each test starts with a clean slate
 afterEach(() => {
-    jest.useRealTimers();
     Onyx.clear();
     PusherHelper.teardown();
 });
@@ -110,11 +107,7 @@ const getFakeReportAction = (index) => ({
     whisperedToAccountIDs: [],
 });
 
-const getMockedSortedReportActions = (length = 100) =>
-    Array.from({length}, (__, i) => {
-        const reportAction = getFakeReportAction(i);
-        return reportAction;
-    });
+const getMockedSortedReportActions = (length = 100) => Array.from({length}, (__, i) => getFakeReportAction(i));
 
 const currentUserAccountID = 5;
 
@@ -140,6 +133,9 @@ function ReportActionsListWrapper() {
 test('should render ReportActionsList with 500 reportActions stored', () => {
     const scenario = async () => {
         await screen.findByTestId('report-actions-list');
+        const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
+        // Esure that the list of items are rendered
+        await screen.findAllByLabelText(hintText);
     };
 
     return waitForBatchedUpdates()
@@ -176,9 +172,10 @@ test('should scroll and click some of the reports', () => {
 
         fireEvent.scroll(reportActionsList, eventData);
 
-        const reportItem = await screen.findByTestId('1');
+        const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
+        const reportItems = await screen.findAllByLabelText(hintText);
 
-        fireEvent.press(reportItem, 'onLongPress');
+        fireEvent.press(reportItems[0], 'onLongPress');
     };
 
     return waitForBatchedUpdates()
