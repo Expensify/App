@@ -1098,7 +1098,7 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
-        MONEY_REQUEST_TYPE: {
+        TYPE: {
             SEND: 'send',
             SPLIT: 'split',
             REQUEST: 'request',
