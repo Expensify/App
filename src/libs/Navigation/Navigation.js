@@ -316,19 +316,19 @@ function goToNextPhysicalCardRoute(privatePersonalDetails, loginList) {
     const {domain} = (currentRoute && currentRoute.params) || {domain: ''};
 
     if (!legalFirstName && !legalLastName) {
-        navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_NAME.getRoute(domain));
+        navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain));
         return;
     }
     if (!phoneNumber && !UserUtils.getSecondaryPhoneLogin(loginList)) {
-        navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_PHONE.getRoute(domain));
+        navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.getRoute(domain));
         return;
     }
     if (!address) {
-        navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_ADDRESS.getRoute(domain));
+        navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.getRoute(domain));
         return;
     }
 
-    navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_CONFIRM.getRoute(domain));
+    navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.getRoute(domain));
 }
 
 export default {

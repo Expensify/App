@@ -81,20 +81,20 @@ export default {
                                 path: ROUTES.SETTINGS_REPORT_FRAUD.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_CARDS_GET_PHYSICAL.NAME]: {
-                                path: ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_NAME.route,
+                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.NAME]: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_CARDS_GET_PHYSICAL.PHONE]: {
-                                path: ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_PHONE.route,
+                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.PHONE]: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_CARDS_GET_PHYSICAL.ADDRESS]: {
-                                path: ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_ADDRESS.route,
+                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.ADDRESS]: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_CARDS_GET_PHYSICAL.CONFIRM]: {
-                                path: ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_CONFIRM.route,
+                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.CONFIRM]: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.route,
                                 exact: true,
                             },
                             Settings_Wallet_EnablePayments: {

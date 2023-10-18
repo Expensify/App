@@ -19,11 +19,11 @@ export default {
         STATUS: 'Settings_Status',
         WALLET: 'Settings_Wallet',
         WALLET_DOMAIN_CARD: 'Settings_Wallet_DomainCard',
-        WALLET_CARDS_GET_PHYSICAL: {
-            NAME: 'Settings_Cards_Get_Physical_Name',
-            PHONE: 'Settings_Cards_Get_Physical_Phone',
-            ADDRESS: 'Settings_Cards_Get_Physical_Address',
-            CONFIRM: 'Settings_Cards_Get_Physical_Confirm',
+        WALLET_CARD_GET_PHYSICAL: {
+            NAME: 'Settings_Card_Get_Physical_Name',
+            PHONE: 'Settings_Card_Get_Physical_Phone',
+            ADDRESS: 'Settings_Card_Get_Physical_Address',
+            CONFIRM: 'Settings_Card_Get_Physical_Confirm',
         },
     },
     SAVE_THE_WORLD: {

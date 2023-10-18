@@ -14,15 +14,15 @@ import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import * as UserUtils from '../../../../libs/UserUtils';
 
 const goToGetPhysicalCardName = (domain) => {
-    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_NAME.getRoute(domain));
+    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain));
 };
 
 const goToGetPhysicalCardPhone = (domain) => {
-    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_PHONE.getRoute(domain));
+    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.getRoute(domain));
 };
 
 const goToGetPhysicalCardAddress = (domain) => {
-    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARDS_GET_PHYSICAL_ADDRESS.getRoute(domain));
+    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.getRoute(domain));
 };
 
 const propTypes = {
