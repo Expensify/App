@@ -1,16 +1,17 @@
 import {useRef, useContext, useEffect} from 'react';
 import {NetworkContext} from '../components/OnyxProvider';
 
-/**
- * @param {Object} [options]
- * @param {Function} [options.onReconnect]
- * @returns {Object}
- */
-export default function useNetwork({onReconnect = () => {}} = {}) {
+type UseNetworkProps = {
+    onReconnect?: () => void;
+};
+
+type UseNetwork = {isOffline?: boolean};
+
+export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {}): UseNetwork {
     const callback = useRef(onReconnect);
     callback.current = onReconnect;
 
-    const {isOffline} = useContext(NetworkContext);
+    const {isOffline} = useContext(NetworkContext) ?? {};
     const prevOfflineStatusRef = useRef(isOffline);
     useEffect(() => {
         // If we were offline before and now we are not offline then we just reconnected

@@ -80,6 +80,29 @@ function WorkspaceMembersPage(props) {
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef(null);
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
+    const prevPersonalDetails = usePrevious(props.personalDetails);
+
+    /**
+     * Get filtered personalDetails list with current policyMembers
+     * @param {Object} policyMembers
+     * @param {Object} personalDetails
+     * @returns {Object}
+     */
+    const filterPersonalDetails = (policyMembers, personalDetails) =>
+        _.reduce(
+            _.keys(policyMembers),
+            (result, key) => {
+                if (personalDetails[key]) {
+                    return {
+                        ...result,
+                        [key]: personalDetails[key],
+                    };
+                }
+                return result;
+            },
+            {},
+        );
+
     /**
      * Get members for the current workspace
      */
@@ -116,7 +139,17 @@ function WorkspaceMembersPage(props) {
         if (removeMembersConfirmModalVisible && !_.isEqual(accountIDs, prevAccountIDs)) {
             setRemoveMembersConfirmModalVisible(false);
         }
-        setSelectedEmployees((prevSelected) => _.intersection(prevSelected, _.values(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails))));
+        setSelectedEmployees((prevSelected) => {
+            // Filter all personal details in order to use the elements needed for the current workspace
+            const currentPersonalDetails = filterPersonalDetails(props.policyMembers, props.personalDetails);
+            // We need to filter the previous selected employees by the new personal details, since unknown/new user id's change when transitioning from offline to online
+            const prevSelectedElements = _.map(prevSelected, (id) => {
+                const prevItem = lodashGet(prevPersonalDetails, id);
+                const res = _.find(_.values(currentPersonalDetails), (item) => lodashGet(prevItem, 'login') === lodashGet(item, 'login'));
+                return lodashGet(res, 'accountID', id);
+            });
+            return _.intersection(prevSelectedElements, _.values(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)));
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.policyMembers]);
 
