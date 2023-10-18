@@ -157,8 +157,7 @@ function TaskView(props) {
                             isSmallAvatarSubscriptMenu
                             shouldGreyOutWhenDisabled={false}
                             interactive={!isDisableInteractive}
-                            titleUserNameId={props.report.managerID}
-                            isTitleUserName
+                            useIconForTitleTooltip
                         />
                     </OfflineWithFeedback>
                 ) : (

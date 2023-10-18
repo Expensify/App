@@ -80,8 +80,10 @@ const defaultProps = {
     shouldRenderAsHTML: false,
     rightComponent: undefined,
     shouldShowRightComponent: false,
-    isTitleUserName: false,
-    titleUserNameId: '',
+    titleParticipantsDetailsDetails: [],
+    titleParticipantAccountId: 0,
+    shouldUseFullTitle: false,
+    useIconForTitleTooltip: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -137,6 +139,41 @@ const MenuItem = React.forwardRef((props, ref) => {
     }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
 
     const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
+
+    const renderTitleContent = () => {
+        if (props.useIconForTitleTooltip && props.icon && _.isArray(props.icon) && props.icon.length > 0 && !props.shouldUseFullTitle) {
+            return _.map(props.icon, (accountIdOrUserObject, index) => (
+                <Text>
+                    <UserDetailsTooltip accountID={accountIdOrUserObject.id}>
+                        <Text>{convertToLTR(accountIdOrUserObject.name)}</Text>
+                    </UserDetailsTooltip>
+                    {index < props.icon.length - 1 && <Text style>,&nbsp;</Text>}
+                </Text>
+            ));
+        }
+        // if (props.titleParticipantsDetails && props.titleParticipantsDetails.length > 0 && !props.shouldUseFullTitle) {
+        //     return _.map(props.titleParticipantsDetails, (accountIdOrUserObject, index) => (
+        //         <Text>
+        //             <UserDetailsTooltip accountID={accountIdOrUserObject.accountID}>
+        //                 <Text>{convertToLTR(accountIdOrUserObject.displayName)}</Text>
+        //             </UserDetailsTooltip>
+        //             {index < props.titleParticipantsDetails.length - 1 && <Text style>,&nbsp;</Text>}
+        //         </Text>
+        //     ));
+        // }
+
+        // if (props.titleParticipantAccountId && !props.shouldUseFullTitle) {
+        //     return (
+        //         <Text>
+        //             <UserDetailsTooltip accountID={props.titleParticipantAccountId}>
+        //                 <Text>{convertToLTR(props.title)}</Text>
+        //             </UserDetailsTooltip>
+        //         </Text>
+        //     );
+        // }
+
+        return convertToLTR(props.title);
+    };
 
     return (
         <Hoverable>
@@ -265,16 +302,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
                                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.interactive && props.disabled}}
                                                 >
-                                                    {props.isTitleUserName && props.titleUserNameId ? (
-                                                        <UserDetailsTooltip
-                                                            accountID={props.titleUserNameId}
-                                                            icon={Boolean(props.icon) && _.isArray(props.icon) ? props.icon[0] : undefined}
-                                                        >
-                                                            <Text>{convertToLTR(props.title)}</Text>
-                                                        </UserDetailsTooltip>
-                                                    ) : (
-                                                        convertToLTR(props.title)
-                                                    )}
+                                                    {renderTitleContent()}
                                                 </Text>
                                             )}
                                             {Boolean(props.shouldShowTitleIcon) && (
@@ -379,3 +407,9 @@ MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
 
 export default MenuItem;
+
+//  <Text>
+// <UserDetailsTooltip accountID={props.titleParticipantsDetails}>
+// <Text>{convertToLTR(props.title)}</Text>
+// </UserDetailsTooltip>
+// </Text>

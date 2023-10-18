@@ -93,6 +93,7 @@ function NewTaskPage(props) {
         // the share destination data
         if (props.task.shareDestination) {
             setParentReport(lodashGet(props.reports, `report_${props.task.shareDestination}`, {}));
+            // console.log(lodashGet(props.reports, `report_${props.task.shareDestination}`, {}));
             const displayDetails = Task.getShareDestination(props.task.shareDestination, props.reports, props.personalDetails);
             setShareDestination(displayDetails);
         }
@@ -185,6 +186,7 @@ function NewTaskPage(props) {
                                 icon={assignee.icons}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
                                 shouldShowRightIcon
+                                useIconForTitleTooltip
                             />
                             <MenuItem
                                 label={shareDestination.displayName ? props.translate('newTaskPage.shareSomewhere') : ''}
@@ -194,6 +196,8 @@ function NewTaskPage(props) {
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
                                 interactive={!props.task.parentReportID}
                                 shouldShowRightIcon={!props.task.parentReportID}
+                                shouldUseFullTitle={shareDestination.shouldShowDestinationTooltip}
+                                useIconForTitleTooltip
                             />
                         </View>
                     </View>
