@@ -18,8 +18,9 @@ import styles from '../../../../styles/styles';
 import * as User from '../../../../libs/actions/User';
 import * as LoginUtils from '../../../../libs/LoginUtils';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
-import Form from '../../../../components/Form';
 import CONST from '../../../../CONST';
+import FormProvider from '../../../../components/Form/FormProvider';
+import InputWrapper from '../../../../components/Form/InputWrapper';
 
 const propTypes = {
     /* Onyx Props */
@@ -104,7 +105,7 @@ function NewContactMethodPage(props) {
                 title={props.translate('contacts.newContactMethod')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
                 validate={validate}
                 onSubmit={addNewContactMethod}
@@ -114,7 +115,8 @@ function NewContactMethodPage(props) {
             >
                 <Text style={[styles.mb5]}>{props.translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
                 <View style={[styles.mb6]}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
                         accessibilityLabel={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -126,7 +128,7 @@ function NewContactMethodPage(props) {
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
