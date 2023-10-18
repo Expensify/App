@@ -46,9 +46,9 @@ function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeU
                     ...detail,
                     displayName: Localize.translateLocal('common.you'),
                 };
-            } else {
-                return detail;
             }
+
+            return detail;
         })
         .value();
 }

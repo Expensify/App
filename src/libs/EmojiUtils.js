@@ -3,13 +3,12 @@ import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import lodashMin from 'lodash/min';
+import lodashSum from 'lodash/sum';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
 import * as Emojis from '../../assets/emojis';
-import lodashMin from 'lodash/min';
-import lodashSum from 'lodash/sum';
-import * as Report from './actions/Report';
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({
@@ -492,6 +491,7 @@ const getUniqueEmojiCodes = (emojiAsset, users) => {
             _.each(lodashGet(userSkinTones, 'skinTones'), (createdAt, skinTone) => {
                 const emojiCode = getPreferredEmojiCode(emojiAsset, skinTone);
                 if (!!emojiCode && (!result[emojiCode] || createdAt < result[emojiCode])) {
+                    // eslint-disable-next-line no-param-reassign
                     result[emojiCode] = createdAt;
                 }
             });
@@ -516,7 +516,7 @@ const getUniqueEmojiCodes = (emojiAsset, users) => {
 const enrichEmojiReactionWithTimestamps = (emoji, emojiName) => {
     let oldestEmojiTimestamp = null;
 
-    let usersWithTimestamps = _.chain(emoji.users)
+    const usersWithTimestamps = _.chain(emoji.users)
         .pick(_.identity)
         .mapObject((user, id) => {
             const oldestUserTimestamp = lodashMin(_.values(user.skinTones));
@@ -544,6 +544,25 @@ const enrichEmojiReactionWithTimestamps = (emoji, emojiName) => {
 };
 
 /**
+ * Returns true if the accountID has reacted to the report action (with the given skin tone).
+ * Uses the NEW FORMAT for "emojiReactions"
+ * @param {String} accountID
+ * @param {Array<Object | String | number>} usersReactions - all the users reactions
+ * @param {Number} [skinTone]
+ * @returns {boolean}
+ */
+function hasAccountIDEmojiReacted(accountID, usersReactions, skinTone) {
+    if (_.isUndefined(skinTone)) {
+        return Boolean(usersReactions[accountID]);
+    }
+    const userReaction = usersReactions[accountID];
+    if (!userReaction || !userReaction.skinTones || !_.size(userReaction.skinTones)) {
+        return false;
+    }
+    return Boolean(userReaction.skinTones[skinTone]);
+}
+
+/**
  * Given an emoji reaction and current user's account ID, it returns the reusable details of the emoji reaction.
  * @param {String} emojiName
  * @param {Object} reaction
@@ -556,7 +575,7 @@ const getEmojiReactionDetails = (emojiName, reaction, currentUserAccountID) => {
     const emoji = findEmojiByName(emojiName);
     const emojiCodes = getUniqueEmojiCodes(emoji, users);
     const reactionCount = lodashSum(_.map(users, (user) => _.size(user.skinTones)));
-    const hasUserReacted = Report.hasAccountIDEmojiReacted(currentUserAccountID, users);
+    const hasUserReacted = hasAccountIDEmojiReacted(currentUserAccountID, users);
     const userAccountIDs = _.chain(users)
         .sortBy('oldestTimestamp')
         .map((user) => Number(user.id))
@@ -593,4 +612,5 @@ export {
     extractEmojis,
     getAddedEmojis,
     isFirstLetterEmoji,
+    hasAccountIDEmojiReacted,
 };
