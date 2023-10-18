@@ -12,8 +12,8 @@ const commonScreenOptions = {
     animationTypeForReplace: 'push',
 };
 
-export default (isSmallScreenWidth, isHomeOdSelected) => {
-    const offsetWidth = isHomeOdSelected ? variables.globalNavigationWidth : variables.sideBarWidth;
+export default (isSmallScreenWidth, isScreenWithoutSubnavSelected) => {
+    const offsetWidth = isScreenWithoutSubnavSelected ? variables.globalNavigationWidth : variables.sideBarWidth;
 
     return {
         rightModalNavigator: {
@@ -44,7 +44,7 @@ export default (isSmallScreenWidth, isHomeOdSelected) => {
 
                 // We need to translate the sidebar to not be covered by the StackNavigator so it can be clickable.
                 transform: [{translateX: isSmallScreenWidth ? 0 : -offsetWidth}],
-                ...(isSmallScreenWidth ? {} : styles.borderRight),
+                ...(isSmallScreenWidth || isScreenWithoutSubnavSelected ? {} : styles.borderRight),
             },
         },
         // eslint-disable-next-line rulesdir/no-negated-variables

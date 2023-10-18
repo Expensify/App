@@ -1356,6 +1356,25 @@ const styles = (theme: ThemeDefault) =>
 
         iframe: {flex: 1, borderWidth: 0},
 
+        iframeContainer: {
+            backgroundColor: theme.highlightBG,
+            flex: 1,
+        },
+
+        innerIframeContainer: (isScreenWithoutSubnavSelected) =>
+            isScreenWithoutSubnavSelected
+                ? {
+                      borderTopLeftRadius: variables.componentBorderRadiusRounded,
+                      flex: 1,
+                      backgroundColor: theme.appBG,
+                      overflow: 'hidden',
+                  }
+                : {
+                      flex: 1,
+                      backgroundColor: theme.appBG,
+                      overflow: 'hidden',
+                  },
+
         floatingActionButtonContainer: {
             position: 'absolute',
             left: 16,

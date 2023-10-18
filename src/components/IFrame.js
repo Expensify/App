@@ -3,7 +3,7 @@ import React, {useEffect, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {useNavigationState} from '@react-navigation/native';
-import {Text} from 'react-native';
+import {Text, View} from 'react-native';
 import lodashFindLast from 'lodash/findLast';
 import ONYXKEYS from '../ONYXKEYS';
 
@@ -271,21 +271,28 @@ function IFrame({session}) {
 
     const [time] = useState(new Date().getSeconds());
 
+    const isScreenWithoutSubnavSelected = routeName === SCREENS.HOME_OLDDOT;
+
     return (
         <FullPageBiggerScreenView>
-            {/* TODO: Remove text with information */}
-            <Text style={{fontSize: 40, color: 'white'}}>{`${routeName}\n${JSON.stringify(params)} \n${oldDotURL}\n${time}`}</Text>
-            <Button
-                text="go to nested domains"
-                onPress={() => navigation.navigate(ROUTES.DOMAIN_OLDDOT_TEST)}
-            />
-            <iframe
-                // If we don't remount iframe it will mess up with the browser history.
-                key={`${routeName}-${index}`}
-                style={styles.iframe}
-                src={oldDotURL}
-                title="OldDot"
-            />
+            {/* These containers are necessary for home page to have rounded corner */}
+            <View style={styles.iframeContainer}>
+                <View style={styles.innerIframeContainer(isScreenWithoutSubnavSelected)}>
+                    {/* TODO: Remove text with information */}
+                    <Text style={{fontSize: 40, color: 'white'}}>{`${routeName}\n${JSON.stringify(params)} \n${oldDotURL}\n${time}`}</Text>
+                    <Button
+                        text="go to nested domains"
+                        onPress={() => navigation.navigate(ROUTES.DOMAIN_OLDDOT_TEST)}
+                    />
+                    <iframe
+                        // If we don't remount iframe it will mess up with the browser history.
+                        key={`${routeName}-${index}`}
+                        style={styles.iframe}
+                        src={oldDotURL}
+                        title="OldDot"
+                    />
+                </View>
+            </View>
         </FullPageBiggerScreenView>
     );
 }
