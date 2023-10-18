@@ -153,6 +153,7 @@ const MenuItem = React.forwardRef((props, ref) => {
         }
 
         return convertToLTR(props.title);
+    };
 
     const onPressAction = (e) => {
         if (props.disabled || !props.interactive) {
