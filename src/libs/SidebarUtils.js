@@ -257,6 +257,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
         searchText: null,
         isPinned: false,
         hasOutstandingIOU: false,
+        hasOutstandingChildRequest: false,
         iouReportID: null,
         isIOUReportOwner: null,
         iouReportAmount: 0,
@@ -302,6 +303,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.keyForList = String(report.reportID);
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
+    result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID || null;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference || null;

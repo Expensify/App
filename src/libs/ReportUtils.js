@@ -1227,31 +1227,35 @@ function isWaitingForIOUActionFromCurrentUser(report) {
         return false;
     }
 
-    const policy = getPolicy(report.policyID);
-    if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
-        // If the report is already settled, there's no action required from any user.
-        if (isSettled(report.reportID)) {
-            return false;
-        }
-
-        // Report is pending approval and the current user is the manager
-        if (isReportManager(report) && !isReportApproved(report)) {
-            return true;
-        }
-
-        // Current user is an admin and the report has been approved but not settled yet
-        return policy.role === CONST.POLICY.ROLE.ADMIN && isReportApproved(report);
-    }
-
-    // Money request waiting for current user to add their credit bank account
-    if (report.hasOutstandingIOU && report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
+    if (report.hasOutstandingChildRequest) {
         return true;
     }
 
-    // Money request waiting for current user to Pay (from expense or iou report)
-    if (report.hasOutstandingIOU && report.ownerAccountID && (report.ownerAccountID !== currentUserAccountID || currentUserAccountID === report.managerID)) {
-        return true;
-    }
+    // const policy = getPolicy(report.policyID);
+    // if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
+    //     // If the report is already settled, there's no action required from any user.
+    //     if (isSettled(report.reportID)) {
+    //         return false;
+    //     }
+
+    //     // Report is pending approval and the current user is the manager
+    //     if (isReportManager(report) && !isReportApproved(report)) {
+    //         return true;
+    //     }
+
+    //     // Current user is an admin and the report has been approved but not settled yet
+    //     return policy.role === CONST.POLICY.ROLE.ADMIN && isReportApproved(report);
+    // }
+
+    // // Money request waiting for current user to add their credit bank account
+    // if (report.hasOutstandingIOU && report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
+    //     return true;
+    // }
+
+    // // Money request waiting for current user to Pay (from expense or iou report)
+    // if (report.hasOutstandingIOU && report.ownerAccountID && (report.ownerAccountID !== currentUserAccountID || currentUserAccountID === report.managerID)) {
+    //     return true;
+    // }
 
     return false;
 }
