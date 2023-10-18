@@ -131,6 +131,15 @@ class BankAccount {
     }
 
     /**
+     * Is it the account linked to the user's wallet
+     *
+     * @returns {Boolean}
+     */
+    isDefault() {
+        return this.json.isDefault === true;
+    }
+
+    /**
      * Can we use this account to pay other people?
      *
      * @returns {Boolean}

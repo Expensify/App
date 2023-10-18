@@ -20,7 +20,7 @@ type PaymentMethod = (BankAccount | Fund) & {
 function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountList: Record<string, BankAccount>): boolean {
     const validBankAccount = Object.values(bankAccountList).some((bankAccountJSON) => {
         const bankAccount = new BankAccountModel(bankAccountJSON);
-        return bankAccount.isDefaultCredit();
+        return bankAccount.isDefault();
     });
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
