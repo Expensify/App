@@ -120,7 +120,7 @@ function IOUCurrencySelection(props) {
                 ? []
                 : [
                       {
-                          title: translate('iOUCurrencySelection.allCurrencies'),
+                          title: translate('common.allCurrencies'),
                           data: filteredCurrencies,
                           shouldShow: true,
                           indexOffset: 0,
@@ -139,7 +139,7 @@ function IOUCurrencySelection(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title={translate('iOUCurrencySelection.selectCurrency')}
+                        title={translate('common.selectCurrency')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
                     />
                     <OptionsSelector
