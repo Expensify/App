@@ -1,6 +1,5 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
-import {Card} from '../types/onyx';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as OnyxTypes from '../types/onyx';
@@ -47,7 +46,7 @@ function getCardDescription(cardID: number) {
         return '';
     }
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? Localize.translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
-    return `${card.bank} - ${cardDescriptor}`;
+    return cardDescriptor ? `${card.bank} - ${cardDescriptor}` : `${card.bank}`;
 }
 
 /**
@@ -58,13 +57,6 @@ function getYearFromExpirationDateString(expirationDateString: string) {
     const cardYear = stringContainsNumbersOnly ? expirationDateString.substring(2) : expirationDateString.substring(3);
 
     return cardYear.length === 2 ? `20${cardYear}` : cardYear;
-}
-
-function getCompanyCards(cardList: {string: Card}) {
-    if (!cardList) {
-        return [];
-    }
-    return Object.values(cardList).filter((card) => card.bank !== CONST.EXPENSIFY_CARD.BANK);
 }
 
 /**
@@ -96,4 +88,4 @@ function maskCard(lastFour = ''): string {
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
-export {isExpensifyCard, getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription};
+export {isExpensifyCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription};
