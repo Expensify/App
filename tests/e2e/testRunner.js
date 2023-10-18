@@ -67,11 +67,6 @@ if (args.includes('--buildMode')) {
     buildMode = args[args.indexOf('--buildMode') + 1];
 }
 
-let appPath = config.APP_PATH;
-if (args.includes('--appPath')) {
-    appPath = args[args.indexOf('--appPath') + 1];
-}
-
 // When we are in dev mode we want to apply certain default params and configs
 const isDevMode = args.includes('--development');
 if (isDevMode) {
@@ -82,6 +77,12 @@ if (isDevMode) {
 if (args.includes('--config')) {
     const configPath = args[args.indexOf('--config') + 1];
     setConfigPath(configPath);
+}
+
+// Important set app path after correct config file has been set
+let appPath = config.APP_PATH;
+if (args.includes('--appPath')) {
+    appPath = args[args.indexOf('--appPath') + 1];
 }
 
 // Create some variables after the correct config file has been loaded
@@ -204,30 +205,29 @@ const runTests = async () => {
 
         server.setTestConfig(testConfig);
 
-        const warmupLogs = Logger.progressInfo(`Running test '${testConfig.name}'`);
-        for (let warmUpRuns = 0; warmUpRuns < config.WARM_UP_RUNS; warmUpRuns++) {
-            const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${testConfig.name}' (iteration ${warmUpRuns + 1}/${config.WARM_UP_RUNS})`;
-            warmupLogs.updateText(progressText);
+        const warmupLogs = Logger.progressInfo(`Running warmup '${testConfig.name}'`);
 
-            await restartApp();
+        let progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${testConfig.name}'`;
+        warmupLogs.updateText(progressText);
 
-            await withFailTimeout(
-                new Promise((resolve) => {
-                    const cleanup = server.addTestDoneListener(() => {
-                        Logger.log(`Warmup ${warmUpRuns + 1} done!`);
-                        cleanup();
-                        resolve();
-                    });
-                }),
-                progressText,
-            );
-        }
+        await restartApp();
+
+        await withFailTimeout(
+            new Promise((resolve) => {
+                const cleanup = server.addTestDoneListener(() => {
+                    cleanup();
+                    resolve();
+                });
+            }),
+            progressText,
+        );
+
         warmupLogs.done();
 
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
         for (let i = 0; i < config.RUNS; i++) {
-            const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${testConfig.name}' (iteration ${i + 1}/${config.RUNS})`;
+            progressText = `(${testIndex + 1}/${numOfTests}) Running test '${testConfig.name}' (iteration ${i + 1}/${config.RUNS})`;
             testLog.updateText(progressText);
 
             await restartApp();
