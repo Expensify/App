@@ -30,7 +30,7 @@ function ReportAttachments(props) {
             defaultOpen
             report={report}
             source={source}
-            onModalHide={() => Navigation.dismissModal(reportID)}
+            onModalHide={() => Navigation.dismissModal()}
             onCarouselAttachmentChange={(attachment) => {
                 const route = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, attachment.source);
                 Navigation.navigate(route);

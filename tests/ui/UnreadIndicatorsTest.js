@@ -309,6 +309,7 @@ describe('Unread Indicators', () => {
                                     lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
                                     lastMessageText: 'Comment 1',
                                     participantAccountIDs: [USER_C_ACCOUNT_ID],
+                                    type: CONST.REPORT.TYPE.CHAT,
                                 },
                             },
                             {

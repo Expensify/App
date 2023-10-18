@@ -54,13 +54,13 @@ function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, 
                 <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, styles.tabBackground(hovered, isFocused, backgroundColor)]}>
                     <TabIcon
                         icon={icon}
-                        activeOpacity={styles.tabOpacity(hovered, isFocused, activeOpacity, inactiveOpacity)}
-                        inactiveOpacity={styles.tabOpacity(hovered, isFocused, inactiveOpacity, activeOpacity)}
+                        activeOpacity={styles.tabOpacity(hovered, isFocused, activeOpacity, inactiveOpacity).opacity}
+                        inactiveOpacity={styles.tabOpacity(hovered, isFocused, inactiveOpacity, activeOpacity).opacity}
                     />
                     <TabLabel
                         title={title}
-                        activeOpacity={styles.tabOpacity(hovered, isFocused, activeOpacity, inactiveOpacity)}
-                        inactiveOpacity={styles.tabOpacity(hovered, isFocused, inactiveOpacity, activeOpacity)}
+                        activeOpacity={styles.tabOpacity(hovered, isFocused, activeOpacity, inactiveOpacity).opacity}
+                        inactiveOpacity={styles.tabOpacity(hovered, isFocused, inactiveOpacity, activeOpacity).opacity}
                     />
                 </Animated.View>
             )}

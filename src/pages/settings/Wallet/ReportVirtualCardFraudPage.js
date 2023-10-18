@@ -63,7 +63,7 @@ function ReportVirtualCardFraudPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
     }, [domain, formData.isLoading, prevIsLoading, virtualCard.errors]);
 
     if (_.isEmpty(virtualCard)) {
@@ -74,7 +74,7 @@ function ReportVirtualCardFraudPage({
         <ScreenWrapper testID={ReportVirtualCardFraudPage.displayName}>
             <HeaderWithBackButton
                 title={translate('reportFraudPage.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
             />
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <Text style={[styles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
