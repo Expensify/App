@@ -115,7 +115,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                         pitchEnabled={false}
                         initialState={{
                             zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                            location: CONST.MAPBOX.DEFAULT_COORDINATE,
+                            location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
                         }}
                         directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
                         style={styles.mapView}

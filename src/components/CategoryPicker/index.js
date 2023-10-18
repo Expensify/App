@@ -63,7 +63,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         return categoryInitialFocusedIndex;
     }, [selectedCategory, searchValue, isCategoriesCountBelowThreshold, sections]);
 
-    const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
     const shouldShowTextInput = !isCategoriesCountBelowThreshold;
 
     return (

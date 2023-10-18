@@ -67,6 +67,8 @@ function BaseOptionsList({
     innerRef,
     isRowMultilineSupported,
     isLoadingNewOptions,
+    nestedScrollEnabled,
+    bounces,
 }) {
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
@@ -255,11 +257,12 @@ function BaseOptionsList({
                     ) : null}
                     <SectionList
                         ref={innerRef}
-                        nestedScrollEnabled
                         style={listStyles}
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
                         keyboardDismissMode={keyboardDismissMode}
+                        nestedScrollEnabled={nestedScrollEnabled}
+                        scrollEnabled={nestedScrollEnabled}
                         onScrollBeginDrag={onScrollBeginDrag}
                         onScroll={onScroll}
                         contentContainerStyle={contentContainerStyles}
@@ -276,6 +279,7 @@ function BaseOptionsList({
                         windowSize={5}
                         viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                         onViewableItemsChanged={onViewableItemsChanged}
+                        bounces={bounces}
                     />
                 </>
             )}
