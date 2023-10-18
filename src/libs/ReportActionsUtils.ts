@@ -351,7 +351,10 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
         return reportAction;
     }
 
-    if (!reportAction || (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM)) {
+    if (
+        !reportAction ||
+        (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM)
+    ) {
         return reportAction;
     }
     if (!reportAction.message) {
@@ -431,8 +434,8 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null): 
     const filteredReportActions = Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
-        const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
-        return getSortedReportActions(baseURLAdjustedReportActions, true);
+    const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
+    return getSortedReportActions(baseURLAdjustedReportActions, true);
 }
 
 /**

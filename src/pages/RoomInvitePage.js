@@ -249,7 +249,6 @@ RoomInvitePage.defaultProps = defaultProps;
 RoomInvitePage.displayName = 'RoomInvitePage';
 
 export default compose(
-    withPolicy,
     withReportOrNotFound,
     withOnyx({
         personalDetails: {
