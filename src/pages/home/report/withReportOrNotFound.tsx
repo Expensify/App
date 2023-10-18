@@ -1,12 +1,12 @@
 import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {RouteProp} from '@react-navigation/native';
 import getComponentDisplayName from '../../../libs/getComponentDisplayName';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import ONYXKEYS from '../../../ONYXKEYS';
 import FullscreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as OnyxTypes from '../../../types/onyx';
-import {RouteProp} from '@react-navigation/native';
 
 type OnyxProps = {
     /** The report currently being looked at */
