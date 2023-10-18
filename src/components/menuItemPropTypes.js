@@ -159,6 +159,9 @@ const propTypes = {
 
     /** Render title with tooltips for menu items like, asignee & share somewhere menu */
     titleWithTooltips: PropTypes.arrayOf(PropTypes.object),
+
+    /** Should check anonymous user in onPress function */
+    shouldCheckActionAllowedOnPress: PropTypes.bool,
 };
 
 export default propTypes;

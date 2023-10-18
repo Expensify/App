@@ -6,7 +6,7 @@ import DateUtils from './DateUtils';
 import {isExpensifyCard} from './CardUtils';
 import * as NumberUtils from './NumberUtils';
 import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
-import {Receipt, Comment, WaypointCollection} from '../types/onyx/Transaction';
+import {Receipt, Comment, WaypointCollection, Waypoint} from '../types/onyx/Transaction';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
 
@@ -76,8 +76,15 @@ function buildOptimisticTransaction(
     };
 }
 
+/**
+ * Check if the transaction has an Ereceipt
+ */
+function hasEReceipt(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.hasEReceipt;
+}
+
 function hasReceipt(transaction: Transaction | undefined | null): boolean {
-    return !!transaction?.receipt?.state;
+    return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
 function isMerchantMissing(transaction: Transaction) {
@@ -366,13 +373,6 @@ function hasRoute(transaction: Transaction): boolean {
 }
 
 /**
- * Check if the transaction has an Ereceipt
- */
-function hasEreceipt(transaction: Transaction): boolean {
-    return !!transaction?.hasEReceipt;
-}
-
-/**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
@@ -399,7 +399,7 @@ function getAllReportTransactions(reportID?: string): Transaction[] {
 /**
  * Checks if a waypoint has a valid address
  */
-function waypointHasValidAddress(waypoint: RecentWaypoint | null): boolean {
+function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
 
@@ -423,7 +423,7 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
 
     let lastWaypointIndex = -1;
 
-    return waypointValues.reduce((acc, currentWaypoint, index) => {
+    return waypointValues.reduce<WaypointCollection>((acc, currentWaypoint, index) => {
         const previousWaypoint = waypointValues[lastWaypointIndex];
 
         // Check if the waypoint has a valid address
@@ -472,7 +472,7 @@ export {
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
-    hasEreceipt,
+    hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,
