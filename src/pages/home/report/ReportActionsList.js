@@ -310,10 +310,11 @@ function ReportActionsList({
     const shouldDisplayNewMarker = useCallback(
         (reportAction, index) => {
             let shouldDisplay = false;
+
             if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
-                const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
-                shouldDisplay = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
+                const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadRef.current);
+                shouldDisplay = isCurrentMessageUnread && !isMessageUnread(nextMessage, lastReadRef.current);
                 if (!messageManuallyMarkedUnread) {
                     shouldDisplay = shouldDisplay && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
@@ -323,6 +324,7 @@ function ReportActionsList({
             } else {
                 shouldDisplay = reportAction.reportActionID === currentUnreadMarker;
             }
+
             return shouldDisplay;
         },
         [currentUnreadMarker, sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread],
@@ -337,6 +339,7 @@ function ReportActionsList({
                 return;
             }
             if (!currentUnreadMarker && currentUnreadMarker !== reportAction.reportActionID) {
+                cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
                 setCurrentUnreadMarker(reportAction.reportActionID);
             }
         });
