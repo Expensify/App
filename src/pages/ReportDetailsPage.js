@@ -100,7 +100,7 @@ function ReportDetailsPage(props) {
             return items;
         }
 
-        if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && isPolicyMember)) {
+        if (participants.length) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
@@ -115,7 +115,7 @@ function ReportDetailsPage(props) {
                     }
                 },
             });
-        } else if (!participants.length && isUserCreatedPolicyRoom) {
+        } else if (isUserCreatedPolicyRoom) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
