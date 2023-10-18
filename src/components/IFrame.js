@@ -15,9 +15,9 @@ import styles from '../styles/styles';
 import Button from './Button';
 import navigation from '../libs/Navigation/Navigation';
 
-function addIsNewDotParam(url) {
+function addIsInNewDotParam(url) {
     const urlObj = new URL(url);
-    urlObj.searchParams.append('isNewDot', true);
+    urlObj.searchParams.append('isInNewDot', true);
     return urlObj.toString();
 }
 
@@ -260,7 +260,7 @@ function IFrame({session}) {
             return;
         }
 
-        setOldDotURL(addIsNewDotParam(`${BASE_IFRAME_URL}/${newOldDotURL}`));
+        setOldDotURL(addIsInNewDotParam(`${BASE_IFRAME_URL}/${newOldDotURL}`));
     }, [routeName, params]);
 
     useEffect(() => {
