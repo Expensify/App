@@ -1054,7 +1054,7 @@ function deleteReportComment(reportID, reportAction) {
             isLastMessageDeletedParentAction: true,
         };
     } else {
-        const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
+        const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
         if (lastMessageText || lastMessageTranslationKey) {
             const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
             const lastVisibleActionCreated = lastVisibleAction.created;

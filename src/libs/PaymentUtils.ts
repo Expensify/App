@@ -1,18 +1,12 @@
-import {SvgProps} from 'react-native-svg';
 import BankAccountModel from './models/BankAccount';
 import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import Fund from '../types/onyx/Fund';
 import BankAccount from '../types/onyx/BankAccount';
+import PaymentMethod from '../types/onyx/PaymentMethod';
 
 type AccountType = BankAccount['accountType'] | Fund['accountType'];
-
-type PaymentMethod = (BankAccount | Fund) & {
-    description: string;
-    icon: React.FC<SvgProps>;
-    iconSize?: number;
-};
 
 /**
  * Check to see if user has either a debit card or personal bank account added
