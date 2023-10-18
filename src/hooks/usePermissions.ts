@@ -1,17 +1,21 @@
-import _ from 'underscore';
 import {useContext, useMemo} from 'react';
 import Permissions from '../libs/Permissions';
 import {BetasContext} from '../components/OnyxProvider';
 
 export default function usePermissions() {
-    console.log('****!!!!****')
     const betas = useContext(BetasContext);
     return useMemo(() => {
-        const permissions = {};
+        let permissionKey: keyof typeof Permissions;
+        const permissions: Partial<Record<typeof permissionKey, boolean>> = {};
 
-        _.each(Permissions, (checkerFunction, beta) => {
-            permissions[beta] = checkerFunction(betas);
-        });
+        for (permissionKey in Permissions) {
+            if (betas) {
+                const checkerFunction = Permissions[permissionKey];
+
+                permissions[permissionKey] = checkerFunction(betas);
+            }
+        }
+
         return permissions;
     }, [betas]);
 }
