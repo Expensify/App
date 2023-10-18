@@ -33,7 +33,6 @@ import Log from '../../../libs/Log';
 import withNavigationFocus, {withNavigationFocusPropTypes} from '../../../components/withNavigationFocus';
 import usePrevious from '../../../hooks/usePrevious';
 import * as MemoryOnlyKeys from '../../../libs/actions/MemoryOnlyKeys/MemoryOnlyKeys';
-import getPlatform from '../../../libs/getPlatform';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -201,7 +200,6 @@ function LoginForm(props) {
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
     const hasError = !_.isEmpty(serverErrorText);
-    const returnKeyType = getPlatform() === CONST.PLATFORM.ANDROID ? 'go' : 'done';
 
     return (
         <>
@@ -215,7 +213,7 @@ function LoginForm(props) {
                     accessibilityLabel={translate('loginForm.phoneOrEmail')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={login}
-                    returnKeyType={returnKeyType}
+                    returnKeyType="done"
                     autoCompleteType="username"
                     textContentType="username"
                     nativeID="username"
