@@ -35,6 +35,7 @@ import {propTypes, defaultProps} from './composerWithSuggestionsProps';
 import focusWithDelay from '../../../../libs/focusWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
 import convertToLTR from '../../../../libs/convertToLTR';
+import updateMultilineInputRange from '../../../../libs/UpdateMultilineInputRange';
 import * as InputFocus from '../../../../libs/actions/InputFocus';
 
 const {RNTextInputReset} = NativeModules;
@@ -216,6 +217,10 @@ function ComposerWithSuggestions({
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
+                    // Ensure emoji suggestions are hidden after inserting emoji even when the selection is not changed
+                    if (suggestionsRef.current) {
+                        suggestionsRef.current.resetSuggestions();
+                    }
                     insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
@@ -224,11 +229,6 @@ function ComposerWithSuggestions({
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(Platform.OS === 'android' ? newComment : convertToLTR(newComment));
             if (commentValue !== newComment) {
-                // Ensure emoji suggestions are hidden even when the selection is not changed (so calculateEmojiSuggestion would not be called).
-                if (suggestionsRef.current) {
-                    suggestionsRef.current.resetSuggestions();
-                }
-
                 const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
                 setSelection({
                     start: newComment.length - remainder,
@@ -497,9 +497,13 @@ function ComposerWithSuggestions({
         focus();
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
     useEffect(() => {
+        // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
+        updateMultilineInputRange(textInputRef.current, shouldAutoFocus);
+
         if (value.length === 0) {
             return;
         }
+
         Report.setReportWithDraft(reportID, true);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
