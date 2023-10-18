@@ -327,7 +327,7 @@ function ReportActionsList({
 
             return shouldDisplay;
         },
-        [currentUnreadMarker, sortedReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread],
+        [currentUnreadMarker, sortedReportActions, report.reportID, messageManuallyMarkedUnread],
     );
 
     useEffect(() => {
