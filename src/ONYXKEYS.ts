@@ -1,4 +1,5 @@
 import {ValueOf} from 'type-fest';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import DeepValueOf from './types/utils/DeepValueOf';
 import * as OnyxTypes from './types/onyx';
 import CONST from './CONST';
@@ -235,6 +236,8 @@ const ONYXKEYS = {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
         POLICY_MEMBERS: 'policyMembers_',
+        POLICY_DRAFTS: 'policyDrafts_',
+        POLICY_MEMBERS_DRAFTS: 'policyMembersDrafts_',
         POLICY_CATEGORIES: 'policyCategories_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
@@ -431,5 +434,7 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
 };
 
+type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;
+
 export default ONYXKEYS;
-export type {OnyxKey, OnyxCollectionKey, OnyxValues};
+export type {OnyxKey, OnyxCollectionKey, OnyxValues, OnyxKeyValue};
