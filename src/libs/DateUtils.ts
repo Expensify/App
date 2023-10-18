@@ -15,6 +15,8 @@ import {
     isSameDay,
     isAfter,
     isSameYear,
+    eachMonthOfInterval,
+    eachDayOfInterval,
 } from 'date-fns';
 
 import Onyx from 'react-native-onyx';
@@ -73,7 +75,7 @@ function setLocale(localeString: string) {
 
 /**
  * Gets the user's stored time zone NVP and returns a localized
- * Moment object for the given ISO-formatted datetime string
+ * Date object for the given ISO-formatted datetime string
  */
 function getLocalDateFromDatetime(locale: string, datetime: string, currentSelectedTimezone = timezone.selected): Date {
     setLocale(locale);
@@ -255,6 +257,38 @@ function getCurrentTimezone(): Required<Timezone> {
     return timezone;
 }
 
+/**
+ * @returns [January, Fabruary, March, April, May, June, July, August, ...]
+ */
+function getMonthNames(preferredLocale: string): string[] {
+    if (preferredLocale) {
+        setLocale(preferredLocale);
+    }
+    const fullYear = new Date().getFullYear();
+    const monthsArray = eachMonthOfInterval({
+        start: new Date(fullYear, 0, 1), // January 1st of the current year
+        end: new Date(fullYear, 11, 31), // December 31st of the current year
+    });
+
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
+}
+
+/**
+ * @returns [Monday, Thuesday, Wednesday, ...]
+ */
+function getDaysOfWeek(preferredLocale: string): string[] {
+    if (preferredLocale) {
+        setLocale(preferredLocale);
+    }
+    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
+
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    return daysOfWeek.map((date) => format(date, 'eeee'));
+}
+
 // Used to throttle updates to the timezone when necessary
 let lastUpdatedTimezoneTime = new Date();
 
@@ -350,13 +384,15 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
+    setLocale,
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
     getStatusUntilDate,
-    setLocale,
     isToday,
     isTomorrow,
     isYesterday,
+    getMonthNames,
+    getDaysOfWeek,
 };
 
 export default DateUtils;

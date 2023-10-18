@@ -174,7 +174,7 @@ function getMemberAccountIDsForWorkspace(policyMembers, personalDetails) {
         if (!personalDetail || !personalDetail.login) {
             return;
         }
-        memberEmailsToAccountIDs[personalDetail.login] = accountID;
+        memberEmailsToAccountIDs[personalDetail.login] = Number(accountID);
     });
     return memberEmailsToAccountIDs;
 }

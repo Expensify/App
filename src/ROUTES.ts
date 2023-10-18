@@ -36,6 +36,8 @@ export default {
     APPLE_SIGN_IN: 'sign-in-with-apple',
     GOOGLE_SIGN_IN: 'sign-in-with-google',
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
+    SAML_SIGN_IN: 'sign-in-with-saml',
+
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
     ENABLE_PAYMENTS: 'enable-payments',
@@ -71,15 +73,27 @@ export default {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_WALLET_DOMAINCARDS: {
+    SETTINGS_WALLET_DOMAINCARD: {
         route: '/settings/wallet/card/:domain',
         getRoute: (domain: string) => `/settings/wallet/card/${domain}`,
+    },
+    SETTINGS_REPORT_FRAUD: {
+        route: '/settings/wallet/card/:domain/report-virtual-fraud',
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-virtual-fraud`,
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
+        route: 'settings/wallet/card/:domain/digital-details/update-address',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address`,
+    },
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
+    SETTINGS_WALLET_CARD_ACTIVATE: {
+        route: 'settings/wallet/card/:domain/activate',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/activate`,
+    },
     SETTINGS_PERSONAL_DETAILS: 'settings/profile/personal-details',
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: 'settings/profile/personal-details/legal-name',
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: 'settings/profile/personal-details/date-of-birth',
@@ -103,6 +117,8 @@ export default {
     SETTINGS_2FA: 'settings/security/two-factor-auth',
     SETTINGS_STATUS: 'settings/profile/status',
     SETTINGS_STATUS_SET: 'settings/profile/status/set',
+
+    KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
@@ -160,6 +176,14 @@ export default {
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}`,
+    },
+    EDIT_SPLIT_BILL: {
+        route: `r/:reportID/split/:reportActionID/edit/:field`,
+        getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${reportID}/split/${reportActionID}/edit/${field}`,
+    },
+    EDIT_SPLIT_BILL_CURRENCY: {
+        route: 'r/:reportID/split/:reportActionID/edit/currency',
+        getRoute: (reportID: string, reportActionID: string, currency: string, backTo: string) => `r/${reportID}/split/${reportActionID}/edit/currency?currency=${currency}&backTo=${backTo}`,
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
@@ -268,6 +292,11 @@ export default {
     I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',
     INTRO_SCHOOL_PRINCIPAL: 'teachersunite/intro-school-principal',
 
+    ERECEIPT: {
+        route: 'eReceipt/:transactionID',
+        getRoute: (transactionID: string) => `eReceipt/${transactionID}`,
+    },
+
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
@@ -285,6 +314,10 @@ export default {
     WORKSPACE_SETTINGS: {
         route: 'workspace/:policyID/settings',
         getRoute: (policyID: string) => `workspace/${policyID}/settings`,
+    },
+    WORKSPACE_SETTINGS_CURRENCY: {
+        route: 'workspace/:policyID/settings/currency',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/currency`,
     },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
@@ -315,7 +348,21 @@ export default {
         getRoute: (policyID: string) => `workspace/${policyID}/members`,
     },
 
-    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
+    // These are some one-off routes that will be removed once they're no longer needed (see GH issues for details)
     SAASTR: 'saastr',
     SBE: 'sbe',
+    MONEY2020: 'money2020',
+
+    // Iframe screens from olddot
+    HOME_OLDDOT: 'home',
+
+    // Spend tab
+    EXPENSES_OLDDOT: 'expenses',
+    REPORTS_OLDDOT: 'reports',
+    INSIGHTS_OLDDOT: 'insights',
+
+    // Workspaces tab
+    INDIVIDUALS_OLDDOT: 'individual_workspaces',
+    GROUPS_OLDDOT: 'group_workspaces',
+    CARDS_AND_DOMAINS_OLDDOT: 'cards-and-domains',
 } as const;

@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -25,7 +24,7 @@ import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import MenuItemRenderHTMLTitle from './MenuItemRenderHTMLTitle';
+import RenderHTML from './RenderHTML';
 
 const propTypes = menuItemPropTypes;
 
@@ -50,8 +49,6 @@ const defaultProps = {
     iconHeight: undefined,
     description: undefined,
     iconRight: Expensicons.ArrowRight,
-    onIconRightPress: undefined,
-    iconRightAccessibilityLabel: undefined,
     iconStyles: [],
     iconFill: undefined,
     secondaryIconFill: undefined,
@@ -82,6 +79,7 @@ const defaultProps = {
     shouldRenderAsHTML: false,
     rightComponent: undefined,
     shouldShowRightComponent: false,
+    shouldCheckActionAllowedOnPress: true,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -120,39 +118,42 @@ const MenuItem = React.forwardRef((props, ref) => {
             return;
         }
         const parser = new ExpensiMark();
-        setHtml(parser.replace(convertToLTR(props.title)));
+        setHtml(parser.replace(props.title));
         titleRef.current = props.title;
     }, [props.title, props.shouldParseTitle]);
 
     const getProcessedTitle = useMemo(() => {
+        let title = '';
         if (props.shouldRenderAsHTML) {
-            return convertToLTR(props.title);
+            title = convertToLTR(props.title);
         }
 
         if (props.shouldParseTitle) {
-            return html;
+            title = html;
         }
 
-        return '';
+        return title ? `<comment>${title}</comment>` : '';
     }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
 
-    const hasPressableRightComponent = props.onIconRightPress || props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
+    const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
+
+    const onPressAction = (e) => {
+        if (props.disabled || !props.interactive) {
+            return;
+        }
+
+        if (e && e.type === 'click') {
+            e.currentTarget.blur();
+        }
+
+        props.onPress(e);
+    };
 
     return (
         <Hoverable>
             {(isHovered) => (
                 <PressableWithSecondaryInteraction
-                    onPress={Session.checkIfActionIsAllowed((e) => {
-                        if (props.disabled || !props.interactive) {
-                            return;
-                        }
-
-                        if (e && e.type === 'click') {
-                            e.currentTarget.blur();
-                        }
-
-                        props.onPress(e);
-                    }, props.isAnonymousAction)}
+                    onPress={props.shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, props.isAnonymousAction) : onPressAction}
                     onPressIn={() => props.shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={props.onSecondaryInteraction}
@@ -255,7 +256,9 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             {Boolean(props.title) && (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) && (
-                                                <MenuItemRenderHTMLTitle title={getProcessedTitle} />
+                                                <View style={styles.renderHTMLTitle}>
+                                                    <RenderHTML html={getProcessedTitle} />
+                                                </View>
                                             )}
                                             {!props.shouldRenderAsHTML && !props.shouldParseTitle && Boolean(props.title) && (
                                                 <Text
@@ -345,19 +348,12 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     </View>
                                 )}
                                 {Boolean(props.shouldShowRightIcon) && (
-                                    <PressableWithFeedback
-                                        wrapperStyle={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                        accessibilityLabel={props.iconRightAccessibilityLabel ? props.iconRightAccessibilityLabel : ''}
-                                        accessible={!props.onIconRightPress}
-                                        disabled={!props.onIconRightPress}
-                                        onPress={props.onIconRightPress}
-                                    >
+                                    <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
                                         <Icon
                                             src={props.iconRight}
                                             fill={StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive))}
                                         />
-                                    </PressableWithFeedback>
+                                    </View>
                                 )}
                                 {props.shouldShowRightComponent && props.rightComponent}
                                 {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
