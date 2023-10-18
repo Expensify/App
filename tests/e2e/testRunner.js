@@ -51,6 +51,8 @@ const setConfigPath = (configPathParam) => {
     config = _.extend(defaultConfig, customConfig);
 };
 
+const skipCheckout = args.includes('--skipCheckout');
+
 // There are three build modes:
 // 1. full: rebuilds the full native app in (e2e) release mode
 // 2. js-only: only rebuilds the js bundle, and then re-packages
@@ -113,9 +115,9 @@ const runTests = async () => {
         }
     }
 
-    if (branch != null) {
+    if (branch != null && !skipCheckout) {
         // Switch branch
-        Logger.log(`Preparing tests on branch '${branch}'`);
+        Logger.log(`Preparing tests on branch '${branch}' - git checkout`);
         await execAsync(`git checkout ${branch}`);
     }
 
