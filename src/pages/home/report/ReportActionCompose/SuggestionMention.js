@@ -57,8 +57,8 @@ function SuggestionMention({
     measureParentContainer,
 }) {
     const {translate} = useLocalize();
-    const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const previousValue = usePrevious(value);
+    const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowSuggestionMenu;
 
@@ -236,11 +236,12 @@ function SuggestionMention({
 
     useEffect(() => {
         if (value.length < previousValue.length) {
-            console.log(`[Skipping] value: '${value}', selection: ${selection.end}`);
+            // A workaround to not show the suggestions list when the user deletes a character before the mention.
+            // It is caused by a buggy behavior of the TextInput on iOS.
+            // See: https://github.com/facebook/react-native/pull/36930#issuecomment-1593028467
             return;
         }
 
-        console.log(`[Processing] value: '${value}', selection: ${selection.end}`);
         calculateMentionSuggestion(selection.end);
     }, [selection, calculateMentionSuggestion]);
 
