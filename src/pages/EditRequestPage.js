@@ -5,6 +5,7 @@ import lodashValues from 'lodash/values';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import ROUTES from '../ROUTES';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
@@ -30,6 +31,7 @@ import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import categoryPropTypes from '../components/categoryPropTypes';
 import ScreenWrapper from '../components/ScreenWrapper';
+import transactionPropTypes from '../components/transactionPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -76,6 +78,8 @@ const propTypes = {
     policyTags: tagPropTypes,
 
     isLoadingReportData: PropTypes.boolean,
+    /** The original transaction that is being edited */
+    transaction: transactionPropTypes,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -90,11 +94,13 @@ const defaultProps = {
     },
     policyCategories: {},
     policyTags: {},
-    isLoadingReportData: true
+    transaction: {},
+    isLoadingReportData: true,
 };
 
 function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags, parentReportActions, transaction, isLoadingReportData}) {
-    const parentReportAction = parentReportActions[report.parentReportActionID];
+    const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
+    const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
@@ -201,6 +207,10 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
                         amount,
                         currency: defaultCurrency,
                     });
+                }}
+                onNavigateToCurrency={() => {
+                    const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+                    Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
                 }}
             />
         );
@@ -327,7 +337,8 @@ export default compose(
     withOnyx({
         transaction: {
             key: ({report, parentReportActions}) => {
-                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
+                const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
+                const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
             },
         },
