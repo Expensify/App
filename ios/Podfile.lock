@@ -1179,6 +1179,13 @@ PODS:
     - React-Codegen
     - React-Core
     - ReactCommon/turbomodule/core
+  - react-native-geolocation (3.1.0):
+    - RCT-Folly (= 2021.07.22.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - ReactCommon/turbomodule/core
   - react-native-image-manipulator (1.0.5):
     - RCT-Folly
     - RCTRequired
@@ -1719,6 +1726,7 @@ DEPENDENCIES:
   - "react-native-cameraroll (from `../node_modules/@react-native-camera-roll/camera-roll`)"
   - react-native-config (from `../node_modules/react-native-config`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
+  - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - "react-native-image-manipulator (from `../node_modules/@oguzhnatly/react-native-image-manipulator`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
@@ -1895,6 +1903,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-config"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
+  react-native-geolocation:
+    :path: "../node_modules/@react-native-community/geolocation"
   react-native-image-manipulator:
     :path: "../node_modules/@oguzhnatly/react-native-image-manipulator"
   react-native-image-picker:
@@ -2082,6 +2092,7 @@ SPEC CHECKSUMS:
   react-native-cameraroll: 67edd0eec4102eb6a8d6c20f921f696780149095
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: c9ac93d7b511413f4a0ed61c92ff6c7b1bcf4f94
+  react-native-geolocation: 83b6c7c92d958aea3f4c36005a70d70b410253f9
   react-native-image-manipulator: 39f7fded66a1170ccb5055095beafa657d0cb36a
   react-native-image-picker: ee3960a0f1da5ecc6dba6686a784485dc8299a22
   react-native-key-command: b7843c923c30e72a94b046456c5900e1249ce275
@@ -2094,7 +2105,7 @@ SPEC CHECKSUMS:
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 0dfc8e3a7d5ff115d100bafe4269d64a2c0a1456
   react-native-view-shot: 705f999ac2a24e4e6c909c0ca65c732ed33ca2ff
-  react-native-webview: f0e637597861f74bb2767586490494ac57fdb554
+  react-native-webview: 91586ba52ea907059043822794927289b31e00fb
   React-NativeModulesApple: edb5ace14f73f4969df6e7b1f3e41bef0012740f
   React-perflogger: 496a1a3dc6737f964107cb3ddae7f9e265ddda58
   React-RCTActionSheet: 02904b932b50e680f4e26e7a686b33ebf7ef3c00
