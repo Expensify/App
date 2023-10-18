@@ -73,6 +73,7 @@ import ReportAttachmentsContext from './ReportAttachmentsContext';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
 import KYCWall from '../../../components/KYCWall';
+import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -117,6 +118,9 @@ const propTypes = {
 
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: PropTypes.bool,
+
+    /** The user's wallet account */
+    userWallet: userWalletPropTypes,
 };
 
 const defaultProps = {
@@ -353,7 +357,10 @@ function ReportActionItem(props) {
 
             const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !ReportUtils.isSettled(props.report.reportID);
             const shouldShowAddCreditBankAccountButton = isSubmitterOfUnsettledReport && !store.hasCreditBankAccount() && paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-            const shouldShowEnableWalletButton = isSubmitterOfUnsettledReport && props.userWallet.tierName == CONST.WALLET.TIER_NAME.SILVER && paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+            const shouldShowEnableWalletButton =
+                isSubmitterOfUnsettledReport &&
+                (_.isEmpty(props.userWallet) || props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER) &&
+                paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
 
             children = (
                 <ReportActionItemBasicMessage
