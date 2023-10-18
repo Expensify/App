@@ -1311,8 +1311,10 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {String} previousValue
  * @param {String} newValue
  * @param {boolean} navigate
+ * @param {String} parentReportID
+ * @param {String} parentReportActionID
  */
-function updateNotificationPreference(reportID, previousValue, newValue, navigate) {
+function updateNotificationPreference(reportID, previousValue, newValue, navigate, parentReportID = 0, parentReportActionID = 0) {
     if (previousValue === newValue) {
         if (navigate) {
             Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
@@ -1333,7 +1335,23 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
             value: {notificationPreference: previousValue},
         },
     ];
-    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
+    if (parentReportID && parentReportActionID) {
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+                value: {[parentReportActionID] : {childReportNotificationPreference: newValue}},
+            }
+        );
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+                value: {[parentReportActionID] : {childReportNotificationPreference: previousValue}},
+            }
+        )
+    }
+    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue, parentReportID, parentReportActionID}, {optimisticData, failureData});
     if (navigate) {
         Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
     }
@@ -1351,10 +1369,11 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
 function toggleSubscribeToChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0', prevNotificationPreference) {
     if (childReportID !== '0') {
         openReport(childReportID);
+        const parentReportActionID = lodashGet(parentReportAction, 'reportActionID', '0');
         if (!prevNotificationPreference || prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
-            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false);
+            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, parentReportID, parentReportActionID);
         } else {
-            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, false);
+            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, false, parentReportID, parentReportActionID);
         }
     } else {
         const participantAccountIDs = _.uniq([currentUserAccountID, Number(parentReportAction.actorAccountID)]);
