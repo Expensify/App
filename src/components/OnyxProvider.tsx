@@ -1,12 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import ONYXKEYS from '../ONYXKEYS';
 import createOnyxContext from './createOnyxContext';
 import ComposeProviders from './ComposeProviders';
 
 // Set up any providers for individual keys. This should only be used in cases where many components will subscribe to
 // the same key (e.g. FlatList renderItem components)
-const [withNetwork, NetworkProvider, NetworkContext] = createOnyxContext(ONYXKEYS.NETWORK, {});
+const [withNetwork, NetworkProvider, NetworkContext] = createOnyxContext(ONYXKEYS.NETWORK);
 const [withPersonalDetails, PersonalDetailsProvider] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
 const [withCurrentDate, CurrentDateProvider] = createOnyxContext(ONYXKEYS.CURRENT_DATE);
 const [withReportActionsDrafts, ReportActionsDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
@@ -15,12 +14,12 @@ const [withBetas, BetasProvider, BetasContext] = createOnyxContext(ONYXKEYS.BETA
 const [withReportCommentDrafts, ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
 const [withPreferredTheme, PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
 
-const propTypes = {
+type OnyxProviderProps = {
     /** Rendered child component */
-    children: PropTypes.node.isRequired,
+    children: React.ReactNode;
 };
 
-function OnyxProvider(props) {
+function OnyxProvider(props: OnyxProviderProps) {
     return (
         <ComposeProviders
             components={[
@@ -40,7 +39,6 @@ function OnyxProvider(props) {
 }
 
 OnyxProvider.displayName = 'OnyxProvider';
-OnyxProvider.propTypes = propTypes;
 
 export default OnyxProvider;
 

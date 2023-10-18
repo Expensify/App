@@ -1852,7 +1852,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'Not activated',
-        outOfPocketSpend: 'Out-of-pocket spend',
+        outOfPocket: 'Out of pocket',
         companySpend: 'Company spend',
     },
     distance: {
