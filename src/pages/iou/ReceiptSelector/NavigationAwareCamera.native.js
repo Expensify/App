@@ -45,7 +45,7 @@ const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigato
         return () => {
             tabPositionAnimation.removeListener(listenerId);
         };
-    }, [cameraTabIndex, tabPositionAnimation, isInTabNavigator]);
+    }, [cameraTabIndex, tabPositionAnimation, isInTabNavigator, selectedTab]);
 
     // Note: The useEffect can be removed once VisionCamera V3 is used.
     // Its only needed for android, because there is a native cameraX android bug. With out this flow would break the camera:
