@@ -81,12 +81,14 @@ function RoomMembersPage(props) {
     const [selectedMembers, setSelectedMembers] = useState([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [searchValue, setSearchValue] = useState('');
+    const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
 
     /**
      * Get members for the current room
      */
     const getRoomMembers = useCallback(() => {
         Report.openRoomMembersPage(props.report.reportID);
+        setDidLoadRoomMembers(true);
     }, [props.report.reportID]);
 
     useEffect(() => {
@@ -296,7 +298,7 @@ function RoomMembersPage(props) {
                             headerMessage={headerMessage}
                             onSelectRow={(item) => toggleUser(item.keyForList)}
                             onSelectAll={() => toggleAllUsers(data)}
-                            showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
+                            showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                         />
