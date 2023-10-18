@@ -1525,6 +1525,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
     return '';
 }
+
 /**
  * Helper method that check if any search results match, and show the not found message.
  *
