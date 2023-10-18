@@ -1527,7 +1527,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 }
 
 /**
- * Helper method that check if any search results match, and show the not found message.
+ * Helper method for non-user lists (eg. categories and tags) that returns the text to be used for the header's message and title (if any)
  *
  * @param {Boolean} hasSelectableOptions
  * @param {String} searchValue
