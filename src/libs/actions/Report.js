@@ -2075,8 +2075,8 @@ function removeFromRoom(reportID, targetAccountIDs) {
                     value: {
                         participantAccountIDs: participantAccountIDsAfterRemoval,
                     },
-                }
-            ]
+                },
+            ],
         },
     );
 }
