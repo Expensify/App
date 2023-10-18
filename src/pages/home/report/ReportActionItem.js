@@ -72,6 +72,7 @@ import RenderHTML from '../../../components/RenderHTML';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
+import KYCWall from '../../../components/KYCWall';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -367,13 +368,24 @@ function ReportActionItem(props) {
                         />
                     )}
                     {shouldShowEnableWalletButton && (
-                        <Button
-                            success
-                            style={[styles.w100, styles.requestPreviewBox]}
-                            text={props.translate('iou.enableWallet')}
-                            onPress={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
-                            pressOnEnter
-                        />
+                        <KYCWall
+                            onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
+                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                            addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
+                            addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                            chatReportID={props.report.reportID}
+                            iouReport={props.iouReport}
+                        >
+                            {(triggerKYCFlow, buttonRef) => (
+                                <Button
+                                    ref={buttonRef}
+                                    success
+                                    style={[styles.w100, styles.requestPreviewBox]}
+                                    text={props.translate('iou.enableWallet')}
+                                    onPress={triggerKYCFlow}
+                                />
+                            )}
+                        </KYCWall>
                     )}
                 </ReportActionItemBasicMessage>
             );
@@ -717,6 +729,9 @@ export default compose(
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
             initialValue: {},
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(
