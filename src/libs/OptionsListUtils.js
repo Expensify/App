@@ -1529,6 +1529,20 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 }
 
 /**
+ * Helper method for non-user lists (eg. categories and tags) that returns the text to be used for the header's message and title (if any)
+ *
+ * @param {Boolean} hasSelectableOptions
+ * @param {String} searchValue
+ * @return {String}
+ */
+function getHeaderMessageForNonUserList(hasSelectableOptions, searchValue) {
+    if (searchValue && !hasSelectableOptions) {
+        return Localize.translate(preferredLocale, 'common.noResultsFound');
+    }
+    return '';
+}
+
+/**
  * Helper method to check whether an option can show tooltip or not
  * @param {Object} option
  * @returns {Boolean}
@@ -1547,6 +1561,7 @@ export {
     getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,
+    getHeaderMessageForNonUserList,
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
