@@ -13,8 +13,8 @@ export default function withViewportOffsetTop<TProps extends ViewportOffsetTopPr
         const [viewportOffsetTop, setViewportOffsetTop] = useState(0);
 
         useEffect(() => {
-            const updateDimensions = (e: Event) => {
-                const targetOffsetTop = (e.target as HTMLElement)?.offsetTop ?? 0;
+            const updateDimensions = (event: Event) => {
+                const targetOffsetTop = (event.target instanceof HTMLElement && event.target.offsetTop) || 0;
                 setViewportOffsetTop(targetOffsetTop);
             };
 
@@ -35,7 +35,7 @@ export default function withViewportOffsetTop<TProps extends ViewportOffsetTopPr
         );
     }
 
-    WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(WrappedComponent as ComponentType)})`;
+    WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(WrappedComponent)})`;
 
     return forwardRef(WithViewportOffsetTop);
 }
