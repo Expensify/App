@@ -111,7 +111,7 @@
     "prop-types": "^15.7.2",
     "pusher-js": "8.3.0",
     "react": "18.2.0",
-    "react-beautiful-dnd": "^13.1.1",
+    "react-beautiful-dnd": "github:DylanDylann/react-beautiful-dnd#fix/28797-apply-patch-to-fork",
     "react-collapse": "^5.1.0",
     "react-content-loader": "^6.1.0",
     "react-dom": "18.1.0",
