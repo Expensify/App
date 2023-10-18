@@ -235,6 +235,7 @@ function RoomInvitePage(props) {
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
                                 enabledWhenOffline
                                 disablePressOnEnter
+                                isAlertVisible={false}
                             />
                         </View>
                     </FullPageNotFoundView>
