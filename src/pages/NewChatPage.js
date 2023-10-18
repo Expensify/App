@@ -133,7 +133,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             recentReports,
             personalDetails: newChatPersonalDetails,
             userToInvite,
-        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, newSelectedOptions, excludedGroupEmails, false, true, false, {}, [], false, {}, [], true, true);
+        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, newSelectedOptions, excludedGroupEmails);
 
         setSelectedOptions(newSelectedOptions);
         setFilteredRecentReports(recentReports);
@@ -168,7 +168,24 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             recentReports,
             personalDetails: newChatPersonalDetails,
             userToInvite,
-        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, selectedOptions, isGroupChat ? excludedGroupEmails : []);
+        } = OptionsListUtils.getFilteredOptions(
+            reports,
+            personalDetails,
+            betas,
+            searchTerm,
+            selectedOptions,
+            isGroupChat ? excludedGroupEmails : [],
+            false,
+            true,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            true,
+        );
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
