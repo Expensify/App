@@ -80,8 +80,6 @@ const defaultProps = {
     shouldRenderAsHTML: false,
     rightComponent: undefined,
     shouldShowRightComponent: false,
-    titleParticipantsDetailsDetails: [],
-    titleParticipantAccountId: 0,
     shouldUseFullTitle: false,
     useIconForTitleTooltip: false,
 };
@@ -151,26 +149,6 @@ const MenuItem = React.forwardRef((props, ref) => {
                 </Text>
             ));
         }
-        // if (props.titleParticipantsDetails && props.titleParticipantsDetails.length > 0 && !props.shouldUseFullTitle) {
-        //     return _.map(props.titleParticipantsDetails, (accountIdOrUserObject, index) => (
-        //         <Text>
-        //             <UserDetailsTooltip accountID={accountIdOrUserObject.accountID}>
-        //                 <Text>{convertToLTR(accountIdOrUserObject.displayName)}</Text>
-        //             </UserDetailsTooltip>
-        //             {index < props.titleParticipantsDetails.length - 1 && <Text style>,&nbsp;</Text>}
-        //         </Text>
-        //     ));
-        // }
-
-        // if (props.titleParticipantAccountId && !props.shouldUseFullTitle) {
-        //     return (
-        //         <Text>
-        //             <UserDetailsTooltip accountID={props.titleParticipantAccountId}>
-        //                 <Text>{convertToLTR(props.title)}</Text>
-        //             </UserDetailsTooltip>
-        //         </Text>
-        //     );
-        // }
 
         return convertToLTR(props.title);
     };
@@ -407,9 +385,3 @@ MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
 
 export default MenuItem;
-
-//  <Text>
-// <UserDetailsTooltip accountID={props.titleParticipantsDetails}>
-// <Text>{convertToLTR(props.title)}</Text>
-// </UserDetailsTooltip>
-// </Text>

@@ -590,11 +590,10 @@ function setDescriptionValue(description) {
 /**
  * Sets the shareDestination value for the task
  * @param {string} shareDestination
- * @param {string} shouldShowDestinationTooltip
  */
-function setShareDestinationValue(shareDestination, shouldShowDestinationTooltip) {
+function setShareDestinationValue(shareDestination) {
     // This is only needed for creation of a new task and so it should only be stored locally
-    Onyx.merge(ONYXKEYS.TASK, {shareDestination, shouldShowDestinationTooltip});
+    Onyx.merge(ONYXKEYS.TASK, {shareDestination});
 }
 
 /* Sets the assigneeChatReport details for the task
