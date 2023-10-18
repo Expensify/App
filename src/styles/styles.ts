@@ -3669,6 +3669,7 @@ const styles = (theme: ThemeDefault) =>
             paddingRight: 4,
             marginBottom: 32,
             alignSelf: 'flex-start',
+            ...userSelect.userSelectNone,
         },
 
         emojiPickerButtonDropdownIcon: {
