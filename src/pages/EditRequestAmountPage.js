@@ -1,13 +1,11 @@
 import React, {useCallback, useRef} from 'react';
-import {InteractionManager} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
+import CONST from '../CONST';
+import useLocalize from '../hooks/useLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Navigation from '../libs/Navigation/Navigation';
-import useLocalize from '../hooks/useLocalize';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
-import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Transaction default amount value */
@@ -19,36 +17,25 @@ const propTypes = {
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
 
-    /** reportID for the transaction thread */
-    reportID: PropTypes.string.isRequired,
+    /** Callback to fire when we press on the currency  */
+    onNavigateToCurrency: PropTypes.func.isRequired,
 };
 
-function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, reportID}) {
+function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurrency, onSubmit}) {
     const {translate} = useLocalize();
+
     const textInput = useRef(null);
-
-    const focusTextInput = () => {
-        // Component may not be initialized due to navigation transitions
-        // Wait until interactions are complete before trying to focus
-        InteractionManager.runAfterInteractions(() => {
-            // Focus text input
-            if (!textInput.current) {
-                return;
-            }
-
-            textInput.current.focus();
-        });
-    };
-
-    const navigateToCurrencySelectionPage = () => {
-        // Remove query from the route and encode it.
-        const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
-        Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(reportID, defaultCurrency, activeRoute));
-    };
+    const focusTimeoutRef = useRef(null);
 
     useFocusEffect(
         useCallback(() => {
-            focusTextInput();
+            focusTimeoutRef.current = setTimeout(() => textInput.current && textInput.current.focus(), CONST.ANIMATED_TRANSITION);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
         }, []),
     );
 
@@ -64,7 +51,7 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, report
                 currency={defaultCurrency}
                 amount={defaultAmount}
                 ref={(e) => (textInput.current = e)}
-                onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                onCurrencyButtonPress={onNavigateToCurrency}
                 onSubmitButtonPress={onSubmit}
             />
         </ScreenWrapper>
