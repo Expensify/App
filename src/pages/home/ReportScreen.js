@@ -127,7 +127,7 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
-    return String(lodashGet(route, 'params.reportID', ''));
+    return String(lodashGet(route, 'params.reportID', null));
 }
 
 function ReportScreen({
