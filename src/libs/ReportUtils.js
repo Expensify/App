@@ -1213,6 +1213,46 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
 }
 
 /**
+ * For a deleted parent report action within a chat report,
+ * let us return the appropriate display message
+ *
+ * @param {Object} reportAction - The deleted report action of a chat report for which we need to return message.
+ * @return {String}
+ */
+function getDeletedParentActionMessageForChatReport(reportAction) {
+    // By default, let us display [Deleted message]
+    let deletedMessageText = Localize.translateLocal('parentReportAction.deletedMessage');
+    if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
+        // For canceled task report, let us display [Deleted task]
+        deletedMessageText = Localize.translateLocal('parentReportAction.deletedTask');
+    }
+    return deletedMessageText;
+}
+
+/**
+ * Returns the last visible message for a given report after considering the given optimistic actions
+ *
+ * @param {String} reportID - the report for which last visible message has to be fetched
+ * @param {Object} [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
+ * @return {Object}
+ */
+function getLastVisibleMessage(reportID, actionsToMerge = {}) {
+    const report = getReport(reportID);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, actionsToMerge);
+
+    // For Chat Report with deleted parent actions, let us fetch the correct message
+    if (ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && isChatReport(report)) {
+        const lastMessageText = getDeletedParentActionMessageForChatReport(lastVisibleAction);
+        return {
+            lastMessageText,
+        };
+    }
+
+    // Fetch the last visible message for report represented by reportID and based on actions to merge.
+    return ReportActionsUtils.getLastVisibleMessage(reportID, actionsToMerge);
+}
+
+/**
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
@@ -3943,6 +3983,8 @@ export {
     getReport,
     getReportIDFromLink,
     getRouteFromLink,
+    getDeletedParentActionMessageForChatReport,
+    getLastVisibleMessage,
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
