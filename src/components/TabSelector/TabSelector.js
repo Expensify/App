@@ -87,6 +87,7 @@ function TabSelector({state, navigation, onTabPress, position}) {
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
 
     React.useEffect(() => {
+        // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
         setTimeout(() => {
             setAffectedAnimatedTabs(defaultAffectedAnimatedTabs);
         }, CONST.ANIMATED_TRANSITION);
