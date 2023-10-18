@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import * as LottieAnimations from '../../components/LottieAnimations';
@@ -29,8 +30,8 @@ const defaultProps = {
 };
 
 function ActivateStep(props) {
-    const isGoldWallet = props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
-    const animation = isGoldWallet ? LottieAnimations.Fireworks : LottieAnimations.ReviewingBankInfo;
+    const isActivatedWallet = _.contains([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM], props.userWallet.tierName);
+    const animation = isActivatedWallet ? LottieAnimations.Fireworks : LottieAnimations.ReviewingBankInfo;
     const continueButtonText = props.walletTerms.chatReportID ? props.translate('activateStep.continueToPayment') : props.translate('activateStep.continueToTransfer');
 
     return (
@@ -38,9 +39,9 @@ function ActivateStep(props) {
             <HeaderWithBackButton title={props.translate('activateStep.headerTitle')} />
             <ConfirmationPage
                 animation={animation}
-                heading={props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Title`)}
-                description={props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Message`)}
-                shouldShowButton={isGoldWallet}
+                heading={props.translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Title`)}
+                description={props.translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Message`)}
+                shouldShowButton={isActivatedWallet}
                 buttonText={continueButtonText}
                 onButtonPress={PaymentMethods.continueSetup}
             />

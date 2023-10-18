@@ -1054,7 +1054,7 @@ function deleteReportComment(reportID, reportAction) {
             isLastMessageDeletedParentAction: true,
         };
     } else {
-        const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
+        const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
         if (lastMessageText || lastMessageTranslationKey) {
             const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
             const lastVisibleActionCreated = lastVisibleAction.created;
@@ -1889,6 +1889,7 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
  * @param {Boolean} isAuthenticated
  */
 function openReportFromDeepLink(url, isAuthenticated) {
+    const route = ReportUtils.getRouteFromLink(url);
     const reportID = ReportUtils.getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
@@ -1907,16 +1908,11 @@ function openReportFromDeepLink(url, isAuthenticated) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            Navigation.waitForProtectedRoutes()
-                .then(() => {
-                    const route = ReportUtils.getRouteFromLink(url);
-                    if (route === ROUTES.CONCIERGE) {
-                        navigateToConciergeChat(true);
-                        return;
-                    }
-                    Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
-                })
-                .catch((error) => Log.warn(error.message));
+            if (route === ROUTES.CONCIERGE) {
+                navigateToConciergeChat(true);
+                return;
+            }
+            Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
         });
     });
 }
