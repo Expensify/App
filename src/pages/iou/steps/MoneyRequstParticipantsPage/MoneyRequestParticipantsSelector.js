@@ -151,7 +151,7 @@ function MoneyRequestParticipantsSelector({
         }
 
         return newSections;
-    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate]);
+    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate, searchTerm]);
 
     /**
      * Adds a single participant to the request

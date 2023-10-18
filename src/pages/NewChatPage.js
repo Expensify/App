@@ -112,7 +112,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         }
 
         return sectionsList;
-    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions]);
+    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions, searchTerm]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.

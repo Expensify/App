@@ -1403,7 +1403,7 @@ function getFilteredOptions(
         tags,
         recentlyUsedTags,
         canInviteUser,
-        includeSelectedOptions
+        includeSelectedOptions,
     });
 }
 
