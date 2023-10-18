@@ -116,7 +116,7 @@ module.exports = {
                     },
                     {
                         selector: ['parameter', 'method'],
-                        format: ['camelCase', 'PascalCase'],
+                        format: ['camelCase'],
                     },
                 ],
                 '@typescript-eslint/ban-types': [
