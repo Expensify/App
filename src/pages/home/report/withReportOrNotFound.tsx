@@ -6,6 +6,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import FullscreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as OnyxTypes from '../../../types/onyx';
+import {RouteProp} from '@react-navigation/native';
 
 type OnyxProps = {
     /** The report currently being looked at */
@@ -18,15 +19,11 @@ type OnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type RouteProps = {
-    route: {
-        params: {
-            reportID: string;
-        };
-    };
+type ComponentProps = OnyxProps & {
+    route: RouteProp<{params: {reportID: string}}>;
 };
 
-export default function <TProps extends OnyxProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const contentShown = React.useRef(false);
@@ -67,7 +64,7 @@ export default function <TProps extends OnyxProps, TRef>(WrappedComponent: Compo
     // eslint-disable-next-line rulesdir/no-negated-variables
     const withReportOrNotFound = React.forwardRef(WithReportOrNotFound);
 
-    return withOnyx<TProps & RefAttributes<TRef> & RouteProps, OnyxProps>({
+    return withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
