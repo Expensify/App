@@ -146,7 +146,7 @@ function ReportDetailsPage(props) {
 
         if (isUserCreatedPolicyRoom || canLeaveRoom) {
             const isWorkspaceMemberLeavingWorkspaceRoom =
-                lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && PolicyUtils.isPolicyMember(props.report.policyID, props.policies);
+                lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
@@ -165,10 +165,9 @@ function ReportDetailsPage(props) {
         isThread,
         isUserCreatedPolicyRoom,
         canLeaveRoom,
-        isPolicyMember,
-        props.betas,
         props.policies,
         isGroupDMChat,
+        isPolicyMember,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
