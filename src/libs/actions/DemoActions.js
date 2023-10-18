@@ -17,7 +17,7 @@ Onyx.connect({
 
 function runMoney2020Demo() {
     // Try to navigate to existing demo chat if it exists in Onyx
-    const money2020AccountID = Number(Config ? Config.EXPENSIFY_ACCOUNT_ID_MONEY2020 : 15864555);
+    const money2020AccountID = Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_MONEY2020', 15864555));
     const existingChatReport = ReportUtils.getChatByParticipants([money2020AccountID]);
     if (existingChatReport) {
         // We must call goBack() to remove the demo route from nav history
@@ -63,7 +63,7 @@ function runDemoByURL(url = '') {
         });
     } else {
         // No demo is being run, so clear out demo info
-        Onyx.set(ONYXKEYS.DEMO_INFO, null);
+        Onyx.set(ONYXKEYS.DEMO_INFO, {});
     }
 }
 
