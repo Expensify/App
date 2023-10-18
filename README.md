@@ -114,7 +114,7 @@ variables referenced here get updated since your local `.env` file is ignored.
 
 ----
 
-# Testing on browsers on simulators and emulators
+# Testing on browsers in simulators and emulators
 
 The development server is reached through the HTTPS protocol, and any client that access the development server needs a certificate.
 
