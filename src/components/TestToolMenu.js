@@ -8,6 +8,7 @@ import Text from './Text';
 import * as User from '../libs/actions/User';
 import * as Network from '../libs/actions/Network';
 import * as Session from '../libs/actions/Session';
+import * as Report from '../libs/actions/Report';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from './Button';
 import TestToolRow from './TestToolRow';
@@ -92,6 +93,15 @@ function TestToolMenu(props) {
                     small
                     text="Destroy"
                     onPress={() => Session.invalidateCredentials()}
+                />
+            </TestToolRow>
+
+            {/* Mark all chats as "read". */}
+            <TestToolRow title="Mark all chats as read">
+                <Button
+                    small
+                    text="💥"
+                    onPress={() => Report.markAllChatsAsRead()}
                 />
             </TestToolRow>
         </>

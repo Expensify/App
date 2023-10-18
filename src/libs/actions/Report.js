@@ -2278,7 +2278,22 @@ function searchInServer(searchInput) {
     debouncedSearchInServer(searchInput);
 }
 
+/**
+ * Test utility used to mark chats as read.
+ */
+function markAllChatsAsRead() {
+    // Get all the chats that are unread
+    _.each(currentReportData, (report, reportID) => {
+        if (!ReportUtils.isUnread(report)) {
+            return;
+        }
+
+        readNewestAction(reportID);
+    });
+}
+
 export {
+    markAllChatsAsRead,
     searchInServer,
     addComment,
     addAttachment,
