@@ -128,6 +128,7 @@ const defaultProps = {
     hasOutstandingIOU: false,
     iouReport: undefined,
     shouldHideThreadDividerLine: false,
+    userWallet: {},
 };
 
 function ReportActionItem(props) {
