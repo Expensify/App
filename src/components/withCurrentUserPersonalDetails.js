@@ -5,8 +5,7 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
 import refPropTypes from './refPropTypes';
-import compose from '../libs/compose';
-import {withPersonalDetails} from './OnyxProvider';
+import {usePersonalDetails} from './OnyxProvider';
 
 const withCurrentUserPersonalDetailsPropTypes = {
     currentUserPersonalDetails: personalDetailsPropType,
@@ -37,8 +36,9 @@ export default function (WrappedComponent) {
     };
 
     function WithCurrentUserPersonalDetails(props) {
+        const personalDetails = usePersonalDetails();
         const accountID = props.session.accountID;
-        const accountPersonalDetails = props.personalDetails[accountID];
+        const accountPersonalDetails = personalDetails[accountID];
         const currentUserPersonalDetails = useMemo(() => ({...accountPersonalDetails, accountID}), [accountPersonalDetails, accountID]);
         return (
             <WrappedComponent
@@ -63,14 +63,11 @@ export default function (WrappedComponent) {
         />
     ));
 
-    return compose(
-        withPersonalDetails(),
-        withOnyx({
-            session: {
-                key: ONYXKEYS.SESSION,
-            },
-        }),
-    )(withCurrentUserPersonalDetails);
+    return withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    })(withCurrentUserPersonalDetails);
 }
 
 export {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps};
