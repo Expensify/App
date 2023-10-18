@@ -106,7 +106,7 @@ function ReportActionItemFragment(props) {
             return <Text>&#x200b;</Text>;
         }
         return null;
-    }
+    };
 
     switch (props.fragment.type) {
         case 'COMMENT': {
