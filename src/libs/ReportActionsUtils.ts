@@ -298,7 +298,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     const {POLICYCHANGELOG: policyChangelogTypes, ROOMCHANGELOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
-    const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes)];
+    const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
 
     // Filter out any unsupported reportAction types
     if (!supportedActionTypes.includes(reportAction.actionName)) {
