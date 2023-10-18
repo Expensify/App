@@ -1,16 +1,22 @@
 /**
- * The test runner takes care of running the e2e tests.
- * It will run the tests twice. Once on the branch that
- * we want to base the results on (e.g. main), and then
- * again on another branch we want to compare against the
- * base (e.g. a new feature branch).
+ * Multifaceted script, its main function is running the e2e tests.
+ *
+ * When running in a local environment it can take care of building the APKs required for e2e testing
+ * When running on the CI (depending on the flags passed to it) it will skip building and just package/re-sign
+ * the correct e2e JS bundle into an existing APK
+ *
+ * It will run only one set of tests per branch, for you to compare results to get a performance analysis
+ * You need to run it twice, once with the base branch (--branch main) and another time with another branch
+ * and a label to (--branch my_branch --label delta)
+ *
+ * This two runs will generate a main.json and a delta.json with the performance data, which then you can merge via
+ * node tests/e2e/merge.js
  */
 
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 const fs = require('fs');
 const _ = require('underscore');
 const defaultConfig = require('./config');
-// const compare = require('./compare/compare');
 const Logger = require('./utils/logger');
 const execAsync = require('./utils/execAsync');
 const killApp = require('./utils/killApp');
@@ -73,18 +79,29 @@ if (args.includes('--config')) {
     setConfigPath(configPath);
 }
 
-try {
-    // Clear all files from previous jobs
-    fs.rmSync(config.OUTPUT_DIR, {recursive: true, force: true});
+// Create some variables after the correct config file has been loaded
+const OUTPUT_FILE = `${config.OUTPUT_DIR}/${label}.json`;
 
-    fs.mkdirSync(config.OUTPUT_DIR);
-} catch (error) {
-    // Do nothing
-    console.error(error);
+if (isDevMode) {
+    Logger.note(`🟠 Running in development mode.`);
 }
 
 if (isDevMode) {
-    Logger.note(`Running in development mode.`);
+    // On dev mode only delete any existing output file but keep the folder
+    if (fs.existsSync(OUTPUT_FILE)) {
+        fs.rmSync(OUTPUT_FILE);
+    }
+} else {
+    // On CI it is important to re-create the output dir, it has a different owner
+    // therefore this process cannot write to it
+    try {
+        fs.rmSync(config.OUTPUT_DIR, {recursive: true, force: true});
+
+        fs.mkdirSync(config.OUTPUT_DIR);
+    } catch (error) {
+        // Do nothing
+        console.error(error);
+    }
 }
 
 const restartApp = async () => {
@@ -240,7 +257,7 @@ const runTests = async () => {
 
     // Calculate statistics and write them to our work file
     progressLog = Logger.progressInfo('Calculating statics and writing results');
-    const outputFileName = `${config.OUTPUT_DIR}/${label}.json`;
+
     for (const testName of _.keys(durationsByTestName)) {
         const stats = math.getStats(durationsByTestName[testName]);
         await writeTestStats(
@@ -248,7 +265,7 @@ const runTests = async () => {
                 name: testName,
                 ...stats,
             },
-            outputFileName,
+            OUTPUT_FILE,
         );
     }
     progressLog.done();
