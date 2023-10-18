@@ -16,7 +16,7 @@ import withNavigation from './withNavigation';
 import * as Expensicons from './Icon/Expensicons';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as BankAccounts from '../libs/actions/BankAccounts';
-import ROUTES from "../ROUTES";
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
