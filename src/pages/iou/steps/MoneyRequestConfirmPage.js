@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -67,6 +67,7 @@ function MoneyRequestConfirmPage(props) {
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
     const isScanRequest = MoneyRequestUtils.isScanRequest(props.selectedTab);
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const [receiptFile, setReceiptFile] = useState();
     const participants = useMemo(
         () =>
             _.map(props.iou.participants, (participant) => {
@@ -93,6 +94,21 @@ function MoneyRequestConfirmPage(props) {
             IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
         }
     }, [isOffline, participants, props.iou.billable, props.policy]);
+
+    useEffect(() => {
+        if (!props.iou.receiptPath || !props.iou.receiptFilename) {
+            return;
+        }
+        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((file) => {
+            if (!file) {
+                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current));
+            } else {
+                const receipt = file;
+                receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+                setReceiptFile(receipt);
+            }
+        });
+    }, [props.iou.receiptPath, props.iou.receiptFilename, isManualRequestDM]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
@@ -240,12 +256,8 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            if (props.iou.receiptPath && props.iou.receiptFilename) {
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((file) => {
-                    const receipt = file;
-                    receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
-                    requestMoney(selectedParticipants, trimmedComment, receipt);
-                });
+            if (receiptFile) {
+                requestMoney(selectedParticipants, trimmedComment, receiptFile);
                 return;
             }
 
@@ -268,7 +280,7 @@ function MoneyRequestConfirmPage(props) {
             isDistanceRequest,
             requestMoney,
             createDistanceRequest,
-            isManualRequestDM,
+            receiptFile,
         ],
     );
 
