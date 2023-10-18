@@ -372,6 +372,14 @@ export default {
         termsOfService: 'Términos de servicio',
         privacy: 'Privacidad',
     },
+    samlSignIn: {
+        welcomeSAMLEnabled: 'Continua iniciando sesión con el inicio de sesión único:',
+        orContinueWithMagicCode: 'O, opcionalmente, tu empresa te permite iniciar sesión con un código mágico',
+        useSingleSignOn: 'Usar el inicio de sesión único',
+        useMagicCode: 'Usar código mágico',
+        launching: 'Cargando...',
+        oneMoment: 'Un momento mientras te redirigimos al portal de inicio de sesión único de tu empresa.',
+    },
     reportActionCompose: {
         addAction: 'Acción',
         dropToUpload: 'Suelta el archivo aquí para compartirlo',
@@ -867,6 +875,7 @@ export default {
             address: 'Dirección',
             revealDetails: 'Revelar detalles',
             copyCardNumber: 'Copiar número de la tarjeta',
+            updateAddress: 'Actualizar dirección',
         },
     },
     reportFraudPage: {
@@ -1035,7 +1044,7 @@ export default {
         legalName: 'Nombre completo',
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
-        homeAddress: 'Domicilio',
+        address: 'Dirección',
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
@@ -2330,7 +2339,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'No activado',
-        outOfPocketSpend: 'Gastos por cuenta propia',
+        outOfPocket: 'Por cuenta propia',
         companySpend: 'Gastos de empresa',
     },
     distance: {
@@ -2357,6 +2366,6 @@ export default {
         transactionDate: 'Fecha de transacción',
     },
     globalNavigationOptions: {
-        chats: 'Chats',
+        chats: 'Chats', // "Chats" is the accepted term colloqially in Spanish, this is not a bug!!
     },
 } satisfies EnglishTranslation;
