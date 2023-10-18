@@ -1531,17 +1531,15 @@ function canEditFieldOfMoneyRequest(reportAction, reportID, fieldToEdit) {
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
     ];
 
-    // Checks if the provided property is a restricted one
-    const isNonEditableFieldWhenSettled = _.includes(nonEditableFieldsWhenSettled, fieldToEdit);
+    // Checks if this user has permissions to edit this money request
+    if (!canEditMoneyRequest(reportAction)) {
+        return false; // User doesn't have permission to edit
+    }
 
     // Checks if the report is settled
-    const isSettledMoneyRequest = isSettled(reportID);
-
-    // Checks if this user has permissions to edit this money request
-    const canEdit = canEditMoneyRequest(reportAction);
-
-    if (canEdit && (!isNonEditableFieldWhenSettled || !isSettledMoneyRequest)) {
-        return true;
+    // Checks if the provided property is a restricted one
+    if (!isSettled(reportID) || !nonEditableFieldsWhenSettled.includes(fieldToEdit)) {
+        return true; // User can edit
     }
 
     // Current user cannot edit the provided property of the money request
