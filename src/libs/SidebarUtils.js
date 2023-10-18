@@ -176,7 +176,7 @@ function getOrderedReportIDs(currentReportId, draftReportIDs, allReportsDict, be
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReportsDict);
+        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReportsDict);
 
         if (report.isPinned) {
             pinnedReports.push(report);
@@ -383,7 +383,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result);
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail.accountID;
