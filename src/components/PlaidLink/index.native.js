@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import {openLink, useDeepLinkRedirector, usePlaidEmitter} from 'react-native-plaid-link-sdk';
+import {openLink, useDeepLinkRedirector, usePlaidEmitter, dismissLink} from 'react-native-plaid-link-sdk';
 import Log from '../../libs/Log';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 
@@ -10,6 +10,7 @@ function PlaidLink(props) {
         props.onEvent(event.eventName, event.metadata);
     });
     useEffect(() => {
+        props.onEvent('OPEN', {});
         openLink({
             tokenConfig: {
                 token: props.token,
@@ -22,6 +23,10 @@ function PlaidLink(props) {
                 props.onExit();
             },
         });
+
+        return () => {
+            dismissLink();
+        };
 
         // We generally do not need to include the token as a dependency here as it is only provided once via props and should not change
         // eslint-disable-next-line react-hooks/exhaustive-deps
