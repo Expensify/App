@@ -375,8 +375,8 @@ function addActions(reportID, text = '', file) {
     const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
     if (lastMessageText || lastMessageTranslationKey) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
-        const lastVisibleActionCreated = lastVisibleAction.created;
-        const lastActorAccountID = lastVisibleAction.actorAccountID;
+        const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+        const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
         failureReport = {
             lastMessageTranslationKey,
             lastMessageText,
@@ -1057,8 +1057,8 @@ function deleteReportComment(reportID, reportAction) {
         const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
         if (lastMessageText || lastMessageTranslationKey) {
             const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-            const lastVisibleActionCreated = lastVisibleAction.created;
-            const lastActorAccountID = lastVisibleAction.actorAccountID;
+            const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+            const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
             optimisticReport = {
                 lastMessageTranslationKey,
                 lastMessageText,
@@ -1162,17 +1162,16 @@ const removeLinksFromHtml = (html, links) => {
  * This function will handle removing only links that were purposely removed by the user while editing.
  *
  * @param {String} newCommentText text of the comment after editing.
- * @param {String} originalHtml original html of the comment before editing.
+ * @param {String} originalCommentMarkdown original markdown of the comment before editing.
  * @returns {String}
  */
-const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
+const handleUserDeletedLinksInHtml = (newCommentText, originalCommentMarkdown) => {
     const parser = new ExpensiMark();
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
-    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
     const htmlForNewComment = parser.replace(newCommentText);
-    const removedLinks = parser.getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
+    const removedLinks = parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 };
 
@@ -1191,7 +1190,14 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
-    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentHTML);
+    const originalCommentMarkdown = parser.htmlToMarkdown(originalCommentHTML).trim();
+
+    // Skip the Edit if draft is not changed
+    if (originalCommentMarkdown === textForNewComment) {
+        return;
+    }
+
+    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown);
     const reportComment = parser.htmlToText(htmlForNewComment);
 
     // For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
@@ -1199,7 +1205,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     let parsedOriginalCommentHTML = originalCommentHTML;
     if (textForNewComment.length <= CONST.MAX_MARKUP_LENGTH) {
         const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), (name) => name !== 'autolink')};
-        parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML).trim(), autolinkFilter);
+        parsedOriginalCommentHTML = parser.replace(originalCommentMarkdown, autolinkFilter);
     }
 
     //  Delete the comment if it's empty
@@ -1239,7 +1245,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     ];
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-    if (reportActionID === lastVisibleAction.reportActionID) {
+    if (reportActionID === lodashGet(lastVisibleAction, 'reportActionID')) {
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
             lastMessageTranslationKey: '',

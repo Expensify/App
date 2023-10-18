@@ -3704,8 +3704,7 @@ const styles = (theme: ThemeDefault) =>
 
         reportActionItemImages: {
             flexDirection: 'row',
-            borderWidth: 4,
-            borderColor: theme.transparent,
+            margin: 4,
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
             overflow: 'hidden',
@@ -3889,6 +3888,13 @@ const styles = (theme: ThemeDefault) =>
             ...objectFit.oFCover,
         },
 
+        singleOptionSelectorRow: {
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            gap: 12,
+            marginBottom: 16,
+        },
+
         globalNavigation: {
             width: variables.globalNavigationWidth,
             backgroundColor: theme.highlightBG,
@@ -3959,6 +3965,10 @@ const styles = (theme: ThemeDefault) =>
 
         checkboxWithLabelCheckboxStyle: {
             marginLeft: -2,
+        },
+
+        singleOptionSelectorCircle: {
+            borderColor: theme.icon,
         },
     } satisfies Styles);
 
