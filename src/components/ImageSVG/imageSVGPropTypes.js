@@ -4,19 +4,19 @@ const propTypes = {
     /** The asset to render. */
     src: PropTypes.oneOfType([PropTypes.func, PropTypes.number]).isRequired,
 
-    /** The width of the icon. */
+    /** The width of the image. */
     width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** The height of the icon. */
+    /** The height of the image. */
     height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** The fill color for the image. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
     fill: PropTypes.string,
 
-    /** Is icon hovered */
+    /** Is image hovered */
     hovered: PropTypes.bool,
 
-    /** Is icon pressed */
+    /** Is image pressed */
     pressed: PropTypes.bool,
 
     /** Determines how the image should be resized to fit its container */
