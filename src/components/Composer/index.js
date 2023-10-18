@@ -11,7 +11,6 @@ import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFull
 import * as ComposerUtils from '../../libs/ComposerUtils';
 import * as Browser from '../../libs/Browser';
 import * as StyleUtils from '../../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import Text from '../Text';
@@ -19,6 +18,7 @@ import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileCom
 import CONST from '../../CONST';
 import withNavigation from '../withNavigation';
 import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -87,8 +87,6 @@ const propTypes = {
     isComposerFullSize: PropTypes.bool,
 
     ...withLocalizePropTypes,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -168,6 +166,7 @@ function Composer({
     isComposerFullSize,
     ...props
 }) {
+    const {windowWidth} = useWindowDimensions();
     const textRef = useRef(null);
     const textInput = useRef(null);
     const initialValue = defaultValue ? `${defaultValue}` : `${value || ''}`;
@@ -366,7 +365,7 @@ function Composer({
         setNumberOfLines(generalNumberOfLines);
         textInput.current.style.height = 'auto';
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable]);
+    }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable, windowWidth]);
 
     useEffect(() => {
         updateNumberOfLines();
@@ -491,7 +490,6 @@ Composer.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withWindowDimensions,
     withNavigation,
 )(
     React.forwardRef((props, ref) => (
