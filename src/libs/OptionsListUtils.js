@@ -974,6 +974,7 @@ function getOptions(
         tags = {},
         recentlyUsedTags = [],
         canInviteUser = true,
+        includeSelectedOptions = false,
     },
 ) {
     if (includeCategories) {
@@ -1110,8 +1111,12 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text && personalDetail.text.toLowerCase()], 'asc');
     }
 
-    // Always exclude already selected options and the currently logged in user
-    const optionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+    // Exclude the current user from the personal details list
+    const optionsToExclude = [{login: currentUserLogin}];
+
+    if (!includeSelectedOptions) {
+        optionsToExclude.push(...selectedOptions);
+    }
 
     _.each(excludeLogins, (login) => {
         optionsToExclude.push({login});
@@ -1357,6 +1362,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Object} [tags]
  * @param {Array<String>} [recentlyUsedTags]
  * @param {boolean} [canInviteUser]
+ * @param {boolean} [includeSelectedOptions]
  * @returns {Object}
  */
 function getFilteredOptions(
@@ -1375,6 +1381,7 @@ function getFilteredOptions(
     tags = {},
     recentlyUsedTags = [],
     canInviteUser = true,
+    includeSelectedOptions = false,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1393,6 +1400,7 @@ function getFilteredOptions(
         tags,
         recentlyUsedTags,
         canInviteUser,
+        includeSelectedOptions
     });
 }
 
