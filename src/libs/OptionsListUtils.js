@@ -645,11 +645,27 @@ function hasEnabledOptions(options) {
  * Via the hierarchy we avoid duplicating and sort categories one by one. Subcategories are being sorted alphabetically.
  *
  * @param {Object<String, {name: String, enabled: Boolean}>} categories
- * @returns {Object[]}
+ * @returns {Array<Object>}
  */
 function sortCategories(categories) {
+    // An object that respects nesting of categories. Also, can contain only uniq categories.
     const hierarchy = {};
 
+    /**
+     * Iterates over all categories to set each category in a proper place in hierarchy
+     * It gets a path based on a category name e.g. "Parent: Child: Subcategory" -> "Parent.Child.Subcategory".
+     * {
+     *   Parent: {
+     *     name: "Parent",
+     *     Child: {
+     *       name: "Child"
+     *       Subcategory: {
+     *         name: "Subcategory"
+     *       }
+     *     }
+     *   }
+     * }
+     */
     _.each(categories, (category) => {
         const path = category.name.replaceAll(CONST.PARENT_CHILD_SEPARATOR, '.');
         const existedValue = lodashGet(hierarchy, path, {});
@@ -660,6 +676,14 @@ function sortCategories(categories) {
         });
     });
 
+    /**
+     * A recursive function to convert hierarchy into an array of category objects.
+     * The category object contains base 2 properties: "name" and "enabled".
+     * It iterates each key one by one. When a category has subcategories, goes deeper into them. Also, sorts subcategories alphabetically.
+     *
+     * @param {Object} initialHierarchy
+     * @returns {Array<Object>}
+     */
     const flatHierarchy = (initialHierarchy) =>
         _.reduce(
             initialHierarchy,
