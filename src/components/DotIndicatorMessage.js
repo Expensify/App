@@ -1,7 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -49,6 +49,9 @@ function DotIndicatorMessage(props) {
 
     /**
      * Download the failed receipt.
+     *
+     * @param {String} source
+     * @param {String} filename
      */
     const downloadReceipt = (source, filename) => {
         fileDownload(source, filename);
