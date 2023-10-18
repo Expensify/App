@@ -89,6 +89,7 @@ Then, try to upload the revised spreadsheet again:
 2. Upload the revised file 
 3. Check the row count again on the Output Preview to confirm it matches the spreadsheet
 4. Click **Submit Spreadsheet**
+
 # FAQ 
 ## Why can’t I see my CSV transactions immediately after uploading them?
 Don’t worry! You’ll typically need to wait 1-2 minutes after clicking **I understand, I'll wait!**
