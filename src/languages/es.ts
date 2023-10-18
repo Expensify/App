@@ -2339,7 +2339,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'No activado',
-        outOfPocketSpend: 'Gastos por cuenta propia',
+        outOfPocket: 'Por cuenta propia',
         companySpend: 'Gastos de empresa',
     },
     distance: {
@@ -2360,6 +2360,20 @@ export default {
         errors: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
+    },
+    reportCardLostOrDamaged: {
+        report: 'Notificar la pérdida / daño de la tarjeta física',
+        screenTitle: 'Notificar la pérdida o deterioro de la tarjeta',
+        nextButtonLabel: 'Siguiente',
+        reasonTitle: '¿Por qué necesitas una tarjeta nueva?',
+        cardDamaged: 'Mi tarjeta está dañada',
+        cardLostOrStolen: 'He perdido o me han robado la tarjeta',
+        confirmAddressTitle: 'Confirma que la dirección que aparece a continuación es a la que deseas que te enviemos tu nueva tarjeta.',
+        currentCardInfo: 'La tarjeta actual se desactivará permanentemente en cuanto se realice el pedido. La mayoría de las tarjetas llegan en unos pocos días laborables.',
+        address: 'Dirección',
+        deactivateCardButton: 'Desactivar tarjeta',
+        addressError: 'La dirección es obligatoria',
+        reasonError: 'Se requiere justificación',
     },
     eReceipt: {
         guaranteed: 'eRecibo garantizado',

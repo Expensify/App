@@ -32,8 +32,8 @@ function createInitialWaypoints(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
-                waypoint0: null,
-                waypoint1: null,
+                waypoint0: {},
+                waypoint1: {},
             },
         },
     });
@@ -107,15 +107,15 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
     const transaction = allTransactions?.[transactionID] ?? {};
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
     const totalWaypoints = Object.keys(existingWaypoints).length;
-    // Prevents removing the starting or ending waypoint but clear the stored address only if there are only two waypoints
-    if (totalWaypoints === 2 && (index === 0 || index === totalWaypoints - 1)) {
-        saveWaypoint(transactionID, index.toString(), null);
-        return;
-    }
 
     const waypointValues = Object.values(existingWaypoints);
     const removed = waypointValues.splice(index, 1);
-    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0] ?? null);
+    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0] ?? {});
+
+    // When there are only two waypoints we are adding empty waypoint back
+    if (totalWaypoints === 2 && (index === 0 || index === totalWaypoints - 1)) {
+        waypointValues.splice(index, 0, {});
+    }
 
     const reIndexedWaypoints: WaypointCollection = {};
     waypointValues.forEach((waypoint, idx) => {

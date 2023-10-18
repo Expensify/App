@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useState, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import lodashIsEmpty from 'lodash/isEmpty';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ROUTES from '../../ROUTES';
@@ -169,8 +168,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
 
             const newWaypoints = {};
             _.each(data, (waypoint, index) => {
-                const newWaypoint = lodashGet(waypoints, waypoint, {});
-                newWaypoints[`waypoint${index}`] = lodashIsEmpty(newWaypoint) ? null : newWaypoint;
+                newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, {});
             });
 
             setOptimisticWaypoints(newWaypoints);
