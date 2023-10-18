@@ -1182,7 +1182,9 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, sho
         return '';
     }
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // check if it's an invite account
+    // this is to check if account is an invite/optimistically created one
+    // and prevent from falling back to 'Hidden', so a correct value is shown
+    // when searching for a new user
     if (lodashGet(personalDetails, 'isOptimisticPersonalDetail') === true) {
         return '';
     }
