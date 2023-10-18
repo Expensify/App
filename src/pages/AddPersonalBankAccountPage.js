@@ -17,7 +17,7 @@ import Form from '../components/Form';
 import ROUTES from '../ROUTES';
 import * as PlaidDataProps from './ReimbursementAccount/plaidDataPropTypes';
 import ConfirmationPage from '../components/ConfirmationPage';
-import * as PaymentMethods from "../libs/actions/PaymentMethods";
+import * as PaymentMethods from '../libs/actions/PaymentMethods';
 
 const propTypes = {
     ...withLocalizePropTypes,
