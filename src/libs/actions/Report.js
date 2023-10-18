@@ -1336,20 +1336,16 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
         },
     ];
     if (parentReportID && parentReportActionID) {
-        optimisticData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-                value: {[parentReportActionID] : {childReportNotificationPreference: newValue}},
-            }
-        );
-        failureData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-                value: {[parentReportActionID] : {childReportNotificationPreference: previousValue}},
-            }
-        )
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[parentReportActionID]: {childReportNotificationPreference: newValue}},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[parentReportActionID]: {childReportNotificationPreference: previousValue}},
+        });
     }
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue, parentReportID, parentReportActionID}, {optimisticData, failureData});
     if (navigate) {
