@@ -15,6 +15,12 @@ type PersonalBankAccount = {
 
     /** Any reportID we should redirect to at the end of the flow */
     exitReportID?: string;
+
+    /** Whether the flow should continue to kyc on success */
+    shouldContinueKYCOnSuccess?: boolean,
+
+    /** The route to navigate to onSuccess */
+    onSuccessFallbackRoute?: string,
 };
 
 export default PersonalBankAccount;
