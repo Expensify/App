@@ -1,27 +1,18 @@
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import CONFIG from '../../CONFIG';
 import getPlatform from '../getPlatform';
 import * as NetworkStore from './NetworkStore';
 
 /**
  * Does this command require an authToken?
- *
- * @param {String} command
- * @return {Boolean}
  */
-function isAuthTokenRequired(command) {
-    return !_.contains(['Log', 'Authenticate', 'BeginSignIn', 'SetPassword'], command);
+function isAuthTokenRequired(command: string): boolean {
+    return !['Log', 'Authenticate', 'BeginSignIn', 'SetPassword'].includes(command);
 }
 
 /**
  * Adds default values to our request data
- *
- * @param {String} command
- * @param {Object} parameters
- * @returns {Object}
  */
-export default function enhanceParameters(command, parameters) {
+export default function enhanceParameters(command: string, parameters: Record<string, unknown>): Record<string, unknown> {
     const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command)) {
@@ -44,7 +35,7 @@ export default function enhanceParameters(command, parameters) {
     finalParameters.api_setCookie = false;
 
     // Include current user's email in every request and the server logs
-    finalParameters.email = lodashGet(parameters, 'email', NetworkStore.getCurrentUserEmail());
+    finalParameters.email = parameters.email ?? NetworkStore.getCurrentUserEmail();
 
     return finalParameters;
 }

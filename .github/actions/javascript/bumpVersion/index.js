@@ -298,9 +298,6 @@ function getPreviousVersion(currentVersion, level) {
         if (patch === 0) {
             return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
         }
-        if (major === 1 && minor === 3 && patch === 83) {
-            return getVersionStringFromNumber(major, minor, patch - 2, 0);
-        }
         return getVersionStringFromNumber(major, minor, patch - 1, 0);
     }
 

@@ -18,6 +18,7 @@ describe('OptionsListUtils', () => {
             participantAccountIDs: [2, 1],
             reportName: 'Iron Man, Mister Fantastic',
             hasDraft: true,
+            type: CONST.REPORT.TYPE.CHAT,
         },
         2: {
             lastReadTime: '2021-01-14 11:25:39.296',
@@ -26,6 +27,7 @@ describe('OptionsListUtils', () => {
             reportID: 2,
             participantAccountIDs: [3],
             reportName: 'Spider-Man',
+            type: CONST.REPORT.TYPE.CHAT,
         },
 
         // This is the only report we are pinning in this test
@@ -36,6 +38,7 @@ describe('OptionsListUtils', () => {
             reportID: 3,
             participantAccountIDs: [1],
             reportName: 'Mister Fantastic',
+            type: CONST.REPORT.TYPE.CHAT,
         },
         4: {
             lastReadTime: '2021-01-14 11:25:39.298',
@@ -44,6 +47,7 @@ describe('OptionsListUtils', () => {
             reportID: 4,
             participantAccountIDs: [4],
             reportName: 'Black Panther',
+            type: CONST.REPORT.TYPE.CHAT,
         },
         5: {
             lastReadTime: '2021-01-14 11:25:39.299',
@@ -52,6 +56,7 @@ describe('OptionsListUtils', () => {
             reportID: 5,
             participantAccountIDs: [5],
             reportName: 'Invisible Woman',
+            type: CONST.REPORT.TYPE.CHAT,
         },
         6: {
             lastReadTime: '2021-01-14 11:25:39.300',
@@ -60,6 +65,7 @@ describe('OptionsListUtils', () => {
             reportID: 6,
             participantAccountIDs: [6],
             reportName: 'Thor',
+            type: CONST.REPORT.TYPE.CHAT,
         },
 
         // Note: This report has the largest lastVisibleActionCreated
@@ -70,6 +76,7 @@ describe('OptionsListUtils', () => {
             reportID: 7,
             participantAccountIDs: [7],
             reportName: 'Captain America',
+            type: CONST.REPORT.TYPE.CHAT,
         },
 
         // Note: This report has no lastVisibleActionCreated
@@ -80,6 +87,7 @@ describe('OptionsListUtils', () => {
             reportID: 8,
             participantAccountIDs: [12],
             reportName: 'Silver Surfer',
+            type: CONST.REPORT.TYPE.CHAT,
         },
 
         // Note: This report has an IOU
@@ -92,6 +100,7 @@ describe('OptionsListUtils', () => {
             reportName: 'Mister Sinister',
             iouReportID: 100,
             hasOutstandingIOU: true,
+            type: CONST.REPORT.TYPE.CHAT,
         },
 
         // This report is an archived room – it does not have a name and instead falls back on oldPolicyName
@@ -105,6 +114,7 @@ describe('OptionsListUtils', () => {
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
 
             // This indicates that the report is archived
             stateNum: 2,
@@ -179,6 +189,7 @@ describe('OptionsListUtils', () => {
             reportID: 11,
             participantAccountIDs: [999],
             reportName: 'Concierge',
+            type: CONST.REPORT.TYPE.CHAT,
         },
     };
 
@@ -191,6 +202,7 @@ describe('OptionsListUtils', () => {
             reportID: 12,
             participantAccountIDs: [1000],
             reportName: 'Chronos',
+            type: CONST.REPORT.TYPE.CHAT,
         },
     };
 
@@ -203,6 +215,7 @@ describe('OptionsListUtils', () => {
             reportID: 13,
             participantAccountIDs: [1001],
             reportName: 'Receipts',
+            type: CONST.REPORT.TYPE.CHAT,
         },
     };
 
@@ -219,6 +232,7 @@ describe('OptionsListUtils', () => {
             isArchivedRoom: false,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
         },
     };
 

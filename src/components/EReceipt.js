@@ -59,7 +59,7 @@ function EReceipt({transaction, transactionID}) {
             </View>
             <View style={[styles.flexColumn, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph9, styles.flex1]}>
                 <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2, styles.mb8]}>
-                    <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                    <View style={[styles.flexRow, styles.justifyContentCenter, StyleUtils.getWidthStyle(variables.eReceiptTextContainerWidth)]}>
                         <View style={[styles.flexColumn, styles.pt1]}>
                             <Text style={[styles.eReceiptCurrency, secondaryTextColorStyle]}>{currency}</Text>
                         </View>
