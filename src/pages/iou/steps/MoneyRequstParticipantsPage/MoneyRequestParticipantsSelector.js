@@ -117,7 +117,8 @@ function MoneyRequestParticipantsSelector({
             });
             indexOffset += participants.length;
         } else {
-            // Check to see if any of the selected participants that match the search term that are not already in the recent reports or personal details
+            // If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
+            // This will add them to the list of options, deduping them if they already exist in the other lists
             const selectedParticipantsWithoutDetails = _.filter(participants, (participant) => {
                 const accountID = lodashGet(participant, 'accountID', null);
                 const isPartOfSearchTerm = participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase());
