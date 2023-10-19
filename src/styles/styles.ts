@@ -527,7 +527,7 @@ const styles = (theme: ThemeDefault) =>
             paddingTop: 8,
             paddingRight: 10,
             paddingBottom: 8,
-            paddingLeft: 18,
+            paddingLeft: 10,
             backgroundColor: theme.buttonDefaultBG,
         },
 
@@ -3339,16 +3339,12 @@ const styles = (theme: ThemeDefault) =>
         eReceiptAmountLarge: {
             ...headlineFont,
             fontSize: variables.fontSizeEReceiptLarge,
-            lineHeight: variables.lineHeightXXLarge,
-            wordBreak: 'break-word',
             textAlign: 'center',
         },
 
         eReceiptCurrency: {
             ...headlineFont,
             fontSize: variables.fontSizeXXLarge,
-            lineHeight: variables.lineHeightXXLarge,
-            wordBreak: 'break-all',
         },
 
         eReceiptMerchant: {
@@ -3406,7 +3402,6 @@ const styles = (theme: ThemeDefault) =>
         },
 
         eReceiptContainer: {
-            flex: 1,
             width: 335,
             minHeight: 540,
             borderRadius: 20,
@@ -3674,6 +3669,7 @@ const styles = (theme: ThemeDefault) =>
             paddingRight: 4,
             marginBottom: 32,
             alignSelf: 'flex-start',
+            ...userSelect.userSelectNone,
         },
 
         emojiPickerButtonDropdownIcon: {
@@ -3708,8 +3704,7 @@ const styles = (theme: ThemeDefault) =>
 
         reportActionItemImages: {
             flexDirection: 'row',
-            borderWidth: 4,
-            borderColor: theme.transparent,
+            margin: 4,
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
             overflow: 'hidden',
@@ -3893,6 +3888,13 @@ const styles = (theme: ThemeDefault) =>
             ...objectFit.oFCover,
         },
 
+        singleOptionSelectorRow: {
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            gap: 12,
+            marginBottom: 16,
+        },
+
         globalNavigation: {
             width: variables.globalNavigationWidth,
             backgroundColor: theme.highlightBG,
@@ -3963,6 +3965,10 @@ const styles = (theme: ThemeDefault) =>
 
         checkboxWithLabelCheckboxStyle: {
             marginLeft: -2,
+        },
+
+        singleOptionSelectorCircle: {
+            borderColor: theme.icon,
         },
     } satisfies Styles);
 

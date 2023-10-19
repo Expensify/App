@@ -186,7 +186,9 @@ function OptionRowLHN(props) {
                         onSecondaryInteraction={(e) => {
                             showPopover(e);
                             // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
-                            DomUtils.getActiveElement().blur();
+                            if (DomUtils.getActiveElement()) {
+                                DomUtils.getActiveElement().blur();
+                            }
                         }}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
