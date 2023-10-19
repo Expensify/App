@@ -1,3 +1,4 @@
+import {ImageSourcePropType} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
@@ -70,7 +71,7 @@ function hashText(text: string, range: number): number {
  * @param [accountID]
  * @returns
  */
-function getDefaultAvatar(accountID = -1): React.FC<SvgProps> {
+function getDefaultAvatar(accountID = -1): React.FC<SvgProps> | ImageSourcePropType {
     if (accountID <= 0) {
         return FallbackAvatar;
     }
@@ -131,7 +132,7 @@ function isDefaultAvatar(avatarURL?: string): boolean {
  * @param avatarURL - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | string {
+function getAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | ImageSourcePropType | string {
     return isDefaultAvatar(avatarURL) ? getDefaultAvatar(accountID) : avatarURL;
 }
 
@@ -150,7 +151,7 @@ function getAvatarUrl(avatarURL: string, accountID: number): string {
  * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
  * This removes that part of the URL so the full version of the image can load.
  */
-function getFullSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | string {
+function getFullSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | ImageSourcePropType | string {
     const source = getAvatar(avatarURL, accountID);
     if (typeof source !== 'string') {
         return source;
@@ -162,7 +163,7 @@ function getFullSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgPr
  * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
  * source URL (before the file type) if it doesn't exist there already.
  */
-function getSmallSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | string {
+function getSmallSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | ImageSourcePropType | string {
     const source = getAvatar(avatarURL, accountID);
     if (typeof source !== 'string') {
         return source;

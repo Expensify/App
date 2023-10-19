@@ -1,5 +1,5 @@
 import {CSSProperties} from 'react';
-import {ViewStyle} from 'react-native';
+import {ImageSourcePropType, ViewStyle} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import AmericanExpress from '@assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '@assets/images/bankicons/bank-of-america.svg';
@@ -45,7 +45,7 @@ import styles from '@styles/styles';
 import variables from '@styles/variables';
 
 type BankIcon = {
-    icon: React.FC<SvgProps>;
+    icon: React.FC<SvgProps> | ImageSourcePropType;
     iconSize?: number;
     iconHeight?: number;
     iconWidth?: number;
@@ -56,7 +56,7 @@ type BankIcon = {
  * Returns matching asset icon for bankName
  */
 
-function getAssetIcon(bankName: string, isCard: boolean): React.FC<SvgProps> {
+function getAssetIcon(bankName: string, isCard: boolean): React.FC<SvgProps> | ImageSourcePropType {
     if (bankName.includes('expensify')) {
         return ExpensifyCardImage;
     }
