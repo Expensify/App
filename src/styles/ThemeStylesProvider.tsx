@@ -2,7 +2,6 @@
 import React, {useMemo} from 'react';
 import useTheme from './themes/useTheme';
 import ThemeStylesContext from './ThemeStylesContext';
-// TODO: Replace this import with "styles" once the static style export from "styles.js" isn't used anymore
 import {stylesGenerator} from './styles';
 
 type ThemeStylesProviderProps = {
