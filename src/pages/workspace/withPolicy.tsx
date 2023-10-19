@@ -104,7 +104,6 @@ export default function withPolicy<TProps extends WithPolicyProps, TRef>(
         );
     }
 
-    WithPolicy.defaultProps = policyDefaultProps;
     WithPolicy.displayName = `withPolicy(${getComponentDisplayName(WrappedComponent)})`;
 
     return withOnyx<TProps & RefAttributes<TRef>, WithPolicyOnyxProps>({
