@@ -43,4 +43,3 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: helpdot
           directory: ./docs/_site
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
