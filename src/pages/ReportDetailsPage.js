@@ -143,7 +143,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
