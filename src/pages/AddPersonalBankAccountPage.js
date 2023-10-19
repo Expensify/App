@@ -18,6 +18,7 @@ import Form from '../components/Form';
 import ROUTES from '../ROUTES';
 import * as PlaidDataProps from './ReimbursementAccount/plaidDataPropTypes';
 import ConfirmationPage from '../components/ConfirmationPage';
+import * as PaymentMethods from '../libs/actions/PaymentMethods';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -93,12 +94,12 @@ class AddPersonalBankAccountPage extends React.Component {
 
     exitFlow(shouldContinue = false) {
         const exitReportID = lodashGet(this.props, 'personalBankAccount.exitReportID');
-        const shouldContinueKYCOnSuccess = lodashGet(this.props, 'personalBankAccount.shouldContinueKYCOnSuccess', false);
+        const onSuccessFallbackRoute = lodashGet(this.props, 'personalBankAccount.onSuccessFallbackRoute', '');
 
         if (exitReportID) {
             Navigation.dismissModal(exitReportID);
-        } else if (shouldContinue && shouldContinueKYCOnSuccess) {
-            PaymentMethods.continueSetup(ROUTES.SETTINGS_WALLET);
+        } else if (shouldContinue && onSuccessFallbackRoute) {
+            PaymentMethods.continueSetup(onSuccessFallbackRoute);
         } else {
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
         }

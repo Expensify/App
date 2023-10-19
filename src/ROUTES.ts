@@ -213,6 +213,14 @@ export default {
         route: 'r/:reportID/notes/:accountID/edit',
         getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`,
     },
+    ROOM_MEMBERS: {
+        route: 'r/:reportID/members',
+        getRoute: (reportID: string) => `r/${reportID}/members`,
+    },
+    ROOM_INVITE: {
+        route: 'r/:reportID/invite',
+        getRoute: (reportID: string) => `r/${reportID}/invite`,
+    },
 
     // To see the available iouType, please refer to CONST.IOU.TYPE
     MONEY_REQUEST: {
