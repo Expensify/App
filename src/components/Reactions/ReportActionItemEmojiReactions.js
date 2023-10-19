@@ -73,15 +73,15 @@ function ReportActionItemEmojiReactions(props) {
             };
 
             return {
-                reactionEmojiName: emojiName,
                 emojiCodes,
                 userAccountIDs,
                 reactionCount,
                 hasUserReacted,
+                oldestTimestamp,
                 onPress,
                 onReactionListOpen,
+                reactionEmojiName: emojiName,
                 pendingAction: emojiReaction.pendingAction,
-                oldestTimestamp: lodashGet(oldestTimestamp, 'oldestTimestamp'),
             };
         })
         // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
