@@ -3277,7 +3277,7 @@ function chatIncludesChronos(report) {
 /**
  * Can only flag if:
  *
- * - It was written by someone else
+ * - It was written by someone else and isn't a whisper
  * - It's an ADDCOMMENT that is not an attachment
  *
  * @param {Object} reportAction
@@ -3290,7 +3290,8 @@ function canFlagReportAction(reportAction, reportID) {
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-        isAllowedToComment(getReport(reportID))
+        isAllowedToComment(getReport(reportID)) &&
+        !ReportActionsUtils.isWhisperAction(reportAction)
     );
 }
 
