@@ -301,7 +301,7 @@ function ReimbursementAccountPage({
      * Retrieve verified business bank account currently being set up.
      * @param {boolean} ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
      */
-    const fetchData = (ignoreLocalCurrentStep) => {
+    function fetchData(ignoreLocalCurrentStep) {
         // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
         BankAccounts.setReimbursementAccountLoading(true);
 
