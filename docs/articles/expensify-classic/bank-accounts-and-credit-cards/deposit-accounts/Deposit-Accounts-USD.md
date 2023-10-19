@@ -45,7 +45,7 @@ You should be all set! You’ll receive reimbursement for your expense reports d
     - Enter your account information, then click **Save & Continue**.
 5. If you see the option to “Switch to Business” after entering the account owner information, click that link.
 6. Enter your Company Name and FEIN or TIN information.
-7. Enter your company’s website formatted as https//www.domain.com.
+7. Enter your company’s website formatted as https://www.domain.com.
   
 You should be all set! The bank account will display as a deposit-only business account, and you’ll be paid directly for any invoices you submit for payment.   
 
