@@ -80,7 +80,6 @@ const defaultProps = {
     shouldRenderAsHTML: false,
     rightComponent: undefined,
     shouldShowRightComponent: false,
-    shouldUseFullTitle: false,
     titleWithTooltips: [],
     shouldCheckActionAllowedOnPress: true,
 };
@@ -141,7 +140,7 @@ const MenuItem = React.forwardRef((props, ref) => {
     const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
 
     const renderTitleContent = () => {
-        if (props.titleWithTooltips && _.isArray(props.titleWithTooltips) && props.titleWithTooltips.length > 0 && !props.shouldUseFullTitle) {
+        if (props.titleWithTooltips && _.isArray(props.titleWithTooltips) && props.titleWithTooltips.length > 0) {
             return _.map(props.titleWithTooltips, (accountIdOrUserObject, index) => (
                 <Text key={index}>
                     <UserDetailsTooltip accountID={accountIdOrUserObject.accountID}>
