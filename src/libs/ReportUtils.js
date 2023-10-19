@@ -3291,7 +3291,7 @@ function canFlagReportAction(reportAction, reportID) {
 
     if (ReportActionsUtils.isWhisperAction(reportAction)) {
         // Allow flagging welcome message whispers as they can be set by any room creator
-        if (lodashGet(reportAction, 'originalMessage.html') === report.welcomeMessage && !isCurrentUserAction) {
+        if (report.welcomeMessage && !isCurrentUserAction && lodashGet(reportAction, 'originalMessage.html') === report.welcomeMessage) {
             return true;
         }
 
