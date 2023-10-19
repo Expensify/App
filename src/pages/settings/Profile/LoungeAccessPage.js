@@ -11,7 +11,7 @@ import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import useLocalize from '../../../hooks/useLocalize';
 import FeatureList from '../../../components/FeatureList';
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '../../../components/LottieAnimations';
+import LottieAnimations from '../../../components/LottieAnimations';
 import compose from '../../../libs/compose';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import LinearGradient from '../../../components/LinearGradient';
@@ -60,10 +60,6 @@ const menuItems = [
 function LoungeAccessPage(props) {
     const {translate} = useLocalize();
 
-    if (!props.user.hasLoungeAccess) {
-        return <NotFoundPage />;
-    }
-
     const overlayContent = () => (
         <LinearGradient
             colors={[`${themeColors.loungeAccessOverlay}00`, themeColors.loungeAccessOverlay]}
@@ -98,6 +94,7 @@ function LoungeAccessPage(props) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             illustration={LottieAnimations.ExpensifyLounge}
             overlayContent={overlayContent}
+            useDotLottie
         >
             <FeatureList
                 headline="loungeAccessPage.headline"

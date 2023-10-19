@@ -15,7 +15,7 @@ import Switch from '../../../components/Switch';
 import TestToolMenu from '../../../components/TestToolMenu';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '../../../components/LottieAnimations';
+import LottieAnimations from '../../../components/LottieAnimations';
 import SCREENS from '../../../SCREENS';
 import useEnvironment from '../../../hooks/useEnvironment';
 import useLocalize from '../../../hooks/useLocalize';
@@ -46,6 +46,7 @@ function PreferencesPage(props) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.PreferencesDJ}
+            useDotLottie
         >
             <View style={styles.mb6}>
                 <Text

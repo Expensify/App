@@ -153,7 +153,7 @@ function ProfilePage(props) {
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                     shouldShowRightIcon
                 />
-                {props.user.hasLoungeAccess && (
+                {true && (
                     <MenuItem
                         title={props.translate('loungeAccessPage.loungeAccess')}
                         icon={Expensicons.LoungeAccess}

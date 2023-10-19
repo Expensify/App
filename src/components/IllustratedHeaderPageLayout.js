@@ -23,15 +23,18 @@ const propTypes = {
 
     /** Overlay content to display on top of animation */
     overlayContent: PropTypes.func,
+
+    useDotLottie: PropTypes.bool,
 };
 
 const defaultProps = {
     backgroundColor: themeColors.appBG,
     footer: null,
     overlayContent: null,
+    useDotLottie: false,
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, useDotLottie, ...propsToPassToHeader}) {
     return (
         <HeaderPageLayout
             backgroundColor={backgroundColor}
@@ -39,10 +42,11 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
             headerContent={
                 <>
                     <Lottie
-                        source={illustration}
+                        source={!useDotLottie && illustration}
                         style={styles.w100}
                         autoPlay
                         loop
+                        animation={useDotLottie && illustration}
                     />
                     {overlayContent && overlayContent()}
                 </>

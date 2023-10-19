@@ -26,7 +26,7 @@ import useNetwork from '../../hooks/useNetwork';
 import usePermissions from '../../hooks/usePermissions';
 import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
 import SCREENS from '../../SCREENS';
-import * as LottieAnimations from '../../components/LottieAnimations';
+import LottieAnimations from '../../components/LottieAnimations';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import FeatureList from '../../components/FeatureList';
 
@@ -185,6 +185,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
         <IllustratedHeaderPageLayout
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
             illustration={LottieAnimations.WorkspacePlanet}
+            useDotLottie
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.workspaces')}
             footer={
