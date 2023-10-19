@@ -78,6 +78,7 @@ function GenericErrorPage({translate}) {
                     <View styles={styles.alignSelfEnd}>
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
                             <ImageSVG
+                                contentFit="contain"
                                 src={LogoWordmark}
                                 height={30}
                                 width={80}

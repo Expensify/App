@@ -23,6 +23,12 @@ const propTypes = {
     contentFit: PropTypes.string,
 
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
+    /** The pointer-events attribute allows us to define whether or when an element may be the target of a mouse event. */
+    pointerEvents: PropTypes.string,
+
+    /** The preserveAspectRatio attribute indicates how an element with a viewBox providing a given aspect ratio must fit into a viewport with a different aspect ratio. */
+    preserveAspectRatio: PropTypes.string,
 };
 
 const defaultProps = {
@@ -33,6 +39,8 @@ const defaultProps = {
     pressed: false,
     contentFit: 'cover',
     style: [],
+    pointerEvents: undefined,
+    preserveAspectRatio: undefined,
 };
 
 export {propTypes, defaultProps};

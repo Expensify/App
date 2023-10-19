@@ -160,7 +160,7 @@ const propTypes = {
 
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress: PropTypes.bool,
-    
+
     /** Icon should be displayed in its own color */
     displayInDefaultIconColor: PropTypes.bool,
 };

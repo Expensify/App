@@ -1,7 +1,7 @@
 import React from 'react';
 import {propTypes, defaultProps} from './imageSVGPropTypes';
 
-function ImageSVG({src, width, height, fill, hovered, pressed, style}) {
+function ImageSVG({src, width, height, fill, hovered, pressed, style, pointerEvents, preserveAspectRatio}) {
     const ImageSvgComponent = src;
     const fillProp = fill ? {fill} : {};
 
@@ -12,6 +12,8 @@ function ImageSVG({src, width, height, fill, hovered, pressed, style}) {
             hovered={hovered.toString()}
             pressed={pressed.toString()}
             style={style}
+            pointerEvents={pointerEvents}
+            preserveAspectRatio={preserveAspectRatio}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...fillProp}
         />

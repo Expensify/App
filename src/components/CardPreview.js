@@ -1,14 +1,14 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import {Image} from 'expo-image';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import usePrivatePersonalDetails from '../../hooks/usePrivatePersonalDetails';
-import ONYXKEYS from '../../ONYXKEYS';
-import ExpensifyCardImage from '../../../assets/images/expensify-card.svg';
-import variables from '../../styles/variables';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ImageSVG from './ImageSVG';
+import Text from './Text';
 
 const propTypes = {
     /** User's private personal details */
@@ -39,9 +39,12 @@ function CardPreview({privatePersonalDetails: {legalFirstName, legalLastName}, s
 
     return (
         <View style={styles.walletCard}>
-            <Image
-                source={ExpensifyCardImage}
-                style={{width: variables.cardPreviewWidth, height: variables.cardPreviewHeight}}
+            <ImageSVG
+                contentFit="contain"
+                src={ExpensifyCardImage}
+                pointerEvents="none"
+                height={variables.cardPreviewHeight}
+                width={variables.cardPreviewWidth}
             />
             <Text
                 style={styles.walletCardHolder}
