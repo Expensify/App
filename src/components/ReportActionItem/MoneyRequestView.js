@@ -262,7 +262,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         />
                     </OfflineWithFeedback>
                 )}
-                {isExpensifyCardTransaction ? (
+                {isExpensifyCardTransaction && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.cardID')}>
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}
@@ -271,7 +271,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                             interactive={canEdit}
                         />
                     </OfflineWithFeedback>
-                ) : null}
+                )}
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <Text color={!transactionBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
