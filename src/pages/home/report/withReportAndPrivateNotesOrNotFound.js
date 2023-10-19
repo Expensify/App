@@ -81,9 +81,8 @@ export default function (WrappedComponent) {
                 return false;
             }
 
-            // As notes are empty and not loading, show not found view in case account id is present.
-            // In case account id is not present, it's a valid case for user to not have private notes, so show not found view only if user is offline.
-            return accountID || network.isOffline;
+            // As notes being empty and not loading is a valid case, show not found view only in offline mode.
+            return network.isOffline;
         }, [report, network.isOffline, accountID, session.accountID, isPrivateNotesEmpty, isLoadingPrivateNotes]);
 
         if (shouldShowNotFoundPage) {
