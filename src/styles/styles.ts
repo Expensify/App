@@ -3769,6 +3769,22 @@ const styles = (theme: ThemeDefault) =>
             borderBottomColor: theme.border,
         },
 
+        assignedCardsIconContainer: {
+            height: variables.bankCardHeight,
+            width: variables.bankCardWidth,
+            borderRadius: 4,
+            overflow: 'hidden',
+            alignSelf: 'center',
+        },
+
+        bankIconContainer: {
+            height: variables.bankCardWidth,
+            width: variables.bankCardWidth,
+            borderRadius: 8,
+            overflow: 'hidden',
+            alignSelf: 'center',
+        },
+
         moneyRequestHeaderStatusBarBadge: {
             paddingHorizontal: 8,
             borderRadius: variables.componentBorderRadiusSmall,

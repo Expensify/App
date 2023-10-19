@@ -1248,6 +1248,7 @@ const CONST = {
             NONE: 'none',
         },
         STATE: {
+            STATE_NOT_ISSUED: 2,
             OPEN: 3,
             NOT_ACTIVATED: 4,
             STATE_DEACTIVATED: 5,

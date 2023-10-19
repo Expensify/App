@@ -201,18 +201,24 @@ function PaymentMethodList({
 
         if (shouldShowAssignedCards) {
             const assignedCards = _.chain(cardList)
-                .filter((card) => CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state))
-                .sortBy((card) => (CardUtils.isExpensifyCard(card.cardID) ? 0 : 1))
+                // Filter by physical, active cards associated with a domain
+                .filter((card) => !card.isVirtual && card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state))
+                .sortBy((card) => !CardUtils.isExpensifyCard(card.cardID))
                 .value();
 
+            const numberPhysicalExpensifyCards = _.filter(assignedCards, (card) => CardUtils.isExpensifyCard(card.cardID)).length;
+
             return _.map(assignedCards, (card) => {
-                const icon = getBankIcon(card.bank);
                 const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
+                const icon = getBankIcon(card.bank, true);
+
+                // In the case a user has been assigned multiple physical Expensify Cards under one domain, display the Card with PAN
+                const expensifyCardDescription = numberPhysicalExpensifyCards > 1 ? CardUtils.getCardDescription(card.cardID) : translate('walletPage.expensifyCard');
                 return {
                     key: card.cardID,
-                    title: isExpensifyCard ? translate('walletPage.expensifyCard') : card.cardName,
+                    title: isExpensifyCard ? expensifyCardDescription : card.cardName,
                     description: card.domainName,
-                    onPress: isExpensifyCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(card.domainName)) : () => {},
+                    onPress: isExpensifyCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName)) : () => {},
                     shouldShowRightIcon: isExpensifyCard,
                     interactive: isExpensifyCard,
                     canDismissError: isExpensifyCard,
@@ -293,8 +299,9 @@ function PaymentMethodList({
                     icon={item.icon}
                     disabled={item.disabled}
                     iconFill={item.iconFill}
-                    iconHeight={item.iconSize}
-                    iconWidth={item.iconSize}
+                    iconHeight={item.iconHeight || item.iconSize}
+                    iconWidth={item.iconWidth || item.iconSize}
+                    iconStyles={item.iconStyles}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
                     wrapperStyle={styles.paymentMethod}
                     shouldShowRightIcon={item.shouldShowRightIcon}
