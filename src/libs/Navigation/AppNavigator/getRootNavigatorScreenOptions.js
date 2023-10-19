@@ -22,8 +22,8 @@ export default (isSmallScreenWidth) => ({
     homeScreen: {
         title: CONFIG.SITE_TITLE,
         ...commonScreenOptions,
+        // Note: The card* properties won't be applied on mobile platforms, as they use the native defaults.
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
-
         cardStyle: {
             ...getNavigationModalCardStyle(),
             width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
@@ -36,6 +36,7 @@ export default (isSmallScreenWidth) => ({
     // eslint-disable-next-line rulesdir/no-negated-variables
     fullScreen: {
         ...commonScreenOptions,
+
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
         cardStyle: {
             ...getNavigationModalCardStyle(),
@@ -49,8 +50,8 @@ export default (isSmallScreenWidth) => ({
         title: CONFIG.SITE_TITLE,
         ...commonScreenOptions,
         animationEnabled: isSmallScreenWidth,
-        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
 
+        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
         cardStyle: {
             ...getNavigationModalCardStyle(),
             paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,
