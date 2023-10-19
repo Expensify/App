@@ -41,8 +41,8 @@ GitHubUtils.octokit.pulls
 /***/ ((module) => {
 
 const CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
+    GITHUB_OWNER: 'margelo',
+    APP_REPO: 'expensify-app-fork',
     APPLAUSE_BOT: 'applausebot',
     OS_BOTIFY: 'OSBotify',
     LABELS: {
