@@ -196,6 +196,7 @@ function DebitCardPage(props) {
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     inputID="acceptTerms"
+                    defaultValue={false}
                     LabelComponent={() => (
                         <Text>
                             {`${translate('common.iAcceptThe')}`}
