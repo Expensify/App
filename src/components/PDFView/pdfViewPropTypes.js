@@ -27,6 +27,9 @@ const propTypes = {
     /** Should focus to the password input  */
     isFocused: PropTypes.bool,
 
+    /** Styles for the error label */
+    errorLabelStyles: stylePropTypes,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -39,6 +42,7 @@ const defaultProps = {
     onScaleChanged: () => {},
     onLoadComplete: () => {},
     isFocused: false,
+    errorLabelStyles: [],
 };
 
 export {propTypes, defaultProps};

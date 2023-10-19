@@ -3,7 +3,7 @@ import styles from '../../../../styles/styles';
 import {attachmentViewPdfPropTypes, attachmentViewPdfDefaultProps} from './propTypes';
 import PDFView from '../../../PDFView';
 
-function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onScaleChanged, onToggleKeyboard, onLoadComplete}) {
+function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onScaleChanged, onToggleKeyboard, onLoadComplete, errorLabelStyles}) {
     return (
         <PDFView
             onPress={onPress}
@@ -14,6 +14,7 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onScal
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}
             onLoadComplete={onLoadComplete}
+            errorLabelStyles={errorLabelStyles}
         />
     );
 }

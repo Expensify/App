@@ -447,6 +447,7 @@ function AttachmentModal(props) {
                                 onToggleKeyboard={updateConfirmButtonVisibility}
                                 isWorkspaceAvatar={props.isWorkspaceAvatar}
                                 fallbackSource={props.fallbackSource}
+                                isUsedInAttachmentModal
                             />
                         )
                     )}

@@ -4,7 +4,7 @@ import {attachmentViewPdfPropTypes, attachmentViewPdfDefaultProps} from './propT
 import PDFView from '../../../PDFView';
 import AttachmentCarouselPagerContext from '../../AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 
-function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete}) {
+function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete, errorLabelStyles}) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     useEffect(() => {
@@ -45,6 +45,7 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}
             onLoadComplete={onLoadComplete}
+            errorLabelStyles={errorLabelStyles}
         />
     );
 }
