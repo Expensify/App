@@ -67,8 +67,8 @@ function ExpensifyCardPage({
         setShouldShowCardDetails(true);
     };
 
-    const isDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
-    const isDetectedIndividualFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
+    const hasDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
+    const hasDetectedIndividualFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
 
     return (
         <ScreenWrapper
@@ -86,16 +86,16 @@ function ExpensifyCardPage({
                             <CardPreview />
                         </View>
 
-                        {isDetectedDomainFraud && (
+                        {hasDetectedDomainFraud ? (
                             <DotIndicatorMessage
                                 style={[styles.pageWrapper]}
                                 textStyle={[styles.walletLockedMessage]}
                                 messages={[translate('cardPage.cardLocked')]}
                                 type="error"
                             />
-                        )}
+                        ) : null}
 
-                        {isDetectedIndividualFraud && !isDetectedDomainFraud && (
+                        {hasDetectedIndividualFraud && !hasDetectedDomainFraud ? (
                             <>
                                 <DangerCardSection
                                     title={translate('cardPage.suspiciousBannerTitle')}
@@ -111,9 +111,9 @@ function ExpensifyCardPage({
                                     onPress={() => Link.openOldDotLink('inbox')}
                                 />
                             </>
-                        )}
+                        ) : null}
 
-                        {!isDetectedDomainFraud && (
+                        {!hasDetectedDomainFraud ? (
                             <>
                                 <MenuItemWithTopDescription
                                     description={translate('cardPage.availableSpend')}
@@ -173,7 +173,7 @@ function ExpensifyCardPage({
                                     </>
                                 )}
                             </>
-                        )}
+                        ) : null}
                     </ScrollView>
                     {physicalCard.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED && (
                         <Button
