@@ -1,4 +1,5 @@
 import {isEqual, max, parseISO} from 'date-fns';
+import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
@@ -10,6 +11,7 @@ import {ActionName} from '../types/onyx/OriginalMessage';
 import * as CollectionUtils from './CollectionUtils';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as Environment from './Environment/Environment';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
@@ -48,6 +50,9 @@ Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
 });
+
+let environmentURL: string;
+Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 function isCreatedAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
@@ -288,8 +293,8 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    const {POLICYCHANGELOG: policyChangelogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
-    const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes)];
+    const {POLICYCHANGELOG: policyChangelogTypes, ROOMCHANGELOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
+    const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
 
     // Filter out any unsupported reportAction types
     if (!supportedActionTypes.includes(reportAction.actionName)) {
@@ -333,6 +338,34 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportA
     );
 }
 
+/**
+ * For invite to room and remove from room policy change logs, report URLs are generated in the server,
+ * which includes a baseURL placeholder that's replaced in the client.
+ */
+function replaceBaseURL(reportAction: ReportAction): ReportAction {
+    if (!reportAction) {
+        return reportAction;
+    }
+
+    if (
+        !reportAction ||
+        (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM)
+    ) {
+        return reportAction;
+    }
+    if (!reportAction.message) {
+        return reportAction;
+    }
+    const updatedReportAction = _.clone(reportAction);
+    if (!updatedReportAction.message) {
+        return updatedReportAction;
+    }
+    updatedReportAction.message[0].html = reportAction.message[0].html.replace('%baseURL', environmentURL);
+    return updatedReportAction;
+}
+
+/**
+ */
 function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
     const updatedActionsToMerge: ReportActions = {};
     if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
@@ -397,7 +430,8 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null): 
     const filteredReportActions = Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
-    return getSortedReportActions(filteredReportActions, true);
+    const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
+    return getSortedReportActions(baseURLAdjustedReportActions, true);
 }
 
 /**
