@@ -16,7 +16,7 @@ type PolicyRoute = {
 };
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
-    return route?.params?.policyID ?? 'N/A';
+    return route?.params?.policyID ?? '';
 }
 
 const policyPropTypes = {
@@ -65,11 +65,15 @@ const policyPropTypes = {
 const policyDefaultProps: WithPolicyOnyxProps = {
     policy: {} as OnyxTypes.Policy,
     policyMembers: {},
+    policyDraft: {} as OnyxTypes.Policy,
+    policyMembersDraft: {},
 };
 
 type WithPolicyOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyMembers: OnyxEntry<OnyxTypes.PolicyMember>;
+    policyDraft: OnyxEntry<OnyxTypes.Policy>;
+    policyMembersDraft: OnyxEntry<OnyxTypes.PolicyMember>;
 };
 
 type WithPolicyProps = WithPolicyOnyxProps & {
@@ -102,12 +106,18 @@ export default function withPolicy<TProps extends WithPolicyProps, TRef>(
     WithPolicy.defaultProps = policyDefaultProps;
     WithPolicy.displayName = `withPolicy(${getComponentDisplayName(WrappedComponent)})`;
 
-    return withOnyx<TProps, WithPolicyOnyxProps>({
+    return withOnyx<TProps & RefAttributes<TRef>, WithPolicyOnyxProps>({
         policy: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
         },
         policyMembers: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${getPolicyIDFromRoute(props.route)}`,
+        },
+        policyDraft: {
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
+        },
+        policyMembersDraft: {
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
         },
     })(forwardRef(WithPolicy));
 }

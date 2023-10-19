@@ -80,6 +80,12 @@ const propTypes = {
     /** IOU Tag */
     iouTag: PropTypes.string,
 
+    /** IOU isBillable */
+    iouIsBillable: PropTypes.bool,
+
+    /** Callback to toggle the billable state */
+    onToggleBillable: PropTypes.func,
+
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
@@ -144,6 +150,9 @@ const propTypes = {
     /** Whether the money request is a scan request */
     isScanRequest: PropTypes.bool,
 
+    /** Whether we're editing a split bill */
+    isEditingSplitBill: PropTypes.bool,
+
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields: PropTypes.bool,
 
@@ -162,9 +171,11 @@ const defaultProps = {
     onConfirm: () => {},
     onSendMoney: () => {},
     onSelectParticipant: () => {},
-    iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+    iouType: CONST.IOU.TYPE.REQUEST,
     iouCategory: '',
     iouTag: '',
+    iouIsBillable: false,
+    onToggleBillable: () => {},
     payeePersonalDetails: null,
     canModifyParticipants: false,
     isReadOnly: false,
@@ -197,9 +208,9 @@ function MoneyRequestConfirmationList(props) {
     const {translate, toLocaleDigit} = useLocalize();
     const transaction = props.isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction;
 
-    const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
-    const isSplitBill = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
-    const isTypeSend = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+    const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
+    const isSplitBill = props.iouType === CONST.IOU.TYPE.SPLIT;
+    const isTypeSend = props.iouType === CONST.IOU.TYPE.SEND;
 
     const isSplitWithScan = isSplitBill && props.isScanRequest;
 
@@ -434,7 +445,7 @@ function MoneyRequestConfirmationList(props) {
                 return;
             }
 
-            if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+            if (props.iouType === CONST.IOU.TYPE.SEND) {
                 if (!paymentMethod) {
                     return;
                 }
@@ -480,7 +491,7 @@ function MoneyRequestConfirmationList(props) {
             return;
         }
 
-        const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+        const shouldShowSettlementButton = props.iouType === CONST.IOU.TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
@@ -526,7 +537,7 @@ function MoneyRequestConfirmationList(props) {
     }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, translate, formError]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =
-        props.receiptPath && props.receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptFilename) : {};
+        props.receiptPath && props.receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, props.receiptPath, props.receiptFilename) : {};
 
     return (
         <OptionsSelector
@@ -546,6 +557,7 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
             listStyles={props.listStyles}
+            shouldAllowScrollingChildren
         >
             {props.isDistanceRequest && (
                 <View style={styles.confirmationListMapItem}>
@@ -581,8 +593,8 @@ function MoneyRequestConfirmationList(props) {
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && !transaction.modifiedAmount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    error={shouldDisplayFieldError && !transaction.modifiedAmount ? translate('common.error.enterAmount') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
                 />
             )}
             <MenuItemWithTopDescription
@@ -636,8 +648,8 @@ function MoneyRequestConfirmationList(props) {
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && _.isEmpty(transaction.modifiedCreated) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayFieldError && _.isEmpty(transaction.modifiedCreated) ? translate('common.error.enterDate') : ''}
+                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
                         />
                     )}
                     {props.isDistanceRequest && (
@@ -668,16 +680,8 @@ function MoneyRequestConfirmationList(props) {
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator={
-                                shouldDisplayFieldError && (transaction.modifiedMerchant === '' || transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)
-                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                    : ''
-                            }
-                            error={
-                                shouldDisplayFieldError && (transaction.modifiedMerchant === '' || transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)
-                                    ? translate('common.error.enterMerchant')
-                                    : ''
-                            }
+                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? translate('common.error.enterMerchant') : ''}
                         />
                     )}
                     {shouldShowCategories && (

@@ -57,7 +57,7 @@ import type {
     ConfirmThatParams,
     UntilTimeParams,
     StepCounterParams,
-    UserIsAlreadyMemberOfWorkspaceParams,
+    UserIsAlreadyMemberParams,
     GoToRoomParams,
     WelcomeNoteParams,
     RoomNameReservedErrorParams,
@@ -372,6 +372,14 @@ export default {
         termsOfService: 'Términos de servicio',
         privacy: 'Privacidad',
     },
+    samlSignIn: {
+        welcomeSAMLEnabled: 'Continua iniciando sesión con el inicio de sesión único:',
+        orContinueWithMagicCode: 'O, opcionalmente, tu empresa te permite iniciar sesión con un código mágico',
+        useSingleSignOn: 'Usar el inicio de sesión único',
+        useMagicCode: 'Usar código mágico',
+        launching: 'Cargando...',
+        oneMoment: 'Un momento mientras te redirigimos al portal de inicio de sesión único de tu empresa.',
+    },
     reportActionCompose: {
         addAction: 'Acción',
         dropToUpload: 'Suelta el archivo aquí para compartirlo',
@@ -471,8 +479,8 @@ export default {
     sidebarScreen: {
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
-        fabNewChat: 'Enviar mensaje',
-        fabNewChatExplained: 'Enviar mensaje',
+        fabNewChat: 'Iniciar chat',
+        fabNewChatExplained: 'Iniciar chat',
         chatPinned: 'Chat fijado',
         draftedMessage: 'Mensaje borrador',
         listOfChatMessages: 'Lista de mensajes del chat',
@@ -510,6 +518,7 @@ export default {
         approved: 'Aprobado',
         cash: 'Efectivo',
         card: 'Tarjeta',
+        original: 'Original',
         split: 'Dividir',
         addToSplit: 'Añadir para dividir',
         splitBill: 'Dividir factura',
@@ -527,6 +536,7 @@ export default {
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
+        transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
         deleteRequest: 'Eliminar pedido',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
@@ -543,6 +553,8 @@ export default {
         payerOwes: ({payer}: PayerOwesParams) => `${payer} debe: `,
         payerPaidAmount: ({payer, amount}: PayerPaidAmountParams) => `${payer} pagó ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} pagó: `,
+        payerSpentAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} gastó ${amount}`,
+        payerSpent: ({payer}: PayerPaidParams) => `${payer} gastó: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} aprobó:`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
@@ -844,6 +856,9 @@ export default {
         bankAccounts: 'Cuentas bancarias',
         addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
         addBankAccount: 'Agregar cuenta bancaria',
+        assignedCards: 'Tarjetas asignadas',
+        assignedCardsDescription: 'Son tarjetas asignadas por un administrador del Espacio de Trabajo para gestionar los gastos de la empresa.',
+        expensifyCard: 'Tarjeta Expensify',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -858,6 +873,7 @@ export default {
             address: 'Dirección',
             revealDetails: 'Revelar detalles',
             copyCardNumber: 'Copiar número de la tarjeta',
+            updateAddress: 'Actualizar dirección',
         },
     },
     reportFraudPage: {
@@ -922,6 +938,7 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Mensaje de bienvenida',
+        welcomeMessageOptional: 'Mensaje de bienvenida (opcional)',
         explainerText: 'Configura un mensaje de bienvenida privado y personalizado que se enviará cuando los usuarios se unan a esta sala de chat.',
     },
     languagePage: {
@@ -1025,7 +1042,7 @@ export default {
         legalName: 'Nombre completo',
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
-        homeAddress: 'Domicilio',
+        address: 'Dirección',
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
@@ -1201,7 +1218,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email inválido',
-        userIsAlreadyMemberOfWorkspace: ({login, workspace}: UserIsAlreadyMemberOfWorkspaceParams) => `${login} ya es miembro de ${workspace}`,
+        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} ya es miembro de ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -1597,12 +1614,17 @@ export default {
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
         growlMessageOnRenameError: 'No se ha podido cambiar el nombre del espacio de trabajo, por favor, comprueba tu conexión e inténtalo de nuevo.',
         visibilityOptions: {
-            restricted: 'Restringida',
+            restricted: 'Espacio de trabajo', // the translation for "restricted" visibility is actually workspace. This is so we can display restricted visibility rooms as "workspace" without having to change what's stored.
             private: 'Privada',
             public: 'Público',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             public_announce: 'Anuncio Público',
         },
+    },
+    roomMembersPage: {
+        memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón Invitar que está más arriba.',
+        notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte a la sala de chat? Comunícate con el propietario de esta sala de chat para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
+        removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
@@ -2320,7 +2342,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'No activado',
-        outOfPocketSpend: 'Gastos por cuenta propia',
+        outOfPocket: 'Por cuenta propia',
         companySpend: 'Gastos de empresa',
     },
     distance: {
@@ -2342,11 +2364,25 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
     },
+    reportCardLostOrDamaged: {
+        report: 'Notificar la pérdida / daño de la tarjeta física',
+        screenTitle: 'Notificar la pérdida o deterioro de la tarjeta',
+        nextButtonLabel: 'Siguiente',
+        reasonTitle: '¿Por qué necesitas una tarjeta nueva?',
+        cardDamaged: 'Mi tarjeta está dañada',
+        cardLostOrStolen: 'He perdido o me han robado la tarjeta',
+        confirmAddressTitle: 'Confirma que la dirección que aparece a continuación es a la que deseas que te enviemos tu nueva tarjeta.',
+        currentCardInfo: 'La tarjeta actual se desactivará permanentemente en cuanto se realice el pedido. La mayoría de las tarjetas llegan en unos pocos días laborables.',
+        address: 'Dirección',
+        deactivateCardButton: 'Desactivar tarjeta',
+        addressError: 'La dirección es obligatoria',
+        reasonError: 'Se requiere justificación',
+    },
     eReceipt: {
         guaranteed: 'eRecibo garantizado',
         transactionDate: 'Fecha de transacción',
     },
     globalNavigationOptions: {
-        chats: 'Chats',
+        chats: 'Chats', // "Chats" is the accepted term colloqially in Spanish, this is not a bug!!
     },
 } satisfies EnglishTranslation;
