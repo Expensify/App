@@ -14,6 +14,12 @@
  * - Remove the unused import of the old static styles
  */
 
+/* eslint-disable @lwc/lwc/no-async-await */
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable es/no-optional-chaining */
+/* eslint-disable no-console */
+
 const fs = require('fs');
 const path = require('path');
 const parser = require('@babel/parser');
