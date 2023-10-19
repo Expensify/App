@@ -1,9 +1,12 @@
-import OriginalMessage, {Reaction} from './OriginalMessage';
 import * as OnyxCommon from './OnyxCommon';
+import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
     type: string;
+
+    /** The html content of the fragment. */
+    html: string;
 
     /** The text content of the fragment. */
     text: string;
@@ -37,6 +40,9 @@ type Message = {
     isReversedTransaction?: boolean;
     whisperedTo: number[];
     reactions: Reaction[];
+
+    moderationDecision?: Decision;
+    translationKey?: string;
 };
 
 type Person = {
@@ -47,7 +53,10 @@ type Person = {
 
 type ReportActionBase = {
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
-    reportActionID?: string;
+    reportActionID: string;
+
+    /** @deprecated Used in old report actions before migration. Replaced by reportActionID. */
+    sequenceNumber?: number;
 
     /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
     previousReportActionID?: string;
@@ -58,7 +67,7 @@ type ReportActionBase = {
     person?: Person[];
 
     /** ISO-formatted datetime */
-    created?: string;
+    created: string;
 
     /** report action message */
     message?: Message[];
@@ -83,10 +92,23 @@ type ReportActionBase = {
     childCommenterCount?: number;
     childLastVisibleActionCreated?: string;
     childVisibleActionCount?: number;
+    childMoneyRequestCount?: number;
+
+    /** ISO-formatted datetime */
+    lastModified?: string;
 
     pendingAction?: OnyxCommon.PendingAction;
+    delegateAccountID?: string;
+
+    /** Server side errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
+
+    isAttachment?: boolean;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
 
+type ReportActions = Record<string, ReportAction>;
+
 export default ReportAction;
+export type {ReportActions, Message};

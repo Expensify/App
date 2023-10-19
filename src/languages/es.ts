@@ -57,7 +57,7 @@ import type {
     ConfirmThatParams,
     UntilTimeParams,
     StepCounterParams,
-    UserIsAlreadyMemberOfWorkspaceParams,
+    UserIsAlreadyMemberParams,
     GoToRoomParams,
     WelcomeNoteParams,
     RoomNameReservedErrorParams,
@@ -1218,7 +1218,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email inválido',
-        userIsAlreadyMemberOfWorkspace: ({login, workspace}: UserIsAlreadyMemberOfWorkspaceParams) => `${login} ya es miembro de ${workspace}`,
+        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} ya es miembro de ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -1614,12 +1614,17 @@ export default {
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
         growlMessageOnRenameError: 'No se ha podido cambiar el nombre del espacio de trabajo, por favor, comprueba tu conexión e inténtalo de nuevo.',
         visibilityOptions: {
-            restricted: 'Restringida',
+            restricted: 'Espacio de trabajo', // the translation for "restricted" visibility is actually workspace. This is so we can display restricted visibility rooms as "workspace" without having to change what's stored.
             private: 'Privada',
             public: 'Público',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             public_announce: 'Anuncio Público',
         },
+    },
+    roomMembersPage: {
+        memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón Invitar que está más arriba.',
+        notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte a la sala de chat? Comunícate con el propietario de esta sala de chat para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
+        removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
@@ -2358,6 +2363,20 @@ export default {
         errors: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
+    },
+    reportCardLostOrDamaged: {
+        report: 'Notificar la pérdida / daño de la tarjeta física',
+        screenTitle: 'Notificar la pérdida o deterioro de la tarjeta',
+        nextButtonLabel: 'Siguiente',
+        reasonTitle: '¿Por qué necesitas una tarjeta nueva?',
+        cardDamaged: 'Mi tarjeta está dañada',
+        cardLostOrStolen: 'He perdido o me han robado la tarjeta',
+        confirmAddressTitle: 'Confirma que la dirección que aparece a continuación es a la que deseas que te enviemos tu nueva tarjeta.',
+        currentCardInfo: 'La tarjeta actual se desactivará permanentemente en cuanto se realice el pedido. La mayoría de las tarjetas llegan en unos pocos días laborables.',
+        address: 'Dirección',
+        deactivateCardButton: 'Desactivar tarjeta',
+        addressError: 'La dirección es obligatoria',
+        reasonError: 'Se requiere justificación',
     },
     eReceipt: {
         guaranteed: 'eRecibo garantizado',
