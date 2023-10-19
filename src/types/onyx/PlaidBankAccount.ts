@@ -19,6 +19,9 @@ type PlaidBankAccount = {
 
     /** Plaid access token, used to then retrieve Assets and Balances */
     plaidAccessToken: string;
+
+    /** Name of the bank */
+    bankName?: string;
 };
 
 export default PlaidBankAccount;

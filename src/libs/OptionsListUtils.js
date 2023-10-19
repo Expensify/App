@@ -364,7 +364,8 @@ function getLastMessageTextForReport(report) {
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
+        const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
+        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         const lastIOUMoneyReport = _.find(
@@ -375,6 +376,8 @@ function getLastMessageTextForReport(report) {
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true);
+    } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
+        lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
@@ -521,7 +524,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
@@ -971,6 +974,7 @@ function getOptions(
         tags = {},
         recentlyUsedTags = [],
         canInviteUser = true,
+        includeSelectedOptions = false,
     },
 ) {
     if (includeCategories) {
@@ -1107,8 +1111,15 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text && personalDetail.text.toLowerCase()], 'asc');
     }
 
-    // Always exclude already selected options and the currently logged in user
-    const optionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+    // Exclude the current user from the personal details list
+    const optionsToExclude = [{login: currentUserLogin}];
+
+    // If we're including selected options from the search results, we only want to exclude them if the search input is empty
+    // This is because on certain pages, we show the selected options at the top when the search input is empty
+    // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
+    if (!includeSelectedOptions || searchInputValue === '') {
+        optionsToExclude.push(...selectedOptions);
+    }
 
     _.each(excludeLogins, (login) => {
         optionsToExclude.push({login});
@@ -1354,6 +1365,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Object} [tags]
  * @param {Array<String>} [recentlyUsedTags]
  * @param {boolean} [canInviteUser]
+ * @param {boolean} [includeSelectedOptions]
  * @returns {Object}
  */
 function getFilteredOptions(
@@ -1372,6 +1384,7 @@ function getFilteredOptions(
     tags = {},
     recentlyUsedTags = [],
     canInviteUser = true,
+    includeSelectedOptions = false,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1390,6 +1403,7 @@ function getFilteredOptions(
         tags,
         recentlyUsedTags,
         canInviteUser,
+        includeSelectedOptions,
     });
 }
 
@@ -1526,6 +1540,20 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 }
 
 /**
+ * Helper method for non-user lists (eg. categories and tags) that returns the text to be used for the header's message and title (if any)
+ *
+ * @param {Boolean} hasSelectableOptions
+ * @param {String} searchValue
+ * @return {String}
+ */
+function getHeaderMessageForNonUserList(hasSelectableOptions, searchValue) {
+    if (searchValue && !hasSelectableOptions) {
+        return Localize.translate(preferredLocale, 'common.noResultsFound');
+    }
+    return '';
+}
+
+/**
  * Helper method to check whether an option can show tooltip or not
  * @param {Object} option
  * @returns {Boolean}
@@ -1544,6 +1572,7 @@ export {
     getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,
+    getHeaderMessageForNonUserList,
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,

@@ -8,6 +8,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
 import AppleSignInDesktopPage from '../../../pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '../../../pages/signin/GoogleSignInDesktopPage';
+import SAMLSignInPage from '../../../pages/signin/SAMLSignInPage';
 
 const RootStack = createStackNavigator();
 
@@ -43,6 +44,11 @@ function PublicScreens() {
                 name="GoogleSignInDesktop"
                 options={defaultScreenOptions}
                 component={GoogleSignInDesktopPage}
+            />
+            <RootStack.Screen
+                name="SAMLSignIn"
+                options={defaultScreenOptions}
+                component={SAMLSignInPage}
             />
         </RootStack.Navigator>
     );
