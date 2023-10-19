@@ -1,4 +1,4 @@
-import {isEqual, max, parseISO} from 'date-fns';
+import {isEqual, max} from 'date-fns';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -382,8 +382,8 @@ function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = 
     if (visibleActions.length === 0) {
         return null;
     }
-    const maxDate = max(visibleActions.map((action) => parseISO(action.created)));
-    const maxAction = visibleActions.find((action) => isEqual(parseISO(action.created), maxDate));
+    const maxDate = max(visibleActions.map((action) => new Date(action.created)));
+    const maxAction = visibleActions.find((action) => isEqual(new Date(action.created), maxDate));
     return maxAction ?? null;
 }
 

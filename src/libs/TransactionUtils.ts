@@ -1,5 +1,5 @@
 import Onyx, {OnyxCollection} from 'react-native-onyx';
-import {format, parseISO, isValid} from 'date-fns';
+import {format, isValid} from 'date-fns';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
@@ -310,7 +310,7 @@ function getTag(transaction: Transaction): string {
  */
 function getCreated(transaction: Transaction, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
-    const createdDate = parseISO(created);
+    const createdDate = new Date(created);
     if (isValid(createdDate)) {
         return format(createdDate, dateFormat);
     }
