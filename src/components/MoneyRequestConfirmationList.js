@@ -6,6 +6,7 @@ import _ from 'underscore';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import {useIsFocused} from '@react-navigation/native';
+import {isEmpty} from 'lodash';
 import Text from './Text';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -43,7 +44,6 @@ import * as TransactionUtils from '../libs/TransactionUtils';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as MoneyRequestUtils from '../libs/MoneyRequestUtils';
 import {iouDefaultProps, iouPropTypes} from '../pages/iou/propTypes';
-import {isEmpty} from 'lodash';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
