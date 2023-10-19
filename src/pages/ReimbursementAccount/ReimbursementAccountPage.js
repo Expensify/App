@@ -103,6 +103,31 @@ const ROUTE_NAMES = {
     ENABLE: 'enable',
     NEW: 'new',
 };
+
+/**
+* We can pass stepToOpen in the URL to force which step to show.
+* Mainly needed when user finished the flow in verifying state, and Ops ask them to modify some fields from a specific step.
+* @returns {String}
+*/
+function getStepToOpenFromRouteParams(route) {
+    switch (lodashGet(route, ['params', 'stepToOpen'], '')) {
+        case ROUTE_NAMES.NEW:
+            return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        case ROUTE_NAMES.COMPANY:
+            return CONST.BANK_ACCOUNT.STEP.COMPANY;
+        case ROUTE_NAMES.PERSONAL_INFORMATION:
+            return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
+        case ROUTE_NAMES.CONTRACT:
+            return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
+        case ROUTE_NAMES.VALIDATE:
+            return CONST.BANK_ACCOUNT.STEP.VALIDATION;
+        case ROUTE_NAMES.ENABLE:
+            return CONST.BANK_ACCOUNT.STEP.ENABLE;
+        default:
+            return '';
+    }
+}
+
 function ReimbursementAccountPage({
     reimbursementAccount,
     route,
@@ -271,30 +296,6 @@ function ReimbursementAccountPage({
         }
         const achData = lodashGet(reimbursementAccount, 'achData', {});
         return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], getStepToOpenFromRouteParams());
-    }
-
-    /**
-     * We can pass stepToOpen in the URL to force which step to show.
-     * Mainly needed when user finished the flow in verifying state, and Ops ask them to modify some fields from a specific step.
-     * @returns {String}
-     */
-    function getStepToOpenFromRouteParams() {
-        switch (lodashGet(route, ['params', 'stepToOpen'], '')) {
-            case ROUTE_NAMES.NEW:
-                return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-            case ROUTE_NAMES.COMPANY:
-                return CONST.BANK_ACCOUNT.STEP.COMPANY;
-            case ROUTE_NAMES.PERSONAL_INFORMATION:
-                return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
-            case ROUTE_NAMES.CONTRACT:
-                return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
-            case ROUTE_NAMES.VALIDATE:
-                return CONST.BANK_ACCOUNT.STEP.VALIDATION;
-            case ROUTE_NAMES.ENABLE:
-                return CONST.BANK_ACCOUNT.STEP.ENABLE;
-            default:
-                return '';
-        }
     }
 
     /**
