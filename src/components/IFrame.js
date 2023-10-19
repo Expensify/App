@@ -14,6 +14,7 @@ import FullPageBiggerScreenView from './BlockingViews/FullPageBiggerScreenView';
 import styles from '../styles/styles';
 import Button from './Button';
 import navigation from '../libs/Navigation/Navigation';
+import CONST from '../CONST';
 
 function addNewDotParams(url) {
     const urlObj = new URL(url);
@@ -23,6 +24,7 @@ function addNewDotParams(url) {
 }
 
 function getNewDotURL(url) {
+    const {OLDDOT_URL_SECTION} = CONST;
     const urlObj = new URL(url);
     const paramString = urlObj.searchParams.get('param') ?? '';
     const pathname = urlObj.pathname.slice(1);
@@ -54,13 +56,13 @@ function getNewDotURL(url) {
         let sectionName = section;
         switch (section) {
             case '':
-                sectionName = 'overview';
+                sectionName = OLDDOT_URL_SECTION.OVERVIEW;
                 break;
             case 'js_policyEditor_perDiem':
-                sectionName = 'per-diem';
+                sectionName = OLDDOT_URL_SECTION.PER_DIEM;
                 break;
             case 'exportFormats':
-                sectionName = 'export-formats';
+                sectionName = OLDDOT_URL_SECTION.EXPORT_FORMATS;
                 break;
             default:
                 sectionName = section;
@@ -76,13 +78,13 @@ function getNewDotURL(url) {
         switch (section) {
             case undefined:
             case '':
-                sectionName = 'account';
+                sectionName = OLDDOT_URL_SECTION.ACCOUNT;
                 break;
             case 'expenserules':
-                sectionName = 'expense-rules';
+                sectionName = OLDDOT_URL_SECTION.EXPENSE_RULES;
                 break;
             case 'creditcards':
-                sectionName = 'cards';
+                sectionName = OLDDOT_URL_SECTION.CREDIT_CARDS;
                 break;
             default:
                 sectionName = section;
@@ -102,10 +104,10 @@ function getNewDotURL(url) {
         switch (section) {
             case '':
             case 'companycards':
-                sectionName = 'cards';
+                sectionName = OLDDOT_URL_SECTION.CARDS;
                 break;
             case 'loadingDock':
-                sectionName = 'tools';
+                sectionName = OLDDOT_URL_SECTION.TOOLS;
                 break;
             default:
                 sectionName = section;

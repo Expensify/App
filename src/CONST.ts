@@ -2779,6 +2779,15 @@ const CONST = {
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
+    OLDDOT_URL_SECTION: {
+        OVERVIEW: 'overview',
+        PER_DIEM: 'per-diem',
+        EXPORT_FORMATS: 'export-formats',
+        ACCOUNT: 'account',
+        EXPENSE_RULES: 'expense-rules',
+        CARDS: 'cards',
+        TOOLS: 'tools',
+    },
 } as const;
 
 export default CONST;
