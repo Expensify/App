@@ -54,7 +54,7 @@ const propTypes = {
     defaultValue: PropTypes.bool,
 
     /** React ref being forwarded to the Checkbox input */
-    forwardedRef: PropTypes.func,
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
     /** The ID used to uniquely identify the input in a Form */
     /* eslint-disable-next-line react/no-unused-prop-types */
