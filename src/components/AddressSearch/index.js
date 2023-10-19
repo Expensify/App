@@ -1,7 +1,7 @@
 import _ from 'underscore';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {Keyboard, LogBox, ScrollView, View, Text, ActivityIndicator} from 'react-native';
+import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
 import compose from '../../libs/compose';
@@ -136,6 +136,16 @@ const defaultProps = {
     predefinedPlaces: [],
     resultTypes: 'address',
 };
+
+function listLoader() {
+    return memo(() => (<View style={[styles.pv4]}>
+        <ActivityIndicator
+          color={themeColors.spinner}
+          size="small"
+        />
+    </View>));
+}
+
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
 // Relevant thread: https://expensify.slack.com/archives/C03TQ48KC/p1634088400387400
@@ -374,14 +384,7 @@ function AddressSearch(props) {
                                 <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
                             )
                         }
-                        listLoaderComponent={
-                            <View style={[styles.pv4]}>
-                                <ActivityIndicator
-                                    color={themeColors.spinner}
-                                    size="small"
-                                />
-                            </View>
-                        }
+                        listLoaderComponent={listLoader}
                         renderHeaderComponent={renderHeaderComponent}
                         onPress={(data, details) => {
                             saveLocationDetails(data, details);
