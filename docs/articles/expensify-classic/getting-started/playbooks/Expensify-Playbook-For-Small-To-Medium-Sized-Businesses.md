@@ -55,11 +55,11 @@ You do this by synchronizing Expensify and your accounting package as follows:
 4. Follow the prompts to connect your accounting package
 
 Check out the links below for more information on how to connect to your accounting solution:
-- *[QuickBooks Online](https://community.expensify.com/discussion/4833/how-to-connect-your-workspace-to-quickbooks-online)*
-- *[Xero](https://community.expensify.com/discussion/5282/how-to-connect-your-workspace-to-xero)*
-- *[NetSuite](https://community.expensify.com/discussion/5212/how-to-connect-your-workspace-to-netsuite-token-based-authentication)*
-- *[Sage Intacct](https://community.expensify.com/discussion/4777/how-to-connect-to-sage-intacct-user-based-permissions-expense-reports)*
-- *[Other Accounting System](https://community.expensify.com/discussion/5271/how-to-set-up-an-indirect-accounting-integration)
+- *[QuickBooks Online](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/QuickBooks-Online#gsc.tab=0)*
+- *[Xero](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Xero#gsc.tab=0)*
+- *[NetSuite](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#gsc.tab=0)*
+- *[Sage Intacct](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#gsc.tab=0)*
+- *[Other Accounting System](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Indirect-Accounting-Integrations#gsc.tab=0)
 
 
 *“Employees really appreciate how easy it is to use, and the fact that the reimbursement drops right into their bank account. Since most employees are submitting expenses from their phones, the ease of use of the app is critical.”*
@@ -106,7 +106,7 @@ Receipts are important, and in most cases you prefer an itemized receipt. Howeve
 At this point, you’ve set enough compliance controls around categorical spend and general expenses for all employees, such that you can put trust in our solution to audit all expenses up front so you don’t have to. Next, let’s dive into how we can comfortably take on more automation, while relying on compliance controls to capture bad behavior (or better yet, instill best practices in our employees).
 
 ## Step 7: Set up scheduled submit
-For an efficient company, we recommend setting up [Scheduled Submit](https://community.expensify.com/discussion/4476/how-to-enable-scheduled-submit-for-a-group-workspace) on a *Daily* frequency:
+For an efficient company, we recommend setting up [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/policy-and-domain-settings/reports/Scheduled-Submit#gsc.tab=0) on a *Daily* frequency:
 
 - Click *Settings > Workspace*
 - From here, select your group collect workspace
