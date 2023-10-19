@@ -52,7 +52,7 @@ const defaultProps = {
 
 export default function (WrappedComponent) {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithReportAndPrivateNotesOrNotFound(props) {
+    function WithReportAndPrivateNotesOrNotFound({forwardedRef, ...props}) {
         const {route, report, network, session} = props;
         const accountID = route.params.accountID;
         const isLoadingPrivateNotes = report.isLoadingPrivateNotes;
@@ -94,11 +94,10 @@ export default function (WrappedComponent) {
             return <FullScreenLoadingIndicator />;
         }
 
-        const rest = _.omit(props, ['forwardedRef']);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...rest}
+                {...props}
                 ref={props.forwardedRef}
             />
         );
