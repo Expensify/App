@@ -375,8 +375,8 @@ function addActions(reportID, text = '', file) {
     const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
     if (lastMessageText || lastMessageTranslationKey) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
-        const lastVisibleActionCreated = lastVisibleAction.created;
-        const lastActorAccountID = lastVisibleAction.actorAccountID;
+        const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+        const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
         failureReport = {
             lastMessageTranslationKey,
             lastMessageText,
@@ -1057,8 +1057,8 @@ function deleteReportComment(reportID, reportAction) {
         const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
         if (lastMessageText || lastMessageTranslationKey) {
             const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-            const lastVisibleActionCreated = lastVisibleAction.created;
-            const lastActorAccountID = lastVisibleAction.actorAccountID;
+            const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+            const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
             optimisticReport = {
                 lastMessageTranslationKey,
                 lastMessageText,
@@ -1162,17 +1162,16 @@ const removeLinksFromHtml = (html, links) => {
  * This function will handle removing only links that were purposely removed by the user while editing.
  *
  * @param {String} newCommentText text of the comment after editing.
- * @param {String} originalHtml original html of the comment before editing.
+ * @param {String} originalCommentMarkdown original markdown of the comment before editing.
  * @returns {String}
  */
-const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
+const handleUserDeletedLinksInHtml = (newCommentText, originalCommentMarkdown) => {
     const parser = new ExpensiMark();
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
-    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
     const htmlForNewComment = parser.replace(newCommentText);
-    const removedLinks = parser.getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
+    const removedLinks = parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 };
 
@@ -1191,7 +1190,14 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
-    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentHTML);
+    const originalCommentMarkdown = parser.htmlToMarkdown(originalCommentHTML).trim();
+
+    // Skip the Edit if draft is not changed
+    if (originalCommentMarkdown === textForNewComment) {
+        return;
+    }
+
+    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown);
     const reportComment = parser.htmlToText(htmlForNewComment);
 
     // For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
@@ -1199,7 +1205,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     let parsedOriginalCommentHTML = originalCommentHTML;
     if (textForNewComment.length <= CONST.MAX_MARKUP_LENGTH) {
         const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), (name) => name !== 'autolink')};
-        parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML).trim(), autolinkFilter);
+        parsedOriginalCommentHTML = parser.replace(originalCommentMarkdown, autolinkFilter);
     }
 
     //  Delete the comment if it's empty
@@ -1239,7 +1245,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     ];
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-    if (reportActionID === lastVisibleAction.reportActionID) {
+    if (reportActionID === lodashGet(lastVisibleAction, 'reportActionID')) {
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
             lastMessageTranslationKey: '',
@@ -1925,8 +1931,9 @@ function getCurrentUserAccountID() {
  * Leave a report by setting the state to submitted and closed
  *
  * @param {String} reportID
+ * @param {Boolean} isWorkspaceMemberLeavingWorkspaceRoom
  */
-function leaveRoom(reportID) {
+function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     const report = lodashGet(allReports, [reportID], {});
     const reportKeys = _.keys(report);
 
@@ -1935,38 +1942,144 @@ function leaveRoom(reportID) {
     // between Onyx report being null and Pusher's leavingStatus becoming true.
     broadcastUserIsLeavingRoom(reportID);
 
+    // If a workspace member is leaving a workspace room, they don't actually lose the room from Onyx.
+    // Instead, their notification preference just gets set to "hidden".
+    const optimisticData = [
+        isWorkspaceMemberLeavingWorkspaceRoom
+            ? {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                  value: {
+                      notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                  },
+              }
+            : {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                  value: {
+                      stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                      statusNum: CONST.REPORT.STATUS.CLOSED,
+                  },
+              },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: isWorkspaceMemberLeavingWorkspaceRoom ? {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN} : _.object(reportKeys, Array(reportKeys.length).fill(null)),
+        },
+    ];
+
     API.write(
         'LeaveRoom',
         {
             reportID,
         },
         {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                        statusNum: CONST.REPORT.STATUS.CLOSED,
-                    },
-                },
-            ],
-            // Manually clear the report using merge. Should not use set here since it would cause race condition
-            // if it was called right after a merge.
-            successData: [
+            optimisticData,
+            successData,
+            failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: _.object(reportKeys, Array(reportKeys.length).fill(null)),
+                    value: report,
+                },
+            ],
+        },
+    );
+}
+
+/**
+ * Invites people to a room
+ *
+ * @param {String} reportID
+ * @param {Object} inviteeEmailsToAccountIDs
+ */
+function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
+    const report = lodashGet(allReports, [reportID], {});
+
+    const inviteeEmails = _.keys(inviteeEmailsToAccountIDs);
+    const inviteeAccountIDs = _.values(inviteeEmailsToAccountIDs);
+
+    const {participantAccountIDs} = report;
+    const participantAccountIDsAfterInvitation = _.uniq([...participantAccountIDs, ...inviteeAccountIDs]);
+
+    API.write(
+        'InviteToRoom',
+        {
+            reportID,
+            inviteeEmails,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        participantAccountIDs: participantAccountIDsAfterInvitation,
+                    },
                 },
             ],
             failureData: [
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                        statusNum: CONST.REPORT.STATUS.OPEN,
+                        participantAccountIDs,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
+ * Removes people from a room
+ *
+ * @param {String} reportID
+ * @param {Array} targetAccountIDs
+ */
+function removeFromRoom(reportID, targetAccountIDs) {
+    const report = lodashGet(allReports, [reportID], {});
+
+    const {participantAccountIDs} = report;
+    const participantAccountIDsAfterRemoval = _.difference(participantAccountIDs, targetAccountIDs);
+
+    API.write(
+        'RemoveFromRoom',
+        {
+            reportID,
+            targetAccountIDs,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        participantAccountIDs: participantAccountIDsAfterRemoval,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        participantAccountIDs,
+                    },
+                },
+            ],
+
+            // We need to add success data here since in high latency situations,
+            // the OpenRoomMembersPage call has the chance of overwriting the optimistic data we set above.
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        participantAccountIDs: participantAccountIDsAfterRemoval,
                     },
                 },
             ],
@@ -2188,6 +2301,17 @@ function getReportPrivateNote(reportID) {
 }
 
 /**
+ * Loads necessary data for rendering the RoomMembersPage
+ *
+ * @param {String|Number} reportID
+ */
+function openRoomMembersPage(reportID) {
+    API.read('OpenRoomMembersPage', {
+        reportID,
+    });
+}
+
+/**
  * Checks if there are any errors in the private notes for a given report
  *
  * @param {Object} report
@@ -2325,6 +2449,8 @@ export {
     hasAccountIDEmojiReacted,
     shouldShowReportActionNotification,
     leaveRoom,
+    inviteToRoom,
+    removeFromRoom,
     getCurrentUserAccountID,
     setLastOpenedPublicRoom,
     flagComment,
@@ -2333,6 +2459,7 @@ export {
     getReportPrivateNote,
     clearPrivateNotesError,
     hasErrorInPrivateNotes,
+    openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
 };

@@ -57,7 +57,7 @@ import type {
     ConfirmThatParams,
     UntilTimeParams,
     StepCounterParams,
-    UserIsAlreadyMemberOfWorkspaceParams,
+    UserIsAlreadyMemberParams,
     GoToRoomParams,
     WelcomeNoteParams,
     RoomNameReservedErrorParams,
@@ -552,6 +552,7 @@ export default {
         settledElsewhere: 'Paid elsewhere',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount} with Expensify`,
         payElsewhere: 'Pay elsewhere',
+        nextSteps: 'Next Steps',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
@@ -594,6 +595,8 @@ export default {
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
         },
+        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
+        enableWallet: 'Enable Wallet',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -857,6 +860,8 @@ export default {
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
         sendAndReceiveMoney: 'Send and receive money from your Expensify Wallet.',
+        enableWalletToSendAndReceiveMoney: 'Enable your Expensify Wallet to start sending and receiving money with friends!',
+        enableWallet: 'Enable wallet',
         bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
         addBankAccount: 'Add bank account',
@@ -1200,7 +1205,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Invalid email',
-        userIsAlreadyMemberOfWorkspace: ({login, workspace}: UserIsAlreadyMemberOfWorkspaceParams) => `${login} is already a member of ${workspace}`,
+        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} is already a member of ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
@@ -1219,7 +1224,7 @@ export default {
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
-        helpText: 'We need to confirm the following information before we can process this payment.',
+        helpText: 'We need to confirm the following information before you can send and receive money from your Wallet.',
         helpTextIdologyQuestions: 'We need to ask you just a few more questions to finish validating your identity.',
         helpLink: 'Learn more about why we need this.',
         legalFirstNameLabel: 'Legal first name',
@@ -1590,12 +1595,17 @@ export default {
         selectAWorkspace: 'Select a workspace',
         growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
         visibilityOptions: {
-            restricted: 'Restricted',
+            restricted: 'Workspace', // the translation for "restricted" visibility is actually workspace. This is so we can display restricted visibility rooms as "workspace" without having to change what's stored.
             private: 'Private',
             public: 'Public',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             public_announce: 'Public Announce',
         },
+    },
+    roomMembersPage: {
+        memberNotFound: 'Member not found. To invite a new member to the room, please use the Invite button above.',
+        notAuthorized: `You do not have access to this page. Are you trying to join the room? Please reach out to a member of this room so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
+        removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
     },
     newTaskPage: {
         assignTask: 'Assign task',
@@ -1873,6 +1883,20 @@ export default {
         errors: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
+    },
+    reportCardLostOrDamaged: {
+        report: 'Report physical card loss / damage',
+        screenTitle: 'Report card lost or damaged',
+        nextButtonLabel: 'Next',
+        reasonTitle: 'Why do you need a new card?',
+        cardDamaged: 'My card was damaged',
+        cardLostOrStolen: 'My card was lost or stolen',
+        confirmAddressTitle: "Please confirm the address below is where you'd like us to send your new card.",
+        currentCardInfo: 'Your current card will be permanently deactivated as soon as your order is placed. Most cards arrive in a few business days.',
+        address: 'Address',
+        deactivateCardButton: 'Deactivate card',
+        addressError: 'Address is required',
+        reasonError: 'Reason is required',
     },
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',
