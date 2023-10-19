@@ -24,6 +24,14 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Check if gpg encrypted private key is present
+      shell: bash
+      run: |
+        if [ -f .github/workflows/OSBotify-private-key.asc.gpg ]; then
+          echo "::set-output name=key_exists::true"
+        else
+          echo "::set-output name=key_exists::false"
+        fi
     - name: Checkout
       uses: actions/checkout@v3
       with:
