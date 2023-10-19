@@ -594,6 +594,8 @@ export default {
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
         },
+        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
+        enableWallet: 'Enable Wallet',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
