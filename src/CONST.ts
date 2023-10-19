@@ -50,6 +50,7 @@ const CONST = {
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
+        UNALLOWED_EXTENSIONS: [''],
     },
 
     AUTO_AUTH_STATE: {

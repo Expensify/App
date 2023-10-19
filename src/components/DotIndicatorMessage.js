@@ -17,7 +17,10 @@ const propTypes = {
      *      timestamp: 'message',
      *  }
      */
-    messages: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))])),
+    messages: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))])),
+    ]),
 
     // The type of message, 'error' shows a red dot, 'success' shows a green dot
     type: PropTypes.oneOf(['error', 'success']).isRequired,
@@ -33,24 +36,37 @@ const defaultProps = {
 };
 
 function DotIndicatorMessage(props) {
-    if (_.isEmpty(props.messages)) {
+    let messages;
+
+    if (_.isFunction(props.messages)) {
+        messages = props.messages();
+    } else if (_.isEmpty(props.messages)) {
         return null;
+    } else {
+        // To ensure messages are presented in order we are sort of destroying the data we are given
+        // and rebuilding as an array so we can render the messages in order. We don't really care about
+        // the microtime timestamps anyways so isn't the end of the world that we sort of lose them here.
+        // BEWARE: if you decide to refactor this and keep the microtime keys it could cause performance issues
+        const sortedMessages = _.chain(props.messages)
+            .keys()
+            .sortBy()
+            .map((key) => props.messages[key])
+
+            // Using uniq here since some fields are wrapped by the same OfflineWithFeedback component (e.g. WorkspaceReimburseView)
+            // and can potentially pass the same error.
+            .uniq()
+            .map((message) => Localize.translateIfPhraseKey(message))
+            .value();
+
+        messages = _.map(sortedMessages, (message, i) => (
+            <Text
+                key={i}
+                style={styles.offlineFeedback.text}
+            >
+                {message}
+            </Text>
+        ));
     }
-
-    // To ensure messages are presented in order we are sort of destroying the data we are given
-    // and rebuilding as an array so we can render the messages in order. We don't really care about
-    // the microtime timestamps anyways so isn't the end of the world that we sort of lose them here.
-    // BEWARE: if you decide to refactor this and keep the microtime keys it could cause performance issues
-    const sortedMessages = _.chain(props.messages)
-        .keys()
-        .sortBy()
-        .map((key) => props.messages[key])
-
-        // Using uniq here since some fields are wrapped by the same OfflineWithFeedback component (e.g. WorkspaceReimburseView)
-        // and can potentially pass the same error.
-        .uniq()
-        .map((message) => Localize.translateIfPhraseKey(message))
-        .value();
 
     return (
         <View style={[styles.dotIndicatorMessage, ...props.style]}>
@@ -60,16 +76,7 @@ function DotIndicatorMessage(props) {
                     fill={props.type === 'error' ? themeColors.danger : themeColors.success}
                 />
             </View>
-            <View style={styles.offlineFeedback.textContainer}>
-                {_.map(sortedMessages, (message, i) => (
-                    <Text
-                        key={i}
-                        style={styles.offlineFeedback.text}
-                    >
-                        {message}
-                    </Text>
-                ))}
-            </View>
+            <View style={styles.offlineFeedback.textContainer}>{messages}</View>
         </View>
     );
 }

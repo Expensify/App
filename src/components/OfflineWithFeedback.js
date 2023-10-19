@@ -30,7 +30,7 @@ const propTypes = {
 
     /** The errors to display  */
     // eslint-disable-next-line react/forbid-prop-types
-    errors: PropTypes.object,
+    errors: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     /** Whether we should show the error messages */
     shouldShowErrorMessages: PropTypes.bool,
@@ -100,11 +100,11 @@ function OfflineWithFeedback(props) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const hasErrors = !_.isEmpty(props.errors);
+    const hasErrors = _.isFunction(props.errors) || !_.isEmpty(props.errors);
 
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
-    const errorMessages = _.omit(props.errors, (e) => e === null);
-    const hasErrorMessages = !_.isEmpty(errorMessages);
+    const errorMessages = _.isFunction(props.errors) ? props.errors : _.omit(props.errors, (e) => e === null);
+    const hasErrorMessages = _.isFunction(props.errors) || !_.isEmpty(errorMessages);
     const isOfflinePendingAction = isOffline && props.pendingAction;
     const isUpdateOrDeleteError = hasErrors && (props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     const isAddError = hasErrors && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;

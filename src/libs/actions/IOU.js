@@ -2686,6 +2686,14 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     Navigation.dismissModal(chatReport.reportID);
 }
 
+/**
+ * @param {String} transactionID
+ */
+function clearError(transactionID) {
+    const transaction = lodashGet(allTransactions, `transactions_${transactionID}`, {});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorsData: null});
+}
+
 function detachReceipt(transactionID) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
     const newTransaction = {...transaction, filename: '', receipt: {}};
@@ -2715,7 +2723,7 @@ function detachReceipt(transactionID) {
  * @param {String} filePath
  */
 function replaceReceipt(transactionID, receipt, filePath) {
-    const transaction = lodashGet(allTransactions, 'transactionID', {});
+    const transaction = lodashGet(allTransactions, `transactions_${transactionID}`, {});
     const oldReceipt = lodashGet(transaction, 'receipt', {});
 
     const optimisticData = [
@@ -2737,6 +2745,14 @@ function replaceReceipt(transactionID, receipt, filePath) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericEditFailureMessage'),
+                errorsData: {
+                    receipt: {
+                        source: filePath,
+                        state: CONST.IOU.RECEIPT_STATE.OPEN,
+                    },
+                    filename: receipt.name,
+                },
                 receipt: oldReceipt,
                 filename: transaction.filename,
             },
@@ -2948,4 +2964,5 @@ export {
     replaceReceipt,
     detachReceipt,
     getIOUReportID,
+    clearError,
 };

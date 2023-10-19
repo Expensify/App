@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -38,6 +38,10 @@ import OfflineWithFeedback from '../OfflineWithFeedback';
 import categoryPropTypes from '../categoryPropTypes';
 import SpacerView from '../SpacerView';
 import tagPropTypes from '../tagPropTypes';
+import ConfirmModal from '../ConfirmModal';
+import fileDownload from '../../libs/fileDownload';
+import colors from '../../styles/colors';
+import cursor from '../../styles/utilities/cursor';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -81,6 +85,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
+
     const moneyRequestReport = parentReport;
     const {
         created: transactionDate,
@@ -150,14 +156,31 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
     let hasErrors = false;
+    let errorReceiptURIs;
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
         hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
+    if (transaction.errorsData) {
+        errorReceiptURIs = ReceiptUtils.getThumbnailAndImageURIs({
+            ...transaction,
+            receipt: transaction.errorsData.receipt,
+            filename: transaction.errorsData.filename,
+        });
+    }
+
     const pendingAction = lodashGet(transaction, 'pendingAction');
     const getPendingFieldAction = (fieldPath) => lodashGet(transaction, fieldPath) || pendingAction;
 
+    const hideConfirmModal = () => {
+        setConfirmModalVisibility(false);
+    };
+
+    const onConfirm = () => {
+        IOU.clearError(transaction.transactionID);
+        hideConfirmModal();
+    };
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
@@ -165,11 +188,40 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
             </View>
 
             {hasReceipt && (
-                <OfflineWithFeedback pendingAction={pendingAction}>
-                    <View style={styles.moneyRequestViewImage}>
+                <OfflineWithFeedback
+                    style={[styles.mh5]}
+                    pendingAction={pendingAction}
+                    errors={
+                        !transaction.errors
+                            ? null
+                            : () => (
+                                  <Text>
+                                      <Text style={styles.offlineFeedback.text}>{translate('attachmentPicker.attachmentDidNotUploaded')}</Text>
+                                      <Text
+                                          style={{
+                                              marginRight: 4,
+                                              marginLeft: 4,
+                                              color: colors.blue300,
+                                              ...cursor.cursorPointer,
+                                          }}
+                                          onClick={() => {
+                                              fileDownload(transaction.errorsData.receipt.source, transaction.errorsData.filename);
+                                          }}
+                                      >
+                                          {translate('attachmentPicker.saveTheFile')}
+                                      </Text>
+                                      <Text style={styles.offlineFeedback.text}>{translate('attachmentPicker.revertToOriginalFile')}</Text>
+                                  </Text>
+                              )
+                    }
+                    onClose={() => {
+                        setConfirmModalVisibility(true);
+                    }}
+                >
+                    <View style={[styles.moneyRequestViewImage, styles.mh0]}>
                         <ReportActionItemImage
-                            thumbnail={receiptURIs.thumbnail}
-                            image={receiptURIs.image}
+                            thumbnail={errorReceiptURIs ? errorReceiptURIs.image : receiptURIs.thumbnail}
+                            image={errorReceiptURIs ? errorReceiptURIs.image : receiptURIs.image}
                             transaction={transaction}
                             enablePreviewModal
                         />
@@ -287,6 +339,34 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
             <SpacerView
                 shouldShow={shouldShowHorizontalRule}
                 style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+            />
+            <ConfirmModal
+                danger
+                title={translate('common.areYouSure')}
+                onConfirm={onConfirm}
+                onCancel={hideConfirmModal}
+                isVisible={isConfirmModalVisible}
+                prompt={
+                    <Text>
+                        <Text
+                            onClick={() => {
+                                fileDownload(transaction.receipt.source, transaction.filename);
+                            }}
+                            style={{
+                                marginRight: 4,
+                                color: colors.blue300,
+                                cursor: cursor.cursorPointer,
+                            }}
+                        >
+                            {translate('common.download')}
+                        </Text>
+                        <Text>{translate('attachmentPicker.promptBeforeDismissingError')}</Text>
+                    </Text>
+                }
+                confirmText={translate('common.yesContinue')}
+                cancelText={translate('common.cancel')}
+                shouldDisableConfirmButtonWhenOffline
+                shouldShowCancelButton
             />
         </View>
     );

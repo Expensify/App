@@ -293,6 +293,10 @@ export default {
         wrongFileType: 'Attachment is the wrong type',
         notAllowedExtension: 'This filetype is not allowed',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
+        saveTheFile: 'Save the file',
+        attachmentDidNotUploaded: "The new receipt didn't upload.",
+        revertToOriginalFile: 'or dismiss this error to revert back to the original',
+        promptBeforeDismissingError: "if you don't have another copy of it before dismissing the error",
     },
     avatarCropModal: {
         title: 'Edit photo',
