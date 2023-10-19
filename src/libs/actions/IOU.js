@@ -359,16 +359,16 @@ function buildOnyxDataForMoneyRequest(
                               errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
                           [iouAction.reportActionID]: {
-                              errors: transaction.receipt
-                                  ? ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename})
-                                  : ErrorUtils.getMicroSecondOnyxError(null),
+                              errors: _.isEmpty(transaction.receipt)
+                                  ? ErrorUtils.getMicroSecondOnyxError(null)
+                                  : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename}),
                           },
                       }
                     : {
                           [iouAction.reportActionID]: {
-                              errors: transaction.receipt
-                                  ? ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename})
-                                  : ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: !_.isEmpty(transaction.receipt)
+                                  ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
+                                  : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: transaction.receipt.source, filename: transaction.filename}),
                           },
                       }),
             },
@@ -1413,7 +1413,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
                 [splitIOUReportAction.reportActionID]: {
-                    errors: receipt ? ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source, filename}) : ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                    errors: _.isEmpty(receipt) ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage') : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source, filename}),
                 },
             },
         });
@@ -1436,7 +1436,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                         errors: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                     },
                     [splitIOUReportAction.reportActionID]: {
-                        errors: receipt ? ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source, filename}) : ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                        errors: _.isEmpty(receipt) ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage') : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source, filename}),
                     },
                 },
             },
