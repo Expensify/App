@@ -50,9 +50,9 @@ Onyx.connect({
     callback: (value) => {
         // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
         // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
-        if (!isFirstTimeNewExpensifyUser) {
-            isFirstTimeNewExpensifyUser = value ?? undefined;
-        }
+
+        isFirstTimeNewExpensifyUser = value ?? undefined;
+
         checkOnReady();
     },
 });
@@ -61,9 +61,7 @@ Onyx.connect({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     initWithStoredValues: false,
     callback: (value) => {
-        if (value) {
-            isLoadingReportData = value;
-        }
+        isLoadingReportData = value ?? false;
         checkOnReady();
     },
 });
@@ -159,7 +157,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}
 
         // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
         // we will show the create menu.
-        if (allPolicies && !Policy.isAdminOfFreePolicy(allPolicies) && !isDisplayingWorkspaceRoute) {
+        if (!Policy.isAdminOfFreePolicy(allPolicies ?? undefined) && !isDisplayingWorkspaceRoute) {
             showCreateMenu();
         }
 
