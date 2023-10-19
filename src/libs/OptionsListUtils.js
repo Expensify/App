@@ -1596,51 +1596,60 @@ function shouldOptionShowTooltip(option) {
  * @param {Number} indexOffset
  * @returns {Object}
  */
-function formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, personalDetails = {}, shouldGetOptionDetails = false, indexOffset) {
-    // We show the selected participants at the top of the list when there is no search term
-    // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
-    // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
-    if (searchTerm === '') {
+    function formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, personalDetails = {}, shouldGetOptionDetails = false, indexOffset) {
+        // We show the selected participants at the top of the list when there is no search term
+        // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
+        // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
+        if (searchTerm === '') {
+            return {
+                section: {
+                    title: undefined,
+                    data: shouldGetOptionDetails
+                        ? _.map(selectedOptions, (participant) => {
+                              const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                              return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                          })
+                        : selectedOptions,
+                    shouldShow: !_.isEmpty(selectedOptions),
+                    indexOffset,
+                },
+                newIndexOffset: indexOffset + selectedOptions.length,
+            };
+        }
+    
+        // Create sets for faster lookups
+        const recentReportAccountIDs = new Set(_.map(filteredRecentReports, 'accountID'));
+        const personalDetailAccountIDs = new Set(_.map(filteredPersonalDetails, 'accountID'));
+        const searchTermLower = searchTerm.trim().toLowerCase();
+    
+        // If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
+        // This will add them to the list of options, deduping them if they already exist in the other lists
+        const selectedParticipantsWithoutDetails = _.filter(selectedOptions, (participant) => {
+            const accountID = lodashGet(participant, 'accountID', null);
+            const isPartOfSearchTerm = participant.searchText.toLowerCase().includes(searchTermLower);
+            
+            // Use the sets for O(1) lookups instead of O(n)
+            const isReportInRecentReports = recentReportAccountIDs.has(accountID);
+            const isReportInPersonalDetails = personalDetailAccountIDs.has(accountID);
+            
+            return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;
+        });
+    
         return {
             section: {
                 title: undefined,
                 data: shouldGetOptionDetails
-                    ? _.map(selectedOptions, (participant) => {
+                    ? _.map(selectedParticipantsWithoutDetails, (participant) => {
                           const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
                           return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
                       })
-                    : selectedOptions,
-                shouldShow: !_.isEmpty(selectedOptions),
+                    : selectedParticipantsWithoutDetails,
+                shouldShow: !_.isEmpty(selectedParticipantsWithoutDetails),
                 indexOffset,
             },
-            newIndexOffset: indexOffset + selectedOptions.length,
+            newIndexOffset: indexOffset + selectedParticipantsWithoutDetails.length,
         };
     }
-
-    // If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
-    // This will add them to the list of options, deduping them if they already exist in the other lists
-    const selectedParticipantsWithoutDetails = _.filter(selectedOptions, (participant) => {
-        const accountID = lodashGet(participant, 'accountID', null);
-        const isPartOfSearchTerm = participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase());
-        const isReportInRecentReports = _.some(filteredRecentReports, (report) => report.accountID === accountID);
-        const isReportInPersonalDetails = _.some(filteredPersonalDetails, (personalDetail) => personalDetail.accountID === accountID);
-        return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;
-    });
-
-    return {
-        section: {
-            title: undefined,
-            data: shouldGetOptionDetails
-                ? _.map(selectedParticipantsWithoutDetails, (participant) => {
-                      const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                      return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
-                  })
-                : selectedParticipantsWithoutDetails,
-            shouldShow: !_.isEmpty(selectedParticipantsWithoutDetails),
-            indexOffset,
-        },
-        newIndexOffset: indexOffset + selectedParticipantsWithoutDetails.length,
-    };
 }
 
 export {
