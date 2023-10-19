@@ -364,7 +364,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                         return;
                                                     }
                                                     // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
-                                                    BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(true);
+                                                    BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
                                                 }}
                                                 enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
                                                 addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
