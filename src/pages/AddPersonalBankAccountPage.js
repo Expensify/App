@@ -85,7 +85,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
         } else {
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
         }
-    }, [personalBankAccount.exitReportID]);
+    }, [personalBankAccount]);
 
     useEffect(() => BankAccounts.clearPersonalBankAccount, []);
 
