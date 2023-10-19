@@ -280,6 +280,7 @@ export default compose(
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
+            selector: ({ hasDraft, ...report}={}) => report, // hasDraft not needed in this component
         },
         session: {
             key: ONYXKEYS.SESSION,

@@ -106,6 +106,7 @@ export default compose(
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            selector: ({ hasDraft, ...report}={}) => report, // hasDraft not needed in this component
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

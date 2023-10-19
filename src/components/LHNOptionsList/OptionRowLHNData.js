@@ -164,14 +164,10 @@ const personalDetailsSelector = (personalDetails) =>
  */
 export default React.memo(
     compose(
-        withReportCommentDrafts({
-            propName: 'comment',
-            transformValue: (drafts, props) => {
-                const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
-                return lodashGet(drafts, draftKey, '');
-            },
-        }),
         withOnyx({
+            comment: {
+                key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+            },
             fullReport: {
                 key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             },
