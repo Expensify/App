@@ -392,11 +392,16 @@ function AddressSearch(props) {
                         }
                         renderRow={(data) => {
                             const title = data.isPredefinedPlace ? data.name : data.structured_formatting.main_text;
-                            const subtitle = data.isPredefinedPlace ? data.description: data.structured_formatting.secondary_text;
+                            const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
                             return (
                                 <View>
                                     <Text style={[styles.googleSearchText]}>{title}</Text>
-                                    <Text style={[styles.textLabelSupporting]} numberOfLines={2}>{subtitle}</Text>
+                                    <Text
+                                        style={[styles.textLabelSupporting]}
+                                        numberOfLines={2}
+                                    >
+                                        {subtitle}
+                                    </Text>
                                 </View>
                             );
                         }}
