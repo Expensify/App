@@ -92,7 +92,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
-    const isShowingMoreContent = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
 
     return (
         <View style={[styles.pt0]}>
@@ -151,7 +150,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     </View>
                 )}
             </HeaderWithBackButton>
-            <View style={isShowingMoreContent ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
+            <View style={shouldShowAnyButton ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
                 {shouldShowNextSteps && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
