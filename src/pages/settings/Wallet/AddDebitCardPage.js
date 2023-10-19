@@ -22,8 +22,8 @@ import ROUTES from '../../../ROUTES';
 import usePrevious from '../../../hooks/usePrevious';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import Permissions from '../../../libs/Permissions';
-import FormProvider from "../../../components/Form/FormProvider";
-import InputWrapper from "../../../components/Form/InputWrapper";
+import FormProvider from '../../../components/Form/FormProvider';
+import InputWrapper from '../../../components/Form/InputWrapper';
 
 const propTypes = {
     /* Onyx Props */
@@ -190,7 +190,10 @@ function DebitCardPage(props) {
                     containerStyles={[styles.mt4]}
                 />
                 <View style={[styles.mt4, styles.mhn5]}>
-                    <InputWrapper InputComponent={StatePicker} inputID="addressState" />
+                    <InputWrapper
+                        InputComponent={StatePicker}
+                        inputID="addressState"
+                    />
                 </View>
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
