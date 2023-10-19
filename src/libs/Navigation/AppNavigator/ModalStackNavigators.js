@@ -1,9 +1,12 @@
 import _ from 'underscore';
 import React from 'react';
-import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
+import {CardStyleInterpolators} from '@react-navigation/stack';
+import * as PlatformStackNavigator from '../PlatformStackNavigator';
+
 import styles from '../../../styles/styles';
 import SCREENS from '../../../SCREENS';
 
+// TODO: migrate options
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
     headerShown: false,
@@ -17,7 +20,7 @@ const defaultSubRouteOptions = {
  * @returns {Function}
  */
 function createModalStackNavigator(screens) {
-    const ModalStackNavigator = createStackNavigator();
+    const ModalStackNavigator = PlatformStackNavigator.createPlatformStackNavigator();
     return () => (
         <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
             {_.map(screens, (getComponent, name) => (

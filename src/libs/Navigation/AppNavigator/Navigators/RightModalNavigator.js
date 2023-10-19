@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {createStackNavigator} from '@react-navigation/stack';
+import * as PlatformStackNavigator from '../../PlatformStackNavigator';
 
 import * as ModalStackNavigators from '../ModalStackNavigators';
 import RHPScreenOptions from '../RHPScreenOptions';
@@ -10,7 +10,7 @@ import styles from '../../../../styles/styles';
 import Overlay from './Overlay';
 import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
 
-const Stack = createStackNavigator();
+const Stack = PlatformStackNavigator.createPlatformStackNavigator();
 
 const propTypes = {
     ...withNavigationPropTypes,

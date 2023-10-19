@@ -1,12 +1,12 @@
 import React from 'react';
-import {createStackNavigator} from '@react-navigation/stack';
+import * as PlatformStackNavigator from '../../PlatformStackNavigator';
 import SCREENS from '../../../../SCREENS';
 import ReportScreenWrapper from '../ReportScreenWrapper';
 import getCurrentUrl from '../../currentUrl';
 import styles from '../../../../styles/styles';
 import FreezeWrapper from '../../FreezeWrapper';
 
-const Stack = createStackNavigator();
+const Stack = PlatformStackNavigator.createPlatformStackNavigator();
 
 const url = getCurrentUrl();
 const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;

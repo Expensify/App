@@ -1,5 +1,5 @@
 import React from 'react';
-import {createStackNavigator} from '@react-navigation/stack';
+import * as PlatformStackNavigator from '../PlatformStackNavigator';
 import SignInPage from '../../../pages/signin/SignInPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
@@ -10,7 +10,7 @@ import AppleSignInDesktopPage from '../../../pages/signin/AppleSignInDesktopPage
 import GoogleSignInDesktopPage from '../../../pages/signin/GoogleSignInDesktopPage';
 import SAMLSignInPage from '../../../pages/signin/SAMLSignInPage';
 
-const RootStack = createStackNavigator();
+const RootStack = PlatformStackNavigator.createPlatformStackNavigator();
 
 function PublicScreens() {
     return (

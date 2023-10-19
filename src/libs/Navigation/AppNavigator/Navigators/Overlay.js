@@ -1,5 +1,6 @@
 import React from 'react';
 import {Animated, View} from 'react-native';
+// TODO: migrate
 import {useCardAnimation} from '@react-navigation/stack';
 
 import PropTypes from 'prop-types';
