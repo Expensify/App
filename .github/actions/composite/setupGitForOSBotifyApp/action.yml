@@ -30,8 +30,6 @@ runs:
       run: |
         if [[ -f .github/workflows/OSBotify-private-key.asc.gpg ]]; then
           echo "::set-output name=key_exists::true"
-        else
-          echo "::set-output name=key_exists::false"
         fi
   
     - name: Checkout
