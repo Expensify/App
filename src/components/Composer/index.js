@@ -445,6 +445,7 @@ function Composer({
 
             StyleSheet.flatten([style, {outline: 'none'}]),
             StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
+            Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
         ],
         [style, maxLines, numberOfLines, isComposerFullSize],
     );
@@ -457,7 +458,7 @@ function Composer({
                 placeholderTextColor={themeColors.placeholderText}
                 ref={(el) => (textInput.current = el)}
                 selection={selection}
-                style={(Browser.isMobileSafari() || Browser.isSafari()) ? [inputStyleMemo, styles.rtlTextRenderForSafari] : [inputStyleMemo]}
+                style={inputStyleMemo}
                 value={value}
                 forwardedRef={forwardedRef}
                 defaultValue={defaultValue}
