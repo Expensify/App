@@ -167,6 +167,7 @@ jobs:
 
       - name: Schedule AWS Device Farm test run on main branch
         uses: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
+        id: schedule-awsdf-main
         with:
           name: App E2E Performance Regression Tests
           project_arn: ${{ secrets.AWS_PROJECT_ARN }}
@@ -180,7 +181,15 @@ jobs:
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
           file_artifacts: Customer Artifacts.zip
+          log_artifacts: debug.log
           cleanup: true
+
+      - name: Print logs if run failed
+        if: failure()
+        run: |
+          echo ${{ steps.schedule-awsdf-main.outputs.data }}
+          unzip "Customer Artifacts.zip" -d mainResults
+          cat ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/debug.log
 
       - name: Unzip AWS Device Farm main results
         run: unzip "Customer Artifacts.zip" -d mainResults
