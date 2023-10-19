@@ -4,6 +4,10 @@ import {ImageSourcePropType} from 'react-native';
 import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
 
+type LogoRatio = typeof CONST.QR.DEFAULT_LOGO_SIZE_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO;
+
+type LogoMarginRatio = typeof CONST.QR.DEFAULT_LOGO_MARGIN_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO;
+
 type QRCodeProps = {
     /** The QR code URL */
     url: string;
@@ -15,10 +19,10 @@ type QRCodeProps = {
     logo?: ImageSourcePropType;
 
     /** The size ratio of logo to QR code */
-    logoRatio?: typeof CONST.QR.DEFAULT_LOGO_SIZE_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO;
+    logoRatio?: LogoRatio;
 
     /** The size ratio of margin around logo to QR code */
-    logoMarginRatio?: typeof CONST.QR.DEFAULT_LOGO_MARGIN_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO;
+    logoMarginRatio?: LogoMarginRatio;
 
     /** The QRCode size */
     size?: number;
