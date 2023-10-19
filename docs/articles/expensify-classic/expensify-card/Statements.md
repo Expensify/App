@@ -29,7 +29,7 @@ When using the Expensify Card, you can export your statement to a CSV with these
 
 1. Login to your account on the web app and click on Settings > Domains > Company Cards.
 2. Click the Reconciliation tab at the top right, then select Settlements.
-3. Enter your desired statement dates using the Start and End fields.
+  3. Enter your desired statement dates using the Start and End fields.
 4. Click Search to access the statement for that period.
 5. You can view the table or select Download to export it as a CSV.
 
