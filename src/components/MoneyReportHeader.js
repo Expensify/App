@@ -126,7 +126,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             shouldShowPaymentOptions={shouldShowPaymentOptions}
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
-                            nextStepButtons={nextStepButtons}
+                            nextStep={nextStep}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
