@@ -76,7 +76,7 @@ function MoneyRequestConfirmPage(props) {
                     const option = isPolicyExpenseChat
                         ? OptionsListUtils.getPolicyExpenseReportOption(participant)
                         : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
-                    return { ...option, isPolicyExpenseChat };
+                    return {...option, isPolicyExpenseChat};
                 })
                 .filter((option) => option.isPolicyExpenseChat || !!option.login)
                 .value(),
