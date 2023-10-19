@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -30,9 +30,11 @@ import * as Link from '../../libs/actions/Link';
 import * as Report from '../../libs/actions/Report';
 import * as Task from '../../libs/actions/Task';
 import compose from '../../libs/compose';
+import * as Session from '../../libs/actions/Session';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../reportPropTypes';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -92,6 +94,7 @@ function HeaderView(props) {
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy));
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
+    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -104,7 +107,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('task.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report),
+                onSelected: Session.checkIfActionIsAllowed(() => Task.reopenTask(props.report)),
             });
         }
 
@@ -113,7 +116,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-                onSelected: () => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
+                onSelected: Session.checkIfActionIsAllowed(() => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
             });
         }
     }
@@ -123,13 +126,16 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
                 text: props.translate('common.join'),
-                onSelected: () => Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
+                onSelected: Session.checkIfActionIsAllowed(() =>
+                    Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
+                ),
             });
         } else if ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom) {
+            const isWorkspaceMemberLeavingWorkspaceRoom = lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
                 text: props.translate('common.leave'),
-                onSelected: () => Report.leaveRoom(props.report.reportID),
+                onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.report.reportID, isWorkspaceMemberLeavingWorkspaceRoom)),
             });
         }
     }
@@ -140,24 +146,24 @@ function HeaderView(props) {
         threeDotMenuItems.push({
             icon: Expensicons.Phone,
             text: props.translate('videoChatButtonAndMenu.tooltip'),
-            onSelected: () => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(props.guideCalendarLink);
-            },
+            }),
         });
     } else if (!isAutomatedExpensifyAccount && !isTaskReport && !isArchivedRoom) {
         threeDotMenuItems.push({
             icon: ZoomIcon,
             text: props.translate('videoChatButtonAndMenu.zoom'),
-            onSelected: () => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
-            },
+            }),
         });
         threeDotMenuItems.push({
             icon: GoogleMeetIcon,
             text: props.translate('videoChatButtonAndMenu.googleMeet'),
-            onSelected: () => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_GOOGLE_MEET_MEETING_URL);
-            },
+            }),
         });
     }
 
@@ -255,6 +261,7 @@ function HeaderView(props) {
                                 <ThreeDotsMenu
                                     anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                                     menuItems={threeDotMenuItems}
+                                    shouldSetModalVisibility={false}
                                 />
                             )}
                         </View>

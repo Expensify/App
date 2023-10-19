@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {Dimensions} from 'react-native';
@@ -123,9 +124,9 @@ class KYCWall extends React.Component {
         }
         if (!isExpenseReport) {
             // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
-            const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
-            if (!hasGoldWallet) {
-                Log.info('[KYC Wallet] User does not have gold wallet');
+            const hasActivatedWallet = this.props.userWallet.tierName && _.contains([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM], this.props.userWallet.tierName);
+            if (!hasActivatedWallet) {
+                Log.info('[KYC Wallet] User does not have active wallet');
                 Navigation.navigate(this.props.enablePaymentsRoute);
                 return;
             }
