@@ -55,6 +55,7 @@
     "workflow-test:generate": "node workflow_tests/utils/preGenerateTest.js"
   },
   "dependencies": {
+    "@dotlottie/react-player": "^1.6.3",
     "@expensify/react-native-web": "0.18.15",
     "@formatjs/intl-datetimeformat": "^6.10.0",
     "@formatjs/intl-getcanonicallocales": "^2.2.0",
@@ -66,6 +67,7 @@
     "@invertase/react-native-apple-authentication": "^2.2.2",
     "@kie/act-js": "^2.0.1",
     "@kie/mock-github": "^1.0.0",
+    "@lottiefiles/react-lottie-player": "^3.5.3",
     "@oguzhnatly/react-native-image-manipulator": "github:Expensify/react-native-image-manipulator#5cdae3d4455b03a04c57f50be3863e2fe6c92c52",
     "@onfido/react-native-sdk": "8.3.0",
     "@react-native-async-storage/async-storage": "^1.17.10",
@@ -101,7 +103,7 @@
     "idb-keyval": "^6.2.1",
     "jest-when": "^3.5.2",
     "lodash": "4.17.21",
-    "lottie-react-native": "^6.3.1",
+    "lottie-react-native": "file:../lottie-react-native/packages/core/lottie-react-native-6.3.1.tgz",
     "mapbox-gl": "^2.15.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.31",

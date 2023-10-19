@@ -20,7 +20,7 @@ if (isUsingMockAPI) {
  */
 const config = {
     resolver: {
-        assetExts: _.filter(defaultAssetExts, (ext) => ext !== 'svg'),
+        assetExts: [..._.filter(defaultAssetExts, (ext) => ext !== 'svg'), 'lottie'],
         sourceExts: [...defaultSourceExts, 'jsx', 'svg'],
         resolveRequest: (context, moduleName, platform) => {
             const resolution = context.resolveRequest(context, moduleName, platform);
