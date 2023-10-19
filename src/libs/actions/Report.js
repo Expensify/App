@@ -329,9 +329,7 @@ function addActions(reportID, text = '', file) {
         isLastMessageDeletedParentAction: null,
     };
 
-    const report = ReportUtils.getReport(reportID);
-
-    if (lodashGet(report, 'notificationPreference', null) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    if (ReportUtils.getReportNotificationPreference(ReportUtils.getReport(reportID)) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     }
 
