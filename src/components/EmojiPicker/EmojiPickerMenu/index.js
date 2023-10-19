@@ -457,12 +457,11 @@ class EmojiPickerMenu extends Component {
         return (
             <EmojiPickerMenuItem
                 onPress={(emoji) => this.props.onEmojiSelected(emoji, item)}
-                onHoverIn={() => this.setState({highlightedIndex: index, isUsingKeyboardMovement: false})}
-                onHoverOut={() => {
-                    if (this.state.arePointerEventsDisabled) {
+                onHoverIn={() => {
+                    if (!this.state.isUsingKeyboardMovement) {
                         return;
                     }
-                    this.setState({highlightedIndex: -1});
+                    this.setState({isUsingKeyboardMovement: false});
                 }}
                 emoji={emojiCode}
                 onFocus={() => this.setState({highlightedIndex: index})}
@@ -474,8 +473,6 @@ class EmojiPickerMenu extends Component {
                     }))
                 }
                 isFocused={isEmojiFocused}
-                isHighlighted={index === this.state.highlightedIndex}
-                isUsingKeyboardMovement={this.state.isUsingKeyboardMovement}
             />
         );
     }

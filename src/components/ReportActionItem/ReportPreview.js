@@ -111,7 +111,7 @@ function ReportPreview(props) {
 
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
-    const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
+    const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
@@ -125,9 +125,9 @@ function ReportPreview(props) {
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
     const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID);
-    const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
-    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || ''));
-
+    const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
+    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
+    const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(props.iouReportID);
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
     const previewSubtitle = hasOnlyOneReceiptRequest
         ? TransactionUtils.getMerchant(transactionsWithReceipts[0])
@@ -136,11 +136,11 @@ function ReportPreview(props) {
               scanningReceipts: numberOfScanningReceipts,
           });
 
-    const shouldShowSubmitButton = isReportDraft && reportTotal !== 0;
+    const shouldShowSubmitButton = isReportDraft && reimbursableSpend !== 0;
 
     const getDisplayAmount = () => {
-        if (reportTotal) {
-            return CurrencyUtils.convertToDisplayString(reportTotal, props.iouReport.currency);
+        if (totalDisplaySpend) {
+            return CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.iouReport.currency);
         }
         if (isScanning) {
             return props.translate('iou.receiptScanning');
@@ -166,13 +166,17 @@ function ReportPreview(props) {
             return props.translate('iou.managerApproved', {manager: ReportUtils.getDisplayNameForParticipant(managerID, true)});
         }
         const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
-        return props.translate(iouSettled || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
+        let paymentVerb = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
+        if (iouSettled || props.iouReport.isWaitingOnBankAccount) {
+            paymentVerb = 'iou.payerPaid';
+        }
+        return props.translate(paymentVerb, {payer: managerName});
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
         ? props.policy.role === CONST.POLICY.ROLE.ADMIN && ReportUtils.isReportApproved(props.iouReport) && !iouSettled && !iouCanceled
-        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
+        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
 
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
@@ -191,9 +195,9 @@ function ReportPreview(props) {
                     {hasReceipts && (
                         <ReportActionItemImages
                             images={lastThreeReceipts}
-                            size={3}
                             total={transactionsWithReceipts.length}
                             isHovered={props.isHovered || isScanning}
+                            size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
                         />
                     )}
                     <View style={styles.reportPreviewBoxBody}>
@@ -237,7 +241,7 @@ function ReportPreview(props) {
                                 onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
-                                style={[styles.requestPreviewBox]}
+                                style={[styles.mt3]}
                                 anchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -249,7 +253,7 @@ function ReportPreview(props) {
                                 medium
                                 success={props.chatReport.isOwnPolicyExpenseChat}
                                 text={translate('common.submit')}
-                                style={styles.requestPreviewBox}
+                                style={styles.mt3}
                                 onPress={() => IOU.submitReport(props.iouReport)}
                             />
                         )}

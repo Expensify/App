@@ -1,5 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import Image from '../Image';
 import ThumbnailImage from '../ThumbnailImage';
@@ -10,6 +12,9 @@ import {ShowContextMenuContext} from '../ShowContextMenuContext';
 import Navigation from '../../libs/Navigation/Navigation';
 import PressableWithoutFocus from '../Pressable/PressableWithoutFocus';
 import useLocalize from '../../hooks/useLocalize';
+import EReceiptThumbnail from '../EReceiptThumbnail';
+import transactionPropTypes from '../transactionPropTypes';
+import * as TransactionUtils from '../../libs/TransactionUtils';
 
 const propTypes = {
     /** thumbnail URI for the image */
@@ -20,10 +25,14 @@ const propTypes = {
 
     /** whether or not to enable the image preview modal */
     enablePreviewModal: PropTypes.bool,
+
+    /* The transaction associated with this image, if any. Passed for handling eReceipts. */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     thumbnail: null,
+    transaction: {},
     enablePreviewModal: false,
 };
 
@@ -33,24 +42,37 @@ const defaultProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction}) {
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
+    const isEReceipt = !_.isEmpty(transaction) && TransactionUtils.hasEReceipt(transaction);
 
-    const receiptImageComponent = thumbnail ? (
-        <ThumbnailImage
-            previewSourceURL={thumbnailSource}
-            style={[styles.w100, styles.h100]}
-            isAuthTokenRequired
-            shouldDynamicallyResize={false}
-        />
-    ) : (
-        <Image
-            source={{uri: image}}
-            style={[styles.w100, styles.h100]}
-        />
-    );
+    let receiptImageComponent;
+
+    if (isEReceipt) {
+        receiptImageComponent = (
+            <View style={[styles.w100, styles.h100]}>
+                <EReceiptThumbnail transactionID={transaction.transactionID} />
+            </View>
+        );
+    } else if (thumbnail) {
+        receiptImageComponent = (
+            <ThumbnailImage
+                previewSourceURL={thumbnailSource}
+                style={[styles.w100, styles.h100]}
+                isAuthTokenRequired
+                shouldDynamicallyResize={false}
+            />
+        );
+    } else {
+        receiptImageComponent = (
+            <Image
+                source={{uri: image}}
+                style={[styles.w100, styles.h100]}
+            />
+        );
+    }
 
     if (enablePreviewModal) {
         return (

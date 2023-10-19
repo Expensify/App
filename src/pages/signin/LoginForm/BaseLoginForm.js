@@ -163,7 +163,7 @@ function LoginForm(props) {
     useEffect(() => {
         // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
         // this component will also be mounted, resetting account.isLoading will cause the app to briefly display the session expiration page.
-        if (props.isFocused) {
+        if (props.isFocused && props.isVisible) {
             Session.clearAccountMessages();
         }
         if (!canFocusInputOnScreenFocus() || !input.current || !props.isVisible) {

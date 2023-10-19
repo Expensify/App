@@ -46,19 +46,11 @@ function BaseTextInput(props) {
             return;
         }
 
-        let focusTimeout;
         if (props.shouldDelayFocus) {
-            focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
-            return;
+            const focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
+            return () => clearTimeout(focusTimeout);
         }
         input.current.focus();
-
-        return () => {
-            if (!focusTimeout) {
-                return;
-            }
-            clearTimeout(focusTimeout);
-        };
         // We only want this to run on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
