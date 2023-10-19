@@ -75,7 +75,7 @@ const CONST = {
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
     DISPLAY_NAME: {
-        MAX_LENGTH: 50,
+        MAX_LENGTH: 40,
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
 

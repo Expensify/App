@@ -19,6 +19,7 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import * as ErrorUtils from '../../../../libs/ErrorUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -53,19 +54,21 @@ function LegalNamePage(props) {
         const errors = {};
 
         if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-            errors.legalFirstName = 'privatePersonalDetails.error.hasInvalidCharacter';
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
             errors.legalFirstName = 'common.error.fieldRequired';
-        } else if (values.legalFirstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            errors.legalFirstName = ['common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}];
+        }
+        if (values.legalFirstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', ['common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}]);
         }
 
         if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-            errors.legalLastName = 'privatePersonalDetails.error.hasInvalidCharacter';
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
             errors.legalLastName = 'common.error.fieldRequired';
-        } else if (values.legalLastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            errors.legalLastName = ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}];
+        }
+        if (values.legalLastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}]);
         }
 
         return errors;
