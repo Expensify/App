@@ -32,11 +32,11 @@ function CodesStep({account = defaultAccount}) {
     const {setStep} = useTwoFactorAuthContext();
 
     useEffect(() => {
-        if (account.recoveryCodes) {
+        if (account.requiresTwoFactorAuth || account.recoveryCodes) {
             return;
         }
         Session.toggleTwoFactorAuth(true);
-    }, [account.recoveryCodes]);
+    }, []);
 
     return (
         <StepWrapper
