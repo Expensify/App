@@ -91,6 +91,14 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator({
     ReportParticipants_Root: () => require('../../../pages/ReportParticipantsPage').default,
 });
 
+const RoomMembersModalStackNavigator = createModalStackNavigator({
+    RoomMembers_Root: () => require('../../../pages/RoomMembersPage').default,
+});
+
+const RoomInviteModalStackNavigator = createModalStackNavigator({
+    RoomInvite_Root: () => require('../../../pages/RoomInvitePage').default,
+});
+
 const SearchModalStackNavigator = createModalStackNavigator({
     Search_Root: () => require('../../../pages/SearchPage').default,
 });
@@ -169,6 +177,7 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     ReimbursementAccount: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
     GetAssistance: () => require('../../../pages/GetAssistancePage').default,
     Settings_TwoFactorAuth: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default,
+    Settings_ReportCardLostOrDamaged: () => require('../../../pages/settings/Wallet/ReportCardLostPage').default,
     KeyboardShortcuts: () => require('../../../pages/KeyboardShortcutsPage').default,
 });
 
@@ -230,4 +239,6 @@ export {
     PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
     SignInModalStackNavigator,
+    RoomMembersModalStackNavigator,
+    RoomInviteModalStackNavigator,
 };
