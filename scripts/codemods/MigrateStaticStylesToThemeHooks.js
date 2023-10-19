@@ -31,7 +31,7 @@ const fsPromises = fs.promises;
 function containsReactComponent(fileContent) {
     const ast = parser.parse(fileContent, {
         sourceType: 'module',
-        plugins: ['jsx'], // Enable JSX parsing
+        plugins: ['jsx', 'typescript'], // Enable JSX and TSX parsing
     });
 
     let hasReactImport = false;
@@ -80,7 +80,7 @@ async function findReactComponents(directoryPath) {
         if (stat.isDirectory()) {
             // Recursively search subdirectories
             jsFilesWithReactComponents.push(...(await findReactComponents(filePath)));
-        } else if ((stat.isFile() && file.endsWith('.js')) || file.endsWith('.jsx')) {
+        } else if ((stat.isFile() && file.endsWith('.js')) || file.endsWith('.jsx') || file.endsWith('.tsx')) {
             // Check if the file contains a React component
             const fileContent = await fsPromises.readFile(filePath, 'utf8');
             // console.log('RORY_DEBUG file and fileContent:', filePath, fileContent);
