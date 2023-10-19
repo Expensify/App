@@ -60,9 +60,6 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
     };
-    const isFromGlobalCreate = !reportID;
-    const isExpenseRequest = ReportUtils.isPolicyExpenseChat(props.report);
-    const shouldDisplayDistanceRequest = isExpenseRequest || isFromGlobalCreate;
 
     const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType}${reportID}`;
@@ -121,13 +118,11 @@ function MoneyRequestSelectorPage(props) {
                                         component={ReceiptSelector}
                                         initialParams={{reportID, iouType, pageIndex: 1}}
                                     />
-                                    {shouldDisplayDistanceRequest && (
-                                        <TopTab.Screen
-                                            name={CONST.TAB.DISTANCE}
-                                            component={NewDistanceRequestPage}
-                                            initialParams={{reportID, iouType}}
-                                        />
-                                    )}
+                                    <TopTab.Screen
+                                        name={CONST.TAB.DISTANCE}
+                                        component={NewDistanceRequestPage}
+                                        initialParams={{reportID, iouType}}
+                                    />
                                 </OnyxTabNavigator>
                             ) : (
                                 <NewRequestAmountPage route={props.route} />
