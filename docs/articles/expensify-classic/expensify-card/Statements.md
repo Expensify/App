@@ -26,6 +26,7 @@ The Expensify Card statement only shows payments from existing Business Bank Acc
 
 ## Exporting your statement
 When using the Expensify Card, you can export your statement to a CSV with these steps:
+
 1. Login to your account on the web app and click on Settings > Domains > Company Cards.
 2. Click the Reconciliation tab at the top right, then select Settlements.
 3. Enter your desired statement dates using the Start and End fields.
