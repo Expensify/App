@@ -36,6 +36,7 @@ function CodesStep({account = defaultAccount}) {
             return;
         }
         Session.toggleTwoFactorAuth(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, []);
 
     return (
