@@ -2,9 +2,7 @@
 name: Deploy ExpensifyHelp
 
 on:
-  # Runs on pushes targeting the default branch
   push:
-    branches: ["main"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -49,8 +47,20 @@ jobs:
         with:
           path: ./docs/_site
 
+      - name: Preview on Cloudflare Pages
+        if: github.ref != 'refs/heads/main'
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ${{ secrets.CLOUDFLARE_PROJECT_NAME }}
+          directory: ./docs/_site
+          # Optional: Enable this if you want to have GitHub Deployments triggered
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
   # Deployment job
   deploy:
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
