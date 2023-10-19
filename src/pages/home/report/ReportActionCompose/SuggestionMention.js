@@ -9,7 +9,7 @@ import * as UserUtils from '../../../../libs/UserUtils';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 import useLocalize from '../../../../hooks/useLocalize';
-import usePrevious from "../../../../hooks/usePrevious";
+import usePrevious from '../../../../hooks/usePrevious';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import * as SuggestionProps from './suggestionProps';
