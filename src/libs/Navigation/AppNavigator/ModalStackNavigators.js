@@ -53,6 +53,8 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator({
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator({
     SplitDetails_Root: () => require('../../../pages/iou/SplitBillDetailsPage').default,
+    SplitDetails_Edit_Request: () => require('../../../pages/EditSplitBillPage').default,
+    SplitDetails_Edit_Currency: () => require('../../../pages/iou/IOUCurrencySelection').default,
 });
 
 const DetailsModalStackNavigator = createModalStackNavigator({
@@ -87,6 +89,14 @@ const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator({
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator({
     ReportParticipants_Root: () => require('../../../pages/ReportParticipantsPage').default,
+});
+
+const RoomMembersModalStackNavigator = createModalStackNavigator({
+    RoomMembers_Root: () => require('../../../pages/RoomMembersPage').default,
+});
+
+const RoomInviteModalStackNavigator = createModalStackNavigator({
+    RoomInvite_Root: () => require('../../../pages/RoomInvitePage').default,
 });
 
 const SearchModalStackNavigator = createModalStackNavigator({
@@ -141,7 +151,9 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     Settings_App_Download_Links: () => require('../../../pages/settings/AppDownloadLinks').default,
     Settings_Lounge_Access: () => require('../../../pages/settings/Profile/LoungeAccessPage').default,
     Settings_Wallet: () => require('../../../pages/settings/Wallet/WalletPage').default,
+    Settings_Wallet_Cards_Digital_Details_Update_Address: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default,
     Settings_Wallet_DomainCards: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default,
+    Settings_Wallet_ReportVirtualCardFraud: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
     Settings_Wallet_Card_Activate: () => require('../../../pages/settings/Wallet/ActivatePhysicalCardPage').default,
     Settings_Wallet_Transfer_Balance: () => require('../../../pages/settings/Wallet/TransferBalancePage').default,
     Settings_Wallet_Choose_Transfer_Account: () => require('../../../pages/settings/Wallet/ChooseTransferAccountPage').default,
@@ -152,6 +164,7 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     Settings_Status_Set: () => require('../../../pages/settings/Profile/CustomStatus/StatusSetPage').default,
     Workspace_Initial: () => require('../../../pages/workspace/WorkspaceInitialPage').default,
     Workspace_Settings: () => require('../../../pages/workspace/WorkspaceSettingsPage').default,
+    Workspace_Settings_Currency: () => require('../../../pages/workspace/WorkspaceSettingsCurrencyPage').default,
     Workspace_Card: () => require('../../../pages/workspace/card/WorkspaceCardPage').default,
     Workspace_Reimburse: () => require('../../../pages/workspace/reimburse/WorkspaceReimbursePage').default,
     Workspace_RateAndUnit: () => require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default,
@@ -164,6 +177,8 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     ReimbursementAccount: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
     GetAssistance: () => require('../../../pages/GetAssistancePage').default,
     Settings_TwoFactorAuth: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default,
+    Settings_ReportCardLostOrDamaged: () => require('../../../pages/settings/Wallet/ReportCardLostPage').default,
+    KeyboardShortcuts: () => require('../../../pages/KeyboardShortcutsPage').default,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator({
@@ -224,4 +239,6 @@ export {
     PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
     SignInModalStackNavigator,
+    RoomMembersModalStackNavigator,
+    RoomInviteModalStackNavigator,
 };

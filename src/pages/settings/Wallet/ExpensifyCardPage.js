@@ -14,9 +14,11 @@ import useLocalize from '../../../hooks/useLocalize';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as CardUtils from '../../../libs/CardUtils';
 import Button from '../../../components/Button';
 import CardDetails from './WalletPage/CardDetails';
+import MenuItem from '../../../components/MenuItem';
 import CONST from '../../../CONST';
 import assignedCardPropTypes from './assignedCardPropTypes';
 
@@ -91,6 +93,7 @@ function ExpensifyCardPage({
                                         pan="1234123412341234"
                                         expiration="11/02/2024"
                                         cvv="321"
+                                        domain={domain}
                                     />
                                 ) : (
                                     <MenuItemWithTopDescription
@@ -108,15 +111,30 @@ function ExpensifyCardPage({
                                         }
                                     />
                                 )}
+                                <MenuItemWithTopDescription
+                                    title={translate('cardPage.reportFraud')}
+                                    titleStyle={styles.walletCardMenuItem}
+                                    icon={Expensicons.Flag}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain))}
+                                />
                             </>
                         )}
                         {!_.isEmpty(physicalCard) && (
-                            <MenuItemWithTopDescription
-                                description={translate('cardPage.physicalCardNumber')}
-                                title={CardUtils.maskCard(physicalCard.lastFourPAN)}
-                                interactive={false}
-                                titleStyle={styles.walletCardNumber}
-                            />
+                            <>
+                                <MenuItemWithTopDescription
+                                    description={translate('cardPage.physicalCardNumber')}
+                                    title={CardUtils.maskCard(physicalCard.lastFourPAN)}
+                                    interactive={false}
+                                    titleStyle={styles.walletCardMenuItem}
+                                />
+                                <MenuItem
+                                    title={translate('reportCardLostOrDamaged.report')}
+                                    icon={Expensicons.Flag}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain))}
+                                />
+                            </>
                         )}
                     </ScrollView>
                     {physicalCard.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED && (
