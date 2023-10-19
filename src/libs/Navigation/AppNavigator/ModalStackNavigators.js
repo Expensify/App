@@ -1,17 +1,8 @@
 import _ from 'underscore';
 import React from 'react';
-import {CardStyleInterpolators} from '@react-navigation/stack';
 import createPlatformStackNavigator from '../PlatformStackNavigation/createPlatformStackNavigator';
-
-import styles from '../../../styles/styles';
 import SCREENS from '../../../SCREENS';
-
-// TODO: migrate options
-const defaultSubRouteOptions = {
-    cardStyle: styles.navigationScreenCardStyle,
-    headerShown: false,
-    cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-};
+import defaultSubRouteOptions from './modalStackNavigatorOptions';
 
 /**
  * Create a modal stack navigator with an array of sub-screens.
