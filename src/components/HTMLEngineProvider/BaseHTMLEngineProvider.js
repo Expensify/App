@@ -29,9 +29,13 @@ const customHTMLElementModels = {
     edited: defaultHTMLElementModels.span.extend({
         tagName: 'edited',
     }),
+    'alert-text': defaultHTMLElementModels.div.extend({
+        tagName: 'alert-text',
+        mixedUAStyles: {...styles.formError, ...styles.mb0},
+    }),
     'muted-text': defaultHTMLElementModels.div.extend({
         tagName: 'muted-text',
-        mixedUAStyles: {...styles.formError, ...styles.mb0},
+        mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
     }),
     comment: defaultHTMLElementModels.div.extend({
         tagName: 'comment',

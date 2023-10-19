@@ -1,7 +1,7 @@
 import React from 'react';
 import {Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
-import {format} from 'date-fns';
+import moment from 'moment';
 import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
@@ -28,7 +28,8 @@ class DatePicker extends React.Component {
         this.setState({isPickerVisible: false});
 
         if (event.type === 'set') {
-            this.props.onInputChange(format(selectedDate, CONST.DATE.FNS_FORMAT_STRING));
+            const asMoment = moment(selectedDate, true);
+            this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
     }
 
@@ -38,8 +39,7 @@ class DatePicker extends React.Component {
     }
 
     render() {
-        const date = this.props.value || this.props.defaultValue;
-        const dateAsText = date ? format(new Date(date), CONST.DATE.FNS_FORMAT_STRING) : '';
+        const dateAsText = this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
 
         return (
             <>
@@ -73,7 +73,7 @@ class DatePicker extends React.Component {
                 />
                 {this.state.isPickerVisible && (
                     <RNDatePicker
-                        value={date ? new Date(date) : new Date()}
+                        value={this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).toDate() : new Date()}
                         mode="date"
                         onChange={this.setDate}
                         maximumDate={this.props.maxDate}

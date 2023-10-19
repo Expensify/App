@@ -69,6 +69,8 @@ class EmojiPickerMenuItem extends PureComponent {
             <PressableWithoutFeedback
                 shouldUseAutoHitSlop={false}
                 onPress={() => this.props.onPress(this.props.emoji)}
+                // In order to prevent haptic feedback, pass empty callback as onLongPress props. Please refer https://github.com/necolas/react-native-web/issues/2349#issuecomment-1195564240
+                onLongPress={Browser.isMobileChrome() ? () => {} : undefined}
                 onPressOut={Browser.isMobile() ? this.props.onHoverOut : undefined}
                 onHoverIn={() => {
                     if (this.props.onHoverIn) {

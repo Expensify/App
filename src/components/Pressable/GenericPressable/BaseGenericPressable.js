@@ -5,7 +5,6 @@ import _ from 'underscore';
 import Accessibility from '../../../libs/Accessibility';
 import HapticFeedback from '../../../libs/HapticFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
-import * as Browser from '../../../libs/Browser';
 import styles from '../../../styles/styles';
 import genericPressablePropTypes from './PropTypes';
 import CONST from '../../../CONST';
@@ -129,15 +128,13 @@ const GenericPressable = forwardRef((props, ref) => {
         return KeyboardShortcut.subscribe(shortcutKey, onPressHandler, descriptionKey, modifiers, true, false, 0, false);
     }, [keyboardShortcut, onPressHandler]);
 
-    const defaultLongPressHandler = Browser.isMobileChrome() ? () => {} : undefined;
     return (
         <Pressable
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
-            // In order to prevent haptic feedback, pass empty callback as onLongPress props. Please refer https://github.com/necolas/react-native-web/issues/2349#issuecomment-1195564240
-            onLongPress={!isDisabled && onLongPress ? onLongPressHandler : defaultLongPressHandler}
+            onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
             onKeyDown={!isDisabled ? onKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}

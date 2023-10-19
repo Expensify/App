@@ -15,6 +15,9 @@ type PersonalBankAccount = {
 
     /** Any reportID we should redirect to at the end of the flow */
     exitReportID?: string;
+
+    /** The route to redirect after adding PBA successfully */
+    onSuccessFallbackRoute?: string;
 };
 
 export default PersonalBankAccount;

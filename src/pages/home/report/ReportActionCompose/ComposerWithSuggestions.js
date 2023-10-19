@@ -216,6 +216,10 @@ function ComposerWithSuggestions({
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
+                    // Ensure emoji suggestions are hidden after inserting emoji even when the selection is not changed
+                    if (suggestionsRef.current) {
+                        suggestionsRef.current.resetSuggestions();
+                    }
                     insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
@@ -224,11 +228,6 @@ function ComposerWithSuggestions({
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
-                // Ensure emoji suggestions are hidden even when the selection is not changed (so calculateEmojiSuggestion would not be called).
-                if (suggestionsRef.current) {
-                    suggestionsRef.current.resetSuggestions();
-                }
-
                 const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
                 setSelection({
                     start: newComment.length - remainder,

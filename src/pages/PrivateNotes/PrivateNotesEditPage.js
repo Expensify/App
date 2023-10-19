@@ -104,7 +104,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
 
     const savePrivateNote = () => {
         const originalNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
-        const editedNote = Report.handleUserDeletedLinksInHtml(privateNote.trim(), originalNote);
+        const editedNote = Report.handleUserDeletedLinksInHtml(privateNote.trim(), parser.htmlToMarkdown(originalNote).trim());
         Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         Keyboard.dismiss();
 

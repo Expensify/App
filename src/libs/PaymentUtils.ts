@@ -1,18 +1,12 @@
-import {SvgProps} from 'react-native-svg';
 import BankAccountModel from './models/BankAccount';
 import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import Fund from '../types/onyx/Fund';
 import BankAccount from '../types/onyx/BankAccount';
+import PaymentMethod from '../types/onyx/PaymentMethod';
 
 type AccountType = BankAccount['accountType'] | Fund['accountType'];
-
-type PaymentMethod = (BankAccount | Fund) & {
-    description: string;
-    icon: React.FC<SvgProps>;
-    iconSize?: number;
-};
 
 /**
  * Check to see if user has either a debit card or personal bank account added
@@ -53,22 +47,28 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
             return;
         }
 
-        const {icon, iconSize} = getBankIcon(bankAccount?.accountData?.additionalData?.bankName ?? '', false);
+        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon(bankAccount?.accountData?.additionalData?.bankName ?? '', false);
         combinedPaymentMethods.push({
             ...bankAccount,
             description: getPaymentMethodDescription(bankAccount?.accountType, bankAccount.accountData),
             icon,
             iconSize,
+            iconHeight,
+            iconWidth,
+            iconStyles,
         });
     });
 
     Object.values(fundList).forEach((card) => {
-        const {icon, iconSize} = getBankIcon(card?.accountData?.bank ?? '', true);
+        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon(card?.accountData?.bank ?? '', true);
         combinedPaymentMethods.push({
             ...card,
             description: getPaymentMethodDescription(card?.accountType, card.accountData),
             icon,
             iconSize,
+            iconHeight,
+            iconWidth,
+            iconStyles,
         });
     });
 
