@@ -1,4 +1,4 @@
-import React, {useState, useRef, useMemo, useEffect} from 'react';
+import React, {useState, useMemo, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import VideoPlayer from '../VideoPlayer';
@@ -28,12 +28,10 @@ const defaultProps = {
 };
 
 function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, showModal}) {
-    const {currentlyPlayingURL, updateCurrentlyPlayingURL, updateSharedElements} = usePlaybackContext();
+    const {currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimenstions, setMeasuredDimenstions] = useState(null);
-    const videoPlayerRef = useRef(null);
-    const videoPlayerParentRef = useRef(null);
 
     const videoStyles = useMemo(() => {
         const {width, height} = measuredDimenstions || videoDimensions;

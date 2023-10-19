@@ -1,4 +1,4 @@
-import React, {useMemo, useState, useCallback, useRef} from 'react';
+import React, {useMemo, useState, useCallback, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 
 const PlaybackContext = React.createContext(null);
@@ -13,9 +13,25 @@ function PlaybackContextProvider({children}) {
 
     const currentVideoPLayerRef = useRef(null);
 
-    const updateCurrentlyPlayingURL = useCallback((url) => {
-        setCurrentlyPlayingURL(url);
+    const pauseVideo = useCallback(() => {
+        currentVideoPLayerRef.current.setStatusAsync({shouldPlay: false});
+        setIsPlaying(false);
     }, []);
+
+    const playVideo = useCallback(() => {
+        currentVideoPLayerRef.current.setStatusAsync({shouldPlay: true});
+        setIsPlaying(true);
+    }, []);
+
+    const updateCurrentlyPlayingURL = useCallback(
+        (url) => {
+            if (currentlyPlayingURL && url !== currentlyPlayingURL) {
+                pauseVideo();
+            }
+            setCurrentlyPlayingURL(url);
+        },
+        [currentlyPlayingURL, pauseVideo],
+    );
 
     const updateVolume = useCallback((newVolume) => {
         currentVideoPLayerRef.current.setStatusAsync({volume: newVolume});
@@ -39,6 +55,14 @@ function PlaybackContextProvider({children}) {
     const updatePostiion = (newPosition) => {
         currentVideoPLayerRef.current.setStatusAsync({positionMillis: newPosition});
     };
+
+    useEffect(() => {
+        if (currentVideoPLayerRef.current && !isPlaying) {
+            playVideo();
+        }
+        return () => {};
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentVideoPLayerRef.current, playVideo]);
 
     const contextValue = useMemo(
         () => ({

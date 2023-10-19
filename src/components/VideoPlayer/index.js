@@ -43,26 +43,23 @@ const defaultProps = {
 
 function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement}) {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {updateCurrentlyPlayingURL, currentlyPlayingURL, updateSharedElements, currentVideoPLayerRef, sharedElement, originalParent} = usePlaybackContext();
-    const [isVideoPlaying, setIsVideoPlaying] = React.useState(false);
+    const {currentlyPlayingURL, updateSharedElements, currentVideoPLayerRef, sharedElement, originalParent} = usePlaybackContext();
     const [duration, setDuration] = React.useState(0);
     const [position, setPosition] = React.useState(0);
+    const [isVideoLoading, setIsVideoLoading] = React.useState(false);
 
     const [isPlaybackMenuActive, setIsPlaybackMenuActive] = React.useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = React.useState({vertical: 0, horizontal: 0});
 
     const [isCreateMenuActive, setIsCreateMenuActive] = React.useState(false);
     const ref = useRef(null);
-    currentVideoPLayerRef.current = ref.current;
+    if (currentlyPlayingURL === url && !shouldUseSharedVideoElement) {
+        currentVideoPLayerRef.current = ref.current;
+    }
 
     const videoPlayerParentRef = useRef(null);
     const videoPlayerRef = useRef(null);
-
-    const togglePlay = () => {
-        updateCurrentlyPlayingURL(url);
-        ref.current.setStatusAsync({shouldPlay: !isVideoPlaying});
-        setIsVideoPlaying(!isVideoPlaying);
-    };
+    const testRef = useRef(null);
 
     const showCreateMenu = () => {
         setIsCreateMenuActive(true);
@@ -100,13 +97,22 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         },
     ];
 
+    useEffect(() => {
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
+            return;
+        }
+        console.log('update shared elements', videoPlayerRef.current);
+        updateSharedElements(videoPlayerParentRef.current, videoPlayerRef.current);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, updateSharedElements, url]);
+
     // shared element transition logic for video player
     useEffect(() => {
         if (!shouldUseSharedVideoElement) {
             return;
         }
-        const reff = videoPlayerParentRef.current;
+        const reff = testRef.current;
         if (currentlyPlayingURL === url) {
+            console.log('set shared element', videoPlayerRef.current);
             reff.appendChild(sharedElement);
         }
         return () => {
@@ -117,18 +123,11 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         };
     }, [currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
-    useEffect(() => {
-        if (shouldUseSharedVideoElement && url !== currentlyPlayingURL) {
-            return;
-        }
-        updateSharedElements(videoPlayerParentRef.current, videoPlayerRef.current);
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, updateSharedElements, url]);
-
     return (
         <View style={[styles.w100, styles.h100]}>
             {shouldUseSharedVideoElement ? (
                 <View
-                    ref={videoPlayerParentRef}
+                    ref={testRef}
                     style={[styles.flex1]}
                 />
             ) : (
@@ -150,7 +149,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             style={style}
                             videoStyle={videoStyle}
                             source={{
-                                uri: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
+                                uri: url || 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
                             }}
                             shouldPlay={shouldPlay}
                             useNativeControls={false}
@@ -180,6 +179,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                 duration={duration}
                 position={position}
                 toggleCreateMenu={toggleCreateMenu}
+                url={url}
             />
             {/* )} */}
 

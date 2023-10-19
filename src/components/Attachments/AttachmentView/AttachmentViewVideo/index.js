@@ -1,6 +1,4 @@
-import React, {memo, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import styles from '../../../../styles/styles';
+import React, {memo} from 'react';
 import VideoPlayer from '../../../VideoPlayer';
 import withLocalize, {withLocalizePropTypes} from '../../../withLocalize';
 import compose from '../../../../libs/compose';

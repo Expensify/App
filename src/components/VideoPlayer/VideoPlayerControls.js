@@ -16,13 +16,18 @@ const propTypes = {
     position: PropTypes.number.isRequired,
 
     toggleCreateMenu: PropTypes.func.isRequired,
+
+    url: PropTypes.string.isRequired,
 };
 
 const defaultProps = {};
 
-function VideoPlayerControls({duration, position, toggleCreateMenu}) {
-    const {togglePlay, isPlaying, updatePostiion, enterFullScreenMode} = usePlaybackContext();
+function VideoPlayerControls({duration, position, toggleCreateMenu, url}) {
+    const {togglePlay, isPlaying, updatePostiion, enterFullScreenMode, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const [durationFormatted, setDurationFormatted] = React.useState('0:00');
+
+    const isCurrentlySet = currentlyPlayingURL === url;
+    const isCurrentlyPlaying = isCurrentlySet && isPlaying;
 
     useEffect(() => {
         setDurationFormatted(convertMillisecondsToTime(duration));
@@ -48,10 +53,16 @@ function VideoPlayerControls({duration, position, toggleCreateMenu}) {
             <View style={{flex: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                     <IconButton
-                        src={isPlaying ? Expensicons.Pause : Expensicons.Play}
+                        src={isCurrentlyPlaying ? Expensicons.Pause : Expensicons.Play}
                         fill="white"
                         accessibilityLabel="play/pause"
-                        onPress={togglePlay}
+                        onPress={() => {
+                            if (!isCurrentlySet) {
+                                updateCurrentlyPlayingURL(url);
+                            } else {
+                                togglePlay();
+                            }
+                        }}
                     />
                     <Text style={{color: 'white', width: 35, textAlign: 'center'}}>{convertMillisecondsToTime(position)}</Text>
                     <Text style={{color: 'white'}}>/</Text>
