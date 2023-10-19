@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import * as PlatformStackNavigator from '../PlatformStackNavigator';
+import createPlatformStackNavigator from '../PlatformStackNavigation/createPlatformStackNavigator';
 
 import styles from '../../../styles/styles';
 import SCREENS from '../../../SCREENS';
@@ -20,7 +20,7 @@ const defaultSubRouteOptions = {
  * @returns {Function}
  */
 function createModalStackNavigator(screens) {
-    const ModalStackNavigator = PlatformStackNavigator.createPlatformStackNavigator();
+    const ModalStackNavigator = createPlatformStackNavigator();
     return () => (
         <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
             {_.map(screens, (getComponent, name) => (

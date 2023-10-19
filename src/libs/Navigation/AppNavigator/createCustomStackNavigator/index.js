@@ -1,7 +1,7 @@
 import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import {useNavigationBuilder, createNavigatorFactory} from '@react-navigation/native';
-import * as PlatformStackNavigator from '../../PlatformStackNavigator';
+import StackView from '../../PlatformStackNavigation/StackView';
 import CustomRouter from './CustomRouter';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 
@@ -42,7 +42,7 @@ function ResponsiveStackNavigator(props) {
 
     return (
         <NavigationContent>
-            <PlatformStackNavigator.StackView
+            <StackView
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 state={state}
