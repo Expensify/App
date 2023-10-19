@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -15,11 +16,13 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import SettlementButton from './SettlementButton';
 import Button from './Button';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import reportPropTypes from '../pages/reportPropTypes';
+import nextStepPropTypes from '../pages/nextStepPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -40,6 +43,9 @@ const propTypes = {
     /** The chat report this report is linked to */
     chatReport: reportPropTypes,
 
+    /** The next step for the report */
+    nextStep: nextStepPropTypes,
+
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
@@ -49,27 +55,19 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
-    /** Next steps buttons to take action for an expense report */
-    nextStepButtons: PropTypes.objectOf(
-        PropTypes.shape({
-            /** Text of the next step button */
-            text: PropTypes.string,
-        }),
-    ),
-
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     chatReport: {},
+    nextStep: {},
     session: {
         email: null,
     },
-    nextStepButtons: {},
     policy: {},
 };
 
-function MoneyReportHeader({session, personalDetails, policy, chatReport, report: moneyRequestReport, isSmallScreenWidth, nextStepButtons}) {
+function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
     const {translate} = useLocalize();
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
@@ -89,12 +87,17 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
             policyType === CONST.POLICY.TYPE.PERSONAL,
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport, policyType],
     );
-    const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || !!nextStepButtons.approve || !!nextStepButtons.reimburse;
+
+    const shouldShowApproveButton = !!lodashGet(nextStep, 'buttons.approve', null);
+    const shouldShowPayButtonForGroupPolicies = !!lodashGet(nextStep, 'buttons.reimburse', null);
+    const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || shouldShowApproveButton || shouldShowPayButtonForGroupPolicies;
     const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
-    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowSubmitButton;
-    const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || !!nextStepButtons.reimburse;
+    const shouldShowNextSteps = isDraft && nextStep && (!_.isEmpty(nextStep.message) || !_.isEmpty(nextStep.expenseMessage));
+    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowSubmitButton || shouldShowNextSteps;
+    const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || shouldShowPayButtonForGroupPolicies;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
+    const isMoreContentShown = shouldShowNextSteps || (shouldShowAnyButton && isSmallScreenWidth);
 
     return (
         <View style={[styles.pt0]}>
@@ -107,7 +110,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                 personalDetails={personalDetails}
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                shouldShowBorderBottom={!shouldShowAnyButton || !isSmallScreenWidth}
+                // Shows border if no buttons or next steps are showing below the header
+                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextSteps && !isSmallScreenWidth)}
             >
                 {shouldShowSettlementButton && !isSmallScreenWidth && (
                     <View style={styles.pv2}>
@@ -142,33 +146,39 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                     </View>
                 )}
             </HeaderWithBackButton>
-            {shouldShowSettlementButton && isSmallScreenWidth && (
-                <View style={[styles.ph5, styles.pb2, isSmallScreenWidth && styles.borderBottom]}>
-                    <SettlementButton
-                        currency={moneyRequestReport.currency}
-                        policyID={moneyRequestReport.policyID}
-                        chatReportID={moneyRequestReport.chatReportID}
-                        iouReport={moneyRequestReport}
-                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
-                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                        addBankAccountRoute={bankAccountRoute}
-                        shouldShowPaymentOptions={shouldShowPaymentOptions}
-                        formattedAmount={formattedAmount}
-                        nextStepButtons={nextStepButtons}
-                    />
-                </View>
-            )}
-            {shouldShowSubmitButton && isSmallScreenWidth && (
-                <View style={[styles.ph5, styles.pb2, isSmallScreenWidth && styles.borderBottom]}>
-                    <Button
-                        medium
-                        success={chatReport.isOwnPolicyExpenseChat}
-                        text={translate('common.submit')}
-                        style={[styles.w100, styles.pr0]}
-                        onPress={() => IOU.submitReport(moneyRequestReport)}
-                    />
-                </View>
-            )}
+            <View style={isMoreContentShown ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
+                {shouldShowNextSteps && (
+                    <View style={[styles.ph5, styles.pb2]}>
+                        <MoneyReportHeaderStatusBar nextStep={nextStep} />
+                    </View>
+                )}
+                {shouldShowSettlementButton && isSmallScreenWidth && (
+                    <View style={[styles.ph5, styles.pb2]}>
+                        <SettlementButton
+                            currency={moneyRequestReport.currency}
+                            policyID={moneyRequestReport.policyID}
+                            chatReportID={moneyRequestReport.chatReportID}
+                            iouReport={moneyRequestReport}
+                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
+                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                            addBankAccountRoute={bankAccountRoute}
+                            shouldShowPaymentOptions={shouldShowPaymentOptions}
+                            formattedAmount={formattedAmount}
+                        />
+                    </View>
+                )}
+                {shouldShowSubmitButton && isSmallScreenWidth && (
+                    <View style={[styles.ph5, styles.pb2]}>
+                        <Button
+                            medium
+                            success={chatReport.isOwnPolicyExpenseChat}
+                            text={translate('common.submit')}
+                            style={[styles.w100, styles.pr0]}
+                            onPress={() => IOU.submitReport(moneyRequestReport)}
+                        />
+                    </View>
+                )}
+            </View>
         </View>
     );
 }
@@ -183,12 +193,11 @@ export default compose(
         chatReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
         },
+        nextStep: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.NEXT_STEP}${report.reportID}`,
+        },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        nextStepButtons: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_NEXT_STEP}${report.reportID}`,
-            selector: (nextStep) => lodashGet(nextStep, 'buttons', {}),
         },
     }),
 )(MoneyReportHeader);
