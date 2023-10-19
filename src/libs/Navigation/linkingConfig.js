@@ -74,7 +74,7 @@ export default {
                                 exact: true,
                             },
                             Settings_Wallet_DomainCards: {
-                                path: ROUTES.SETTINGS_WALLET_DOMAINCARDS.route,
+                                path: ROUTES.SETTINGS_WALLET_DOMAINCARD.route,
                                 exact: true,
                             },
                             Settings_Wallet_ReportVirtualCardFraud: {
@@ -93,8 +93,16 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
+                            Settings_ReportCardLostOrDamaged: {
+                                path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
+                                exact: true,
+                            },
                             Settings_Wallet_Card_Activate: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
+                                exact: true,
+                            },
+                            Settings_Wallet_Cards_Digital_Details_Update_Address: {
+                                path: ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
                                 exact: true,
                             },
                             Settings_Add_Debit_Card: {
@@ -319,6 +327,16 @@ export default {
                     Participants: {
                         screens: {
                             ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS.route,
+                        },
+                    },
+                    RoomInvite: {
+                        screens: {
+                            RoomInvite_Root: ROUTES.ROOM_INVITE.route,
+                        },
+                    },
+                    RoomMembers: {
+                        screens: {
+                            RoomMembers_Root: ROUTES.ROOM_MEMBERS.route,
                         },
                     },
                     MoneyRequest: {

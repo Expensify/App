@@ -27,6 +27,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import getBankIcon from '../../../components/Icon/BankIcons';
 import assignedCardPropTypes from './assignedCardPropTypes';
+import * as CardUtils from '../../../libs/CardUtils';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -199,14 +200,29 @@ function PaymentMethodList({
         const paymentCardList = fundList || {};
 
         if (shouldShowAssignedCards) {
-            const assignedCards = _.filter(cardList, (card) => CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state));
+            const assignedCards = _.chain(cardList)
+                // Filter by physical, active cards associated with a domain
+                .filter((card) => !card.isVirtual && card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state))
+                .sortBy((card) => !CardUtils.isExpensifyCard(card.cardID))
+                .value();
+
+            const numberPhysicalExpensifyCards = _.filter(assignedCards, (card) => CardUtils.isExpensifyCard(card.cardID)).length;
+
             return _.map(assignedCards, (card) => {
-                const icon = getBankIcon(card.bank);
+                const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
+                const icon = getBankIcon(card.bank, true);
+
+                // In the case a user has been assigned multiple physical Expensify Cards under one domain, display the Card with PAN
+                const expensifyCardDescription = numberPhysicalExpensifyCards > 1 ? CardUtils.getCardDescription(card.cardID) : translate('walletPage.expensifyCard');
                 return {
-                    key: card.key,
-                    title: translate('walletPage.expensifyCard'),
+                    key: card.cardID,
+                    title: isExpensifyCard ? expensifyCardDescription : card.cardName,
                     description: card.domainName,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(card.domainName)),
+                    onPress: isExpensifyCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName)) : () => {},
+                    shouldShowRightIcon: isExpensifyCard,
+                    interactive: isExpensifyCard,
+                    canDismissError: isExpensifyCard,
+                    errors: card.errors,
                     ...icon,
                 };
             });
@@ -274,6 +290,7 @@ function PaymentMethodList({
                 pendingAction={item.pendingAction}
                 errors={item.errors}
                 errorRowStyles={styles.ph6}
+                canDismissError={item.canDismissError}
             >
                 <MenuItem
                     onPress={item.onPress}
@@ -282,17 +299,19 @@ function PaymentMethodList({
                     icon={item.icon}
                     disabled={item.disabled}
                     iconFill={item.iconFill}
-                    iconHeight={item.iconSize}
-                    iconWidth={item.iconSize}
+                    iconHeight={item.iconHeight || item.iconSize}
+                    iconWidth={item.iconWidth || item.iconSize}
+                    iconStyles={item.iconStyles}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
                     wrapperStyle={styles.paymentMethod}
-                    shouldShowRightIcon={shouldShowAssignedCards}
+                    shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID === item.methodID}
+                    interactive={item.interactive}
                 />
             </OfflineWithFeedback>
         ),
-        [filteredPaymentMethods, translate, shouldShowAssignedCards, shouldShowSelectedState, selectedMethodID],
+        [filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
     );
 
     return (
