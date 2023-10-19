@@ -85,31 +85,8 @@ const avatarSizeToStylesMap = {
         secondAvatarStyles: styles.secondAvatar,
     },
 };
-
-function getContainerStyles(size, isInReportAction) {
-    let containerStyles;
-
-    switch (size) {
-        case CONST.AVATAR_SIZE.SMALL:
-            containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
-            break;
-        case CONST.AVATAR_SIZE.SMALLER:
-            containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
-            break;
-        case CONST.AVATAR_SIZE.MEDIUM:
-            containerStyles = [styles.emptyAvatarMedium, styles.emptyAvatarMargin];
-            break;
-        case CONST.AVATAR_SIZE.LARGE:
-            containerStyles = [styles.emptyAvatarLarge, styles.mb2, styles.mr2];
-            break;
-        default:
-            containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];
-    }
-
-    return containerStyles;
-}
 function MultipleAvatars(props) {
-    let avatarContainerStyles = getContainerStyles(props.size, props.isInReportAction);
+    let avatarContainerStyles = StyleUtils.getContainerStyles(props.size, props.isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[props.size] || avatarSizeToStylesMap.default, [props.size]);
 
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];

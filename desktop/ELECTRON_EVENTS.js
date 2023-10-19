@@ -6,7 +6,7 @@ const ELECTRON_EVENTS = {
     REQUEST_FOCUS_APP: 'requestFocusApp',
     REQUEST_UPDATE_BADGE_COUNT: 'requestUpdateBadgeCount',
     REQUEST_VISIBILITY: 'requestVisibility',
-    SHOW_KEYBOARD_SHORTCUTS_MODAL: 'show-keyboard-shortcuts-modal',
+    KEYBOARD_SHORTCUTS_PAGE: 'keyboard-shortcuts-page',
     START_UPDATE: 'start-update',
     UPDATE_DOWNLOADED: 'update-downloaded',
 };

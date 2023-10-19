@@ -408,7 +408,7 @@ describe('ReportUtils', () => {
                             chatType,
                         };
                         const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], []);
-                        return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
+                        return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
                     },
                 );
                 expect(onlyHaveSplitOption).toBe(true);
@@ -421,7 +421,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], []);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
 
             it('user has send money permission', () => {
@@ -431,7 +431,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
 
             it("it's a group chat report", () => {
@@ -442,7 +442,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
         });
 
@@ -455,7 +455,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
 
             it("it is an expense report tied to user's own policy expense chat", () => {
@@ -471,7 +471,7 @@ describe('ReportUtils', () => {
                     };
                     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID], [CONST.BETAS.IOU_SEND]);
                     expect(moneyRequestOptions.length).toBe(1);
-                    expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+                    expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
                 });
             });
 
@@ -485,7 +485,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], []);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
 
             it('it is an IOU report in submitted state even with send money permissions', () => {
@@ -498,7 +498,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
         });
 
@@ -509,8 +509,8 @@ describe('ReportUtils', () => {
             };
             const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], [CONST.BETAS.IOU_SEND]);
             expect(moneyRequestOptions.length).toBe(2);
-            expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
-            expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND)).toBe(true);
+            expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
+            expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND)).toBe(true);
         });
     });
 
