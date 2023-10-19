@@ -27,10 +27,13 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, innerRe
         setContentOffsetY(event.nativeEvent.contentOffset.y);
     };
 
-    const contextValue = useMemo(() => ({
-        scrollViewRef,
-        contentOffsetY,
-    }), [scrollViewRef, contentOffsetY]);
+    const contextValue = useMemo(
+        () => ({
+            scrollViewRef,
+            contentOffsetY,
+        }),
+        [scrollViewRef, contentOffsetY],
+    );
 
     return (
         <ScrollView
@@ -40,11 +43,7 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, innerRe
             onScroll={setContextScrollPosition}
             scrollEventThrottle={scrollEventThrottle || MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
         >
-            <ScrollContext.Provider
-                value={contextValue}
-            >
-                {children}
-            </ScrollContext.Provider>
+            <ScrollContext.Provider value={contextValue}>{children}</ScrollContext.Provider>
         </ScrollView>
     );
 }

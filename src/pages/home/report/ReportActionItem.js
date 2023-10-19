@@ -274,12 +274,15 @@ function ReportActionItem(props) {
         [props.report, props.action, props.emojiReactions],
     );
 
-    const contextValue = useMemo(() => ({
-        anchor: popoverAnchorRef,
-        report: props.report,
-        action: props.action,
-        checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
-    }), [props.report, props.action, toggleContextMenuFromActiveReportAction]);
+    const contextValue = useMemo(
+        () => ({
+            anchor: popoverAnchorRef,
+            report: props.report,
+            action: props.action,
+            checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+        }),
+        [props.report, props.action, toggleContextMenuFromActiveReportAction],
+    );
 
     /**
      * Get the content of ReportActionItem
@@ -373,9 +376,7 @@ function ReportActionItem(props) {
         } else {
             const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
             children = (
-                <ShowContextMenuContext.Provider
-                    value={contextValue}
-                >
+                <ShowContextMenuContext.Provider value={contextValue}>
                     {!props.draftMessage ? (
                         <View style={props.displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                             <ReportActionItemMessage
@@ -522,9 +523,7 @@ function ReportActionItem(props) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             content = (
-                <ShowContextMenuContext.Provider
-                    value={contextValue}
-                >
+                <ShowContextMenuContext.Provider value={contextValue}>
                     <MoneyRequestView
                         report={props.report}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}

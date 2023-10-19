@@ -73,13 +73,7 @@ function WindowDimensionsProvider(props) {
             isLargeScreenWidth: false,
         };
     }, [windowDimension.windowHeight, windowDimension.windowWidth, adjustment]);
-    return (
-        <WindowDimensionsContext.Provider
-            value={contextValue}
-        >
-            {props.children}
-        </WindowDimensionsContext.Provider>
-    );
+    return <WindowDimensionsContext.Provider value={contextValue}>{props.children}</WindowDimensionsContext.Provider>;
 }
 
 WindowDimensionsProvider.propTypes = windowDimensionsProviderPropTypes;

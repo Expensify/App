@@ -31,9 +31,12 @@ function KeyboardStateProvider(props) {
         };
     }, []);
 
-    const contextValue = useMemo(() => ({
-        isKeyboardShown,
-    }), [isKeyboardShown]);
+    const contextValue = useMemo(
+        () => ({
+            isKeyboardShown,
+        }),
+        [isKeyboardShown],
+    );
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
 

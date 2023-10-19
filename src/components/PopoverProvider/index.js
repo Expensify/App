@@ -111,18 +111,17 @@ function PopoverContextProvider(props) {
         [closePopover],
     );
 
-    const contextValue = React.useMemo(() => ({
-        onOpen,
-        close: closePopover,
-        popover: activePopoverRef.current,
-        isOpen,
-    }), [onOpen, closePopover, isOpen]);
-
-    return (
-        <PopoverContext.Provider value={contextValue}>
-            {props.children}
-        </PopoverContext.Provider>
+    const contextValue = React.useMemo(
+        () => ({
+            onOpen,
+            close: closePopover,
+            popover: activePopoverRef.current,
+            isOpen,
+        }),
+        [onOpen, closePopover, isOpen],
     );
+
+    return <PopoverContext.Provider value={contextValue}>{props.children}</PopoverContext.Provider>;
 }
 
 PopoverContextProvider.defaultProps = defaultProps;

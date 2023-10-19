@@ -59,13 +59,7 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
         }
     };
 
-    return (
-        <TwoFactorAuthContext.Provider
-            value={contextValue}
-        >
-            {renderStep()}
-        </TwoFactorAuthContext.Provider>
-    );
+    return <TwoFactorAuthContext.Provider value={contextValue}>{renderStep()}</TwoFactorAuthContext.Provider>;
 }
 
 TwoFactorAuthSteps.propTypes = TwoFactorAuthPropTypes;

@@ -126,35 +126,25 @@ function AttachmentCarouselPager({
         scrollEnabled: shouldPagerScroll.value,
     }));
 
-    const contextValue = useMemo(() => ({
-        canvasWidth: containerWidth,
-        canvasHeight: containerHeight,
-        isScrolling,
-        pagerRef,
-        shouldPagerScroll,
-        onPinchGestureChange,
-        onTap,
-        onSwipe,
-        onSwipeSuccess,
-        onSwipeDown,
-    }), [
-        containerWidth,
-        containerHeight,
-        isScrolling,
-        pagerRef,
-        shouldPagerScroll,
-        onPinchGestureChange,
-        onTap,
-        onSwipe,
-        onSwipeSuccess,
-        onSwipeDown,
-    ]);
+    const contextValue = useMemo(
+        () => ({
+            canvasWidth: containerWidth,
+            canvasHeight: containerHeight,
+            isScrolling,
+            pagerRef,
+            shouldPagerScroll,
+            onPinchGestureChange,
+            onTap,
+            onSwipe,
+            onSwipeSuccess,
+            onSwipeDown,
+        }),
+        [containerWidth, containerHeight, isScrolling, pagerRef, shouldPagerScroll, onPinchGestureChange, onTap, onSwipe, onSwipeSuccess, onSwipeDown],
+    );
 
     return (
         <GestureHandlerRootView style={styles.flex1}>
-            <AttachmentCarouselPagerContext.Provider
-                value={contextValue}
-            >
+            <AttachmentCarouselPagerContext.Provider value={contextValue}>
                 <AnimatedPagerView
                     pageMargin={40}
                     offscreenPageLimit={1}
