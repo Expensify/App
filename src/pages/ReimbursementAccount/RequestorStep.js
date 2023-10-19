@@ -111,9 +111,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
         return (
             <RequestorOnfidoStep
                 reimbursementAccount={reimbursementAccount}
-                reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={onBackButtonPress}
-                getDefaultStateForField={getDefaultStateForField}
             />
         );
     }
