@@ -1,18 +1,20 @@
-import React, {ForwardedRef, forwardRef} from 'react';
-import {SectionListProps, SectionList} from 'react-native';
+import React, {forwardRef} from 'react';
+import {SectionList as RNSectionList} from 'react-native';
+import ForwardedSectionList from './types';
 
-function SectionListWithoutSubviews(props: SectionListProps<SectionList>, ref: ForwardedRef<SectionList>) {
-    return (
-        <SectionList
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            ref={ref}
-            // For Android we want to use removeClippedSubviews since it helps manage memory consumption. When we
-            // run out memory images stop loading and appear as grey circles
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            removeClippedSubviews
-        />
-    );
-}
+// eslint-disable-next-line react/function-component-definition
+const SectionList: ForwardedSectionList = (props, ref) => (
+    <RNSectionList
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        ref={ref}
+        // For Android we want to use removeClippedSubviews since it helps manage memory consumption. When we
+        // run out memory images stop loading and appear as grey circles
+        // eslint-disable-next-line react/jsx-props-no-multi-spaces
+        removeClippedSubviews
+    />
+);
 
-export default forwardRef(SectionListWithoutSubviews);
+SectionList.displayName = 'SectionList';
+
+export default forwardRef(SectionList);
