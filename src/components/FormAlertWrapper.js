@@ -66,7 +66,7 @@ function FormAlertWrapper(props) {
             </Text>
         );
     } else if (props.isMessageHtml) {
-        children = <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />;
+        children = <RenderHTML html={`<alert-text>${props.message}</alert-text>`} />;
     }
     return (
         <View style={props.containerStyles}>

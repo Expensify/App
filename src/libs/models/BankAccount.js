@@ -223,6 +223,14 @@ class BankAccount {
     }
 
     /**
+     * Get the pending action of the bank account
+     * @returns {String}
+     */
+    getPendingAction() {
+        return lodashGet(this.json, 'pendingAction', '');
+    }
+
+    /**
      * Return a map needed to setup a withdrawal account
      * @returns {Object}
      */
