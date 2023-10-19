@@ -159,8 +159,8 @@ const MenuItem = React.forwardRef((props, ref) => {
                     {Boolean(isEllipsisActive) && (
                         <View style={styles.displayNameTooltipEllipsis}>
                             <Tooltip text={props.title}>
-                                {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
-                                <Text>....</Text>
+                                {/* There is some Gap for real ellipsis so we are adding 5 `.` to cover */}
+                                <Text>.....</Text>
                             </Tooltip>
                         </View>
                     )}
