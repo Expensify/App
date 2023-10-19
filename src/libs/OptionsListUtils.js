@@ -161,6 +161,9 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
     }
     _.each(accountIDs, (accountID) => {
         const cleanAccountID = Number(accountID);
+        if (!cleanAccountID) {
+            return;
+        }
         let personalDetail = personalDetails[accountID];
         if (!personalDetail) {
             personalDetail = {
