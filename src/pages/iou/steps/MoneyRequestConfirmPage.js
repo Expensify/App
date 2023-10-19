@@ -73,12 +73,12 @@ function MoneyRequestConfirmPage(props) {
             _.chain(props.iou.participants)
                 .map((participant) => {
                     const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
+                    const option = isPolicyExpenseChat
+                        ? OptionsListUtils.getPolicyExpenseReportOption(participant)
+                        : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
+                    return { ...option, isPolicyExpenseChat };
                 })
-                .filter((participant) => {
-                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                    return isPolicyExpenseChat || !!participant.login;
-                })
+                .filter((option) => option.isPolicyExpenseChat || !!option.login)
                 .value(),
         [props.iou.participants, props.personalDetails],
     );
