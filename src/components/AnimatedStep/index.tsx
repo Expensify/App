@@ -1,62 +1,52 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import * as Animatable from 'react-native-animatable';
+import {StyleProp, ViewStyle} from 'react-native';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import useNativeDriver from '../../libs/useNativeDriver';
+import {AnimationDirection} from './AnimatedStepContext';
+import ChildrenProps from '../../types/utils/ChildrenProps';
 
-const propTypes = {
-    /** Children to wrap in AnimatedStep. */
-    children: PropTypes.node.isRequired,
-
+type AnimatedStepProps = ChildrenProps & {
     /** Styles to be assigned to Container */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.arrayOf(PropTypes.object),
+    style: StyleProp<ViewStyle>;
 
     /** Whether we're animating the step in or out */
-    direction: PropTypes.oneOf(['in', 'out']),
+    direction: AnimationDirection;
 
     /** Callback to fire when the animation ends */
-    onAnimationEnd: PropTypes.func,
+    onAnimationEnd: () => void;
 };
 
-const defaultProps = {
-    direction: 'in',
-    style: [],
-    onAnimationEnd: () => {},
-};
-
-function getAnimationStyle(direction) {
+function getAnimationStyle(direction: AnimationDirection) {
     let transitionValue;
 
     if (direction === 'in') {
         transitionValue = CONST.ANIMATED_TRANSITION_FROM_VALUE;
-    } else if (direction === 'out') {
+    } else {
         transitionValue = -CONST.ANIMATED_TRANSITION_FROM_VALUE;
     }
     return styles.makeSlideInTranslation('translateX', transitionValue);
 }
 
-function AnimatedStep(props) {
+function AnimatedStep({onAnimationEnd, direction = 'in', style = [], children}: AnimatedStepProps) {
     return (
         <Animatable.View
             onAnimationEnd={() => {
-                if (!props.onAnimationEnd) {
+                if (!onAnimationEnd) {
                     return;
                 }
-                props.onAnimationEnd();
+                onAnimationEnd();
             }}
             duration={CONST.ANIMATED_TRANSITION}
-            animation={getAnimationStyle(props.direction)}
+            animation={getAnimationStyle(direction)}
             useNativeDriver={useNativeDriver}
-            style={props.style}
+            style={style}
         >
-            {props.children}
+            {children}
         </Animatable.View>
     );
 }
 
-AnimatedStep.propTypes = propTypes;
-AnimatedStep.defaultProps = defaultProps;
 AnimatedStep.displayName = 'AnimatedStep';
 export default AnimatedStep;
