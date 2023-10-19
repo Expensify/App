@@ -36,10 +36,10 @@ jobs:
           source: ./docs/
           destination: ./docs/_site
 
-      - name: Preview on Cloudflare Pages
+      - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_TOKEN }}
+          apiToken: ${{ secrets.CLOUDFLARE_PAGES_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: helpdot
           directory: ./docs/_site
