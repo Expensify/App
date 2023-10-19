@@ -375,26 +375,28 @@ function ReportActionItem(props) {
                             pressOnEnter
                         />
                     )}
-                    {shouldShowEnableWalletButton && (
-                        <KYCWall
-                            onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
-                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                            addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
-                            addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                            chatReportID={props.report.reportID}
-                            iouReport={props.iouReport}
-                        >
-                            {(triggerKYCFlow, buttonRef) => (
-                                <Button
-                                    ref={buttonRef}
-                                    success
-                                    style={[styles.w100, styles.requestPreviewBox]}
-                                    text={props.translate('iou.enableWallet')}
-                                    onPress={triggerKYCFlow}
-                                />
-                            )}
-                        </KYCWall>
-                    )}
+                    <>
+                        {shouldShowEnableWalletButton && (
+                            <KYCWall
+                                onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
+                                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
+                                addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                                chatReportID={props.report.reportID}
+                                iouReport={props.iouReport}
+                            >
+                                {(triggerKYCFlow, buttonRef) => (
+                                    <Button
+                                        ref={buttonRef}
+                                        success
+                                        style={[styles.w100, styles.requestPreviewBox]}
+                                        text={props.translate('iou.enableWallet')}
+                                        onPress={triggerKYCFlow}
+                                    />
+                                )}
+                            </KYCWall>
+                        )}
+                    </>
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
