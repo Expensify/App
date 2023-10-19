@@ -16,19 +16,19 @@ type RadioButtonsProps = {
     onPress: (value: string) => void;
 };
 
-function RadioButtons(props: RadioButtonsProps) {
+function RadioButtons({items, onPress}: RadioButtonsProps) {
     const [checkedValue, setCheckedValue] = useState('');
 
     return (
         <View>
-            {props.items.map((item) => (
+            {items.map((item) => (
                 <RadioButtonWithLabel
                     key={item.value}
                     isChecked={item.value === checkedValue}
                     style={styles.mt4}
                     onPress={() => {
                         setCheckedValue(item.value);
-                        return props.onPress(item.value);
+                        return onPress(item.value);
                     }}
                     label={item.label}
                 />
