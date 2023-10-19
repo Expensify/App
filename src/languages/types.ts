@@ -1,3 +1,4 @@
+import {ReportAction} from '../types/onyx';
 import en from './en';
 
 type AddressLineParams = {
@@ -42,15 +43,15 @@ type LocalTimeParams = {
 };
 
 type EditActionParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type DeleteActionParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type DeleteConfirmationParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type BeginningOfChatHistoryDomainRoomPartOneParams = {
@@ -105,6 +106,8 @@ type RequestAmountParams = {amount: number};
 type RequestedAmountMessageParams = {formattedAmount: string; comment: string};
 
 type SplitAmountParams = {amount: number};
+
+type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
 type AmountEachParams = {amount: number};
 
@@ -269,6 +272,7 @@ export type {
     RequestAmountParams,
     RequestedAmountMessageParams,
     SplitAmountParams,
+    DidSplitAmountMessageParams,
     AmountEachParams,
     PayerOwesAmountParams,
     PayerOwesParams,
