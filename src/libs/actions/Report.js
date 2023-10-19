@@ -1988,6 +1988,7 @@ function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
             ],
         },
     );
+
     if (isWorkspaceMemberLeavingWorkspaceRoom) {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
@@ -2043,31 +2044,13 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
  * Removes people from a room
  *
  * @param {String} reportID
- * @param {Object} targetEmailsToAccountIDs
+ * @param {Array} targetAccountIDs
  */
-function removeFromRoom(reportID, targetEmailsToAccountIDs) {
+function removeFromRoom(reportID, targetAccountIDs) {
     const report = lodashGet(allReports, [reportID], {});
 
-    const targetEmails = _.keys(targetEmailsToAccountIDs);
-    const targetAccountIDs = _.values(targetEmailsToAccountIDs);
-
-    const {participants, participantAccountIDs} = report;
-
-    const optimisticReportUpdate = {
-        participantAccountIDs: _.difference(participantAccountIDs, targetAccountIDs),
-    };
-    if (participants) {
-        optimisticReportUpdate.participants = _.difference(participants, targetEmails);
-    }
-
-    const failureReportUpdate = {
-        participantAccountIDs,
-    };
-    if (participants) {
-        optimisticReportUpdate.participants = participants;
-    }
-
-    const successReportUpdate = optimisticReportUpdate;
+    const {participantAccountIDs} = report;
+    const participantAccountIDsAfterRemoval = _.difference(participantAccountIDs, targetAccountIDs);
 
     API.write(
         'RemoveFromRoom',
@@ -2080,14 +2063,18 @@ function removeFromRoom(reportID, targetEmailsToAccountIDs) {
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: optimisticReportUpdate,
+                    value: {
+                        participantAccountIDs: participantAccountIDsAfterRemoval,
+                    },
                 },
             ],
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: failureReportUpdate,
+                    value: {
+                        participantAccountIDs,
+                    },
                 },
             ],
 
@@ -2097,7 +2084,9 @@ function removeFromRoom(reportID, targetEmailsToAccountIDs) {
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: successReportUpdate,
+                    value: {
+                        participantAccountIDs: participantAccountIDsAfterRemoval,
+                    },
                 },
             ],
         },
