@@ -62,13 +62,6 @@ const policyPropTypes = {
     policyMembers: PropTypes.objectOf(policyMemberPropType),
 };
 
-const policyDefaultProps: WithPolicyOnyxProps = {
-    policy: {} as OnyxTypes.Policy,
-    policyMembers: {},
-    policyDraft: {} as OnyxTypes.Policy,
-    policyMembersDraft: {},
-};
-
 type WithPolicyOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyMembers: OnyxEntry<OnyxTypes.PolicyMember>;
@@ -79,6 +72,14 @@ type WithPolicyOnyxProps = {
 type WithPolicyProps = WithPolicyOnyxProps & {
     route: PolicyRoute;
 };
+
+const policyDefaultProps: WithPolicyOnyxProps = {
+    policy: {} as OnyxTypes.Policy,
+    policyMembers: {},
+    policyDraft: {} as OnyxTypes.Policy,
+    policyMembersDraft: {},
+};
+
 /*
  * HOC for connecting a policy in Onyx corresponding to the policyID in route params
  */
@@ -90,7 +91,7 @@ export default function withPolicy<TProps extends WithPolicyProps, TRef>(
         const currentRoute = routes?.[routes.length - 1];
         const policyID = getPolicyIDFromRoute(currentRoute as PolicyRoute);
 
-        if (typeof policyID === 'string' && policyID.length > 0) {
+        if (policyID.length > 0) {
             Policy.updateLastAccessedWorkspace(policyID);
         }
 
