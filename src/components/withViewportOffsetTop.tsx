@@ -14,7 +14,7 @@ export default function withViewportOffsetTop<TProps extends ViewportOffsetTopPr
 
         useEffect(() => {
             const updateDimensions = (event: Event) => {
-                const targetOffsetTop = (event.target instanceof HTMLElement && event.target.offsetTop) || 0;
+                const targetOffsetTop = (event.target instanceof VisualViewport && event.target.offsetTop) || 0;
                 setViewportOffsetTop(targetOffsetTop);
             };
 
