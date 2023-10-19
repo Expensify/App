@@ -261,7 +261,6 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
-                iconInfo: 'Exit',
                 action: () => {
                     signOut(false);
                 },

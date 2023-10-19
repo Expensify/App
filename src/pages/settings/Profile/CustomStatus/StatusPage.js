@@ -79,6 +79,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             headerContent={
                 <ImageSVG
                     src={MobileBackgroundImage}
+                    pointerEvents="none"
                     style={styles.staticHeaderImage}
                 />
             }

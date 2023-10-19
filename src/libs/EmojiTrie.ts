@@ -1,4 +1,5 @@
 import React from 'react';
+import {ImageSourcePropType} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import emojis, {localeEmojis} from '@assets/emojis';
 import CONST from '@src/CONST';
@@ -8,7 +9,7 @@ import Trie from './Trie';
 type Emoji = {
     code: string;
     header?: boolean;
-    icon?: React.FC<SvgProps>;
+    icon?: React.FC<SvgProps> | ImageSourcePropType;
     name?: string;
     types?: string[];
 };

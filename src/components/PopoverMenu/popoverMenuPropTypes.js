@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -15,7 +16,7 @@ const propTypes = {
     menuItems: PropTypes.arrayOf(
         PropTypes.shape({
             /** An icon element displayed on the left side */
-            icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.node]),
+            icon: PropTypes.oneOfType([PropTypes.elementType, sourcePropTypes]),
 
             /** Text label */
             text: PropTypes.string.isRequired,

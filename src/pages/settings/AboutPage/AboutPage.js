@@ -110,6 +110,7 @@ function AboutPage(props) {
                             <View style={styles.pageWrapper}>
                                 <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
                                     <ImageSVG
+                                        contentFit="contain"
                                         src={Logo}
                                         height={80}
                                         width={80}
