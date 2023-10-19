@@ -15,7 +15,6 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
 import Checkbox from '../Checkbox';
 import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
-import getReturnKeyType from '../../libs/getReturnKeyType';
 import CONST from '../../CONST';
 import FormHelpMessage from '../FormHelpMessage';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
@@ -356,7 +355,6 @@ function BaseTextInput(props) {
                                 secureTextEntry={passwordHidden}
                                 onPressOut={props.onPress}
                                 showSoftInputOnFocus={!props.disableKeyboard}
-                                returnKeyType={getReturnKeyType(props.returnKeyType, props.keyboardType)}
                                 keyboardType={getSecureEntryKeyboardType(props.keyboardType, props.secureTextEntry, passwordHidden)}
                                 value={props.value}
                                 selection={props.selection}
