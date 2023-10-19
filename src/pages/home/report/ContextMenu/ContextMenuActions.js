@@ -134,7 +134,7 @@ export default [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', ''), reportAction, reportID);
+                    Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
                 });
                 return;
             }
@@ -146,7 +146,6 @@ export default [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.subscribeToThread',
-        // textTranslateKey: lodashGet(reportAction, 'childReportNotificationPreference', '0'),
         icon: Expensicons.Bell,
         successTextTranslateKey: '',
         successIcon: null,
@@ -179,7 +178,6 @@ export default [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.unsubscribeFromThread',
-        // textTranslateKey: lodashGet(reportAction, 'childReportNotificationPreference', '0'),
         icon: Expensicons.BellSlash,
         successTextTranslateKey: '',
         successIcon: null,
