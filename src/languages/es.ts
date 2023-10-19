@@ -588,6 +588,8 @@ export default {
             duplicateWaypointsErrorMessage: 'Por favor elimina los puntos de ruta duplicados',
             emptyWaypointsErrorMessage: 'Por favor introduce al menos dos puntos de ruta',
         },
+        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `nicio el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
+        enableWallet: 'Habilitar Billetera',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
