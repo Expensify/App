@@ -40,7 +40,7 @@ const SubNavigationMenuItem = React.forwardRef(({icon, title, isFocused, onPress
         {({pressed, hovered}) => (
             <View style={[styles.subNavigationOption, hovered ? styles.sidebarLinkHoverLHN : null, isFocused ? styles.sidebarLinkActiveLHN : null]}>
                 <Icon
-                    additionalStyles={[styles.popoverMenuIcon, styles.mr4]}
+                    additionalStyles={[styles.subNavigationMenuIcon]}
                     pressed={pressed}
                     src={icon}
                     fill={isFocused ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DEFAULT, true) : StyleUtils.getIconFillColor()}

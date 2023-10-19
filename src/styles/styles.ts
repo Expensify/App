@@ -1510,9 +1510,18 @@ const styles = (theme: ThemeDefault) =>
         subNavigationOption: {
             flexDirection: 'row',
             marginHorizontal: 12,
-            paddingHorizontal: 14,
-            paddingVertical: 18,
+            paddingHorizontal: 8,
+            paddingVertical: 12,
             borderRadius: 8,
+            alignItems: 'center',
+        },
+
+        subNavigationMenuIcon: {
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: 32,
+            width: 32,
+            marginRight: 12,
         },
 
         subNavigationOptionActive: {
