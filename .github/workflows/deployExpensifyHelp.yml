@@ -37,7 +37,6 @@ jobs:
           destination: ./docs/_site
 
       - name: Preview on Cloudflare Pages
-        if: github.ref != 'refs/heads/main'
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
