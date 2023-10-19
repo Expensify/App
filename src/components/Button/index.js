@@ -233,7 +233,7 @@ class Button extends Component {
                 <View style={[styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {this.props.icon && (
-                            <View style={[styles.mr1, styles.ml2, ...this.props.iconStyles]}>
+                            <View style={[styles.mr1, this.props.large && styles.ml2, ...this.props.iconStyles]}>
                                 <Icon
                                     src={this.props.icon}
                                     fill={this.props.iconFill}
