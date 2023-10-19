@@ -232,10 +232,10 @@ function WorkspaceInvitePage(props) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (usersToInvite.length === 0 && excludedUsers.includes(searchValue)) {
-            return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
+            return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, searchTerm, policyName, usersToInvite, personalDetails]);
+    }, [excludedUsers, translate, searchTerm, policyName, usersToInvite, personalDetails.length]);
 
     return (
         <ScreenWrapper

@@ -12,15 +12,15 @@ import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import ReportAction from '../types/onyx/ReportAction';
+import ReportAction, {ReportActions} from '../types/onyx/ReportAction';
 import Beta from '../types/onyx/Beta';
 import Policy from '../types/onyx/Policy';
 import Report from '../types/onyx/Report';
 import {PersonalDetails} from '../types/onyx';
 import * as OnyxCommon from '../types/onyx/OnyxCommon';
 
-const visibleReportActionItems: Record<string, ReportAction> = {};
-const lastReportActions: Record<string, ReportAction> = {};
+const visibleReportActionItems: ReportActions = {};
+const lastReportActions: ReportActions = {};
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -433,6 +433,28 @@ function getOptionData(
             result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}`;
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
             result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}`;
+        } else if (
+            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
+            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
+            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
+            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
+        ) {
+            const targetAccountIDs = lastAction?.originalMessage?.targetAccountIDs ?? [];
+            const verb =
+                lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                    ? 'invited'
+                    : 'removed';
+            const users = targetAccountIDs.length > 1 ? 'users' : 'user';
+            result.alternateText = `${verb} ${targetAccountIDs.length} ${users}`;
+
+            const roomName = lastAction?.originalMessage?.roomName ?? '';
+            if (roomName) {
+                const preposition =
+                    lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                        ? ' to'
+                        : ' from';
+                result.alternateText += `${preposition} ${roomName}`;
+            }
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
