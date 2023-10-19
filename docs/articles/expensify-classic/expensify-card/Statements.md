@@ -63,7 +63,7 @@ Your domain limit may fluctuate based on your cash balance, spending patterns, a
 ## How is the “Amount Owed” figure on the card list calculated?
 The amount owed consists of all Expensify Card transactions, both pending and posted, since the last settlement date. The settlement amount withdrawn from your designated Verified Business Bank Account only includes posted transactions.
 
-  Your amount owed decreases when the settlement clears. Any pending transactions that don't post timely will automatically expire, reducing your amount owed.
+Your amount owed decreases when the settlement clears. Any pending transactions that don't post timely will automatically expire, reducing your amount owed.
   
 ## **How do I view all unsettled expenses?**
   To view unsettled expenses since the last settlement, use the Reconciliation Dashboard's Expenses tab. Follow these steps:
