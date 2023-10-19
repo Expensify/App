@@ -127,7 +127,8 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
-    return String(lodashGet(route, 'params.reportID', ''));
+    // // The reportID is used inside a collection key and should not be empty, as an empty reportID will result in the entire collection being returned.
+    return String(lodashGet(route, 'params.reportID', null));
 }
 
 function ReportScreen({
