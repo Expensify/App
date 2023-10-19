@@ -654,10 +654,8 @@ function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(reportID, userLogins, newChat);
     if (shouldDismissModal) {
-        console.log(">>>> dismissing modal");
         Navigation.dismissModal(reportID);
     } else {
-        console.log(">>>> Navigating to ", reportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
 }
@@ -1419,16 +1417,13 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
     // Now, when user performs sign-out and a sign-in again, conciergeChatReportID may contain a stale value.
     // In order to prevent navigation to a stale value, we use ignoreConciergeReportID to forcefully find and navigate to concierge chat.
     if (!conciergeChatReportID || ignoreConciergeReportID) {
-        console.log(">>>> fetching before navigating");
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
-            console.log(">>>> data is ready");
             // If we don't have a chat with Concierge then create it
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], false);
         });
     } else {
-        console.log(">>>> Navigating to ", conciergeChatReportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
     }
 }
