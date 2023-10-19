@@ -29,7 +29,7 @@ function getAnimationStyle(direction: AnimationDirection) {
     return styles.makeSlideInTranslation('translateX', transitionValue);
 }
 
-function AnimatedStep({onAnimationEnd, direction = 'in', style = [], children}: AnimatedStepProps) {
+function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN, style = [], children}: AnimatedStepProps) {
     return (
         <Animatable.View
             onAnimationEnd={() => {
