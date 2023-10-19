@@ -58,8 +58,8 @@ function LegalNamePage(props) {
         } else if (_.isEmpty(values.legalFirstName)) {
             errors.legalFirstName = 'common.error.fieldRequired';
         }
-        if (values.legalFirstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            ErrorUtils.addErrorMessage(errors, 'legalFirstName', ['common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}]);
+        if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', ['common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}]);
         }
 
         if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
@@ -67,8 +67,8 @@ function LegalNamePage(props) {
         } else if (_.isEmpty(values.legalLastName)) {
             errors.legalLastName = 'common.error.fieldRequired';
         }
-        if (values.legalLastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}]);
+        if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}]);
         }
 
         return errors;
@@ -103,7 +103,7 @@ function LegalNamePage(props) {
                             accessibilityLabel={props.translate('privatePersonalDetails.legalFirstName')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={legalFirstName}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
+                            maxLength={CONST.LEGAL_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
                             spellCheck={false}
                         />
                     </View>
@@ -115,7 +115,7 @@ function LegalNamePage(props) {
                             accessibilityLabel={props.translate('privatePersonalDetails.legalLastName')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={legalLastName}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
+                            maxLength={CONST.LEGAL_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
                             spellCheck={false}
                         />
                     </View>
