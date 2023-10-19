@@ -1164,6 +1164,7 @@ function getPersonalDetailsForAccountID(accountID) {
     return (
         (allPersonalDetails && allPersonalDetails[accountID]) || {
             avatar: UserUtils.getDefaultAvatar(accountID),
+            isOptimisticPersonalDetail: true,
         }
     );
 }
@@ -1173,27 +1174,38 @@ function getPersonalDetailsForAccountID(accountID) {
  *
  * @param {Number} accountID
  * @param {Boolean} [shouldUseShortForm]
+ * @param {Boolean} shouldFallbackToHidden
  * @returns {String}
  */
-function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
+function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, shouldFallbackToHidden = true) {
     if (!accountID) {
         return '';
     }
     const personalDetails = getPersonalDetailsForAccountID(accountID);
+    // this is to check if account is an invite/optimistically created one
+    // and prevent from falling back to 'Hidden', so a correct value is shown
+    // when searching for a new user
+    if (lodashGet(personalDetails, 'isOptimisticPersonalDetail') === true) {
+        return personalDetails.login || '';
+    }
     const longName = personalDetails.displayName;
     const shortName = personalDetails.firstName || longName;
+    if (!longName && !personalDetails.login && shouldFallbackToHidden) {
+        return Localize.translateLocal('common.hidden');
+    }
     return shouldUseShortForm ? shortName : longName;
 }
 
 /**
  * @param {Object} personalDetailsList
  * @param {Boolean} isMultipleParticipantReport
+ * @param {Boolean} shouldFallbackToHidden
  * @returns {Array}
  */
-function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
+function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport, shouldFallbackToHidden) {
     return _.map(personalDetailsList, (user) => {
         const accountID = Number(user.accountID);
-        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
+        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user.login || '';
         const avatar = UserUtils.getDefaultAvatar(accountID);
 
         let pronouns = user.pronouns;
@@ -1422,7 +1434,8 @@ function getPolicyExpenseChatName(report, policy = undefined) {
  * @returns  {String}
  */
 function getMoneyRequestReportName(report, policy = undefined) {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(report), report.currency);
+    const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
     const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerName,
@@ -1437,7 +1450,7 @@ function getMoneyRequestReportName(report, policy = undefined) {
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    if (report.hasOutstandingIOU) {
+    if (report.hasOutstandingIOU || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
@@ -3156,7 +3169,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         (report.participantAccountIDs &&
             report.participantAccountIDs.length === 0 &&
             !isChatThread(report) &&
-            !isPublicRoom(report) &&
+            !isUserCreatedPolicyRoom(report) &&
             !isArchivedRoom(report) &&
             !isMoneyRequestReport(report) &&
             !isTaskReport(report))
@@ -3520,17 +3533,17 @@ function getMoneyRequestOptions(report, reportParticipants) {
         (hasMultipleParticipants && !isPolicyExpenseChat(report) && !isMoneyRequestReport(report)) ||
         (isControlPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat)
     ) {
-        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
+        return [CONST.IOU.TYPE.SPLIT];
     }
 
     // DM chats that only have 2 people will see the Send / Request money options.
     // IOU and open or processing expense reports should show the Request option.
     // Workspace chats should only see the Request money option or Split option in case of Control policies
     return [
-        ...(canRequestMoney(report, participants) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
+        ...(canRequestMoney(report, participants) ? [CONST.IOU.TYPE.REQUEST] : []),
 
         // Send money option should be visible only in DMs
-        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.TYPE.SEND] : []),
     ];
 }
 
