@@ -1069,6 +1069,12 @@ const CONST = {
         },
     },
 
+    KYC_WALL_SOURCE: {
+        REPORT: 'REPORT', // The user attempted to pay a money request
+        ENABLE_WALLET: 'ENABLE_WALLET', // The user clicked on the `Enable wallet` button on the Wallet page
+        TRANSFER_BALANCE: 'TRANSFER_BALANCE', // The user attempted to transfer their wallet balance to their bank account or debit card
+    },
+
     OS: {
         WINDOWS: 'Windows',
         MAC_OS: PLATFORM_OS_MACOS,

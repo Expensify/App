@@ -144,7 +144,7 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
 
-    return reportActions.filter(Boolean).sort((first, second) => {
+    return reportActions?.filter(Boolean).sort((first, second) => {
         // First sort by timestamp
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
@@ -170,6 +170,9 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
  * Finds most recent IOU request action ID.
  */
 function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): string | null {
+    if (!Array.isArray(reportActions)) {
+        return null;
+    }
     const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
     const iouRequestActions = reportActions?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && iouRequestTypes.includes(action.originalMessage.type)) ?? [];
 
@@ -275,6 +278,9 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
     return false;
 }
 
+const {POLICYCHANGELOG: policyChangelogTypes, ROOMCHANGELOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
+const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
+
 /**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
@@ -291,9 +297,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED) {
         return false;
     }
-
-    const {POLICYCHANGELOG: policyChangelogTypes, ROOMCHANGELOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
-    const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
 
     // Filter out any unsupported reportAction types
     if (!supportedActionTypes.includes(reportAction.actionName)) {
