@@ -1,7 +1,5 @@
 import {ViewStyle} from 'react-native';
 
-type GetNavigationModalCardStylesParams = {isSmallScreenWidth: number};
-
-type GetNavigationModalCardStyles = (params: GetNavigationModalCardStylesParams) => ViewStyle;
+type GetNavigationModalCardStyles = () => ViewStyle;
 
 export default GetNavigationModalCardStyles;

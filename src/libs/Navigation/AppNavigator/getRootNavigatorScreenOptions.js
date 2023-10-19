@@ -3,6 +3,7 @@ import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 import CONFIG from '../../../CONFIG';
+import getRightModalNavigatorOptions from './getRightModalNavigatorOptions';
 
 const commonScreenOptions = {
     headerShown: false,
@@ -15,19 +16,7 @@ const commonScreenOptions = {
 export default (isSmallScreenWidth) => ({
     rightModalNavigator: {
         ...commonScreenOptions,
-        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
-        presentation: 'transparentModal',
-
-        // We want pop in RHP since there are some flows that would work weird otherwise
-        animationTypeForReplace: 'pop',
-        cardStyle: {
-            ...getNavigationModalCardStyle(),
-
-            // This is necessary to cover translated sidebar with overlay.
-            width: isSmallScreenWidth ? '100%' : '200%',
-            // Excess space should be on the left so we need to position from right.
-            right: 0,
-        },
+        ...getRightModalNavigatorOptions(isSmallScreenWidth),
     },
 
     homeScreen: {
