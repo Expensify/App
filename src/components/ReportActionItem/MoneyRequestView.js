@@ -159,7 +159,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const getPendingFieldAction = (fieldPath) => lodashGet(transaction, fieldPath) || pendingAction;
 
     return (
-        <View style={StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)}>
+        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                 {hasReceipt && (
@@ -168,6 +168,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                             <ReportActionItemImage
                                 thumbnail={receiptURIs.thumbnail}
                                 image={receiptURIs.image}
+                                transaction={transaction}
                                 enablePreviewModal
                             />
                         </View>
@@ -281,11 +282,11 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         />
                     </View>
                 )}
-                <SpacerView
-                    shouldShow={shouldShowHorizontalRule}
-                    style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
-                />
             </View>
+            <SpacerView
+                shouldShow={shouldShowHorizontalRule}
+                style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+            />
         </View>
     );
 }

@@ -44,34 +44,32 @@ function MoneyReportView(props) {
         <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
-                <View style={[styles.flex1, styles.justifyContentCenter]}>
-                    <Text
-                        style={[styles.textLabelSupporting]}
-                        numberOfLines={1}
-                    >
-                        {translate('common.total')}
-                    </Text>
+                <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
+                    <View style={[styles.flex1, styles.justifyContentCenter]}>
+                        <Text
+                            style={[styles.textLabelSupporting]}
+                            numberOfLines={1}
+                        >
+                            {translate('common.total')}
+                        </Text>
+                    </View>
+                    <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                        {isSettled && (
+                            <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
+                                <Icon
+                                    src={Expensicons.Checkmark}
+                                    fill={themeColors.success}
+                                />
+                            </View>
+                        )}
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter]}
+                        >
+                            {formattedTotalAmount}
+                        </Text>
+                    </View>
                 </View>
-                <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                    {isSettled && (
-                        <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
-                            <Icon
-                                src={Expensicons.Checkmark}
-                                fill={themeColors.success}
-                            />
-                        </View>
-                    )}
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.taskTitleMenuItem, styles.alignSelfCenter]}
-                    >
-                        {formattedTotalAmount}
-                    </Text>
-                </View>
-                <SpacerView
-                    shouldShow={props.shouldShowHorizontalRule}
-                    style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
-                />
             </View>
             {shouldShowBreakdown ? (
                 <>
