@@ -47,6 +47,9 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
+    /** Callback to request parent modal to go to next step, which should be split */
+    setSelectedParticipants: PropTypes.func.isRequired,
+
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
@@ -85,6 +88,7 @@ function MoneyRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
+    setSelectedParticipants,
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
@@ -198,9 +202,11 @@ function MoneyRequestParticipantsSelector({
                 ];
             }
 
+            setSelectedParticipants(newSelectedOptions);
+
             onAddParticipants(newSelectedOptions);
         },
-        [participants, onAddParticipants],
+        [participants, onAddParticipants, setSelectedParticipants],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(

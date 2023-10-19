@@ -54,6 +54,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
+    const [selectedParticipants, setSelectedParticipants] = useState([]);
 
     useEffect(() => {
         if (isDistanceRequest) {
@@ -66,10 +67,18 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
             return;
         }
 
-        setHeaderTitle(_.isEmpty(iou.participants) ? translate('tabSelector.manual') : translate('iou.split'));
-    }, [iou.participants, isDistanceRequest, isSendRequest, translate]);
+        if (isScanRequest) {
+            setHeaderTitle(translate('tabSelector.scan'));
+            return;
+        }
+
+        setHeaderTitle(_.isEmpty(selectedParticipants) ? translate('tabSelector.manual') : translate('iou.split'));
+    }, [selectedParticipants, isDistanceRequest, translate, isScanRequest]);
 
     const navigateToConfirmationStep = (moneyRequestType) => {
+        if (moneyRequestType === iouType.current) {
+            setSelectedParticipants([]);
+        }
         IOU.setMoneyRequestId(moneyRequestType);
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID.current));
     };
@@ -118,7 +127,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                     />
                     <MoneyRequestParticipantsSelector
                         ref={(el) => (optionsSelectorRef.current = el)}
-                        participants={iou.participants}
+                        participants={selectedParticipants}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToConfirmationStep(iouType.current)}
                         navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
@@ -126,6 +135,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                         iouType={iouType.current}
                         isDistanceRequest={isDistanceRequest}
                         isScanRequest={isScanRequest}
+                        setSelectedParticipants={setSelectedParticipants}
                     />
                 </View>
             )}
