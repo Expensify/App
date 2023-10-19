@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const {LOG_FILE} = require('../config');
 
 let isVerbose = true;
@@ -23,6 +24,12 @@ const log = (...args) => {
 
     // Write to log file
     if (!fs.existsSync(LOG_FILE)) {
+        // Check that the directory exists
+        const logDir = path.dirname(LOG_FILE);
+        if (!fs.existsSync(logDir)) {
+            fs.mkdirSync(logDir);
+        }
+
         fs.writeFileSync(LOG_FILE, '');
     }
     const time = new Date();
