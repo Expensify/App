@@ -69,6 +69,6 @@ If you’ve added a business deposit-only account and also wish to also pay empl
 ## **I connected my deposit-only bank account – Why haven’t I received my reimbursement?**  
 
 There are a few reasons a reimbursement may be unsuccessful. The first step is to review the estimated deposit date on the report. If it’s after that date and you still haven’t seen the funds, it could have been unsuccessful because:
-The incorrect account was added. If you believe you may have entered the wrong account, please reach out to Concierge and provide the Report ID for the missing reimbursement.
+    - The incorrect account was added. If you believe you may have entered the wrong account, please reach out to Concierge and provide the Report ID for the missing reimbursement.
 Your account wasn’t set up for Direct Deposit/ACH. You may want to contact your bank to confirm. 
 If you aren’t sure, please reach out to Concierge and we can assist!
