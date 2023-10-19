@@ -141,10 +141,10 @@ const MenuItem = React.forwardRef((props, ref) => {
 
     const renderTitleContent = () => {
         if (props.titleWithTooltips && _.isArray(props.titleWithTooltips) && props.titleWithTooltips.length > 0) {
-            return _.map(props.titleWithTooltips, (accountIdOrUserObject, index) => (
+            return _.map(props.titleWithTooltips, (tooltipDetails, index) => (
                 <Text key={index}>
-                    <UserDetailsTooltip accountID={accountIdOrUserObject.accountID}>
-                        <Text>{convertToLTR(accountIdOrUserObject.displayName)}</Text>
+                    <UserDetailsTooltip accountID={tooltipDetails.accountID}>
+                        <Text>{convertToLTR(tooltipDetails.displayName)}</Text>
                     </UserDetailsTooltip>
                     {index < props.titleWithTooltips.length - 1 && <Text style>,&nbsp;</Text>}
                 </Text>
