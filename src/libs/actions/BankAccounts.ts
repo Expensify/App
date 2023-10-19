@@ -55,6 +55,13 @@ function openPersonalBankAccountSetupView(exitReportID: string) {
     });
 }
 
+/**
+ * Whether after adding a bank account we should continue with the KYC flow
+ */
+function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: string) {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute});
+}
+
 function clearPersonalBankAccount() {
     clearPlaid();
     Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
@@ -431,6 +438,7 @@ export {
     connectBankAccountWithPlaid,
     deletePaymentBankAccount,
     handlePlaidError,
+    setPersonalBankAccountContinueKYCOnSuccess,
     openPersonalBankAccountSetupView,
     clearReimbursementAccount,
     openReimbursementAccountPage,
