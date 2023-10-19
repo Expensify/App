@@ -2453,11 +2453,11 @@ const styles = (theme: ThemeDefault) =>
             borderRadius: 88,
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth, isHomeOdSelected) => {
+        rootNavigatorContainerStyles: (isSmallScreenWidth, isScreenWithoutSubnavSelected) => {
             if (isSmallScreenWidth) {
                 return {marginLeft: 0, flex: 1} satisfies ViewStyle;
             }
-            if (isHomeOdSelected) {
+            if (isScreenWithoutSubnavSelected) {
                 return {marginLeft: variables.globalNavigationWidth, flex: 1};
             }
             return {marginLeft: variables.sideBarWidth, flex: 1} satisfies ViewStyle;

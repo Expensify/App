@@ -258,12 +258,12 @@ class AuthScreens extends React.Component {
     }
 
     render() {
-        const isHomeOdSelected = this.context.selectedSubNavigationOption === SCREENS.HOME_OLDDOT;
+        const isScreenWithoutSubnavSelected = this.context.selectedSubNavigationOption === SCREENS.HOME_OLDDOT;
 
-        const screenOptions = getRootNavigatorScreenOptions(this.props.isSmallScreenWidth, isHomeOdSelected);
+        const screenOptions = getRootNavigatorScreenOptions(this.props.isSmallScreenWidth, isScreenWithoutSubnavSelected);
 
         return (
-            <View style={styles.rootNavigatorContainerStyles(this.props.isSmallScreenWidth, isHomeOdSelected)}>
+            <View style={styles.rootNavigatorContainerStyles(this.props.isSmallScreenWidth, isScreenWithoutSubnavSelected)}>
                 <RootStack.Navigator
                     isSmallScreenWidth={this.props.isSmallScreenWidth}
                     mode="modal"
