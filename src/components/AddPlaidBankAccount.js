@@ -234,7 +234,6 @@ function AddPlaidBankAccount({
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                 <Icon
                     src={icon}
-                    name={iconName}
                     height={iconSize}
                     width={iconSize}
                     additionalStyles={iconStyles}

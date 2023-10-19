@@ -25,7 +25,6 @@ function SelectCircle(props) {
         <View style={[styles.selectCircle, styles.alignSelfCenter, ...props.styles]}>
             {props.isChecked && (
                 <Icon
-                    name="Checkmark"
                     src={Expensicons.Checkmark}
                     fill={themeColors.iconSuccessFill}
                 />

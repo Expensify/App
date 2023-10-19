@@ -31,7 +31,6 @@ function CopyTextToClipboard(props) {
             tooltipText={props.translate('reportActionContextMenu.copyToClipboard')}
             tooltipTextChecked={props.translate('reportActionContextMenu.copied')}
             icon={Expensicons.Copy}
-            iconName="Copy"
             textStyles={props.textStyles}
             onPress={copyToClipboard}
         />

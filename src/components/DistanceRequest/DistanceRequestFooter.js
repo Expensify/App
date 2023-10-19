@@ -102,7 +102,6 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    iconName="Plus"
                     onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}

@@ -380,7 +380,6 @@ function BaseTextInput(props) {
                                 >
                                     <Icon
                                         src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
-                                        name={passwordHidden ? 'Eye' : 'EyeDisabled'}
                                         fill={themeColors.icon}
                                     />
                                 </Checkbox>

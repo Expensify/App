@@ -21,7 +21,6 @@ function PDFInfoMessage(props) {
         <View style={styles.alignItemsCenter}>
             <Icon
                 src={Expensicons.EyeDisabled}
-                name="EyeDisabled"
                 width={variables.iconSizeSuperLarge}
                 height={variables.iconSizeSuperLarge}
             />

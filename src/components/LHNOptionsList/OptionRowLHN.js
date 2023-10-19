@@ -273,7 +273,6 @@ function OptionRowLHN(props) {
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
-                                            name="DotIndicator"
                                             fill={themeColors.danger}
                                         />
                                     </View>
@@ -288,7 +287,6 @@ function OptionRowLHN(props) {
                                 <View style={styles.ml2}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        name="DotIndicator"
                                         fill={themeColors.success}
                                     />
                                 </View>
@@ -299,7 +297,7 @@ function OptionRowLHN(props) {
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}
                                 >
                                     <Icon
-                                        name="Pencil"
+                                        testID="Pencil Icon"
                                         src={Expensicons.Pencil}
                                     />
                                 </View>
@@ -310,7 +308,7 @@ function OptionRowLHN(props) {
                                     accessibilityLabel={translate('sidebarScreen.chatPinned')}
                                 >
                                     <Icon
-                                        name="Pin"
+                                        testID="Pin Icon"
                                         src={Expensicons.Pin}
                                     />
                                 </View>

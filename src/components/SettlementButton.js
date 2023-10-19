@@ -147,19 +147,16 @@ function SettlementButton({
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
                 text: translate('iou.settleExpensify', {formattedAmount}),
                 icon: Expensicons.Wallet,
-                iconName: 'Wallet',
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
                 text: translate('iou.settleExpensify', {formattedAmount}),
                 icon: Expensicons.Wallet,
-                iconName: 'Wallet',
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere'),
                 icon: Expensicons.Cash,
-                iconName: 'Cash',
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };

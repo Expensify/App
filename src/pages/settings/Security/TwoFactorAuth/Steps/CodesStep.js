@@ -53,7 +53,6 @@ function CodesStep({account = defaultAccount}) {
                 <Section
                     title={translate('twoFactorAuth.keepCodesSafe')}
                     icon={Illustrations.ShieldYellow}
-                    iconName="SimpleIllustrationShield"
                     containerStyles={[styles.twoFactorAuthSection]}
                     iconContainerStyles={[styles.ml6]}
                 >

@@ -49,9 +49,6 @@ const propTypes = {
     /** Icon to display above the title */
     iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
 
-    /** Icon name required to create the icon test ID  */
-    iconName: PropTypes.string,
-
     /** Styles for title */
     // eslint-disable-next-line react/forbid-prop-types
     titleStyles: PropTypes.arrayOf(PropTypes.object),
@@ -85,7 +82,6 @@ const defaultProps = {
     shouldSetModalVisibility: true,
     title: '',
     iconSource: null,
-    iconName: '',
     onModalHide: () => {},
     titleStyles: [],
     iconAdditionalStyles: [],
@@ -119,7 +115,6 @@ function ConfirmModal(props) {
                 shouldShowCancelButton={props.shouldShowCancelButton}
                 shouldCenterContent={props.shouldCenterContent}
                 iconSource={props.iconSource}
-                iconName={props.iconName}
                 iconAdditionalStyles={props.iconAdditionalStyles}
                 titleStyles={props.titleStyles}
                 promptStyles={props.promptStyles}

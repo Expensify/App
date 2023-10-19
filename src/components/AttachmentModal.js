@@ -369,7 +369,6 @@ function AttachmentModal(props) {
         if (canEdit) {
             menuItems.push({
                 icon: Expensicons.Camera,
-                iconName: 'Camera',
                 text: props.translate('common.replace'),
                 onSelected: () => {
                     onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
@@ -379,7 +378,6 @@ function AttachmentModal(props) {
         }
         menuItems.push({
             icon: Expensicons.Download,
-            iconName: 'Download',
             text: props.translate('common.download'),
             onSelected: () => downloadAttachment(source),
         });

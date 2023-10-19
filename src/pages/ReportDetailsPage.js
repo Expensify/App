@@ -86,7 +86,6 @@ function ReportDetailsPage(props) {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
-                iconName: 'QrCode',
                 isAnonymousAction: true,
                 action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(props.report.reportID)),
             });
@@ -101,7 +100,6 @@ function ReportDetailsPage(props) {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
-                iconName: 'Users',
                 subtitle: participants.length,
                 isAnonymousAction: false,
                 action: () => {
@@ -128,7 +126,6 @@ function ReportDetailsPage(props) {
             key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
             translationKey: 'common.settings',
             icon: Expensicons.Gear,
-            iconName: 'Gear',
             isAnonymousAction: false,
             action: () => {
                 Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID));
@@ -141,7 +138,6 @@ function ReportDetailsPage(props) {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
-                iconName: 'Pencil',
                 isAnonymousAction: false,
                 action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID)),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
@@ -154,7 +150,6 @@ function ReportDetailsPage(props) {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
                 icon: Expensicons.Exit,
-                iconName: 'Exit',
                 isAnonymousAction: false,
                 action: () => Report.leaveRoom(props.report.reportID, isWorkspaceMemberLeavingWorkspaceRoom),
             });
@@ -249,7 +244,6 @@ function ReportDetailsPage(props) {
                                 title={props.translate(item.translationKey)}
                                 subtitle={item.subtitle}
                                 icon={item.icon}
-                                iconName={item.iconName}
                                 onPress={item.action}
                                 isAnonymousAction={item.isAnonymousAction}
                                 shouldShowRightIcon

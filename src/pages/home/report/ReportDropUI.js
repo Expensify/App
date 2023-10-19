@@ -20,7 +20,6 @@ function ReportDropUI({onDrop}) {
             <View style={[styles.reportDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <View style={styles.mb3}>
                     <Icon
-                        name="DragAndDrop"
                         src={Expensicons.DragAndDrop}
                         width={100}
                         height={100}

@@ -117,7 +117,6 @@ function ReportActionItemSingle(props) {
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
             source: UserUtils.getAvatar(secondaryUserDetails.avatar, secondaryAccountId),
-            avatarImageName: UserUtils.getAvatarImageName(secondaryUserDetails.avatar, secondaryAccountId),
             type: CONST.ICON_TYPE_AVATAR,
             name: secondaryDisplayName,
             id: secondaryAccountId,

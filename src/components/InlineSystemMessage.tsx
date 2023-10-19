@@ -20,7 +20,6 @@ function InlineSystemMessage({message = ''}: InlineSystemMessageProps) {
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Icon
                 src={Expensicons.Exclamation}
-                name="Exclamation"
                 fill={theme.danger}
             />
             <Text style={styles.inlineSystemMessage}>{message}</Text>

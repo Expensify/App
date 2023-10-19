@@ -179,7 +179,6 @@ function ProfilePage(props) {
                                                 containerStyles={[styles.avatarLarge, styles.mb3]}
                                                 imageStyles={[styles.avatarLarge]}
                                                 source={UserUtils.getAvatar(avatar, accountID)}
-                                                avatarImageName={UserUtils.getAvatarImageName(avatar, accountID)}
                                                 size={CONST.AVATAR_SIZE.LARGE}
                                                 fallbackIcon={fallbackIcon}
                                             />
@@ -249,7 +248,6 @@ function ProfilePage(props) {
                                 title={`${props.translate('common.message')}${displayName}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.ChatBubble}
-                                iconName="Chatbubble"
                                 onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
@@ -260,7 +258,6 @@ function ProfilePage(props) {
                                 title={`${props.translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                iconName="Pencil"
                                 onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID))}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
@@ -273,7 +270,6 @@ function ProfilePage(props) {
                 {shouldShowBlockingView && (
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
-                        iconName="ToddBehindCloud"
                         iconColor={undefined}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}

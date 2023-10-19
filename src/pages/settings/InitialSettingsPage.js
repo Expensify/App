@@ -193,7 +193,6 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
-                iconName: 'Qrcode',
                 action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE);
                 }),
@@ -201,7 +200,6 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Building,
-                iconName: 'Building',
                 action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
                 }),
@@ -213,7 +211,6 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
-                iconName: 'Profile',
                 action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
                 }),
@@ -222,7 +219,6 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'common.preferences',
                 icon: Expensicons.Gear,
-                iconName: 'Gear',
                 action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
                 }),
@@ -230,7 +226,6 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'initialSettingsPage.security',
                 icon: Expensicons.Lock,
-                iconName: 'Lock',
                 action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_SECURITY);
                 }),
@@ -238,7 +233,6 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'common.wallet',
                 icon: Expensicons.Wallet,
-                iconName: 'Wallet',
                 action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 }),
@@ -250,19 +244,16 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'initialSettingsPage.help',
                 icon: Expensicons.QuestionMark,
-                iconName: 'QuestionMarkCircle',
                 action: () => {
                     Link.openExternalLink(CONST.NEWHELP_URL);
                 },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                iconRightName: 'NewWindow',
                 link: CONST.NEWHELP_URL,
             },
             {
                 translationKey: 'initialSettingsPage.about',
                 icon: Expensicons.Info,
-                iconName: 'Info',
                 action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_ABOUT);
                 }),
@@ -270,7 +261,6 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
-                iconName: 'Exit',
                 iconInfo: 'Exit',
                 action: () => {
                     signOut(false);
@@ -310,7 +300,6 @@ function InitialSettingsPage(props) {
                             key={`${keyTitle}_${index}`}
                             title={keyTitle}
                             icon={item.icon}
-                            iconName={item.iconName}
                             iconType={item.iconType}
                             disabled={isExecuting}
                             onPress={singleExecution(item.action)}
@@ -362,7 +351,6 @@ function InitialSettingsPage(props) {
                                 <Avatar
                                     imageStyles={[styles.avatarXLarge]}
                                     source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
-                                    avatarImageName={UserUtils.getAvatarImageName(props.currentUserPersonalDetails.avatar, props.session.accountID)}
                                     size={CONST.AVATAR_SIZE.XLARGE}
                                     fallbackIcon={props.currentUserPersonalDetails.fallbackIcon}
                                 />

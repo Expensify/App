@@ -21,9 +21,6 @@ const propTypes = {
     /** The icon to display along with the title */
     icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
 
-    /** Icon name required to create the icon test ID  */
-    iconName: PropTypes.string,
-
     /** Icon component */
     IconComponent: PropTypes.func,
 
@@ -58,7 +55,6 @@ const defaultProps = {
     menuItems: null,
     children: null,
     icon: null,
-    iconName: '',
     IconComponent: null,
     containerStyles: [],
     iconContainerStyles: [],
@@ -69,7 +65,7 @@ const defaultProps = {
     iconFill: null,
 };
 
-function Section({children, childrenStyles, containerStyles, icon, iconName, IconComponent, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles, iconFill}) {
+function Section({children, childrenStyles, containerStyles, icon, IconComponent, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles, iconFill}) {
     return (
         <>
             <View style={[styles.pageWrapper, styles.cardSection, ...containerStyles]}>
@@ -81,7 +77,6 @@ function Section({children, childrenStyles, containerStyles, icon, iconName, Ico
                         {Boolean(icon) && (
                             <Icon
                                 src={icon}
-                                name={iconName}
                                 height={68}
                                 width={68}
                                 fill={iconFill}

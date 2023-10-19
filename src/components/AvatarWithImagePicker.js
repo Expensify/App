@@ -32,9 +32,6 @@ const propTypes = {
     /** Avatar source to display */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
 
-    /** Avatar image name required to create the avatar test ID  */
-    avatarImageName: PropTypes.string,
-
     /** Additional style props */
     style: stylePropTypes,
 
@@ -66,9 +63,6 @@ const propTypes = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string, imagePropTypes.source]),
-
-    /** Fallback icon name required to create the icon test ID  */
-    fallbackIconName: PropTypes.string,
 
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
@@ -106,7 +100,6 @@ const propTypes = {
 
 const defaultProps = {
     source: '',
-    avatarImageName: '',
     onImageSelected: () => {},
     onImageRemoved: () => {},
     style: [],
@@ -115,7 +108,6 @@ const defaultProps = {
     isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
     fallbackIcon: Expensicons.FallbackAvatar,
-    fallbackIconName: 'FallbackAvatar',
     type: CONST.ICON_TYPE_AVATAR,
     editorMaskImage: undefined,
     errorRowStyles: [],
@@ -284,9 +276,7 @@ class AvatarWithImagePicker extends React.Component {
                                             containerStyles={styles.avatarLarge}
                                             imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                                             source={this.props.source}
-                                            avatarImageName={this.props.avatarImageName}
                                             fallbackIcon={this.props.fallbackIcon}
-                                            fallbackIconName={this.props.fallbackIconName}
                                             size={this.props.size}
                                             type={this.props.type}
                                         />
@@ -297,7 +287,6 @@ class AvatarWithImagePicker extends React.Component {
                                 <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                     <Icon
                                         src={Expensicons.Camera}
-                                        name="Camera"
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
                                         fill={themeColors.textLight}
@@ -318,7 +307,6 @@ class AvatarWithImagePicker extends React.Component {
                                     const menuItems = [
                                         {
                                             icon: Expensicons.Upload,
-                                            iconName: 'Upload',
                                             text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
                                             onSelected: () => {
                                                 if (Browser.isSafari()) {
@@ -335,7 +323,6 @@ class AvatarWithImagePicker extends React.Component {
                                     if (!this.props.isUsingDefaultAvatar) {
                                         menuItems.push({
                                             icon: Expensicons.Trashcan,
-                                            iconName: 'Trashcan',
                                             text: this.props.translate('avatarWithImagePicker.removePhoto'),
                                             onSelected: () => {
                                                 this.setError(null, {});
@@ -345,7 +332,6 @@ class AvatarWithImagePicker extends React.Component {
 
                                         menuItems.push({
                                             icon: Expensicons.Eye,
-                                            iconName: 'Eye',
                                             text: this.props.translate('avatarWithImagePicker.viewPhoto'),
                                             onSelected: () => show(),
                                         });

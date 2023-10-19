@@ -212,7 +212,6 @@ function ReportPreview(props) {
                             {hasErrors && (
                                 <Icon
                                     src={Expensicons.DotIndicator}
-                                    name="DotIndicator"
                                     fill={themeColors.danger}
                                 />
                             )}
@@ -224,7 +223,6 @@ function ReportPreview(props) {
                                     <View style={styles.defaultCheckmarkWrapper}>
                                         <Icon
                                             src={Expensicons.Checkmark}
-                                            name="Checkmark"
                                             fill={themeColors.iconSuccessFill}
                                         />
                                     </View>

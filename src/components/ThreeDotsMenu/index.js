@@ -21,9 +21,6 @@ const propTypes = {
     /** icon for the popup trigger */
     icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, imagePropTypes.source]),
 
-    /** Icon name required to create the icon test ID  */
-    iconName: PropTypes.string,
-
     /** Any additional styles to pass to the icon container. */
     // eslint-disable-next-line react/forbid-prop-types
     iconStyles: PropTypes.arrayOf(PropTypes.object),
@@ -67,7 +64,6 @@ const defaultProps = {
     iconFill: undefined,
     iconStyles: [],
     icon: Expensicons.ThreeDots,
-    iconName: 'ThreeDots',
     onIconPress: () => {},
     anchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -120,7 +116,6 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                     >
                         <Icon
                             src={icon}
-                            name={iconName}
                             fill={iconFill}
                         />
                     </PressableWithoutFeedback>

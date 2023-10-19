@@ -56,7 +56,6 @@ function ContinueBankAccountSetup(props) {
                 <Section
                     title={props.translate('workspace.bankAccount.almostDone')}
                     icon={Illustrations.BankArrow}
-                    iconName="SimpleIllustrationBankArrow"
                 >
                     <OfflineWithFeedback
                         errors={errors}

@@ -172,19 +172,16 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
         const data = lodashCompact([
             !shouldHideCameraOption && {
                 icon: Expensicons.Camera,
-                iconName: 'Camera',
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => showImagePicker(launchCamera),
             },
             {
                 icon: Expensicons.Gallery,
-                iconName: 'Gallery',
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             },
             type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE && {
                 icon: Expensicons.Paperclip,
-                iconName: 'Paperclip',
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
             },

@@ -42,7 +42,6 @@ function FormHelpMessage(props) {
             {props.isError && (
                 <Icon
                     src={Expensicons.DotIndicator}
-                    name="DotIndicator"
                     fill={themeColors.danger}
                 />
             )}

@@ -120,7 +120,6 @@ function ProfilePage(props) {
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
                     source={UserUtils.getAvatar(avatarURL, accountID)}
-                    avatarImageName={UserUtils.getAvatarImageName(avatarURL, accountID)}
                     onImageSelected={PersonalDetails.updateAvatar}
                     onImageRemoved={PersonalDetails.deleteAvatar}
                     anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
@@ -151,7 +150,6 @@ function ProfilePage(props) {
                 <MenuItem
                     title={props.translate('privatePersonalDetails.personalDetails')}
                     icon={Expensicons.User}
-                    iconName="User"
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                     shouldShowRightIcon
                 />
@@ -159,7 +157,6 @@ function ProfilePage(props) {
                     <MenuItem
                         title={props.translate('loungeAccessPage.loungeAccess')}
                         icon={Expensicons.LoungeAccess}
-                        iconName="LoungeAccess"
                         iconWidth={40}
                         iconHeight={40}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_LOUNGE_ACCESS)}

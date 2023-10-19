@@ -80,7 +80,6 @@ function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, no
                             StyleUtils.getBorderColorStyle(backgroundColor),
                         ]}
                         source={secondaryAvatar.source}
-                        avatarImageName={secondaryAvatar.avatarImageName}
                         size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
                         name={secondaryAvatar.name}
                         type={secondaryAvatar.type}

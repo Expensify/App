@@ -233,7 +233,6 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                                 height={32}
                                 width={32}
                                 src={Expensicons.Gallery}
-                                name="Gallery"
                                 fill={themeColors.textSupporting}
                             />
                         </PressableWithFeedback>
@@ -263,7 +262,6 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                         height={32}
                         width={32}
                         src={Expensicons.Bolt}
-                        name="Bolt"
                         fill={flash ? themeColors.iconHovered : themeColors.textSupporting}
                     />
                 </PressableWithFeedback>

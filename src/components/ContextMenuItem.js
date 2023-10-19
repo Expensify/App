@@ -15,17 +15,11 @@ const propTypes = {
     /** Icon Component */
     icon: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]).isRequired,
 
-    /** Icon name required to create the icon test ID  */
-    iconName: PropTypes.string,
-
     /** Text to display */
     text: PropTypes.string.isRequired,
 
     /** Icon to show when interaction was successful */
     successIcon: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]),
-
-    /** Success icon name required to create the icon test ID  */
-    successIconName: PropTypes.string,
 
     /** Text to show when interaction was successful */
     successText: PropTypes.string,
@@ -50,10 +44,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iconName: '',
     isMini: false,
     successIcon: null,
-    successIconName: '',
     successText: '',
     description: '',
     isAnonymousAction: false,
@@ -61,7 +53,7 @@ const defaultProps = {
     innerRef: null,
 };
 
-function ContextMenuItem({onPress, successIcon, successIconName, successText, icon, iconName, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
+function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
@@ -82,7 +74,6 @@ function ContextMenuItem({onPress, successIcon, successIconName, successText, ic
 
     const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
     const itemText = !isThrottledButtonActive && successText ? successText : text;
-    const itemIconName = !isThrottledButtonActive && successIconName ? successIconName : iconName;
 
     return isMini ? (
         <BaseMiniContextMenuItem
@@ -94,7 +85,6 @@ function ContextMenuItem({onPress, successIcon, successIconName, successText, ic
                 <Icon
                     small
                     src={itemIcon}
-                    name={itemIconName}
                     fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
                 />
             )}
@@ -103,7 +93,6 @@ function ContextMenuItem({onPress, successIcon, successIconName, successText, ic
         <MenuItem
             title={itemText}
             icon={itemIcon}
-            iconName={itemIconName}
             onPress={triggerPressAndUpdateSuccess}
             wrapperStyle={styles.pr9}
             success={!isThrottledButtonActive}

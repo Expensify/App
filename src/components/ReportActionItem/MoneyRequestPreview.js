@@ -277,7 +277,6 @@ function MoneyRequestPreview(props) {
                                 <Text style={[styles.textLabelSupporting, styles.lh20, styles.mb1]}>{getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}</Text>
                                 {hasFieldErrors && (
                                     <Icon
-                                        name="DotIndicator"
                                         src={Expensicons.DotIndicator}
                                         fill={themeColors.danger}
                                     />
@@ -298,7 +297,6 @@ function MoneyRequestPreview(props) {
                                     {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
                                         <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
-                                                name="Checkmark"
                                                 src={Expensicons.Checkmark}
                                                 fill={themeColors.iconSuccessFill}
                                             />

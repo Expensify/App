@@ -115,7 +115,6 @@ function BankAccountStep(props) {
                 <ScrollView style={[styles.flex1]}>
                     <Section
                         icon={Illustrations.MoneyWings}
-                        iconName="SimpleIllustrationMoneyWings"
                         title={props.translate('workspace.bankAccount.streamlinePayments')}
                     >
                         <View style={[styles.mv3]}>
@@ -158,7 +157,6 @@ function BankAccountStep(props) {
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                             <Icon
                                 src={Expensicons.Exclamation}
-                                name="Exclamation"
                                 fill={themeColors.danger}
                             />
                             <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{props.translate('bankAccount.validateAccountError')}</Text>
@@ -177,7 +175,6 @@ function BankAccountStep(props) {
                             <View style={[styles.ml1]}>
                                 <Icon
                                     src={Expensicons.Lock}
-                                    name="Lock"
                                     fill={themeColors.link}
                                 />
                             </View>

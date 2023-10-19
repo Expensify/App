@@ -128,7 +128,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
             {page === -1 ? (
                 <BlockingView
                     icon={Illustrations.ToddBehindCloud}
-                    iconName="ToddBehindCloud"
                     iconColor={undefined}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}

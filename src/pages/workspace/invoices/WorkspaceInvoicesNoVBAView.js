@@ -24,7 +24,6 @@ function WorkspaceInvoicesNoVBAView(props) {
             <Section
                 title={props.translate('workspace.invoices.unlockOnlineInvoiceCollection')}
                 icon={Illustrations.MoneyIntoWallet}
-                iconName="SimpleIllustrationMoneyintowallet"
                 containerStyles={[styles.cardSection]}
             >
                 <View style={[styles.mv3]}>

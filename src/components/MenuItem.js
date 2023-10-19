@@ -45,14 +45,11 @@ const defaultProps = {
     descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
-    iconName: '',
     secondaryIcon: undefined,
-    secondaryIconName: '',
     iconWidth: undefined,
     iconHeight: undefined,
     description: undefined,
     iconRight: Expensicons.ArrowRight,
-    iconRightName: 'ArrowRight',
     iconStyles: [],
     iconFill: undefined,
     secondaryIconFill: undefined,
@@ -65,7 +62,6 @@ const defaultProps = {
     onSecondaryInteraction: undefined,
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
-    fallbackIconName: 'FallbackAvatar',
     brickRoadIndicator: '',
     floatRightAvatars: [],
     shouldStackHorizontally: false,
@@ -75,11 +71,9 @@ const defaultProps = {
     hoverAndPressStyle: [],
     furtherDetails: '',
     furtherDetailsIcon: undefined,
-    furtherDetailsIconName: '',
     isAnonymousAction: false,
     isSmallAvatarSubscriptMenu: false,
     title: '',
-    titleIconName: '',
     numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
     error: '',
@@ -226,7 +220,6 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     hovered={isHovered}
                                                     pressed={pressed}
                                                     src={props.icon}
-                                                    name={props.iconName}
                                                     width={props.iconWidth}
                                                     height={props.iconHeight}
                                                     fill={
@@ -245,7 +238,6 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     imageStyles={[styles.alignSelfCenter]}
                                                     size={CONST.AVATAR_SIZE.DEFAULT}
                                                     source={props.icon}
-                                                    avatarImageName={props.iconName}
                                                     fallbackIcon={props.fallbackIcon}
                                                     name={props.title}
                                                     type={CONST.ICON_TYPE_WORKSPACE}
@@ -255,9 +247,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                 <Avatar
                                                     imageStyles={[styles.alignSelfCenter]}
                                                     source={props.icon}
-                                                    avatarImageName={props.iconName}
                                                     fallbackIcon={props.fallbackIcon}
-                                                    fallbackIconName={props.fallbackIconName}
                                                     size={props.avatarSize}
                                                 />
                                             )}
@@ -268,7 +258,6 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             <Icon
                                                 contentFit={props.contentFit}
                                                 src={props.secondaryIcon}
-                                                name={props.secondaryIconName}
                                                 width={props.iconWidth}
                                                 height={props.iconHeight}
                                                 fill={
@@ -305,7 +294,6 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             {Boolean(props.shouldShowTitleIcon) && (
                                                 <View style={[styles.ml2]}>
                                                     <Icon
-                                                        name={props.titleIconName}
                                                         src={props.titleIcon}
                                                         fill={themeColors.iconSuccessFill}
                                                     />
@@ -328,7 +316,6 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         {Boolean(props.furtherDetails) && (
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                 <Icon
-                                                    name={props.furtherDetailsIconName}
                                                     src={props.furtherDetailsIcon}
                                                     height={variables.iconSizeNormal}
                                                     width={variables.iconSizeNormal}
@@ -377,7 +364,6 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 {Boolean(props.brickRoadIndicator) && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                         <Icon
-                                            name="DotIndicator"
                                             src={Expensicons.DotIndicator}
                                             fill={props.brickRoadIndicator === 'error' ? themeColors.danger : themeColors.success}
                                         />
@@ -387,7 +373,6 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
                                         <Icon
                                             src={props.iconRight}
-                                            name={props.iconRightName}
                                             fill={StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive))}
                                         />
                                     </View>

@@ -102,9 +102,7 @@ class ShareCodePage extends React.Component {
                             text={this.props.translate('qrCodes.copyUrlToClipboard')}
                             shouldShowRightIcon
                             icon={Expensicons.Copy}
-                            iconName="Copy"
                             successIcon={Expensicons.Checkmark}
-                            successIconName="Checkmark"
                             successText={this.props.translate('qrCodes.copied')}
                             onPress={() => Clipboard.setString(url)}
                         />
@@ -114,7 +112,6 @@ class ShareCodePage extends React.Component {
                                 isAnonymousAction
                                 title={this.props.translate('common.download')}
                                 icon={Expensicons.Download}
-                                iconName="Download"
                                 // eslint-disable-next-line es/no-optional-chaining
                                 onPress={() => this.qrCodeRef.current?.download()}
                             />

@@ -25,7 +25,6 @@ function EnabledStep() {
                 <Section
                     title={translate('twoFactorAuth.twoFactorAuthEnabled')}
                     icon={Illustrations.ShieldYellow}
-                    iconName="SimpleIllustrationShield"
                     menuItems={[
                         {
                             title: translate('twoFactorAuth.disableTwoFactorAuth'),
@@ -33,7 +32,6 @@ function EnabledStep() {
                                 setIsConfirmModalVisible(true);
                             },
                             icon: Expensicons.Close,
-                            iconName: 'Close',
                             iconFill: themeColors.danger,
                             wrapperStyle: [styles.cardMenuItem],
                         },

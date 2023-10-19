@@ -27,7 +27,6 @@ function JustSignedInModal(props) {
                         width={variables.modalTopIconWidth}
                         height={props.is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight}
                         src={props.is2FARequired ? Illustrations.SafeBlue : Illustrations.Abracadabra}
-                        name={props.is2FARequired ? 'Safe' : 'Abracadabra'}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
@@ -45,7 +44,6 @@ function JustSignedInModal(props) {
                     height={variables.modalWordmarkHeight}
                     fill={themeColors.success}
                     src={Expensicons.ExpensifyWordmark}
-                    name="ExpensifyWordmark"
                 />
             </View>
         </View>

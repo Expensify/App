@@ -158,10 +158,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                         style={[styles.flexRow, styles.ph5]}
                         onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                     >
-                        <Icon
-                            name="MagnifyingGlass"
-                            src={Expensicons.MagnifyingGlass}
-                        />
+                        <Icon src={Expensicons.MagnifyingGlass} />
                     </PressableWithoutFeedback>
                 </Tooltip>
             </View>

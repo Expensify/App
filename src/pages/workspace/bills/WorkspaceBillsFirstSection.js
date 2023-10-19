@@ -47,16 +47,13 @@ function WorkspaceBillsFirstSection(props) {
         <Section
             title={props.translate('workspace.bills.manageYourBills')}
             icon={Illustrations.PinkBill}
-            iconName="SimpleIllustrationBill"
             menuItems={[
                 {
                     title: props.translate('workspace.bills.viewAllBills'),
                     onPress: () => Link.openOldDotLink(manageYourBillsUrl),
                     icon: Expensicons.Bill,
-                    iconName: 'Bill',
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
-                    iconRightName: 'NewWindow',
                     wrapperStyle: [styles.cardMenuItem],
                     link: () => Link.buildOldDotURL(manageYourBillsUrl),
                 },

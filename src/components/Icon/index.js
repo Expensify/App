@@ -40,8 +40,8 @@ const propTypes = {
     /** Determines how the image should be resized to fit its container */
     contentFit: PropTypes.string,
 
-    /** Icon name required to create the icon test ID  */
-    name: PropTypes.string,
+    /** Used to locate this icon in end-to-end tests. */
+    testID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -54,7 +54,7 @@ const defaultProps = {
     hovered: false,
     pressed: false,
     contentFit: 'cover',
-    name: '',
+    testID: '',
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -67,7 +67,7 @@ class Icon extends PureComponent {
         if (this.props.inline) {
             return (
                 <View
-                    testID={`Svg${this.props.name} Icon`}
+                    testID={this.props.testID}
                     style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
                 >
                     <View style={iconStyles}>
@@ -87,7 +87,7 @@ class Icon extends PureComponent {
 
         return (
             <View
-                testID={`Svg${this.props.name} Icon`}
+                testID={this.props.testID}
                 style={this.props.additionalStyles}
             >
                 <ImageSVG

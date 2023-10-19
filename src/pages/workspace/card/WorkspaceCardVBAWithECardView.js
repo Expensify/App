@@ -25,10 +25,8 @@ function WorkspaceCardVBAWithECardView(props) {
             title: props.translate('workspace.common.issueAndManageCards'),
             onPress: () => Link.openOldDotLink(MENU_LINKS.ISSUE_AND_MANAGE_CARDS),
             icon: Expensicons.ExpensifyCard,
-            iconName: 'Expensifycard',
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-            iconRightName: 'NewWindow',
             wrapperStyle: [styles.cardMenuItem],
             link: () => Link.buildOldDotURL(MENU_LINKS.ISSUE_AND_MANAGE_CARDS),
         },
@@ -38,7 +36,6 @@ function WorkspaceCardVBAWithECardView(props) {
             icon: Expensicons.ReceiptSearch,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-            iconRightName: 'NewWindow',
             wrapperStyle: [styles.cardMenuItem],
             link: () => Link.buildOldDotURL(MENU_LINKS.RECONCILE_CARDS),
         },
@@ -46,10 +43,8 @@ function WorkspaceCardVBAWithECardView(props) {
             title: props.translate('workspace.common.settlementFrequency'),
             onPress: () => Link.openOldDotLink(MENU_LINKS.SETTLEMENT_FREQUENCY),
             icon: Expensicons.Gear,
-            iconName: 'Gear',
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-            iconRightName: 'NewWindow',
             wrapperStyle: [styles.cardMenuItem],
             link: () => Link.buildOldDotURL(MENU_LINKS.SETTLEMENT_FREQUENCY),
         },
@@ -59,7 +54,6 @@ function WorkspaceCardVBAWithECardView(props) {
         <Section
             title={props.translate('workspace.card.headerWithEcard')}
             icon={Illustrations.CreditCardsNew}
-            iconName="SimpleIllustrationCreditCards"
             menuItems={menuItems}
         >
             <View style={[styles.mv3]}>

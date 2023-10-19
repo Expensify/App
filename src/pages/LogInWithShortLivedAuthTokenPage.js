@@ -88,7 +88,6 @@ function LogInWithShortLivedAuthTokenPage(props) {
                         width={200}
                         height={164}
                         src={Illustrations.RocketBlue}
-                        name="RocketBlue"
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
@@ -112,7 +111,6 @@ function LogInWithShortLivedAuthTokenPage(props) {
                     height={34}
                     fill={themeColors.success}
                     src={Expensicons.ExpensifyWordmark}
-                    name="ExpensifyWordmark"
                 />
             </View>
         </View>

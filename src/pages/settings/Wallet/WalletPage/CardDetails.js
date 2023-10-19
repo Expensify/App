@@ -77,7 +77,6 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
                             tooltipText={translate('reportActionContextMenu.copyToClipboard')}
                             tooltipTextChecked={translate('reportActionContextMenu.copied')}
                             icon={Expensicons.Copy}
-                            iconName="Copy"
                             onPress={handleCopyToClipboard}
                         />
                     </View>

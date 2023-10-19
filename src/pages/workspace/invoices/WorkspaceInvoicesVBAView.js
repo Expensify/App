@@ -27,16 +27,13 @@ function WorkspaceInvoicesVBAView(props) {
             <Section
                 title={props.translate('workspace.invoices.moneyBackInAFlash')}
                 icon={Illustrations.MoneyBadge}
-                iconName="SimpleIllustrationMoneyBadge"
                 menuItems={[
                     {
                         title: props.translate('workspace.invoices.viewUnpaidInvoices'),
                         onPress: () => Link.openOldDotLink(viewUnpaidInvoicesUrl),
                         icon: Expensicons.Hourglass,
-                        iconName: 'Hourglass',
                         shouldShowRightIcon: true,
                         iconRight: Expensicons.NewWindow,
-                        iconRightName: 'NewWindow',
                         wrapperStyle: [styles.cardMenuItem],
                         link: () => Link.buildOldDotURL(viewUnpaidInvoicesUrl),
                     },

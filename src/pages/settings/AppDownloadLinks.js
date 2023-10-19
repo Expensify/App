@@ -28,9 +28,7 @@ function AppDownloadLinksPage(props) {
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
             icon: Expensicons.Android,
-            iconName: 'Android',
             iconRight: Expensicons.NewWindow,
-            iconRightName: 'NewWindow',
             action: () => {
                 Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID);
             },
@@ -39,9 +37,7 @@ function AppDownloadLinksPage(props) {
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.ios.label',
             icon: Expensicons.Apple,
-            iconName: 'Apple',
             iconRight: Expensicons.NewWindow,
-            iconRightName: 'NewWindow',
             action: () => {
                 Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true);
             },
@@ -50,9 +46,7 @@ function AppDownloadLinksPage(props) {
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
             icon: Expensicons.Monitor,
-            iconName: 'Monitor',
             iconRight: Expensicons.NewWindow,
-            iconRightName: 'NewWindow',
             action: () => {
                 Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP);
             },
@@ -78,9 +72,7 @@ function AppDownloadLinksPage(props) {
                         ref={(el) => (popoverAnchor = el)}
                         title={props.translate(item.translationKey)}
                         icon={item.icon}
-                        iconName={item.iconName}
                         iconRight={item.iconRight}
-                        iconRightName={item.iconRightName}
                         shouldBlockSelection
                         shouldShowRightIcon
                     />

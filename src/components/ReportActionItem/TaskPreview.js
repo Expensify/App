@@ -113,7 +113,6 @@ function TaskPreview(props) {
                 </View>
                 <Icon
                     src={Expensicons.ArrowRight}
-                    name="ArrowRight"
                     fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
                 />
             </PressableWithoutFeedback>

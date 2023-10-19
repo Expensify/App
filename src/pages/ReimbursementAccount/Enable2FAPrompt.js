@@ -21,7 +21,6 @@ function Enable2FAPrompt(props) {
         <Section
             title={props.translate('validationStep.enable2FATitle')}
             icon={Illustrations.ShieldYellow}
-            iconName="SimpleIllustrationShield"
             menuItems={[
                 {
                     title: props.translate('validationStep.secureYourAccount'),
@@ -29,10 +28,8 @@ function Enable2FAPrompt(props) {
                         Link.openOldDotLink(secureYourAccountUrl);
                     },
                     icon: Expensicons.Shield,
-                    iconName: 'Shield',
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
-                    iconRightName: 'NewWindow',
                     wrapperStyle: [styles.cardMenuItem],
                     link: () => Link.buildOldDotURL(secureYourAccountUrl),
                 },

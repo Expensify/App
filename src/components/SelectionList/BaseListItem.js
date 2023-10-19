@@ -71,7 +71,6 @@ function BaseListItem({
                                 {item.isSelected && (
                                     <Icon
                                         src={Expensicons.Checkmark}
-                                        name="Checkmark"
                                         fill={themeColors.textLight}
                                         height={14}
                                         width={14}
@@ -95,7 +94,6 @@ function BaseListItem({
                             <View>
                                 <Icon
                                     src={Expensicons.Checkmark}
-                                    name="Checkmark"
                                     fill={themeColors.success}
                                 />
                             </View>

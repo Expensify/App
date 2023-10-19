@@ -182,7 +182,7 @@ describe('Sidebar', () => {
                     // Then there should be a pencil icon and report one should be the first one because putting a draft on the active report should change its location
                     // in the ordered list
                     .then(() => {
-                        const pencilIcon = screen.queryAllByTestId('SvgPencil Icon');
+                        const pencilIcon = screen.queryAllByTestId('Pencil Icon');
                         expect(pencilIcon).toHaveLength(1);
 
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -320,7 +320,7 @@ describe('Sidebar', () => {
 
                     // Then there should be a pencil icon showing
                     .then(() => {
-                        expect(screen.queryAllByTestId('SvgPencil Icon')).toHaveLength(1);
+                        expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
                     })
 
                     // When the draft is removed
@@ -328,7 +328,7 @@ describe('Sidebar', () => {
 
                     // Then the pencil icon goes away
                     .then(() => {
-                        expect(screen.queryAllByTestId('SvgPencil Icon')).toHaveLength(0);
+                        expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(0);
                     })
             );
         });
@@ -357,7 +357,7 @@ describe('Sidebar', () => {
 
                     // Then there should be a pencil icon showing
                     .then(() => {
-                        expect(screen.queryAllByTestId('SvgPin Icon')).toHaveLength(1);
+                        expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
                     })
 
                     // When the draft is removed
@@ -365,7 +365,7 @@ describe('Sidebar', () => {
 
                     // Then the pencil icon goes away
                     .then(() => {
-                        expect(screen.queryAllByTestId('SvgPin Icon')).toHaveLength(0);
+                        expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(0);
                     })
             );
         });

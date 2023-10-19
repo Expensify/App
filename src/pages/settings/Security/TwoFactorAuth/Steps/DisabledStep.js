@@ -16,7 +16,6 @@ function DisabledStep() {
         <StepWrapper title={translate('twoFactorAuth.disableTwoFactorAuth')}>
             <BlockingView
                 icon={Illustrations.LockOpen}
-                iconName="SimpleIllustrationLockopen"
                 iconColor={undefined}
                 iconWidth={variables.modalTopIconWidth}
                 iconHeight={variables.modalTopIconHeight}

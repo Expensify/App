@@ -151,7 +151,6 @@ function DetailsPage(props) {
                                                     containerStyles={[styles.avatarLarge, styles.mb3]}
                                                     imageStyles={[styles.avatarLarge]}
                                                     source={UserUtils.getAvatar(details.avatar, details.accountID)}
-                                                    avatarImageName={UserUtils.getAvatarImageName(details.avatar, details.accountID)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                     fallbackIcon={details.fallbackIcon}
                                                 />

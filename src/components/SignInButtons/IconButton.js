@@ -24,12 +24,10 @@ const defaultProps = {
 const providerData = {
     [CONST.SIGN_IN_METHOD.APPLE]: {
         icon: Expensicons.AppleLogo,
-        iconName: 'AppleLogo',
         accessibilityLabel: 'common.signInWithApple',
     },
     [CONST.SIGN_IN_METHOD.GOOGLE]: {
         icon: Expensicons.GoogleLogo,
-        iconName: 'GoogleLogo',
         accessibilityLabel: 'common.signInWithGoogle',
     },
 };
@@ -44,7 +42,6 @@ function IconButton({onPress, translate, provider}) {
         >
             <Icon
                 src={providerData[provider].icon}
-                name={providerData[provider].iconName}
                 height={40}
                 width={40}
             />
