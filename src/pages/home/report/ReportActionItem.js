@@ -366,16 +366,16 @@ function ReportActionItem(props) {
                 <ReportActionItemBasicMessage
                     message={props.translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
                 >
-                    {shouldShowAddCreditBankAccountButton && (
-                        <Button
-                            success
-                            style={[styles.w100, styles.requestPreviewBox]}
-                            text={props.translate('bankAccount.addBankAccount')}
-                            onPress={() => BankAccounts.openPersonalBankAccountSetupView(props.report.reportID)}
-                            pressOnEnter
-                        />
-                    )}
                     <>
+                        {shouldShowAddCreditBankAccountButton && (
+                            <Button
+                                success
+                                style={[styles.w100, styles.requestPreviewBox]}
+                                text={props.translate('bankAccount.addBankAccount')}
+                                onPress={() => BankAccounts.openPersonalBankAccountSetupView(props.report.reportID)}
+                                pressOnEnter
+                            />
+                        )}
                         {shouldShowEnableWalletButton && (
                             <KYCWall
                                 onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
