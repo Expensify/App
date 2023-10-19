@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
-import _ from 'underscore';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -140,13 +139,11 @@ class PDFView extends Component {
 
         const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth ? [styles.w100, styles.flex1] : [styles.alignItemsCenter, styles.flex1];
 
-        const errorLabelStyles = _.isArray(this.props.errorLabelStyles) ? this.props.errorLabelStyles : [this.props.errorLabelStyles];
-
         return (
             <View style={containerStyles}>
                 {this.state.failedToLoadPDF && (
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <Text style={errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>
+                        <Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>
                     </View>
                 )}
                 {this.state.shouldAttemptPDFLoad && (

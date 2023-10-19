@@ -271,8 +271,6 @@ class PDFView extends Component {
             ? [styles.PDFView, styles.noSelect, this.props.style, styles.invisible]
             : [styles.PDFView, styles.noSelect, this.props.style];
 
-        const errorLabelStyles = _.isArray(this.props.errorLabelStyles) ? this.props.errorLabelStyles : [this.props.errorLabelStyles];
-
         return (
             <View style={outerContainerStyle}>
                 <View
@@ -285,7 +283,7 @@ class PDFView extends Component {
                     }) => this.setState({containerWidth: width, containerHeight: height})}
                 >
                     <Document
-                        error={<Text style={errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
+                        error={<Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
                         loading={<FullScreenLoadingIndicator />}
                         file={this.props.sourceURL}
                         options={{
