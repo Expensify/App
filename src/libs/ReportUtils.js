@@ -3278,6 +3278,7 @@ function chatIncludesChronos(report) {
  * Can only flag if:
  *
  * - It was written by someone else and isn't a whisper
+ * - It's a welcome message whisper
  * - It's an ADDCOMMENT that is not an attachment
  *
  * @param {Object} reportAction
