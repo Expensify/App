@@ -26,6 +26,22 @@ function getReportActionsFromOnyx() {
 }
 
 /**
+ * @returns {Promise<Object>}
+ */
+function getReportsFromOnyx() {
+    return new Promise((resolve) => {
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            waitForCollectionCallback: true,
+            callback: (allReports) => {
+                Onyx.disconnect(connectionID);
+                return resolve(allReports);
+            },
+        });
+    });
+}
+
+/**
  * We use the old personalDetails object becuase it is more efficient for this migration since it is keyed by email address.
  * Also, if the old personalDetails object is not available, that likely means the migration has already run successfully before on this account.
  *
@@ -73,12 +89,15 @@ function getDeprecatedPolicyMemberListFromOnyx() {
  *     - whisperedTo -> whisperedToAccountIDs
  *     - childOldestFourEmails -> childOldestFourAccountIDs
  *     - originalMessage.participants -> originalMessage.participantAccountIDs
+ * - report_
+ *    - lastActorEmail -> lastActorAccountID
+ *    - participants -> participantAccountIDs
  *
  * @returns {Promise<void>}
  */
 export default function () {
-    return Promise.all([getReportActionsFromOnyx(), getDeprecatedPersonalDetailsFromOnyx(), getDeprecatedPolicyMemberListFromOnyx()]).then(
-        ([oldReportActions, oldPersonalDetails, oldPolicyMemberList]) => {
+    return Promise.all([getReportActionsFromOnyx(), getReportsFromOnyx(), getDeprecatedPersonalDetailsFromOnyx(), getDeprecatedPolicyMemberListFromOnyx()]).then(
+        ([oldReportActions, oldReports, oldPersonalDetails, oldPolicyMemberList]) => {
             const onyxData = {};
 
             // The personalDetails object has been replaced by personalDetailsList
@@ -209,6 +228,37 @@ export default function () {
                 // was modified in any way.
                 if (reportActionsWereModified) {
                     onyxData[onyxKey] = newReportActionsForReport;
+                }
+            });
+
+            // For the reports migration, we don't need to look up emails from accountIDs. Instead,
+            // we will just look for old email data and automatically remove it if it exists. The reason for
+            // this is that we already stopped sending email based data in reports, and from everywhere else
+            // in the app by this point (since this is the last data we migrated).
+            _.each(oldReports, (report, onyxKey) => {
+                const newReport = report;
+
+                // Delete report key if it's empty
+                if (_.isEmpty(newReport)) {
+                    onyxData[onyxKey] = null;
+                    return;
+                }
+
+                let reportWasModified = false;
+                if (lodashHas(newReport, ['lastActorEmail'])) {
+                    reportWasModified = true;
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing lastActorEmail from report ${newReport.reportID}`);
+                    delete newReport.lastActorEmail;
+                }
+
+                if (lodashHas(newReport, ['participants'])) {
+                    reportWasModified = true;
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing participants from report ${newReport.reportID}`);
+                    delete newReport.participants;
+                }
+
+                if (reportWasModified) {
+                    onyxData[onyxKey] = newReport;
                 }
             });
 

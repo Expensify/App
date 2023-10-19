@@ -21,7 +21,6 @@ import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
-import themeColors from '../../styles/themes/default';
 import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
@@ -57,9 +56,9 @@ function MoneyRequestSelectorPage(props) {
     const {translate} = useLocalize();
 
     const title = {
-        [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
-        [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
-        [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
+        [CONST.IOU.TYPE.REQUEST]: translate('iou.requestMoney'),
+        [CONST.IOU.TYPE.SEND]: translate('iou.sendMoney'),
+        [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
     };
     const isFromGlobalCreate = !reportID;
     const isExpenseRequest = ReportUtils.isPolicyExpenseChat(props.report);
@@ -86,15 +85,7 @@ function MoneyRequestSelectorPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            headerGapStyles={
-                isDraggingOver
-                    ? [
-                          {
-                              backgroundColor: themeColors.receiptDropUIBG,
-                          },
-                      ]
-                    : []
-            }
+            headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
             testID={MoneyRequestSelectorPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
@@ -108,7 +99,7 @@ function MoneyRequestSelectorPage(props) {
                                 title={title[iouType]}
                                 onBackButtonPress={Navigation.dismissModal}
                             />
-                            {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
+                            {iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SPLIT ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
                                     selectedTab={props.selectedTab}

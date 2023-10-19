@@ -27,14 +27,8 @@ const propTypes = {
     /** Handles what to do when the pressable is blurred */
     onBlur: PropTypes.func,
 
-    /** Whether this menu item is currently highlighted or not */
-    isHighlighted: PropTypes.bool,
-
     /** Whether this menu item is currently focused or not */
     isFocused: PropTypes.bool,
-
-    /** Whether the emoji is highlighted by the keyboard/mouse */
-    isUsingKeyboardMovement: PropTypes.bool,
 };
 
 class EmojiPickerMenuItem extends PureComponent {
@@ -43,6 +37,9 @@ class EmojiPickerMenuItem extends PureComponent {
 
         this.ref = null;
         this.focusAndScroll = this.focusAndScroll.bind(this);
+        this.state = {
+            isHovered: false,
+        };
     }
 
     componentDidMount() {
@@ -72,15 +69,29 @@ class EmojiPickerMenuItem extends PureComponent {
             <PressableWithoutFeedback
                 shouldUseAutoHitSlop={false}
                 onPress={() => this.props.onPress(this.props.emoji)}
+                // In order to prevent haptic feedback, pass empty callback as onLongPress props. Please refer https://github.com/necolas/react-native-web/issues/2349#issuecomment-1195564240
+                onLongPress={Browser.isMobileChrome() ? () => {} : undefined}
                 onPressOut={Browser.isMobile() ? this.props.onHoverOut : undefined}
-                onHoverIn={this.props.onHoverIn}
-                onHoverOut={this.props.onHoverOut}
+                onHoverIn={() => {
+                    if (this.props.onHoverIn) {
+                        this.props.onHoverIn();
+                    }
+
+                    this.setState({isHovered: true});
+                }}
+                onHoverOut={() => {
+                    if (this.props.onHoverOut) {
+                        this.props.onHoverOut();
+                    }
+
+                    this.setState({isHovered: false});
+                }}
                 onFocus={this.props.onFocus}
                 onBlur={this.props.onBlur}
                 ref={(ref) => (this.ref = ref)}
                 style={({pressed}) => [
-                    this.props.isHighlighted && this.props.isUsingKeyboardMovement ? styles.emojiItemKeyboardHighlighted : {},
-                    this.props.isHighlighted && !this.props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
+                    this.props.isFocused ? styles.emojiItemKeyboardHighlighted : {},
+                    this.state.isHovered ? styles.emojiItemHighlighted : {},
                     Browser.isMobile() && StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
                     styles.emojiItem,
                 ]}
@@ -95,9 +106,7 @@ class EmojiPickerMenuItem extends PureComponent {
 
 EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.defaultProps = {
-    isHighlighted: false,
     isFocused: false,
-    isUsingKeyboardMovement: false,
     onHoverIn: () => {},
     onHoverOut: () => {},
     onFocus: () => {},
@@ -106,8 +115,4 @@ EmojiPickerMenuItem.defaultProps = {
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
-export default React.memo(
-    EmojiPickerMenuItem,
-    (prevProps, nextProps) =>
-        prevProps.isHighlighted === nextProps.isHighlighted && prevProps.emoji === nextProps.emoji && prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
-);
+export default React.memo(EmojiPickerMenuItem, (prevProps, nextProps) => prevProps.isFocused === nextProps.isFocused && prevProps.emoji === nextProps.emoji);

@@ -12,8 +12,7 @@ import themeColors from '../styles/themes/default';
 import Icon from '../components/Icon';
 import * as Expensicons from '../components/Icon/Expensicons';
 import * as Illustrations from '../components/Icon/Illustrations';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import compose from '../libs/compose';
+import useLocalize from '../hooks/useLocalize';
 import TextLink from '../components/TextLink';
 import ONYXKEYS from '../ONYXKEYS';
 
@@ -33,8 +32,6 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...withLocalizePropTypes,
-
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** Whether a sign is loading */
@@ -49,15 +46,26 @@ const defaultProps = {
 };
 
 function LogInWithShortLivedAuthTokenPage(props) {
+    const {translate} = useLocalize();
+
     useEffect(() => {
         const email = lodashGet(props, 'route.params.email', '');
 
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
         const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '') || lodashGet(props, 'route.params.shortLivedToken', '');
-        if (shortLivedAuthToken) {
+
+        // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
+        if (shortLivedAuthToken && !props.account.isLoading) {
             Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             return;
         }
+
+        // If an error is returned as part of the route, ensure we set it in the onyxData for the account
+        const error = lodashGet(props, 'route.params.error', '');
+        if (error) {
+            Session.setAccountError(error);
+        }
+
         const exitTo = lodashGet(props, 'route.params.exitTo', '');
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {
@@ -82,10 +90,18 @@ function LogInWithShortLivedAuthTokenPage(props) {
                         src={Illustrations.RocketBlue}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge]}>{props.translate('deeplinkWrapper.launching')}</Text>
+                <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
                 <View style={styles.mt2}>
                     <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                        {props.translate('deeplinkWrapper.expired')} <TextLink onPress={() => Navigation.navigate()}>{props.translate('deeplinkWrapper.signIn')}</TextLink>
+                        {translate('deeplinkWrapper.expired')}{' '}
+                        <TextLink
+                            onPress={() => {
+                                Session.clearSignInData();
+                                Navigation.navigate();
+                            }}
+                        >
+                            {translate('deeplinkWrapper.signIn')}
+                        </TextLink>
                     </Text>
                 </View>
             </View>
@@ -105,9 +121,7 @@ LogInWithShortLivedAuthTokenPage.propTypes = propTypes;
 LogInWithShortLivedAuthTokenPage.defaultProps = defaultProps;
 LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-    }),
-)(LogInWithShortLivedAuthTokenPage);
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+    session: {key: ONYXKEYS.SESSION},
+})(LogInWithShortLivedAuthTokenPage);

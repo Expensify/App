@@ -14,7 +14,7 @@ Keep in mind:
 1. Merging expenses cannot be undone.
 2. You can only merge two expenses at a time.
 3. You can merge a cash expense with a credit card expense, or two cash expenses - but not two credit card expenses.
-4. In order to merge, both expenses will need to be in an Open or Unreported state.
+4. In order to merge, both expenses will need to be in a Personal or Draft status.
 
 # How to merge expenses on the web app
 To merge two expenses from the Expenses page:
@@ -41,11 +41,12 @@ If the expenses exist on two different reports, you will be asked which report y
 
 ## Can you merge expenses across different reports?
 
-You cannot merge expenses across different reports. Expenses will only merge if they are on the same report. If you have expenses across different reports that you wish to merge, you’ll need to move both expenses onto the same report (and ensure they are in the Open status) in order to merge them.
+You cannot merge expenses across different reports. Expenses will only merge if they are on the same report. If you have expenses across different reports that you wish to merge, you’ll need to move both expenses onto the same report (and ensure they are in the Draft status) in order to merge them.
 
 ## Can you merge expenses across different accounts?
 
 You cannot merge expenses across two separate accounts. You will need to choose one submitter and transfer the expense information to that user's account in order to merge the expense.
+
 ## Can you merge expenses with different currencies?
 
 Yes, you can merge expenses with different currencies. The conversion amount will be based on the daily exchange rate for the date of the transaction, as long as the converted rates are within +/- 5%. If the currencies are the same, then the amounts must be an exact match to merge.
