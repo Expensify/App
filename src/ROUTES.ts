@@ -90,6 +90,10 @@ export default {
     },
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
+    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
+        route: '/settings/wallet/card/:domain/report-card-lost-or-damaged',
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-card-lost-or-damaged`,
+    },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:domain/activate',
         getRoute: (domain: string) => `settings/wallet/card/${domain}/activate`,
@@ -208,6 +212,14 @@ export default {
     PRIVATE_NOTES_EDIT: {
         route: 'r/:reportID/notes/:accountID/edit',
         getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`,
+    },
+    ROOM_MEMBERS: {
+        route: 'r/:reportID/members',
+        getRoute: (reportID: string) => `r/${reportID}/members`,
+    },
+    ROOM_INVITE: {
+        route: 'r/:reportID/invite',
+        getRoute: (reportID: string) => `r/${reportID}/invite`,
     },
 
     // To see the available iouType, please refer to CONST.IOU.TYPE

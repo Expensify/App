@@ -70,6 +70,10 @@ import themeColors from '../../../styles/themes/default';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import RenderHTML from '../../../components/RenderHTML';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import ROUTES from '../../../ROUTES';
+import Navigation from '../../../libs/Navigation/Navigation';
+import KYCWall from '../../../components/KYCWall';
+import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -114,6 +118,9 @@ const propTypes = {
 
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: PropTypes.bool,
+
+    /** The user's wallet account */
+    userWallet: userWalletPropTypes,
 };
 
 const defaultProps = {
@@ -125,6 +132,7 @@ const defaultProps = {
     hasOutstandingIOU: false,
     iouReport: undefined,
     shouldHideThreadDividerLine: false,
+    userWallet: {},
 };
 
 function ReportActionItem(props) {
@@ -345,20 +353,50 @@ function ReportActionItem(props) {
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
-            const shouldShowAddCreditBankAccountButton =
-                ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !store.hasCreditBankAccount() && !ReportUtils.isSettled(props.report.reportID);
+            const paymentType = lodashGet(props.action, 'originalMessage.paymentType', '');
+
+            const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !ReportUtils.isSettled(props.report.reportID);
+            const shouldShowAddCreditBankAccountButton = isSubmitterOfUnsettledReport && !store.hasCreditBankAccount() && paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+            const shouldShowEnableWalletButton =
+                isSubmitterOfUnsettledReport &&
+                (_.isEmpty(props.userWallet) || props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER) &&
+                paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
 
             children = (
-                <ReportActionItemBasicMessage message={props.translate('iou.waitingOnBankAccount', {submitterDisplayName})}>
-                    {shouldShowAddCreditBankAccountButton ? (
-                        <Button
-                            success
-                            style={[styles.w100, styles.requestPreviewBox]}
-                            text={props.translate('bankAccount.addBankAccount')}
-                            onPress={() => BankAccounts.openPersonalBankAccountSetupView(props.report.reportID)}
-                            pressOnEnter
-                        />
-                    ) : null}
+                <ReportActionItemBasicMessage
+                    message={props.translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
+                >
+                    <>
+                        {shouldShowAddCreditBankAccountButton && (
+                            <Button
+                                success
+                                style={[styles.w100, styles.requestPreviewBox]}
+                                text={props.translate('bankAccount.addBankAccount')}
+                                onPress={() => BankAccounts.openPersonalBankAccountSetupView(props.report.reportID)}
+                                pressOnEnter
+                            />
+                        )}
+                        {shouldShowEnableWalletButton && (
+                            <KYCWall
+                                onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
+                                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
+                                addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                                chatReportID={props.report.reportID}
+                                iouReport={props.iouReport}
+                            >
+                                {(triggerKYCFlow, buttonRef) => (
+                                    <Button
+                                        ref={buttonRef}
+                                        success
+                                        style={[styles.w100, styles.requestPreviewBox]}
+                                        text={props.translate('iou.enableWallet')}
+                                        onPress={triggerKYCFlow}
+                                    />
+                                )}
+                            </KYCWall>
+                        )}
+                    </>
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
@@ -701,6 +739,9 @@ export default compose(
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
             initialValue: {},
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(
