@@ -73,7 +73,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
         }
 
         setHeaderTitle(_.isEmpty(selectedParticipants) ? translate('tabSelector.manual') : translate('iou.split'));
-    }, [selectedParticipants, isDistanceRequest, translate, isScanRequest]);
+    }, [selectedParticipants, isDistanceRequest, translate, isScanRequest, isSendRequest]);
 
     const navigateToConfirmationStep = (moneyRequestType) => {
         if (moneyRequestType === iouType.current) {
