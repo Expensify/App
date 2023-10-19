@@ -2,6 +2,7 @@ import {ActivityIndicator, Alert, AppState, Text, View} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
@@ -98,6 +99,25 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
             subscription.remove();
         };
     }, []);
+
+    const validateReceipt = (file) => {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        if (!_.contains(CONST.API_RECEIPT_EXTENSIONS, fileExtension.toLowerCase())) {
+            Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+            return false;
+        }
+
+        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
+            return false;
+        }
+
+        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
+            return false;
+        }
+        return true;
+    };
 
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
@@ -207,6 +227,9 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
+                                        if (!validateReceipt(file)) {
+                                            return;
+                                        }
                                         const filePath = file.uri;
                                         IOU.setMoneyRequestReceipt(filePath, file.name);
 
