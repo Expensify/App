@@ -1186,7 +1186,7 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, sho
     // and prevent from falling back to 'Hidden', so a correct value is shown
     // when searching for a new user
     if (lodashGet(personalDetails, 'isOptimisticPersonalDetail') === true) {
-        return '';
+        return personalDetails.login || '';
     }
     const longName = personalDetails.displayName;
     const shortName = personalDetails.firstName || longName;
