@@ -197,8 +197,7 @@ function NewTaskPage(props) {
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
                                 interactive={!props.task.parentReportID}
                                 shouldShowRightIcon={!props.task.parentReportID}
-                                shouldUseFullTitle={shareDestination.shouldShowDestinationTooltip}
-                                titleWithTooltips={shareDestination.displayNamesWithTooltips}
+                                titleWithTooltips={!shareDestination.shouldUseFullTitleToDisplay && shareDestination.displayNamesWithTooltips}
                             />
                         </View>
                     </View>

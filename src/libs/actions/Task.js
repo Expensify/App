@@ -728,12 +728,7 @@ function getShareDestination(reportID, reports, personalDetails) {
         displayName: ReportUtils.getReportName(report),
         subtitle,
         displayNamesWithTooltips,
-        shouldShowDestinationTooltip:
-            ReportUtils.isChatThread(report) ||
-            ReportUtils.isPolicyExpenseChat(report) ||
-            ReportUtils.isMoneyRequestReport(report) ||
-            ReportUtils.isThread(report) ||
-            ReportUtils.isTaskReport(report),
+        shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),
     };
 }
 
