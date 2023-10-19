@@ -527,7 +527,7 @@ const styles = (theme: ThemeDefault) =>
             paddingTop: 8,
             paddingRight: 10,
             paddingBottom: 8,
-            paddingLeft: 18,
+            paddingLeft: 10,
             backgroundColor: theme.buttonDefaultBG,
         },
 
@@ -3704,8 +3704,7 @@ const styles = (theme: ThemeDefault) =>
 
         reportActionItemImages: {
             flexDirection: 'row',
-            borderWidth: 4,
-            borderColor: theme.transparent,
+            margin: 4,
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
             overflow: 'hidden',
@@ -3768,6 +3767,22 @@ const styles = (theme: ThemeDefault) =>
         reportActionItemImagesMoreCornerTriangleHighlighted: {
             borderColor: 'transparent',
             borderBottomColor: theme.border,
+        },
+
+        assignedCardsIconContainer: {
+            height: variables.bankCardHeight,
+            width: variables.bankCardWidth,
+            borderRadius: 4,
+            overflow: 'hidden',
+            alignSelf: 'center',
+        },
+
+        bankIconContainer: {
+            height: variables.bankCardWidth,
+            width: variables.bankCardWidth,
+            borderRadius: 8,
+            overflow: 'hidden',
+            alignSelf: 'center',
         },
 
         moneyRequestHeaderStatusBarBadge: {
@@ -3889,6 +3904,13 @@ const styles = (theme: ThemeDefault) =>
             ...objectFit.oFCover,
         },
 
+        singleOptionSelectorRow: {
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            gap: 12,
+            marginBottom: 16,
+        },
+
         globalNavigation: {
             width: variables.globalNavigationWidth,
             backgroundColor: theme.highlightBG,
@@ -3959,6 +3981,10 @@ const styles = (theme: ThemeDefault) =>
 
         checkboxWithLabelCheckboxStyle: {
             marginLeft: -2,
+        },
+
+        singleOptionSelectorCircle: {
+            borderColor: theme.icon,
         },
     } satisfies Styles);
 

@@ -1105,9 +1105,9 @@ describe('actions/IOU', () => {
                                         `Split bill with ${RORY_EMAIL}, ${CARLOS_EMAIL}, ${JULES_EMAIL}, and ${VIT_EMAIL} [${DateUtils.getDBTime().slice(0, 10)}]`,
                                     );
 
-                                    expect(carlosTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
-                                    expect(julesTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
-                                    expect(vitTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
+                                    expect(carlosTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
+                                    expect(julesTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
+                                    expect(vitTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
 
                                     expect(carlosTransaction.comment.originalTransactionID).toBe(groupTransaction.transactionID);
                                     expect(julesTransaction.comment.originalTransactionID).toBe(groupTransaction.transactionID);
