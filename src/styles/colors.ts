@@ -6,7 +6,7 @@ import {Color} from './themes/types';
  * For class components, you can use the `withTheme` and `withThemeStyles` HOCs
  */
 const colors: Record<string, Color> = {
-    // TODO: Find a good name/description for this block of colors.
+    // Brand Colors
     black: '#000000',
     white: '#FFFFFF',
     ivory: '#fffaf0',
