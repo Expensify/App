@@ -31,7 +31,7 @@ When using the Expensify Card, you can export your statement to a CSV with these
 2. Click the Reconciliation tab at the top right, then select Settlements.
   3. Enter your desired statement dates using the Start and End fields.
   4. Click Search to access the statement for that period.
-5. You can view the table or select Download to export it as a CSV.
+  5. You can view the table or select Download to export it as a CSV.
 
 ![Click the Download CSV button in the middle of the page to export your card settlements.](https://help.expensify.com/assets/images/ExpensifyHelp_SettlementExport.png){:width="100%"}
 
