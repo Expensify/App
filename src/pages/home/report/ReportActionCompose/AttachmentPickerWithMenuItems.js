@@ -250,10 +250,7 @@ function AttachmentPickerWithMenuItems({
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={translate('reportActionCompose.addAction')}
                                 >
-                                    <Icon
-                                        name="Plus"
-                                        src={Expensicons.Plus}
-                                    />
+                                    <Icon src={Expensicons.Plus} />
                                 </PressableWithFeedback>
                             </Tooltip>
                         </View>

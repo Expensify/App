@@ -235,6 +235,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     onPress={capturePhoto}
                 >
                     <ImageSVG
+                        contentFit="contain"
                         src={Shutter}
                         width={CONST.RECEIPT.SHUTTER_SIZE}
                         height={CONST.RECEIPT.SHUTTER_SIZE}
