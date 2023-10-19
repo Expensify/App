@@ -1,23 +1,20 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Alert, Linking} from 'react-native';
 import {Onfido as OnfidoSDK, OnfidoCaptureType, OnfidoDocumentType, OnfidoCountryCode} from '@onfido/react-native-sdk';
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Log from '../../libs/Log';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
+import useLocalize from '../../hooks/useLocalize';
 
-const propTypes = {
-    ...withLocalizePropTypes,
-    ...onfidoPropTypes,
-};
+function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
+    const {translate} = useLocalize();
 
-class Onfido extends React.Component {
-    componentDidMount() {
+    useEffect(() => {
         OnfidoSDK.start({
-            sdkToken: this.props.sdkToken,
+            sdkToken,
             flowSteps: {
                 welcome: true,
                 captureFace: {
@@ -29,7 +26,7 @@ class Onfido extends React.Component {
                 },
             },
         })
-            .then(this.props.onSuccess)
+            .then(onSuccess)
             .catch((error) => {
                 const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
                 const errorType = lodashGet(error, 'type');
@@ -38,24 +35,24 @@ class Onfido extends React.Component {
                 // If the user cancels the Onfido flow we won't log this error as it's normal. In the React Native SDK the user exiting the flow will trigger this error which we can use as
                 // our "user exited the flow" callback. On web, this event has it's own callback passed as a config so we don't need to bother with this there.
                 if (_.contains([CONST.ONFIDO.ERROR.USER_CANCELLED, CONST.ONFIDO.ERROR.USER_TAPPED_BACK, CONST.ONFIDO.ERROR.USER_EXITED], errorMessage)) {
-                    this.props.onUserExit();
+                    onUserExit();
                     return;
                 }
 
                 // Handle user camera permission on iOS and Android
                 if (_.contains([CONST.ONFIDO.ERROR.USER_CAMERA_PERMISSION, CONST.ONFIDO.ERROR.USER_CAMERA_DENINED, CONST.ONFIDO.ERROR.USER_CAMERA_CONSENT_DENIED], errorMessage)) {
                     Alert.alert(
-                        this.props.translate('onfidoStep.cameraPermissionsNotGranted'),
-                        this.props.translate('onfidoStep.cameraRequestMessage'),
+                        translate('onfidoStep.cameraPermissionsNotGranted'),
+                        translate('onfidoStep.cameraRequestMessage'),
                         [
                             {
-                                text: this.props.translate('common.cancel'),
-                                onPress: () => this.props.onUserExit(),
+                                text: translate('common.cancel'),
+                                onPress: () => onUserExit(),
                             },
                             {
-                                text: this.props.translate('common.settings'),
+                                text: translate('common.settings'),
                                 onPress: () => {
-                                    this.props.onUserExit();
+                                    onUserExit();
                                     Linking.openSettings();
                                 },
                             },
@@ -65,14 +62,16 @@ class Onfido extends React.Component {
                     return;
                 }
 
-                this.props.onError(errorMessage);
+                onError(errorMessage);
             });
-    }
+        // Onfido should be initialized only once on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    render() {
-        return <FullscreenLoadingIndicator />;
-    }
+    return <FullscreenLoadingIndicator />;
 }
 
-Onfido.propTypes = propTypes;
-export default withLocalize(Onfido);
+Onfido.propTypes = onfidoPropTypes;
+Onfido.displayName = 'Onfido';
+
+export default Onfido;
