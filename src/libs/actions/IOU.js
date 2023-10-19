@@ -1413,7 +1413,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
                 [splitIOUReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                    errors: receipt ? ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source, filename}) : ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                 },
             },
         });
@@ -1436,7 +1436,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                         errors: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                     },
                     [splitIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                        errors: receipt ? ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source, filename}) : ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                     },
                 },
             },
