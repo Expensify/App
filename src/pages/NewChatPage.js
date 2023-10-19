@@ -71,17 +71,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         let sectionsList = [];
         let indexOffset = 0;
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            searchTerm,
-            sectionsList,
-            selectedOptions,
-            filteredRecentReports,
-            filteredPersonalDetails,
-            {},
-            false,
-            indexOffset,
-        );
-        sectionsList = formatResults.sectionList;
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, {}, false, indexOffset);
+        sectionsList = sectionsList.concat(formatResults.sectionList);
         indexOffset = formatResults.indexOffset;
 
         if (maxParticipantsReached) {

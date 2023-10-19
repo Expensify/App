@@ -106,7 +106,6 @@ function MoneyRequestParticipantsSelector({
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             searchTerm,
-            newSections,
             participants,
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
@@ -115,7 +114,7 @@ function MoneyRequestParticipantsSelector({
             indexOffset,
         );
         indexOffset = formatResults.indexOffset;
-        newSections = formatResults.sectionList;
+        newSections = newSections.concat(formatResults.sectionList);
 
         if (maxParticipantsReached) {
             return newSections;

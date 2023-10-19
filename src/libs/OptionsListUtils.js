@@ -1588,7 +1588,6 @@ function shouldOptionShowTooltip(option) {
 /**
  * Handles the logic for displaying selected participants from the search term
  * @param {String} searchTerm
- * @param {Array} sectionList
  * @param {Array} selectedOptions
  * @param {Array} filteredRecentReports
  * @param {Array} filteredPersonalDetails
@@ -1597,22 +1596,14 @@ function shouldOptionShowTooltip(option) {
  * @param {Number} indexOffset
  * @returns {Object}
  */
-function formatSectionsFromSearchTerm(
-    searchTerm,
-    sectionList,
-    selectedOptions,
-    filteredRecentReports,
-    filteredPersonalDetails,
-    personalDetails = {},
-    shouldGetOptionDetails = false,
-    indexOffset,
-) {
+function formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, personalDetails = {}, shouldGetOptionDetails = false, indexOffset) {
     // We show the selected participants at the top of the list when there is no search term
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
     let newIndexOffset = indexOffset;
+    const sections = [];
     if (searchTerm === '') {
-        sectionList.push({
+        sections.push({
             title: undefined,
             data: shouldGetOptionDetails
                 ? _.map(selectedOptions, (participant) => {
@@ -1635,7 +1626,7 @@ function formatSectionsFromSearchTerm(
             return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;
         });
 
-        sectionList.push({
+        sections.push({
             title: undefined,
             data: shouldGetOptionDetails
                 ? _.map(selectedParticipantsWithoutDetails, (participant) => {
@@ -1650,7 +1641,7 @@ function formatSectionsFromSearchTerm(
     }
 
     return {
-        sectionList,
+        sectionList: sections,
         newIndexOffset,
     };
 }
