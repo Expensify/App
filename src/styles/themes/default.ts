@@ -1,4 +1,3 @@
-// TODO: For consistency reasons, rename this file to "dark.ts" after theme switching migration is done (GH issue:)
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
 import {ThemeColors} from './types';
