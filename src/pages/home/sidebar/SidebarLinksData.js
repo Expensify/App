@@ -141,6 +141,7 @@ const chatReportSelector = (report) =>
         lastVisibleActionCreated: report.lastVisibleActionCreated,
         iouReportID: report.iouReportID,
         total: report.total,
+        nonReimbursableTotal: report.nonReimbursableTotal,
         hasOutstandingIOU: report.hasOutstandingIOU,
         isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         statusNum: report.statusNum,

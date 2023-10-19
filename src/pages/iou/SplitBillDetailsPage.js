@@ -9,7 +9,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import reportPropTypes from '../reportPropTypes';
@@ -23,6 +22,7 @@ import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmat
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import MoneyRequestHeaderStatusBar from '../../components/MoneyRequestHeaderStatusBar';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /* Onyx Props */
@@ -40,7 +40,7 @@ const propTypes = {
     transaction: transactionPropTypes.isRequired,
 
     /** The draft transaction that holds data to be persisited on the current transaction */
-    draftTransaction: PropTypes.shape(transactionPropTypes),
+    draftTransaction: transactionPropTypes,
 
     /** Route params */
     route: PropTypes.shape({
@@ -61,8 +61,6 @@ const propTypes = {
         /** Currently logged in user email */
         email: PropTypes.string,
     }).isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -73,6 +71,7 @@ const defaultProps = {
 
 function SplitBillDetailsPage(props) {
     const {reportID} = props.report;
+    const {translate} = useLocalize();
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
 
@@ -90,10 +89,9 @@ function SplitBillDetailsPage(props) {
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
 
-    const isScanning =
-        TransactionUtils.hasReceipt(props.transaction) && TransactionUtils.isReceiptBeingScanned(props.transaction) && TransactionUtils.areRequiredFieldsEmpty(props.transaction);
+    const isScanning = TransactionUtils.hasReceipt(props.transaction) && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasSmartScanFailed = TransactionUtils.hasReceipt(props.transaction) && props.transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANFAILED;
-    const isEditingSplitBill = props.session.accountID === reportAction.actorAccountID && (TransactionUtils.areRequiredFieldsEmpty(props.transaction) || hasSmartScanFailed);
+    const isEditingSplitBill = props.session.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(props.transaction);
 
     const {
         amount: splitAmount,
@@ -112,12 +110,18 @@ function SplitBillDetailsPage(props) {
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(reportID) || _.isEmpty(reportAction) || _.isEmpty(props.transaction)}>
-                <HeaderWithBackButton title={props.translate('common.details')} />
+                <HeaderWithBackButton title={translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
                 >
-                    {isScanning && <MoneyRequestHeaderStatusBar />}
+                    {isScanning && (
+                        <MoneyRequestHeaderStatusBar
+                            title={translate('iou.receiptStatusTitle')}
+                            description={translate('iou.receiptStatusText')}
+                            shouldShowBorderBottom
+                        />
+                    )}
                     {Boolean(participants.length) && (
                         <MoneyRequestConfirmationList
                             hasMultipleParticipants
@@ -129,13 +133,12 @@ function SplitBillDetailsPage(props) {
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
-                            iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                            iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}
                             shouldShowSmartScanFields
                             receiptPath={props.transaction.receipt && props.transaction.receipt.source}
                             receiptFilename={props.transaction.filename}
                             shouldShowFooter={false}
-                            isScanning={isScanning}
                             isEditingSplitBill={isEditingSplitBill}
                             hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
@@ -155,7 +158,6 @@ SplitBillDetailsPage.defaultProps = defaultProps;
 SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 
 export default compose(
-    withLocalize,
     withReportAndReportActionOrNotFound,
     withOnyx({
         report: {

@@ -48,10 +48,8 @@ function chooseBoundingBox(target, clientX, clientY) {
         }
     }
 
-    // If no matching bounding box is found, fall back to the first one.
-    // This could only happen if the user is moving the mouse very quickly
-    // and they got it outside our slop above.
-    return bbs[0];
+    // If no matching bounding box is found, fall back to getBoundingClientRect.
+    return target.getBoundingClientRect();
 }
 
 function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal, shiftVertical}) {
@@ -88,10 +86,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
      * Display the tooltip in an animation.
      */
     const showTooltip = useCallback(() => {
-        if (!isRendered) {
-            setIsRendered(true);
-        }
-
+        setIsRendered(true);
         setIsVisible(true);
 
         animation.current.stopAnimation();
@@ -111,7 +106,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
             });
         }
         TooltipSense.activate();
-    }, [isRendered]);
+    }, []);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -132,11 +127,17 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
         if (bounds.width === 0) {
             setIsRendered(false);
         }
+        if (!target.current) {
+            return;
+        }
         // Choose a bounding box for the tooltip to target.
         // In the case when the target is a link that has wrapped onto
         // multiple lines, we want to show the tooltip over the part
         // of the link that the user is hovering over.
         const betterBounds = chooseBoundingBox(target.current, initialMousePosition.current.x, initialMousePosition.current.y);
+        if (!betterBounds) {
+            return;
+        }
         setWrapperWidth(betterBounds.width);
         setWrapperHeight(betterBounds.height);
         setXOffset(betterBounds.x);
@@ -146,7 +147,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
     /**
      * Hide the tooltip in an animation.
      */
-    const hideTooltip = () => {
+    const hideTooltip = useCallback(() => {
         animation.current.stopAnimation();
 
         if (TooltipSense.isActive() && !isTooltipSenseInitiator.current) {
@@ -164,7 +165,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
         TooltipSense.deactivate();
 
         setIsVisible(false);
-    };
+    }, []);
 
     // Skip the tooltip and return the children if the text is empty,
     // we don't have a render function or the device does not support hovering
