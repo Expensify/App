@@ -322,13 +322,13 @@ const styles = (theme: ThemeDefault) =>
             textDecorationLine: 'underline',
         },
 
-    verticalAlignMiddle: {
-        verticalAlign: 'middle',
-    },
+        verticalAlignMiddle: {
+            verticalAlign: 'middle',
+        },
 
-    verticalAlignTop: {
-        verticalAlign: 'top',
-    },
+        verticalAlignTop: {
+            verticalAlign: 'top',
+        },
 
         label: {
             fontSize: variables.fontSizeLabel,
@@ -2142,7 +2142,7 @@ const styles = (theme: ThemeDefault) =>
 
         pointerEventsAuto,
 
-    pointerEventsBoxNone,
+        pointerEventsBoxNone,
 
         headerBar: {
             overflow: 'hidden',
@@ -3435,7 +3435,7 @@ const styles = (theme: ThemeDefault) =>
 
         linkPreviewImage: {
             flex: 1,
-                        borderRadius: 8,
+            borderRadius: 8,
             marginTop: 8,
         },
 

@@ -469,11 +469,11 @@ function EmojiPickerMenu(props) {
     return (
         <View
             style={[
-                    styles.emojiPickerContainer,
-                    StyleUtils.getEmojiPickerStyle(isSmallScreenWidth),
+                styles.emojiPickerContainer,
+                StyleUtils.getEmojiPickerStyle(isSmallScreenWidth),
                 // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
                 arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
-                ]}
+            ]}
         >
             <View style={[styles.ph4, styles.pb3, styles.pt2]}>
                 <TextInput
