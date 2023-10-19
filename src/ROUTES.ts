@@ -362,7 +362,7 @@ export default {
     INSIGHTS_OLDDOT: 'insights',
 
     // Workspaces tab
-    INDIVIDUALS_OLDDOT: 'individual_workspace',
+    INDIVIDUAL_OLDDOT: 'individual_workspace',
     GROUPS_OLDDOT: 'group_workspaces',
 
     DOMAINS_OLDDOT: 'domains',

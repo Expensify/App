@@ -44,7 +44,7 @@ function getNewDotURL(url) {
 
     if (pathname === 'admin_policies') {
         const {section} = params;
-        return section === 'individual' ? ROUTES.INDIVIDUALS_OLDDOT : ROUTES.GROUPS_OLDDOT;
+        return section === 'individual' ? ROUTES.INDIVIDUAL_OLDDOT : ROUTES.GROUPS_OLDDOT;
     }
 
     if (pathname === 'policy') {

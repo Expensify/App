@@ -82,7 +82,7 @@ function SubNavigation({onLinkClick, insets}) {
                             text: translate('subNavigation.individual'),
                             value: SCREENS.INDIVIDUAL_WORKSPACE_OLDDOT,
                             onSelected: () => {
-                                Navigation.navigate(ROUTES.INDIVIDUALS_OLDDOT);
+                                Navigation.navigate(ROUTES.INDIVIDUAL_OLDDOT);
                             },
                         },
                         {
