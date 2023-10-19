@@ -2,6 +2,7 @@ import {isEqual, max, parseISO} from 'date-fns';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/lib/utils'
 import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
@@ -367,16 +368,10 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
 /**
  */
 function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
-    const updatedActionsToMerge: ReportActions = {};
-    if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
-        Object.keys(actionsToMerge).forEach(
-            (actionToMergeID) => (updatedActionsToMerge[actionToMergeID] = {...allReportActions?.[reportID]?.[actionToMergeID], ...actionsToMerge[actionToMergeID]}),
-        );
-    }
-    const actions = Object.values({
-        ...allReportActions?.[reportID],
-        ...updatedActionsToMerge,
-    });
+    const actions = Object.values(OnyxUtils.fastMerge(
+        allReportActions?.[reportID] ?? {},
+        actionsToMerge,
+    ));
     const visibleActions = actions.filter((action) => shouldReportActionBeVisibleAsLastAction(action));
 
     if (visibleActions.length === 0) {
