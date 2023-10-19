@@ -74,6 +74,9 @@ const propTypes = {
             /** A description of the location (usually the address) */
             description: PropTypes.string,
 
+            /** The main name of the location */
+            name: PropTypes.name,
+
             /** Data required by the google auto complete plugin to know where to put the markers on the map */
             geometry: PropTypes.shape({
                 /** Data about the location */
@@ -90,6 +93,7 @@ const propTypes = {
 
     /** A map of inputID key names */
     renamedInputKeys: PropTypes.shape({
+        name: PropTypes.string,
         street: PropTypes.string,
         street2: PropTypes.string,
         city: PropTypes.string,
@@ -124,6 +128,7 @@ const defaultProps = {
     isLimitedToUSA: false,
     canUseCurrentLocation: false,
     renamedInputKeys: {
+        name: 'name',
         street: 'addressStreet',
         street2: 'addressStreet2',
         city: 'addressCity',
@@ -170,6 +175,7 @@ function AddressSearch(props) {
                     address: lodashGet(details, 'description', ''),
                     lat: lodashGet(details, 'geometry.location.lat', 0),
                     lng: lodashGet(details, 'geometry.location.lng', 0),
+                    name: lodashGet(details, 'name', ''),
                 });
             }
             return;
@@ -220,7 +226,7 @@ function AddressSearch(props) {
 
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
-
+            name: lodashGet(details, 'name', ''),
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
             // Make sure country is updated first, since city and state will be reset if the country changes
@@ -291,6 +297,7 @@ function AddressSearch(props) {
 
         getCurrentPosition(
             (successData) => {
+                console.log(successData);
                 if (!shouldTriggerGeolocationCallbacks.current) {
                     return;
                 }
@@ -301,6 +308,7 @@ function AddressSearch(props) {
                 const location = {
                     lat: successData.coords.latitude,
                     lng: successData.coords.longitude,
+                    name: CONST.YOUR_LOCATION_TEXT,
                     address: CONST.YOUR_LOCATION_TEXT,
                 };
                 props.onPress(location);
@@ -382,6 +390,16 @@ function AddressSearch(props) {
                                 />
                             </View>
                         }
+                        renderRow={(data) => {
+                            const title = data.isPredefinedPlace ? data.name : data.structured_formatting.main_text;
+                            const subtitle = data.isPredefinedPlace ? data.description: data.structured_formatting.secondary_text;
+                            return (
+                                <View>
+                                    <Text style={[styles.googleSearchText]}>{title}</Text>
+                                    <Text style={[styles.textLabelSupporting]} numberOfLines={2}>{subtitle}</Text>
+                                </View>
+                            );
+                        }}
                         renderHeaderComponent={renderHeaderComponent}
                         onPress={(data, details) => {
                             saveLocationDetails(data, details);

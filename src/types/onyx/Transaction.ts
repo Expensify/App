@@ -4,6 +4,9 @@ import CONST from '../../CONST';
 import RecentWaypoint from './RecentWaypoint';
 
 type Waypoint = {
+    /** The name of the waypoint */
+    name?: string;
+    
     /** The full address of the waypoint */
     address?: string;
 

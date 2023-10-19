@@ -14,6 +14,7 @@ const propTypes = {
             lat: PropTypes.number,
             lng: PropTypes.number,
             address: PropTypes.string,
+            name: PropTypes.string,
         }),
     ),
 
@@ -68,7 +69,7 @@ function DistanceRequestRenderItem({waypoints, item, onSecondaryInteraction, get
     return (
         <MenuItemWithTopDescription
             description={translate(descriptionKey)}
-            title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
+            title={lodashGet(waypoints, [`waypoint${index}`, 'name'], '')}
             icon={Expensicons.DragHandles}
             iconFill={theme.icon}
             secondaryIcon={waypointIcon}
