@@ -47,22 +47,28 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
             return;
         }
 
-        const {icon, iconSize} = getBankIcon(bankAccount?.accountData?.additionalData?.bankName ?? '', false);
+        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon(bankAccount?.accountData?.additionalData?.bankName ?? '', false);
         combinedPaymentMethods.push({
             ...bankAccount,
             description: getPaymentMethodDescription(bankAccount?.accountType, bankAccount.accountData),
             icon,
             iconSize,
+            iconHeight,
+            iconWidth,
+            iconStyles,
         });
     });
 
     Object.values(fundList).forEach((card) => {
-        const {icon, iconSize} = getBankIcon(card?.accountData?.bank ?? '', true);
+        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon(card?.accountData?.bank ?? '', true);
         combinedPaymentMethods.push({
             ...card,
             description: getPaymentMethodDescription(card?.accountType, card.accountData),
             icon,
             iconSize,
+            iconHeight,
+            iconWidth,
+            iconStyles,
         });
     });
 
