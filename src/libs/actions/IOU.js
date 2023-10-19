@@ -1843,26 +1843,28 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                 lastVisibleActionCreated: currentTime,
             },
         },
-        ...(!isScanning ? 
-            [{
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-                value: {
-                    [transactionThread.parentReportActionID]: {
-                        whisperedToAccountIDs: []
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`,
-                value: {
-                    [iouReport.parentReportActionID]: {
-                        whisperedToAccountIDs: []
-                    },
-                },
-            }
-        ] : [])
+        ...(!isScanning
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                      value: {
+                          [transactionThread.parentReportActionID]: {
+                              whisperedToAccountIDs: [],
+                          },
+                      },
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`,
+                      value: {
+                          [iouReport.parentReportActionID]: {
+                              whisperedToAccountIDs: [],
+                          },
+                      },
+                  },
+              ]
+            : []),
     ];
 
     if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
