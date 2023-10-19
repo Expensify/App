@@ -8,18 +8,18 @@ import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import Icon from './Icon';
-import {imagePropTypes} from './Image/imagePropTypes';
+import sourcePropTypes from './Image/sourcePropTypes';
 import MenuItem from './MenuItem';
 
 const propTypes = {
     /** Icon Component */
-    icon: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]).isRequired,
+    icon: sourcePropTypes.isRequired,
 
     /** Text to display */
     text: PropTypes.string.isRequired,
 
     /** Icon to show when interaction was successful */
-    successIcon: PropTypes.oneOfType([PropTypes.elementType, imagePropTypes.source]),
+    successIcon: sourcePropTypes,
 
     /** Text to show when interaction was successful */
     successText: PropTypes.string,

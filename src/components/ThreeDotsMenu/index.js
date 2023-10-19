@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {imagePropTypes} from '@components/Image/imagePropTypes';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
@@ -19,7 +19,7 @@ const propTypes = {
     iconTooltip: PropTypes.string,
 
     /** icon for the popup trigger */
-    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, imagePropTypes.source]),
+    icon: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Any additional styles to pass to the icon container. */
     // eslint-disable-next-line react/forbid-prop-types

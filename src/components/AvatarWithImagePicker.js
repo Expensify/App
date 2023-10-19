@@ -20,7 +20,7 @@ import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import {imagePropTypes} from './Image/imagePropTypes';
+import sourcePropTypes from './Image/sourcePropTypes';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -30,7 +30,7 @@ import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
     /** Avatar source to display */
-    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
+    source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Additional style props */
     style: stylePropTypes,
@@ -62,13 +62,13 @@ const propTypes = {
     size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string, imagePropTypes.source]),
+    fallbackIcon: sourcePropTypes,
 
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
 
     /** Image crop vector mask */
-    editorMaskImage: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
+    editorMaskImage: sourcePropTypes,
 
     /** Additional style object for the error row */
     errorRowStyles: stylePropTypes,
@@ -87,7 +87,7 @@ const propTypes = {
     headerTitle: PropTypes.string,
 
     /** Avatar source for avatar preview modal */
-    previewSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
+    previewSource: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** File name of the avatar */
     originalFileName: PropTypes.string,

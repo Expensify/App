@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import Icon from '@components/Icon';
-import {imagePropTypes} from '@components/Image/imagePropTypes';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -11,13 +10,14 @@ import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 
 const propTypes = {
     /** The emoji code of the category header */
     code: PropTypes.string.isRequired,
 
     /** The icon representation of the category that this button links to */
-    icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]).isRequired,
+    icon: sourcePropTypes.isRequired,
 
     /** The function to call when an emoji is selected */
     onPress: PropTypes.func.isRequired,

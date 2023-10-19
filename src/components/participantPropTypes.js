@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import {imagePropTypes} from './Image/imagePropTypes';
+import sourcePropTypes from './Image/sourcePropTypes';
 
 export default PropTypes.shape({
     // Primary login of participant
@@ -12,7 +12,7 @@ export default PropTypes.shape({
     displayName: PropTypes.string,
 
     // Avatar url of participant
-    avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
+    avatar: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** First Name of the participant */
     firstName: PropTypes.string,

@@ -12,11 +12,11 @@ import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
-import {imagePropTypes} from './Image/imagePropTypes';
+import sourcePropTypes from './Image/sourcePropTypes';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
-    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
+    source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Extra styles to pass to Image */
     // eslint-disable-next-line react/forbid-prop-types
@@ -41,7 +41,7 @@ const propTypes = {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL.
      * If the avatar is type === workspace, this fallback icon will be ignored and decided based on the name prop.
      */
-    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string, imagePropTypes.source]),
+    fallbackIcon: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),

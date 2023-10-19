@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import styles from '@styles/styles';
 import Icon from './Icon';
-import {imagePropTypes} from './Image/imagePropTypes';
+import sourcePropTypes from './Image/sourcePropTypes';
 import MenuItemList from './MenuItemList';
 import menuItemPropTypes from './menuItemPropTypes';
 import Text from './Text';
@@ -19,7 +19,7 @@ const propTypes = {
     subtitle: PropTypes.string,
 
     /** The icon to display along with the title */
-    icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]),
+    icon: sourcePropTypes,
 
     /** Icon component */
     IconComponent: PropTypes.func,

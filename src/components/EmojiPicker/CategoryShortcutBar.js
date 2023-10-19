@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '@styles/styles';
 import CategoryShortcutButton from './CategoryShortcutButton';
-import {imagePropTypes} from '../Image/imagePropTypes';
+import sourcePropTypes from '../Image/sourcePropTypes';
 
 const propTypes = {
     /** The function to call when an emoji is selected */
@@ -15,7 +15,7 @@ const propTypes = {
         PropTypes.shape({
             code: PropTypes.string.isRequired,
             index: PropTypes.number.isRequired,
-            icon: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]).isRequired,
+            icon: sourcePropTypes.isRequired,
         }),
     ).isRequired,
 };

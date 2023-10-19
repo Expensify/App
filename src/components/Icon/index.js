@@ -7,11 +7,11 @@ import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import IconWrapperStyles from './IconWrapperStyles';
 import ImageSVG from '../ImageSVG';
-import {imagePropTypes} from '../Image/imagePropTypes';
+import sourcePropTypes from '../Image/sourcePropTypes';
 
 const propTypes = {
     /** The asset to render. */
-    src: PropTypes.oneOfType([PropTypes.func, imagePropTypes.source]).isRequired,
+    src: sourcePropTypes.isRequired,
 
     /** The width of the icon. */
     width: PropTypes.number,

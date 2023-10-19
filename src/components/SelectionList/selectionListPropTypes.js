@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import CONST from '@src/CONST';
 
 const commonListItemPropTypes = {
@@ -54,7 +55,7 @@ const userListItemPropTypes = {
         /** Icons for the user (can be multiple if it's a Workspace) */
         icons: PropTypes.arrayOf(
             PropTypes.shape({
-                source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]).isRequired,
+                source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]).isRequired,
                 name: PropTypes.string,
                 type: PropTypes.string,
             }),

@@ -5,19 +5,19 @@ import * as UserUtils from '@libs/UserUtils';
 import styles from '@styles/styles';
 import Avatar from './Avatar';
 import * as Expensicons from './Icon/Expensicons';
-import {imagePropTypes} from './Image/imagePropTypes';
+import sourcePropTypes from './Image/sourcePropTypes';
 import Indicator from './Indicator';
 import Tooltip from './Tooltip';
 
 const propTypes = {
     /** URL for the avatar */
-    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]).isRequired,
+    source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]).isRequired,
 
     /** To show a tooltip on hover */
     tooltipText: PropTypes.string,
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string, imagePropTypes.source]),
+    fallbackIcon: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 };
 
 const defaultProps = {

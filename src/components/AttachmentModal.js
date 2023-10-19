@@ -34,7 +34,7 @@ import ConfirmModal from './ConfirmModal';
 import HeaderGap from './HeaderGap';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
-import {imagePropTypes} from './Image/imagePropTypes';
+import sourcePropTypes from './Image/sourcePropTypes';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import transactionPropTypes from './transactionPropTypes';
@@ -48,7 +48,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 
 const propTypes = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
-    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
+    source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,

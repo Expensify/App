@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 
 export default PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.elementType,
     PropTypes.number,
     PropTypes.shape({
         uri: PropTypes.string.isRequired,

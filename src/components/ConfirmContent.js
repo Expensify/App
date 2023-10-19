@@ -9,7 +9,7 @@ import variables from '@styles/variables';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
-import {imagePropTypes} from './Image/imagePropTypes';
+import sourcePropTypes from './Image/sourcePropTypes';
 import Text from './Text';
 
 const propTypes = {
@@ -44,7 +44,7 @@ const propTypes = {
     shouldShowCancelButton: PropTypes.bool,
 
     /** Icon to display above the title */
-    iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func, imagePropTypes.source]),
+    iconSource: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Whether to center the icon / text content */
     shouldCenterContent: PropTypes.bool,
