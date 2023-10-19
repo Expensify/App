@@ -3664,7 +3664,6 @@ function getAddWorkspaceRoomOrChatReportErrors(report) {
  */
 function canUserPerformWriteAction(report) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
-    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
     return !isArchivedRoom(report) && _.isEmpty(reportErrors) && isAllowedToComment(report) && !isAnonymousUser;
 }
 
