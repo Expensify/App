@@ -50,6 +50,8 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
     const [shouldShowForm, setShouldShowForm] = useState(false);
     const textInputRef = useRef(null);
 
+    const focusTimeoutRef = useRef(null);
+
     const errorText = useMemo(() => {
         if (isPasswordInvalid) {
             return translate('attachmentView.passwordIncorrect');
@@ -67,7 +69,19 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
         if (!textInputRef.current) {
             return;
         }
-        textInputRef.current.focus();
+        /**
+         * We recommend using setTimeout to wait for the animation to finish and then focus on the input
+         * Relevant thread: https://expensify.slack.com/archives/C01GTK53T8Q/p1694660990479979
+         */
+        focusTimeoutRef.current = setTimeout(() => {
+            textInputRef.current.focus();
+        }, CONST.ANIMATED_TRANSITION);
+        return () => {
+            if (!focusTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(focusTimeoutRef.current);
+        };
     }, [isFocused]);
 
     const updatePassword = (newPassword) => {
@@ -93,11 +107,6 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
             return;
         }
         onSubmit(password);
-    };
-
-    const validateAndNotifyPasswordBlur = () => {
-        validate();
-        onPasswordFieldFocused(false);
     };
 
     return shouldShowForm ? (
@@ -126,7 +135,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 onSubmitEditing={submitPassword}
                 errorText={errorText}
                 onFocus={() => onPasswordFieldFocused(true)}
-                onBlur={validateAndNotifyPasswordBlur}
+                onBlur={() => onPasswordFieldFocused(false)}
                 autoFocus
                 shouldDelayFocus={shouldDelayFocus}
                 secureTextEntry

@@ -9,8 +9,6 @@ import Icon from '../Icon';
 import CONST from '../../CONST';
 import * as StyleUtils from '../../styles/StyleUtils';
 import HapticFeedback from '../../libs/HapticFeedback';
-import withNavigationFallback from '../withNavigationFallback';
-import compose from '../../libs/compose';
 import * as Expensicons from '../Icon/Expensicons';
 import withNavigationFocus from '../withNavigationFocus';
 import validateSubmitShortcut from './validateSubmitShortcut';
@@ -18,6 +16,9 @@ import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import refPropTypes from '../refPropTypes';
 
 const propTypes = {
+    /** Should the press event bubble across multiple instances when Enter key triggers it. */
+    allowBubble: PropTypes.bool,
+
     /** The text for the button label */
     text: PropTypes.string,
 
@@ -123,6 +124,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    allowBubble: false,
     text: '',
     shouldShowRightIcon: false,
     icon: null,
@@ -183,7 +185,7 @@ class Button extends Component {
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,
             true,
-            false,
+            this.props.allowBubble,
             this.props.enterKeyEventListenerPriority,
             false,
         );
@@ -324,10 +326,7 @@ class Button extends Component {
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
 
-export default compose(
-    withNavigationFallback,
-    withNavigationFocus,
-)(
+export default withNavigationFocus(
     React.forwardRef((props, ref) => (
         <Button
             // eslint-disable-next-line react/jsx-props-no-spreading

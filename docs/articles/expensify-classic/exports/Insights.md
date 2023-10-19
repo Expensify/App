@@ -1,6 +1,7 @@
 ---
 title: Custom Reporting and Insights
 description: How to get the most out of the Custom Reporing and Insights
+redirect_from: articles/other/Insights/
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 {% raw %}
