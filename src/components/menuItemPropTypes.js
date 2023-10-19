@@ -147,6 +147,15 @@ const propTypes = {
 
     /** Should render the content in HTML format */
     shouldRenderAsHTML: PropTypes.bool,
+
+    /** Component to be displayed on the right */
+    rightComponent: PropTypes.node,
+
+    /** Should render component on the right */
+    shouldShowRightComponent: PropTypes.bool,
+
+    /** Should check anonymous user in onPress function */
+    shouldCheckActionAllowedOnPress: PropTypes.bool,
 };
 
 export default propTypes;
