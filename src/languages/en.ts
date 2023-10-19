@@ -857,6 +857,8 @@ export default {
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
         sendAndReceiveMoney: 'Send and receive money from your Expensify Wallet.',
+        enableWalletToSendAndReceiveMoney: 'Enable your Expensify Wallet to start sending and receiving money with friends!',
+        enableWallet: 'Enable wallet',
         bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
         addBankAccount: 'Add bank account',
@@ -1219,7 +1221,7 @@ export default {
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
-        helpText: 'We need to confirm the following information before we can process this payment.',
+        helpText: 'We need to confirm the following information before you can send and receive money from your Wallet.',
         helpTextIdologyQuestions: 'We need to ask you just a few more questions to finish validating your identity.',
         helpLink: 'Learn more about why we need this.',
         legalFirstNameLabel: 'Legal first name',
