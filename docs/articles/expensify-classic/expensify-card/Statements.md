@@ -37,7 +37,7 @@ When using the Expensify Card, you can export your statement to a CSV with these
 
 ## Expensify Card Settlement Frequency
 Paying your Expensify Card balance is simple with automatic settlement. There are two settlement frequency options:
-- **Daily Settlement:** Your Expensify Card balance is paid in full every business day, meaning you’ll see an itemized debit each business day.
+  - **Daily Settlement:** Your Expensify Card balance is paid in full every business day, meaning you’ll see an itemized debit each business day.
 - **Monthly Settlement:** Expensify Cards are settled monthly, with your settlement date determined during the card activation process. With monthly, you’ll see only one itemized debit per month. (Available for Plaid-connected bank accounts with no recent negative balance.)
 
 ## How settlement works
