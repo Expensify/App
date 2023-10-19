@@ -78,6 +78,8 @@ describe('actions/IOU', () => {
                                     const iouReport = iouReports[0];
                                     iouReportID = iouReport.reportID;
 
+                                    expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
                                     // They should be linked together
                                     expect(chatReport.participantAccountIDs).toEqual([CARLOS_ACCOUNT_ID]);
                                     expect(chatReport.iouReportID).toBe(iouReport.reportID);
@@ -241,6 +243,8 @@ describe('actions/IOU', () => {
                                     chatReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.CHAT);
                                     const iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
                                     iouReportID = iouReport.reportID;
+
+                                    expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                     // They should be linked together
                                     expect(chatReport.iouReportID).toBe(iouReportID);
@@ -569,6 +573,8 @@ describe('actions/IOU', () => {
                                         chatReportID = chatReport.reportID;
                                         const iouReport = iouReports[0];
                                         iouReportID = iouReport.reportID;
+
+                                        expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                         // They should be linked together
                                         expect(chatReport.participantAccountIDs).toEqual([CARLOS_ACCOUNT_ID]);
