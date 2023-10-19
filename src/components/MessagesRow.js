@@ -25,15 +25,19 @@ const propTypes = {
 
     /** Additional style object for the container */
     containerStyles: stylePropTypes,
+
+    /** Whether we can dismiss the error message */
+    canDismissError: PropTypes.bool,
 };
 
 const defaultProps = {
     messages: {},
     onClose: () => {},
     containerStyles: [],
+    canDismissError: true,
 };
 
-function MessagesRow({messages, type, onClose, containerStyles}) {
+function MessagesRow({messages, type, onClose, containerStyles, canDismissError}) {
     const {translate} = useLocalize();
     if (_.isEmpty(messages)) {
         return null;
@@ -46,16 +50,18 @@ function MessagesRow({messages, type, onClose, containerStyles}) {
                 messages={messages}
                 type={type}
             />
-            <Tooltip text={translate('common.close')}>
-                <PressableWithoutFeedback
-                    onPress={onClose}
-                    style={[styles.touchableButtonImage]}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    accessibilityLabel={translate('common.close')}
-                >
-                    <Icon src={Expensicons.Close} />
-                </PressableWithoutFeedback>
-            </Tooltip>
+            {canDismissError && (
+                <Tooltip text={translate('common.close')}>
+                    <PressableWithoutFeedback
+                        onPress={onClose}
+                        style={[styles.touchableButtonImage]}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={translate('common.close')}
+                    >
+                        <Icon src={Expensicons.Close} />
+                    </PressableWithoutFeedback>
+                </Tooltip>
+            )}
         </View>
     );
 }
