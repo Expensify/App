@@ -3,7 +3,6 @@ import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import OptionsSelector from '../components/OptionsSelector';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Permissions from '../libs/Permissions';
@@ -82,7 +81,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             false,
             indexOffset,
         );
-        sectionsList = formatResults.sectionsList;
+        sectionsList = formatResults.sectionList;
         indexOffset = formatResults.indexOffset;
 
         if (maxParticipantsReached) {
