@@ -71,13 +71,16 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         const sectionsList = [];
         let indexOffset = 0;
 
-        sectionsList.push({
-            title: undefined,
-            data: selectedOptions,
-            shouldShow: !_.isEmpty(selectedOptions),
-            indexOffset,
-        });
-        indexOffset += selectedOptions.length;
+        // Only show the selected participants if the search is empty
+        if (searchTerm === '') {
+            sectionsList.push({
+                title: undefined,
+                data: selectedOptions,
+                shouldShow: !_.isEmpty(selectedOptions),
+                indexOffset,
+            });
+            indexOffset += selectedOptions.length;
+        }
 
         if (maxParticipantsReached) {
             return sectionsList;
@@ -109,7 +112,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         }
 
         return sectionsList;
-    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions]);
+    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions, searchTerm]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -130,7 +133,24 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             recentReports,
             personalDetails: newChatPersonalDetails,
             userToInvite,
-        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, newSelectedOptions, excludedGroupEmails);
+        } = OptionsListUtils.getFilteredOptions(
+            reports,
+            personalDetails,
+            betas,
+            searchTerm,
+            newSelectedOptions,
+            isGroupChat ? excludedGroupEmails : [],
+            false,
+            true,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            true,
+        );
 
         setSelectedOptions(newSelectedOptions);
         setFilteredRecentReports(recentReports);
@@ -165,7 +185,24 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             recentReports,
             personalDetails: newChatPersonalDetails,
             userToInvite,
-        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, selectedOptions, isGroupChat ? excludedGroupEmails : []);
+        } = OptionsListUtils.getFilteredOptions(
+            reports,
+            personalDetails,
+            betas,
+            searchTerm,
+            selectedOptions,
+            isGroupChat ? excludedGroupEmails : [],
+            false,
+            true,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            true,
+        );
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);

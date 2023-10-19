@@ -65,6 +65,14 @@ function RightModalNavigator(props) {
                         component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
                     />
                     <Stack.Screen
+                        name="RoomMembers"
+                        component={ModalStackNavigators.RoomMembersModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="RoomInvite"
+                        component={ModalStackNavigators.RoomInviteModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name="MoneyRequest"
                         component={ModalStackNavigators.MoneyRequestModalStackNavigator}
                     />
