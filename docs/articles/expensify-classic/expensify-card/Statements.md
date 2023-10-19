@@ -57,7 +57,7 @@ If you've chosen Monthly Settlement, you can manually initiate settlement using 
 
 If you opt for Daily Settlement, the Expensify Card statement will automatically settle daily through an automatic withdrawal from your business bank account. No additional action is needed on your part.
   
-## **Will our domain limit change if our Verified Bank Account has a higher balance?**
+## Will our domain limit change if our Verified Bank Account has a higher balance?
   Your domain limit may fluctuate based on your cash balance, spending patterns, and history with Expensify. Suppose you've recently transferred funds to the business bank account linked to Expensify card settlements. In that case, you should expect a change in your domain limit within 24 hours of the transfer (assuming your business bank account is connected through Plaid).
   
 ## **How is the “Amount Owed” figure on the card list calculated?**
