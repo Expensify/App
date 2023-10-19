@@ -237,13 +237,13 @@ function SuggestionMention({
     useEffect(() => {
         if (value.length < previousValue.length) {
             // A workaround to not show the suggestions list when the user deletes a character before the mention.
-            // It is caused by a buggy behavior of the TextInput on iOS.
+            // It is caused by a buggy behavior of the TextInput on iOS. Should be fixed after migration to the Fabric Arc.
             // See: https://github.com/facebook/react-native/pull/36930#issuecomment-1593028467
             return;
         }
 
         calculateMentionSuggestion(selection.end);
-    }, [selection, calculateMentionSuggestion]);
+    }, [selection, value, previousValue, calculateMentionSuggestion]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
