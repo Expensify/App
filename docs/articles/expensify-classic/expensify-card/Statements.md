@@ -71,8 +71,3 @@ To view unsettled expenses since the last settlement, use the Reconciliation Das
   2. Switch to the Expenses tab on the Reconciliation Dashboard.
   3. Set the start date just after the last settled expenses and the end date to today.
   4. The Imported Total will show the outstanding amount, and you can click through to view individual expenses.
-
-
-
-
-
