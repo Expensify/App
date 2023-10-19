@@ -53,6 +53,9 @@ const propTypes = {
 
     /** Whether to apply needsOffscreenAlphaCompositing prop to the children */
     needsOffscreenAlphaCompositing: PropTypes.bool,
+
+    /** Whether we can dismiss the error message */
+    canDismissError: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -67,6 +70,7 @@ const defaultProps = {
     errorRowStyles: [],
     shouldDisableStrikeThrough: false,
     needsOffscreenAlphaCompositing: false,
+    canDismissError: true,
 };
 
 /**
@@ -123,6 +127,7 @@ function OfflineWithFeedback(props) {
                     type="error"
                     onClose={props.onClose}
                     containerStyles={props.errorRowStyles}
+                    canDismissError={props.canDismissError}
                 />
             )}
         </View>
