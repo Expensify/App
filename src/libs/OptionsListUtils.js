@@ -1587,57 +1587,69 @@ function shouldOptionShowTooltip(option) {
 
 /**
  * Handles the logic for displaying selected participants from the search term
- * @param {String} searchTerm 
- * @param {Array} sectionList 
- * @param {Array} selectedOptions 
- * @param {Array} filteredRecentReports 
- * @param {Array} filteredPersonalDetails 
+ * @param {String} searchTerm
+ * @param {Array} sectionList
+ * @param {Array} selectedOptions
+ * @param {Array} filteredRecentReports
+ * @param {Array} filteredPersonalDetails
  * @param {Object} personalDetails
  * @param {Boolean} shouldGetOptionDetails
- * @param {Number} indexOffset 
+ * @param {Number} indexOffset
  * @returns {Number} newIndexOffset
  */
-function formatSectionsFromSearchTerm(searchTerm, sectionList, selectedOptions, filteredRecentReports, filteredPersonalDetails, personalDetails = {}, shouldGetOptionDetails = false, indexOffset)
-{
-        // We show the selected participants at the top of the list when there is no search term
-        // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
-        // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
-        let newIndexOffset = indexOffset;
-        if (searchTerm === '') {
-            sectionList.push({
-                title: undefined,
-                data: shouldGetOptionDetails ? _.map(selectedOptions, (participant) => {
-                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
-                }) : selectedOptions,
-                shouldShow: !_.isEmpty(selectedOptions),
-                indexOffset,
-            });
-            newIndexOffset += selectedOptions.length;
-        } else {
-            // If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
-            // This will add them to the list of options, deduping them if they already exist in the other lists
-            const selectedParticipantsWithoutDetails = _.filter(selectedOptions, (participant) => {
-                const accountID = lodashGet(participant, 'accountID', null);
-                const isPartOfSearchTerm = participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase());
-                const isReportInRecentReports = _.some(filteredRecentReports, (report) => report.accountID === accountID);
-                const isReportInPersonalDetails = _.some(filteredPersonalDetails, (personalDetail) => personalDetail.accountID === accountID);
-                return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;
-            });
+function formatSectionsFromSearchTerm(
+    searchTerm,
+    sectionList,
+    selectedOptions,
+    filteredRecentReports,
+    filteredPersonalDetails,
+    personalDetails = {},
+    shouldGetOptionDetails = false,
+    indexOffset,
+) {
+    // We show the selected participants at the top of the list when there is no search term
+    // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
+    // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
+    let newIndexOffset = indexOffset;
+    if (searchTerm === '') {
+        sectionList.push({
+            title: undefined,
+            data: shouldGetOptionDetails
+                ? _.map(selectedOptions, (participant) => {
+                      const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                      return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                  })
+                : selectedOptions,
+            shouldShow: !_.isEmpty(selectedOptions),
+            indexOffset,
+        });
+        newIndexOffset += selectedOptions.length;
+    } else {
+        // If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
+        // This will add them to the list of options, deduping them if they already exist in the other lists
+        const selectedParticipantsWithoutDetails = _.filter(selectedOptions, (participant) => {
+            const accountID = lodashGet(participant, 'accountID', null);
+            const isPartOfSearchTerm = participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase());
+            const isReportInRecentReports = _.some(filteredRecentReports, (report) => report.accountID === accountID);
+            const isReportInPersonalDetails = _.some(filteredPersonalDetails, (personalDetail) => personalDetail.accountID === accountID);
+            return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;
+        });
 
-            sectionList.push({
-                title: undefined,
-                data: shouldGetOptionDetails ? _.map(selectedParticipantsWithoutDetails, (participant) => {
-                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
-                }) : selectedParticipantsWithoutDetails,
-                shouldShow: !_.isEmpty(selectedParticipantsWithoutDetails),
-                indexOffset,
-            });
-            newIndexOffset += selectedParticipantsWithoutDetails.length;
-        }
+        sectionList.push({
+            title: undefined,
+            data: shouldGetOptionDetails
+                ? _.map(selectedParticipantsWithoutDetails, (participant) => {
+                      const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                      return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                  })
+                : selectedParticipantsWithoutDetails,
+            shouldShow: !_.isEmpty(selectedParticipantsWithoutDetails),
+            indexOffset,
+        });
+        newIndexOffset += selectedParticipantsWithoutDetails.length;
+    }
 
-        return newIndexOffset;
+    return newIndexOffset;
 }
 
 export {

@@ -103,8 +103,17 @@ function MoneyRequestParticipantsSelector({
     const sections = useMemo(() => {
         const newSections = [];
         let indexOffset = 0;
-        
-        indexOffset = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, newSections, participants, newChatOptions.recentReports, newChatOptions.personalDetails, personalDetails, true, indexOffset);
+
+        indexOffset = OptionsListUtils.formatSectionsFromSearchTerm(
+            searchTerm,
+            newSections,
+            participants,
+            newChatOptions.recentReports,
+            newChatOptions.personalDetails,
+            personalDetails,
+            true,
+            indexOffset,
+        );
 
         if (maxParticipantsReached) {
             return newSections;
