@@ -3515,14 +3515,17 @@ function getMoneyRequestOptions(report, reportParticipants) {
 
     const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
 
-    // Verify if there is any of the expensify accounts amongst the participants in which case user cannot take IOU actions on such report
-    const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
-    const hasSingleParticipantInReport = participants.length === 1;
-    const hasMultipleParticipants = participants.length > 1;
-
-    if (hasExcludedIOUAccountIDs) {
+    // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
+    const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
+    const policyID = lodashGet(report, 'policyID', '');
+    const policyOwnerAccountID = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}.ownerAccountID`, 0);
+    const doExpensifyAccountsOwnPolicy = CONST.EXPENSIFY_ACCOUNT_IDS.includes(policyOwnerAccountID);
+    if (doParticipantsIncludeExpensifyAccounts && !doExpensifyAccountsOwnPolicy) {
         return [];
     }
+
+    const hasSingleParticipantInReport = participants.length === 1;
+    const hasMultipleParticipants = participants.length > 1;
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
