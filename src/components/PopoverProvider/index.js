@@ -24,7 +24,7 @@ function PopoverContextProvider(props) {
         }
 
         activePopoverRef.current.close();
-        if (activePopoverRef && activePopoverRef.current && activePopoverRef.current.onCloseCallback) {
+        if (activePopoverRef.current.onCloseCallback) {
             activePopoverRef.current.onCloseCallback();
         }
         activePopoverRef.current = null;
