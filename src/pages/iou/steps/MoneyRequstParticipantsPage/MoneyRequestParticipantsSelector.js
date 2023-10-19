@@ -103,43 +103,8 @@ function MoneyRequestParticipantsSelector({
     const sections = useMemo(() => {
         const newSections = [];
         let indexOffset = 0;
-
-        // We show the selected participants at the top of the list when there is no search term
-        // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
-        // This clears up space on mobile views, where if you split with 4+ people you can't see the selected participants and the search results at the same time
-        if (searchTerm === '') {
-            newSections.push({
-                title: undefined,
-                data: _.map(participants, (participant) => {
-                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
-                }),
-                shouldShow: true,
-                indexOffset,
-            });
-            indexOffset += participants.length;
-        } else {
-            // If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
-            // This will add them to the list of options, deduping them if they already exist in the other lists
-            const selectedParticipantsWithoutDetails = _.filter(participants, (participant) => {
-                const accountID = lodashGet(participant, 'accountID', null);
-                const isPartOfSearchTerm = participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase());
-                const isReportInRecentReports = _.some(newChatOptions.recentReports, (report) => report.accountID === accountID);
-                const isReportInPersonalDetails = _.some(newChatOptions.personalDetails, (personalDetail) => personalDetail.accountID === accountID);
-                return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;
-            });
-
-            newSections.push({
-                title: undefined,
-                data: _.map(selectedParticipantsWithoutDetails, (participant) => {
-                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
-                }),
-                shouldShow: !_.isEmpty(selectedParticipantsWithoutDetails),
-                indexOffset,
-            });
-            indexOffset += selectedParticipantsWithoutDetails.length;
-        }
+        
+        indexOffset = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, newSections, participants, newChatOptions.recentReports, newChatOptions.personalDetails, personalDetails, true, indexOffset);
 
         if (maxParticipantsReached) {
             return newSections;
