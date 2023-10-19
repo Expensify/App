@@ -9,7 +9,7 @@ import reportPropTypes from '../../reportPropTypes';
 import FullscreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import * as ReportUtils from '../../../libs/ReportUtils';
 
-export default function (isRequireReportId = true) {
+export default function (shouldRequireReportID = true) {
     const propTypes = {
         /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
          * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
@@ -59,7 +59,8 @@ export default function (isRequireReportId = true) {
 
             const isReportIdInParam = !_.isUndefined(props.route.params.reportID);
 
-            if (isRequireReportId || isReportIdInParam) {
+            // If we should require reportID or we have a reportID in the route, we will check the reportID is valid or not
+            if (shouldRequireReportID || isReportIdInParam) {
                 const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
                 // eslint-disable-next-line rulesdir/no-negated-variables
                 const shouldShowNotFoundPage = _.isEmpty(props.report) || !props.report.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas);

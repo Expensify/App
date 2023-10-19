@@ -76,6 +76,7 @@ function MoneyRequestSelectorPage(props) {
         IOU.resetMoneyRequestInfo(moneyRequestID);
     };
 
+    // Allow the user to create the request if we are creating the request in global menu or the report can create the request
     const isAllowedToCreateRequest = _.isEmpty(props.report.reportID) || ReportUtils.canCreateRequest(props.report, props.betas, iouType);
     const prevSelectedTab = usePrevious(props.selectedTab);
 

@@ -316,7 +316,7 @@ RoomMembersPage.displayName = 'RoomMembersPage';
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
