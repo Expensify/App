@@ -346,7 +346,7 @@ function PaymentMethodList({
                 ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : null}
                 onContentSizeChange={onListContentSizeChange}
                 scrollEnabled={shouldEnableScroll}
-                style={style}
+                contentContainerStyle={style}
             />
             {shouldShowAddPaymentMethodButton && (
                 <FormAlertWrapper>
