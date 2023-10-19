@@ -5,19 +5,24 @@ const Logger = require('./logger');
  * Executes a command none-blocking by wrapping it in a promise.
  * In addition to the promise it returns an abort function.
  * @param {string} command
+ * @param {object} env environment variables
  * @returns {Promise<void>}
  */
-module.exports = (command) => {
-    let process;
+module.exports = (command, env = {}) => {
+    let childProcess;
     const promise = new Promise((resolve, reject) => {
         Logger.log(`\nRunning command:`);
         Logger.important(command);
 
-        process = exec(
+        childProcess = exec(
             command,
             {
                 encoding: 'utf8',
                 maxBuffer: 1024 * 1024 * 10, // Increase max buffer to 10MB, to avoid errors
+                env: {
+                    ...process.env,
+                    ...env,
+                },
             },
             (error, stdout) => {
                 if (error) {
@@ -36,7 +41,7 @@ module.exports = (command) => {
     });
 
     promise.abort = () => {
-        process.kill('SIGINT');
+        childProcess.kill('SIGINT');
     };
 
     return promise;

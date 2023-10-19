@@ -153,8 +153,7 @@ const runTests = async () => {
         const tempDir = `${config.OUTPUT_DIR}/temp`;
         const tempBundlePath = `${tempDir}/index.android.bundle`;
         await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
-        await execAsync(`E2E_TESTING=true npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`);
-
+        await execAsync(`npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`, {E2E_TESTING: true});
         // Repackage the existing native app with the new bundle
         const tempApkPath = `${tempDir}/app-release.apk`;
         await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${appPath} ${tempBundlePath} ${tempApkPath}`);
