@@ -63,15 +63,15 @@ const skipInstallDeps = args.includes('--skipInstallDeps');
 // 3. skip: does not rebuild anything, and just runs the existing native app
 let buildMode = 'full';
 
-if (args.includes('--buildMode')) {
-    buildMode = args[args.indexOf('--buildMode') + 1];
-}
-
 // When we are in dev mode we want to apply certain default params and configs
 const isDevMode = args.includes('--development');
 if (isDevMode) {
     setConfigPath('config.local.js');
     buildMode = 'js-only';
+}
+
+if (args.includes('--buildMode')) {
+    buildMode = args[args.indexOf('--buildMode') + 1];
 }
 
 if (args.includes('--config')) {
