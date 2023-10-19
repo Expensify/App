@@ -27,6 +27,7 @@ import type {
     SettleExpensifyCardParams,
     RequestAmountParams,
     SplitAmountParams,
+    DidSplitAmountMessageParams,
     AmountEachParams,
     PayerOwesAmountParams,
     PayerOwesParams,
@@ -183,6 +184,7 @@ export default {
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}: CharacterLimitParams) => `Supera el límite de ${limit} caracteres`,
+            characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
             invalidCharacter: 'Carácter invalido',
             enterMerchant: 'Introduce un comerciante',
@@ -252,6 +254,7 @@ export default {
         recent: 'Reciente',
         all: 'Todo',
         tbd: 'Por determinar',
+        card: 'Tarjeta',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -369,6 +372,14 @@ export default {
         termsOfService: 'Términos de servicio',
         privacy: 'Privacidad',
     },
+    samlSignIn: {
+        welcomeSAMLEnabled: 'Continua iniciando sesión con el inicio de sesión único:',
+        orContinueWithMagicCode: 'O, opcionalmente, tu empresa te permite iniciar sesión con un código mágico',
+        useSingleSignOn: 'Usar el inicio de sesión único',
+        useMagicCode: 'Usar código mágico',
+        launching: 'Cargando...',
+        oneMoment: 'Un momento mientras te redirigimos al portal de inicio de sesión único de tu empresa.',
+    },
     reportActionCompose: {
         addAction: 'Acción',
         dropToUpload: 'Suelta el archivo aquí para compartirlo',
@@ -433,7 +444,7 @@ export default {
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para pedir dinero o asignar una tarea!',
+        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar dinero, pedir dinero, o asignar una tarea!',
     },
     reportAction: {
         asCopilot: 'como copiloto de',
@@ -468,8 +479,8 @@ export default {
     sidebarScreen: {
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
-        fabNewChat: 'Enviar mensaje',
-        fabNewChatExplained: 'Enviar mensaje',
+        fabNewChat: 'Iniciar chat',
+        fabNewChatExplained: 'Iniciar chat',
         chatPinned: 'Chat fijado',
         draftedMessage: 'Mensaje borrador',
         listOfChatMessages: 'Lista de mensajes del chat',
@@ -497,6 +508,8 @@ export default {
         flash: 'flash',
         shutter: 'obturador',
         gallery: 'galería',
+        deleteReceipt: 'Eliminar recibo',
+        deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
     },
     iou: {
@@ -504,6 +517,8 @@ export default {
         approve: 'Aprobar',
         approved: 'Aprobado',
         cash: 'Efectivo',
+        card: 'Tarjeta',
+        original: 'Original',
         split: 'Dividir',
         addToSplit: 'Añadir para dividir',
         splitBill: 'Dividir factura',
@@ -514,11 +529,14 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
         receiptScanning: 'Escaneo de recibo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
+        receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
+        transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
         deleteRequest: 'Eliminar pedido',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
@@ -529,11 +547,14 @@ export default {
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
+        didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} debe ${amount}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} debe: `,
         payerPaidAmount: ({payer, amount}: PayerPaidAmountParams) => `${payer} pagó ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} pagó: `,
+        payerSpentAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} gastó ${amount}`,
+        payerSpent: ({payer}: PayerPaidParams) => `${payer} gastó: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} aprobó:`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
@@ -564,6 +585,8 @@ export default {
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
             genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
+            duplicateWaypointsErrorMessage: 'Por favor elimina los puntos de ruta duplicados',
+            emptyWaypointsErrorMessage: 'Por favor introduce al menos dos puntos de ruta',
         },
     },
     notificationPreferencesPage: {
@@ -823,12 +846,26 @@ export default {
             setDefaultFailure: 'No se ha podido configurar el método de pago.',
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
+        getPaidFaster: 'Cobra más rápido',
+        addPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente en la aplicación.',
+        getPaidBackFaster: 'Recibe tus pagos más rápido',
+        secureAccessToYourMoney: 'Acceso seguro a tu dinero',
+        receiveMoney: 'Recibe dinero en tu moneda local',
+        expensifyWallet: 'Billetera Expensify',
+        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
+        bankAccounts: 'Cuentas bancarias',
+        addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
+        addBankAccount: 'Agregar cuenta bancaria',
+        assignedCards: 'Tarjetas asignadas',
+        assignedCardsDescription: 'Son tarjetas asignadas por un administrador del Espacio de Trabajo para gestionar los gastos de la empresa.',
+        expensifyCard: 'Tarjeta Expensify',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
         availableSpend: 'Capacidad de gasto restante',
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
+        reportFraud: 'Reportar fraude con la tarjeta virtual',
         cardDetails: {
             cardNumber: 'Número de tarjeta virtual',
             expiration: 'Expiración',
@@ -836,6 +873,22 @@ export default {
             address: 'Dirección',
             revealDetails: 'Revelar detalles',
             copyCardNumber: 'Copiar número de la tarjeta',
+            updateAddress: 'Actualizar dirección',
+        },
+    },
+    reportFraudPage: {
+        title: 'Reportar fraude con la tarjeta virtual',
+        description:
+            'Si los datos de tu tarjeta virtual han sido robados o se han visto comprometidos, desactivaremos permanentemente la tarjeta actual y le proporcionaremos una tarjeta virtual y un número nuevo.',
+        deactivateCard: 'Desactivar tarjeta',
+        reportVirtualCardFraud: 'Reportar fraude con la tarjeta virtual',
+    },
+    activateCardPage: {
+        activateCard: 'Activar tarjeta',
+        pleaseEnterLastFour: 'Introduce los cuatro últimos dígitos de la tarjeta.',
+        activatePhysicalCard: 'Activar tarjeta física',
+        error: {
+            thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
         },
     },
     transferAmountPage: {
@@ -885,6 +938,7 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Mensaje de bienvenida',
+        welcomeMessageOptional: 'Mensaje de bienvenida (opcional)',
         explainerText: 'Configura un mensaje de bienvenida privado y personalizado que se enviará cuando los usuarios se unan a esta sala de chat.',
     },
     languagePage: {
@@ -988,12 +1042,12 @@ export default {
         legalName: 'Nombre completo',
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
-        homeAddress: 'Domicilio',
+        address: 'Dirección',
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
-            hasInvalidCharacter: 'El nombre sólo puede incluir letras.',
+            hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos.',
         },
     },
     resendValidationForm: {
@@ -1374,6 +1428,7 @@ export default {
             notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte al espacio de trabajo? Comunícate con el propietario de este espacio de trabajo para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
             workspaceAvatar: 'Espacio de trabajo avatar',
+            mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
@@ -1595,7 +1650,7 @@ export default {
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
-    keyboardShortcutModal: {
+    keyboardShortcutsPage: {
         title: 'Atajos de teclado',
         subtitle: 'Ahorra tiempo con estos atajos de teclado:',
         shortcuts: {
@@ -1609,6 +1664,9 @@ export default {
     guides: {
         screenShare: 'Compartir pantalla',
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
+    },
+    search: {
+        resultsAreLimited: 'Los resultados de búsqueda están limitados.',
     },
     genericErrorPage: {
         title: '¡Uh-oh, algo salió mal!',
@@ -2216,6 +2274,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Pedido eliminado]',
+        reversedTransaction: '[Transacción anulada]',
         deletedTask: '[Tarea eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
@@ -2278,7 +2337,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'No activado',
-        outOfPocketSpend: 'Gastos por cuenta propia',
+        outOfPocket: 'Por cuenta propia',
         companySpend: 'Gastos de empresa',
     },
     distance: {
@@ -2300,7 +2359,11 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
     },
+    eReceipt: {
+        guaranteed: 'eRecibo garantizado',
+        transactionDate: 'Fecha de transacción',
+    },
     globalNavigationOptions: {
-        chats: 'Chats',
+        chats: 'Chats', // "Chats" is the accepted term colloqially in Spanish, this is not a bug!!
     },
 } satisfies EnglishTranslation;
