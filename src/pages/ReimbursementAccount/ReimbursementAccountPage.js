@@ -167,13 +167,6 @@ function ReimbursementAccountPage({
         }
 
         const currentStepRouteParam = getStepToOpenFromRouteParams();
-
-        // Update the data that is returned from back-end to draft value
-        const draftStep = reimbursementAccount.draftStep;
-        if (draftStep) {
-            BankAccounts.updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
-        }
-
         if (currentStepRouteParam === currentStep) {
             return;
         }
@@ -190,7 +183,7 @@ function ReimbursementAccountPage({
         prevReimbursementAccountRef.current = reimbursementAccount;
     }, [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton]);
 
-    const continueFunction = () => {
+    function continueFunction() {
         setShouldShowContinueSetupButton(false);
         fetchData(true);
     };
@@ -201,11 +194,11 @@ function ReimbursementAccountPage({
     *
     * @returns {String}
     */
-    const getDefaultStateForField = (fieldName, defaultValue = '') => {
+    function getDefaultStateForField(fieldName, defaultValue = '') {
         return lodashGet(reimbursementAccount, ['achData', fieldName], defaultValue);
     };
 
-    const goBack = () => {
+    function goBack() {
         const achData = lodashGet(reimbursementAccount, 'achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const subStep = achData.subStep;
@@ -260,58 +253,18 @@ function ReimbursementAccountPage({
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      * @returns {Boolean}
      */
-    const hasInProgressVBBA = () => {
+    function hasInProgressVBBA() {
         const achData = lodashGet(reimbursementAccount, 'achData', {});
         return achData.bankAccountID
             && achData.state !== BankAccount.STATE.OPEN
             && achData.state !== BankAccount.STATE.LOCKED;
     };
 
-    componentWillUnmount() {
-        BankAccounts.clearReimbursementAccount();
-    }
-
-    getFieldsForStep(step) {
-        switch (step) {
-            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-                return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
-            case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                return [
-                    'companyName',
-                    'addressStreet',
-                    'addressZipCode',
-                    'addressCity',
-                    'addressState',
-                    'companyPhone',
-                    'website',
-                    'companyTaxID',
-                    'incorporationType',
-                    'incorporationDate',
-                    'incorporationState',
-                ];
-            case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                return ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
-            default:
-                return [];
-        }
-    }
-
-    /**
-     * @param {Array} fieldNames
-     *
-     * @returns {*}
-     */
-    getBankAccountFields(fieldNames) {
-        return {
-            ..._.pick(lodashGet(this.props.reimbursementAccount, 'achData'), ...fieldNames),
-        };
-    }
-
     /*
      * Calculates the state used to show the "Continue with setup" view. If a bank account setup is already in progress and
      * no specific further step was passed in the url we'll show the workspace bank account reset modal if the user wishes to start over
      */
-    const getShouldShowContinueSetupButtonInitialValue = () => {
+    function getShouldShowContinueSetupButtonInitialValue() {
         if (!hasInProgressVBBA()) {
             // Since there is no VBBA in progress, we won't need to show the component ContinueBankAccountSetup
             return false;
@@ -325,7 +278,7 @@ function ReimbursementAccountPage({
      * Mainly needed when user finished the flow in verifying state, and Ops ask them to modify some fields from a specific step.
      * @returns {String}
      */
-    const getStepToOpenFromRouteParams = () => {
+    function getStepToOpenFromRouteParams() {
         switch (lodashGet(route, ['params', 'stepToOpen'], '')) {
             case ROUTE_NAMES.NEW:
                 return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
