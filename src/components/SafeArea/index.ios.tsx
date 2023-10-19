@@ -1,23 +1,19 @@
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
+import SafeAreaProps from './types';
 
-function SafeArea(props) {
+function SafeArea({children}: SafeAreaProps) {
     return (
         <SafeAreaView
             style={[styles.iPhoneXSafeArea]}
             edges={['left', 'right']}
         >
-            {props.children}
+            {children}
         </SafeAreaView>
     );
 }
 
-SafeArea.propTypes = {
-    /** App content */
-    children: PropTypes.node.isRequired,
-};
 SafeArea.displayName = 'SafeArea';
 
 export default SafeArea;
