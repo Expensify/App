@@ -22,7 +22,11 @@ function PopoverContextProvider(props) {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
             return;
         }
+
         activePopoverRef.current.close();
+        if (activePopoverRef.current.onCloseCallback) {
+            activePopoverRef.current.onCloseCallback();
+        }
         activePopoverRef.current = null;
         setIsOpen(false);
     }, []);
@@ -106,6 +110,9 @@ function PopoverContextProvider(props) {
                 closePopover(activePopoverRef.current.anchorRef);
             }
             activePopoverRef.current = popoverParams;
+            if (popoverParams && popoverParams.onOpenCallback) {
+                popoverParams.onOpenCallback();
+            }
             setIsOpen(true);
         },
         [closePopover],
