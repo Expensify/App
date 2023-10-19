@@ -117,6 +117,7 @@ function ReportActionItemFragment(props) {
                     fragment={fragment}
                     styleAsDeleted={isPendingDelete && props.network.isOffline}
                     iouMessage={props.iouMessage}
+                    displayAsGroup={props.displayAsGroup}
                     style={props.style}
                 />
             );

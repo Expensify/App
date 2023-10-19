@@ -19,7 +19,13 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
+import getPlatform from '../../libs/getPlatform';
+import CONST from '../../CONST';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import * as ActiveClientManager from '../../libs/ActiveClientManager';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -38,6 +44,18 @@ const propTypes = {
 
         /** Is this account having trouble receiving emails */
         hasEmailDeliveryFailure: PropTypes.bool,
+
+        /** Whether or not a sign on form is loading (being submitted) */
+        isLoading: PropTypes.bool,
+
+        /** Form that is being loaded */
+        loadingForm: PropTypes.oneOf(_.values(CONST.FORMS)),
+
+        /** Whether or not the user has SAML enabled on their account */
+        isSAMLEnabled: PropTypes.bool,
+
+        /** Whether or not SAML is required on the account */
+        isSAMLRequired: PropTypes.bool,
     }),
 
     /** The credentials of the person signing in */
@@ -52,6 +70,9 @@ const propTypes = {
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
+
+    /** The user's preferred locale */
+    preferredLocale: PropTypes.string,
 };
 
 const defaultProps = {
@@ -59,34 +80,62 @@ const defaultProps = {
     credentials: {},
     isInModal: false,
     activeClients: [],
+    preferredLocale: '',
 };
 
 /**
  * @param {Boolean} hasLogin
  * @param {Boolean} hasValidateCode
+ * @param {Object} account
  * @param {Boolean} isPrimaryLogin
- * @param {Boolean} isAccountValidated
+ * @param {Boolean} isUsingMagicCode
+ * @param {Boolean} hasInitiatedSAMLLogin
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, hasEmailDeliveryFailure, isClientTheLeader}) {
+function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, isUsingMagicCode, hasInitiatedSAMLLogin, isClientTheLeader}) {
+    const hasAccount = !_.isEmpty(account);
+    const isSAMLEnabled = Boolean(account.isSAMLEnabled);
+    const isSAMLRequired = Boolean(account.isSAMLRequired);
+    const hasEmailDeliveryFailure = Boolean(account.hasEmailDeliveryFailure);
+
+    // SAML is temporarily restricted to users on the beta or to users signing in on web and mweb
+    let shouldShowChooseSSOOrMagicCode = false;
+    let shouldInitiateSAMLLogin = false;
+    const platform = getPlatform();
+    if (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP) {
+        // True if the user has SAML required and we haven't already initiated SAML for their account
+        shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && account.isLoading;
+        shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
+    }
+
+    // SAML required users may reload the login page after having already entered their login details, in which
+    // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
+    // SSO provider's login page
+    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
+        Session.clearSignInData();
+    }
+
     const shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
-    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure;
-    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
-    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure;
-    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || !isClientTheLeader;
+    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
+    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account.validated && !hasEmailDeliveryFailure;
+    const shouldShowValidateCodeForm =
+        hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !isSAMLRequired;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || !isClientTheLeader;
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
         shouldShowUnlinkLoginForm: isUnvalidatedSecondaryLogin,
         shouldShowValidateCodeForm,
+        shouldShowChooseSSOOrMagicCode,
+        shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
     };
 }
 
-function SignInPage({credentials, account, isInModal, activeClients}) {
+function SignInPage({credentials, account, isInModal, activeClients, preferredLocale}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
@@ -96,24 +145,47 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
      * and we need it here since welcome text(`welcomeText`) also depends on it */
     const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
 
-    useEffect(() => Performance.measureTTI(), []);
-    useEffect(() => {
-        App.setLocale(Localize.getDevicePreferredLocale());
-    }, []);
+    /** This state is needed to keep track of whether the user has opted to use magic codes
+     * instead of signing in via SAML when SAML is enabled and not required */
+    const [isUsingMagicCode, setIsUsingMagicCode] = useState(false);
+
+    /** This state is needed to keep track of whether the user has been directed to their SSO provider's login page and
+     *  if we need to clear their sign in details so they can enter a login */
+    const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
 
     const isClientTheLeader = activeClients && ActiveClientManager.isClientTheLeader();
 
-    const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions(
-        {
-            hasLogin: Boolean(credentials.login),
-            hasValidateCode: Boolean(credentials.validateCode),
-            hasAccount: !_.isEmpty(account),
-            isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
-            isAccountValidated: Boolean(account.validated),
-            hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
-            isClientTheLeader,
-        },
-    );
+    useEffect(() => Performance.measureTTI(), []);
+    useEffect(() => {
+        if (preferredLocale) {
+            return;
+        }
+        App.setLocale(Localize.getDevicePreferredLocale());
+    }, [preferredLocale]);
+
+    const {
+        shouldShowLoginForm,
+        shouldShowEmailDeliveryFailurePage,
+        shouldShowUnlinkLoginForm,
+        shouldShowValidateCodeForm,
+        shouldShowChooseSSOOrMagicCode,
+        shouldInitiateSAMLLogin,
+        shouldShowWelcomeHeader,
+        shouldShowWelcomeText,
+    } = getRenderOptions({
+        hasLogin: Boolean(credentials.login),
+        hasValidateCode: Boolean(credentials.validateCode),
+        account,
+        isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
+        isUsingMagicCode,
+        hasInitiatedSAMLLogin,
+        isClientTheLeader,
+    });
+
+    if (shouldInitiateSAMLLogin) {
+        setHasInitiatedSAMLLogin(true);
+        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.SAML_SIGN_IN));
+    }
 
     let welcomeHeader = '';
     let welcomeText = '';
@@ -147,14 +219,14 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
         }
-    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
+    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
         welcomeHeader = shouldShowSmallScreen ? headerText : translate('welcomeText.welcomeBack');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
-        if (shouldShowEmailDeliveryFailurePage) {
+        if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
             welcomeText = '';
         }
-    } else {
+    } else if (!shouldInitiateSAMLLogin) {
         Log.warn('SignInPage in unexpected state!');
     }
 
@@ -178,14 +250,20 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
                     blurOnSubmit={account.validated === false}
                     scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}
                 />
-                {shouldShowValidateCodeForm && (
-                    <ValidateCodeForm
-                        isUsingRecoveryCode={isUsingRecoveryCode}
-                        setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                    />
+                {isClientTheLeader && (
+                    <>
+                        {shouldShowValidateCodeForm && (
+                            <ValidateCodeForm
+                                isUsingRecoveryCode={isUsingRecoveryCode}
+                                setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                                setIsUsingMagicCode={setIsUsingMagicCode}
+                            />
+                        )}
+                        {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
+                        {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
+                        {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
+                    </>
                 )}
-                {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
         </View>
     );
@@ -206,4 +284,7 @@ export default withOnyx({
     We use that function to prevent repeating code that checks which client is the leader.
     */
     activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS},
+    preferredLocale: {
+        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    },
 })(SignInPage);

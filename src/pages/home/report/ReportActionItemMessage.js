@@ -61,6 +61,7 @@ function ReportActionItemMessage(props) {
                         accountID={props.action.actorAccountID}
                         displayAsGroup={props.displayAsGroup}
                         style={props.style}
+                        displayAsGroup={props.displayAsGroup}
                     />
                 ))
             ) : (

@@ -43,6 +43,7 @@ function canUseCustomStatus(betas: Beta[]): boolean {
 }
 
 function canUseCategories(betas: Beta[]): boolean {
+    return true;
     return betas?.includes(CONST.BETAS.NEW_DOT_CATEGORIES) || canUseAllBetas(betas);
 }
 

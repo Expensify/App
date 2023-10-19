@@ -30,6 +30,7 @@ import * as Link from '../../libs/actions/Link';
 import * as Report from '../../libs/actions/Report';
 import * as Task from '../../libs/actions/Task';
 import compose from '../../libs/compose';
+import * as Session from '../../libs/actions/Session';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../reportPropTypes';
@@ -100,9 +101,8 @@ function HeaderView(props) {
         if (ReportUtils.isCompletedTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                iconFill: themeColors.icon,
                 text: props.translate('task.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report),
+                onSelected: Session.checkIfActionIsAllowed(() => Task.reopenTask(props.report)),
             });
         }
 
@@ -110,9 +110,8 @@ function HeaderView(props) {
         if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
-                iconFill: themeColors.icon,
                 text: props.translate('common.cancel'),
-                onSelected: () => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
+                onSelected: Session.checkIfActionIsAllowed(() => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
             });
         }
     }
@@ -121,16 +120,16 @@ function HeaderView(props) {
         if (props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
-                iconFill: themeColors.icon,
                 text: props.translate('common.joinThread'),
-                onSelected: () => Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
+                onSelected: Session.checkIfActionIsAllowed(() =>
+                    Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
+                ),
             });
         } else if (props.report.notificationPreference.length) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
-                iconFill: themeColors.icon,
                 text: props.translate('common.leaveThread'),
-                onSelected: () => Report.leaveRoom(props.report.reportID),
+                onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.report.reportID)),
             });
         }
     }
@@ -140,28 +139,25 @@ function HeaderView(props) {
     if (isConcierge && props.guideCalendarLink) {
         threeDotMenuItems.push({
             icon: Expensicons.Phone,
-            iconFill: themeColors.icon,
             text: props.translate('videoChatButtonAndMenu.tooltip'),
-            onSelected: () => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(props.guideCalendarLink);
-            },
+            }),
         });
     } else if (!isAutomatedExpensifyAccount && !isTaskReport && !isArchivedRoom) {
         threeDotMenuItems.push({
             icon: ZoomIcon,
-            iconFill: themeColors.icon,
             text: props.translate('videoChatButtonAndMenu.zoom'),
-            onSelected: () => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
-            },
+            }),
         });
         threeDotMenuItems.push({
             icon: GoogleMeetIcon,
-            iconFill: themeColors.icon,
             text: props.translate('videoChatButtonAndMenu.googleMeet'),
-            onSelected: () => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_GOOGLE_MEET_MEETING_URL);
-            },
+            }),
         });
     }
 
@@ -259,6 +255,7 @@ function HeaderView(props) {
                                 <ThreeDotsMenu
                                     anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                                     menuItems={threeDotMenuItems}
+                                    shouldSetModalVisibility={false}
                                 />
                             )}
                         </View>

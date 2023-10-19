@@ -16,6 +16,7 @@ import convertToLTR from '../../../../libs/convertToLTR';
 import CONST from '../../../../CONST';
 import editedLabelStyles from '../../../../styles/editedLabelStyles';
 import RenderCommentHTML from './RenderCommentHTML';
+import * as Browser from "../../../../libs/Browser";
 
 const propTypes = {
     /** The reportAction's source */
@@ -29,6 +30,9 @@ const propTypes = {
 
     /** Text of an IOU report action */
     iouMessage: PropTypes.string,
+
+    /** Should the comment have the appearance of being grouped with the previous comment? */
+    displayAsGroup: PropTypes.bool.isRequired,
 
     /** Additional styles to add after local styles. */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]).isRequired,
@@ -69,8 +73,26 @@ function TextCommentFragment(props) {
 
     const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
 
+    /**
+     * Checks text element for presence of emoji as first character
+     * and insert Zero-Width character to avoid selection issue
+     * mentioned here https://github.com/Expensify/App/issues/29021
+     *
+     * @param {String} text
+     * @param {Boolean} displayAsGroup
+     * @returns {ReactNode | null} Text component with zero width character
+     */
+    const checkForEmojiForSelection = (text, displayAsGroup) => {
+        const firstLetterIsEmoji = EmojiUtils.isFirstLetterEmoji(text);
+        if (firstLetterIsEmoji && !displayAsGroup && !Browser.isMobile()) {
+            return <Text>&#x200b;</Text>;
+        }
+        return null;
+    };
+
     return (
         <Text style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}>
+            {checkForEmojiForSelection(text, props.displayAsGroup)}
             <Text
                 selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                 style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style, styleAsDeleted ? styles.offlineFeedback.deleted : undefined]}
