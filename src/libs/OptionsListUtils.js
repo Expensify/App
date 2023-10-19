@@ -18,6 +18,7 @@ import * as UserUtils from './UserUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ErrorUtils from './ErrorUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -67,14 +68,16 @@ Onyx.connect({
 
 const lastReportActions = {};
 const allSortedReportActions = {};
+const allReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
         if (!key || !actions) {
             return;
         }
-        const sortedReportActions = ReportActionUtils.getSortedReportActions(_.toArray(actions), true);
         const reportID = CollectionUtils.extractCollectionItemID(key);
+        allReportActions[reportID] = actions;
+        const sortedReportActions = ReportActionUtils.getSortedReportActions(_.toArray(actions), true);
         allSortedReportActions[reportID] = sortedReportActions;
         lastReportActions[reportID] = _.first(sortedReportActions);
     },
@@ -88,6 +91,18 @@ Onyx.connect({
             return;
         }
         policyExpenseReports[key] = report;
+    },
+});
+
+let allTransactions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        allTransactions = _.pick(val, (transaction) => transaction);
     },
 });
 
@@ -146,6 +161,9 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
     }
     _.each(accountIDs, (accountID) => {
         const cleanAccountID = Number(accountID);
+        if (!cleanAccountID) {
+            return;
+        }
         let personalDetail = personalDetails[accountID];
         if (!personalDetail) {
             personalDetail = {
@@ -320,20 +338,25 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 function getAllReportErrors(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
-    const reportActionErrors = {};
-    _.each(reportActions, (action) => {
-        if (action && !_.isEmpty(action.errors)) {
-            _.extend(reportActionErrors, action.errors);
-        } else if (ReportActionUtils.isReportPreviewAction(action)) {
-            const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(action);
+    const reportActionErrors = _.reduce(
+        reportActions,
+        (prevReportActionErrors, action) => (!action || _.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
+        {},
+    );
 
-            // Instead of adding all Smartscan errors, let's just add a generic error if there are any. This
-            // will be more performant and provide the same result in the UI
-            if (ReportUtils.hasMissingSmartscanFields(iouReportID)) {
-                _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
-            }
+    const parentReportAction = !report.parentReportID || !report.parentReportActionID ? {} : lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
+
+    if (parentReportAction.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
+        const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], '');
+        const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
+        if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
+            _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
-    });
+    } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report.ownerAccountID === currentUserAccountID) {
+        if (ReportUtils.hasMissingSmartscanFields(report.reportID)) {
+            _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
+        }
+    }
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
@@ -518,7 +541,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         }
         reportName = ReportUtils.getReportName(report);
     } else {
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0], false);
         result.keyForList = String(accountIDs[0]);
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, [accountIDs[0], 'login'], ''));
     }
@@ -974,6 +997,7 @@ function getOptions(
         tags = {},
         recentlyUsedTags = [],
         canInviteUser = true,
+        includeSelectedOptions = false,
     },
 ) {
     if (includeCategories) {
@@ -1110,8 +1134,15 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text && personalDetail.text.toLowerCase()], 'asc');
     }
 
-    // Always exclude already selected options and the currently logged in user
-    const optionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+    // Exclude the current user from the personal details list
+    const optionsToExclude = [{login: currentUserLogin}];
+
+    // If we're including selected options from the search results, we only want to exclude them if the search input is empty
+    // This is because on certain pages, we show the selected options at the top when the search input is empty
+    // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
+    if (!includeSelectedOptions || searchInputValue === '') {
+        optionsToExclude.push(...selectedOptions);
+    }
 
     _.each(excludeLogins, (login) => {
         optionsToExclude.push({login});
@@ -1357,6 +1388,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Object} [tags]
  * @param {Array<String>} [recentlyUsedTags]
  * @param {boolean} [canInviteUser]
+ * @param {boolean} [includeSelectedOptions]
  * @returns {Object}
  */
 function getFilteredOptions(
@@ -1375,6 +1407,7 @@ function getFilteredOptions(
     tags = {},
     recentlyUsedTags = [],
     canInviteUser = true,
+    includeSelectedOptions = false,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1393,6 +1426,7 @@ function getFilteredOptions(
         tags,
         recentlyUsedTags,
         canInviteUser,
+        includeSelectedOptions,
     });
 }
 

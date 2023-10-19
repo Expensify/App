@@ -18,6 +18,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as CardUtils from '../../../libs/CardUtils';
 import Button from '../../../components/Button';
 import CardDetails from './WalletPage/CardDetails';
+import MenuItem from '../../../components/MenuItem';
 import CONST from '../../../CONST';
 import assignedCardPropTypes from './assignedCardPropTypes';
 import theme from '../../../styles/themes/default';
@@ -156,12 +157,20 @@ function ExpensifyCardPage({
                                     </>
                                 )}
                                 {!_.isEmpty(physicalCard) && (
-                                    <MenuItemWithTopDescription
-                                        description={translate('cardPage.physicalCardNumber')}
-                                        title={CardUtils.maskCard(physicalCard.lastFourPAN)}
-                                        interactive={false}
-                                        titleStyle={styles.walletCardMenuItem}
-                                    />
+                                    <>
+                                        <MenuItemWithTopDescription
+                                            description={translate('cardPage.physicalCardNumber')}
+                                            title={CardUtils.maskCard(physicalCard.lastFourPAN)}
+                                            interactive={false}
+                                            titleStyle={styles.walletCardMenuItem}
+                                        />
+                                        <MenuItem
+                                            title={translate('reportCardLostOrDamaged.report')}
+                                            icon={Expensicons.Flag}
+                                            shouldShowRightIcon
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain))}
+                                        />
+                                    </>
                                 )}
                             </>
                         )}
