@@ -74,18 +74,21 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
         BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
     }, [plaidData, selectedPlaidAccountId]);
 
-    const exitFlow = useCallback((shouldContinue = false) => {
-        const exitReportID = lodashGet(personalBankAccount, 'exitReportID');
-        const onSuccessFallbackRoute = lodashGet(personalBankAccount, 'onSuccessFallbackRoute', '');
+    const exitFlow = useCallback(
+        (shouldContinue = false) => {
+            const exitReportID = lodashGet(personalBankAccount, 'exitReportID');
+            const onSuccessFallbackRoute = lodashGet(personalBankAccount, 'onSuccessFallbackRoute', '');
 
-        if (exitReportID) {
-            Navigation.dismissModal(exitReportID);
-        } else if (shouldContinue && onSuccessFallbackRoute) {
-            PaymentMethods.continueSetup(onSuccessFallbackRoute);
-        } else {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET);
-        }
-    }, [personalBankAccount]);
+            if (exitReportID) {
+                Navigation.dismissModal(exitReportID);
+            } else if (shouldContinue && onSuccessFallbackRoute) {
+                PaymentMethods.continueSetup(onSuccessFallbackRoute);
+            } else {
+                Navigation.goBack(ROUTES.SETTINGS_WALLET);
+            }
+        },
+        [personalBankAccount],
+    );
 
     useEffect(() => BankAccounts.clearPersonalBankAccount, []);
 
