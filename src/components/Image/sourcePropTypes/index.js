@@ -5,7 +5,7 @@ export default PropTypes.oneOfType([
     PropTypes.elementType,
     PropTypes.number,
     PropTypes.shape({
-        uri: PropTypes.string.isRequired,
+        uri: PropTypes.string,
         // eslint-disable-next-line react/forbid-prop-types
         headers: PropTypes.object,
     }),
