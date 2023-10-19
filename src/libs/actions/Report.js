@@ -1354,7 +1354,7 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
             value: {[parentReportActionID]: {childReportNotificationPreference: previousValue}},
         });
     }
-    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue, parentReportID, parentReportActionID}, {optimisticData, failureData});
+    API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
     if (navigate) {
         Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
     }
