@@ -116,6 +116,26 @@ function MoneyRequestParticipantsSelector({
                 indexOffset,
             });
             indexOffset += participants.length;
+        } else {
+            // Check to see if any of the selected participants that match the search term that are not already in the recent reports or personal details
+            const selectedParticipantsWithoutDetails = _.filter(participants, (participant) => {
+                const accountID = lodashGet(participant, 'accountID', null);
+                const isPartOfSearchTerm = participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase());
+                const isReportInRecentReports = _.some(newChatOptions.recentReports, (report) => report.accountID === accountID);
+                const isReportInPersonalDetails = _.some(newChatOptions.personalDetails, (personalDetail) => personalDetail.accountID === accountID);
+                return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;
+            });
+
+            newSections.push({
+                title: undefined,
+                data: _.map(selectedParticipantsWithoutDetails, (participant) => {
+                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+                }),
+                shouldShow: !_.isEmpty(selectedParticipantsWithoutDetails),
+                indexOffset,
+            });
+            indexOffset += selectedParticipantsWithoutDetails.length;
         }
 
         if (maxParticipantsReached) {
