@@ -66,7 +66,7 @@ The amount owed consists of all Expensify Card transactions, both pending and po
 Your amount owed decreases when the settlement clears. Any pending transactions that don't post timely will automatically expire, reducing your amount owed.
   
 ## **How do I view all unsettled expenses?**
-  To view unsettled expenses since the last settlement, use the Reconciliation Dashboard's Expenses tab. Follow these steps:
+To view unsettled expenses since the last settlement, use the Reconciliation Dashboard's Expenses tab. Follow these steps:
   1. Note the dates of expenses in your last settlement.
   2. Switch to the Expenses tab on the Reconciliation Dashboard.
   3. Set the start date just after the last settled expenses and the end date to today.
