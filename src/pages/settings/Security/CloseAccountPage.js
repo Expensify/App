@@ -66,6 +66,7 @@ function CloseAccountPage(props) {
             setshouldAllowClosing(PolicyUtils.hasSharedPolicies(props.policies, props.allPolicyMembers));
             CloseAccount.clearError();
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
