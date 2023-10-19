@@ -2,7 +2,6 @@
 title: The Xero Integration
 description: Everything you need to know about Expensify's direct integration with Xero
 ---
-<!-- The lines above are required by Jekyll to process the .md file -->
 
 # About
 
@@ -258,4 +257,4 @@ It will be automatically marked as reimbursed in Expensify during the next sync.
 ## How does Auto Sync work if a report has been exported to Xero and marked as paid in Xero?
 
 Reports that haven't been exported to Xero won't be sent automatically.
--->
+
