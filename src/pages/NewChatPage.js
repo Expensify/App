@@ -69,10 +69,21 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     const sections = useMemo(() => {
-        const sectionsList = [];
+        let sectionsList = [];
         let indexOffset = 0;
 
-        indexOffset = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, sectionsList, selectedOptions, filteredRecentReports, filteredPersonalDetails, {}, false, indexOffset);
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
+            searchTerm,
+            sectionsList,
+            selectedOptions,
+            filteredRecentReports,
+            filteredPersonalDetails,
+            {},
+            false,
+            indexOffset,
+        );
+        sectionsList = formatResults.sectionsList;
+        indexOffset = formatResults.indexOffset;
 
         if (maxParticipantsReached) {
             return sectionsList;

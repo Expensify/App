@@ -1595,7 +1595,7 @@ function shouldOptionShowTooltip(option) {
  * @param {Object} personalDetails
  * @param {Boolean} shouldGetOptionDetails
  * @param {Number} indexOffset
- * @returns {Number} newIndexOffset
+ * @returns {Object}
  */
 function formatSectionsFromSearchTerm(
     searchTerm,
@@ -1649,7 +1649,10 @@ function formatSectionsFromSearchTerm(
         newIndexOffset += selectedParticipantsWithoutDetails.length;
     }
 
-    return newIndexOffset;
+    return {
+        sectionList,
+        newIndexOffset,
+    };
 }
 
 export {

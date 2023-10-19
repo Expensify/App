@@ -101,10 +101,10 @@ function MoneyRequestParticipantsSelector({
      * @returns {Array}
      */
     const sections = useMemo(() => {
-        const newSections = [];
+        let newSections = [];
         let indexOffset = 0;
 
-        indexOffset = OptionsListUtils.formatSectionsFromSearchTerm(
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             searchTerm,
             newSections,
             participants,
@@ -114,6 +114,8 @@ function MoneyRequestParticipantsSelector({
             true,
             indexOffset,
         );
+        indexOffset = formatResults.indexOffset;
+        newSections = formatResults.sectionList;
 
         if (maxParticipantsReached) {
             return newSections;
