@@ -3285,13 +3285,25 @@ function chatIncludesChronos(report) {
  * @returns {Boolean}
  */
 function canFlagReportAction(reportAction, reportID) {
+    const report = getReport(reportID);
+    const isCurrentUserAction = reportAction.actorAccountID === currentUserAccountID;
+
+    if (ReportActionsUtils.isWhisperAction(reportAction)) {
+        // Allow flagging welcome message whispers as they can be set by any room creator
+        if (lodashGet(reportAction, 'originalMessage.html') === report.welcomeMessage && !isCurrentUserAction) {
+            return true;
+        }
+
+        // Disallow flagging the rest of whisper as they are sent by us
+        return false;
+    }
+
     return (
-        reportAction.actorAccountID !== currentUserAccountID &&
+        !isCurrentUserAction &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-        isAllowedToComment(getReport(reportID)) &&
-        !ReportActionsUtils.isWhisperAction(reportAction)
+        isAllowedToComment(report)
     );
 }
 
