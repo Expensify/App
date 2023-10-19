@@ -1988,6 +1988,12 @@ function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
             ],
         },
     );
+
+    if (isWorkspaceMemberLeavingWorkspaceRoom) {
+        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
+        const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
+    }
 }
 
 /**
