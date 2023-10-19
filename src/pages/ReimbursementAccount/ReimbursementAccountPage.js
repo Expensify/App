@@ -167,6 +167,13 @@ function ReimbursementAccountPage({
         }
 
         const currentStepRouteParam = getStepToOpenFromRouteParams();
+
+        // Update the data that is returned from back-end to draft value
+        const draftStep = reimbursementAccount.draftStep;
+        if (draftStep) {
+            BankAccounts.updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
+        }
+
         if (currentStepRouteParam === currentStep) {
             return;
         }
@@ -259,6 +266,46 @@ function ReimbursementAccountPage({
             && achData.state !== BankAccount.STATE.OPEN
             && achData.state !== BankAccount.STATE.LOCKED;
     };
+
+    componentWillUnmount() {
+        BankAccounts.clearReimbursementAccount();
+    }
+
+    getFieldsForStep(step) {
+        switch (step) {
+            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+                return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
+            case CONST.BANK_ACCOUNT.STEP.COMPANY:
+                return [
+                    'companyName',
+                    'addressStreet',
+                    'addressZipCode',
+                    'addressCity',
+                    'addressState',
+                    'companyPhone',
+                    'website',
+                    'companyTaxID',
+                    'incorporationType',
+                    'incorporationDate',
+                    'incorporationState',
+                ];
+            case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+                return ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
+            default:
+                return [];
+        }
+    }
+
+    /**
+     * @param {Array} fieldNames
+     *
+     * @returns {*}
+     */
+    getBankAccountFields(fieldNames) {
+        return {
+            ..._.pick(lodashGet(this.props.reimbursementAccount, 'achData'), ...fieldNames),
+        };
+    }
 
     /*
      * Calculates the state used to show the "Continue with setup" view. If a bank account setup is already in progress and

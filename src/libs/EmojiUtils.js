@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import moment from 'moment';
+import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -108,6 +108,23 @@ const getEmojiUnicode = _.memoize((input) => {
  */
 function trimEmojiUnicode(emojiCode) {
     return emojiCode.replace(/(fe0f|1f3fb|1f3fc|1f3fd|1f3fe|1f3ff)$/, '').trim();
+}
+
+/**
+ * Validates first character is emoji in text string
+ *
+ * @param {String} message
+ * @returns {Boolean}
+ */
+function isFirstLetterEmoji(message) {
+    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
+    const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
+
+    if (!match) {
+        return false;
+    }
+
+    return trimmedMessage.indexOf(match[0]) === 0;
 }
 
 /**
@@ -220,7 +237,7 @@ function getFrequentlyUsedEmojis(newEmoji) {
     let frequentEmojiList = [...frequentlyUsedEmojis];
 
     const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
-    const currentTimestamp = moment().unix();
+    const currentTimestamp = getUnixTime(new Date());
     _.each([].concat(newEmoji), (emoji) => {
         let currentEmojiCount = 1;
         const emojiIndex = _.findIndex(frequentEmojiList, (e) => e.code === emoji.code);
@@ -278,22 +295,33 @@ function extractEmojis(text) {
     }
 
     const emojis = [];
-
-    // Text can contain similar emojis as well as their skin tone variants. Create a Set to remove duplicate emojis from the search.
-    const foundEmojiCodes = new Set();
-
     for (let i = 0; i < parsedEmojis.length; i++) {
         const character = parsedEmojis[i];
         const emoji = Emojis.emojiCodeTableWithSkinTones[character];
-
-        // Add the parsed emoji to the final emojis if not already present.
-        if (emoji && !foundEmojiCodes.has(emoji.code)) {
-            foundEmojiCodes.add(emoji.code);
+        if (emoji) {
             emojis.push(emoji);
         }
     }
 
     return emojis;
+}
+
+/**
+ * Take the current emojis and the former emojis and return the emojis that were added, if we add an already existing emoji, we also return it
+ * @param {Object[]} currentEmojis The array of current emojis
+ * @param {Object[]} formerEmojis The array of former emojis
+ * @returns {Object[]} The array of added emojis
+ */
+function getAddedEmojis(currentEmojis, formerEmojis) {
+    const newEmojis = [...currentEmojis];
+    // We are removing the emojis from the newEmojis array if they were already present before.
+    formerEmojis.forEach((formerEmoji) => {
+        const indexOfAlreadyPresentEmoji = _.findIndex(newEmojis, (newEmoji) => newEmoji.code === formerEmoji.code);
+        if (indexOfAlreadyPresentEmoji >= 0) {
+            newEmojis.splice(indexOfAlreadyPresentEmoji, 1);
+        }
+    });
+    return newEmojis;
 }
 
 /**
@@ -415,7 +443,7 @@ function suggestEmojis(text, lang, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMO
  * @returns {Number}
  */
 const getPreferredSkinToneIndex = (val) => {
-    if (!_.isNull(val) && Number.isInteger(Number(val))) {
+    if (!_.isNull(val) && !_.isUndefined(val) && Number.isInteger(Number(val))) {
         return val;
     }
 
@@ -484,4 +512,7 @@ export {
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
     replaceAndExtractEmojis,
+    extractEmojis,
+    getAddedEmojis,
+    isFirstLetterEmoji,
 };
