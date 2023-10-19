@@ -58,7 +58,7 @@ const skipInstallDeps = args.includes('--skipInstallDeps');
 // There are three build modes:
 // 1. full: rebuilds the full native app in (e2e) release mode
 // 2. js-only: only rebuilds the js bundle, and then re-packages
-//             the existing native app with the new package. If there
+//             the existing native app with the new bundle. If there
 //             is no existing native app, it will fallback to mode "full"
 // 3. skip: does not rebuild anything, and just runs the existing native app
 let buildMode = 'full';
