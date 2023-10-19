@@ -1,4 +1,6 @@
 import _ from 'lodash';
+import { ValueOf } from 'type-fest';
+import CONST from '../CONST';
 
 import * as NumberFormatUtils from './NumberFormatUtils';
 
@@ -8,7 +10,7 @@ const INDEX_DECIMAL = 10;
 const INDEX_MINUS_SIGN = 11;
 const INDEX_GROUP = 12;
 
-const getLocaleDigits = _.memoize((locale: string): string[] => {
+const getLocaleDigits = _.memoize((locale: ValueOf<typeof CONST.LOCALES>): string[] => {
     const localeDigits = [...STANDARD_DIGITS];
     for (let i = 0; i <= 9; i++) {
         localeDigits[i] = NumberFormatUtils.format(locale, i);
@@ -39,7 +41,7 @@ const getLocaleDigits = _.memoize((locale: string): string[] => {
  *
  * @throws If `digit` is not a valid standard digit.
  */
-function toLocaleDigit(locale: string, digit: string): string {
+function toLocaleDigit(locale: ValueOf<typeof CONST.LOCALES>, digit: string): string {
     const index = STANDARD_DIGITS.indexOf(digit);
     if (index < 0) {
         throw new Error(`"${digit}" must be in ${JSON.stringify(STANDARD_DIGITS)}`);
@@ -55,7 +57,7 @@ function toLocaleDigit(locale: string, digit: string): string {
  *
  * @throws If `localeDigit` is not a valid locale digit.
  */
-function fromLocaleDigit(locale: string, localeDigit: string): string {
+function fromLocaleDigit(locale: ValueOf<typeof CONST.LOCALES>, localeDigit: string): string {
     const index = getLocaleDigits(locale).indexOf(localeDigit);
     if (index < 0) {
         throw new Error(`"${localeDigit}" must be in ${JSON.stringify(getLocaleDigits(locale))}`);

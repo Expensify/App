@@ -1,6 +1,8 @@
+import TIMEZONES from "../../TIMEZONES";
+
 type Timezone = {
     /** Value of selected timezone */
-    selected?: string;
+    selected?: (typeof TIMEZONES)[number];
 
     /** Whether timezone is automatically set */
     automatic?: boolean;

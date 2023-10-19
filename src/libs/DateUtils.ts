@@ -19,11 +19,13 @@ import {
 
 import Onyx from 'react-native-onyx';
 import throttle from 'lodash/throttle';
+import { ValueOf } from 'type-fest';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as CurrentDate from './actions/CurrentDate';
 import {Timezone} from '../types/onyx/PersonalDetails';
+import TIMEZONES from '../TIMEZONES';
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({
@@ -58,7 +60,7 @@ Onyx.connect({
 /**
  * Gets the locale string and setting default locale for date-fns
  */
-function setLocale(localeString: string) {
+function setLocale(localeString: ValueOf<typeof CONST.LOCALES>) {
     switch (localeString) {
         case CONST.LOCALES.EN:
             setDefaultOptions({locale: enGB});
@@ -75,7 +77,7 @@ function setLocale(localeString: string) {
  * Gets the user's stored time zone NVP and returns a localized
  * Date object for the given ISO-formatted datetime string
  */
-function getLocalDateFromDatetime(locale: string, datetime: string, currentSelectedTimezone = timezone.selected): Date {
+function getLocalDateFromDatetime(locale: ValueOf<typeof CONST.LOCALES>, datetime: string, currentSelectedTimezone: (typeof TIMEZONES)[number] = timezone.selected): Date {
     setLocale(locale);
     if (!datetime) {
         return utcToZonedTime(new Date(), currentSelectedTimezone);
@@ -91,7 +93,7 @@ function getLocalDateFromDatetime(locale: string, datetime: string, currentSelec
  * @param timeZone - The time zone to consider.
  * @returns True if the date is today; otherwise, false.
  */
-function isToday(date: Date, timeZone: string): boolean {
+function isToday(date: Date, timeZone: (typeof TIMEZONES)[number]): boolean {
     const currentDate = new Date();
     const currentDateInTimeZone = utcToZonedTime(currentDate, timeZone);
     return isSameDay(date, currentDateInTimeZone);
@@ -104,7 +106,7 @@ function isToday(date: Date, timeZone: string): boolean {
  * @param timeZone - The time zone to consider.
  * @returns True if the date is tomorrow; otherwise, false.
  */
-function isTomorrow(date: Date, timeZone: string): boolean {
+function isTomorrow(date: Date, timeZone: (typeof TIMEZONES)[number]): boolean {
     const currentDate = new Date();
     const tomorrow = addDays(currentDate, 1); // Get the date for tomorrow in the current time zone
     const tomorrowInTimeZone = utcToZonedTime(tomorrow, timeZone);
@@ -118,7 +120,7 @@ function isTomorrow(date: Date, timeZone: string): boolean {
  * @param timeZone - The time zone to consider.
  * @returns True if the date is yesterday; otherwise, false.
  */
-function isYesterday(date: Date, timeZone: string): boolean {
+function isYesterday(date: Date, timeZone: (typeof TIMEZONES)[number]): boolean {
     const currentDate = new Date();
     const yesterday = subDays(currentDate, 1); // Get the date for yesterday in the current time zone
     const yesterdayInTimeZone = utcToZonedTime(yesterday, timeZone);
@@ -133,7 +135,7 @@ function isYesterday(date: Date, timeZone: string): boolean {
  * Jan 20 at 5:30 PM          within the past year
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
-function datetimeToCalendarTime(locale: string, datetime: string, includeTimeZone = false, currentSelectedTimezone = timezone.selected, isLowercase = false): string {
+function datetimeToCalendarTime(locale: ValueOf<typeof CONST.LOCALES>, datetime: string, includeTimeZone = false, currentSelectedTimezone: (typeof TIMEZONES)[number] = timezone.selected, isLowercase = false): string {
     const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = Localize.translate(locale, 'common.todayAt');
@@ -178,7 +180,7 @@ function datetimeToCalendarTime(locale: string, datetime: string, includeTimeZon
  * Jan 20               within the past year
  * Jan 20, 2019         anything over 1 year
  */
-function datetimeToRelative(locale: string, datetime: string): string {
+function datetimeToRelative(locale: ValueOf<typeof CONST.LOCALES>, datetime: string): string {
     const date = getLocalDateFromDatetime(locale, datetime);
     return formatDistanceToNow(date, {addSuffix: true});
 }
@@ -196,7 +198,7 @@ function datetimeToRelative(locale: string, datetime: string): string {
  * @param selectedTimezone
  * @returns
  */
-function getZoneAbbreviation(datetime: string, selectedTimezone: string): string {
+function getZoneAbbreviation(datetime: string, selectedTimezone: (typeof TIMEZONES)[number]): string {
     return formatInTimeZone(datetime, selectedTimezone, 'zzz');
 }
 
