@@ -163,7 +163,6 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     };
 
     const selectWaypoint = (values) => {
-        console.log(values);
         const waypoint = {
             lat: values.lat,
             lng: values.lng,

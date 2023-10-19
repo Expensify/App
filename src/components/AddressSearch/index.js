@@ -297,7 +297,6 @@ function AddressSearch(props) {
 
         getCurrentPosition(
             (successData) => {
-                console.log(successData);
                 if (!shouldTriggerGeolocationCallbacks.current) {
                     return;
                 }
