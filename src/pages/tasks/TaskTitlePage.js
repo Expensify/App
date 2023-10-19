@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import React, {useCallback, useRef} from 'react';
-import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';

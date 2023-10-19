@@ -1,5 +1,4 @@
 import React, {useCallback, useRef} from 'react';
-import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {withOnyx} from 'react-native-onyx';
