@@ -285,7 +285,6 @@ function ReportActionsList({
     const shouldDisplayNewMarker = useCallback(
         (reportAction, index) => {
             let shouldDisplay = false;
-
             if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
@@ -309,9 +308,11 @@ function ReportActionsList({
             if (!shouldDisplayNewMarker(reportAction, index)) {
                 return;
             }
-            setCurrentUnreadMarker(reportAction.reportActionID);
+            if (!currentUnreadMarker && currentUnreadMarker !== reportAction.reportActionID) {
+                setCurrentUnreadMarker(reportAction.reportActionID);
+            }
         });
-    }, [sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread, shouldDisplayNewMarker]);
+    }, [sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (

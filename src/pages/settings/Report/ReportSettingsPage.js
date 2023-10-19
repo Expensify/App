@@ -64,7 +64,7 @@ function ReportSettingsPage(props) {
     const shouldDisableWelcomeMessage =
         isMoneyRequestReport || ReportUtils.isArchivedRoom(report) || !ReportUtils.isChatRoom(report) || _.isEmpty(linkedWorkspace) || linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
 
-    const shouldDisableSettings = _.isEmpty(report) || ReportUtils.shouldDisableSettings(report) || ReportUtils.isArchivedRoom(report);
+    const shouldDisableSettings = _.isEmpty(report) || ReportUtils.isArchivedRoom(report);
     const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
     const notificationPreference =
         report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
