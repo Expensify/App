@@ -45,14 +45,14 @@ function containsReactComponent(fileContent) {
             }
         },
         FunctionDeclaration({node}) {
-            functionNames.add(node.id.name);
+            functionNames.add(node.id?.name);
             if (node.params.length === 1 && node.params[0].name === 'props') {
                 hasReactComponent = true;
             }
         },
         ExpressionStatement({node}) {
             const expression = node.expression;
-            if (expression.type === 'AssignmentExpression' && functionNames.has(expression.left.object.name) && expression.left.property.name === 'displayName') {
+            if (expression.type === 'AssignmentExpression' && functionNames.has(expression.left.object?.name) && expression.left.property?.name === 'displayName') {
                 hasReactComponent = true;
             }
         },
