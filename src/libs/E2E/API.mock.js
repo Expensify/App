@@ -9,6 +9,7 @@ import mockSigninUser from './apiMocks/signinUser';
 import mockAuthenticatePusher from './apiMocks/authenticatePusher';
 import mockOpenApp from './apiMocks/openApp';
 import mockOpenReport from './apiMocks/openReport';
+import mockSignInAttemptState from './apiMocks/signInAttemptState';
 
 /**
  * A dictionary which has the name of a API command as key, and a function which
@@ -22,10 +23,15 @@ const mocks = {
     ReconnectApp: mockOpenApp,
     OpenReport: mockOpenReport,
     AuthenticatePusher: mockAuthenticatePusher,
+    SignInAttemptState: mockSignInAttemptState,
 };
 
 function mockCall(command, apiCommandParameters, tag) {
     const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
+    Log.warn('🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐');
+    Log.warn('🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐');
+    Log.warn(`Mock Call to ${command}`);
+    Log.warn('🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐🫐');
     if (!mockResponse || !_.isArray(mockResponse.onyxData)) {
         Log.warn(`[${tag}] for command ${command} is not mocked yet!`);
         return;

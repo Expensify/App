@@ -2,23 +2,18 @@ export default ({email}) => ({
     onyxData: [
         {
             onyxMethod: 'merge',
-            key: 'credentials',
+            key: 'account',
             value: {
-                login: email,
+                isLoading: false,
+                loadingForm: null,
             },
         },
         {
             onyxMethod: 'merge',
-            key: 'account',
+            key: 'credenttials',
             value: {
-                validated: true,
-                hasEmailDeliveryFailure: false,
+                validateCode: null,
             },
-        },
-        {
-            onyxMethod: 'set',
-            key: 'betas',
-            value: ['passwordless'],
         },
     ],
     jsonCode: 200,

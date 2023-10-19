@@ -1,4 +1,5 @@
 const {exec} = require('child_process');
+const _ = require('underscore');
 const Logger = require('./logger');
 
 /**
@@ -11,18 +12,22 @@ const Logger = require('./logger');
 module.exports = (command, env = {}) => {
     let childProcess;
     const promise = new Promise((resolve, reject) => {
-        Logger.log(`\nRunning command:`);
+        const finalEnv = {
+            ...process.env,
+            ...env,
+        };
+
+        if (_.keys(env).length !== 0) {
+            Logger.log(`environment variables:`, JSON.stringify(finalEnv, null, 2));
+        }
+
         Logger.important(command);
 
         childProcess = exec(
             command,
             {
-                encoding: 'utf8',
                 maxBuffer: 1024 * 1024 * 10, // Increase max buffer to 10MB, to avoid errors
-                env: {
-                    ...process.env,
-                    ...env,
-                },
+                env: finalEnv,
             },
             (error, stdout) => {
                 if (error) {

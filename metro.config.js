@@ -9,7 +9,7 @@ const defaultConfig = getDefaultConfig(__dirname);
 const isUsingMockAPI = process.env.E2E_TESTING === 'true';
 if (isUsingMockAPI) {
     // eslint-disable-next-line no-console
-    console.warn('⚠️ Using mock API');
+    console.log('⚠️ Using mock API');
 }
 
 /**
