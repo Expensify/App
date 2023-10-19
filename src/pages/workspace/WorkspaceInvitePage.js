@@ -84,12 +84,16 @@ function WorkspaceInvitePage(props) {
     const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails), [props.policyMembers, props.personalDetails]);
 
     useEffect(() => {
-        const emails = _.compact(
+        let emails = _.compact(
             searchTerm
                 .trim()
                 .replace(/\s*,\s*/g, ',')
                 .split(','),
         );
+
+        if (emails.length === 0) {
+            emails = [''];
+        }
 
         const newUsersToInviteDict = {};
         const newPersonalDetailsDict = {};
@@ -228,10 +232,10 @@ function WorkspaceInvitePage(props) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (usersToInvite.length === 0 && excludedUsers.includes(searchValue)) {
-            return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
+            return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, searchTerm, policyName, usersToInvite, personalDetails]);
+    }, [excludedUsers, translate, searchTerm, policyName, usersToInvite, personalDetails.length]);
 
     return (
         <ScreenWrapper

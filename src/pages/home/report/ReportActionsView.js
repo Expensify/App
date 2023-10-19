@@ -278,6 +278,10 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
+    if (lodashGet(newProps, 'report.nonReimbursableTotal') !== lodashGet(oldProps, 'report.nonReimbursableTotal')) {
+        return false;
+    }
+
     if (lodashGet(newProps, 'report.writeCapability') !== lodashGet(oldProps, 'report.writeCapability')) {
         return false;
     }
