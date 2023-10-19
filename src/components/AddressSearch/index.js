@@ -74,7 +74,7 @@ const propTypes = {
             /** A description of the location (usually the address) */
             description: PropTypes.string,
 
-            /** The main name of the location */
+            /** The name of the location */
             name: PropTypes.string,
 
             /** Data required by the google auto complete plugin to know where to put the markers on the map */
