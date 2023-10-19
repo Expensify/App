@@ -70,6 +70,8 @@
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/request"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/new"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/search"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/send"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/money2020"/>
 
                 <!-- Staging URLs -->
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
@@ -87,6 +89,8 @@
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/request"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/new"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/search"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/send"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/money2020"/>
             </intent-filter>
         </activity>
 

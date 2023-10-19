@@ -164,16 +164,20 @@ function MoneyRequestPreview(props) {
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
-    const isSettled = ReportUtils.isSettled(props.iouReport);
+    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
+    const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant =
         !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
 
-    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || '')] : [];
+    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
     const getSettledMessage = () => {
+        if (isExpensifyCardTransaction) {
+            return props.translate('common.done');
+        }
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
                 return props.translate('iou.settledExpensify');
@@ -199,20 +203,26 @@ function MoneyRequestPreview(props) {
             return props.translate('iou.split');
         }
 
+        if (isExpensifyCardTransaction) {
+            let message = props.translate('iou.card');
+            if (TransactionUtils.isPending(props.transaction)) {
+                message += ` • ${props.translate('iou.pending')}`;
+            }
+            return message;
+        }
+
         let message = props.translate('iou.cash');
         if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
             message += ` • ${props.translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
-        } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
-            message += ` • ${props.translate('iou.settledExpensify')}`;
         }
         return message;
     };
 
     const getDisplayAmountText = () => {
         if (isDistanceRequest) {
-            return CurrencyUtils.convertToDisplayString(TransactionUtils.getAmount(props.transaction), props.transaction.currency);
+            return requestAmount ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : props.translate('common.tbd');
         }
 
         if (isScanning) {
@@ -242,7 +252,8 @@ function MoneyRequestPreview(props) {
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={receiptImages}
-                            isHovered={isScanning}
+                            isHovered={props.isHovered || isScanning}
+                            size={1}
                         />
                     )}
                     {_.isEmpty(props.transaction) &&
@@ -252,20 +263,7 @@ function MoneyRequestPreview(props) {
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewHeaderText()}</Text>
-                                    {isSettled && (
-                                        <>
-                                            <Icon
-                                                src={Expensicons.DotIndicator}
-                                                width={4}
-                                                height={4}
-                                                additionalStyles={[styles.mr1, styles.ml1]}
-                                            />
-                                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getSettledMessage()}</Text>
-                                        </>
-                                    )}
-                                </View>
+                                <Text style={[styles.textLabelSupporting, styles.lh20, styles.mb1]}>{getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}</Text>
                                 {hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
@@ -317,7 +315,7 @@ function MoneyRequestPreview(props) {
                                     )}
                                     {shouldShowDescription && <Text style={[styles.colorMuted]}>{description}</Text>}
                                 </View>
-                                {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
+                                {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
                                         {props.translate('iou.amountEach', {
                                             amount: CurrencyUtils.convertToDisplayString(

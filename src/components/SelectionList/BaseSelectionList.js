@@ -22,8 +22,8 @@ import Log from '../../libs/Log';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import useActiveElement from '../../hooks/useActiveElement';
 import BaseListItem from './BaseListItem';
-import themeColors from '../../styles/themes/default';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -52,7 +52,7 @@ function BaseSelectionList({
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
     showConfirmButton = false,
-    shouldFocusOnSelectRow = false,
+    shouldPreventDefaultFocusOnSelectRow = false,
     isKeyboardShown = false,
     inputRef = null,
     disableKeyboardShortcuts = false,
@@ -211,14 +211,14 @@ function BaseSelectionList({
 
         onSelectRow(item);
 
-        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };
 
     const selectAllRow = () => {
         onSelectAll();
-        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };
@@ -299,6 +299,7 @@ function BaseSelectionList({
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
                 onDismissError={onDismissError}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             />
         );
     };
@@ -401,6 +402,7 @@ function BaseSelectionList({
                                         accessibilityState={{checked: flattenedSections.allSelected}}
                                         disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                                     >
                                         <Checkbox
                                             accessibilityLabel={translate('workspace.people.selectAll')}
@@ -424,7 +426,7 @@ function BaseSelectionList({
                                     onScrollBeginDrag={onScrollBeginDrag}
                                     keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
-                                    indicatorStyle={themeColors.selectionListIndicatorColor}
+                                    indicatorStyle={themeColors.white}
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={showScrollIndicator}
                                     initialNumToRender={12}
