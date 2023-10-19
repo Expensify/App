@@ -19,7 +19,8 @@ const commonOptions = {
     cardStyle: styles.cardStyleNavigator,
 };
 
-function DummyScreen() {
+// We use an empty component for iframe screens because we handle rendering them differently in the custom StackNavigator.
+function EmptyComponent() {
     return null;
 }
 
@@ -50,7 +51,7 @@ function CentralPaneNavigator() {
                     <Stack.Screen
                         key={screen}
                         name={screen}
-                        component={DummyScreen}
+                        component={EmptyComponent}
                     />
                 ))}
             </Stack.Navigator>
