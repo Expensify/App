@@ -767,6 +767,16 @@ function getReport(reportID) {
 }
 
 /**
+ * Get the notification preference given a report
+ *
+ * @param {Object} report
+ * @returns {String}
+ */
+function getReportNotificationPreference(report) {
+    return lodashGet(report, 'notificationPreference', '');
+}
+
+/**
  * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
  * policy admin
  *
@@ -3981,6 +3991,7 @@ export {
     getDisplayNamesWithTooltips,
     getReportName,
     getReport,
+    getReportNotificationPreference,
     getReportIDFromLink,
     getRouteFromLink,
     getDeletedParentActionMessageForChatReport,
