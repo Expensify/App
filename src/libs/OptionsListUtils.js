@@ -667,8 +667,7 @@ function sortCategories(categories) {
      * }
      */
     _.each(categories, (category) => {
-        const safeCategoryName = category.name.replaceAll(CONST.PATH_DOT, CONST.PATH_DOT_REPLACER);
-        const path = safeCategoryName.replaceAll(CONST.PARENT_CHILD_SEPARATOR, CONST.PATH_DOT);
+        const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
         const existedValue = lodashGet(hierarchy, path, {});
 
         lodashSet(hierarchy, path, {
