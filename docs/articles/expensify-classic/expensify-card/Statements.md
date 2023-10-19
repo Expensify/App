@@ -51,7 +51,7 @@ To change your settlement frequency or bank account, go to Settings > Domains > 
 ![Change your card settlement account or settlement frequency via the dropdown menus in the middle of the screen.](https://help.expensify.com/assets/images/ExpensifyHelp_CardSettings.png){:width="100%"}
 
 # Expensify Card Statement and Settlements FAQs
-## **Can you pay your balance early if you've reached your Domain Limit?**
+## Can you pay your balance early if you've reached your Domain Limit?
   If you've chosen Monthly Settlement, you can manually initiate settlement using the "Settle Now" button. We'll settle the outstanding balance and then perform settlement again on your selected predetermined monthly settlement date.
   If you opt for Daily Settlement, the Expensify Card statement will automatically settle daily through an automatic withdrawal from your business bank account. No additional action is needed on your part.
   
