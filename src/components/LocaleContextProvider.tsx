@@ -1,18 +1,20 @@
 import React, {createContext, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from '../libs/Localize';
 import DateUtils from '../libs/DateUtils';
 import * as NumberFormatUtils from '../libs/NumberFormatUtils';
 import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
 import CONST from '../CONST';
+import TIMEZONES from '../TIMEZONES';
 import compose from '../libs/compose';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 
 type SelectedTimezone = {
     /** Value of the selected timezone */
-    selected: string;
+    selected: (typeof TIMEZONES)[number];
 };
 
 type CurrentUserPersonalDetails = {
@@ -22,7 +24,7 @@ type CurrentUserPersonalDetails = {
 
 type LocaleContextProviderOnyxProps = {
     /** The user's preferred locale e.g. 'en', 'es-ES' */
-    preferredLocale: string;
+    preferredLocale: ValueOf<typeof CONST.LOCALES>;
 };
 
 type LocaleContextProviderProps = LocaleContextProviderOnyxProps & {
@@ -76,7 +78,7 @@ type LocaleContextProps = {
     fromLocaleDigit: FromLocaleDigit;
 
     /** The user's preferred locale e.g. 'en', 'es-ES' */
-    preferredLocale: string;
+    preferredLocale: ValueOf<typeof CONST.LOCALES>;
 };
 
 const LocaleContext = createContext<LocaleContextProps>({
