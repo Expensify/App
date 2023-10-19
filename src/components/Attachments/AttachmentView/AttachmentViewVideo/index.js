@@ -12,38 +12,16 @@ const propTypes = {
 };
 
 function AttachmentViewVideo({source}) {
-    const {currentlyPlayingURL, originalParent, sharedElement} = usePlaybackContext();
+    const {currentlyPlayingURL} = usePlaybackContext();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const videoPlayerParentRef = useRef(null);
 
     const shouldUseSharedElementTransition = !isSmallScreenWidth && currentlyPlayingURL === source;
 
-    // shared element transition logic for video player
-    useEffect(() => {
-        if (!shouldUseSharedElementTransition) {
-            return;
-        }
-        const ref = videoPlayerParentRef.current;
-        if (currentlyPlayingURL === source) {
-            ref.appendChild(sharedElement);
-        }
-        return () => {
-            if (!ref.childNodes[0]) {
-                return;
-            }
-            originalParent.appendChild(sharedElement);
-        };
-    }, [currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedElementTransition, source]);
-
-    return shouldUseSharedElementTransition ? (
-        <View
-            ref={videoPlayerParentRef}
-            style={[styles.flex1]}
-        />
-    ) : (
+    return (
         <VideoPlayer
             url={source}
             shouldPlay={false}
+            shouldUseSharedVideoElement={shouldUseSharedElementTransition}
         />
     );
 }

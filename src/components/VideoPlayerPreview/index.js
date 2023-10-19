@@ -62,13 +62,6 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
         setIsThumbnail(false);
     }, [currentlyPlayingURL, videoUrl]);
 
-    useEffect(() => {
-        if (isThumbnail || videoUrl !== currentlyPlayingURL) {
-            return;
-        }
-        updateSharedElements(videoPlayerParentRef.current, videoPlayerRef.current);
-    }, [currentlyPlayingURL, isThumbnail, updateSharedElements, videoUrl]);
-
     return (
         <View style={[styles.overflowHidden, styles.webViewStyles.tagStyles.img, videoStyles]}>
             {isSmallScreenWidth || isThumbnail ? (
@@ -79,28 +72,14 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                 />
             ) : (
                 <>
-                    <View
-                        ref={(el) => {
-                            if (!el) {
-                                return;
-                            }
-                            videoPlayerParentRef.current = el;
-                            if (el.childNodes[0]) {
-                                videoPlayerRef.current = el.childNodes[0];
-                            }
-                        }}
-                        style={styles.flex1}
-                    >
-                        <View style={styles.flex1}>
-                            <VideoPlayer
-                                url={videoUrl}
-                                videoPlayerStyles={{borderRadius: 10}}
-                                shouldPlay={false}
-                                onOpenInModalButtonPress={showModal}
-                                onVideoLoaded={onVideoLoaded}
-                            />
-                        </View>
-                    </View>
+                    <VideoPlayer
+                        url={videoUrl}
+                        videoPlayerStyles={{borderRadius: 10}}
+                        shouldPlay={false}
+                        onOpenInModalButtonPress={showModal}
+                        onVideoLoaded={onVideoLoaded}
+                    />
+
                     <IconButton
                         src={Expensicons.Expand}
                         fill="white"

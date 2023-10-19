@@ -4,7 +4,6 @@ import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import Icon from '../Icon';
 import CONST from '../../CONST';
 import Hoverable from '../Hoverable';
-import Tooltip from '../Tooltip';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
@@ -33,7 +32,7 @@ function IconButton({src, fill, onPress, style, accessibilityLabel}) {
                 <PressableWithoutFeedback
                     accessibilityLabel={accessibilityLabel}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    onPress={onPress}
+                    onPressIn={onPress}
                     style={[{padding: 5, borderRadius: 4, backgroundColor: isHovered ? '#085239' : 'transparent'}, style]}
                 >
                     <Icon

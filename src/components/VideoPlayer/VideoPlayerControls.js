@@ -7,6 +7,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import ProgressBar from './ProgressBar';
 import convertMillisecondsToTime from './utils';
 import VolumeButton from '../VolumeButton';
+import {usePlaybackContext} from '../PlaybackContext';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
@@ -14,22 +15,13 @@ const propTypes = {
 
     position: PropTypes.number.isRequired,
 
-    updatePostiion: PropTypes.func.isRequired,
-
-    togglePlay: PropTypes.func.isRequired,
-
-    enterFullScreenMode: PropTypes.func.isRequired,
-
-    isPlaying: PropTypes.bool,
-
     toggleCreateMenu: PropTypes.func.isRequired,
 };
 
-const defaultProps = {
-    isPlaying: false,
-};
+const defaultProps = {};
 
-function VideoPlayerControls({duration, position, updatePostiion, togglePlay, enterFullScreenMode, isPlaying, toggleCreateMenu}) {
+function VideoPlayerControls({duration, position, toggleCreateMenu}) {
+    const {togglePlay, isPlaying, updatePostiion, enterFullScreenMode} = usePlaybackContext();
     const [durationFormatted, setDurationFormatted] = React.useState('0:00');
 
     useEffect(() => {

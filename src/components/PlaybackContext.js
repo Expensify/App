@@ -1,4 +1,4 @@
-import React, {useMemo, useState, useCallback} from 'react';
+import React, {useMemo, useState, useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 
 const PlaybackContext = React.createContext(null);
@@ -9,17 +9,35 @@ function PlaybackContextProvider({children}) {
     const [originalParent, setOriginalParent] = useState(null);
     const [volume, setVolume] = useState(0);
 
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    const currentVideoPLayerRef = useRef(null);
+
     const updateCurrentlyPlayingURL = useCallback((url) => {
         setCurrentlyPlayingURL(url);
     }, []);
 
     const updateVolume = useCallback((newVolume) => {
+        currentVideoPLayerRef.current.setStatusAsync({volume: newVolume});
         setVolume(newVolume);
     }, []);
 
     const updateSharedElements = (parent, child) => {
         setOriginalParent(parent);
         setSharedElement(child);
+    };
+
+    const togglePlay = useCallback(() => {
+        currentVideoPLayerRef.current.setStatusAsync({shouldPlay: !isPlaying});
+        setIsPlaying(!isPlaying);
+    }, [isPlaying]);
+
+    const enterFullScreenMode = () => {
+        currentVideoPLayerRef.current.presentFullscreenPlayer();
+    };
+
+    const updatePostiion = (newPosition) => {
+        currentVideoPLayerRef.current.setStatusAsync({positionMillis: newPosition});
     };
 
     const contextValue = useMemo(
@@ -31,8 +49,13 @@ function PlaybackContextProvider({children}) {
             updateSharedElements,
             volume,
             updateVolume,
+            currentVideoPLayerRef,
+            togglePlay,
+            isPlaying,
+            enterFullScreenMode,
+            updatePostiion,
         }),
-        [currentlyPlayingURL, originalParent, sharedElement, updateCurrentlyPlayingURL, updateVolume, volume],
+        [currentlyPlayingURL, isPlaying, originalParent, sharedElement, togglePlay, updateCurrentlyPlayingURL, updateVolume, volume],
     );
     return <PlaybackContext.Provider value={contextValue}>{children}</PlaybackContext.Provider>;
 }
