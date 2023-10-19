@@ -4,7 +4,7 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 
 type FullScreenLoadingIndicatorProps = {
-    style: Record<string, unknown> | Array<Record<string, unknown>> | (() => void);
+    style: Record<string, unknown> | Array<Record<string, unknown>>;
 };
 
 function FullScreenLoadingIndicator({style = []}: FullScreenLoadingIndicatorProps) {
