@@ -12,7 +12,6 @@ export default ({email}) => ({
             key: 'account',
             value: {
                 validated: true,
-                hasEmailDeliveryFailure: false,
             },
         },
         {

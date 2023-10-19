@@ -115,7 +115,6 @@ export default ({email}) => ({
             key: 'account',
             value: {
                 requiresTwoFactorAuth: false,
-                hasEmailDeliveryFailure: false,
             },
         },
     ],

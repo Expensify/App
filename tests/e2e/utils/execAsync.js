@@ -1,5 +1,5 @@
 const {exec} = require('child_process');
-const _ = require('underscore');
+// const _ = require('underscore');
 const Logger = require('./logger');
 
 /**
@@ -17,9 +17,9 @@ module.exports = (command, env = {}) => {
             ...env,
         };
 
-        if (_.keys(env).length !== 0) {
-            Logger.log(`environment variables:`, JSON.stringify(finalEnv, null, 2));
-        }
+        // if (_.keys(env).length !== 0) {
+        //     Logger.log(`environment variables:`, JSON.stringify(finalEnv, null, 2));
+        // }
 
         Logger.important(command);
 
