@@ -1,6 +1,6 @@
 import {ValueOf} from 'type-fest';
 import {SvgProps} from 'react-native-svg';
-import OriginalMessage, {Reaction} from './OriginalMessage';
+import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
 import * as OnyxCommon from './OnyxCommon';
 import CONST from '../../CONST';
 import {Receipt} from './Transaction';
@@ -43,6 +43,7 @@ type Message = {
     reactions?: Reaction[];
     taskReportID?: string;
     translationKey?: string;
+    moderationDecision?: Decision;
 };
 
 type Person = {
@@ -113,6 +114,7 @@ type ReportActionBase = {
     errors?: OnyxCommon.Errors;
 
     isAttachment?: boolean;
+    childRecentReceiptTransactionIDs?: Record<string, string>;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;

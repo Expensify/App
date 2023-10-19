@@ -308,7 +308,7 @@ function getTag(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getCreated(transaction: Transaction, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
     const createdDate = parseISO(created);
     if (isValid(createdDate)) {
@@ -378,7 +378,7 @@ function hasRoute(transaction: Transaction): boolean {
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getLinkedTransaction(reportAction?: OnyxEntry<ReportAction>): OnyxEntry<Transaction> {
+function getLinkedTransaction(reportAction?: OnyxEntry<ReportAction>): Transaction | Record<string, never> {
     let transactionID = '';
 
     if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {

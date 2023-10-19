@@ -67,7 +67,10 @@ function isReversedTransaction(reportAction: OnyxEntry<ReportAction>) {
     return (reportAction?.message?.[0].isReversedTransaction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isPendingRemove(reportAction: OnyxEntry<ReportAction>): boolean {
+function isPendingRemove(reportAction: OnyxEntry<ReportAction> | Record<string, never>): boolean {
+    if (!reportAction) {
+        return false;
+    }
     return reportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
@@ -120,7 +123,7 @@ function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction>): boolean
  * Returns whether the thread is a transaction thread, which is any thread with IOU parent
  * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
  */
-function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boolean {
+function isTransactionThread(parentReportAction: ReportAction): boolean {
     return (
         parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
         (parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
