@@ -1937,6 +1937,10 @@ describe('OptionsListUtils', () => {
                 enabled: true,
                 name: 'Movies',
             },
+            'House, M.D.': {
+                enabled: true,
+                name: 'House, M.D.',
+            },
             'Dr. House': {
                 enabled: true,
                 name: 'Dr. House',
@@ -1958,6 +1962,10 @@ describe('OptionsListUtils', () => {
             {
                 enabled: true,
                 name: 'Movies: Mr. Nobody',
+            },
+            {
+                enabled: true,
+                name: 'House, M.D.',
             },
             {
                 enabled: true,
