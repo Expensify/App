@@ -156,6 +156,14 @@ function isExpensifyGuideTeam(email) {
 const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
 
 /**
+ *
+ * @param {String} policyID
+ * @param {Object} policies
+ * @returns {Boolean}
+ */
+const isPolicyMember = (policyID, policies) => _.some(policies, (policy) => policy.id === policyID);
+
+/**
  * @param {Object} policyMembers
  * @param {Object} personalDetails
  * @returns {Object}
@@ -276,6 +284,7 @@ export {
     isPolicyAdmin,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
+    isPolicyMember,
     getTag,
     getTagListName,
     getTagList,
