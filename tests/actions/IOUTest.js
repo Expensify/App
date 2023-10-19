@@ -1702,6 +1702,8 @@ describe('actions/IOU', () => {
             // Given a transaction thread
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
 
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
                 callback: (val) => (reportActions = val),
@@ -1779,6 +1781,9 @@ describe('actions/IOU', () => {
 
             // Given a transaction thread
             thread = ReportUtils.buildTransactionThread(createIOUAction);
+
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             jest.advanceTimersByTime(10);
             Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
@@ -1862,6 +1867,8 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
+
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
@@ -2075,6 +2082,8 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
+
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
