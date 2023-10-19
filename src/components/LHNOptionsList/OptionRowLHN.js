@@ -152,16 +152,9 @@ function OptionRowLHN(props) {
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
     const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(optionItem);
 
-    /**
-     * Checks if the current optionItem is a group chat based on certain conditions.
-     *
-     * @returns {Boolean}
-     */
-    const isGroupChat = function () {
-        return optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
-    };
-
-    const fullTitle = isGroupChat() ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips) : optionItem.text;
+    const isGroupChat =
+        optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
+    const fullTitle = isGroupChat ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips) : optionItem.text;
 
     return (
         <OfflineWithFeedback
