@@ -1,4 +1,4 @@
-import TIMEZONES from "../../TIMEZONES";
+import TIMEZONES from '../../TIMEZONES';
 
 type Timezone = {
     /** Value of selected timezone */

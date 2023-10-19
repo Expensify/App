@@ -1,5 +1,5 @@
-import { ValueOf } from "type-fest";
-import CONST from "../CONST";
+import {ValueOf} from 'type-fest';
+import CONST from '../CONST';
 
 function format(locale: ValueOf<typeof CONST.LOCALES>, number: number, options?: Intl.NumberFormatOptions): string {
     return new Intl.NumberFormat(locale, options).format(number);

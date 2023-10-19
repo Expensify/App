@@ -19,7 +19,7 @@ import {
 
 import Onyx from 'react-native-onyx';
 import throttle from 'lodash/throttle';
-import { ValueOf } from 'type-fest';
+import {ValueOf} from 'type-fest';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
@@ -135,7 +135,13 @@ function isYesterday(date: Date, timeZone: (typeof TIMEZONES)[number]): boolean 
  * Jan 20 at 5:30 PM          within the past year
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
-function datetimeToCalendarTime(locale: ValueOf<typeof CONST.LOCALES>, datetime: string, includeTimeZone = false, currentSelectedTimezone: (typeof TIMEZONES)[number] = timezone.selected, isLowercase = false): string {
+function datetimeToCalendarTime(
+    locale: ValueOf<typeof CONST.LOCALES>,
+    datetime: string,
+    includeTimeZone = false,
+    currentSelectedTimezone: (typeof TIMEZONES)[number] = timezone.selected,
+    isLowercase = false,
+): string {
     const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = Localize.translate(locale, 'common.todayAt');

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { ValueOf } from 'type-fest';
+import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
 
 import * as NumberFormatUtils from './NumberFormatUtils';
