@@ -15,10 +15,10 @@ type QRCodeProps = {
     logo?: ImageSourcePropType;
 
     /** The size ratio of logo to QR code */
-    logoRatio?: number;
+    logoRatio?: typeof CONST.QR.DEFAULT_LOGO_SIZE_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO;
 
     /** The size ratio of margin around logo to QR code */
-    logoMarginRatio?: number;
+    logoMarginRatio?: typeof CONST.QR.DEFAULT_LOGO_MARGIN_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO;
 
     /** The QRCode size */
     size?: number;
