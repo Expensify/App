@@ -15,14 +15,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        chunk: [ 1, 2, 3 ]
+        chunk: [1, 2, 3]
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/setupNode@main
 
       - name: Get number of CPU cores
         id: cpu-cores
@@ -45,7 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - uses: margelo/expensify-app-fork/.github/actions/composite/setupNode@main
 
       - name: Storybook run
         run: npm run storybook -- --smoke-test --ci
@@ -59,7 +59,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/setupNode@main
 
       - name: Test CI git logic
         run: tests/unit/CIGitLogicTest.sh

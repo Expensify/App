@@ -7,13 +7,13 @@ on:
 
 jobs:
   typecheck:
-    uses: Expensify/App/.github/workflows/typecheck.yml@main
+    uses: margelo/expensify-app-fork/.github/workflows/typecheck.yml@main
 
   lint:
-    uses: Expensify/App/.github/workflows/lint.yml@main
+    uses: margelo/expensify-app-fork/.github/workflows/lint.yml@main
 
   test:
-    uses: Expensify/App/.github/workflows/test.yml@main
+    uses: margelo/expensify-app-fork/.github/workflows/test.yml@main
 
   confirmPassingBuild:
     runs-on: ubuntu-latest
@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Announce failed workflow in Slack
         if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' }}
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -47,7 +47,7 @@ jobs:
 
       - name: Check if StagingDeployCash is locked
         id: isStagingDeployLocked
-        uses: Expensify/App/.github/actions/javascript/isStagingDeployLocked@main
+        uses: margelo/expensify-app-fork/.github/actions/javascript/isStagingDeployLocked@main
         with:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -71,7 +71,7 @@ jobs:
   createNewVersion:
     needs: chooseDeployActions
     if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) }}
-    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    uses: margelo/expensify-app-fork/.github/workflows/createNewVersion.yml@main
     secrets: inherit
 
   updateStaging:
@@ -92,7 +92,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup Git for OSBotify
-        uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
+        uses: margelo/expensify-app-fork/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
@@ -108,7 +108,7 @@ jobs:
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -180,7 +180,7 @@ jobs:
   e2ePerformanceTests:
     needs: [chooseDeployActions]
     if: ${{ needs.chooseDeployActions.outputs.SHOULD_DEPLOY }}
-    uses: Expensify/App/.github/workflows/e2ePerformanceTests.yml@main
+    uses: margelo/expensify-app-fork/.github/workflows/e2ePerformanceTests.yml@main
     secrets: inherit
     with:
       PR_NUMBER: ${{ needs.chooseDeployActions.outputs.MERGED_PR }}

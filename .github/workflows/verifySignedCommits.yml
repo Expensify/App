@@ -10,6 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify signed commits
-        uses: Expensify/App/.github/actions/javascript/verifySignedCommits@main
+        uses: margelo/expensify-app-fork/.github/actions/javascript/verifySignedCommits@main
         with:
           GITHUB_TOKEN: ${{ github.token }}

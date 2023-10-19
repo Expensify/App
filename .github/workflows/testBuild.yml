@@ -8,7 +8,7 @@ on:
         required: true
   pull_request_target:
     types: [opened, synchronize, labeled]
-    branches: ['*ci-test/**']
+    branches: ["*ci-test/**"]
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_14.2.app/Contents/Developer
@@ -83,12 +83,12 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/setupNode@main
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
-          ruby-version: '2.7'
+          ruby-version: "2.7"
           bundler-cache: true
 
       - name: Decrypt keystore
@@ -102,7 +102,7 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/configureAwsCredentials@main
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -151,7 +151,7 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/setupNode@main
 
       - name: Setup XCode
         run: sudo xcode-select -switch /Applications/Xcode_14.2.app
@@ -159,7 +159,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
-          ruby-version: '2.7'
+          ruby-version: "2.7"
           bundler-cache: true
 
       - name: Cache Pod dependencies
@@ -193,7 +193,7 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/configureAwsCredentials@main
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -232,7 +232,7 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/setupNode@main
 
       - name: Decrypt Developer ID Certificate
         run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
@@ -240,7 +240,7 @@ jobs:
           DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/configureAwsCredentials@main
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -275,10 +275,10 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/setupNode@main
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/configureAwsCredentials@main
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -339,13 +339,13 @@ jobs:
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          body-include: 'Use the links below to test this build in android and iOS. Happy testing!'
+          body-include: "Use the links below to test this build in android and iOS. Happy testing!"
           number: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
           delete: true
 
       - name: Publish links to apps for download
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
-        uses: Expensify/App/.github/actions/javascript/postTestBuildComment@main
+        uses: margelo/expensify-app-fork/.github/actions/javascript/postTestBuildComment@main
         with:
           PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}

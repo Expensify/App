@@ -27,7 +27,7 @@ jobs:
   createNewVersion:
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    uses: margelo/expensify-app-fork/.github/workflows/createNewVersion.yml@main
     secrets: inherit
 
   cherryPick:
@@ -41,7 +41,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Set up git for OSBotify
-        uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
+        uses: margelo/expensify-app-fork/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
@@ -49,7 +49,7 @@ jobs:
 
       - name: Get previous app version
         id: getPreviousVersion
-        uses: Expensify/App/.github/actions/javascript/getPreviousVersion@main
+        uses: margelo/expensify-app-fork/.github/actions/javascript/getPreviousVersion@main
         with:
           SEMVER_LEVEL: "PATCH"
 
@@ -66,7 +66,7 @@ jobs:
 
       - name: Get merge commit for pull request to CP
         id: getCPMergeCommit
-        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
+        uses: margelo/expensify-app-fork/.github/actions/javascript/getPullRequestDetails@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: ${{ github.actor }}

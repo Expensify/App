@@ -51,7 +51,7 @@ jobs:
 
       - name: Build APK
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/buildAndroidAPK@main
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
 
@@ -65,7 +65,7 @@ jobs:
 
       - name: Get pull request details
         id: getPullRequestDetails
-        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
+        uses: margelo/expensify-app-fork/.github/actions/javascript/getPullRequestDetails@main
         with:
           GITHUB_TOKEN: ${{ github.token }}
           PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
@@ -114,7 +114,7 @@ jobs:
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Build APK
-        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/buildAndroidAPK@main
         with:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
 
@@ -156,7 +156,7 @@ jobs:
         run: zip -qr App.zip ./zip
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/configureAwsCredentials@main
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -190,7 +190,6 @@ jobs:
       - name: Print AWS Device Farm verbose run results
         if: ${{ always() && runner.debug != null && fromJSON(runner.debug) }}
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
-
 # TODO: Once tests are more reliable we should uncomment this
 #      - name: Check if test failed, if so post the results and add the DeployBlocker label
 #        run: |

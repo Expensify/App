@@ -9,7 +9,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: Expensify/App/.github/actions/composite/setupNode@main
+    - uses: margelo/expensify-app-fork/.github/actions/composite/setupNode@main
 
     - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
       with:

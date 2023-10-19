@@ -12,6 +12,6 @@ jobs:
     if: github.actor != 'OSBotify'
     steps:
       - name: authorChecklist.js
-        uses: Expensify/App/.github/actions/javascript/authorChecklist@main
+        uses: margelo/expensify-app-fork/.github/actions/javascript/authorChecklist@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

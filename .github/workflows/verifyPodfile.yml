@@ -17,6 +17,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Node
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: margelo/expensify-app-fork/.github/actions/composite/setupNode@main
       - name: Verify podfile
         run: ./.github/scripts/verifyPodfile.sh

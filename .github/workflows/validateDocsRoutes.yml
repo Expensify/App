@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - uses: margelo/expensify-app-fork/.github/actions/composite/setupNode@main
 
       # Verify that no new hubs were created without adding their metadata to _routes.yml
       - name: Validate Docs Routes File

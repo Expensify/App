@@ -144,7 +144,7 @@ In order to bundle actions with their dependencies into a single Node.js executa
     - Use the absolute path of the action in GitHub, including the repo name, path, and branch ref, like so:
       ```yaml
       - name: Generate Version
-        uses: Expensify/App/.github/actions/javascript/bumpVersion@main
+        uses: margelo/expensify-app-fork/.github/actions/javascript/bumpVersion@main
       ```
        Do not try to use a relative path.
 - Confusingly, paths in action metadata files (`action.yml`) _must_ use relative paths.
