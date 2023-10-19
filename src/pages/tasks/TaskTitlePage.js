@@ -24,17 +24,11 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    /** Current user session */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }),
-
     /* Onyx Props */
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    session: {},
     report: {},
 };
 
@@ -58,7 +52,7 @@ function TaskTitlePage(props) {
         (values) => {
             // Set the title of the report in the store and then call Task.editTaskReport
             // to update the title of the report on the server
-            Task.editTaskAndNavigate(props.report, props.session.accountID, {title: values.title});
+            Task.editTaskAndNavigate(props.report, {title: values.title});
         },
         [props],
     );
@@ -127,9 +121,6 @@ export default compose(
     withCurrentUserPersonalDetails,
     withReportOrNotFound,
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },

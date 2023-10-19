@@ -23,11 +23,6 @@ import withCurrentUserPersonalDetails from '../../components/withCurrentUserPers
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
 
 const propTypes = {
-    /** Current user session */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }),
-
     /** The report currently being looked at */
     report: reportPropTypes,
 
@@ -36,7 +31,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    session: {},
     report: {},
 };
 
@@ -47,7 +41,7 @@ function TaskDescriptionPage(props) {
         (values) => {
             // Set the description of the report in the store and then call Task.editTaskReport
             // to update the description of the report on the server
-            Task.editTaskAndNavigate(props.report, props.session.accountID, {description: values.description});
+            Task.editTaskAndNavigate(props.report, {description: values.description});
         },
         [props],
     );
@@ -132,9 +126,6 @@ export default compose(
     withCurrentUserPersonalDetails,
     withReportOrNotFound,
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
