@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {FlashList} from '@shopify/flash-list';
 import lodashGet from 'lodash/get';
@@ -336,18 +337,19 @@ function PaymentMethodList({
 
     return (
         <>
-            <FlashList
-                estimatedItemSize={ESTIMATED_ITEM_SIZE}
-                data={filteredPaymentMethods}
-                renderItem={renderItem}
-                keyExtractor={keyExtractor}
-                ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
-                ListHeaderComponent={listHeaderComponent}
-                ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : null}
-                onContentSizeChange={onListContentSizeChange}
-                scrollEnabled={shouldEnableScroll}
-                contentContainerStyle={style}
-            />
+            <View style={style}>
+                <FlashList
+                    estimatedItemSize={ESTIMATED_ITEM_SIZE}
+                    data={filteredPaymentMethods}
+                    renderItem={renderItem}
+                    keyExtractor={keyExtractor}
+                    ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
+                    ListHeaderComponent={listHeaderComponent}
+                    ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : null}
+                    onContentSizeChange={onListContentSizeChange}
+                    scrollEnabled={shouldEnableScroll}
+                />
+            </View>
             {shouldShowAddPaymentMethodButton && (
                 <FormAlertWrapper>
                     {(isOffline) => (
