@@ -46,7 +46,7 @@ const propTypes = {
     recentWaypoints: PropTypes.arrayOf(
         PropTypes.shape({
             /** The name of the location */
-            name: PropTypes.name,
+            name: PropTypes.string,
 
             /** A description of the location (usually the address) */
             description: PropTypes.string,

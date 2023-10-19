@@ -47,7 +47,7 @@ export default PropTypes.shape({
             address: PropTypes.string,
 
             /** The name of the waypoint */
-            name: PropTypes.name,
+            name: PropTypes.string,
         }),
     }),
 

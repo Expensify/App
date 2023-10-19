@@ -75,7 +75,7 @@ const propTypes = {
             description: PropTypes.string,
 
             /** The main name of the location */
-            name: PropTypes.name,
+            name: PropTypes.string,
 
             /** Data required by the google auto complete plugin to know where to put the markers on the map */
             geometry: PropTypes.shape({
