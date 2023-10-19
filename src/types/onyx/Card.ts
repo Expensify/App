@@ -2,11 +2,9 @@ import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 import * as OnyxCommon from './OnyxCommon';
 
-type State = 3 /* OPEN */ | 4 /* NOT_ACTIVATED */ | 5 /* STATE_DEACTIVATED */ | 6 /* CLOSED */ | 7 /* STATE_SUSPENDED */;
-
 type Card = {
     cardID: number;
-    state: State;
+    state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
     bank: string;
     availableSpend: number;
     domainName: string;
