@@ -613,7 +613,7 @@ const styles = (theme: ThemeDefault) =>
 
         buttonCTAIcon: {
             marginRight: 22,
-
+            marginLeft: 8,
             // Align vertically with the Button text
             paddingBottom: 1,
             paddingTop: 1,
