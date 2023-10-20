@@ -173,6 +173,7 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+
                             // Setting the draft status for first report
                             [ONYXKEYS.DRAFT_REPORT_IDS]: {[report1.reportID]: true},
                         }),
