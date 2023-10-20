@@ -17,7 +17,7 @@ Wherever you are, we'll time-stamp your report actions according to your local t
 To set your time zone:
 Navigate to **Settings > Account > Preferences > Scroll down to Time Zone**
 
-![ExpensifyHelp_Timezone](https://help.expensify.com/assets/images/ExpensifyHelp_Timezone.png){:width="100%"}
+![ExpensifyHelp_Timezone]({{site.url}}/assets/images/ExpensifyHelp_Timezone.png){:width="100%"}
 
  **Note:** To set your time zone automatically based on your location, tick the box that says **Set my time zone automatically**.
 
