@@ -11,6 +11,7 @@ const commonScreenOptions = {
     animationEnabled: true,
     cardOverlayEnabled: true,
     animationTypeForReplace: 'push',
+    animation: 'slide_from_right',
 };
 
 export default (isSmallScreenWidth) => ({

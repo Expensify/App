@@ -5,6 +5,7 @@ const defaultScreenOptions = {
     },
     headerShown: false,
     animationTypeForReplace: 'push',
+    animation: 'slide_from_right',
 };
 
 export default defaultScreenOptions;
