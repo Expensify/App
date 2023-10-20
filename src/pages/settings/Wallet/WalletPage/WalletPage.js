@@ -61,7 +61,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     const [showConfirmDeleteContent, setShowConfirmDeleteContent] = useState(false);
 
     const hasBankAccount = !_.isEmpty(bankAccountList) || !_.isEmpty(fundList);
-    const hasWallet = userWallet.walletLinkedAccountID > 0;
+    const hasWallet = !_.isEmpty(userWallet);
     const hasActivatedWallet = _.contains([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM], userWallet.tierName);
     const hasAssignedCard = !_.isEmpty(cardList);
     const shouldShowEmptyState = !hasBankAccount && !hasWallet && !hasAssignedCard;
