@@ -72,6 +72,8 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         }
     };
 
+    console.log('XXX');
+
     const menuItems = [
         {
             icon: Expensicons.Download,
