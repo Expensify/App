@@ -7,6 +7,7 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import * as BankAccounts from '../libs/actions/BankAccounts';
+import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
 import getPlaidOAuthReceivedRedirectURI from '../libs/getPlaidOAuthReceivedRedirectURI';
@@ -17,7 +18,6 @@ import Form from '../components/Form';
 import ROUTES from '../ROUTES';
 import * as PlaidDataProps from './ReimbursementAccount/plaidDataPropTypes';
 import ConfirmationPage from '../components/ConfirmationPage';
-import * as PaymentMethods from '../libs/actions/PaymentMethods';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -36,6 +36,9 @@ const propTypes = {
         /** Any reportID we should redirect to at the end of the flow */
         exitReportID: PropTypes.string,
 
+        /** Whether we should continue with KYC at the end of the flow  */
+        shouldContinueKYCOnSuccess: PropTypes.bool,
+
         /** Whether the form is loading */
         isLoading: PropTypes.bool,
 
@@ -52,6 +55,7 @@ const defaultProps = {
         isLoading: false,
         plaidAccountID: '',
         exitReportID: '',
+        shouldContinueKYCOnSuccess: false,
     },
 };
 

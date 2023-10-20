@@ -56,4 +56,4 @@ function NotificationPreferencePage(props) {
 NotificationPreferencePage.displayName = 'NotificationPreferencePage';
 NotificationPreferencePage.propTypes = propTypes;
 
-export default compose(withLocalize, withReportOrNotFound)(NotificationPreferencePage);
+export default compose(withLocalize, withReportOrNotFound())(NotificationPreferencePage);
