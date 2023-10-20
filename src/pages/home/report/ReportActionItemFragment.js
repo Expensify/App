@@ -18,7 +18,7 @@ import CONST from '../../../CONST';
 import editedLabelStyles from '../../../styles/editedLabelStyles';
 import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 import avatarPropTypes from '../../../components/avatarPropTypes';
-import ZeroWidthComponent from '../../../components/ZeroWidthComponent';
+import ZeroWidthView from '../../../components/ZeroWidthView';
 
 const propTypes = {
     /** Users accountID */
@@ -121,7 +121,7 @@ function ReportActionItemFragment(props) {
 
             return (
                 <Text style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}>
-                    <ZeroWidthComponent
+                    <ZeroWidthView
                         text={text}
                         displayAsGroup={props.displayAsGroup}
                     />

@@ -17,7 +17,7 @@ const defaultProps = {
     displayAsGroup: false,
 };
 
-function ZeroWidthComponent({text, displayAsGroup}) {
+function ZeroWidthView({text, displayAsGroup}) {
     const firstLetterIsEmoji = EmojiUtils.isFirstLetterEmoji(text);
     if (firstLetterIsEmoji && !displayAsGroup && !Browser.isMobile()) {
         return <Text>&#x200b;</Text>;
@@ -25,8 +25,8 @@ function ZeroWidthComponent({text, displayAsGroup}) {
     return null;
 }
 
-ZeroWidthComponent.propTypes = propTypes;
-ZeroWidthComponent.defaultProps = defaultProps;
-ZeroWidthComponent.displayName = 'ZeroWidthComponent';
+ZeroWidthView.propTypes = propTypes;
+ZeroWidthView.defaultProps = defaultProps;
+ZeroWidthView.displayName = 'ZeroWidthView';
 
-export default ZeroWidthComponent;
+export default ZeroWidthView;
