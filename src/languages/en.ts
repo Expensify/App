@@ -214,6 +214,8 @@ export default {
         more: 'More',
         debitCard: 'Debit card',
         bankAccount: 'Bank account',
+        personalBankAccount: 'Personal bank account',
+        businessBankAccount: 'Business bank account',
         join: 'Join',
         joinThread: 'Join thread',
         decline: 'Decline',

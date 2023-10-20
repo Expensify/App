@@ -1101,6 +1101,7 @@ const CONST = {
     PAYMENT_METHODS: {
         DEBIT_CARD: 'debitCard',
         BANK_ACCOUNT: 'bankAccount',
+        BUSINESS_BANK_ACCOUNT: 'businessBankAccount',
     },
 
     PAYMENT_METHOD_ID_KEYS: {

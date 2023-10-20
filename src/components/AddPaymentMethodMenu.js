@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
@@ -11,6 +12,9 @@ import withWindowDimensions from './withWindowDimensions';
 import Permissions from '../libs/Permissions';
 import PopoverMenu from './PopoverMenu';
 import refPropTypes from './refPropTypes';
+import iouReportPropTypes from '../pages/iouReportPropTypes';
+import * as ReportUtils from '../libs/ReportUtils';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 const propTypes = {
     /** Should the component be visible? */
@@ -18,6 +22,9 @@ const propTypes = {
 
     /** Callback to execute when the component closes. */
     onClose: PropTypes.func.isRequired,
+
+    /** The IOU/Expense report we are paying */
+    iouReport: iouReportPropTypes,
 
     /** Anchor position for the AddPaymentMenu. */
     anchorPosition: PropTypes.shape({
@@ -37,10 +44,17 @@ const propTypes = {
     /** Popover anchor ref */
     anchorRef: refPropTypes,
 
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    iouReport: {},
     anchorPosition: {},
     anchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -48,6 +62,9 @@ const defaultProps = {
     },
     betas: [],
     anchorRef: () => {},
+    session: {
+        accountID: 0,
+    },
 };
 
 function AddPaymentMethodMenu(props) {
@@ -61,12 +78,21 @@ function AddPaymentMethodMenu(props) {
             onItemSelected={props.onClose}
             menuItems={[
                 {
-                    text: props.translate('common.bankAccount'),
+                    text: props.translate('common.personalBankAccount'),
                     icon: Expensicons.Bank,
                     onSelected: () => {
                         props.onItemSelected(CONST.PAYMENT_METHODS.BANK_ACCOUNT);
                     },
                 },
+                ...(ReportUtils.isIOUReport(this.props.iouReport) && ReportActionsUtils.hasRequestFromPayer(lodashGet(this.props.iouReport, "reportID", 0), this.props.session.accountID)
+                    ? [
+                        {
+                            text: props.translate('common.businessBankAccount'),
+                            icon: Expensicons.Workspace,
+                            onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT),
+                        },
+                    ]
+                    : []),
                 ...(Permissions.canUseWallet(props.betas)
                     ? [
                           {
@@ -92,6 +118,9 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(AddPaymentMethodMenu);

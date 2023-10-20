@@ -204,6 +204,8 @@ export default {
         more: 'Más',
         debitCard: 'Tarjeta de débito',
         bankAccount: 'Cuenta bancaria',
+        personalBankAccount: 'Personal bank account',
+        businessBankAccount: 'Business bank account',
         join: 'Unirse',
         joinThread: 'Unirse al hilo',
         decline: 'Rechazar',

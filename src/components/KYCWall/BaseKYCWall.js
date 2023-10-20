@@ -164,6 +164,7 @@ class KYCWall extends React.Component {
             <>
                 <AddPaymentMethodMenu
                     isVisible={this.state.shouldShowAddPaymentMenu}
+                    iouReport={this.props.iouReport}
                     onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
                     anchorRef={this.anchorRef}
                     anchorPosition={{
