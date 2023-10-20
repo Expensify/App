@@ -23,9 +23,11 @@
 
 const fs = require('fs');
 const path = require('path');
+const {promisify} = require('util');
 const parser = require('@babel/parser');
 const traverse = require('@babel/traverse');
 const generate = require('@babel/generator');
+const exec = promisify(require('child_process').exec);
 
 const fsPromises = fs.promises;
 
@@ -187,15 +189,20 @@ async function migrateStaticStylesForDirectory(directoryPath) {
     }
 }
 
-// Usage
-const directoryPath = process.argv[2]; // Get the directory path from command line arguments
+async function run() {
+    // Usage
+    const directoryPath = process.argv[2]; // Get the directory path from command line arguments
 
-if (!directoryPath) {
-    console.error('Usage: node script.js <directory_path>');
-} else {
-    try {
-        migrateStaticStylesForDirectory(directoryPath);
-    } catch (error) {
-        console.error('Error:', error);
+    if (!directoryPath) {
+        console.error('Usage: node script.js <directory_path>');
+    } else {
+        try {
+            await migrateStaticStylesForDirectory(directoryPath);
+            await exec('npm run prettier');
+        } catch (error) {
+            console.error('Error:', error);
+        }
     }
 }
+
+run();
