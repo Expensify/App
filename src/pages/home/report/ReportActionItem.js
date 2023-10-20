@@ -133,7 +133,7 @@ const defaultProps = {
 };
 
 function ReportActionItem(props) {
-    const personalDetails = usePersonalDetails();
+    const personalDetails = usePersonalDetails() || {};
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);

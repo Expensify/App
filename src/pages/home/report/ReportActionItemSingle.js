@@ -83,7 +83,7 @@ const showWorkspaceDetails = (reportID) => {
 };
 
 function ReportActionItemSingle(props) {
-    const personalDetails = usePersonalDetails();
+    const personalDetails = usePersonalDetails() || {};
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
     let {displayName} = personalDetails[actorAccountID] || {};
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] || {};
