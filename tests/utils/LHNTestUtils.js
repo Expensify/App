@@ -171,9 +171,9 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
 }
 
 /**
- * @param {Number[]} participantAccountIDs
- * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
- * @param {boolean} isUnread
+ * @param {Number[]} [participantAccountIDs]
+ * @param {Number} [millisecondsInThePast] the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
+ * @param {boolean} [isUnread]
  * @returns {Object}
  */
 function getFakeReportWithPolicy(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false) {
@@ -189,8 +189,8 @@ function getFakeReportWithPolicy(participantAccountIDs = [1, 2], millisecondsInT
 }
 
 /**
- * @param {Number} id
- * @param {String} name the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
+ * @param {Number} [id]
+ * @param {String} [name] the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  * @returns {Object}
  */
 function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
@@ -296,9 +296,9 @@ function internalRender(component) {
 }
 
 /**
- * @param {Boolean} shouldShowSubscriptAvatar
- * @param {Object} report
- * @param {Object} reportAction
+ * @param {Boolean} [shouldShowSubscriptAvatar]
+ * @param {Object} [report]
+ * @param {Object} [reportAction]
  */
 function getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar = true, report = null, reportAction = null) {
     const currentReport = report || getFakeReport();
