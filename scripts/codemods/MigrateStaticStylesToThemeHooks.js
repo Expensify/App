@@ -27,13 +27,7 @@ const traverse = require('@babel/traverse');
 
 const fsPromises = fs.promises;
 
-// Function to check if a JavaScript file contains a React component (Class or Functional)
-function containsReactComponent(fileContent) {
-    const ast = parser.parse(fileContent, {
-        sourceType: 'module',
-        plugins: ['jsx', 'typescript'], // Enable JSX and TSX parsing
-    });
-
+function containsReactComponent(ast) {
     let hasReactImport = false;
     let hasReactComponent = false;
     const functionNames = new Set();
@@ -67,30 +61,30 @@ function containsReactComponent(fileContent) {
     return hasReactImport && hasReactComponent;
 }
 
-// Function to recursively find JavaScript files with React components
-async function findReactComponents(directoryPath) {
+async function migrateStaticStylesForFile(filePath) {
+    const fileContents = await fsPromises.readFile(filePath, 'utf8');
+    const ast = parser.parse(fileContents, {
+        sourceType: 'module',
+        plugins: ['jsx', 'typescript'], // Enable JSX and TSX parsing
+    });
+    const doesFileContainReactComponent = containsReactComponent(ast);
+    if (doesFileContainReactComponent) {
+        console.log(`${filePath} contains react component`);
+    }
+}
+
+async function migrateStaticStylesForDirectory(directoryPath) {
     const files = await fsPromises.readdir(directoryPath);
-
-    const jsFilesWithReactComponents = [];
-
     for (const file of files) {
         const filePath = path.join(directoryPath, file);
         const stat = await fsPromises.stat(filePath);
 
         if (stat.isDirectory()) {
-            // Recursively search subdirectories
-            jsFilesWithReactComponents.push(...(await findReactComponents(filePath)));
-        } else if ((stat.isFile() && file.endsWith('.js')) || file.endsWith('.jsx') || file.endsWith('.tsx')) {
-            // Check if the file contains a React component
-            const fileContent = await fsPromises.readFile(filePath, 'utf8');
-            // console.log('RORY_DEBUG file and fileContent:', filePath, fileContent);
-            if (containsReactComponent(fileContent)) {
-                jsFilesWithReactComponents.push(filePath);
-            }
+            await migrateStaticStylesForDirectory(filePath);
+        } else if (stat.isFile() && (file.endsWith('.js') || file.endsWith('.jsx') || file.endsWith('.tsx'))) {
+            await migrateStaticStylesForFile(filePath);
         }
     }
-
-    return jsFilesWithReactComponents;
 }
 
 // Usage
@@ -99,14 +93,9 @@ const directoryPath = process.argv[2]; // Get the directory path from command li
 if (!directoryPath) {
     console.error('Usage: node script.js <directory_path>');
 } else {
-    findReactComponents(directoryPath)
-        .then((jsFilesWithReactComponents) => {
-            console.log('JavaScript files with React components:');
-            jsFilesWithReactComponents.forEach((filePath) => {
-                console.log(filePath);
-            });
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
+    try {
+        migrateStaticStylesForDirectory(directoryPath);
+    } catch (error) {
+        console.error('Error:', error);
+    }
 }
