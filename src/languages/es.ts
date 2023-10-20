@@ -1443,6 +1443,8 @@ export default {
                 companyCards: 'Tarjetas de crédito corporativas',
                 reimbursements: 'Reembolsos fáciles',
             },
+            notFound: 'No se encontró ningún espacio de trabajo',
+            description: 'Las salas son un gran lugar para discutir y trabajar con varias personas. Para enviar mensajes a una sala, crear o unirse a un espacio de trabajo'
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',

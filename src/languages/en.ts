@@ -1422,6 +1422,8 @@ export default {
                 companyCards: 'Company credit cards',
                 reimbursements: 'Easy reimbursements',
             },
+            notFound: 'No workspace found',
+            description: 'Rooms are a great place to discuss and work with multiple people. To message a room, create or join a workspace'
         },
         new: {
             newWorkspace: 'New workspace',

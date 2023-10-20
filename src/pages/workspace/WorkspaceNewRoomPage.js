@@ -27,6 +27,11 @@ import compose from '../../libs/compose';
 import variables from '../../styles/variables';
 import useDelayedInputFocus from '../../hooks/useDelayedInputFocus';
 import ValuePicker from '../../components/ValuePicker';
+import BlockingView from '../../components/BlockingViews/BlockingView';
+import * as Illustrations from '../../components/Icon/Illustrations';
+import Button from '../../components/Button';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -162,7 +167,7 @@ function WorkspaceNewRoomPage(props) {
 
     return (
         <FullPageNotFoundView
-            shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}
+            shouldShow={!Permissions.canUsePolicyRooms(props.betas)}
             shouldShowBackButton={false}
             linkKey="workspace.emptyWorkspace.title"
             onLinkPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, false)}
@@ -175,75 +180,94 @@ function WorkspaceNewRoomPage(props) {
                 testID={WorkspaceNewRoomPage.displayName}
             >
                 {({insets}) => (
-                    <KeyboardAvoidingView
-                        style={styles.h100}
-                        behavior="padding"
-                        // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
-                        // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                        keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
-                    >
-                        <Form
-                            formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
-                            submitButtonText={translate('newRoomPage.createRoom')}
-                            style={[styles.mh5, styles.flexGrow1]}
-                            validate={validate}
-                            onSubmit={submit}
-                            enabledWhenOffline
+                    workspaceOptions.length ? (
+                        <KeyboardAvoidingView
+                            style={styles.h100}
+                            behavior="padding"
+                            // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
+                            // This is because when wrapping whole screen the screen was freezing when changing Tabs.
+                            keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
                         >
-                            <View style={styles.mb5}>
-                                <RoomNameInput
-                                    ref={(el) => (roomNameInputRef.current = el)}
-                                    inputID="roomName"
-                                    isFocused={props.isFocused}
-                                    shouldDelayFocus
-                                    autoFocus
-                                />
-                            </View>
-                            <View style={styles.mb5}>
-                                <TextInput
-                                    inputID="welcomeMessage"
-                                    label={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                    accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                    autoGrowHeight
-                                    maxLength={CONST.MAX_COMMENT_LENGTH}
-                                    autoCapitalize="none"
-                                    textAlignVertical="top"
-                                    containerStyles={[styles.autoGrowHeightMultilineInput]}
-                                />
-                            </View>
-                            <View style={[styles.mhn5]}>
-                                <ValuePicker
-                                    inputID="policyID"
-                                    label={translate('workspace.common.workspace')}
-                                    placeholder={translate('newRoomPage.selectAWorkspace')}
-                                    items={workspaceOptions}
-                                    onValueChange={setPolicyID}
-                                />
-                            </View>
-                            {isPolicyAdmin && (
-                                <View style={styles.mhn5}>
-                                    <ValuePicker
-                                        inputID="writeCapability"
-                                        label={translate('writeCapabilityPage.label')}
-                                        items={writeCapabilityOptions}
-                                        value={writeCapability}
-                                        onValueChange={setWriteCapability}
+                            <Form
+                                formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
+                                submitButtonText={translate('newRoomPage.createRoom')}
+                                style={[styles.mh5, styles.flexGrow1]}
+                                validate={validate}
+                                onSubmit={submit}
+                                enabledWhenOffline
+                            >
+                                <View style={styles.mb5}>
+                                    <RoomNameInput
+                                        ref={(el) => (roomNameInputRef.current = el)}
+                                        inputID="roomName"
+                                        isFocused={props.isFocused}
+                                        shouldDelayFocus
+                                        autoFocus
                                     />
                                 </View>
-                            )}
-                            <View style={[styles.mb1, styles.mhn5]}>
-                                <ValuePicker
-                                    inputID="visibility"
-                                    label={translate('newRoomPage.visibility')}
-                                    items={visibilityOptions}
-                                    onValueChange={setVisibility}
-                                    value={visibility}
-                                />
-                            </View>
-                            <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
-                        </Form>
-                    </KeyboardAvoidingView>
+                                <View style={styles.mb5}>
+                                    <TextInput
+                                        inputID="welcomeMessage"
+                                        label={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                        accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                        autoGrowHeight
+                                        maxLength={CONST.MAX_COMMENT_LENGTH}
+                                        autoCapitalize="none"
+                                        textAlignVertical="top"
+                                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                    />
+                                </View>
+                                <View style={[styles.mhn5]}>
+                                    <ValuePicker
+                                        inputID="policyID"
+                                        label={translate('workspace.common.workspace')}
+                                        placeholder={translate('newRoomPage.selectAWorkspace')}
+                                        items={workspaceOptions}
+                                        onValueChange={setPolicyID}
+                                    />
+                                </View>
+                                {isPolicyAdmin && (
+                                    <View style={styles.mhn5}>
+                                        <ValuePicker
+                                            inputID="writeCapability"
+                                            label={translate('writeCapabilityPage.label')}
+                                            items={writeCapabilityOptions}
+                                            value={writeCapability}
+                                            onValueChange={setWriteCapability}
+                                        />
+                                    </View>
+                                )}
+                                <View style={[styles.mb1, styles.mhn5]}>
+                                    <ValuePicker
+                                        inputID="visibility"
+                                        label={translate('newRoomPage.visibility')}
+                                        items={visibilityOptions}
+                                        onValueChange={setVisibility}
+                                        value={visibility}
+                                    />
+                                </View>
+                                <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
+                            </Form>
+                        </KeyboardAvoidingView>
+                    ) : (
+                        <>
+                            <BlockingView
+                                icon={Illustrations.ToddBehindCloud}
+                                iconWidth={variables.modalTopIconWidth}
+                                iconHeight={variables.modalTopIconHeight}
+                                title={translate("workspace.emptyWorkspace.notFound")}
+                                subtitle={translate("workspace.emptyWorkspace.description")}
+                                shouldShowLink={false}
+                            />
+                            <Button 
+                                success
+                                text={translate("footer.learnMore")}
+                                onPress={() =>  Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                                style={[styles.mh5, styles.mb5]}
+                            />
+                        </>
+                    )
                 )}
             </ScreenWrapper>
         </FullPageNotFoundView>
