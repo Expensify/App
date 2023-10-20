@@ -8,7 +8,7 @@ function getReportActionsFromOnyx(): Promise<OnyxCollection<OnyxTypes.ReportActi
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             waitForCollectionCallback: true,
-            callback: (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+            callback: (allReportActions) => {
                 Onyx.disconnect(connectionID);
                 return resolve(allReportActions);
             },
@@ -31,7 +31,7 @@ export default function (): Promise<void> {
 
         Object.values(allReportActions ?? {}).some((reportActions) =>
             Object.values(reportActions ?? {}).some((reportActionData) => {
-                if (reportActionData?.reportActionID) {
+                if ('reportActionID' in reportActionData) {
                     firstValidValue = reportActionData;
                     return true;
                 }
