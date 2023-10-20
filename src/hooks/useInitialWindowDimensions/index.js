@@ -2,6 +2,11 @@
 import {useState, useEffect} from 'react';
 import {Dimensions} from 'react-native';
 
+/**
+ * A convenience hook that provides initial size (width and height).
+ * An initial height allows to know the real height of window,
+ * while the standard useWindowDimensions hook return the height minus Virtual keyboard height
+ */
 export default function () {
     const [dimensions, setDimensions] = useState(() => {
         const window = Dimensions.get('window');
