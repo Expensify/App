@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useState, useMemo} from 'react';
+import React, {useState} from 'react';
 import _ from 'underscore';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
