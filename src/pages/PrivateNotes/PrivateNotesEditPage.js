@@ -26,8 +26,8 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
 import ROUTES from '../../ROUTES';
 import * as ReportUtils from '../../libs/ReportUtils';
-import InputWrapper from "../../components/Form/InputWrapper";
-import FormProvider from "../../components/Form/FormProvider";
+import InputWrapper from '../../components/Form/InputWrapper';
+import FormProvider from '../../components/Form/FormProvider';
 
 const propTypes = {
     /** All of the personal details for everyone */
