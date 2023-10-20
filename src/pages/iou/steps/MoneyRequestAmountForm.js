@@ -136,10 +136,19 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             if (!_.isEmpty(formError)) {
                 setFormError('');
             }
+
+            // There was an issue where long-pressing the back button in Android Chrome removed the last digit but moved the cursor ahead two positions instead of one. This occurred because setCurrentAmount contains another setState, making it impure and error-prone. Various solutions were suggested, including merging currentAmount and selection; however, this solution introducing the hasSelectionBeenSet flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300.
+
+            let hasSelectionBeenSet = false;
             setCurrentAmount((prevAmount) => {
                 const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
                 const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-                setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
+                if (!hasSelectionBeenSet) {
+                    setSelection((prevSelection) => {
+                        hasSelectionBeenSet = true;
+                        return getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length);
+                    });
+                }
                 return strippedAmount;
             });
         },
