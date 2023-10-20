@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import Webcam from 'react-webcam';
-import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {useTabAnimation} from '@react-navigation/material-top-tabs';
@@ -30,7 +30,6 @@ const defaultProps = {
 
 function useTabNavigatorFocus({cameraTabIndex, isInTabNavigator}) {
     // Get navigation to get initial isFocused value (only needed once during init!)
-    const navigation = useNavigation();
     const isPageFocused = useIsFocused();
     const [isTabFocused, setIsTabFocused] = useState(isPageFocused);
 
