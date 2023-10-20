@@ -62,6 +62,7 @@ function ReportActionItemMessage(props) {
                         accountID={props.action.actorAccountID}
                         style={props.style}
                         moderationDecision={lodashGet(props.action, 'message[0].moderationDecision.decision')}
+                        displayAsGroup={props.displayAsGroup}
                     />
                 ))
             ) : (
