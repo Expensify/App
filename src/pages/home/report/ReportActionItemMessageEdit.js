@@ -461,6 +461,7 @@ function ReportActionItemMessageEdit(props) {
             </View>
             <ExceededCommentLength
                 comment={draft}
+                reportID={props.reportID}
                 onExceededMaxCommentLength={(hasExceeded) => setHasExceededMaxCommentLength(hasExceeded)}
             />
         </>
