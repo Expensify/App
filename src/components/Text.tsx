@@ -1,6 +1,6 @@
 import React, {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Text as RNText, StyleProp} from 'react-native';
+import {Text as RNText} from 'react-native';
 import type {TextStyle} from 'react-native';
 import fontFamily from '../styles/fontFamily';
 import themeColors from '../styles/themes/default';
@@ -14,7 +14,7 @@ type TextProps = {
     fontSize?: number;
 
     /** The alignment of the text */
-    textAlign?: 'left' | 'right' | 'auto' | 'center' | 'justify' | undefined;
+    textAlign?: 'left' | 'right' | 'auto' | 'center' | 'justify';
 
     /** Any children to display */
     children: React.ReactNode;
@@ -23,8 +23,7 @@ type TextProps = {
     family?: keyof typeof fontFamily;
 
     /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    style?: StyleProp<TextStyle>;
+    style?: TextStyle | TextStyle[];
 };
 
 function Text(
@@ -35,9 +34,9 @@ function Text(
     const mergedStyles = !Array.isArray(style)
         ? style
         : style.reduce(
-              (finalStyles: TextStyle, s) => ({
+              (finalStyles, s) => ({
                   ...finalStyles,
-                  ...(s as TextStyle),
+                  ...s,
               }),
               {},
           );
