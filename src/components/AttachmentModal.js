@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useRef, useMemo} from 'react';
+import React, {useState, useCallback, useRef, useMemo, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, Animated, Keyboard} from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -136,6 +136,10 @@ function AttachmentModal(props) {
     );
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+
+    useEffect(() => {
+        setFile(props.originalFileName ? {name: props.originalFileName} : undefined);
+    }, [props.originalFileName]);
 
     const onCarouselAttachmentChange = props.onCarouselAttachmentChange;
 
