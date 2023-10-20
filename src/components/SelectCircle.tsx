@@ -13,7 +13,7 @@ type SelectCircleProps = {
     styles: Array<Record<string, unknown>>;
 };
 
-function SelectCircle({isChecked, styles}: SelectCircleProps) {
+function SelectCircle({isChecked = false, styles = []}: SelectCircleProps) {
     return (
         <View style={[globalStyles.selectCircle, globalStyles.alignSelfCenter, ...styles]}>
             {isChecked && (
