@@ -45,11 +45,12 @@ const propTypes = {
     }).isRequired,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
+    selectedTab: PropTypes.oneOf(['', CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
     iou: iouDefaultProps,
+    selectedTab: '',
 };
 
 function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
