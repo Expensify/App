@@ -34,6 +34,9 @@ const propTypes = {
     }),
 
     withoutOverlay: PropTypes.bool,
+
+    /** Should we announce the Modal visibility changes? */
+    shouldSetModalVisibility: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -44,6 +47,7 @@ const defaultProps = {
     },
     anchorRef: () => {},
     withoutOverlay: false,
+    shouldSetModalVisibility: true,
 };
 
 function PopoverMenu(props) {
@@ -89,6 +93,7 @@ function PopoverMenu(props) {
             disableAnimation={props.disableAnimation}
             fromSidebarMediumScreen={props.fromSidebarMediumScreen}
             withoutOverlay={props.withoutOverlay}
+            shouldSetModalVisibility={props.shouldSetModalVisibility}
         >
             <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                 {!_.isEmpty(props.headerText) && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{props.headerText}</Text>}
@@ -100,6 +105,7 @@ function PopoverMenu(props) {
                         iconHeight={item.iconHeight}
                         iconFill={item.iconFill}
                         title={item.text}
+                        shouldCheckActionAllowedOnPress={false}
                         description={item.description}
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}
