@@ -29,17 +29,34 @@ const defaultProps = {
     disabled: false,
 };
 
-function RadioButton(props) {
+type RadioButtonProps = {
+    /** Whether radioButton is checked */
+    isChecked: boolean;
+
+    /** A function that is called when the box/label is pressed */
+    onPress: () => void;
+
+    /** Specifies the accessibility label for the radio button */
+    accessibilityLabel: string;
+
+    /** Should the input be styled for errors  */
+    hasError: boolean;
+
+    /** Should the input be disabled  */
+    disabled: boolean;
+}
+
+function RadioButton({accessibilityLabel, disabled = false, hasError = false, isChecked, onPress}: RadioButtonProps) {
     return (
         <PressableWithFeedback
-            disabled={props.disabled}
-            onPress={props.onPress}
+            disabled={disabled}
+            onPress={onPress}
             hoverDimmingValue={1}
             pressDimmingValue={1}
-            accessibilityLabel={props.accessibilityLabel}
+            accessibilityLabel={accessibilityLabel}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.RADIO}
         >
-            <View style={[styles.radioButtonContainer, props.isChecked && styles.checkedContainer, props.hasError && styles.borderColorDanger, props.disabled && styles.cursorDisabled]}>
+            <View style={[styles.radioButtonContainer, isChecked && styles.checkedContainer, hasError && styles.borderColorDanger, disabled && styles.cursorDisabled]}>
                 <Icon
                     src={Expensicons.Checkmark}
                     fill="white"
@@ -50,9 +67,5 @@ function RadioButton(props) {
         </PressableWithFeedback>
     );
 }
-
-RadioButton.propTypes = propTypes;
-RadioButton.defaultProps = defaultProps;
-RadioButton.displayName = 'RadioButton';
 
 export default RadioButton;
