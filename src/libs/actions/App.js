@@ -423,9 +423,6 @@ function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
 
     // Sign out the current user if we're transitioning with a different user
     const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
-    if (isLoggingInAsNewUser && isTransitioning) {
-        Session.signOut();
-    }
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
