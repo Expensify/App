@@ -135,7 +135,7 @@ jobs:
         uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
         id: downloadBaselineAPK
         with:
-          name: baseline-apk-${{ needs.buildBaseline.outputs.VERSION }}
+          name: baseline-apk
           path: zip
 
       # The downloaded artifact will be a file named "app-e2e-release.apk" so we have to rename it
