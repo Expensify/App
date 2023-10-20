@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-negated-variables */
 import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import {RouteProp} from '@react-navigation/native';
@@ -23,13 +24,14 @@ type ComponentProps = OnyxProps & {
     route: RouteProp<{params: {reportID: string}}>;
 };
 
-export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
-    // eslint-disable-next-line rulesdir/no-negated-variables
+export default function <TProps extends ComponentProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof OnyxProps>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const contentShown = React.useRef(false);
 
         const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
-        // eslint-disable-next-line rulesdir/no-negated-variables
+
         const shouldShowNotFoundPage = !Object.entries(props.report ?? {}).length || !props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {});
 
         // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
@@ -61,9 +63,6 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
 
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const withReportOrNotFound = React.forwardRef(WithReportOrNotFound);
-
     return withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
@@ -77,5 +76,5 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
-    })(withReportOrNotFound);
+    })(React.forwardRef(WithReportOrNotFound));
 }
