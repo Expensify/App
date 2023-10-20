@@ -25,7 +25,7 @@ If you prefer to set your time zone manually, leave the box unticked and select 
 
 When you add a comment to a report, all the report actions will be time-stamped in your local time. Adjusting your time zone to the appropriate location makes tracking and understanding submission and approval times much easier.
 
-![ExpensifyHelp_Time](https://help.expensify.com/assets/images/ExpensifyHelp_Time.png){:width="100%"}
+![ExpensifyHelp_Time]({{site.url}}/assets/images/ExpensifyHelp_Time.png){:width="100%"}
 
 # FAQ
 ## The profile picture on my account updated automatically. Why did this happen? 
