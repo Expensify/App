@@ -417,7 +417,7 @@ function getLastMessageTextForReport(report) {
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
-        if (ReportUtils.isMoneyRequest(report) && ReportActionUtils.isCreatedAction(lastReportAction)) {
+        if (ReportUtils.isMoneyRequest(report) && ReportActionUtils.isCreatedAction(lastReportAction) && ReportActionUtils.isDeletedAction(parentReportAction)) {
             lastMessageTextFromReport = '';
         }
 
