@@ -7,13 +7,10 @@ require('dotenv').config();
 const defaultConfig = getDefaultConfig(__dirname);
 
 const isUsingMockAPI = process.env.E2E_TESTING === 'true';
-// eslint-disable-next-line no-console
-console.log(typeof process.env.E2E_TESTING);
-// eslint-disable-next-line no-console
-console.log(process.env.E2E_TESTING);
+
 if (isUsingMockAPI) {
     // eslint-disable-next-line no-console
-    console.log('⚠️ Using mock API');
+    console.log('⚠️⚠️⚠️⚠️ Using mock API ⚠️⚠️⚠️⚠️');
 }
 
 /**
@@ -28,13 +25,11 @@ const config = {
         sourceExts: [...defaultSourceExts, 'jsx', 'svg'],
         resolveRequest: (context, moduleName, platform) => {
             const resolution = context.resolveRequest(context, moduleName, platform);
-            // eslint-disable-next-line no-console
-            console.log(`🟠 resolving module name ${moduleName} original path: ${resolution.filePath}`);
             if (isUsingMockAPI && moduleName.includes('/API')) {
                 const originalPath = resolution.filePath;
                 const mockPath = originalPath.replace('src/libs/API.ts', 'src/libs/E2E/API.mock.js').replace('/src/libs/API.js/', 'src/libs/E2E/API.mock.js');
                 // eslint-disable-next-line no-console
-                console.log('🔴 Replace', originalPath, ' => ', mockPath);
+                console.log('⚠️⚠️⚠️⚠️ Replacing resolution path', originalPath, ' => ', mockPath);
 
                 return {
                     ...resolution,
