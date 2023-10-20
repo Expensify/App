@@ -6,6 +6,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
 import refPropTypes from './refPropTypes';
 import {usePersonalDetails} from './OnyxProvider';
+import CONST from '../CONST';
 
 const withCurrentUserPersonalDetailsPropTypes = {
     currentUserPersonalDetails: personalDetailsPropType,
@@ -32,7 +33,7 @@ export default function (WrappedComponent) {
     };
 
     function WithCurrentUserPersonalDetails(props) {
-        const personalDetails = usePersonalDetails() || {};
+        const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
         const accountID = props.session.accountID;
         const accountPersonalDetails = personalDetails[accountID];
         const currentUserPersonalDetails = useMemo(() => ({...accountPersonalDetails, accountID}), [accountPersonalDetails, accountID]);
