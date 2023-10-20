@@ -150,11 +150,12 @@ export default [
         successTextTranslateKey: '',
         successIcon: null,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
-            const childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
-            const subscribed = childReportNotificationPreference && childReportNotificationPreference !== 'hidden';
-            if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
-                return false;
+            let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (!childReportNotificationPreference) {
+                const isActionCreator = ReportUtils.isActionCreator(reportAction);
+                childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
             }
+            const subscribed = childReportNotificationPreference !== 'hidden';
             const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
             const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
             const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
@@ -182,8 +183,12 @@ export default [
         successTextTranslateKey: '',
         successIcon: null,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
-            const childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
-            const subscribed = childReportNotificationPreference && childReportNotificationPreference !== 'hidden';
+            let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (!childReportNotificationPreference) {
+                const isActionCreator = ReportUtils.isActionCreator(reportAction);
+                childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+            }
+            const subscribed = childReportNotificationPreference !== 'hidden';
             if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
             }

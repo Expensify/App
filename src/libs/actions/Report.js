@@ -1398,7 +1398,8 @@ function toggleSubscribeToChildReport(childReportID = '0', parentReportAction = 
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat.participantAccountIDs);
         openReport(newChat.reportID, participantLogins, newChat, parentReportAction.reportActionID);
-        updateNotificationPreference(newChat.reportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, parentReportID, parentReportAction.reportActionID);
+        const notificationPreference = prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, false, parentReportID, parentReportAction.reportActionID);
     }
 }
 
