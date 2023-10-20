@@ -108,7 +108,6 @@ function EmojiPickerMenu(props) {
     const [selection, setSelection] = useState({start: 0, end: 0});
     const [isFocused, setIsFocused] = useState(false);
     const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
-    const [selectTextOnFocus, setSelectTextOnFocus] = useState(false);
 
     useEffect(() => {
         const emojisAndHeaderRowIndices = getEmojisAndHeaderRowIndices();
@@ -162,8 +161,6 @@ function EmojiPickerMenu(props) {
         if (!searchInputRef.current) {
             return;
         }
-
-        setSelectTextOnFocus(true);
         searchInputRef.current.focus();
     }
 
@@ -323,11 +320,7 @@ function EmojiPickerMenu(props) {
 
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
             if (searchInputRef.current && !searchInputRef.current.isFocused()) {
-                setSelectTextOnFocus(false);
                 searchInputRef.current.focus();
-
-                // Re-enable selection on the searchInput
-                setSelectTextOnFocus(true);
             }
         },
         [filteredEmojis, highlightAdjacentEmoji, highlightedIndex, isFocused, onEmojiSelected, preferredSkinTone],
@@ -481,7 +474,6 @@ function EmojiPickerMenu(props) {
                     defaultValue=""
                     ref={searchInputRef}
                     autoFocus={shouldFocusInputOnScreenFocus}
-                    selectTextOnFocus={selectTextOnFocus}
                     onSelectionChange={onSelectionChange}
                     onFocus={() => {
                         setHighlightedIndex(-1);
