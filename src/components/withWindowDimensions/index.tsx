@@ -1,13 +1,15 @@
-import React, {forwardRef, createContext, useState, useEffect, useMemo} from 'react';
+import React, {createContext, useState, useEffect, useMemo, RefAttributes, ComponentType, ForwardedRef} from 'react';
 import PropTypes from 'prop-types';
 import lodashDebounce from 'lodash/debounce';
-import {Dimensions} from 'react-native';
+import {Dimensions, ScaledSize} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import variables from '../../styles/variables';
 import getWindowHeightAdjustment from '../../libs/getWindowHeightAdjustment';
+import ChildrenProps from '../../types/utils/ChildrenProps';
+import {WindowDimensionsContextData, WindowDimensionsProps} from './types';
 
-const WindowDimensionsContext = createContext(null);
+const WindowDimensionsContext = createContext<WindowDimensionsContextData | null>(null);
 const windowDimensionsPropTypes = {
     // Width of the window
     windowWidth: PropTypes.number.isRequired,
@@ -28,12 +30,7 @@ const windowDimensionsPropTypes = {
     isLargeScreenWidth: PropTypes.bool.isRequired,
 };
 
-const windowDimensionsProviderPropTypes = {
-    /* Actual content wrapped by this component */
-    children: PropTypes.node.isRequired,
-};
-
-function WindowDimensionsProvider(props) {
+function WindowDimensionsProvider(props: ChildrenProps) {
     const [windowDimension, setWindowDimension] = useState(() => {
         const initialDimensions = Dimensions.get('window');
         return {
@@ -43,7 +40,7 @@ function WindowDimensionsProvider(props) {
     });
 
     useEffect(() => {
-        const onDimensionChange = (newDimensions) => {
+        const onDimensionChange = (newDimensions: {window: ScaledSize}) => {
             const {window} = newDimensions;
             setWindowDimension({
                 windowHeight: window.height,
@@ -81,30 +78,31 @@ function WindowDimensionsProvider(props) {
     return <WindowDimensionsContext.Provider value={contextValue}>{props.children}</WindowDimensionsContext.Provider>;
 }
 
-WindowDimensionsProvider.propTypes = windowDimensionsProviderPropTypes;
 WindowDimensionsProvider.displayName = 'WindowDimensionsProvider';
 
 /**
- * @param {React.Component} WrappedComponent
- * @returns {React.Component}
+ * @param WrappedComponent
+ * @returns
  */
-export default function withWindowDimensions(WrappedComponent) {
-    const WithWindowDimensions = forwardRef((props, ref) => (
-        <WindowDimensionsContext.Consumer>
-            {(windowDimensionsProps) => (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...windowDimensionsProps}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    ref={ref}
-                />
-            )}
-        </WindowDimensionsContext.Consumer>
-    ));
+export default function withWindowDimensions<TProps extends WindowDimensionsProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+    function WithWindowDimensions(props: Omit<TProps, keyof WindowDimensionsProps>, ref: ForwardedRef<TRef>) {
+        return (
+            <WindowDimensionsContext.Consumer>
+                {(windowDimensionsProps) => (
+                    <WrappedComponent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...windowDimensionsProps}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...(props as TProps)}
+                        ref={ref}
+                    />
+                )}
+            </WindowDimensionsContext.Consumer>
+        );
+    }
 
     WithWindowDimensions.displayName = `withWindowDimensions(${getComponentDisplayName(WrappedComponent)})`;
-    return WithWindowDimensions;
+    return React.forwardRef(WithWindowDimensions);
 }
 
 export {WindowDimensionsProvider, windowDimensionsPropTypes};
