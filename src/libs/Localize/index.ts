@@ -79,7 +79,7 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
     // Phrase is not found in default language, on production and staging log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
-        const phraseString = Array.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
+        const phraseString: string = Array.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
         Log.alert(`${phraseString} was not found in the en locale`);
         if (userEmail.includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
             return CONST.MISSING_TRANSLATION;
@@ -92,14 +92,14 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
-function translateLocal<TKey extends TranslationPaths>(phrase: TKey, variables: PhraseParameters<TranslationFlatObject[TKey]> = {} as PhraseParameters<TranslationFlatObject[TKey]>) {
-    return translate(BaseLocaleListener.getPreferredLocale(), phrase, variables);
+function translateLocal<TKey extends TranslationPaths>(phrase: TKey, variables: PhraseParameters<Phrase<TKey>>) {
+    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
 }
 
 /**
  * Return translated string for given error.
  */
-function translateIfPhraseKey(message: string | [string, {isTranslated: boolean}]): string {
+function translateIfPhraseKey<TKey extends TranslationPaths>(message: TKey | [TKey, PhraseParameters<Phrase<TKey>> & {isTranslated?: true}]): string {
     if (!message || (Array.isArray(message) && message.length > 0)) {
         return '';
     }
@@ -110,13 +110,14 @@ function translateIfPhraseKey(message: string | [string, {isTranslated: boolean}
 
         // This condition checks if the error is already translated. For example, if there are multiple errors per input, we handle translation in ErrorUtils.addErrorMessage due to the inability to concatenate error keys.
 
-        if (variables && variables.isTranslated) {
-            return phrase;
+        if (variables?.isTranslated) {
+            return phrase as string;
         }
 
-        return translateLocal(phrase, variables);
+        return translateLocal(phrase, variables as PhraseParameters<Phrase<TKey>>);
     } catch (error) {
-        return Array.isArray(message) ? message[0] : message;
+        const result: string = Array.isArray(message) ? message[0] : message;
+        return result;
     }
 }
 
