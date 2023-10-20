@@ -27,16 +27,32 @@ const traverse = require('@babel/traverse');
 
 const fsPromises = fs.promises;
 
-function containsReactComponent(ast) {
+async function migrateStaticStylesForFile(filePath) {
+    const fileContents = await fsPromises.readFile(filePath, 'utf8');
+    const ast = parser.parse(fileContents, {
+        sourceType: 'module',
+        plugins: ['jsx', 'typescript'], // Enable JSX and TSX parsing
+    });
+
+    const relativePathToStylesDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/styles');
+    console.log('RORY_DEBUG relativePathToStylesDir', filePath, relativePathToStylesDir);
+
     let hasReactImport = false;
+    let hasStyleImport = false;
+    let hasThemeImport = false;
     let hasReactComponent = false;
     const functionNames = new Set();
-
     traverse.default(ast, {
         ImportDeclaration({node}) {
             const source = node.source.value;
             if (source === 'react') {
                 hasReactImport = true;
+            }
+            if (source === `${relativePathToStylesDir}/styles`) {
+                hasStyleImport = true;
+            }
+            if (source === `${relativePathToStylesDir}/themes/default`) {
+                hasThemeImport = true;
             }
         },
         ClassDeclaration({node}) {
@@ -58,18 +74,15 @@ function containsReactComponent(ast) {
         },
     });
 
-    return hasReactImport && hasReactComponent;
-}
-
-async function migrateStaticStylesForFile(filePath) {
-    const fileContents = await fsPromises.readFile(filePath, 'utf8');
-    const ast = parser.parse(fileContents, {
-        sourceType: 'module',
-        plugins: ['jsx', 'typescript'], // Enable JSX and TSX parsing
-    });
-    const doesFileContainReactComponent = containsReactComponent(ast);
+    const doesFileContainReactComponent = hasReactImport && hasReactComponent;
     if (doesFileContainReactComponent) {
         console.log(`${filePath} contains react component`);
+    }
+    if (doesFileContainReactComponent && hasStyleImport) {
+        console.log(`${filePath} contains style import`);
+    }
+    if (doesFileContainReactComponent && hasThemeImport) {
+        console.log(`${filePath} contains theme import`);
     }
 }
 
