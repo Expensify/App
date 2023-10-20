@@ -123,8 +123,7 @@ function ReportPreview(props) {
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
-    const distanceRequestTransactions = ReportUtils.getDistanceRequestTransactions(props.iouReportID);
-    const hasOnlyDistanceRequests = numberOfRequests === _.size(distanceRequestTransactions);
+    const hasOnlyDistanceRequests = ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID);
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
     const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);

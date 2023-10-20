@@ -1559,17 +1559,6 @@ function getTransactionsWithReceipts(iouReportID) {
 }
 
 /**
- * Gets all transactions of the IOU report that are of the Distance Request type
- *
- * @param {string|null} iouReportID
- * @returns {[Object]}
- */
-function getDistanceRequestTransactions(iouReportID) {
-    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return _.filter(allTransactions, (transaction) => TransactionUtils.isDistanceRequest(transaction));
-}
-
-/**
  * For report previews, we display a "Receipt scan in progress" indicator
  * instead of the report total only when we have no report total ready to show. This is the case when
  * all requests are receipts that are being SmartScanned. As soon as we have a non-receipt request,
@@ -4113,7 +4102,6 @@ export {
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getTransactionsWithReceipts,
-    getDistanceRequestTransactions,
     hasOnlyDistanceRequestTransactions,
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
