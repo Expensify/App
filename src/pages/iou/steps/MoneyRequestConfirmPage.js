@@ -27,6 +27,7 @@ import useNetwork from '../../../hooks/useNetwork';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import * as Expensicons from '../../../components/Icon/Expensicons';
+import useInitialValue from '../../../hooks/useInitialValue';
 
 const propTypes = {
     /** React Navigation route */
@@ -63,10 +64,8 @@ function MoneyRequestConfirmPage(props) {
     const {isOffline} = useNetwork();
     const {windowWidth} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const iouType = useMemo(() => lodashGet(props.route, 'params.iouType', ''), []);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const reportID = useMemo(() => lodashGet(props.route, 'params.reportID', ''), []);
+    const iouType = useInitialValue(() => lodashGet(props.route, 'params.iouType', ''));
+    const reportID = useInitialValue(() => lodashGet(props.route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, props.selectedTab);
     const isScanRequest = MoneyRequestUtils.isScanRequest(props.selectedTab);
     const [receiptFile, setReceiptFile] = useState();
@@ -110,7 +109,7 @@ function MoneyRequestConfirmPage(props) {
                 setReceiptFile(receipt);
             }
         });
-    }, [props.iou.receiptPath, props.iou.receiptFilename, isManualRequestDM]);
+    }, [props.iou.receiptPath, props.iou.receiptFilename, isManualRequestDM, iouType, reportID]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
@@ -283,6 +282,8 @@ function MoneyRequestConfirmPage(props) {
             requestMoney,
             createDistanceRequest,
             receiptFile,
+            iouType,
+            reportID,
         ],
     );
 

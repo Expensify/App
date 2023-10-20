@@ -11,6 +11,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import SelectionList from '../../../components/SelectionList';
 import useLocalize from '../../../hooks/useLocalize';
+import useInitialValue from '../../../hooks/useInitialValue';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -36,7 +37,7 @@ const getUserTimezone = (currentUserPersonalDetails) => lodashGet(currentUserPer
 function TimezoneSelectPage(props) {
     const {translate} = useLocalize();
     const timezone = getUserTimezone(props.currentUserPersonalDetails);
-    const allTimezones = useMemo(
+    const allTimezones = useInitialValue(
         () =>
             _.chain(TIMEZONES)
                 .filter((tz) => !tz.startsWith('Etc/GMT'))

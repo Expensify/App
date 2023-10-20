@@ -17,6 +17,7 @@ import * as IOU from '../../../../libs/actions/IOU';
 import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 import useLocalize from '../../../../hooks/useLocalize';
+import useInitialValue from '../../../../hooks/useInitialValue';
 
 const propTypes = {
     /** React Navigation route */
@@ -47,10 +48,8 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
     const optionsSelectorRef = useRef();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const iouType = useMemo(() => lodashGet(route, 'params.iouType', ''), []);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const reportID = useMemo(() => lodashGet(route, 'params.reportID', ''), []);
+    const iouType = useInitialValue(() => lodashGet(route, 'params.iouType', ''));
+    const reportID = useInitialValue(() => lodashGet(route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
     const isSendRequest = iouType === CONST.IOU.TYPE.SEND;
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
