@@ -25,7 +25,6 @@ Onyx.connect({
         const reportID = CollectionUtils.extractCollectionItemID(key);
 
         const actionsArray = ReportActionsUtils.getSortedReportActions(_.toArray(actions));
-        const parentReportAction = ReportActionsUtils.getParentReportAction(ReportUtils.getReport(reportID));
         lastReportActions[reportID] = _.last(actionsArray);
 
         // The report is only visible if it is the last action not deleted that
@@ -35,8 +34,7 @@ Onyx.connect({
             (reportAction, actionKey) =>
                 ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
                 reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                (!ReportActionsUtils.isDeletedAction(parentReportAction) || !ReportActionsUtils.isModifiedExpenseAction(reportAction)),
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
     },
@@ -311,8 +309,6 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
-    const isMoneyRequest = ReportUtils.isMoneyRequest(report);
 
     const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
     const status = lodashGet(personalDetail, 'status', '');
@@ -348,11 +344,6 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
             displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
             policyName: ReportUtils.getPolicyName(report, false, policy),
         });
-    }
-
-    if (isMoneyRequest && visibleReportActionItems[report.reportID] && isDeletedParentAction) {
-        lastMessageText = lodashGet(visibleReportActionItems[report.reportID], 'message[0].text', '');
-        lastActorDetails = personalDetails[visibleReportActionItems[report.reportID].actorAccountID];
     }
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
@@ -398,7 +389,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
             result.alternateText = lastAction && lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
     } else {
-        if (!lastMessageText || (isMoneyRequest && isDeletedParentAction)) {
+        if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
             // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
             lastMessageText =
