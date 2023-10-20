@@ -24,10 +24,10 @@
 const fs = require('fs');
 const path = require('path');
 const {promisify} = require('util');
+const exec = promisify(require('child_process').exec);
 const parser = require('@babel/parser');
 const traverse = require('@babel/traverse');
 const generate = require('@babel/generator');
-const exec = promisify(require('child_process').exec);
 
 const fsPromises = fs.promises;
 
@@ -85,14 +85,15 @@ async function writeASTToFile(filePath, fileContents, ast) {
 
 async function migrateStylesForClassComponent(filePath, fileContents, ast) {
     const relativePathToStylesDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/styles');
-    let didAddWithThemeHOC = false;
-    let didAddWithThemeColorsHOC = false;
+    let styleIdentifier = '';
+    let themeColorsIdentifier = '';
 
     // Swap out static style/theme imports for HOC imports
     traverse.default(ast, {
         ImportDeclaration({node}) {
             const source = node.source.value;
             if (source === `${relativePathToStylesDir}/styles`) {
+                styleIdentifier = node.specifiers[0].local.name;
                 node.specifiers[0].local.name = 'withTheme';
                 node.specifiers.push({
                     type: 'ImportSpecifier',
@@ -102,9 +103,9 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
                     },
                 });
                 node.source.value = `${relativePathToStylesDir}/withTheme`;
-                didAddWithThemeHOC = true;
             }
             if (source === `${relativePathToStylesDir}/themes/default`) {
+                themeColorsIdentifier = node.specifiers[0].local.name;
                 node.specifiers[0].local.name = 'withThemeColors';
                 node.specifiers.push({
                     type: 'ImportSpecifier',
@@ -114,24 +115,62 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
                     },
                 });
                 node.source.value = `${relativePathToStylesDir}/withThemeColors`;
-                didAddWithThemeColorsHOC = true;
             }
         },
     });
 
-    // Add new propTypes
     traverse.default(ast, {
         VariableDeclarator({node}) {
             if (node.id.name !== 'propTypes') {
                 return;
             }
 
-            if (didAddWithThemeHOC) {
+            if (styleIdentifier) {
                 node.init.properties.push({type: 'SpreadElement', argument: {type: 'Identifier', name: 'withThemePropTypes'}});
             }
 
-            if (didAddWithThemeColorsHOC) {
+            if (themeColorsIdentifier) {
                 node.init.properties.push({type: 'SpreadElement', argument: {type: 'Identifier', name: 'withThemeColorPropTypes'}});
+            }
+        },
+        MemberExpression({node}) {
+            if (styleIdentifier && node.object.name === styleIdentifier) {
+                node.object = {
+                    type: 'MemberExpression',
+                    object: {
+                        type: 'MemberExpression',
+                        object: {
+                            type: 'ThisExpression',
+                        },
+                        property: {
+                            type: 'Identifier',
+                            name: 'props',
+                        },
+                    },
+                    property: {
+                        type: 'Identifier',
+                        name: 'themeStyles',
+                    },
+                };
+            }
+            if (styleIdentifier && node.object.name === themeColorsIdentifier) {
+                node.object = {
+                    type: 'MemberExpression',
+                    object: {
+                        type: 'MemberExpression',
+                        object: {
+                            type: 'ThisExpression',
+                        },
+                        property: {
+                            type: 'Identifier',
+                            name: 'props',
+                        },
+                    },
+                    property: {
+                        type: 'Identifier',
+                        name: 'theme',
+                    },
+                };
             }
         },
     });
