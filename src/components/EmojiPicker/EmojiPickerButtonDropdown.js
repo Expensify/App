@@ -50,7 +50,7 @@ function EmojiPickerButtonDropdown(props) {
                 onPress={onPress}
                 nativeID="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
-                accessibilityRole="text"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 {({hovered, pressed}) => (
                     <View style={styles.emojiPickerButtonDropdownContainer}>

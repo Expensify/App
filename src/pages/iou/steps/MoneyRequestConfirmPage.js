@@ -77,7 +77,7 @@ function MoneyRequestConfirmPage(props) {
         [props.iou.participants, props.personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
-    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
+    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.TYPE.REQUEST;
 
     useEffect(() => {
         IOU.resetMoneyRequestCategory();
@@ -211,7 +211,7 @@ function MoneyRequestConfirmPage(props) {
             const trimmedComment = props.iou.comment.trim();
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
-            if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && props.iou.receiptPath) {
+            if (iouType.current === CONST.IOU.TYPE.SPLIT && props.iou.receiptPath) {
                 const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID.current) ? reportID.current : '';
                 FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((receipt) => {
                     IOU.startSplitBill(
@@ -228,7 +228,7 @@ function MoneyRequestConfirmPage(props) {
 
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
-            if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
+            if (iouType.current === CONST.IOU.TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
                 IOU.splitBill(
                     selectedParticipants,
                     props.currentUserPersonalDetails.login,
@@ -243,7 +243,7 @@ function MoneyRequestConfirmPage(props) {
             }
 
             // If the request is created from the global create menu, we also navigate the user to the group report
-            if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
+            if (iouType.current === CONST.IOU.TYPE.SPLIT) {
                 IOU.splitBillAndOpenReport(
                     selectedParticipants,
                     props.currentUserPersonalDetails.login,
@@ -312,11 +312,11 @@ function MoneyRequestConfirmPage(props) {
             return props.translate('common.distance');
         }
 
-        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
+        if (iouType.current === CONST.IOU.TYPE.SPLIT) {
             return props.translate('iou.split');
         }
 
-        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+        if (iouType.current === CONST.IOU.TYPE.SEND) {
             return props.translate('common.send');
         }
 
@@ -345,7 +345,7 @@ function MoneyRequestConfirmPage(props) {
                     />
                     <MoneyRequestConfirmationList
                         transactionID={props.iou.transactionID}
-                        hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                        hasMultipleParticipants={iouType.current === CONST.IOU.TYPE.SPLIT}
                         selectedParticipants={participants}
                         iouAmount={props.iou.amount}
                         iouComment={props.iou.comment}

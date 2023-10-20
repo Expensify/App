@@ -7,7 +7,6 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import OptionsSelector from '../../components/OptionsSelector';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -18,11 +17,8 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
-import themeColors from '../../styles/themes/default';
-import * as Expensicons from '../../components/Icon/Expensicons';
 import {iouPropTypes, iouDefaultProps} from './propTypes';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
+import SelectionList from '../../components/SelectionList';
 
 /**
  * IOU Currency selection for selecting currency
@@ -75,7 +71,7 @@ function IOUCurrencySelection(props) {
     const [searchValue, setSearchValue] = useState('');
     const optionsSelectorRef = useRef();
     const selectedCurrencyCode = (lodashGet(props.route, 'params.currency', props.iou.currency) || CONST.CURRENCY.USD).toUpperCase();
-    const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
+    const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.TYPE.REQUEST);
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const threadReportID = lodashGet(props.route, 'params.threadReportID', '');
 
@@ -126,8 +122,7 @@ function IOUCurrencySelection(props) {
                 text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
                 currencyCode,
                 keyForList: currencyCode,
-                customIcon: isSelectedCurrency ? greenCheckmark : undefined,
-                boldStyle: isSelectedCurrency,
+                isSelected: isSelectedCurrency,
             };
         });
 
@@ -144,9 +139,7 @@ function IOUCurrencySelection(props) {
                 ? []
                 : [
                       {
-                          title: translate('iOUCurrencySelection.allCurrencies'),
                           data: filteredCurrencies,
-                          shouldShow: true,
                           indexOffset: 0,
                       },
                   ],
@@ -160,27 +153,20 @@ function IOUCurrencySelection(props) {
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             testID={IOUCurrencySelection.displayName}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('iOUCurrencySelection.selectCurrency')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
-                    />
-                    <OptionsSelector
-                        sections={sections}
-                        onSelectRow={confirmCurrencySelection}
-                        value={searchValue}
-                        onChangeText={setSearchValue}
-                        textInputLabel={translate('common.search')}
-                        headerMessage={headerMessage}
-                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                        shouldHaveOptionSeparator
-                        autoFocus={false}
-                        ref={optionsSelectorRef}
-                    />
-                </>
-            )}
+            <HeaderWithBackButton
+                title={translate('iOUCurrencySelection.selectCurrency')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
+            />
+            <SelectionList
+                sections={sections}
+                textInputLabel={translate('common.search')}
+                textInputValue={searchValue}
+                onChangeText={setSearchValue}
+                onSelectRow={confirmCurrencySelection}
+                headerMessage={headerMessage}
+                initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                showScrollIndicator
+            />
         </ScreenWrapper>
     );
 }

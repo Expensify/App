@@ -255,6 +255,7 @@ function HeaderView(props) {
                                 <ThreeDotsMenu
                                     anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                                     menuItems={threeDotMenuItems}
+                                    shouldSetModalVisibility={false}
                                 />
                             )}
                         </View>
