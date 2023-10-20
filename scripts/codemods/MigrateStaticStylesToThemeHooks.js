@@ -73,21 +73,45 @@ function isClassComponent(ast) {
     return hasReactImport && hasClassComponentDeclaration;
 }
 
+async function writeASTToFile(filePath, fileContents, ast) {
+    // Generate the modified code from the AST
+    const modifiedCode = generate.default(ast, {compact: false, retainLines: true, retainFunctionParens: true}, fileContents).code;
+
+    // Replace the contents of the file with the new code
+    await fs.writeFile(filePath, modifiedCode, {encoding: 'utf8'}, () => {});
+}
+
 async function migrateStylesForClassComponent(filePath, fileContents, ast) {
     const relativePathToStylesDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/styles');
     traverse.default(ast, {
         ImportDeclaration({node}) {
             const source = node.source.value;
             if (source === `${relativePathToStylesDir}/styles`) {
-                // TODO: Replace style import with with style HOC import
-                // styleImport = node.specifiers[0].local.name;
+                node.specifiers[0].local.name = 'withTheme';
+                node.specifiers.push({
+                    type: 'ImportSpecifier',
+                    imported: {
+                        type: 'Identifier',
+                        name: 'withThemePropTypes',
+                    },
+                });
+                node.source.value = `${relativePathToStylesDir}/withTheme`;
             }
             if (source === `${relativePathToStylesDir}/themes/default`) {
-                // TODO: Replace theme import with theme HOC import
-                // themeImport = node.specifiers[0].local.name;
+                node.specifiers[0].local.name = 'withThemeColors';
+                node.specifiers.push({
+                    type: 'ImportSpecifier',
+                    imported: {
+                        type: 'Identifier',
+                        name: 'withThemeColorPropTypes',
+                    },
+                });
+                node.source.value = `${relativePathToStylesDir}/withThemeColors`;
             }
         },
     });
+
+    writeASTToFile(filePath, fileContents, ast);
 }
 
 async function migrateStylesForFunctionComponent(filePath, fileContents, ast) {
@@ -98,21 +122,15 @@ async function migrateStylesForFunctionComponent(filePath, fileContents, ast) {
             if (source === `${relativePathToStylesDir}/styles`) {
                 node.specifiers[0].local.name = 'useThemeStyles';
                 node.source.value = `${relativePathToStylesDir}/useThemeStyles`;
-                node.source.raw = `${relativePathToStylesDir}/useThemeStyles`;
             }
             if (source === `${relativePathToStylesDir}/themes/default`) {
                 node.specifiers[0].local.name = 'useTheme';
                 node.source.value = `${relativePathToStylesDir}/useTheme`;
-                node.source.raw = `${relativePathToStylesDir}/useTheme`;
             }
         },
     });
 
-    // Generate the modified code from the AST
-    const modifiedCode = generate.default(ast, {compact: false, retainLines: true, retainFunctionParens: true}, fileContents).code;
-
-    // Replace the contents of the file with the new code
-    await fs.writeFile(filePath, modifiedCode, {encoding: 'utf8'}, () => {});
+    writeASTToFile(filePath, fileContents, ast);
 }
 
 async function migrateStaticStylesForFile(filePath) {
