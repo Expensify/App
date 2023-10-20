@@ -1300,7 +1300,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  */
 function saveReportActionDraft(reportID, reportAction, draftMessage) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${reportAction.reportActionID}`, draftMessage);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: draftMessage});
 }
 
 /**
