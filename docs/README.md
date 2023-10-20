@@ -1,4 +1,4 @@
-# Welcome to the Expensify Help site 🤠
+# Welcome to the Expensify Help site
 
 [Expensify Help](https://help.expensify.com/) is mainly composed of static HTML (`.html`) and Markdown (`.md`) files. We use [Jekyll](https://jekyllrb.com/) to generate a static site from those HTML and Markdown files.
 
