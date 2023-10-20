@@ -60,7 +60,7 @@ export default function (shouldRequireReportID = true) {
             const isReportIdInRoute = !_.isUndefined(props.route.params.reportID);
 
             // If we should require reportID or we have a reportID in the route, we will check the reportID is valid or not
-            if (shouldRequireReportID || isReportIdInParam) {
+            if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
                 // eslint-disable-next-line rulesdir/no-negated-variables
                 const shouldShowNotFoundPage = _.isEmpty(props.report) || !props.report.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas);
