@@ -8,7 +8,6 @@ import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation, {navigationRef} from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
-import theme from '../../../../styles/themes/default';
 import compose from '../../../../libs/compose';
 import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 import Popover from '../../../../components/Popover';
@@ -403,7 +402,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5]}>
                                                                 <Icon
                                                                     src={Expensicons.Hourglass}
-                                                                    fill={theme.icon}
+                                                                    fill={themeColors.icon}
                                                                 />
                                                                 <Text style={[styles.inlineSystemMessage]}>{translate('walletPage.walletActivationPending')}</Text>
                                                             </View>
