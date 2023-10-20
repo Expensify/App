@@ -43,6 +43,7 @@ type PersonalDetails = {
     /** Timezone of the current user from their personal details */
     timezone?: Timezone;
 
+    /** Status of the current user from their personal details */
     status?: string;
 };
 
