@@ -31,7 +31,7 @@ export default function (): Promise<void> {
 
         Object.values(allReportActions ?? {}).some((reportActions) =>
             Object.values(reportActions ?? {}).some((reportActionData) => {
-                if (reportActionData.reportActionID?.length) {
+                if ('reportActionID' in reportActionData) {
                     firstValidValue = reportActionData;
                     return true;
                 }
