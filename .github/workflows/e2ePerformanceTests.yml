@@ -24,27 +24,27 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # - name: Get most recent release version
-      #   id: getMostRecentRelease
-      #   run: echo "VERSION=$(gh release list --limit 1 | awk '{ print $1 }')" >> "$GITHUB_OUTPUT"
-      #   env:
-      #     GITHUB_TOKEN: ${{ github.token }}
+      - name: Get most recent release version
+        id: getMostRecentRelease
+        run: echo "VERSION=$(gh release list --limit 1 | awk '{ print $1 }')" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
-      # - name: Check if there's an existing artifact for this baseline
-      #   id: checkForExistingArtifact
-      #   uses: xSAVIKx/artifact-exists-action@3c5206b1411c0d2fc0840f56b7140646933d9d6a
-      #   with:
-      #     name: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+      - name: Check if there's an existing artifact for this baseline
+        id: checkForExistingArtifact
+        uses: xSAVIKx/artifact-exists-action@3c5206b1411c0d2fc0840f56b7140646933d9d6a
+        with:
+          name: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
 
-      # - name: Skip build if there's already an existing artifact for the baseline
-      #   if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-      #   run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
+      - name: Skip build if there's already an existing artifact for the baseline
+        if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
+        run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
 
-      # - name: Checkout "Baseline" commit (last release)
-      #   if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-      #   run: |
-      #     git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
-      #     git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
+      - name: Checkout "Baseline" commit (last release)
+        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
+        run: |
+          git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
+          git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -223,18 +223,14 @@ jobs:
       - name: Print results
         run: cat "./output.md"
 
-      # - name: Print AWS Device Farm verbose run results
-      #   if: ${{ always() && runner.debug != null && fromJSON(runner.debug) }}
-      #   run: cat "./Host_Machine_Files/debug.log"
-# TODO: Once tests are more reliable we should uncomment this
-#      - name: Check if test failed, if so post the results and add the DeployBlocker label
-#        run: |
-#          if grep -q '🔴' ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; then
-#            gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
-#            gh pr comment ${{ inputs.PR_NUMBER }} -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
-#            gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
-#          else
-#            echo '✅ no performance regression detected'
-#          fi
-#        env:
-#          GITHUB_TOKEN: ${{ github.token }}
+      - name: Check if test failed, if so post the results and add the DeployBlocker label
+        run: |
+          if grep -q '🔴' ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; then
+            gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
+            gh pr comment ${{ inputs.PR_NUMBER }} -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
+            gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
+          else
+            echo '✅ no performance regression detected'
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
