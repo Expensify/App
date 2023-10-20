@@ -168,8 +168,8 @@ function revealVirtualCardDetails(cardID) {
                 }
                 resolve(response);
             })
-            .catch((err) => {
-                reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure')); 
+            .catch(() => {
+                reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure'));
             });
     });
 }
