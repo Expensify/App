@@ -60,7 +60,8 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             return;
         }
         App.confirmReadyToOpenApp();
-    }, [isSmallScreenWidth, lastOnReportScreen]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSmallScreenWidth]);
 
     useEffect(() => {
         App.setSidebarLoaded();
