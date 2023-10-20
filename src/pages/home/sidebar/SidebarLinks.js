@@ -3,6 +3,7 @@ import React, {useEffect, useRef, useCallback} from 'react';
 import {View, InteractionManager} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -45,7 +46,7 @@ const propTypes = {
     isActiveReport: PropTypes.func.isRequired,
 };
 
-function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen}) {
+function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen, lastOnReportScreen}) {
     const modal = useRef({});
     const {translate, updateLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -54,8 +55,12 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         if (!isSmallScreenWidth) {
             return;
         }
+        if (lastOnReportScreen) {
+            Navigation.navigate(ROUTES.REPORT);
+            return;
+        }
         App.confirmReadyToOpenApp();
-    }, [isSmallScreenWidth]);
+    }, [isSmallScreenWidth, lastOnReportScreen]);
 
     useEffect(() => {
         App.setSidebarLoaded();
@@ -179,5 +184,9 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.displayName = 'SidebarLinks';
 
-export default SidebarLinks;
+export default withOnyx({
+    lastOnReportScreen: {
+        key: ONYXKEYS.LAST_ON_REPORT_SCREEN,
+    },
+})(SidebarLinks);
 export {basePropTypes};

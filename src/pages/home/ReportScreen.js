@@ -1,6 +1,6 @@
 import React, {useRef, useState, useEffect, useMemo, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -178,6 +178,7 @@ function ReportScreen({
 
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const isFocused = useIsFocused();
 
     let headerView = (
         <HeaderView
@@ -357,6 +358,10 @@ function ReportScreen({
             didSubscribeToReportLeavingEvents.current = true;
         }
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
+
+    useEffect(() => {
+        Report.lastOnReportScreen(isFocused);
+    }, [isFocused]);
 
     const onListLayout = useCallback((e) => {
         setListHeight((prev) => lodashGet(e, 'nativeEvent.layout.height', prev));

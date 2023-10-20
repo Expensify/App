@@ -2402,6 +2402,13 @@ function searchInServer(searchInput) {
     debouncedSearchInServer(searchInput);
 }
 
+/**
+ * @param {boolean} isLastOnReportScreen
+ */
+function lastOnReportScreen(isLastOnReportScreen) {
+    Onyx.merge(ONYXKEYS.LAST_ON_REPORT_SCREEN, isLastOnReportScreen);
+}
+
 export {
     searchInServer,
     addComment,
@@ -2462,4 +2469,5 @@ export {
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
+    lastOnReportScreen,
 };
