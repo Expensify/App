@@ -1,4 +1,4 @@
-import React, {useState, useRef, useCallback} from 'react';
+import React, {useState, useRef, useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -63,7 +63,23 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
 
     // We need to edit the note in markdown format, but display it in HTML format
     const parser = new ExpensiMark();
-    const [privateNote, setPrivateNote] = useState(parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim());
+    const [privateNote, setPrivateNote] = useState(
+        Report.getDraftPrivateNote(report.reportID) || parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim(),
+    );
+
+    /**
+     * Save the draft of the private note. This debounced so that we're not ceaselessly saving your edit. Saving the draft
+     * allows one to navigate somewhere else and come back to the private note and still have it in edit mode.
+     * @param {String} newDraft
+     */
+    const debouncedSavePrivateNote = useMemo(
+        () =>
+            _.debounce((text) => {
+                Report.savePrivateNotesDraft(report.reportID, text);
+            }, 1000),
+        [report.reportID],
+    );
+
     const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
 
     // To focus on the input field when the page loads
@@ -87,12 +103,13 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     );
 
     const savePrivateNote = () => {
-        const editedNote = parser.replace(privateNote.trim());
+        const originalNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
+        const editedNote = Report.handleUserDeletedLinksInHtml(privateNote.trim(), parser.htmlToMarkdown(originalNote).trim());
         Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         Keyboard.dismiss();
 
         // Take user back to the PrivateNotesView page
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.reportID, route.params.accountID));
     };
 
     return (
@@ -114,6 +131,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     subtitle={translate('privateNotes.myNote')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.repotID, route.params.accountID))}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
@@ -151,7 +169,10 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                             defaultValue={privateNote}
                             value={privateNote}
-                            onChangeText={(text) => setPrivateNote(text)}
+                            onChangeText={(text) => {
+                                debouncedSavePrivateNote(text);
+                                setPrivateNote(text);
+                            }}
                             ref={(el) => {
                                 if (!el) {
                                     return;

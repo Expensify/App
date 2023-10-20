@@ -47,6 +47,7 @@ function EnablePaymentsPage({userWallet}) {
 
     return (
         <ScreenWrapper
+            shouldShowOfflineIndicator={userWallet.currentStep !== CONST.WALLET.STEP.ONFIDO}
             includeSafeAreaPaddingBottom={false}
             testID={EnablePaymentsPage.displayName}
         >
@@ -76,7 +77,7 @@ function EnablePaymentsPage({userWallet}) {
                     case CONST.WALLET.STEP.ONFIDO:
                         return <OnfidoStep />;
                     case CONST.WALLET.STEP.TERMS:
-                        return <TermsStep />;
+                        return <TermsStep userWallet={userWallet} />;
                     case CONST.WALLET.STEP.ACTIVATE:
                         return <ActivateStep userWallet={userWallet} />;
                     default:
