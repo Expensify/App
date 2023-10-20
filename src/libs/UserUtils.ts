@@ -104,7 +104,7 @@ function getDefaultAvatarURL(accountID: string | number = '', isNewDot = false):
  * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
  * @param [avatarURL] - the avatar source from user's personalDetails
  */
-function isDefaultAvatar(avatarURL?: string): boolean {
+function isDefaultAvatar(avatarURL?: string | React.FC<SvgProps>): boolean {
     if (typeof avatarURL === 'string') {
         if (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/default-avatar_') || avatarURL.includes('images/avatars/user/default')) {
             return true;
@@ -131,7 +131,7 @@ function isDefaultAvatar(avatarURL?: string): boolean {
  * @param avatarURL - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | string {
+function getAvatar(avatarURL: string | React.FC<SvgProps>, accountID: number): React.FC<SvgProps> | string {
     return isDefaultAvatar(avatarURL) ? getDefaultAvatar(accountID) : avatarURL;
 }
 

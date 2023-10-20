@@ -28,7 +28,7 @@ type PersonalDetails = {
     phoneNumber?: string;
 
     /** Avatar URL of the current user from their personal details */
-    avatar: string;
+    avatar: string | React.FC<SvgProps>;
 
     /** Flag to set when Avatar uploading */
     avatarUploading?: boolean;

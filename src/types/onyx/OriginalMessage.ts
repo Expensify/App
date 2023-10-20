@@ -24,8 +24,8 @@ type IOUMessage = {
     currency: string;
     lastModified?: string;
     participantAccountIDs?: number[];
-    type: string;
-    paymentType?: string;
+    type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
+    paymentType?: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
@@ -64,6 +64,12 @@ type User = {
 type Reaction = {
     emoji: string;
     users: User[];
+};
+
+type Closed = {
+    policyName: string;
+    reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
+    lastModified?: string;
 };
 
 type OriginalMessageAddComment = {
@@ -182,4 +188,4 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed};

@@ -192,7 +192,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
  *
  * @deprecated Use withOnyx() or Onyx.connect() instead
  */
-function getTransaction(transactionID: string): OnyxEntry<Transaction> {
+function getTransaction(transactionID: string): OnyxEntry<Transaction> | Record<string, never> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
 }
 
@@ -260,7 +260,7 @@ function getOriginalAmount(transaction: Transaction): number {
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxEntry<Transaction>): string {
-    return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant || '';
+    return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
 /**
@@ -309,7 +309,7 @@ function getTag(transaction: OnyxEntry<Transaction>): string {
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
 function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
-    const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
+    const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created ?? '';
     const createdDate = parseISO(created);
     if (isValid(createdDate)) {
         return format(createdDate, dateFormat);
@@ -354,15 +354,15 @@ function isPosted(transaction: Transaction): boolean {
     return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
 }
 
-function isReceiptBeingScanned(transaction: Transaction): boolean {
-    return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction.receipt.state);
+function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
+    return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt.state);
 }
 
 /**
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
 function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean {
-    return hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction);
+    return Boolean(transaction && hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
 }
 
 /**

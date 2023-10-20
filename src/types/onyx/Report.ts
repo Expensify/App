@@ -93,7 +93,6 @@ type Report = {
     chatReportID?: string;
     state?: ValueOf<typeof CONST.REPORT.STATE>;
     isHidden?: boolean;
-    lastMessageTranslationKey?: string;
 };
 
 export default Report;

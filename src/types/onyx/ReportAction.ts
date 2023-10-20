@@ -44,6 +44,7 @@ type Message = {
     taskReportID?: string;
     translationKey?: string;
     moderationDecision?: Decision;
+    isReversedTransaction?: boolean;
 };
 
 type Person = {
