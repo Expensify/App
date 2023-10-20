@@ -219,6 +219,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                 >
                     <View>
                         <AddressSearch
+                            canUseCurrentLocation
                             inputID={`waypoint${waypointIndex}`}
                             ref={(e) => (textInput.current = e)}
                             hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
@@ -239,6 +240,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                                 state: null,
                             }}
                             predefinedPlaces={recentWaypoints}
+                            resultTypes=""
                         />
                     </View>
                 </Form>

@@ -1,5 +1,5 @@
 import React from 'react';
-import Lottie from 'lottie-react-native';
+import Lottie from '../../components/Lottie';
 import * as LottieAnimations from '../../components/LottieAnimations';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import styles from '../../styles/styles';
