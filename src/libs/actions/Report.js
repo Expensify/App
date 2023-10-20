@@ -1909,7 +1909,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
             if (route === ROUTES.CONCIERGE) {
-                navigateToConciergeChat();
+                navigateToConciergeChat(true);
                 return;
             }
             if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
