@@ -34,6 +34,7 @@ import * as Session from '../../libs/actions/Session';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../reportPropTypes';
+import reportWithoutHasDraftSelector from '../../libs/OnyxSelectors/reportWithoutHasDraftSelector';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -280,7 +281,7 @@ export default compose(
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
-            selector: ({ hasDraft, ...report}={}) => report, // hasDraft not needed in this component
+            selector: reportWithoutHasDraftSelector,
         },
         session: {
             key: ONYXKEYS.SESSION,

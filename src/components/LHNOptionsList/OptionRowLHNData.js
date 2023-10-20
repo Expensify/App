@@ -4,7 +4,6 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useMemo} from 'react';
 import {deepEqual} from 'fast-equals';
-import {withReportCommentDrafts} from '../OnyxProvider';
 import SidebarUtils from '../../libs/SidebarUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
