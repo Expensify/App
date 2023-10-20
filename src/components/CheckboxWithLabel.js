@@ -8,6 +8,7 @@ import Text from './Text';
 import FormHelpMessage from './FormHelpMessage';
 import variables from '../styles/variables';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import refPropTypes from "./refPropTypes";
 
 /**
  * Returns an error if the required props are not provided
@@ -54,7 +55,7 @@ const propTypes = {
     defaultValue: PropTypes.bool,
 
     /** React ref being forwarded to the Checkbox input */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 
     /** The ID used to uniquely identify the input in a Form */
     /* eslint-disable-next-line react/no-unused-prop-types */
