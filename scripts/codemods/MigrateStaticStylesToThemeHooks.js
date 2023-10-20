@@ -83,6 +83,10 @@ async function writeASTToFile(filePath, fileContents, ast) {
 
 async function migrateStylesForClassComponent(filePath, fileContents, ast) {
     const relativePathToStylesDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/styles');
+    let didAddWithThemeHOC = false;
+    let didAddWithThemeColorsHOC = false;
+
+    // Swap out static style/theme imports for HOC imports
     traverse.default(ast, {
         ImportDeclaration({node}) {
             const source = node.source.value;
@@ -96,6 +100,7 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
                     },
                 });
                 node.source.value = `${relativePathToStylesDir}/withTheme`;
+                didAddWithThemeHOC = true;
             }
             if (source === `${relativePathToStylesDir}/themes/default`) {
                 node.specifiers[0].local.name = 'withThemeColors';
@@ -107,6 +112,24 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
                     },
                 });
                 node.source.value = `${relativePathToStylesDir}/withThemeColors`;
+                didAddWithThemeColorsHOC = true;
+            }
+        },
+    });
+
+    // Add new propTypes
+    traverse.default(ast, {
+        VariableDeclarator({node}) {
+            if (node.id.name !== 'propTypes') {
+                return;
+            }
+
+            if (didAddWithThemeHOC) {
+                node.init.properties.push({type: 'SpreadElement', argument: {type: 'Identifier', name: 'withThemePropTypes'}});
+            }
+
+            if (didAddWithThemeColorsHOC) {
+                node.init.properties.push({type: 'SpreadElement', argument: {type: 'Identifier', name: 'withThemeColorPropTypes'}});
             }
         },
     });
