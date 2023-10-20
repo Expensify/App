@@ -1,7 +1,6 @@
 import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import {withOnyx, OnyxEntry} from 'react-native-onyx';
 import {RouteProp} from '@react-navigation/native';
-import isEmpty from 'lodash/isEmpty';
 import getComponentDisplayName from '../../../libs/getComponentDisplayName';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -29,12 +28,12 @@ type ComponentProps = OnyxProps & {
 
 export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithReportOrNotFound(props: OnyxProps, ref: ForwardedRef<TRef>) {
+    function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const contentShown = React.useRef(false);
 
-        const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (isEmpty(props.report) || !props.report.reportID);
+        const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
         // eslint-disable-next-line rulesdir/no-negated-variables
-        const shouldShowNotFoundPage = isEmpty(props.report) || !props.report.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {});
+        const shouldShowNotFoundPage = !Object.entries(props.report ?? {}).length || !props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {});
 
         // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
         // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
@@ -57,7 +56,7 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as TProps)}
+                {...props}
                 ref={ref}
             />
         );
