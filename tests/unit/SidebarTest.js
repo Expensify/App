@@ -81,5 +81,51 @@ describe('Sidebar', () => {
                     })
             );
         });
+        it('renders the policy deleted archive reason as the preview message of the chat', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3, true),
+                policyName: 'Vikings Policy',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+            const action = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3, true),
+                actionName: 'CLOSED',
+                originalMessage: {
+                    policyName: 'Vikings Policy',
+                    reason: 'policyDeleted',
+                },
+            };
+
+            // Given the user is in all betas
+            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
+            return (
+                waitForBatchedUpdates()
+                    // When Onyx is updated with the data and the sidebar re-renders
+                    .then(() =>
+                        Onyx.multiSet({
+                            [ONYXKEYS.BETAS]: betas,
+                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionId]: action},
+                        }),
+                    )
+                    .then(() => {
+                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const displayNames = screen.queryAllByLabelText(hintText);
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report (archived)');
+
+                        const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                        const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
+                        expect(lodashGet(messagePreviewTexts, [0, 'props', 'children'])).toBe(
+                            'This workspace chat is no longer active because Vikings Policy is no longer an active workspace.',
+                        );
+                    })
+            );
+        });
     });
 });
