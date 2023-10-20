@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import lodashGet from 'lodash/get';
 import Text from './Text';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -26,8 +25,7 @@ import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import RenderHTML from './RenderHTML';
-import UserDetailsTooltip from './UserDetailsTooltip';
-import Tooltip from './Tooltip';
+import DisplayNames from './DisplayNames';
 
 const propTypes = menuItemPropTypes;
 
@@ -143,28 +141,14 @@ const MenuItem = React.forwardRef((props, ref) => {
     const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
 
     const renderTitleContent = () => {
-        const isEllipsisActive = lodashGet(titleContainerRef.current, 'offsetWidth') < lodashGet(titleContainerRef.current, 'scrollWidth');
-
         if (props.titleWithTooltips && _.isArray(props.titleWithTooltips) && props.titleWithTooltips.length > 0) {
             return (
-                <Text>
-                    {_.map(props.titleWithTooltips, (tooltipDetails, index) => (
-                        <Text key={index}>
-                            <UserDetailsTooltip accountID={tooltipDetails.accountID}>
-                                <Text>{convertToLTR(tooltipDetails.displayName)}</Text>
-                            </UserDetailsTooltip>
-                            {index < props.titleWithTooltips.length - 1 && <Text style>,&nbsp;</Text>}
-                        </Text>
-                    ))}
-                    {Boolean(isEllipsisActive) && (
-                        <View style={styles.displayNameTooltipEllipsis}>
-                            <Tooltip text={props.title}>
-                                {/* There is some Gap for real ellipsis so we are adding 5 `.` to cover */}
-                                <Text>.....</Text>
-                            </Tooltip>
-                        </View>
-                    )}
-                </Text>
+                <DisplayNames
+                    fullTitle={props.title}
+                    displayNamesWithTooltips={props.titleWithTooltips}
+                    tooltipEnabled
+                    numberOfLines={1}
+                />
             );
         }
 
