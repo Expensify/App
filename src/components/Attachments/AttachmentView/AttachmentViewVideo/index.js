@@ -3,7 +3,7 @@ import VideoPlayer from '../../../VideoPlayer';
 import withLocalize, {withLocalizePropTypes} from '../../../withLocalize';
 import compose from '../../../../libs/compose';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import {usePlaybackContext} from '../../../PlaybackContext';
+import {usePlaybackContext} from '../../../VideoPlayerContexts/PlaybackContext';
 
 const propTypes = {
     ...withLocalizePropTypes,

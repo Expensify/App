@@ -4,13 +4,12 @@ import PropTypes from 'prop-types';
 import {Video, ResizeMode} from 'expo-av';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import {usePlaybackContext} from '../PlaybackContext';
+import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import VideoPlayerControls from './VideoPlayerControls';
 import PopoverMenu from '../PopoverMenu';
 import * as Expensicons from '../Icon/Expensicons';
 import fileDownload from '../../libs/fileDownload';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
     url: PropTypes.string.isRequired,
@@ -173,16 +172,12 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                 </View>
             )}
 
-            {isVideoLoading ? (
-                <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
-            ) : (
-                <VideoPlayerControls
-                    duration={duration}
-                    position={position}
-                    toggleCreateMenu={toggleCreateMenu}
-                    url={url}
-                />
-            )}
+            <VideoPlayerControls
+                duration={duration}
+                position={position}
+                toggleCreateMenu={toggleCreateMenu}
+                url={url}
+            />
 
             <PopoverMenu
                 onClose={hideCreateMenu}

@@ -26,8 +26,9 @@ import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsCo
 import * as Session from './libs/actions/Session';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
-import {PlaybackContextProvider} from './components/PlaybackContext';
+import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {SidebarNavigationContextProvider} from './pages/home/sidebar/SidebarNavigationContext';
+import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -68,6 +69,7 @@ function App() {
                     ThemeStylesProvider,
                     PlaybackContextProvider,
                     SidebarNavigationContextProvider,
+                    VolumeContextProvider,
                 ]}
             >
                 <CustomStatusBar />

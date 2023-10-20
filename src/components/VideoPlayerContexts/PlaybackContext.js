@@ -1,4 +1,4 @@
-import React, {useMemo, useState, useCallback, useEffect} from 'react';
+import React, {useMemo, useState, useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 
 const PlaybackContext = React.createContext(null);
@@ -7,19 +7,18 @@ function PlaybackContextProvider({children}) {
     const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState(null);
     const [sharedElement, setSharedElement] = useState(null);
     const [originalParent, setOriginalParent] = useState(null);
-    const [volume, setVolume] = useState(0);
 
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const [currentVideoPlayerRef, setCurrentVideoPlayerRef] = useState(null);
+    const currentVideoPlayerRef = useRef(null);
 
     const pauseVideo = useCallback(() => {
-        currentVideoPlayerRef.setStatusAsync({shouldPlay: false});
+        currentVideoPlayerRef.current.setStatusAsync({shouldPlay: false});
         setIsPlaying(false);
     }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
-        currentVideoPlayerRef.setStatusAsync({shouldPlay: true});
+        currentVideoPlayerRef.current.setStatusAsync({shouldPlay: true});
         setIsPlaying(true);
     }, [currentVideoPlayerRef]);
 
@@ -33,16 +32,12 @@ function PlaybackContextProvider({children}) {
         [currentlyPlayingURL, pauseVideo],
     );
 
-    const updateCurrentVideoPlayerRef = useCallback((ref) => {
-        setCurrentVideoPlayerRef(ref);
-    }, []);
-
-    const updateVolume = useCallback(
-        (newVolume) => {
-            currentVideoPlayerRef.setStatusAsync({volume: newVolume});
-            setVolume(newVolume);
+    const updateCurrentVideoPlayerRef = useCallback(
+        (ref) => {
+            currentVideoPlayerRef.current = ref;
+            playVideo();
         },
-        [currentVideoPlayerRef],
+        [playVideo],
     );
 
     const updateSharedElements = (parent, child) => {
@@ -51,29 +46,20 @@ function PlaybackContextProvider({children}) {
     };
 
     const togglePlay = useCallback(() => {
-        currentVideoPlayerRef.setStatusAsync({shouldPlay: !isPlaying});
+        currentVideoPlayerRef.current.setStatusAsync({shouldPlay: !isPlaying});
         setIsPlaying(!isPlaying);
     }, [currentVideoPlayerRef, isPlaying]);
 
     const enterFullScreenMode = useCallback(() => {
-        currentVideoPlayerRef.presentFullscreenPlayer();
+        currentVideoPlayerRef.current.presentFullscreenPlayer();
     }, [currentVideoPlayerRef]);
 
     const updatePostiion = useCallback(
         (newPosition) => {
-            currentVideoPlayerRef.setStatusAsync({positionMillis: newPosition});
+            currentVideoPlayerRef.current.setStatusAsync({positionMillis: newPosition});
         },
         [currentVideoPlayerRef],
     );
-
-    // actions after videoRef is set
-    useEffect(() => {
-        if (currentVideoPlayerRef && !isPlaying) {
-            playVideo();
-        }
-        return () => {};
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentVideoPlayerRef, playVideo]);
 
     const contextValue = useMemo(
         () => ({
@@ -82,8 +68,7 @@ function PlaybackContextProvider({children}) {
             originalParent,
             sharedElement,
             updateSharedElements,
-            volume,
-            updateVolume,
+
             togglePlay,
             isPlaying,
             enterFullScreenMode,
@@ -102,8 +87,6 @@ function PlaybackContextProvider({children}) {
             updateCurrentVideoPlayerRef,
             updateCurrentlyPlayingURL,
             updatePostiion,
-            updateVolume,
-            volume,
         ],
     );
     return <PlaybackContext.Provider value={contextValue}>{children}</PlaybackContext.Provider>;

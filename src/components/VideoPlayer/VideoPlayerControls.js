@@ -7,7 +7,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import ProgressBar from './ProgressBar';
 import convertMillisecondsToTime from './utils';
 import VolumeButton from '../VolumeButton';
-import {usePlaybackContext} from '../PlaybackContext';
+import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types

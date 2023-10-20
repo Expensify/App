@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Hoverable from '../Hoverable';
-import {usePlaybackContext} from '../PlaybackContext';
+import {useVolumeContext} from '../VideoPlayerContexts/VolumeContext';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
@@ -16,7 +16,7 @@ const propTypes = {
 const defaultProps = {};
 
 function ProgressBar({style}) {
-    const {updateVolume, volume} = usePlaybackContext();
+    const {updateVolume, volume} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);
     const progressHeight = useSharedValue(volume * 100);
 

@@ -5,7 +5,7 @@ import VideoPlayer from '../VideoPlayer';
 import styles from '../../styles/styles';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import {usePlaybackContext} from '../PlaybackContext';
+import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
 import IconButton from '../VideoPlayer/IconButton';
 import * as Expensicons from '../Icon/Expensicons';
 

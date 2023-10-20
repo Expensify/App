@@ -22,7 +22,7 @@ import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
 import * as TransactionUtils from '../../../libs/TransactionUtils';
 import DistanceEReceipt from '../../DistanceEReceipt';
 import useNetwork from '../../../hooks/useNetwork';
-import {usePlaybackContext} from '../../PlaybackContext';
+import {usePlaybackContext} from '../../VideoPlayerContexts/PlaybackContext';
 import ONYXKEYS from '../../../ONYXKEYS';
 import EReceipt from '../../EReceipt';
 
