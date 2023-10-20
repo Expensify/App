@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -67,6 +67,7 @@ function MoneyRequestConfirmPage(props) {
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
     const isScanRequest = MoneyRequestUtils.isScanRequest(props.selectedTab);
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const [receiptFile, setReceiptFile] = useState();
     const participants = useMemo(
         () =>
             _.map(props.iou.participants, (participant) => {
@@ -76,7 +77,7 @@ function MoneyRequestConfirmPage(props) {
         [props.iou.participants, props.personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
-    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
+    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType.current === CONST.IOU.TYPE.REQUEST;
 
     useEffect(() => {
         IOU.resetMoneyRequestCategory();
@@ -93,6 +94,21 @@ function MoneyRequestConfirmPage(props) {
             IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
         }
     }, [isOffline, participants, props.iou.billable, props.policy]);
+
+    useEffect(() => {
+        if (!props.iou.receiptPath || !props.iou.receiptFilename) {
+            return;
+        }
+        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((file) => {
+            if (!file) {
+                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current));
+            } else {
+                const receipt = file;
+                receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+                setReceiptFile(receipt);
+            }
+        });
+    }, [props.iou.receiptPath, props.iou.receiptFilename, isManualRequestDM]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
@@ -195,7 +211,7 @@ function MoneyRequestConfirmPage(props) {
             const trimmedComment = props.iou.comment.trim();
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
-            if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && props.iou.receiptPath) {
+            if (iouType.current === CONST.IOU.TYPE.SPLIT && props.iou.receiptPath) {
                 const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID.current) ? reportID.current : '';
                 FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((receipt) => {
                     IOU.startSplitBill(
@@ -212,7 +228,7 @@ function MoneyRequestConfirmPage(props) {
 
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
-            if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
+            if (iouType.current === CONST.IOU.TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
                 IOU.splitBill(
                     selectedParticipants,
                     props.currentUserPersonalDetails.login,
@@ -227,7 +243,7 @@ function MoneyRequestConfirmPage(props) {
             }
 
             // If the request is created from the global create menu, we also navigate the user to the group report
-            if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
+            if (iouType.current === CONST.IOU.TYPE.SPLIT) {
                 IOU.splitBillAndOpenReport(
                     selectedParticipants,
                     props.currentUserPersonalDetails.login,
@@ -240,12 +256,8 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            if (props.iou.receiptPath && props.iou.receiptFilename) {
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((file) => {
-                    const receipt = file;
-                    receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
-                    requestMoney(selectedParticipants, trimmedComment, receipt);
-                });
+            if (receiptFile) {
+                requestMoney(selectedParticipants, trimmedComment, receiptFile);
                 return;
             }
 
@@ -268,7 +280,7 @@ function MoneyRequestConfirmPage(props) {
             isDistanceRequest,
             requestMoney,
             createDistanceRequest,
-            isManualRequestDM,
+            receiptFile,
         ],
     );
 
@@ -300,11 +312,11 @@ function MoneyRequestConfirmPage(props) {
             return props.translate('common.distance');
         }
 
-        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
+        if (iouType.current === CONST.IOU.TYPE.SPLIT) {
             return props.translate('iou.split');
         }
 
-        if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+        if (iouType.current === CONST.IOU.TYPE.SEND) {
             return props.translate('common.send');
         }
 
@@ -333,7 +345,7 @@ function MoneyRequestConfirmPage(props) {
                     />
                     <MoneyRequestConfirmationList
                         transactionID={props.iou.transactionID}
-                        hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                        hasMultipleParticipants={iouType.current === CONST.IOU.TYPE.SPLIT}
                         selectedParticipants={participants}
                         iouAmount={props.iou.amount}
                         iouComment={props.iou.comment}
