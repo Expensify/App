@@ -28,8 +28,8 @@ const propTypes = {
 };
 
 function ACHContractStep(props) {
-    const [beneficialOwners, setBeneficialOwners] = useState(
-        () => lodashGet(props.reimbursementAccountDraft, 'beneficialOwners', lodashGet(props.reimbursementAccount, 'achData.beneficialOwners', [])),
+    const [beneficialOwners, setBeneficialOwners] = useState(() =>
+        lodashGet(props.reimbursementAccountDraft, 'beneficialOwners', lodashGet(props.reimbursementAccount, 'achData.beneficialOwners', [])),
     );
 
     /**
