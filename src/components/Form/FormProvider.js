@@ -202,7 +202,6 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
         onSubmit(inputValues);
     }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
 
-    console.log({current: inputRefs.current})
     const registerInput = useCallback(
         (inputID, propsToParse = {}) => {
             const newRef = inputRefs.current[inputID] || propsToParse.ref || createRef();
