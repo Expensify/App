@@ -11,8 +11,10 @@ type Session = {
     /** Currently logged in user authToken */
     authToken?: string;
 
+    /** Currently logged in user authToken type */
     authTokenType?: string;
 
+    /** Currently logged in user support authToken */
     supportAuthToken?: string;
 
     /** Currently logged in user encrypted authToken */
