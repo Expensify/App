@@ -62,7 +62,7 @@ function setHTMLSync(html, text) {
 
     if (isComposer) {
         firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
-    } else {
+    } else if (originalSelection.anchorNode && originalSelection.focusNode) {
         selection.setBaseAndExtent(originalSelection.anchorNode, originalSelection.anchorOffset, originalSelection.focusNode, originalSelection.focusOffset);
     }
 
