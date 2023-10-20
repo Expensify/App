@@ -169,7 +169,7 @@ function revealVirtualCardDetails(cardID) {
                 resolve(response);
             })
             .catch((err) => {
-                reject(err.message);
+                reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure')); 
             });
     });
 }
