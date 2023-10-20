@@ -1,7 +1,32 @@
+import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 
 describe('ReportActionsUtils', () => {
+    beforeAll(() =>
+        Onyx.init({
+            keys: ONYXKEYS,
+            registerStorageEventListener: () => {},
+            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        }),
+    );
+
+    beforeEach(() => {
+        // Wrap Onyx each onyx action with waitForBatchedUpdates
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        // Initialize the network key for OfflineWithFeedback
+        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    });
+
+    // Clear out Onyx after each test so that each test starts with a clean slate
+    afterEach(() => {
+        Onyx.clear();
+    });
+
     describe('getSortedReportActions', () => {
         const cases = [
             [
@@ -227,6 +252,68 @@ describe('ReportActionsUtils', () => {
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
             input.pop();
             expect(result).toStrictEqual(input);
+        });
+    });
+
+    describe('getLastVisibleAction', () => {
+        it('should return the last visible action for a report', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3, true),
+                reportID: 1,
+            };
+            const action = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3, true),
+                created: '2023-08-01 16:00:00',
+                reportActionID: 'action1',
+                actionName: 'ADDCOMMENT',
+                originalMessage: {
+                    policyName: 'Vikings Policy',
+                    reason: 'policyDeleted',
+                },
+                message: {
+                    policyName: 'Vikings Policy',
+                    reason: 'policyDeleted',
+                },
+            };
+            const action2 = {
+                ...LHNTestUtils.getFakeReportAction('email2@test.com', 3, true),
+                created: '2023-08-01 18:00:00',
+                reportActionID: 'action2',
+                actionName: 'ADDCOMMENT',
+                originalMessage: {
+                    policyName: 'Vikings Policy',
+                    reason: 'policyDeleted',
+                },
+                message: {
+                    policyName: 'Vikings Policy',
+                    reason: 'policyDeleted',
+                },
+            };
+            return (
+                waitForBatchedUpdates()
+                    // When Onyx is updated with the data and the sidebar re-renders
+                    .then(() =>
+                        Onyx.multiSet({
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action, [action2.reportActionID]: action2},
+                        }),
+                    )
+                    .then(
+                        () =>
+                            new Promise((resolve) => {
+                                const connectionID = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                                    waitForCollectionCallback: true,
+                                    callback: () => {
+                                        Onyx.disconnect(connectionID);
+                                        const res = ReportActionsUtils.getLastVisibleAction(report.reportID);
+                                        expect(res).toBe(action2);
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+            );
         });
     });
 });
