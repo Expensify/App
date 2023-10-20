@@ -247,8 +247,9 @@ function ComposerWithSuggestions({
             if (commentRef.current.length === 0 && newComment.length !== 0) {
                 setDraftStatusForReportID(reportID, true);
             }
+
             // The draft has been deleted.
-            else if (newComment.length === 0) {
+            if (newComment.length === 0) {
                 setDraftStatusForReportID(reportID, false);
             }
 

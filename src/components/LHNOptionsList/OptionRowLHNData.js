@@ -2,7 +2,7 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef, useMemo} from 'react';
+import React, {useRef, useMemo} from 'react';
 import {deepEqual} from 'fast-equals';
 import {withReportCommentDrafts} from '../OnyxProvider';
 import SidebarUtils from '../../libs/SidebarUtils';
@@ -16,8 +16,6 @@ import * as TransactionUtils from '../../libs/TransactionUtils';
 import participantPropTypes from '../participantPropTypes';
 import CONST from '../../CONST';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import setDraftStatusForReportID from '../../libs/actions/DraftReports';
-import DraftReportUtils from '../../libs/DraftReportUtils';
 
 const propTypes = {
     /** Whether row should be focused */
@@ -84,8 +82,6 @@ function OptionRowLHNData({
     transaction,
     ...propsToForward
 }) {
-    const reportID = propsToForward.reportID;
-
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
     const optionItemRef = useRef();
@@ -110,23 +106,13 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
 
-    useEffect(() => {
-        const draftReportIDs = DraftReportUtils.getInstance().getDraftReportIDs();
-        const hasDraft = draftReportIDs[reportID];
-
-        if (!optionItem || hasDraft || !comment || comment.length <= 0 || isFocused) {
-            return;
-        }
-        setDraftStatusForReportID(reportID, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     return (
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
             isFocused={isFocused}
             optionItem={optionItem}
+            shouldUpdateDraftStatus={!optionItem || !comment || comment.length <= 0 || isFocused}
         />
     );
 }

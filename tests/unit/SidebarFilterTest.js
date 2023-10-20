@@ -110,6 +110,7 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+
                             // Set the draft status for the given reportID
                             [ONYXKEYS.DRAFT_REPORT_IDS]: {[report.reportID]: true},
                         }),
@@ -339,6 +340,7 @@ describe('Sidebar', () => {
                                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+
                                     // Set the draft status for the given reportID
                                     [ONYXKEYS.DRAFT_REPORT_IDS]: {[report2.reportID]: boolArr[boolArr.length - 1]},
                                 }),
@@ -452,6 +454,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${pinnedReport.reportID}`]: pinnedReport,
+
                             // Set the draft status for the given reportID
                             [ONYXKEYS.DRAFT_REPORT_IDS]: {[draftReport.reportID]: true},
                         }),
@@ -665,6 +668,7 @@ describe('Sidebar', () => {
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+
                                 // Set the draft status for the given reportID
                                 [ONYXKEYS.DRAFT_REPORT_IDS]: {[report2.reportID]: boolArr[boolArr.length - 1]},
                             }),

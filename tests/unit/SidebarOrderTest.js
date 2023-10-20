@@ -267,6 +267,7 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+
                             // Setting the draft status for second report
                             [ONYXKEYS.DRAFT_REPORT_IDS]: {[report2.reportID]: true},
                         }),
@@ -308,6 +309,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+
                             // Setting the draft status for the report
                             [ONYXKEYS.DRAFT_REPORT_IDS]: {[report.reportID]: true},
                         }),
@@ -410,6 +412,7 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                             [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+
                             // Setting the draft status for second report
                             [ONYXKEYS.DRAFT_REPORT_IDS]: {[report2.reportID]: true},
                         }),
@@ -509,6 +512,7 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+
                             // Setting the draft status for all reports
                             [ONYXKEYS.DRAFT_REPORT_IDS]: {
                                 [report1.reportID]: true,

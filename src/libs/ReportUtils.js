@@ -23,7 +23,6 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
-import DraftReportUtils from './DraftReportUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -53,7 +52,7 @@ Onyx.connect({
     },
 });
 
-let allReports = {};
+let allReports;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -61,7 +60,17 @@ Onyx.connect({
     callback: (val) => (allReports = val),
 });
 
-const draftReportUtils = DraftReportUtils.getInstance();
+let draftReportIDs = {};
+Onyx.connect({
+    key: ONYXKEYS.DRAFT_REPORT_IDS,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        draftReportIDs = val;
+    },
+});
 
 let doesDomainHaveApprovedAccountant;
 Onyx.connect({
@@ -767,7 +776,7 @@ function isMoneyRequestReport(reportOrID) {
  */
 function getReport(reportID) {
     /**
-     * using typical string concatenation here due to performance issues
+     * Using typical string concatenation here due to performance issues
      * with template literals.
      */
     if (!allReports) {
@@ -1414,7 +1423,7 @@ function getPolicyExpenseChatName(report, policy = undefined) {
 
     let policyExpenseChatRole = 'user';
     /**
-     * using typical string concatenation here due to performance issues
+     * Using typical string concatenation here due to performance issues
      * with template literals.
      */
     const policyItem = allPolicies[ONYXKEYS.COLLECTION.POLICY + report.policyID];
@@ -3198,7 +3207,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     }
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft, having an outstanding IOU, or being assigned to an open task.
-    if (draftReportUtils.getDraftReportIDs()[report.reportID] || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
+    if (draftReportIDs[report.reportID] || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);

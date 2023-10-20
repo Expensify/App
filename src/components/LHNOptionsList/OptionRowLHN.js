@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState, useRef, useCallback} from 'react';
+import React, {useState, useRef, useCallback, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -31,6 +31,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import DomUtils from '../../libs/DomUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
+import setDraftStatusForReportID from '../../libs/actions/DraftReports';
 
 const propTypes = {
     /** Style for hovered state */
@@ -60,6 +61,8 @@ const propTypes = {
 
     // eslint-disable-next-line react/forbid-prop-types
     draftReportIDs: PropTypes.object,
+
+    shouldUpdateDraftStatus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -71,6 +74,7 @@ const defaultProps = {
     isFocused: false,
     betas: [],
     draftReportIDs: {},
+    shouldUpdateDraftStatus: false,
 };
 
 function OptionRowLHN(props) {
@@ -82,6 +86,17 @@ function OptionRowLHN(props) {
 
     const optionItem = props.optionItem;
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
+
+    const hasDraft = props.draftReportIDs[props.reportID];
+
+    useEffect(() => {
+        if (props.shouldUpdateDraftStatus || hasDraft) {
+            return;
+        }
+
+        setDraftStatusForReportID(props.reportID, true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -159,7 +174,6 @@ function OptionRowLHN(props) {
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
     const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(optionItem);
-    const isDraft = props.draftReportIDs[props.reportID];
 
     return (
         <OfflineWithFeedback
@@ -295,7 +309,7 @@ function OptionRowLHN(props) {
                                     />
                                 </View>
                             )}
-                            {isDraft && optionItem.isAllowedToComment && (
+                            {hasDraft && optionItem.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}

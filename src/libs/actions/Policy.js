@@ -14,9 +14,18 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
-import DraftReportUtils from '../DraftReportUtils';
 
-const draftReportUtils = DraftReportUtils.getInstance();
+let draftReportIDs = {};
+Onyx.connect({
+    key: ONYXKEYS.DRAFT_REPORT_IDS,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        draftReportIDs = val;
+    },
+});
 
 const allPolicies = {};
 Onyx.connect({
@@ -33,7 +42,6 @@ Onyx.connect({
             const policyReports = ReportUtils.getAllPolicyReports(policyID);
             const cleanUpMergeQueries = {};
             const cleanUpSetQueries = {};
-            const draftReportIDs = {...draftReportUtils.getDraftReportIDs()};
             _.each(policyReports, ({reportID}) => {
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
                 delete draftReportIDs[reportID];
