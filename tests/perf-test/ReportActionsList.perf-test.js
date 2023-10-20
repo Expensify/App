@@ -134,7 +134,7 @@ test('should render ReportActionsList with 500 reportActions stored', () => {
     const scenario = async () => {
         await screen.findByTestId('report-actions-list');
         const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
-        // Esure that the list of items are rendered
+        // Ensure that the list of items is rendered
         await screen.findAllByLabelText(hintText);
     };
 
