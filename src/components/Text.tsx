@@ -45,7 +45,7 @@ function Text(
         fontSize,
         textAlign,
         fontFamily: fontFamily[family],
-        ...(typeof mergedStyles === 'object' ? mergedStyles : {}),
+        ...mergedStyles,
     };
 
     if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal) {
