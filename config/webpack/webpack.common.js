@@ -83,7 +83,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/favicon-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'web/apple-touch-icon.png'},
-                {from: 'web/expensify-app-icon.svg'},
+                {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
