@@ -1227,6 +1227,14 @@ function shouldShowGBR(report) {
         return false;
     }
 
+    if (report.isUnreadWithMention) {
+        return true;
+    }
+
+    if (report.isWaitingForTaskCompleteFromAssignee) {
+        return true;
+    }
+
     // Money request waiting for current user to add their credit bank account
     if (report.hasOutstandingIOU && report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
         return true;
