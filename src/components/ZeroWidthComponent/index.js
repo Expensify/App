@@ -1,23 +1,32 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import * as EmojiUtils from '../../libs/EmojiUtils';
 import * as Browser from '../../libs/Browser';
+import Text from '../Text';
 
-/**
- * Checks text element for presence of emoji as first character
- * and insert Zero-Width character to avoid selection issue
- * mentioned here https://github.com/Expensify/App/issues/29021
- *
- * @param {String} text
- * @param {Boolean} displayAsGroup
- * @returns {ReactNode | null} Text component with zero width character
- */
+const propTypes = {
+    /** If this is the Concierge chat, we'll open the modal for requesting a setup call instead of showing popover menu */
+    text: PropTypes.string,
 
-const checkForEmojiForSelection = ({text, displayAsGroup}) => {
+    /** URL to the assigned guide's appointment booking calendar */
+    displayAsGroup: PropTypes.bool,
+};
+
+const defaultProps = {
+    text: '',
+    displayAsGroup: false,
+};
+
+function ZeroWidthComponent({text, displayAsGroup}) {
     const firstLetterIsEmoji = EmojiUtils.isFirstLetterEmoji(text);
     if (firstLetterIsEmoji && !displayAsGroup && !Browser.isMobile()) {
         return <Text>&#x200b;</Text>;
     }
     return null;
-};
+}
 
-export default checkForEmojiForSelection;
+ZeroWidthComponent.propTypes = propTypes;
+ZeroWidthComponent.defaultProps = defaultProps;
+ZeroWidthComponent.displayName = 'ZeroWidthComponent';
+
+export default ZeroWidthComponent;
