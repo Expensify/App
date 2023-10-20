@@ -317,7 +317,7 @@ function ReportScreen({
                 prevOnyxReportID === routeReportID &&
                 !onyxReportID &&
                 prevReport.statusNum === CONST.REPORT.STATUS.OPEN &&
-                (report.statusNum === CONST.REPORT.STATUS.CLOSED || !report.statusNum))
+                (report.statusNum === CONST.REPORT.STATUS.CLOSED || (!report.statusNum && !prevReport.parentReportID)))
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
