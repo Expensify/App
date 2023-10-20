@@ -5,11 +5,11 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../withViewportOffsetTop';
-import compose from '../../libs/compose';
 import * as StyleUtils from '../../styles/StyleUtils';
 import calculateAnchorPosition from '../../libs/calculateAnchorPosition';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -33,6 +33,7 @@ const EmojiPicker = forwardRef((props, ref) => {
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
     const emojiSearchInput = useRef();
+    const {windowHeight} = useWindowDimensions();
 
     /**
      * Show the emoji picker menu.
@@ -161,7 +162,7 @@ const EmojiPicker = forwardRef((props, ref) => {
                 height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
             }}
             anchorAlignment={emojiPopoverAnchorOrigin}
-            outerStyle={StyleUtils.getOuterModalStyle(props.windowHeight, props.viewportOffsetTop)}
+            outerStyle={StyleUtils.getOuterModalStyle(windowHeight, props.viewportOffsetTop)}
             innerContainerStyle={styles.popoverInnerContainer}
             avoidKeyboard
         >
@@ -175,4 +176,4 @@ const EmojiPicker = forwardRef((props, ref) => {
 
 EmojiPicker.propTypes = propTypes;
 EmojiPicker.displayName = 'EmojiPicker';
-export default compose(withViewportOffsetTop, withWindowDimensions)(EmojiPicker);
+export default withViewportOffsetTop(EmojiPicker);

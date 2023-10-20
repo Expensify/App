@@ -11,7 +11,7 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import emojiAssets from '../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../Text';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
+import {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import compose from '../../../libs/compose';
 import getOperatingSystem from '../../../libs/getOperatingSystem';
@@ -23,6 +23,7 @@ import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
 import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -52,7 +53,9 @@ const defaultProps = {
 const throttleTime = Browser.isMobile() ? 200 : 50;
 
 function EmojiPickerMenu(props) {
-    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, isSmallScreenWidth, windowHeight, translate} = props;
+    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, isSmallScreenWidth, translate} = props;
+
+    const {windowHeight} = useWindowDimensions();
 
     // Ref for the emoji search input
     const searchInputRef = useRef(null);
@@ -532,7 +535,6 @@ EmojiPickerMenu.propTypes = propTypes;
 EmojiPickerMenu.defaultProps = defaultProps;
 
 export default compose(
-    withWindowDimensions,
     withLocalize,
     withOnyx({
         preferredSkinTone: {
