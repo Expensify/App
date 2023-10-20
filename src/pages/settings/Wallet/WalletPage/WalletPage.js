@@ -380,6 +380,10 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                 shouldIncludeDebitCard={hasActivatedWallet}
                                             >
                                                 {(triggerKYCFlow, buttonRef) => {
+                                                    if (shouldShowLoadingSpinner) {
+                                                        return null;
+                                                    }
+
                                                     if (hasActivatedWallet) {
                                                         return (
                                                             <MenuItem
@@ -394,9 +398,9 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                         );
                                                     }
 
-                                                    if (isPendingOnfidoResult && !shouldShowLoadingSpinner) {
+                                                    if (isPendingOnfidoResult) {
                                                         return (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mh5]}>
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5]}>
                                                                 <Icon
                                                                     src={Expensicons.Hourglass}
                                                                     fill={theme.icon}
