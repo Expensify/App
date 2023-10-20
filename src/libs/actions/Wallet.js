@@ -69,12 +69,13 @@ function setAdditionalDetailsErrorMessage(additionalErrorMessage) {
 }
 
 /**
- * Save the ID of the chat whose IOU triggered showing the KYC wall.
+ * Save the source that triggered the KYC wall and optionally the chat report ID associated with the IOU
  *
+ * @param {String} source
  * @param {String} chatReportID
  */
-function setKYCWallSourceChatReportID(chatReportID) {
-    Onyx.merge(ONYXKEYS.WALLET_TERMS, {chatReportID});
+function setKYCWallSource(source, chatReportID = '') {
+    Onyx.merge(ONYXKEYS.WALLET_TERMS, {source, chatReportID});
 }
 
 /**
@@ -333,5 +334,5 @@ export {
     updatePersonalDetails,
     verifyIdentity,
     acceptWalletTerms,
-    setKYCWallSourceChatReportID,
+    setKYCWallSource,
 };
