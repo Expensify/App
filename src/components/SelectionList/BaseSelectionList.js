@@ -175,7 +175,9 @@ function BaseSelectionList({
 
             listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
         },
-        [flattenedSections.allOptions, sections],
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [flattenedSections.allOptions],
     );
 
     /**
