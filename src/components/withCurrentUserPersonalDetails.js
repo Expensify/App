@@ -32,7 +32,7 @@ export default function (WrappedComponent) {
     };
 
     function WithCurrentUserPersonalDetails(props) {
-        const personalDetails = usePersonalDetails();
+        const personalDetails = usePersonalDetails() || {};
         const accountID = props.session.accountID;
         const accountPersonalDetails = personalDetails[accountID];
         const currentUserPersonalDetails = useMemo(() => ({...accountPersonalDetails, accountID}), [accountPersonalDetails, accountID]);
