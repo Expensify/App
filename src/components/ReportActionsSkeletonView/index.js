@@ -14,7 +14,7 @@ const propTypes = {
 
 const defaultProps = {
     shouldAnimate: true,
-    possibleVisibleContentItems: 0
+    possibleVisibleContentItems: 0,
 };
 
 function ReportActionsSkeletonView({shouldAnimate, possibleVisibleContentItems}) {
