@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import filter from 'lodash/filter';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashUnion from 'lodash/union';
@@ -125,8 +126,7 @@ function hasActiveFreePolicy(policies) {
  * @param {String} policyName
  */
 function deleteWorkspace(policyID, reports, policyName) {
-    const filteredPolicies = _.filter(allPolicies, (policy) => policy.id !== policyID);
-    const hasActivePolicy = hasActiveFreePolicy(filteredPolicies);
+    const filteredPolicies = filter(allPolicies, (policy) => policy.id !== policyID);
     const oldReimbursementAccount = reimbursementAccount;
 
     const optimisticData = [
@@ -166,7 +166,7 @@ function deleteWorkspace(policyID, reports, policyName) {
             };
         }),
 
-        ...(!hasActivePolicy
+        ...(!hasActiveFreePolicy(filteredPolicies)
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
@@ -194,7 +194,9 @@ function deleteWorkspace(policyID, reports, policyName) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-            value: oldReimbursementAccount,
+            value: {
+                errors: lodashGet(oldReimbursementAccount, 'errors', null),
+            },
         },
     ];
 
