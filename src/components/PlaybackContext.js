@@ -1,4 +1,4 @@
-import React, {useMemo, useState, useCallback, useRef, useEffect} from 'react';
+import React, {useMemo, useState, useCallback, useEffect} from 'react';
 import PropTypes from 'prop-types';
 
 const PlaybackContext = React.createContext(null);
@@ -11,17 +11,17 @@ function PlaybackContextProvider({children}) {
 
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const currentVideoPLayerRef = useRef(null);
+    const [currentVideoPlayerRef, setCurrentVideoPlayerRef] = useState(null);
 
     const pauseVideo = useCallback(() => {
-        currentVideoPLayerRef.current.setStatusAsync({shouldPlay: false});
+        currentVideoPlayerRef.setStatusAsync({shouldPlay: false});
         setIsPlaying(false);
-    }, []);
+    }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
-        currentVideoPLayerRef.current.setStatusAsync({shouldPlay: true});
+        currentVideoPlayerRef.setStatusAsync({shouldPlay: true});
         setIsPlaying(true);
-    }, []);
+    }, [currentVideoPlayerRef]);
 
     const updateCurrentlyPlayingURL = useCallback(
         (url) => {
@@ -33,10 +33,17 @@ function PlaybackContextProvider({children}) {
         [currentlyPlayingURL, pauseVideo],
     );
 
-    const updateVolume = useCallback((newVolume) => {
-        currentVideoPLayerRef.current.setStatusAsync({volume: newVolume});
-        setVolume(newVolume);
+    const updateCurrentVideoPlayerRef = useCallback((ref) => {
+        setCurrentVideoPlayerRef(ref);
     }, []);
+
+    const updateVolume = useCallback(
+        (newVolume) => {
+            currentVideoPlayerRef.setStatusAsync({volume: newVolume});
+            setVolume(newVolume);
+        },
+        [currentVideoPlayerRef],
+    );
 
     const updateSharedElements = (parent, child) => {
         setOriginalParent(parent);
@@ -44,25 +51,29 @@ function PlaybackContextProvider({children}) {
     };
 
     const togglePlay = useCallback(() => {
-        currentVideoPLayerRef.current.setStatusAsync({shouldPlay: !isPlaying});
+        currentVideoPlayerRef.setStatusAsync({shouldPlay: !isPlaying});
         setIsPlaying(!isPlaying);
-    }, [isPlaying]);
+    }, [currentVideoPlayerRef, isPlaying]);
 
-    const enterFullScreenMode = () => {
-        currentVideoPLayerRef.current.presentFullscreenPlayer();
-    };
+    const enterFullScreenMode = useCallback(() => {
+        currentVideoPlayerRef.presentFullscreenPlayer();
+    }, [currentVideoPlayerRef]);
 
-    const updatePostiion = (newPosition) => {
-        currentVideoPLayerRef.current.setStatusAsync({positionMillis: newPosition});
-    };
+    const updatePostiion = useCallback(
+        (newPosition) => {
+            currentVideoPlayerRef.setStatusAsync({positionMillis: newPosition});
+        },
+        [currentVideoPlayerRef],
+    );
 
+    // actions after videoRef is set
     useEffect(() => {
-        if (currentVideoPLayerRef.current && !isPlaying) {
+        if (currentVideoPlayerRef && !isPlaying) {
             playVideo();
         }
         return () => {};
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentVideoPLayerRef.current, playVideo]);
+    }, [currentVideoPlayerRef, playVideo]);
 
     const contextValue = useMemo(
         () => ({
@@ -73,13 +84,27 @@ function PlaybackContextProvider({children}) {
             updateSharedElements,
             volume,
             updateVolume,
-            currentVideoPLayerRef,
             togglePlay,
             isPlaying,
             enterFullScreenMode,
             updatePostiion,
+            currentVideoPlayerRef,
+            updateCurrentVideoPlayerRef,
         }),
-        [currentlyPlayingURL, isPlaying, originalParent, sharedElement, togglePlay, updateCurrentlyPlayingURL, updateVolume, volume],
+        [
+            currentVideoPlayerRef,
+            currentlyPlayingURL,
+            enterFullScreenMode,
+            isPlaying,
+            originalParent,
+            sharedElement,
+            togglePlay,
+            updateCurrentVideoPlayerRef,
+            updateCurrentlyPlayingURL,
+            updatePostiion,
+            updateVolume,
+            volume,
+        ],
     );
     return <PlaybackContext.Provider value={contextValue}>{children}</PlaybackContext.Provider>;
 }

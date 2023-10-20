@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {Video, ResizeMode} from 'expo-av';
@@ -10,6 +10,7 @@ import VideoPlayerControls from './VideoPlayerControls';
 import PopoverMenu from '../PopoverMenu';
 import * as Expensicons from '../Icon/Expensicons';
 import fileDownload from '../../libs/fileDownload';
+import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
     url: PropTypes.string.isRequired,
@@ -43,19 +44,15 @@ const defaultProps = {
 
 function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement}) {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {currentlyPlayingURL, updateSharedElements, currentVideoPLayerRef, sharedElement, originalParent} = usePlaybackContext();
-    const [duration, setDuration] = React.useState(0);
-    const [position, setPosition] = React.useState(0);
-    const [isVideoLoading, setIsVideoLoading] = React.useState(false);
+    const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, updateCurrentVideoPlayerRef} = usePlaybackContext();
+    const [duration, setDuration] = useState(0);
+    const [position, setPosition] = useState(0);
+    const [isVideoLoading, setIsVideoLoading] = React.useState(true);
 
-    const [isPlaybackMenuActive, setIsPlaybackMenuActive] = React.useState(false);
-    const [popoverAnchorPosition, setPopoverAnchorPosition] = React.useState({vertical: 0, horizontal: 0});
+    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({vertical: 0, horizontal: 0});
 
-    const [isCreateMenuActive, setIsCreateMenuActive] = React.useState(false);
+    const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const ref = useRef(null);
-    if (currentlyPlayingURL === url && !shouldUseSharedVideoElement) {
-        currentVideoPLayerRef.current = ref.current;
-    }
 
     const videoPlayerParentRef = useRef(null);
     const videoPlayerRef = useRef(null);
@@ -91,7 +88,6 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
             text: 'Playback speed',
             onSelected: () => {
                 console.log('Playback speed');
-                setIsPlaybackMenuActive(true);
             },
             shouldShowRightIcon: true,
         },
@@ -101,7 +97,6 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
             return;
         }
-        console.log('update shared elements', videoPlayerRef.current);
         updateSharedElements(videoPlayerParentRef.current, videoPlayerRef.current);
     }, [currentlyPlayingURL, shouldUseSharedVideoElement, updateSharedElements, url]);
 
@@ -112,7 +107,6 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         }
         const reff = testRef.current;
         if (currentlyPlayingURL === url) {
-            console.log('set shared element', videoPlayerRef.current);
             reff.appendChild(sharedElement);
         }
         return () => {
@@ -122,6 +116,13 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
             originalParent.appendChild(sharedElement);
         };
     }, [currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+
+    useEffect(() => {
+        if (currentlyPlayingURL === url && !shouldUseSharedVideoElement) {
+            updateCurrentVideoPlayerRef(ref.current);
+        }
+        return () => {};
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, updateCurrentVideoPlayerRef, url]);
 
     return (
         <View style={[styles.w100, styles.h100]}>
@@ -172,16 +173,16 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                 </View>
             )}
 
-            {/* {isVideoLoading && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />} */}
-
-            {/* {((!isVideoLoading && (isHovered || isSmallScreenWidth)) || isCreateMenuActive) && ( */}
-            <VideoPlayerControls
-                duration={duration}
-                position={position}
-                toggleCreateMenu={toggleCreateMenu}
-                url={url}
-            />
-            {/* )} */}
+            {isVideoLoading ? (
+                <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
+            ) : (
+                <VideoPlayerControls
+                    duration={duration}
+                    position={position}
+                    toggleCreateMenu={toggleCreateMenu}
+                    url={url}
+                />
+            )}
 
             <PopoverMenu
                 onClose={hideCreateMenu}
