@@ -14,13 +14,13 @@ const propTypes = {
 
 const defaultProps = {
     shouldAnimate: true,
-    possibleVisibleContentItems: Math.ceil(Dimensions.get('window').height / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT),
+    possibleVisibleContentItems: 0
 };
 
 function ReportActionsSkeletonView({shouldAnimate, possibleVisibleContentItems}) {
-    // Determines the number of content items based on container height
+    const contentItems = possibleVisibleContentItems || Math.ceil(Dimensions.get('window').height / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
     const skeletonViewLines = [];
-    for (let index = 0; index < possibleVisibleContentItems; index++) {
+    for (let index = 0; index < contentItems; index++) {
         const iconIndex = (index + 1) % 4;
         switch (iconIndex) {
             case 2:

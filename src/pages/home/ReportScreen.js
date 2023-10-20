@@ -164,7 +164,7 @@ function ReportScreen({
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isFirstlyLoadingReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
 
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
 
@@ -238,12 +238,12 @@ function ReportScreen({
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (report.reportID && report.reportID === getReportID(route) && !isFirstlyLoadingReportActions) {
+        if (report.reportID && report.reportID === getReportID(route) && !isLoadingInitialReportActions) {
             return;
         }
 
         Report.openReport(reportIDFromPath);
-    }, [report.reportID, route, isFirstlyLoadingReportActions]);
+    }, [report.reportID, route, isLoadingInitialReportActions]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -259,7 +259,7 @@ function ReportScreen({
     const onSubmitComment = useCallback(
         (text) => {
             Report.addComment(getReportID(route), text);
-            // we need to scroll to the bottom of the list after the comment was added
+             // We need to scroll to the bottom of the list after the comment is added
             const refID = setTimeout(() => {
                 flatListRef.current.scrollToOffset({animated: false, offset: 0});
             }, 10);
@@ -429,7 +429,7 @@ function ReportScreen({
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
                             >
-                                {isReportReadyForDisplay && !isFirstlyLoadingReportActions && !isLoading && (
+                                {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
@@ -444,7 +444,7 @@ function ReportScreen({
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
                                     If we prevent rendering the report while they are loading then
                                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {(!isReportReadyForDisplay || isFirstlyLoadingReportActions || isLoading) && <ReportActionsSkeletonView />}
+                                {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
                                 {isReportReadyForDisplay ? (
                                     <ReportFooter

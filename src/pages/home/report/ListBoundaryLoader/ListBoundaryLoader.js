@@ -52,7 +52,6 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
             );
         }
 
-        return null;
     }
     if (type === CONST.LIST_COMPONENTS.HEADER && isLoadingNewerReportActions) {
         // applied for a header of the list, i.e. when you scroll to the bottom of the list
@@ -66,10 +65,10 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
             </View>
         );
     }
-    return null;
 }
 
 ListBoundaryLoader.propTypes = propTypes;
 ListBoundaryLoader.defaultProps = defaultProps;
+ListBoundaryLoader.displayName = "ListBoundaryLoader"
 
 export default ListBoundaryLoader;
