@@ -4065,6 +4065,5 @@ export {
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
     isReportDraft,
-    parseReportRouteParams,
     shouldUseFullTitleToDisplay,
 };
