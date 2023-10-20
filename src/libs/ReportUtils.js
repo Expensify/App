@@ -3722,6 +3722,21 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
 }
 
 /**
+ * Check if the report can create the request with type is iouType
+ * @param {Object} report
+ * @param {Array} betas
+ * @param {String} iouType
+ * @returns {Boolean}
+ */
+function canCreateRequest(report, betas, iouType) {
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+    if (shouldDisableWriteActions(report)) {
+        return false;
+    }
+    return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
+}
+
+/**
  * @param {String} policyID
  * @param {Array} accountIDs
  * @returns {Array}
@@ -4050,6 +4065,7 @@ export {
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
+    canCreateRequest,
     hasIOUWaitingOnCurrentUserBankAccount,
     canRequestMoney,
     getWhisperDisplayNames,
