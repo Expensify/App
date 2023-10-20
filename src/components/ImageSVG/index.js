@@ -3,7 +3,19 @@ import {propTypes, defaultProps} from './imageSVGPropTypes';
 
 function ImageSVG({src, width, height, fill, hovered, pressed, style, pointerEvents, preserveAspectRatio}) {
     const ImageSvgComponent = src;
-    const fillProp = fill ? {fill} : {};
+    const additionalProps = {};
+
+    if (fill) {
+        additionalProps.fill = fill;
+    }
+
+    if (pointerEvents) {
+        additionalProps.pointerEvents = pointerEvents;
+    }
+
+    if (preserveAspectRatio) {
+        additionalProps.preserveAspectRatio = preserveAspectRatio;
+    }
 
     return (
         <ImageSvgComponent
@@ -12,10 +24,8 @@ function ImageSVG({src, width, height, fill, hovered, pressed, style, pointerEve
             hovered={hovered.toString()}
             pressed={pressed.toString()}
             style={style}
-            pointerEvents={pointerEvents}
-            preserveAspectRatio={preserveAspectRatio}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...fillProp}
+            {...additionalProps}
         />
     );
 }
