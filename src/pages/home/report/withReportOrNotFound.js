@@ -57,7 +57,7 @@ export default function (shouldRequireReportID = true) {
         function WithReportOrNotFound(props) {
             const contentShown = React.useRef(false);
 
-            const isReportIdInParam = !_.isUndefined(props.route.params.reportID);
+            const isReportIdInRoute = !_.isUndefined(props.route.params.reportID);
 
             // If we should require reportID or we have a reportID in the route, we will check the reportID is valid or not
             if (shouldRequireReportID || isReportIdInParam) {
