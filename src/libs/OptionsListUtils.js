@@ -418,14 +418,16 @@ function getLastMessageTextForReport(report) {
         const lastNonWhisper =
             _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action) && !ReportActionUtils.isDeletedParentAction(action)) || {};
         if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
-            if (ReportActionUtils.isThreadParentMessage(lastNonWhisper)) {
-                return Localize.translateLocal(CONST.TRANSLATION_KEYS.HIDDEN_MESSSAGE);
-            }
             const latestVisibleAction =
                 _.find(
                     allSortedReportActions[report.reportID],
                     (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action) && !ReportActionUtils.isCreatedAction(action),
                 ) || {};
+
+            if (ReportActionUtils.isThreadParentMessage(latestVisibleAction) && ReportActionUtils.isPendingRemove(latestVisibleAction)) {
+                return Localize.translateLocal(CONST.TRANSLATION_KEYS.HIDDEN_MESSSAGE);
+            }
+
             lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
         }
     }
