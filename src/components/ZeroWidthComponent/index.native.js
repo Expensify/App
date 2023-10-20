@@ -1,3 +1,5 @@
-const checkForEmojiForSelection = () => null;
+function ZeroWidthComponent() {
+    return null;
+}
 
-export default checkForEmojiForSelection;
+export default ZeroWidthComponent;
