@@ -399,7 +399,7 @@ class ReimbursementAccountPage extends React.Component {
         }
         const isLoading =
             (this.props.isLoadingReportData || this.props.account.isLoading || this.props.reimbursementAccount.isLoading) &&
-            (!this.props.plaidCurrentEvent || this.props.plaidCurrentEvent === 'EXIT');
+            (!this.props.plaidCurrentEvent || this.props.plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
 
         // Prevent the full-page blocking offline view from being displayed for these steps if the device goes offline.
         const shouldShowOfflineLoader = !(

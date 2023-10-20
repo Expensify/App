@@ -2,6 +2,7 @@ import {useEffect} from 'react';
 import {openLink, useDeepLinkRedirector, usePlaidEmitter, dismissLink} from 'react-native-plaid-link-sdk';
 import Log from '../../libs/Log';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
+import CONST from '../../CONST';
 
 function PlaidLink(props) {
     useDeepLinkRedirector();
@@ -10,7 +11,7 @@ function PlaidLink(props) {
         props.onEvent(event.eventName, event.metadata);
     });
     useEffect(() => {
-        props.onEvent('OPEN', {});
+        props.onEvent(CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.OPEN, {});
         openLink({
             tokenConfig: {
                 token: props.token,
