@@ -16,7 +16,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import * as CloseAccount from '../../../libs/actions/CloseAccount';
 import ONYXKEYS from '../../../ONYXKEYS';
-import Form from '../../../components/Form';
 import CONST from '../../../CONST';
 import ConfirmModal from '../../../components/ConfirmModal';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
