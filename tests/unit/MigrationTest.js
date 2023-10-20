@@ -684,5 +684,22 @@ describe('Migrations', () => {
                         },
                     });
                 }));
+
+        it("Shouldn't move empty individual draft to a draft collection of report", () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]: '',
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1`]: {},
+            })
+                .then(KeyReportActionsDraftByReportActionID)
+                .then(() => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActionsDrafts) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
+                        },
+                    });
+                }));
     });
 });

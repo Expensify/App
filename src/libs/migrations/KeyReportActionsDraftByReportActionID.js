@@ -31,6 +31,10 @@ export default function () {
                     }
                     newReportActionsDrafts[onyxKey] = null;
 
+                    if (_.isEmpty(reportActionDraft)) {
+                        return;
+                    }
+
                     const reportActionID = onyxKey.split('_').pop();
                     const newOnyxKey = onyxKey.replace(`_${reportActionID}`, '');
                     newReportActionsDrafts[newOnyxKey] = {
