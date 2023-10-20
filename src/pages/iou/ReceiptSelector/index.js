@@ -103,7 +103,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
 
     function validateReceipt(file) {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!_.contains(CONST.API_RECEIPT_EXTENSIONS, fileExtension.toLowerCase())) {
+        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS, fileExtension.toLowerCase())) {
             setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
         }

@@ -50,9 +50,10 @@ const CONST = {
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
-    },
 
-    API_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
+        // Allowed extensions for receipts
+        ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
+    },
 
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
