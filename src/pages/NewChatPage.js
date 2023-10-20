@@ -71,16 +71,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         const sectionsList = [];
         let indexOffset = 0;
 
-        // Only show the selected participants if the search is empty
-        if (searchTerm === '') {
-            sectionsList.push({
-                title: undefined,
-                data: selectedOptions,
-                shouldShow: !_.isEmpty(selectedOptions),
-                indexOffset,
-            });
-            indexOffset += selectedOptions.length;
-        }
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, {}, false, indexOffset);
+        sectionsList.push(formatResults.section);
+        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return sectionsList;
