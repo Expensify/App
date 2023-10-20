@@ -194,7 +194,7 @@ function signIn(password, twoFactorAuthCode) {
 }
 ```
 
-Keeping our `Onyx.merge()` out of the view layer and in actions helps organize things as all interactions with device storage and API handling happen in the same place. In addition, actions that are called from inside views should not ever use the `.then()` method to set loading/error states, navigate or do any additional data processing. All of this stuff should ideally go into `Onyx` and be fed back to the component via `withOnyx()`. Design your actions so they clearly describe what they will do and encapsulate all their logic in that action.
+Keeping our `Onyx.merge()` out of the view layer and in actions helps organize things as all interactions with device storage and API handling happen in the same place. In addition, actions that are called from inside views should not ever use the `.then()` method to set loading/error states, navigate or do any additional data processing. All of this stuff should ideally go into `Onyx` and be fed back to the component via `withOnyx()`. Design your actions so that they clearly describe what they will do and encapsulate all of their logic in that action.
 
 ```javascript
 // Bad
