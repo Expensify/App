@@ -864,6 +864,7 @@ export default {
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del Espacio de Trabajo para gestionar los gastos de la empresa.',
         expensifyCard: 'Tarjeta Expensify',
+        walletActivationPending: 'Estamos revisando la información y nos pondremos en contacto contigo en breve.',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',

@@ -25,8 +25,8 @@ type UserWallet = {
     /** The user's wallet tier */
     tier?: number;
 
-    /** Whether we should show the ActivateStep success view after the user finished the KYC flow */
-    shouldShowWalletActivationSuccess?: boolean;
+    /** Whether the kyc is pending and is yet to be confirmed */
+    isPendingOnfidoResult?: boolean;
 
     /** The ID of the linked account */
     walletLinkedAccountID: number;

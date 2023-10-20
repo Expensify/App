@@ -216,7 +216,7 @@ function acceptWalletTerms(parameters) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
-                shouldShowWalletActivationSuccess: true,
+                isPendingOnfidoResult: true,
             },
         },
     ];
@@ -236,7 +236,7 @@ function acceptWalletTerms(parameters) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
-                shouldShowWalletActivationSuccess: null,
+                isPendingOnfidoResult: null,
                 shouldShowFailedKYC: true,
             },
         },

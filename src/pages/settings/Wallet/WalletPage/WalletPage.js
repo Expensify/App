@@ -8,10 +8,13 @@ import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation, {navigationRef} from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
+import theme from '../../../../styles/themes/default';
 import compose from '../../../../libs/compose';
 import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 import Popover from '../../../../components/Popover';
 import MenuItem from '../../../../components/MenuItem';
+import Text from '../../../../components/Text';
+import Icon from '../../../../components/Icon';
 import * as PaymentMethods from '../../../../libs/actions/PaymentMethods';
 import getClickedTargetLocation from '../../../../libs/getClickedTargetLocation';
 import CurrentWalletBalance from '../../../../components/CurrentWalletBalance';
@@ -65,6 +68,8 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     const hasActivatedWallet = _.contains([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM], userWallet.tierName);
     const hasAssignedCard = !_.isEmpty(cardList);
     const shouldShowEmptyState = !hasBankAccount && !hasWallet && !hasAssignedCard;
+
+    const {isPendingOnfidoResult} = userWallet;
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change
@@ -357,6 +362,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                     <CurrentWalletBalance balanceStyles={[styles.walletBalance]} />
                                                 </OfflineWithFeedback>
                                             )}
+
                                             <KYCWall
                                                 onSuccessfulKYC={(_iouPaymentType, source) => navigateToWalletOrTransferBalancePage(source)}
                                                 onSelectPaymentMethod={(selectedPaymentMethod) => {
@@ -373,18 +379,34 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                 source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                                 shouldIncludeDebitCard={hasActivatedWallet}
                                             >
-                                                {(triggerKYCFlow, buttonRef) =>
-                                                    hasActivatedWallet ? (
-                                                        <MenuItem
-                                                            ref={buttonRef}
-                                                            title={translate('common.transferBalance')}
-                                                            icon={Expensicons.Transfer}
-                                                            onPress={triggerKYCFlow}
-                                                            shouldShowRightIcon
-                                                            disabled={network.isOffline}
-                                                            wrapperStyle={styles.transferBalance}
-                                                        />
-                                                    ) : (
+                                                {(triggerKYCFlow, buttonRef) => {
+                                                    if (hasActivatedWallet) {
+                                                        return (
+                                                            <MenuItem
+                                                                ref={buttonRef}
+                                                                title={translate('common.transferBalance')}
+                                                                icon={Expensicons.Transfer}
+                                                                onPress={triggerKYCFlow}
+                                                                shouldShowRightIcon
+                                                                disabled={network.isOffline}
+                                                                wrapperStyle={styles.transferBalance}
+                                                            />
+                                                        );
+                                                    }
+
+                                                    if (isPendingOnfidoResult && !shouldShowLoadingSpinner) {
+                                                        return (
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mh5]}>
+                                                                <Icon
+                                                                    src={Expensicons.Hourglass}
+                                                                    fill={theme.icon}
+                                                                />
+                                                                <Text style={[styles.inlineSystemMessage]}>{translate('walletPage.walletActivationPending')}</Text>
+                                                            </View>
+                                                        );
+                                                    }
+
+                                                    return (
                                                         <Button
                                                             ref={buttonRef}
                                                             text={translate('walletPage.enableWallet')}
@@ -394,8 +416,8 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                             success
                                                             large
                                                         />
-                                                    )
-                                                }
+                                                    );
+                                                }}
                                             </KYCWall>
                                         </>
                                     </WalletSection>
