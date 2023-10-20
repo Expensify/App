@@ -626,7 +626,7 @@ function ReportActionItem(props) {
 
     // For the `pay` IOU action on non-send money flow we don't want to show anything
     // as the preview action is already shown by the create IOU action above
-    if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+    if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lodashGet(props.iouReport, 'isWaitingOnBankAccount', false) && originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
         return null;
     }
 
