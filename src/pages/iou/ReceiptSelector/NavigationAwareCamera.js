@@ -31,7 +31,7 @@ const defaultProps = {
 function useTabNavigatorFocus({cameraTabIndex, isInTabNavigator}) {
     // Get navigation to get initial isFocused value (only needed once during init!)
     const isPageFocused = useIsFocused();
-    const [isTabFocused, setIsTabFocused] = useState(isPageFocused);
+    const [isTabFocused, setIsTabFocused] = useState(false);
 
     // Retrieve the animation value from the tab navigator, which ranges from 0 to the total number of pages displayed.
     // Even a minimal scroll towards the camera page (e.g., a value of 0.001 at start) should activate the camera for immediate responsiveness.
@@ -84,7 +84,11 @@ const NavigationAwareCamera = React.forwardRef(({torchOn, onTorchAvailability, c
         }
 
         trackRef.current.applyConstraints({
-            advanced: [{torch: torchOn}],
+            advanced: [
+                {
+                    torch: torchOn,
+                },
+            ],
         });
     }, [torchOn]);
 
