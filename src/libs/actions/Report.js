@@ -1735,25 +1735,6 @@ function clearIOUError(reportID) {
 }
 
 /**
- * Returns true if the accountID has reacted to the report action (with the given skin tone).
- * Uses the NEW FORMAT for "emojiReactions"
- * @param {String} accountID
- * @param {Array<Object | String | number>} users
- * @param {Number} [skinTone]
- * @returns {boolean}
- */
-function hasAccountIDEmojiReacted(accountID, users, skinTone) {
-    if (_.isUndefined(skinTone)) {
-        return Boolean(users[accountID]);
-    }
-    const usersReaction = users[accountID];
-    if (!usersReaction || !usersReaction.skinTones || !_.size(usersReaction.skinTones)) {
-        return false;
-    }
-    return Boolean(usersReaction.skinTones[skinTone]);
-}
-
-/**
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
@@ -1882,7 +1863,7 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
-    if (existingReactionObject && hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
+    if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
         return;
     }
@@ -2452,7 +2433,6 @@ export {
     notifyNewAction,
     showReportActionNotification,
     toggleEmojiReaction,
-    hasAccountIDEmojiReacted,
     shouldShowReportActionNotification,
     leaveRoom,
     inviteToRoom,

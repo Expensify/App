@@ -414,7 +414,9 @@ function getWaypointIndex(key: string): number {
  * Filters the waypoints which are valid and returns those
  */
 function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = false): WaypointCollection {
-    const sortedIndexes = Object.keys(waypoints).map(getWaypointIndex).sort();
+    const sortedIndexes = Object.keys(waypoints)
+        .map(getWaypointIndex)
+        .sort((a, b) => a - b);
     const waypointValues = sortedIndexes.map((index) => waypoints[`waypoint${index}`]);
     // Ensure the number of waypoints is between 2 and 25
     if (waypointValues.length < 2 || waypointValues.length > 25) {
