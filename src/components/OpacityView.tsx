@@ -1,69 +1,61 @@
 import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import PropTypes from 'prop-types';
+import {ViewStyle} from 'react-native';
 import variables from '../styles/variables';
 import * as StyleUtils from '../styles/StyleUtils';
 import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
 
-const propTypes = {
+type OpacityViewProps = {
     /**
      * Should we dim the view
      */
-    shouldDim: PropTypes.bool.isRequired,
+    shouldDim: boolean;
 
     /**
      * Content to render
      */
-    children: PropTypes.node.isRequired,
+    children: React.ReactNode;
 
     /**
      * Array of style objects
      * @default []
      */
     // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+    style: ViewStyle | ViewStyle[];
 
     /**
      * The value to use for the opacity when the view is dimmed
      * @default 0.5
      */
-    dimmingValue: PropTypes.number,
+    dimmingValue?: number;
 
     /** Whether the view needs to be rendered offscreen (for Android only) */
-    needsOffscreenAlphaCompositing: PropTypes.bool,
+    needsOffscreenAlphaCompositing?: boolean;
 };
 
-const defaultProps = {
-    style: [],
-    dimmingValue: variables.hoverDimValue,
-    needsOffscreenAlphaCompositing: false,
-};
-
-function OpacityView(props) {
+function OpacityView({shouldDim, children, style = [], dimmingValue = variables.hoverDimValue, needsOffscreenAlphaCompositing = false}: OpacityViewProps) {
     const opacity = useSharedValue(1);
     const opacityStyle = useAnimatedStyle(() => ({
         opacity: opacity.value,
     }));
 
     React.useEffect(() => {
-        if (props.shouldDim) {
-            opacity.value = withTiming(props.dimmingValue, {duration: 50});
+        if (shouldDim) {
+            opacity.value = withTiming(dimmingValue, {duration: 50});
         } else {
             opacity.value = withTiming(1, {duration: 50});
         }
-    }, [props.shouldDim, props.dimmingValue, opacity]);
+    }, [shouldDim, dimmingValue, opacity]);
 
     return (
         <Animated.View
-            style={[opacityStyle, ...StyleUtils.parseStyleAsArray(props.style)]}
-            needsOffscreenAlphaCompositing={shouldRenderOffscreen ? props.needsOffscreenAlphaCompositing : undefined}
+            style={[opacityStyle, ...StyleUtils.parseStyleAsArray(style)]}
+            needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOffscreenAlphaCompositing : undefined}
         >
-            {props.children}
+            {children}
         </Animated.View>
     );
 }
 
 OpacityView.displayName = 'OpacityView';
-OpacityView.propTypes = propTypes;
-OpacityView.defaultProps = defaultProps;
 export default OpacityView;
