@@ -784,7 +784,7 @@ function getReport(reportID) {
  * @returns {Boolean}
  */
 function isActionCreator(reportAction) {
-    return reportAction.actorAccountID === currentUserAccountID
+    return reportAction.actorAccountID === currentUserAccountID;
 }
 
 /**
