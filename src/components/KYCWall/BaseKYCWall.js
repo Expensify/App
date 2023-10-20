@@ -21,19 +21,23 @@ const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
 // to render the AddPaymentMethodMenu in the correct location.
 function KYCWall({
-    shouldListenForResize,
-    chatReportID,
-    iouReport,
-    fundList,
-    reimbursementAccount,
-    bankAccountList,
-    userWallet,
-    enablePaymentsRoute,
-    onSuccessfulKYC,
     addBankAccountRoute,
     addDebitCardRoute,
     anchorAlignment,
+    bankAccountList,
+    chatReportID,
     children,
+    enablePaymentsRoute,
+    fundList,
+    iouReport,
+    onSelectPaymentMethod,
+    onSuccessfulKYC,
+    reimbursementAccount,
+    shouldIncludeDebitCard,
+    shouldListenForResize,
+    source,
+    userWallet,
+    walletTerms,
 }) {
     const anchorRef = useRef(null);
     const transferBalanceButtonRef = useRef(null);
@@ -108,6 +112,19 @@ function KYCWall({
     }, [chatReportID, setMenuPosition, shouldListenForResize]);
 
     /**
+     * @param {String} paymentMethod
+     */
+    const selectPaymentMethod = (paymentMethod) => {
+        onSelectPaymentMethod(paymentMethod);
+
+        if (paymentMethod === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+            Navigation.navigate(addBankAccountRoute);
+        } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+            Navigation.navigate(addDebitCardRoute);
+        }
+    };
+
+    /**
      * Take the position of the button that calls this method and show the Add Payment method menu when the user has no valid payment method.
      * If they do have a valid payment method they are navigated to the "enable payments" route to complete KYC checks.
      * If they are already KYC'd we will continue whatever action is gated behind the KYC wall.
@@ -116,6 +133,14 @@ function KYCWall({
      * @param {String} iouPaymentType
      */
     const continueAction = (event, iouPaymentType) => {
+        const currentSource = lodashGet(walletTerms, 'source', source);
+
+        /**
+         * Set the source, so we can tailor the process according to how we got here.
+         * We do not want to set this on mount, as the source can change upon completing the flow, e.g. when upgrading the wallet to Gold.
+         */
+        Wallet.setKYCWallSource(source, chatReportID);
+
         if (shouldShowAddPaymentMenu) {
             setShouldShowAddPaymentMenu(false);
 
@@ -132,9 +157,13 @@ function KYCWall({
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (
             (isExpenseReport && lodashGet(reimbursementAccount, 'achData.state', '') !== CONST.BANK_ACCOUNT.STATE.OPEN) ||
-            (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList))
+            (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard))
         ) {
             Log.info('[KYC Wallet] User does not have valid payment method');
+            if (!shouldIncludeDebitCard) {
+                selectPaymentMethod(CONST.PAYMENT_METHODS.BANK_ACCOUNT);
+                return;
+            }
 
             const clickedElementLocation = getClickedTargetLocation(targetElement);
             const position = getAnchorPosition(clickedElementLocation);
@@ -156,17 +185,7 @@ function KYCWall({
         }
 
         Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
-        onSuccessfulKYC(iouPaymentType);
-    };
-
-    const handleItemSelected = (item) => {
-        setShouldShowAddPaymentMenu(false);
-
-        if (item === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            Navigation.navigate(addBankAccountRoute);
-        } else if (item === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            Navigation.navigate(addDebitCardRoute);
-        }
+        onSuccessfulKYC(iouPaymentType, currentSource);
     };
 
     return (
@@ -180,7 +199,10 @@ function KYCWall({
                     vertical: anchorPosition.anchorPositionVertical,
                     horizontal: anchorPosition.anchorPositionHorizontal,
                 }}
-                onItemSelected={handleItemSelected}
+                onItemSelected={(item) => {
+                    setShouldShowAddPaymentMenu(false);
+                    selectPaymentMethod(item);
+                }}
             />
             {children(continueAction, anchorRef)}
         </>
@@ -194,6 +216,9 @@ KYCWall.displayName = 'BaseKYCWall';
 export default withOnyx({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
+    },
+    walletTerms: {
+        key: ONYXKEYS.WALLET_TERMS,
     },
     fundList: {
         key: ONYXKEYS.FUND_LIST,
