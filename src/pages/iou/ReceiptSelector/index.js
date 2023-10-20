@@ -67,8 +67,9 @@ const defaultProps = {
     isInTabNavigator: true,
 };
 
-function ReceiptSelector({route, transactionID, iou, report}) {
+function ReceiptSelector({route, transactionID, iou, report, isInTabNavigator}) {
     const iouType = lodashGet(route, 'params.iouType', '');
+    const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -82,7 +83,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
 
     const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
-    const [isTorchAvailable, setIsTorchAvailable] = useState(true);
+    const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
 
     const hideReciptModal = () => {
@@ -201,6 +202,8 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     torchOn={isFlashLightOn}
                     onTorchAvailability={setIsTorchAvailable}
                     forceScreenshotSourceSize
+                    cameraTabIndex={pageIndex}
+                    isInTabNavigator={isInTabNavigator}
                 />
             </View>
 
