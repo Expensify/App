@@ -11,7 +11,7 @@ import {FilterMethodPaymentType} from '../../types/onyx/WalletTransfer';
 import PaymentMethod from '../../types/onyx/PaymentMethod';
 
 type KYCWallRef = {
-    continueAction?: () => void;
+    continue?: () => void;
 };
 
 /**
@@ -23,14 +23,14 @@ const kycWallRef = createRef<KYCWallRef>();
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
  */
 function continueSetup(fallbackRoute = ROUTES.HOME) {
-    if (!kycWallRef.current?.continueAction) {
+    if (!kycWallRef.current?.continue) {
         Navigation.goBack(fallbackRoute);
         return;
     }
 
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
     Navigation.goBack(fallbackRoute);
-    kycWallRef.current.continueAction();
+    kycWallRef.current.continue();
 }
 
 function openWalletPage() {
