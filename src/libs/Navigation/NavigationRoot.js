@@ -12,9 +12,6 @@ import StatusBar from '../StatusBar';
 import useCurrentReportID from '../../hooks/useCurrentReportID';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import {SidebarNavigationContext} from '../../pages/home/sidebar/SidebarNavigationContext';
-import * as Session from '../actions/Session';
-import getCurrentUrl from './currentUrl';
-import ROUTES from '../../ROUTES';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -136,11 +133,6 @@ function NavigationRoot(props) {
 
         // Update the global navigation to show the correct selected menu items.
         globalNavigation.updateFromNavigationState(state);
-
-        const route = Navigation.getActiveRoute();
-        if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route) && !getCurrentUrl().includes(ROUTES.SIGN_IN_MODAL)) {
-            Session.signOutAndRedirectToSignIn();
-        }
     };
 
     return (

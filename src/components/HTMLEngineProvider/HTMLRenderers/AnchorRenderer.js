@@ -15,6 +15,7 @@ import * as Url from '../../../libs/Url';
 import ROUTES from '../../../ROUTES';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 import useEnvironment from '../../../hooks/useEnvironment';
+import * as Session from '../../../libs/actions/Session';
 
 function AnchorRenderer(props) {
     const htmlAttribs = props.tnode.attributes;
@@ -52,6 +53,10 @@ function AnchorRenderer(props) {
         // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
         // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
         if (internalNewExpensifyPath && hasSameOrigin) {
+            if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(internalNewExpensifyPath)) {
+                Session.signOutAndRedirectToSignIn();
+                return;
+            }
             Navigation.navigate(internalNewExpensifyPath);
             return;
         }
