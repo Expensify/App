@@ -37,9 +37,12 @@ module.exports = {
     overrides: [
         {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
+            plugins: ['react'],
             rules: {
+                'rulesdir/no-multiple-onyx-in-file': 'off',
                 'rulesdir/onyx-props-must-have-default': 'off',
                 'react-native-a11y/has-accessibility-hint': ['off'],
+                'react/jsx-no-constructed-context-values': 'error',
                 'react-native-a11y/has-valid-accessibility-descriptors': [
                     'error',
                     {
@@ -115,7 +118,7 @@ module.exports = {
                     },
                     {
                         selector: ['parameter', 'method'],
-                        format: ['camelCase'],
+                        format: ['camelCase', 'PascalCase'],
                     },
                 ],
                 '@typescript-eslint/ban-types': [

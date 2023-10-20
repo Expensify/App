@@ -15,10 +15,15 @@ import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
 import * as Expensicons from './Icon/Expensicons';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import * as BankAccounts from '../libs/actions/BankAccounts';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
     onPress: PropTypes.func.isRequired,
+
+    /** Call the onPress function on main button when Enter key is pressed */
+    pressOnEnter: PropTypes.bool,
 
     /** Settlement currency type */
     currency: PropTypes.string,
@@ -75,6 +80,7 @@ const propTypes = {
 const defaultProps = {
     isLoading: false,
     isDisabled: false,
+    pressOnEnter: false,
     addBankAccountRoute: '',
     addDebitCardRoute: '',
     currency: CONST.CURRENCY.USD,
@@ -111,6 +117,7 @@ function SettlementButton({
     formattedAmount,
     nvp_lastPaymentMethod,
     onPress,
+    pressOnEnter,
     policyID,
     shouldShowPaymentOptions,
     style,
@@ -186,6 +193,7 @@ function SettlementButton({
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
+            BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             return;
         }
 
@@ -199,8 +207,10 @@ function SettlementButton({
             addBankAccountRoute={addBankAccountRoute}
             addDebitCardRoute={addDebitCardRoute}
             isDisabled={isOffline}
+            source={CONST.KYC_WALL_SOURCE.REPORT}
             chatReportID={chatReportID}
             iouReport={iouReport}
+            anchorAlignment={anchorAlignment}
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
@@ -208,6 +218,7 @@ function SettlementButton({
                     isDisabled={isDisabled}
                     isLoading={isLoading}
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
+                    pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
                     style={style}
                     buttonSize={buttonSize}
