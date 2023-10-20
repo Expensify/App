@@ -329,7 +329,7 @@ function addActions(reportID, text = '', file) {
         isLastMessageDeletedParentAction: null,
     };
 
-    if (ReportUtils.getReportNotificationPreference(reportID) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    if (ReportUtils.getReportNotificationPreference(ReportUtils.getReport(reportID)) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     }
 

@@ -778,13 +778,13 @@ function getReport(reportID) {
 }
 
 /**
- * Get the notification preference given a reportID
+ * Get the notification preference given a report
  *
- * @param {String} reportID
+ * @param {Object} report
  * @returns {String}
  */
-function getReportNotificationPreference(reportID) {
-    return lodashGet(getReport(reportID), 'notificationPreference', '');
+function getReportNotificationPreference(report) {
+    return lodashGet(report, 'notificationPreference', '');
 }
 
 /**
