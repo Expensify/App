@@ -26,10 +26,10 @@ export default function () {
 
                 const newReportActionsDrafts = {};
                 _.each(allReportActionsDrafts, (reportActionDraft, onyxKey) => {
-                    newReportActionsDrafts[onyxKey] = null;
-                    if (!_.isString(reportActionDraft) || _.isEmpty(reportActionDraft)) {
+                    if (!_.isString(reportActionDraft)) {
                         return;
                     }
+                    newReportActionsDrafts[onyxKey] = null;
 
                     const reportActionID = onyxKey.split('_').pop();
                     const newOnyxKey = onyxKey.replace(`_${reportActionID}`, '');
