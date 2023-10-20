@@ -179,7 +179,7 @@ function WorkspaceNewRoomPage(props) {
                 shouldEnablePickerAvoiding={false}
                 testID={WorkspaceNewRoomPage.displayName}
             >
-                {({insets}) => (
+                {({insets}) =>
                     workspaceOptions.length ? (
                         <KeyboardAvoidingView
                             style={styles.h100}
@@ -256,19 +256,19 @@ function WorkspaceNewRoomPage(props) {
                                 icon={Illustrations.ToddBehindCloud}
                                 iconWidth={variables.modalTopIconWidth}
                                 iconHeight={variables.modalTopIconHeight}
-                                title={translate("workspace.emptyWorkspace.notFound")}
-                                subtitle={translate("workspace.emptyWorkspace.description")}
+                                title={translate('workspace.emptyWorkspace.notFound')}
+                                subtitle={translate('workspace.emptyWorkspace.description')}
                                 shouldShowLink={false}
                             />
-                            <Button 
+                            <Button
                                 success
-                                text={translate("footer.learnMore")}
-                                onPress={() =>  Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                                text={translate('footer.learnMore')}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                                 style={[styles.mh5, styles.mb5]}
                             />
                         </>
                     )
-                )}
+                }
             </ScreenWrapper>
         </FullPageNotFoundView>
     );
