@@ -19,11 +19,13 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable es/no-optional-chaining */
 /* eslint-disable no-console */
+/* eslint-disable no-param-reassign */
 
 const fs = require('fs');
 const path = require('path');
 const parser = require('@babel/parser');
 const traverse = require('@babel/traverse');
+const generate = require('@babel/generator');
 
 const fsPromises = fs.promises;
 
@@ -71,7 +73,7 @@ function isClassComponent(ast) {
     return hasReactImport && hasClassComponentDeclaration;
 }
 
-function migrateStylesForClassComponent(filePath, ast) {
+async function migrateStylesForClassComponent(filePath, fileContents, ast) {
     const relativePathToStylesDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/styles');
     traverse.default(ast, {
         ImportDeclaration({node}) {
@@ -88,21 +90,29 @@ function migrateStylesForClassComponent(filePath, ast) {
     });
 }
 
-function migrateStylesForFunctionComponent(filePath, ast) {
+async function migrateStylesForFunctionComponent(filePath, fileContents, ast) {
     const relativePathToStylesDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/styles');
     traverse.default(ast, {
         ImportDeclaration({node}) {
             const source = node.source.value;
             if (source === `${relativePathToStylesDir}/styles`) {
-                // TODO: Replace style import with with style hook import
-                styleImport = node.specifiers[0].local.name;
+                node.specifiers[0].local.name = 'useThemeStyles';
+                node.source.value = `${relativePathToStylesDir}/useThemeStyles`;
+                node.source.raw = `${relativePathToStylesDir}/useThemeStyles`;
             }
             if (source === `${relativePathToStylesDir}/themes/default`) {
-                // TODO: Replace theme import with theme hook import
-                themeImport = node.specifiers[0].local.name;
+                node.specifiers[0].local.name = 'useTheme';
+                node.source.value = `${relativePathToStylesDir}/useTheme`;
+                node.source.raw = `${relativePathToStylesDir}/useTheme`;
             }
         },
     });
+
+    // Generate the modified code from the AST
+    const modifiedCode = generate.default(ast, {compact: false, retainLines: true, retainFunctionParens: true}, fileContents).code;
+
+    // Replace the contents of the file with the new code
+    await fs.writeFile(filePath, modifiedCode, {encoding: 'utf8'}, () => {});
 }
 
 async function migrateStaticStylesForFile(filePath) {
@@ -115,10 +125,10 @@ async function migrateStaticStylesForFile(filePath) {
     console.log('Parsing file:', filePath);
     if (isFunctionComponent(ast)) {
         console.log('File contains function component', filePath);
-        migrateStylesForFunctionComponent(filePath, ast);
+        migrateStylesForFunctionComponent(filePath, fileContents, ast);
     } else if (isClassComponent(ast)) {
         console.log('File contains class component', filePath);
-        migrateStylesForClassComponent(filePath, ast);
+        migrateStylesForClassComponent(filePath, fileContents, ast);
     }
 }
 
