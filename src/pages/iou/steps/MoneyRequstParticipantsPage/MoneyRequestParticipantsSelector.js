@@ -104,16 +104,17 @@ function MoneyRequestParticipantsSelector({
         const newSections = [];
         let indexOffset = 0;
 
-        newSections.push({
-            title: undefined,
-            data: _.map(participants, (participant) => {
-                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
-            }),
-            shouldShow: true,
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
+            searchTerm,
+            participants,
+            newChatOptions.recentReports,
+            newChatOptions.personalDetails,
+            personalDetails,
+            true,
             indexOffset,
-        });
-        indexOffset += participants.length;
+        );
+        newSections.push(formatResults.section);
+        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return newSections;
@@ -148,7 +149,7 @@ function MoneyRequestParticipantsSelector({
         }
 
         return newSections;
-    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate]);
+    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate, searchTerm]);
 
     /**
      * Adds a single participant to the request
@@ -227,6 +228,14 @@ function MoneyRequestParticipantsSelector({
 
             // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
             !isDistanceRequest,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            true,
         );
         setNewChatOptions({
             recentReports: chatOptions.recentReports,
