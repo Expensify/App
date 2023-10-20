@@ -271,16 +271,16 @@ describe('ReportUtils', () => {
                 expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
             });
         });
-        it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
+        it('returns true when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 hasOutstandingIOU: false,
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: true,
             };
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
         });
-        it('returns true when the report has oustanding IOU and is waiting for a bank account and the logged user is the report owner', () => {
+        it('returns true when the report has outstanding IOU and is waiting for a bank account and the logged user is the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 hasOutstandingIOU: true,
