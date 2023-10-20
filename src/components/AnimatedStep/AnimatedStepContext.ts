@@ -6,7 +6,7 @@ type AnimationDirection = ValueOf<typeof CONST.ANIMATION_DIRECTION>;
 
 type StepContext = {
     animationDirection: AnimationDirection;
-    setAnimationDirection: React.Dispatch<React.SetStateAction<ValueOf<typeof CONST.ANIMATION_DIRECTION>>>;
+    setAnimationDirection: React.Dispatch<React.SetStateAction<AnimationDirection>>;
 };
 
 const AnimatedStepContext = createContext<StepContext | null>(null);
