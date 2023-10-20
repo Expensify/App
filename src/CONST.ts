@@ -79,6 +79,10 @@ const CONST = {
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
 
+    LEGAL_NAME: {
+        MAX_LENGTH: 40,
+    },
+
     PULL_REQUEST_NUMBER,
 
     MERCHANT_NAME_MAX_LENGTH: 255,
