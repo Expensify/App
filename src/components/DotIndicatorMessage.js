@@ -28,7 +28,6 @@ const propTypes = {
     style: PropTypes.arrayOf(PropTypes.object),
 
     // Additional styles to apply to the text
-    // eslint-disable-next-line react/forbid-prop-types
     textStyles: stylePropTypes,
 };
 
