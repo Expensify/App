@@ -5,6 +5,7 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
 import refPropTypes from './refPropTypes';
+import {usePersonalDetails} from './OnyxProvider';
 
 const withCurrentUserPersonalDetailsPropTypes = {
     currentUserPersonalDetails: personalDetailsPropType,
@@ -18,9 +19,6 @@ export default function (WrappedComponent) {
     const propTypes = {
         forwardedRef: refPropTypes,
 
-        /** Personal details of all the users, including current user */
-        personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
         /** Session of the current user */
         session: PropTypes.shape({
             accountID: PropTypes.number,
@@ -28,15 +26,15 @@ export default function (WrappedComponent) {
     };
     const defaultProps = {
         forwardedRef: undefined,
-        personalDetails: {},
         session: {
             accountID: 0,
         },
     };
 
     function WithCurrentUserPersonalDetails(props) {
+        const personalDetails = usePersonalDetails();
         const accountID = props.session.accountID;
-        const accountPersonalDetails = props.personalDetails[accountID];
+        const accountPersonalDetails = personalDetails[accountID];
         const currentUserPersonalDetails = useMemo(() => ({...accountPersonalDetails, accountID}), [accountPersonalDetails, accountID]);
         return (
             <WrappedComponent
@@ -62,9 +60,6 @@ export default function (WrappedComponent) {
     ));
 
     return withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },
