@@ -27,19 +27,8 @@ const traverse = require('@babel/traverse');
 
 const fsPromises = fs.promises;
 
-async function migrateStaticStylesForFile(filePath) {
-    const fileContents = await fsPromises.readFile(filePath, 'utf8');
-    const ast = parser.parse(fileContents, {
-        sourceType: 'module',
-        plugins: ['jsx', 'typescript'], // Enable JSX and TSX parsing
-    });
-
-    const relativePathToStylesDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/styles');
-    console.log('RORY_DEBUG relativePathToStylesDir', filePath, relativePathToStylesDir);
-
+function isFunctionComponent(ast) {
     let hasReactImport = false;
-    let hasStyleImport = false;
-    let hasThemeImport = false;
     let hasReactComponent = false;
     const functionNames = new Set();
     traverse.default(ast, {
@@ -48,23 +37,9 @@ async function migrateStaticStylesForFile(filePath) {
             if (source === 'react') {
                 hasReactImport = true;
             }
-            if (source === `${relativePathToStylesDir}/styles`) {
-                hasStyleImport = true;
-            }
-            if (source === `${relativePathToStylesDir}/themes/default`) {
-                hasThemeImport = true;
-            }
-        },
-        ClassDeclaration({node}) {
-            if (node.superClass && node.superClass.name === 'Component') {
-                hasReactComponent = true;
-            }
         },
         FunctionDeclaration({node}) {
             functionNames.add(node.id?.name);
-            if (node.params.length === 1 && node.params[0].name === 'props') {
-                hasReactComponent = true;
-            }
         },
         ExpressionStatement({node}) {
             const expression = node.expression;
@@ -73,16 +48,77 @@ async function migrateStaticStylesForFile(filePath) {
             }
         },
     });
+    return hasReactImport && hasReactComponent;
+}
 
-    const doesFileContainReactComponent = hasReactImport && hasReactComponent;
-    if (doesFileContainReactComponent) {
-        console.log(`${filePath} contains react component`);
-    }
-    if (doesFileContainReactComponent && hasStyleImport) {
-        console.log(`${filePath} contains style import`);
-    }
-    if (doesFileContainReactComponent && hasThemeImport) {
-        console.log(`${filePath} contains theme import`);
+function isClassComponent(ast) {
+    let hasReactImport = false;
+    let hasClassComponentDeclaration = false;
+    traverse.default(ast, {
+        ImportDeclaration({node}) {
+            const source = node.source.value;
+            if (source === 'react') {
+                hasReactImport = true;
+            }
+        },
+        ClassDeclaration({node}) {
+            if (!node.superClass || (node.superClass.name !== 'Component' && node.superClass.name !== 'React.Component')) {
+                return;
+            }
+            hasClassComponentDeclaration = true;
+        },
+    });
+    return hasReactImport && hasClassComponentDeclaration;
+}
+
+function migrateStylesForClassComponent(filePath, ast) {
+    const relativePathToStylesDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/styles');
+    traverse.default(ast, {
+        ImportDeclaration({node}) {
+            const source = node.source.value;
+            if (source === `${relativePathToStylesDir}/styles`) {
+                // TODO: Replace style import with with style HOC import
+                // styleImport = node.specifiers[0].local.name;
+            }
+            if (source === `${relativePathToStylesDir}/themes/default`) {
+                // TODO: Replace theme import with theme HOC import
+                // themeImport = node.specifiers[0].local.name;
+            }
+        },
+    });
+}
+
+function migrateStylesForFunctionComponent(filePath, ast) {
+    const relativePathToStylesDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/styles');
+    traverse.default(ast, {
+        ImportDeclaration({node}) {
+            const source = node.source.value;
+            if (source === `${relativePathToStylesDir}/styles`) {
+                // TODO: Replace style import with with style hook import
+                styleImport = node.specifiers[0].local.name;
+            }
+            if (source === `${relativePathToStylesDir}/themes/default`) {
+                // TODO: Replace theme import with theme hook import
+                themeImport = node.specifiers[0].local.name;
+            }
+        },
+    });
+}
+
+async function migrateStaticStylesForFile(filePath) {
+    const fileContents = await fsPromises.readFile(filePath, 'utf8');
+    const ast = parser.parse(fileContents, {
+        sourceType: 'module',
+        plugins: ['jsx', 'typescript'], // Enable JSX and TSX parsing
+    });
+
+    console.log('Parsing file:', filePath);
+    if (isFunctionComponent(ast)) {
+        console.log('File contains function component', filePath);
+        migrateStylesForFunctionComponent(filePath, ast);
+    } else if (isClassComponent(ast)) {
+        console.log('File contains class component', filePath);
+        migrateStylesForClassComponent(filePath, ast);
     }
 }
 
