@@ -67,17 +67,17 @@ describe('ReportActionItemSingle', () => {
             }
 
             it('renders secondary Avatar properly', () => {
-                return setup().then(() => {
-                    const expectedSecondaryIconTestId = 'SvgDefaultAvatar_w Icon';
+                const expectedSecondaryIconTestId = 'SvgDefaultAvatar_w Icon';
 
+                return setup().then(() => {
                     expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeDefined();
                 });
             });
 
             it('renders Person information', () => {
-                return setup().then(() => {
-                    const [expectedPerson] = fakeReportAction.person;
+                const [expectedPerson] = fakeReportAction.person;
 
+                return setup().then(() => {
                     expect(screen.getByText(expectedPerson.text)).toBeDefined();
                 });
             });

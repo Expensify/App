@@ -178,7 +178,7 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
  */
 function getFakeReportWithPolicy(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false) {
     return {
-        ...getFakeReport([1, 2], 0, isUnread),
+        ...getFakeReport(participantAccountIDs, millisecondsInThePast, isUnread),
         type: CONST.REPORT.TYPE.CHAT,
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         policyID: '08CE60F05A5D86E1',
@@ -279,23 +279,8 @@ MockedSidebarLinks.defaultProps = {
 };
 
 /**
- * @param {Boolean} shouldShowSubscriptAvatar
- * @param {Object} report
- * @param {Object} reportAction
+ * @param {React.ReactElement} component
  */
-function getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar = true, report = null, reportAction = mull) {
-    const currentReport = report ?? getFakeReport();
-    const currentReportAction = reportAction ?? getFakeAdvancedReportAction();
-
-    internalRender(
-        <MockedReportActionItemSingle
-            shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
-            report={currentReport}
-            reportAction={currentReportAction}
-        />,
-    );
-}
-
 function internalRender(component) {
     // A try-catch block needs to be added to the rendering so that any errors that happen while the component
     // renders are caught and logged to the console. Without the try-catch block, Jest might only report the error
@@ -308,6 +293,24 @@ function internalRender(component) {
     } catch (error) {
         console.error(error);
     }
+}
+
+/**
+ * @param {Boolean} shouldShowSubscriptAvatar
+ * @param {Object} report
+ * @param {Object} reportAction
+ */
+function getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar = true, report = null, reportAction = null) {
+    const currentReport = report || getFakeReport();
+    const currentReportAction = reportAction || getFakeAdvancedReportAction();
+
+    internalRender(
+        <MockedReportActionItemSingle
+            shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
+            report={currentReport}
+            reportAction={currentReportAction}
+        />,
+    );
 }
 
 /**
@@ -334,7 +337,7 @@ function MockedReportActionItemSingle({shouldShowSubscriptAvatar, report, report
                 report={report}
                 personalDetailsList={personalDetailsList}
                 wrapperStyles={[{display: 'inline'}]}
-                showHeader={true}
+                showHeader
                 shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
                 hasBeenFlagged={false}
                 iouReport={undefined}
