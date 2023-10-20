@@ -115,7 +115,6 @@ const MenuItem = React.forwardRef((props, ref) => {
     const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
     const titleRef = React.useRef('');
-    const titleContainerRef = React.useRef(null);
     useEffect(() => {
         if (!props.title || (titleRef.current.length && titleRef.current === props.title) || !props.shouldParseTitle) {
             return;
@@ -283,7 +282,6 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     style={titleTextStyle}
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
                                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.interactive && props.disabled}}
-                                                    ref={titleContainerRef}
                                                 >
                                                     {renderTitleContent()}
                                                 </Text>
