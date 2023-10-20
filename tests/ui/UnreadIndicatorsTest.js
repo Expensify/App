@@ -1,6 +1,6 @@
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import {Linking, AppState} from 'react-native';
+import {Linking, AppState, DeviceEventEmitter} from 'react-native';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import lodashGet from 'lodash/get';
 import {subMinutes, format, addSeconds, subSeconds} from 'date-fns';
@@ -251,8 +251,12 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
-            // Navigate to the unread chat from the sidebar
-            .then(() => navigateToSidebarOption(0))
+            .then(() => {
+                // Verify the unread indicator is present
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+                expect(unreadIndicator).toHaveLength(1);
+            })
             .then(() => {
                 expect(areYouOnChatListScreen()).toBe(false);
 
@@ -263,8 +267,12 @@ describe('Unread Indicators', () => {
                 // Verify the LHN is now open
                 expect(areYouOnChatListScreen()).toBe(true);
 
-                // Tap on the chat again
                 return navigateToSidebarOption(0);
+            })
+            .then(() => {
+                // Sending event to clear the unread indicator cache, given that the test doesn't behave as the app
+                DeviceEventEmitter.emit(`unreadAction_${REPORT_ID}`, format(new Date(), CONST.DATE.FNS_DB_FORMAT_STRING));
+                return waitForBatchedUpdatesWithAct();
             })
             .then(() => {
                 // Verify the unread indicator is not present
