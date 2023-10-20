@@ -463,10 +463,10 @@ describe('Migrations', () => {
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
                     1: {
-                        reportActionID: 1,
+                        reportActionID: '1',
                     },
                     2: {
-                        reportActionID: 2,
+                        reportActionID: '2',
                     },
                 },
             })
@@ -490,12 +490,12 @@ describe('Migrations', () => {
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
                     1: {
-                        reportActionID: 1,
-                        previousReportActionID: 0,
+                        reportActionID: '1',
+                        previousReportActionID: '0',
                     },
                     2: {
-                        reportActionID: 2,
-                        previousReportActionID: 1,
+                        reportActionID: '2',
+                        previousReportActionID: '1',
                     },
                 },
             })
@@ -509,12 +509,12 @@ describe('Migrations', () => {
                             Onyx.disconnect(connectionID);
                             const expectedReportAction = {
                                 1: {
-                                    reportActionID: 1,
-                                    previousReportActionID: 0,
+                                    reportActionID: '1',
+                                    previousReportActionID: '0',
                                 },
                                 2: {
-                                    reportActionID: 2,
-                                    previousReportActionID: 1,
+                                    reportActionID: '2',
+                                    previousReportActionID: '1',
                                 },
                             };
                             expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
@@ -529,10 +529,10 @@ describe('Migrations', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: null,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]: {
                     1: {
-                        reportActionID: 1,
+                        reportActionID: '1',
                     },
                     2: {
-                        reportActionID: 2,
+                        reportActionID: '2',
                     },
                 },
             })
@@ -562,12 +562,12 @@ describe('Migrations', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: null,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]: {
                     1: {
-                        reportActionID: 1,
-                        previousReportActionID: 10,
+                        reportActionID: '1',
+                        previousReportActionID: '10',
                     },
                     2: {
-                        reportActionID: 2,
-                        previousReportActionID: 23,
+                        reportActionID: '2',
+                        previousReportActionID: '23',
                     },
                 },
             })
@@ -582,12 +582,12 @@ describe('Migrations', () => {
                             const expectedReportAction1 = {};
                             const expectedReportAction4 = {
                                 1: {
-                                    reportActionID: 1,
-                                    previousReportActionID: 10,
+                                    reportActionID: '1',
+                                    previousReportActionID: '10',
                                 },
                                 2: {
-                                    reportActionID: 2,
-                                    previousReportActionID: 23,
+                                    reportActionID: '2',
+                                    previousReportActionID: '23',
                                 },
                             };
                             expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction1);
