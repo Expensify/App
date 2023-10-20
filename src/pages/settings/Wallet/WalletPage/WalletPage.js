@@ -404,7 +404,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                                     src={Expensicons.Hourglass}
                                                                     fill={themeColors.icon}
                                                                 />
-                                                                <Text style={[styles.inlineSystemMessage]}>{translate('walletPage.walletActivationPending')}</Text>
+                                                                <Text style={[styles.inlineSystemMessage, styles.flexShrink1]}>{translate('walletPage.walletActivationPending')}</Text>
                                                             </View>
                                                         );
                                                     }
