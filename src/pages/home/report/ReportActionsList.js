@@ -23,7 +23,7 @@ import reportPropTypes from '../../reportPropTypes';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import reportActionPropTypes from './reportActionPropTypes';
-import {isCreatedAction} from '../../../libs/ReportActionsUtils';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -99,7 +99,7 @@ function keyExtractor(item) {
 
 function isMessageUnread(message, lastReadTime) {
     if (!lastReadTime) {
-        return Boolean(!isCreatedAction(message));
+        return Boolean(!ReportActionsUtils.isCreatedAction(message));
     }
 
     return Boolean(message && lastReadTime && message.created && lastReadTime < message.created);
