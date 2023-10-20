@@ -2,7 +2,6 @@ import React, {forwardRef, useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {DeviceEventEmitter, FlatList, StyleSheet} from 'react-native';
 import _ from 'underscore';
-import MVCPScrollView from './MVCPScrollView/MVCPScrollView';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
@@ -122,10 +121,6 @@ function InvertedFlatList(props) {
             // We need to keep batch size to one to workaround a bug in react-native-web.
             // This can be removed once https://github.com/Expensify/App/pull/24482 is merged.
             maxToRenderPerBatch={1}
-
-            // We need to use our own scroll component to workaround a maintainVisibleContentPosition for web
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            renderScrollComponent={(_props) => <MVCPScrollView {..._props} />}
         />
     );
 }
