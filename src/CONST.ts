@@ -79,6 +79,10 @@ const CONST = {
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
 
+    LEGAL_NAME: {
+        MAX_LENGTH: 40,
+    },
+
     PULL_REQUEST_NUMBER,
 
     MERCHANT_NAME_MAX_LENGTH: 255,
@@ -131,6 +135,7 @@ const CONST = {
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
     },
     DATE: {
+        MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         LOCAL_TIME_FORMAT: 'h:mm a',
@@ -516,6 +521,8 @@ const CONST = {
                     DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
                     IMPORT_CUSTOM_UNIT_RATES: 'POLICYCHANGELOG_IMPORT_CUSTOM_UNIT_RATES',
                     IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
+                    INVITE_TO_ROOM: 'POLICYCHANGELOG_INVITETOROOM',
+                    REMOVE_FROM_ROOM: 'POLICYCHANGELOG_REMOVEFROMROOM',
                     SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
@@ -549,6 +556,11 @@ const CONST = {
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
+                },
+                ROOMCHANGELOG: {
+                    INVITE_TO_ROOM: 'INVITETOROOM',
+                    REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
+                    JOIN_ROOM: 'JOINROOM',
                 },
             },
         },
@@ -1061,6 +1073,12 @@ const CONST = {
         },
     },
 
+    KYC_WALL_SOURCE: {
+        REPORT: 'REPORT', // The user attempted to pay a money request
+        ENABLE_WALLET: 'ENABLE_WALLET', // The user clicked on the `Enable wallet` button on the Wallet page
+        TRANSFER_BALANCE: 'TRANSFER_BALANCE', // The user attempted to transfer their wallet balance to their bank account or debit card
+    },
+
     OS: {
         WINDOWS: 'Windows',
         MAC_OS: PLATFORM_OS_MACOS,
@@ -1240,6 +1258,7 @@ const CONST = {
             NONE: 'none',
         },
         STATE: {
+            STATE_NOT_ISSUED: 2,
             OPEN: 3,
             NOT_ACTIVATED: 4,
             STATE_DEACTIVATED: 5,
@@ -1423,6 +1442,7 @@ const CONST = {
     REPORT_DETAILS_MENU_ITEM: {
         SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
+        INVITE: 'invite',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         WELCOME_MESSAGE: 'welcomeMessage',
