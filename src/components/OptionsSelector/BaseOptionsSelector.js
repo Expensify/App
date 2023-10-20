@@ -172,7 +172,7 @@ class BaseOptionsSelector extends Component {
 
     updateSearchValue(value) {
         this.setState({
-            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+            errorMessage: value.length > this.props.maxLength ? ['common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}] : '',
         });
 
         this.props.onChangeText(value);

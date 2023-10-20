@@ -81,10 +81,7 @@ function FormWrapper(props) {
     const {onSubmit, children, formState, errors, inputRefs, submitButtonText, footerContent, isSubmitButtonVisible, style, enabledWhenOffline, isSubmitActionDangerous, formID} = props;
     const formRef = useRef(null);
     const formContentRef = useRef(null);
-    const errorMessage = useMemo(() => {
-        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(formState);
-        return typeof latestErrorMessage === 'string' ? latestErrorMessage : '';
-    }, [formState]);
+    const errorMessage = useMemo(() => ErrorUtils.getLatestErrorMessage(formState), [formState]);
 
     const scrollViewContent = useCallback(
         (safeAreaPaddingBottomStyle) => (

@@ -117,7 +117,7 @@ function ActivatePhysicalCardPage({
         activateCardCodeInputRef.current.blur();
 
         if (lastFourDigits.replace(CONST.MAGIC_CODE_EMPTY_CHAR, '').length !== LAST_FOUR_DIGITS_LENGTH) {
-            setFormError(translate('activateCardPage.error.thatDidntMatch'));
+            setFormError('activateCardPage.error.thatDidntMatch');
             return;
         }
 

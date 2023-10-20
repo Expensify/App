@@ -197,7 +197,6 @@ function LoginForm(props) {
         },
     }));
 
-    const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
     const hasError = !_.isEmpty(serverErrorText);
 
@@ -222,7 +221,7 @@ function LoginForm(props) {
                     autoCapitalize="none"
                     autoCorrect={false}
                     keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
-                    errorText={formErrorText}
+                    errorText={formError}
                     hasError={hasError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />

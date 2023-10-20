@@ -46,7 +46,9 @@ type OnyxDataWithErrors = {
     errors?: Errors;
 };
 
-function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): string {
+type TranslationData = [string, Record<string, unknown>];
+
+function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): TranslationData | string {
     const errors = onyxData.errors ?? {};
 
     if (Object.keys(errors).length === 0) {
@@ -55,7 +57,7 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: T
 
     const key = Object.keys(errors).sort().reverse()[0];
 
-    return errors[key];
+    return [errors[key], {isTranslated: true}];
 }
 
 type OnyxDataWithErrorFields = {

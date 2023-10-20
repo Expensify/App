@@ -207,10 +207,7 @@ function Form(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to revalidate the form on update if the preferred locale changed on another device so that errors get translated
     }, [props.preferredLocale]);
 
-    const errorMessage = useMemo(() => {
-        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(props.formState);
-        return typeof latestErrorMessage === 'string' ? latestErrorMessage : '';
-    }, [props.formState]);
+    const errorMessage = useMemo(() => ErrorUtils.getLatestErrorMessage(props.formState), [props.formState]);
 
     /**
      * @param {String} inputID - The inputID of the input being touched

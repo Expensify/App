@@ -173,7 +173,7 @@ function BaseValidateCodeForm(props) {
                 name="validateCode"
                 value={validateCode}
                 onChangeText={onTextInput}
-                errorText={formError.validateCode ? props.translate(formError.validateCode) : ErrorUtils.getLatestErrorMessage(props.account)}
+                errorText={formError.validateCode ? formError.validateCode : ErrorUtils.getLatestErrorMessage(props.account)}
                 hasError={!_.isEmpty(validateLoginError)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}

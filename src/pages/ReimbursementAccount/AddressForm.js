@@ -103,7 +103,7 @@ function AddressForm(props) {
                     value={props.values.street}
                     defaultValue={props.defaultValues.street}
                     onInputChange={props.onFieldChange}
-                    errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
+                    errorText={props.errors.street ? 'bankAccount.error.addressStreet' : ''}
                     hint={props.translate('common.noPO')}
                     renamedInputKeys={props.inputKeys}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
@@ -118,7 +118,7 @@ function AddressForm(props) {
                 value={props.values.city}
                 defaultValue={props.defaultValues.city}
                 onChangeText={(value) => props.onFieldChange({city: value})}
-                errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
+                errorText={props.errors.city ? 'bankAccount.error.addressCity' : ''}
                 containerStyles={[styles.mt4]}
             />
 
@@ -129,7 +129,7 @@ function AddressForm(props) {
                     value={props.values.state}
                     defaultValue={props.defaultValues.state || ''}
                     onInputChange={(value) => props.onFieldChange({state: value})}
-                    errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
+                    errorText={props.errors.state ? 'bankAccount.error.addressState' : ''}
                 />
             </View>
             <TextInput
@@ -142,7 +142,7 @@ function AddressForm(props) {
                 value={props.values.zipCode}
                 defaultValue={props.defaultValues.zipCode}
                 onChangeText={(value) => props.onFieldChange({zipCode: value})}
-                errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
+                errorText={props.errors.zipCode ? 'bankAccount.error.zipCode' : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={props.translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                 containerStyles={[styles.mt2]}
