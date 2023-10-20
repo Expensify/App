@@ -151,6 +151,11 @@ function ReportActionItem(props) {
 
     const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}), [isReportActionLinked]);
 
+    const originalMessage = lodashGet(props.action, 'originalMessage', {});
+
+    // IOUDetails only exists when we are sending money
+    const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
+
     // When active action changes, we need to update the `isContextMenuActive` state
     const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID);
     useEffect(() => {
@@ -301,10 +306,6 @@ function ReportActionItem(props) {
      */
     const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false) => {
         let children;
-        const originalMessage = lodashGet(props.action, 'originalMessage', {});
-
-        // IOUDetails only exists when we are sending money
-        const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
 
         // Show the MoneyRequestPreview for when request was created, bill was split or money was sent
         if (
@@ -328,10 +329,6 @@ function ReportActionItem(props) {
                     isWhisper={isWhisper}
                 />
             );
-        } else if(props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
-            // For the pay IOU action on non-send money flow we don't want to show anything 
-            // as the preview action is already shown by the create IOU action above
-            return;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
             children = (
                 <ReportPreview
@@ -625,6 +622,12 @@ function ReportActionItem(props) {
                 reportID={props.report.reportID}
             />
         );
+    }
+
+    // For the `pay` IOU action on non-send money flow we don't want to show anything
+    // as the preview action is already shown by the create IOU action above
+    if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+        return null;
     }
 
     const hasErrors = !_.isEmpty(props.action.errors);
