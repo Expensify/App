@@ -328,6 +328,10 @@ function ReportActionItem(props) {
                     isWhisper={isWhisper}
                 />
             );
+        } else if(props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+            // For the pay IOU action on non-send money flow we don't want to show anything 
+            // as the preview action is already shown by the create IOU action above
+            return;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
             children = (
                 <ReportPreview
