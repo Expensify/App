@@ -41,14 +41,23 @@ function useTabNavigatorFocus({cameraTabIndex, isInTabNavigator}) {
     const tabPositionAnimation = isInTabNavigator ? useTabAnimation() : null;
 
     useEffect(() => {
-        if (!isInTabNavigator) {
+        if (!tabPositionAnimation) {
             return;
         }
+        const index = Number(cameraTabIndex);
 
         const listenerId = tabPositionAnimation.addListener(({value}) => {
             // Activate camera as soon the index is animating towards the `cameraTabIndex`
-            setIsTabFocused(value > cameraTabIndex - 1 && value < cameraTabIndex + 1);
+            setIsTabFocused(value > index - 1 && value < index + 1);
         });
+
+        // We need to get the position animation value on component initialization to determine
+        // if the tab is focused or not. Since it's an Animated.Value the only synchronous way
+        // to retrieve the value is to use a private method.
+        // eslint-disable-next-line no-underscore-dangle
+        const initialTabPositionValue = tabPositionAnimation.__getValue();
+
+        setIsTabFocused(initialTabPositionValue > index - 1 && initialTabPositionValue < index + 1);
 
         return () => {
             tabPositionAnimation.removeListener(listenerId);
@@ -84,11 +93,7 @@ const NavigationAwareCamera = React.forwardRef(({torchOn, onTorchAvailability, c
         }
 
         trackRef.current.applyConstraints({
-            advanced: [
-                {
-                    torch: torchOn,
-                },
-            ],
+            advanced: [{torch: torchOn}],
         });
     }, [torchOn]);
 
