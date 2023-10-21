@@ -364,12 +364,16 @@ function EmojiPickerMenu(props) {
         }
 
         setupEventHandlers();
-        updateFirstNonHeaderIndex(emojis.current);
 
         return () => {
             cleanupEventHandlers();
         };
     }, [forwardedRef, shouldFocusInputOnScreenFocus, cleanupEventHandlers, setupEventHandlers]);
+
+    useEffect(() => {
+        // Find and store index of the first emoji item on mount
+        updateFirstNonHeaderIndex(emojis.current);
+    }, []);
 
     const scrollToHeader = useCallback((headerIndex) => {
         if (!emojiListRef.current) {
