@@ -1,5 +1,5 @@
 import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
-import {View, NativeModules, findNodeHandle, Platform} from 'react-native';
+import {View, NativeModules, findNodeHandle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
