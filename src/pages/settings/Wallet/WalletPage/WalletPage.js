@@ -34,6 +34,8 @@ import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import WalletEmptyState from '../WalletEmptyState';
 import * as Illustrations from '../../../../components/Icon/Illustrations';
 import WalletSection from '../../../../components/WalletSection';
+import FormHelpMessage from '../../../../components/FormHelpMessage';
+import Icon from '../../../../components/Icon';
 
 function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {
     const {translate} = useLocalize();
@@ -374,6 +376,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                 shouldIncludeDebitCard={hasActivatedWallet}
                                             >
                                                 {(triggerKYCFlow, buttonRef) =>
+                                                    // eslint-disable-next-line no-nested-ternary
                                                     hasActivatedWallet ? (
                                                         <MenuItem
                                                             ref={buttonRef}
@@ -384,6 +387,14 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                             disabled={network.isOffline}
                                                             wrapperStyle={styles.transferBalance}
                                                         />
+                                                    ) : (userWallet.didFailOnfido ? (
+                                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
+                                                            <Icon
+                                                                src={Expensicons.Exclamation}
+                                                                fill={themeColors.danger}
+                                                            />
+                                                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{'Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.'}</Text>
+                                                        </View>
                                                     ) : (
                                                         <Button
                                                             ref={buttonRef}
@@ -394,7 +405,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                             success
                                                             large
                                                         />
-                                                    )
+                                                    ))
                                                 }
                                             </KYCWall>
                                         </>
