@@ -1050,13 +1050,14 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
-        // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
-        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
+        const isOwnPolicyExpenseChat = participant.isOwnPolicyExpenseChat || false;
 
-        // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
-        // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
-        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || '').toLowerCase();
-        const accountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
+        // email can be empty if we're splitting with a workspace or unknown users
+        // We will use the policyID for workspaces or the accountID for an unknown user which should be set if we have a chat with them
+        // if we don't have a chat with an unknown user and we create one using Global Create, the login will be set for them optimistically when they are selected
+        // using the email we entered in the search
+        const email = participant.login ? OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase() : '';
+        const accountID = Number(participant.accountID || 0);
         if (email === currentUserEmailForIOUSplit) {
             return;
         }
@@ -1157,7 +1158,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
         // Add category to optimistic policy recently used categories when a participant is a workspace
         let optimisticPolicyRecentlyUsedCategories = [];
-        if (isPolicyExpenseChat) {
+        if (isOwnPolicyExpenseChat) {
             optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
         }
 
@@ -1443,18 +1444,20 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     const splits = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
 
     _.each(participants, (participant) => {
-        const email = participant.isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || participant.text).toLowerCase();
-        const accountID = participant.isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
-        if (email === currentUserEmailForIOUSplit) {
-            return;
-        }
-
         // When splitting with a workspace chat, we only need to supply the policyID and the workspace reportID as it's needed so we can update the report preview
         if (participant.isOwnPolicyExpenseChat) {
             splits.push({
                 policyID: participant.policyID,
                 chatReportID: splitChatReport.reportID,
             });
+            return;
+        }
+
+        // `login` can be empty when using this action from a group chat with unkown users, we will rely on te accountID instead
+        // When this is used from Global Create, we set the login of the participant using the searchText from the user
+        const email = participant.login ? OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase() : '';
+        const accountID = Number(participant.accountID);
+        if (email === currentUserEmailForIOUSplit) {
             return;
         }
 
