@@ -70,7 +70,10 @@ function useTabNavigatorFocus({cameraTabIndex, isInTabNavigator}) {
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
 const NavigationAwareCamera = React.forwardRef(({torchOn, onTorchAvailability, cameraTabIndex, isInTabNavigator, ...props}, ref) => {
     const trackRef = useRef(null);
-    const showCamera = useTabNavigatorFocus({cameraTabIndex, isInTabNavigator});
+    const shouldShowCamera = useTabNavigatorFocus({
+        cameraTabIndex,
+        isInTabNavigator,
+    });
 
     const handleOnUserMedia = (stream) => {
         if (props.onUserMedia) {
@@ -97,7 +100,7 @@ const NavigationAwareCamera = React.forwardRef(({torchOn, onTorchAvailability, c
         });
     }, [torchOn]);
 
-    if (!showCamera) {
+    if (!shouldShowCamera) {
         return null;
     }
     return (
