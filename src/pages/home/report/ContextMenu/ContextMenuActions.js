@@ -162,7 +162,11 @@ export default [
             return !subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
-            const childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (!childReportNotificationPreference) {
+                const isActionCreator = ReportUtils.isActionCreator(reportAction);
+                childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+            }
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
@@ -198,7 +202,11 @@ export default [
             return subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
-            const childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (!childReportNotificationPreference) {
+                const isActionCreator = ReportUtils.isActionCreator(reportAction);
+                childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+            }
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
