@@ -578,6 +578,7 @@ export default {
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero`,
+        categorySelection: 'Seleccione una categoría para organizar mejor tu dinero',
         error: {
             invalidAmount: 'Por favor ingresa un monto válido antes de continuar.',
             invalidSplit: 'La suma de las partes no equivale al monto total',
@@ -811,7 +812,7 @@ export default {
         sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
         notesUnavailable: 'No se han encontrado notas para el usuario',
         composerLabel: 'Notas',
-        myNote: 'Mi notas',
+        myNote: 'Mi nota',
     },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',

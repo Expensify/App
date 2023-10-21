@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import _ from 'underscore';
-import {format, parseISO} from 'date-fns';
+import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
@@ -661,6 +661,17 @@ function hasSingleParticipant(report) {
 }
 
 /**
+ * Checks whether all the transactions linked to the IOU report are of the Distance Request type
+ *
+ * @param {string|null} iouReportID
+ * @returns {boolean}
+ */
+function hasOnlyDistanceRequestTransactions(iouReportID) {
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.all(allTransactions, (transaction) => TransactionUtils.isDistanceRequest(transaction));
+}
+
+/**
  * If the report is a thread and has a chat type set, it is a workspace chat.
  *
  * @param {Object} report
@@ -1164,7 +1175,6 @@ function getPersonalDetailsForAccountID(accountID) {
     return (
         (allPersonalDetails && allPersonalDetails[accountID]) || {
             avatar: UserUtils.getDefaultAvatar(accountID),
-            isOptimisticPersonalDetail: true,
         }
     );
 }
@@ -1174,38 +1184,27 @@ function getPersonalDetailsForAccountID(accountID) {
  *
  * @param {Number} accountID
  * @param {Boolean} [shouldUseShortForm]
- * @param {Boolean} shouldFallbackToHidden
  * @returns {String}
  */
-function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, shouldFallbackToHidden = true) {
+function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
     if (!accountID) {
         return '';
     }
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // this is to check if account is an invite/optimistically created one
-    // and prevent from falling back to 'Hidden', so a correct value is shown
-    // when searching for a new user
-    if (lodashGet(personalDetails, 'isOptimisticPersonalDetail') === true) {
-        return personalDetails.login || '';
-    }
     const longName = personalDetails.displayName;
     const shortName = personalDetails.firstName || longName;
-    if (!longName && !personalDetails.login && shouldFallbackToHidden) {
-        return Localize.translateLocal('common.hidden');
-    }
     return shouldUseShortForm ? shortName : longName;
 }
 
 /**
  * @param {Object} personalDetailsList
  * @param {Boolean} isMultipleParticipantReport
- * @param {Boolean} shouldFallbackToHidden
  * @returns {Array}
  */
-function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport, shouldFallbackToHidden) {
+function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
     return _.map(personalDetailsList, (user) => {
         const accountID = Number(user.accountID);
-        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user.login || '';
+        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
         const avatar = UserUtils.getDefaultAvatar(accountID);
 
         let pronouns = user.pronouns;
@@ -1427,7 +1426,7 @@ function getPolicyExpenseChatName(report, policy = undefined) {
 }
 
 /**
- * Get the title for a IOU or expense chat which will be showing the payer and the amount
+ * Get the title for an IOU or expense chat which will be showing the payer and the amount
  *
  * @param {Object} report
  * @param {Object} [policy]
@@ -1435,15 +1434,15 @@ function getPolicyExpenseChatName(report, policy = undefined) {
  */
 function getMoneyRequestReportName(report, policy = undefined) {
     const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
-    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report.currency);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report.currency, hasOnlyDistanceRequestTransactions(report.reportID));
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
-    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {
+    const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerName,
         amount: formattedAmount,
     });
 
     if (report.isWaitingOnBankAccount) {
-        return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
+        return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
     if (hasNonReimbursableTransactions(report.reportID)) {
@@ -1454,7 +1453,7 @@ function getMoneyRequestReportName(report, policy = undefined) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    return payerPaidAmountMesssage;
+    return payerPaidAmountMessage;
 }
 
 /**
@@ -1539,7 +1538,7 @@ function canEditReportAction(reportAction) {
 /**
  * Gets all transactions on an IOU report with a receipt
  *
- * @param {Object|null} iouReportID
+ * @param {string|null} iouReportID
  * @returns {[Object]}
  */
 function getTransactionsWithReceipts(iouReportID) {
@@ -1605,7 +1604,7 @@ function getTransactionReportName(reportAction) {
     const {amount, currency, comment} = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency),
+        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency, TransactionUtils.isDistanceRequest(transaction)),
         comment,
     });
 }
@@ -1770,7 +1769,7 @@ function getModifiedExpenseMessage(reportAction) {
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated = parseISO(reportActionOriginalMessage.oldCreated);
+        let formattedOldCreated = new Date(reportActionOriginalMessage.oldCreated);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false);
     }
@@ -3723,6 +3722,21 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
 }
 
 /**
+ * Check if the report can create the request with type is iouType
+ * @param {Object} report
+ * @param {Array} betas
+ * @param {String} iouType
+ * @returns {Boolean}
+ */
+function canCreateRequest(report, betas, iouType) {
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+    if (shouldDisableWriteActions(report)) {
+        return false;
+    }
+    return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
+}
+
+/**
  * @param {String} policyID
  * @param {Array} accountIDs
  * @returns {Array}
@@ -4051,6 +4065,7 @@ export {
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
+    canCreateRequest,
     hasIOUWaitingOnCurrentUserBankAccount,
     canRequestMoney,
     getWhisperDisplayNames,
@@ -4091,10 +4106,12 @@ export {
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getTransactionsWithReceipts,
+    hasOnlyDistanceRequestTransactions,
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
     isReportDraft,
     shouldUseFullTitleToDisplay,
+    parseReportRouteParams,
 };
