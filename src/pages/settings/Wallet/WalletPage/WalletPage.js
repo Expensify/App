@@ -6,6 +6,7 @@ import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
+import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
 import compose from '../../../../libs/compose';
 import * as BankAccounts from '../../../../libs/actions/BankAccounts';
