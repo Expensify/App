@@ -97,6 +97,8 @@ class KYCWall extends React.Component {
             Navigation.navigate(this.props.addBankAccountRoute);
         } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(this.props.addDebitCardRoute);
+        } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
+            // Start the Bottom up flow
         }
     }
 
