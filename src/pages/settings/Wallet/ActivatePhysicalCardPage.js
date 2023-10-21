@@ -122,7 +122,7 @@ function ActivatePhysicalCardPage({
         }
 
         CardSettings.activatePhysicalExpensifyCard(Number(lastFourDigits), cardID);
-    }, [lastFourDigits, cardID, translate]);
+    }, [lastFourDigits, cardID]);
 
     if (_.isEmpty(physicalCard)) {
         return <NotFoundPage />;
