@@ -6,7 +6,7 @@ import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Navigation, {navigationRef} from '../../../../libs/Navigation/Navigation';
+import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
 import compose from '../../../../libs/compose';
 import * as BankAccounts from '../../../../libs/actions/BankAccounts';
@@ -61,7 +61,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     const [showConfirmDeleteContent, setShowConfirmDeleteContent] = useState(false);
 
     const hasBankAccount = !_.isEmpty(bankAccountList) || !_.isEmpty(fundList);
-    const hasWallet = userWallet.walletLinkedAccountID > 0;
+    const hasWallet = !_.isEmpty(userWallet);
     const hasActivatedWallet = _.contains([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM], userWallet.tierName);
     const hasAssignedCard = !_.isEmpty(cardList);
     const shouldShowEmptyState = !hasBankAccount && !hasWallet && !hasAssignedCard;
@@ -298,13 +298,6 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
             }
         }
     }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, bankAccountList, fundList, shouldShowDefaultDeleteMenu]);
-
-    useEffect(() => {
-        if (!shouldShowEmptyState) {
-            return;
-        }
-        navigationRef.setParams({backgroundColor: themeColors.walletPageBG});
-    }, [shouldShowEmptyState]);
 
     const shouldShowMakeDefaultButton =
         !paymentMethod.isSelectedPaymentMethodDefault &&
