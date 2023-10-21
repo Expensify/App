@@ -623,8 +623,8 @@ function ReportActionItem(props) {
         );
     }
 
-    // For the `pay` IOU action on non-send money flow we don't want to show anything if we are waiting for the payee to add a bank account or wallet
-    // Otherwise we will see two system message informing user needs to add a bank account or wallet
+    // For the `pay` IOU action on non-send money flow, we don't want to render anything if `isWaitingOnBankAccount` is true 
+    // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lodashGet(props.iouReport, 'isWaitingOnBankAccount', false) && originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
         return null;
     }
