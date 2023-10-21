@@ -326,7 +326,6 @@ function addActions(reportID, text = '', file) {
         lastMessageHtml: lastCommentText,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
-        isLastMessageDeletedParentAction: null,
     };
 
     // Optimistically add the new actions to the store before waiting to save them to the server
@@ -1047,13 +1046,6 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    if (reportAction.childVisibleActionCount === 0) {
-        optimisticReport = {
-            lastMessageTranslationKey: '',
-            lastMessageText: '',
-            isLastMessageDeletedParentAction: true,
-        };
-    } else {
         const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
         if (lastMessageText || lastMessageTranslationKey) {
             const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
@@ -1066,7 +1058,6 @@ function deleteReportComment(reportID, reportAction) {
                 lastActorAccountID,
             };
         }
-    }
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
     // and and remove the pendingAction so the strike-through clears
