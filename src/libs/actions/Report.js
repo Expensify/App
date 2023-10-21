@@ -1046,18 +1046,18 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-        const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
-        if (lastMessageText || lastMessageTranslationKey) {
-            const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-            const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
-            const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
-            optimisticReport = {
-                lastMessageTranslationKey,
-                lastMessageText,
-                lastVisibleActionCreated,
-                lastActorAccountID,
-            };
-        }
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
+    if (lastMessageText || lastMessageTranslationKey) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
+        const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+        const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
+        optimisticReport = {
+            lastMessageTranslationKey,
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
+        };
+    }
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
     // and and remove the pendingAction so the strike-through clears
