@@ -2996,6 +2996,15 @@ function buildTransactionThread(reportAction, moneyRequestReportID) {
  * @param {Object} report
  * @returns {Boolean}
  */
+function isEmptyReport(report) {
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
+    return !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+}
+
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
 function isUnread(report) {
     if (!report) {
         return false;
@@ -4000,6 +4009,7 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
+    isEmptyReport,
     isUnread,
     isUnreadWithMention,
     buildOptimisticWorkspaceChats,

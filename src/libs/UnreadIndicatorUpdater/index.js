@@ -8,7 +8,7 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (reportsFromOnyx) => {
-        const unreadReports = _.filter(reportsFromOnyx, ReportUtils.isUnread);
+        const unreadReports = _.filter(reportsFromOnyx, (report) => ReportUtils.unread(report) && ReportUtils.isEmptyReport(report));
         updateUnread(_.size(unreadReports));
     },
 });
