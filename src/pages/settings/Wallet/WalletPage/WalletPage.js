@@ -34,8 +34,8 @@ import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import WalletEmptyState from '../WalletEmptyState';
 import * as Illustrations from '../../../../components/Icon/Illustrations';
 import WalletSection from '../../../../components/WalletSection';
-import FormHelpMessage from '../../../../components/FormHelpMessage';
 import Icon from '../../../../components/Icon';
+import Text from '../../../../components/Text';
 
 function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {
     const {translate} = useLocalize();
@@ -391,9 +391,9 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                                                             <Icon
                                                                 src={Expensicons.Exclamation}
-                                                                fill={themeColors.danger}
+                                                                fill={themeColors.textSupporting}
                                                             />
-                                                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{'Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.'}</Text>
+                                                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.</Text>
                                                         </View>
                                                     ) : (
                                                         <Button
