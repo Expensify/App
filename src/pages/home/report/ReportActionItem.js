@@ -151,11 +151,6 @@ function ReportActionItem(props) {
 
     const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}), [isReportActionLinked]);
 
-    const originalMessage = lodashGet(props.action, 'originalMessage', {});
-
-    // IOUDetails only exists when we are sending money
-    const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
-
     // When active action changes, we need to update the `isContextMenuActive` state
     const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID);
     useEffect(() => {
@@ -306,6 +301,10 @@ function ReportActionItem(props) {
      */
     const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false) => {
         let children;
+        const originalMessage = lodashGet(props.action, 'originalMessage', {});
+
+        // IOUDetails only exists when we are sending money
+        const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
 
         // Show the MoneyRequestPreview for when request was created, bill was split or money was sent
         if (
@@ -624,8 +623,8 @@ function ReportActionItem(props) {
         );
     }
 
-    // For the `pay` IOU action on non-send money flow we don't want to show anything
-    // as the preview action is already shown by the create IOU action above
+    // For the `pay` IOU action on non-send money flow we don't want to show anything if we are waiting for the payee to add a bank account or wallet
+    // Otherwise we will see two system message informing user needs to add a bank account or wallet
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lodashGet(props.iouReport, 'isWaitingOnBankAccount', false) && originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
         return null;
     }
