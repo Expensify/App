@@ -66,10 +66,13 @@ function DistanceRequestRenderItem({waypoints, item, onSecondaryInteraction, get
         waypointIcon = Expensicons.DotIndicator;
     }
 
+    const waypoint = lodashGet(waypoints, [`waypoint${index}`], {});
+    const title = waypoint.name || waypoint.address;
+
     return (
         <MenuItemWithTopDescription
             description={translate(descriptionKey)}
-            title={lodashGet(waypoints, [`waypoint${index}`, 'name'], '')}
+            title={title}
             icon={Expensicons.DragHandles}
             iconFill={theme.icon}
             secondaryIcon={waypointIcon}

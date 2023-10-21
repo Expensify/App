@@ -172,10 +172,10 @@ function AddressSearch(props) {
             // amount of data massaging needs to happen for what the parent expects to get from this function.
             if (_.size(details)) {
                 props.onPress({
-                    address: lodashGet(details, 'description', ''),
+                    address: lodashGet(details, 'description'),
                     lat: lodashGet(details, 'geometry.location.lat', 0),
                     lng: lodashGet(details, 'geometry.location.lng', 0),
-                    name: lodashGet(details, 'name', ''),
+                    name: lodashGet(details, 'name'),
                 });
             }
             return;
@@ -395,12 +395,7 @@ function AddressSearch(props) {
                             return (
                                 <View>
                                     <Text style={[styles.googleSearchText]}>{title || subtitle}</Text>
-                                    <Text
-                                        style={[styles.textLabelSupporting]}
-                                        numberOfLines={2}
-                                    >
-                                        {title && subtitle ? subtitle : ''}
-                                    </Text>
+                                    {title && subtitle && <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>}
                                 </View>
                             );
                         }}

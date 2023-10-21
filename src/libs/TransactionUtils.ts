@@ -400,10 +400,6 @@ function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
 
-function waypointHasValidName(waypoint: RecentWaypoint | Waypoint): boolean {
-    return !!waypoint?.name?.trim();
-}
-
 /**
  * Converts the key of a waypoint to its index
  */
@@ -428,7 +424,7 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
         const previousWaypoint = waypointValues[lastWaypointIndex];
 
         // Check if the waypoint has a valid address
-        if (!waypointHasValidName(currentWaypoint) || !waypointHasValidAddress(currentWaypoint)) {
+        if (!waypointHasValidAddress(currentWaypoint)) {
             return acc;
         }
 

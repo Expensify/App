@@ -85,14 +85,16 @@ function DistanceEReceipt({transaction}) {
                             } else {
                                 descriptionKey += 'stop';
                             }
+                            const title = waypoint.name || waypoint.address;
+                            const subtitle = waypoint.name && waypoint.address ? waypoint.address : undefined;
                             return (
                                 <View
                                     style={styles.gap1}
                                     key={key}
                                 >
                                     <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
-                                    <Text style={styles.eReceiptWaypointAddress}>{waypoint.name || ''}</Text>
-                                    <Text style={styles.textLabelSupporting}>{waypoint.address || ''}</Text>
+                                    <Text style={styles.eReceiptWaypointAddress}>{title}</Text>
+                                    {subtitle && <Text style={styles.textLabelSupporting}>{subtitle}</Text>}
                                 </View>
                             );
                         })}
