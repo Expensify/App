@@ -117,6 +117,7 @@ function MoneyRequestAction({
 
     let shouldShowPendingConversionMessage = false;
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
+    const isReversedTransaction = ReportActionsUtils.isReversedTransaction(action);
     if (
         !_.isEmpty(iouReport) &&
         !_.isEmpty(reportActions) &&
@@ -128,8 +129,8 @@ function MoneyRequestAction({
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(iouReport);
     }
 
-    return isDeletedParentAction ? (
-        <RenderHTML html={`<comment>${translate('parentReportAction.deletedRequest')}</comment>`} />
+    return isDeletedParentAction || isReversedTransaction ? (
+        <RenderHTML html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`} />
     ) : (
         <MoneyRequestPreview
             iouReportID={requestReportID}
