@@ -661,6 +661,17 @@ function hasSingleParticipant(report) {
 }
 
 /**
+ * Checks whether all the transactions linked to the IOU report are of the Distance Request type
+ *
+ * @param {string|null} iouReportID
+ * @returns {boolean}
+ */
+function hasOnlyDistanceRequestTransactions(iouReportID) {
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.all(allTransactions, (transaction) => TransactionUtils.isDistanceRequest(transaction));
+}
+
+/**
  * If the report is a thread and has a chat type set, it is a workspace chat.
  *
  * @param {Object} report
@@ -1415,7 +1426,7 @@ function getPolicyExpenseChatName(report, policy = undefined) {
 }
 
 /**
- * Get the title for a IOU or expense chat which will be showing the payer and the amount
+ * Get the title for an IOU or expense chat which will be showing the payer and the amount
  *
  * @param {Object} report
  * @param {Object} [policy]
@@ -1423,15 +1434,15 @@ function getPolicyExpenseChatName(report, policy = undefined) {
  */
 function getMoneyRequestReportName(report, policy = undefined) {
     const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
-    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report.currency);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report.currency, hasOnlyDistanceRequestTransactions(report.reportID));
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
-    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {
+    const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerName,
         amount: formattedAmount,
     });
 
     if (report.isWaitingOnBankAccount) {
-        return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
+        return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
     if (hasNonReimbursableTransactions(report.reportID)) {
@@ -1442,7 +1453,7 @@ function getMoneyRequestReportName(report, policy = undefined) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    return payerPaidAmountMesssage;
+    return payerPaidAmountMessage;
 }
 
 /**
@@ -1527,7 +1538,7 @@ function canEditReportAction(reportAction) {
 /**
  * Gets all transactions on an IOU report with a receipt
  *
- * @param {Object|null} iouReportID
+ * @param {string|null} iouReportID
  * @returns {[Object]}
  */
 function getTransactionsWithReceipts(iouReportID) {
@@ -1593,7 +1604,7 @@ function getTransactionReportName(reportAction) {
     const {amount, currency, comment} = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency),
+        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency, TransactionUtils.isDistanceRequest(transaction)),
         comment,
     });
 }
@@ -3392,8 +3403,16 @@ function parseReportRouteParams(route) {
     }
 
     const pathSegments = parsingRoute.split('/');
+
+    const reportIDSegment = pathSegments[1];
+
+    // Check for "undefined" or any other unwanted string values
+    if (!reportIDSegment || reportIDSegment === 'undefined') {
+        return {reportID: '', isSubReportPageRoute: false};
+    }
+
     return {
-        reportID: pathSegments[1],
+        reportID: reportIDSegment,
         isSubReportPageRoute: pathSegments.length > 2,
     };
 }
@@ -3708,6 +3727,21 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
         return null;
     }
     return expenseChat.reportID;
+}
+
+/**
+ * Check if the report can create the request with type is iouType
+ * @param {Object} report
+ * @param {Array} betas
+ * @param {String} iouType
+ * @returns {Boolean}
+ */
+function canCreateRequest(report, betas, iouType) {
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+    if (shouldDisableWriteActions(report)) {
+        return false;
+    }
+    return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
 }
 
 /**
@@ -4039,6 +4073,7 @@ export {
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
+    canCreateRequest,
     hasIOUWaitingOnCurrentUserBankAccount,
     canRequestMoney,
     getWhisperDisplayNames,
@@ -4079,6 +4114,7 @@ export {
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getTransactionsWithReceipts,
+    hasOnlyDistanceRequestTransactions,
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
