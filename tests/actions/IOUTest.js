@@ -19,7 +19,6 @@ import * as User from '../../src/libs/actions/User';
 import PusherHelper from '../utils/PusherHelper';
 import Navigation from '../../src/libs/Navigation/Navigation';
 import ROUTES from '../../src/ROUTES';
-import * as PolicyActions from '../../src/libs/actions/Policy';
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
