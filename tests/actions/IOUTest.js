@@ -1667,7 +1667,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('pay iou report via ACH', () => {
+    describe('pay expense report via ACH', () => {
         const amount = 10000;
         const comment = '💸💸💸💸';
         const merchant = 'NASDAQ';
@@ -1676,8 +1676,8 @@ describe('actions/IOU', () => {
             fetch.resume();
         });
 
-        it('updates the IOU request and IOU report when paid while offline', () => {
-            let iouReport = {};
+        it('updates the expense request and expense report when paid while offline', () => {
+            let expenseReport = {};
             let chatReport = {};
 
             fetch.pause();
@@ -1714,7 +1714,7 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
-                                    iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
 
                                     resolve();
                                 },
@@ -1722,14 +1722,14 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, iouReport);
+                    IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport);
                     return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
                         new Promise((resolve) => {
                             const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
                                 waitForCollectionCallback: true,
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
@@ -1764,7 +1764,7 @@ describe('actions/IOU', () => {
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
                                     const updatedIOUReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
-                                    const updatedChatReport = _.find(allReports, (report) => report.reportID === iouReport.chatReportID);
+                                    const updatedChatReport = _.find(allReports, (report) => report.reportID === expenseReport.chatReportID);
                                     expect(updatedIOUReport).toEqual(
                                         expect.objectContaining({
                                             lastMessageHtml: `paid $${amount / 100}.00 with Expensify`,
@@ -1788,7 +1788,7 @@ describe('actions/IOU', () => {
         });
 
         it('shows an error when paying results in an error', () => {
-            let iouReport = {};
+            let expenseReport = {};
             let chatReport = {};
 
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
@@ -1824,7 +1824,7 @@ describe('actions/IOU', () => {
                                 waitForCollectionCallback: true,
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
-                                    iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
 
                                     resolve();
                                 },
@@ -1833,14 +1833,14 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     fetch.fail();
-                    IOU.payMoneyRequest('ACH', chatReport, iouReport);
+                    IOU.payMoneyRequest('ACH', chatReport, expenseReport);
                     return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
                         new Promise((resolve) => {
                             const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
                                 waitForCollectionCallback: true,
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
