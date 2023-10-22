@@ -7,7 +7,6 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
-import CONST from '../../CONST';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
