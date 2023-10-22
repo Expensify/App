@@ -198,7 +198,7 @@ function ComposerWithSuggestions({
     const findNewlyAddedChars = useCallback(
         (prevText, newText) => {
             const isTextReplace = selection.end - selection.start > 0;
-            const commonSuffixLength =ComposerUtils.getCommonSuffixLength(prevText, newText);
+            const commonSuffixLength = ComposerUtils.getCommonSuffixLength(prevText, newText);
             let startIndex = -1;
             let endIndex = -1;
             let i = 0;
@@ -210,7 +210,7 @@ function ComposerWithSuggestions({
             if (i < newText.length) {
                 startIndex = i;
                 // if text is getting pasted over find length of common suffix and subtract it from new text length
-                endIndex = isTextReplace ?  newText.length-commonSuffixLength : i + (newText.length - prevText.length);
+                endIndex = isTextReplace ? newText.length - commonSuffixLength : i + (newText.length - prevText.length);
             }
 
             return {startIndex, endIndex, diff: newText.substring(startIndex, endIndex)};
@@ -287,7 +287,17 @@ function ComposerWithSuggestions({
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [raiseIsScrollLikelyLayoutTriggered, findNewlyAddedChars, preferredSkinTone, preferredLocale, setIsCommentEmpty, debouncedUpdateFrequentlyUsedEmojis, suggestionsRef, reportID, debouncedSaveReportComment],
+        [
+            raiseIsScrollLikelyLayoutTriggered,
+            findNewlyAddedChars,
+            preferredSkinTone,
+            preferredLocale,
+            setIsCommentEmpty,
+            debouncedUpdateFrequentlyUsedEmojis,
+            suggestionsRef,
+            reportID,
+            debouncedSaveReportComment,
+        ],
     );
 
     /**
