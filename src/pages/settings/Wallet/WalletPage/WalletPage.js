@@ -387,7 +387,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                             disabled={network.isOffline}
                                                             wrapperStyle={styles.transferBalance}
                                                         />
-                                                    ) : (userWallet.didFailOnfido ? (
+                                                    ) : (userWallet.hasFailedOnfido ? (
                                                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                                                             <Icon
                                                                 src={Expensicons.Exclamation}
