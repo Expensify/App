@@ -12,7 +12,7 @@ import CONST from './CONST';
  * @returns
  */
 function getBackToParam(backTo?: string): string {
-    return backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
+    return backTo ? `backTo=${encodeURIComponent(backTo)}` : '';
 }
 
 export default {
@@ -30,7 +30,7 @@ export default {
     },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID: string | number, backTo?: string) => `a/${accountID}${getBackToParam(backTo)}`,
+        getRoute: (accountID: string | number, backTo?: string) => `a/${accountID}?${getBackToParam(backTo)}`,
     },
 
     TRANSITION_BETWEEN_APPS: 'transition',
@@ -56,7 +56,7 @@ export default {
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
-        getRoute: (stepToOpen = '', policyID = '', backTo?: string): string => `bank-account/${stepToOpen}?policyID=${policyID}${getBackToParam(backTo)}`,
+        getRoute: (stepToOpen = '', policyID = '', backTo?: string): string => `bank-account/${stepToOpen}?policyID=${policyID}&${getBackToParam(backTo)}`,
     },
 
     SETTINGS: 'settings',
@@ -108,7 +108,7 @@ export default {
     SETTINGS_PERSONAL_DETAILS_ADDRESS: 'settings/profile/personal-details/address',
     SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY: {
         route: 'settings/profile/personal-details/address/country',
-        getRoute: (country: string, backTo?: string) => `settings/profile/personal-details/address/country?country=${country}${getBackToParam(backTo)}`,
+        getRoute: (country: string, backTo?: string) => `settings/profile/personal-details/address/country?country=${country}&${getBackToParam(backTo)}`,
     },
     SETTINGS_CONTACT_METHODS: 'settings/profile/contact-methods',
     SETTINGS_CONTACT_METHOD_DETAILS: {
