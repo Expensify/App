@@ -12,7 +12,7 @@ import CONST from './CONST';
  * @returns
  */
 function getUrlWithBackToParam(url: string, backTo?: string): string {
-    const backToParam = backTo ? `${url.includes("?") ? "&" : "?"}backTo=${encodeURIComponent(backTo)}` : '';
+    const backToParam = backTo ? `${url.includes('?') ? '&' : '?'}backTo=${encodeURIComponent(backTo)}` : '';
     return url + backToParam;
 }
 
