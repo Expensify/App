@@ -196,18 +196,17 @@ function Expensify(props) {
 
         const kemKeys = Encryptify.KEMGenKeys();
 
-        const publicKeys = {kyber1024: kemKeys.kyber1024.publicKey, rsa4096: kemKeys.rsa4096.publicKey};
-        const privateKeys = {kyber1024: kemKeys.kyber1024.privateKey, rsa4096: kemKeys.rsa4096.privateKey};
+        console.log({kemKeys});
 
         const data = 'Hello World! 123';
-        const {sharedSecret, cipherText} = Encryptify.KEMEncrypt(publicKeys);
+        const {sharedSecret, cipherText} = Encryptify.KEMEncrypt(kemKeys.public);
         const encryptedData = Encryptify.AESEncrypt('some iv value', sharedSecret, data);
 
         // After encryption on the sender side, the message is sent to the receiver:
         // Only the encryptedData an the cipherText must be sent to the receiver
         // The receiver can then decrypt the cipherText with his private keys
 
-        const decryptedSharedSecret = Encryptify.KEMDecrypt(privateKeys, cipherText);
+        const decryptedSharedSecret = Encryptify.KEMDecrypt(kemKeys.private, cipherText);
         const decryptedData = Encryptify.AESDecrypt('some iv value', decryptedSharedSecret, encryptedData);
 
         console.log({encryptedData, decryptedData});
