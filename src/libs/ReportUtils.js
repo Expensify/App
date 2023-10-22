@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import _ from 'underscore';
-import {format, parseISO} from 'date-fns';
+import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
@@ -658,6 +658,17 @@ function isDM(report) {
  */
 function hasSingleParticipant(report) {
     return report && report.participantAccountIDs && report.participantAccountIDs.length === 1;
+}
+
+/**
+ * Checks whether all the transactions linked to the IOU report are of the Distance Request type
+ *
+ * @param {string|null} iouReportID
+ * @returns {boolean}
+ */
+function hasOnlyDistanceRequestTransactions(iouReportID) {
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.all(allTransactions, (transaction) => TransactionUtils.isDistanceRequest(transaction));
 }
 
 /**
@@ -1415,33 +1426,34 @@ function getPolicyExpenseChatName(report, policy = undefined) {
 }
 
 /**
- * Get the title for a IOU or expense chat which will be showing the payer and the amount
+ * Get the title for an IOU or expense chat which will be showing the payer and the amount
  *
  * @param {Object} report
  * @param {Object} [policy]
  * @returns  {String}
  */
 function getMoneyRequestReportName(report, policy = undefined) {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(report), report.currency);
+    const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report.currency, hasOnlyDistanceRequestTransactions(report.reportID));
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
-    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {
+    const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerName,
         amount: formattedAmount,
     });
 
     if (report.isWaitingOnBankAccount) {
-        return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
+        return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
     if (hasNonReimbursableTransactions(report.reportID)) {
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    if (report.hasOutstandingIOU) {
+    if (report.hasOutstandingIOU || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    return payerPaidAmountMesssage;
+    return payerPaidAmountMessage;
 }
 
 /**
@@ -1526,7 +1538,7 @@ function canEditReportAction(reportAction) {
 /**
  * Gets all transactions on an IOU report with a receipt
  *
- * @param {Object|null} iouReportID
+ * @param {string|null} iouReportID
  * @returns {[Object]}
  */
 function getTransactionsWithReceipts(iouReportID) {
@@ -1592,7 +1604,7 @@ function getTransactionReportName(reportAction) {
     const {amount, currency, comment} = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency),
+        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency, TransactionUtils.isDistanceRequest(transaction)),
         comment,
     });
 }
@@ -1757,7 +1769,7 @@ function getModifiedExpenseMessage(reportAction) {
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated = parseISO(reportActionOriginalMessage.oldCreated);
+        let formattedOldCreated = new Date(reportActionOriginalMessage.oldCreated);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false);
     }
@@ -3156,7 +3168,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         (report.participantAccountIDs &&
             report.participantAccountIDs.length === 0 &&
             !isChatThread(report) &&
-            !isPublicRoom(report) &&
+            !isUserCreatedPolicyRoom(report) &&
             !isArchivedRoom(report) &&
             !isMoneyRequestReport(report) &&
             !isTaskReport(report))
@@ -3520,17 +3532,17 @@ function getMoneyRequestOptions(report, reportParticipants) {
         (hasMultipleParticipants && !isPolicyExpenseChat(report) && !isMoneyRequestReport(report)) ||
         (isControlPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat)
     ) {
-        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
+        return [CONST.IOU.TYPE.SPLIT];
     }
 
     // DM chats that only have 2 people will see the Send / Request money options.
     // IOU and open or processing expense reports should show the Request option.
     // Workspace chats should only see the Request money option or Split option in case of Control policies
     return [
-        ...(canRequestMoney(report, participants) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
+        ...(canRequestMoney(report, participants) ? [CONST.IOU.TYPE.REQUEST] : []),
 
         // Send money option should be visible only in DMs
-        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.TYPE.SEND] : []),
     ];
 }
 
@@ -4078,10 +4090,12 @@ export {
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getTransactionsWithReceipts,
+    hasOnlyDistanceRequestTransactions,
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
     isReportDraft,
     shouldUseFullTitleToDisplay,
+    parseReportRouteParams,
 };
