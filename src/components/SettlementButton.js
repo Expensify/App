@@ -15,6 +15,8 @@ import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
 import * as Expensicons from './Icon/Expensicons';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import * as BankAccounts from '../libs/actions/BankAccounts';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
@@ -68,8 +70,14 @@ const propTypes = {
     /** Whether we should show a loading state for the main button */
     isLoading: PropTypes.bool,
 
-    /** The anchor alignment of the popover menu */
-    anchorAlignment: PropTypes.shape({
+    /** The anchor alignment of the popover menu for payment method dropdown */
+    paymentMethodDropdownAnchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
+
+    /** The anchor alignment of the popover menu for KYC wall popover */
+    kycWallAnchorAlignment: PropTypes.shape({
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
@@ -94,8 +102,12 @@ const defaultProps = {
     policyID: '',
     formattedAmount: '',
     buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-    anchorAlignment: {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    kycWallAnchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
+    },
+    paymentMethodDropdownAnchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, // caret for dropdown is at right, so horizontal anchor is at RIGHT
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
 };
@@ -103,7 +115,8 @@ const defaultProps = {
 function SettlementButton({
     addDebitCardRoute,
     addBankAccountRoute,
-    anchorAlignment,
+    kycWallAnchorAlignment,
+    paymentMethodDropdownAnchorAlignment,
     betas,
     buttonSize,
     chatReportID,
@@ -191,6 +204,7 @@ function SettlementButton({
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
+            BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             return;
         }
 
@@ -204,9 +218,10 @@ function SettlementButton({
             addBankAccountRoute={addBankAccountRoute}
             addDebitCardRoute={addDebitCardRoute}
             isDisabled={isOffline}
+            source={CONST.KYC_WALL_SOURCE.REPORT}
             chatReportID={chatReportID}
             iouReport={iouReport}
-            anchorAlignment={anchorAlignment}
+            anchorAlignment={kycWallAnchorAlignment}
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
@@ -218,7 +233,7 @@ function SettlementButton({
                     options={paymentButtonOptions}
                     style={style}
                     buttonSize={buttonSize}
-                    anchorAlignment={anchorAlignment}
+                    anchorAlignment={paymentMethodDropdownAnchorAlignment}
                 />
             )}
         </KYCWall>

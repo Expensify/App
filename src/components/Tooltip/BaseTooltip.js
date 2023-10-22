@@ -81,7 +81,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
     const initialMousePosition = useRef({x: 0, y: 0});
 
     const updateTargetAndMousePosition = useCallback((e) => {
-        target.current = e.target;
+        target.current = e.currentTarget;
         initialMousePosition.current = {x: e.clientX, y: e.clientY};
     }, []);
 
@@ -103,10 +103,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
      * Display the tooltip in an animation.
      */
     const showTooltip = useCallback(() => {
-        if (!isRendered) {
-            setIsRendered(true);
-        }
-
+        setIsRendered(true);
         setIsVisible(true);
 
         animation.current.stopAnimation();
@@ -126,7 +123,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
             });
         }
         TooltipSense.activate();
-    }, [isRendered]);
+    }, []);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -147,11 +144,17 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
         if (bounds.width === 0) {
             setIsRendered(false);
         }
+        if (!target.current) {
+            return;
+        }
         // Choose a bounding box for the tooltip to target.
         // In the case when the target is a link that has wrapped onto
         // multiple lines, we want to show the tooltip over the part
         // of the link that the user is hovering over.
         const betterBounds = chooseBoundingBox(target.current, initialMousePosition.current.x, initialMousePosition.current.y);
+        if (!betterBounds) {
+            return;
+        }
         setWrapperWidth(betterBounds.width);
         setWrapperHeight(betterBounds.height);
         setXOffset(betterBounds.x);
@@ -161,7 +164,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
     /**
      * Hide the tooltip in an animation.
      */
-    const hideTooltip = () => {
+    const hideTooltip = useCallback(() => {
         animation.current.stopAnimation();
 
         if (TooltipSense.isActive() && !isTooltipSenseInitiator.current) {
@@ -179,7 +182,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
         TooltipSense.deactivate();
 
         setIsVisible(false);
-    };
+    }, []);
 
     useEffect(() => {
         if (isPopoverRelatedToTooltipOpen && !previousPopoverOpen) {
