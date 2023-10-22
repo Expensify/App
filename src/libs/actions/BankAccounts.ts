@@ -145,7 +145,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
 /**
  * Adds a bank account via Plaid
  *
- * @TODO offline pattern for this command will have to be added later once the pattern B design doc is complete
+ * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
 function addPersonalBankAccount(account: PlaidBankAccount) {
     const commandName = 'AddPersonalBankAccount';
