@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState, useRef} from 'react';
 import {ActivityIndicator, View, InteractionManager, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
@@ -68,7 +69,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     const hasAssignedCard = !_.isEmpty(cardList);
     const shouldShowEmptyState = !hasBankAccount && !hasWallet && !hasAssignedCard;
 
-    const {isPendingOnfidoResult} = userWallet;
+    const isPendingOnfidoResult = lodashGet(userWallet, 'isPendingOnfidoResult', false);
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change

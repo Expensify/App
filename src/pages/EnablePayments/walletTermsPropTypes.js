@@ -14,5 +14,5 @@ export default PropTypes.shape({
     chatReportID: PropTypes.string,
 
     /** Boolean to indicate whether the submission of wallet terms is being processed */
-    submitting: PropTypes.bool,
+    isLoading: PropTypes.bool,
 });

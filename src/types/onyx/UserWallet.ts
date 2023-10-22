@@ -25,7 +25,7 @@ type UserWallet = {
     /** The user's wallet tier */
     tier?: number;
 
-    /** Whether the kyc is pending and is yet to be confirmed */
+    /** Whether the Onfido result is pending. KYC is not complete and the wallet will not be activated until we have the Onfido verification result */
     isPendingOnfidoResult?: boolean;
 
     /** The ID of the linked account */

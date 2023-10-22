@@ -216,7 +216,7 @@ function acceptWalletTerms(parameters) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_TERMS,
             value: {
-                submitting: true,
+                isLoading: true,
             },
         },
     ];
@@ -227,7 +227,7 @@ function acceptWalletTerms(parameters) {
             key: ONYXKEYS.WALLET_TERMS,
             value: {
                 errors: null,
-                submitting: false,
+                isLoading: false,
             },
         },
     ];
@@ -245,7 +245,7 @@ function acceptWalletTerms(parameters) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_TERMS,
             value: {
-                submitting: false,
+                isLoading: false,
             },
         },
     ];
