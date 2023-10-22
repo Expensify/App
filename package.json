@@ -20,7 +20,7 @@
     "start": "npx react-native start",
     "web": "scripts/set-pusher-suffix.sh && concurrently npm:web-proxy npm:web-server",
     "web-proxy": "node web/proxy.js",
-    "web-server": "webpack-dev-server --config config/webpack/webpack.dev.js",
+    "web-server": "webpack-dev-server --open --config config/webpack/webpack.dev.js",
     "build": "webpack --config config/webpack/webpack.common.js --env envFile=.env.production",
     "build-staging": "webpack --config config/webpack/webpack.common.js --env envFile=.env.staging",
     "build-adhoc": "webpack --config config/webpack/webpack.common.js --env envFile=.env.adhoc",
