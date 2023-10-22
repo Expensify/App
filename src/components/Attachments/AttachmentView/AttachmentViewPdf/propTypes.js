@@ -10,6 +10,9 @@ const attachmentViewPdfPropTypes = {
     onToggleKeyboard: PropTypes.func.isRequired,
     onLoadComplete: PropTypes.func.isRequired,
 
+    /** Additional style props */
+    style: stylePropTypes,
+
     /** Styles for the error label */
     errorLabelStyles: stylePropTypes,
 };
@@ -18,6 +21,7 @@ const attachmentViewPdfDefaultProps = {
     file: {
         name: '',
     },
+    style: [],
     errorLabelStyles: [],
 };
 

@@ -135,6 +135,7 @@ function AttachmentView({
                 onToggleKeyboard={onToggleKeyboard}
                 onLoadComplete={() => !loadComplete && setLoadComplete(true)}
                 errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [cursor.cursorAuto]}
+                style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
             />
         );
     }

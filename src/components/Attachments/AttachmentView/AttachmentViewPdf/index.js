@@ -1,16 +1,15 @@
 import React, {memo} from 'react';
-import styles from '../../../../styles/styles';
 import {attachmentViewPdfPropTypes, attachmentViewPdfDefaultProps} from './propTypes';
 import PDFView from '../../../PDFView';
 
-function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onScaleChanged, onToggleKeyboard, onLoadComplete, errorLabelStyles}) {
+function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onScaleChanged, onToggleKeyboard, onLoadComplete, errorLabelStyles, style}) {
     return (
         <PDFView
             onPress={onPress}
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}
             fileName={file.name}
-            style={styles.imageModalPDF}
+            style={style}
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}
             onLoadComplete={onLoadComplete}

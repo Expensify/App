@@ -2151,6 +2151,7 @@ const styles = (theme: ThemeDefault) =>
 
         imageModalPDF: {
             flex: 1,
+            backgroundColor: theme.modalBackground,
         },
 
         PDFView: {
