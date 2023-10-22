@@ -18,6 +18,7 @@ import CONST from '../../../CONST';
 import editedLabelStyles from '../../../styles/editedLabelStyles';
 import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 import avatarPropTypes from '../../../components/avatarPropTypes';
+import ZeroWidthView from '../../../components/ZeroWidthView';
 
 const propTypes = {
     /** Users accountID */
@@ -66,6 +67,9 @@ const propTypes = {
 
     /** localization props */
     ...withLocalizePropTypes,
+
+    /** Should the comment have the appearance of being grouped with the previous comment? */
+    displayAsGroup: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -82,6 +86,7 @@ const defaultProps = {
     delegateAccountID: 0,
     actorIcon: {},
     isThreadParentMessage: false,
+    displayAsGroup: false,
 };
 
 function ReportActionItemFragment(props) {
@@ -116,6 +121,10 @@ function ReportActionItemFragment(props) {
 
             return (
                 <Text style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}>
+                    <ZeroWidthView
+                        text={text}
+                        displayAsGroup={props.displayAsGroup}
+                    />
                     <Text
                         selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                         style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style, isPendingDelete ? styles.offlineFeedback.deleted : undefined]}

@@ -35,6 +35,7 @@ import * as SessionUtils from '../../SessionUtils';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import DemoSetupPage from '../../../pages/DemoSetupPage';
+import getCurrentUrl from '../currentUrl';
 
 let timezone;
 let currentAccountID;
@@ -117,6 +118,13 @@ const propTypes = {
     /** The last Onyx update ID was applied to the client */
     lastUpdateIDAppliedToClient: PropTypes.number,
 
+    /** Information about any currently running demos */
+    demoInfo: PropTypes.shape({
+        money2020: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+    }),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -127,6 +135,7 @@ const defaultProps = {
     },
     lastOpenedPublicRoomID: null,
     lastUpdateIDAppliedToClient: null,
+    demoInfo: {},
 };
 
 class AuthScreens extends React.Component {
@@ -137,6 +146,15 @@ class AuthScreens extends React.Component {
     }
 
     componentDidMount() {
+        const currentUrl = getCurrentUrl();
+        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, this.props.session.email);
+        // Sign out the current user if we're transitioning with a different user
+        const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+        if (isLoggingInAsNewUser && isTransitioning) {
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
+
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(() => {
             if (isLoadingApp) {
@@ -169,6 +187,10 @@ class AuthScreens extends React.Component {
         App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);
         App.redirectThirdPartyDesktopSignIn();
 
+        // Check if we should be running any demos immediately after signing in.
+        if (lodashGet(this.props.demoInfo, 'money2020.isBeginningDemo', false)) {
+            Navigation.navigate(ROUTES.MONEY2020, CONST.NAVIGATION.TYPE.FORCED_UP);
+        }
         if (this.props.lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
             Report.openLastOpenedPublicRoom(this.props.lastOpenedPublicRoomID);
@@ -176,21 +198,29 @@ class AuthScreens extends React.Component {
         Download.clearDownloads();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
+        const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
 
-        // Listen for the key K being pressed so that focus can be given to
-        // the chat switcher, or new group chat
-        // based on the key modifiers pressed and the operating system
+        // Listen to keyboard shortcuts for opening certain pages
+        this.unsubscribeShortcutsOverviewShortcut = KeyboardShortcut.subscribe(
+            shortcutsOverviewShortcutConfig.shortcutKey,
+            () => {
+                Modal.close(() => {
+                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
+                        return;
+                    }
+                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+                });
+            },
+            shortcutsOverviewShortcutConfig.descriptionKey,
+            shortcutsOverviewShortcutConfig.modifiers,
+            true,
+        );
         this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
-                        return;
-                    }
-                    return Navigation.navigate(ROUTES.SEARCH);
-                });
+                Modal.close(() => Navigation.navigate(ROUTES.SEARCH));
             },
             searchShortcutConfig.descriptionKey,
             searchShortcutConfig.modifiers,
@@ -199,12 +229,7 @@ class AuthScreens extends React.Component {
         this.unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
-                Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.NEW)) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.NEW);
-                });
+                Modal.close(() => Navigation.navigate(ROUTES.NEW));
             },
             chatShortcutConfig.descriptionKey,
             chatShortcutConfig.modifiers,
@@ -217,6 +242,9 @@ class AuthScreens extends React.Component {
     }
 
     componentWillUnmount() {
+        if (this.unsubscribeShortcutsOverviewShortcut) {
+            this.unsubscribeShortcutsOverviewShortcut();
+        }
         if (this.unsubscribeSearchShortcut) {
             this.unsubscribeSearchShortcut();
         }
@@ -294,6 +322,11 @@ class AuthScreens extends React.Component {
                         component={DemoSetupPage}
                     />
                     <RootStack.Screen
+                        name={CONST.DEMO_PAGES.MONEY2020}
+                        options={defaultScreenOptions}
+                        component={DemoSetupPage}
+                    />
+                    <RootStack.Screen
                         name={SCREENS.REPORT_ATTACHMENTS}
                         options={{
                             headerShown: false,
@@ -343,6 +376,9 @@ export default compose(
         },
         lastUpdateIDAppliedToClient: {
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+        },
+        demoInfo: {
+            key: ONYXKEYS.DEMO_INFO,
         },
     }),
 )(AuthScreens);

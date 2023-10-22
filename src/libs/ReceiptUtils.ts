@@ -6,10 +6,13 @@ import ReceiptHTML from '../../assets/images/receipt-html.png';
 import ReceiptDoc from '../../assets/images/receipt-doc.png';
 import ReceiptGeneric from '../../assets/images/receipt-generic.png';
 import ReceiptSVG from '../../assets/images/receipt-svg.png';
+import {Transaction} from '../types/onyx';
+import ROUTES from '../ROUTES';
 
 type ThumbnailAndImageURI = {
     image: ImageSourcePropType | string;
     thumbnail: string | null;
+    transaction?: Transaction;
 };
 
 type FileNameAndExtension = {
@@ -20,11 +23,22 @@ type FileNameAndExtension = {
 /**
  * Grab the appropriate receipt image and thumbnail URIs based on file type
  *
- * @param path URI to image, i.e. blob:new.expensify.com/9ef3a018-4067-47c6-b29f-5f1bd35f213d or expensify.com/receipts/w_e616108497ef940b7210ec6beb5a462d01a878f4.jpg
- * @param filename of uploaded image or last part of remote URI
+ * @param transaction
+ * @param receiptPath
+ * @param receiptFileName
  */
-function getThumbnailAndImageURIs(path: string, filename: string): ThumbnailAndImageURI {
+function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
+    // URI to image, i.e. blob:new.expensify.com/9ef3a018-4067-47c6-b29f-5f1bd35f213d or expensify.com/receipts/w_e616108497ef940b7210ec6beb5a462d01a878f4.jpg
+    const path = transaction?.receipt?.source ?? receiptPath ?? '';
+    // filename of uploaded image or last part of remote URI
+    const filename = transaction?.filename ?? receiptFileName ?? '';
     const isReceiptImage = Str.isImage(filename);
+
+    const hasEReceipt = transaction?.hasEReceipt;
+
+    if (hasEReceipt) {
+        return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction};
+    }
 
     // For local files, we won't have a thumbnail yet
     if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
