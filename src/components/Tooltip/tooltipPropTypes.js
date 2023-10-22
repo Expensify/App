@@ -31,6 +31,9 @@ const propTypes = {
 
     /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
     shouldHandleScroll: PropTypes.bool,
+
+    /** Reference to the tooltip container */
+    tooltipRef: PropTypes.any,
 };
 
 const defaultProps = {
@@ -42,6 +45,7 @@ const defaultProps = {
     renderTooltipContent: undefined,
     renderTooltipContentKey: [],
     shouldHandleScroll: false,
+    tooltipRef: () => {},
 };
 
 export {propTypes, defaultProps};
