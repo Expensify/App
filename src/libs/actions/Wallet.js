@@ -211,12 +211,23 @@ function verifyIdentity(parameters) {
  * @param {Number} parameters.chatReportID When accepting the terms of wallet to pay an IOU, indicates the parent chat ID of the IOU
  */
 function acceptWalletTerms(parameters) {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_TERMS,
+            value: {
+                submitting: true,
+            },
+        },
+    ];
+
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_TERMS,
             value: {
                 errors: null,
+                submitting: false,
             },
         },
     ];
@@ -230,9 +241,16 @@ function acceptWalletTerms(parameters) {
                 shouldShowFailedKYC: true,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_TERMS,
+            value: {
+                submitting: false,
+            },
+        },
     ];
 
-    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.chatReportID}, {successData, failureData});
+    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.chatReportID}, {optimisticData, successData, failureData});
 }
 
 /**
