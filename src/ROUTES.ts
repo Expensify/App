@@ -5,16 +5,6 @@ import CONST from './CONST';
  * This is a file containing constants for all of the routes we want to be able to go to
  */
 
-/**
- * This is a file containing constants for all of the routes we want to be able to go to
- * Returns an encoded URI component for the backTo param which can be added to the end of URLs
- * @param backTo
- * @returns
- */
-function getBackToParam(backTo?: string): string {
-    return backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
-}
-
 export default {
     HOME: '',
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
@@ -30,7 +20,10 @@ export default {
     },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID: string | number, backTo?: string) => `a/${accountID}${getBackToParam(backTo)}`,
+        getRoute: (accountID: string | number, backTo = '') => {
+            const backToParam = backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
+            return `a/${accountID}${backToParam}`;
+        },
     },
 
     TRANSITION_BETWEEN_APPS: 'transition',
@@ -56,7 +49,10 @@ export default {
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
-        getRoute: (stepToOpen = '', policyID = '', backTo?: string): string => `bank-account/${stepToOpen}?policyID=${policyID}${getBackToParam(backTo)}`,
+        getRoute: (stepToOpen = '', policyID = '', backTo = ''): string => {
+            const backToParam = backTo ? `&backTo=${encodeURIComponent(backTo)}` : '';
+            return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
+        },
     },
 
     SETTINGS: 'settings',
@@ -108,7 +104,13 @@ export default {
     SETTINGS_PERSONAL_DETAILS_ADDRESS: 'settings/profile/personal-details/address',
     SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY: {
         route: 'settings/profile/personal-details/address/country',
-        getRoute: (country: string, backTo?: string) => `settings/profile/personal-details/address/country?country=${country}${getBackToParam(backTo)}`,
+        getRoute: (country: string, backTo?: string) => {
+            let route = `settings/profile/personal-details/address/country?country=${country}`;
+            if (backTo) {
+                route += `&backTo=${encodeURIComponent(backTo)}`;
+            }
+            return route;
+        },
     },
     SETTINGS_CONTACT_METHODS: 'settings/profile/contact-methods',
     SETTINGS_CONTACT_METHOD_DETAILS: {
