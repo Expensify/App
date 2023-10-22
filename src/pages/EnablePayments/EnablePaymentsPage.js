@@ -43,7 +43,7 @@ function EnablePaymentsPage({userWallet}) {
         if (!isPendingOnfidoResult) {
             Wallet.openEnablePaymentsPage();
         } else {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET);
+            Navigation.navigate(ROUTES.SETTINGS_WALLET, CONST.NAVIGATION.TYPE.UP);
         }
     }, [isOffline, isPendingOnfidoResult]);
 
