@@ -1190,8 +1190,8 @@ const CONST = {
         TYPE: {
             FREE: 'free',
             PERSONAL: 'personal',
-            CORPORATE: 'corporate',
-            TEAM: 'team',
+            CORPORATE: 'corporate', // aka Control
+            TEAM: 'team', // aka Collect
         },
         ROLE: {
             ADMIN: 'admin',

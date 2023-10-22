@@ -9,6 +9,7 @@ import AddPaymentMethodMenu from '../AddPaymentMethodMenu';
 import getClickedTargetLocation from '../../libs/getClickedTargetLocation';
 import * as PaymentUtils from '../../libs/PaymentUtils';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
+import * as Policy from '../../libs/actions/Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import Log from '../../libs/Log';
 import {propTypes, defaultProps} from './kycWallPropTypes';
@@ -98,7 +99,7 @@ class KYCWall extends React.Component {
         } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(this.props.addDebitCardRoute);
         } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            // Start the Bottom up flow
+            Policy.startCollectFlow(this.props.iouReport);
         }
     }
 

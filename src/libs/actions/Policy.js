@@ -1289,6 +1289,267 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
+
+function startCollectBottomUpFlow(iouReport, firstName, lastName) {
+
+    // This flow only works for IOU reports
+    if (!ReportUtils.isIOUReport(iouReport)) {
+        return;
+    }
+
+    // Generate new vairbales for the policy
+    const policyID = generatePolicyID()
+    const workspaceName = generateDefaultWorkspaceName(sessionEmail);
+    const employeeAccountID = iouReport.ownerAccountID;
+    const employeeEmail = iouReport.ownerEmail;
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
+
+    const {
+        announceChatReportID,
+        announceChatData,
+        announceReportActionData,
+        announceCreatedReportActionID,
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        adminsCreatedReportActionID,
+        expenseChatReportID: workspaceChatReportID,
+        expenseChatData: workspaceChatData,
+        expenseReportActionData: workspaceChatReportActionData,
+        expenseCreatedReportActionID: workspaceChatCreatedReportActionID,
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
+
+    // Create the workspace chat for the employee
+    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID});
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM, // We are creating a collect policy in this case
+                name: workspaceName,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: sessionEmail,
+                isPolicyExpenseChatEnabled: true,
+                outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                customUnits,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            value: {
+                [sessionAccountID]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    errors: {},
+                },
+                [employeeAccountID]: {
+                    role: CONST.POLICY.ROLE.USER,
+                    errors: {},
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...announceChatData,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+            value: announceReportActionData,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...adminsChatData,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: adminsReportActionData,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...workspaceChatData,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
+            value: workspaceChatReportActionData,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
+            value: null,
+        },
+        ...employeeWorkspaceChat.onyxOptimisticData,
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {pendingAction: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+            value: {
+                [_.keys(announceChatData)[0]]: {
+                    pendingAction: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: {
+                [_.keys(adminsChatData)[0]]: {
+                    pendingAction: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
+            value: {
+                [_.keys(workspaceChatData)[0]]: {
+                    pendingAction: null,
+                },
+            },
+        },
+        ...employeeWorkspaceChat.onyxSuccessData
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
+            value: null,
+        },
+    ];
+
+    // Next we need to convert the IOU report to Expense report and clean up the DM chat
+    // Get the 1on1 chat where the request was originally made
+    const chatReportID = iouReport.chatReportID; ReportUtils.getReport(iouReport.chatReportID);
+    const reportPreviewID = iouReport.parentReportActionID;
+
+
+    const membersData = [{
+        accountID: employeeAccountID,
+        email: employeeEmail,
+        workspaceChatReportID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportID,
+        workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportActionID,
+    }];
+
+    API.write(
+        'BottomUpCollectFlow',
+        {
+            policyID,
+            announceChatReportID,
+            adminsChatReportID,
+            expenseChatReportID: workspaceChatReportID,
+            ownerEmail: sessionEmail,
+            makeMeAdmin: false,
+            policyName: workspaceName,
+            type: CONST.POLICY.TYPE.TEAM,
+            announceCreatedReportActionID,
+            adminsCreatedReportActionID,
+            expenseCreatedReportActionID: workspaceChatCreatedReportActionID,
+            customUnitID,
+            customUnitRateID,
+            iouReportID: iouReport.reportID,
+            membersData: JSON.stringify(membersData),
+        },
+        {optimisticData, successData, failureData},
+    );
+    // Navigation.dismissModal(CONST.TEACHERS_UNITE.PUBLIC_ROOM_ID);
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -1320,4 +1581,5 @@ export {
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
     createDraftInitialWorkspace,
+    startCollectBottomUpFlow,
 };
