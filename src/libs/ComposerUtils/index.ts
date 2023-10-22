@@ -35,7 +35,8 @@ function getCommonSuffixLength(str1: string, str2: string): number {
     if(str1.length===0||str2.length===0){
         return 0;
     }
-    while (str1[str1.length - 1 - i] === str2[str2.length - 1 - i]) {        
+    const minLen = Math.min(str1.length, str2.length);
+    while (i>minLen && str1[str1.length - 1 - i] === str2[str2.length - 1 - i]) {        
         i++;
     }
     return i;
