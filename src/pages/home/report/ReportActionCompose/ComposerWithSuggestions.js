@@ -116,6 +116,7 @@ function ComposerWithSuggestions({
         return draft;
     });
     const commentRef = useRef(value);
+    const lastTextRef = useRef(value);
 
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
@@ -194,6 +195,31 @@ function ComposerWithSuggestions({
         RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
     }, [textInputRef]);
 
+    const findNewlyAddedChars = useCallback(
+        (prevText, newText) => {
+            const isTextReplace = selection.end - selection.start > 0;
+            const commonSuffixLength =ComposerUtils.getCommonSuffixLength(prevText, newText);
+            let startIndex = -1;
+            let endIndex = -1;
+            let i = 0;
+
+            while (i < newText.length && prevText.charAt(i) === newText.charAt(i) && selection.start > i) {
+                i++;
+            }
+
+            if (i < newText.length) {
+                startIndex = i;
+                // if text is getting pasted over find length of common suffix and subtract it from new text length
+                endIndex = isTextReplace ?  newText.length-commonSuffixLength : i + (newText.length - prevText.length);
+            }
+
+            return {startIndex, endIndex, diff: newText.substring(startIndex, endIndex)};
+        },
+        [selection.end, selection.start],
+    );
+
+    const insertWhiteSpace = (text, index) => `${text.slice(0, index)} ${text.slice(index)}`;
+
     const debouncedSaveReportComment = useMemo(
         () =>
             _.debounce((selectedReportID, newComment) => {
@@ -211,7 +237,13 @@ function ComposerWithSuggestions({
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
+            const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
+            const isEmojiInserted = diff.length && endIndex > startIndex && EmojiUtils.containsOnlyEmojis(diff);
+            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(
+                isEmojiInserted ? insertWhiteSpace(commentValue, endIndex) : commentValue,
+                preferredSkinTone,
+                preferredLocale,
+            );
 
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
@@ -255,16 +287,7 @@ function ComposerWithSuggestions({
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [
-            debouncedUpdateFrequentlyUsedEmojis,
-            preferredLocale,
-            preferredSkinTone,
-            reportID,
-            setIsCommentEmpty,
-            suggestionsRef,
-            raiseIsScrollLikelyLayoutTriggered,
-            debouncedSaveReportComment,
-        ],
+        [raiseIsScrollLikelyLayoutTriggered, findNewlyAddedChars, preferredSkinTone, preferredLocale, setIsCommentEmpty, debouncedUpdateFrequentlyUsedEmojis, suggestionsRef, reportID, debouncedSaveReportComment],
     );
 
     /**
@@ -313,14 +336,8 @@ function ComposerWithSuggestions({
      * @param {Boolean} shouldAddTrailSpace
      */
     const replaceSelectionWithText = useCallback(
-        (text, shouldAddTrailSpace = true) => {
-            const updatedText = shouldAddTrailSpace ? `${text} ` : text;
-            const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, updatedText));
-            setSelection((prevSelection) => ({
-                start: prevSelection.start + text.length + selectionSpaceLength,
-                end: prevSelection.start + text.length + selectionSpaceLength,
-            }));
+        (text) => {
+            updateComment(ComposerUtils.insertText(commentRef.current, selection, text));
         },
         [selection, updateComment],
     );
@@ -507,6 +524,10 @@ function ComposerWithSuggestions({
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        lastTextRef.current = value;
+    }, [value]);
 
     useImperativeHandle(
         forwardedRef,
