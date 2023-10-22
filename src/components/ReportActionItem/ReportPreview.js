@@ -111,7 +111,7 @@ function ReportPreview(props) {
 
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
-    const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
+    const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
@@ -123,10 +123,11 @@ function ReportPreview(props) {
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
+    const hasOnlyDistanceRequests = ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID);
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
     const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID);
-    const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
-    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || ''));
+    const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
+    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(props.iouReportID);
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
     const previewSubtitle = hasOnlyOneReceiptRequest
@@ -136,14 +137,17 @@ function ReportPreview(props) {
               scanningReceipts: numberOfScanningReceipts,
           });
 
-    const shouldShowSubmitButton = isReportDraft && reportTotal !== 0;
+    const shouldShowSubmitButton = isReportDraft && reimbursableSpend !== 0;
 
     const getDisplayAmount = () => {
-        if (reportTotal) {
-            return CurrencyUtils.convertToDisplayString(reportTotal, props.iouReport.currency);
+        if (totalDisplaySpend) {
+            return CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.iouReport.currency);
         }
         if (isScanning) {
             return props.translate('iou.receiptScanning');
+        }
+        if (hasOnlyDistanceRequests) {
+            return props.translate('common.tbd');
         }
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
@@ -176,7 +180,7 @@ function ReportPreview(props) {
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
         ? props.policy.role === CONST.POLICY.ROLE.ADMIN && ReportUtils.isReportApproved(props.iouReport) && !iouSettled && !iouCanceled
-        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
+        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
 
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
@@ -241,6 +245,7 @@ function ReportPreview(props) {
                                 onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
+                                shouldShowPaymentOptions
                                 style={[styles.mt3]}
                                 kycWallAnchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
