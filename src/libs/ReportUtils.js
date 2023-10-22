@@ -3403,11 +3403,11 @@ function parseReportRouteParams(route) {
     }
 
     const pathSegments = parsingRoute.split('/');
-    
+
     const reportIDSegment = pathSegments[1];
 
     // Check for "undefined" or any other unwanted string values
-    if (!reportIDSegment || reportIDSegment === "undefined") {
+    if (!reportIDSegment || reportIDSegment === 'undefined') {
         return {reportID: '', isSubReportPageRoute: false};
     }
 
