@@ -283,6 +283,12 @@ function isSettled(reportID) {
         return false;
     }
 
+    // In case the payment is scheduled and we are waiting for the payee to set up their walled,
+    // consider the report as paid as well.
+    if (report.isWaitingOnBankAccount && isReportApproved(report)) {
+        return true;
+    }
+
     return report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
 }
 
