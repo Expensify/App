@@ -70,13 +70,10 @@ function MoneyRequestConfirmPage(props) {
     const [receiptFile, setReceiptFile] = useState();
     const participants = useMemo(
         () =>
-            _.chain(props.iou.participants)
-                .map((participant) => {
-                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
-                })
-                .filter((participant) => !!participant.login)
-                .value(),
+            _.map(props.iou.participants, (participant) => {
+                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
+            }),
         [props.iou.participants, props.personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
@@ -130,14 +127,14 @@ function MoneyRequestConfirmPage(props) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath && !isDistanceRequest) || shouldReset) {
+        if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath && !isDistanceRequest) || shouldReset || ReportUtils.isArchivedRoom(props.report)) {
             Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), true);
         }
 
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath, isDistanceRequest]);
+    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath, isDistanceRequest, props.report]);
 
     const navigateBack = () => {
         let fallback;

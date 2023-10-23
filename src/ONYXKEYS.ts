@@ -260,6 +260,7 @@ const ONYXKEYS = {
         TRANSACTION: 'transactions_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
+        NEXT_STEP: 'reportNextStep_',
 
         // Manual request tab selector
         SELECTED_TAB: 'selectedTab_',
