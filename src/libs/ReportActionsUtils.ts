@@ -91,6 +91,10 @@ function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
 
+function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
+}
+
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
@@ -636,6 +640,7 @@ export {
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
+    isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
 };
