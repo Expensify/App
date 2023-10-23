@@ -869,7 +869,7 @@ export default {
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a Workspace admin to manage company spend.',
         expensifyCard: 'Expensify Card',
-        walletActivationPending: "We're reviewing your information and we'll be in touch shortly.",
+        walletActivationPending: "We're reviewing your information, please check back in a few minutes!",
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -877,6 +877,10 @@ export default {
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
         reportFraud: 'Report virtual card fraud',
+        reviewTransaction: 'Review transaction',
+        suspiciousBannerTitle: 'Suspicious transaction',
+        suspiciousBannerDescription: 'We noticed suspicious transaction on your card. Tap below to review.',
+        cardLocked: "Your card is temporarily locked while our team reviews your company's account.",
         cardDetails: {
             cardNumber: 'Virtual card number',
             expiration: 'Expiration',
