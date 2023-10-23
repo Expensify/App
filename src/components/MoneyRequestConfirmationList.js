@@ -6,6 +6,7 @@ import _ from 'underscore';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import {useIsFocused} from '@react-navigation/native';
+import {isEmpty} from 'lodash';
 import Text from './Text';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -42,6 +43,7 @@ import * as IOU from '../libs/actions/IOU';
 import * as TransactionUtils from '../libs/TransactionUtils';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as MoneyRequestUtils from '../libs/MoneyRequestUtils';
+import {iouDefaultProps, iouPropTypes} from '../pages/iou/propTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -165,6 +167,9 @@ const propTypes = {
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
+
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
@@ -199,6 +204,7 @@ const defaultProps = {
     isScanRequest: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
+    iou: iouDefaultProps,
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -542,7 +548,6 @@ function MoneyRequestConfirmationList(props) {
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =
         props.receiptPath && props.receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, props.receiptPath, props.receiptFilename) : {};
-
     return (
         <OptionsSelector
             sections={optionSelectorSections}
@@ -559,7 +564,7 @@ function MoneyRequestConfirmationList(props) {
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-            footerContent={footerContent}
+            footerContent={!isEmpty(props.iou.id) && footerContent}
             listStyles={props.listStyles}
             shouldAllowScrollingChildren
         >
@@ -756,6 +761,9 @@ export default compose(
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        },
+        iou: {
+            key: ONYXKEYS.IOU,
         },
     }),
 )(MoneyRequestConfirmationList);

@@ -2446,7 +2446,6 @@ function buildOptimisticIOUReportAction(
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        receipt,
         whisperedToAccountIDs: _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], receipt.state) ? [currentUserAccountID] : [],
     };
 }
@@ -3289,7 +3288,8 @@ function chatIncludesChronos(report) {
 /**
  * Can only flag if:
  *
- * - It was written by someone else
+ * - It was written by someone else and isn't a whisper
+ * - It's a welcome message whisper
  * - It's an ADDCOMMENT that is not an attachment
  *
  * @param {Object} reportAction
@@ -3297,12 +3297,25 @@ function chatIncludesChronos(report) {
  * @returns {Boolean}
  */
 function canFlagReportAction(reportAction, reportID) {
+    const report = getReport(reportID);
+    const isCurrentUserAction = reportAction.actorAccountID === currentUserAccountID;
+
+    if (ReportActionsUtils.isWhisperAction(reportAction)) {
+        // Allow flagging welcome message whispers as they can be set by any room creator
+        if (report.welcomeMessage && !isCurrentUserAction && lodashGet(reportAction, 'originalMessage.html') === report.welcomeMessage) {
+            return true;
+        }
+
+        // Disallow flagging the rest of whisper as they are sent by us
+        return false;
+    }
+
     return (
-        reportAction.actorAccountID !== currentUserAccountID &&
+        !isCurrentUserAction &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-        isAllowedToComment(getReport(reportID))
+        isAllowedToComment(report)
     );
 }
 
