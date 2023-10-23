@@ -33,13 +33,19 @@ function EnablePaymentsPage({userWallet}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
+    const {isPendingOnfidoResult} = userWallet;
+
     useEffect(() => {
         if (isOffline) {
             return;
         }
 
-        Wallet.openEnablePaymentsPage();
-    }, [isOffline]);
+        if (!isPendingOnfidoResult) {
+            Wallet.openEnablePaymentsPage();
+        } else {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET, CONST.NAVIGATION.TYPE.UP);
+        }
+    }, [isOffline, isPendingOnfidoResult]);
 
     if (_.isEmpty(userWallet)) {
         return <FullScreenLoadingIndicator />;
@@ -62,10 +68,6 @@ function EnablePaymentsPage({userWallet}) {
                             <FailedKYC />
                         </>
                     );
-                }
-
-                if (userWallet.shouldShowWalletActivationSuccess) {
-                    return <ActivateStep userWallet={userWallet} />;
                 }
 
                 const currentStep = userWallet.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
