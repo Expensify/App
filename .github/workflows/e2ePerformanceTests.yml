@@ -225,9 +225,9 @@ jobs:
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label
         run: |
-          if grep -q '🔴' ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; then
+          if grep -q '🔴' ./output.md; then
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
-            gh pr comment ${{ inputs.PR_NUMBER }} -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
+            gh pr comment ${{ inputs.PR_NUMBER }} -F ./output.md
             gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
           else
             echo '✅ no performance regression detected'
