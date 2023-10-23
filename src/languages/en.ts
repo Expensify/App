@@ -869,7 +869,7 @@ export default {
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a Workspace admin to manage company spend.',
         expensifyCard: 'Expensify Card',
-        walletActivationPending: "We're reviewing your information and we'll be in touch shortly.",
+        walletActivationPending: "We're reviewing your information, please check back in a few minutes!",
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
