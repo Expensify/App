@@ -731,6 +731,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
     const categoriesValues = _.chain(categories)
         .values()
         .filter((category) => category.enabled)
+        .sortBy((category) => category.name)
         .value();
 
     const numberOfCategories = _.size(categoriesValues);
