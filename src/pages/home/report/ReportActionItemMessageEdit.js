@@ -7,13 +7,10 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
-import compose from '../../../libs/compose';
 import themeColors from '../../../styles/themes/default';
-import * as StyleUtils from '../../../styles/StyleUtils';
 import containerComposeStyles from '../../../styles/containerComposeStyles';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
-import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 import setShouldShowComposeInputKeyboardAware from '../../../libs/setShouldShowComposeInputKeyboardAware';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -22,6 +19,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import Tooltip from '../../../components/Tooltip';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
@@ -30,16 +28,16 @@ import refPropTypes from '../../../components/refPropTypes';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as User from '../../../libs/actions/User';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
-import getButtonState from '../../../libs/getButtonState';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import useLocalize from '../../../hooks/useLocalize';
 import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import focusWithDelay from '../../../libs/focusWithDelay';
-import ONYXKEYS from '../../../ONYXKEYS';
 import * as Browser from '../../../libs/Browser';
+import * as InputFocus from '../../../libs/actions/InputFocus';
+import onyxSubscribe from '../../../libs/onyxSubscribe';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /** All the data of the action */
@@ -64,14 +62,8 @@ const propTypes = {
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker: PropTypes.bool,
 
-    /** Draft message - if this is set the comment is in 'edit' mode */
-    // eslint-disable-next-line react/forbid-prop-types
-    drafts: PropTypes.object,
-
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -79,7 +71,6 @@ const defaultProps = {
     report: {},
     shouldDisableEmojiPicker: false,
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    drafts: {},
 };
 
 // native ids
@@ -90,7 +81,7 @@ const isMobileSafari = Browser.isMobileSafari();
 
 function ReportActionItemMessageEdit(props) {
     const reportScrollManager = useReportScrollManager();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -112,20 +103,65 @@ function ReportActionItemMessageEdit(props) {
         const length = getInitialDraft().length;
         return {start: length, end: length};
     };
-
-    const [draft, setDraft] = useState(() => getInitialDraft());
+    const emojisPresentBefore = useRef([]);
+    const [draft, setDraft] = useState(() => {
+        const initialDraft = getInitialDraft();
+        if (initialDraft) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(initialDraft);
+        }
+        return initialDraft;
+    });
     const [selection, setSelection] = useState(getInitialSelection());
     const [isFocused, setIsFocused] = useState(false);
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
+    const [modal, setModal] = useState(false);
+    const [onyxFocused, setOnyxFocused] = useState(false);
 
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
     const insertedEmojis = useRef([]);
 
     useEffect(() => {
+        if (ReportActionsUtils.isDeletedAction(props.action) || props.draftMessage === props.action.message[0].html) {
+            return;
+        }
+        setDraft(Str.htmlDecode(props.draftMessage));
+    }, [props.draftMessage, props.action]);
+
+    useEffect(() => {
         // required for keeping last state of isFocused variable
         isFocusedRef.current = isFocused;
     }, [isFocused]);
+
+    useEffect(() => {
+        InputFocus.composerFocusKeepFocusOn(textInputRef.current, isFocused, modal, onyxFocused);
+    }, [isFocused, modal, onyxFocused]);
+
+    useEffect(() => {
+        const unsubscribeOnyxModal = onyxSubscribe({
+            key: ONYXKEYS.MODAL,
+            callback: (modalArg) => {
+                if (_.isNull(modalArg)) {
+                    return;
+                }
+                setModal(modalArg);
+            },
+        });
+
+        const unsubscribeOnyxFocused = onyxSubscribe({
+            key: ONYXKEYS.INPUT_FOCUSED,
+            callback: (modalArg) => {
+                if (_.isNull(modalArg)) {
+                    return;
+                }
+                setOnyxFocused(modalArg);
+            },
+        });
+        return () => {
+            unsubscribeOnyxModal();
+            unsubscribeOnyxFocused();
+        };
+    }, []);
 
     // We consider the report action active if it's focused, its emoji picker is open or its context menu is open
     const isActive = useCallback(
@@ -175,9 +211,9 @@ function ReportActionItemMessageEdit(props) {
     const debouncedSaveDraft = useMemo(
         () =>
             _.debounce((newDraft) => {
-                Report.saveReportActionDraft(props.reportID, props.action.reportActionID, newDraft);
+                Report.saveReportActionDraft(props.reportID, props.action, newDraft);
             }, 1000),
-        [props.reportID, props.action.reportActionID],
+        [props.reportID, props.action],
     );
 
     /**
@@ -200,24 +236,26 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
+            const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
-                insertedEmojis.current = [...insertedEmojis.current, ...emojis];
-                debouncedUpdateFrequentlyUsedEmojis();
-            }
-            setDraft((prevDraft) => {
-                if (newDraftInput !== newDraft) {
-                    setSelection((prevSelection) => {
-                        const remainder = prevDraft.slice(prevSelection.end).length;
-                        return {
-                            start: newDraft.length - remainder,
-                            end: newDraft.length - remainder,
-                        };
-                    });
+                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
+                if (!_.isEmpty(newEmojis)) {
+                    insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
+                    debouncedUpdateFrequentlyUsedEmojis();
                 }
-                return newDraft;
-            });
+            }
+            emojisPresentBefore.current = emojis;
+
+            setDraft(newDraft);
+
+            if (newDraftInput !== newDraft) {
+                const remainder = ComposerUtils.getCommonSuffixLength(newDraftInput, newDraft);
+                setSelection({
+                    start: newDraft.length - remainder,
+                    end: newDraft.length - remainder,
+                });
+            }
 
             // This component is rendered only when draft is set to a non-empty string. In order to prevent component
             // unmount when user deletes content of textarea, we set previous message instead of empty string.
@@ -228,15 +266,17 @@ function ReportActionItemMessageEdit(props) {
                 debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, props.preferredLocale],
+        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale],
     );
 
     /**
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
+        InputFocus.callback(() => setIsFocused(false));
+        InputFocus.inputFocusChange(false);
         debouncedSaveDraft.cancel();
-        Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
+        Report.saveReportActionDraft(props.reportID, props.action, '');
 
         if (isActive()) {
             ReportActionComposeFocusManager.clear();
@@ -250,7 +290,7 @@ function ReportActionItemMessageEdit(props) {
                 keyboardDidHideListener.remove();
             });
         }
-    }, [props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID, reportScrollManager, isActive]);
+    }, [props.action, debouncedSaveDraft, props.index, props.reportID, reportScrollManager, isActive]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
@@ -268,21 +308,6 @@ function ReportActionItemMessageEdit(props) {
 
         const trimmedNewDraft = draft.trim();
 
-        const report = ReportUtils.getReport(props.reportID);
-
-        // Updates in child message should cause the parent draft message to change
-        if (report.parentReportActionID && lodashGet(props.action, 'childType', '') === CONST.REPORT.TYPE.CHAT) {
-            if (lodashGet(props.drafts, [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${report.parentReportID}_${props.action.reportActionID}`], undefined)) {
-                Report.saveReportActionDraft(report.parentReportID, props.action.reportActionID, trimmedNewDraft);
-            }
-        }
-        // Updates in the parent message should cause the child draft message to change
-        if (props.action.childReportID) {
-            if (lodashGet(props.drafts, [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.action.childReportID}_${props.action.reportActionID}`], undefined)) {
-                Report.saveReportActionDraft(props.action.childReportID, props.action.reportActionID, trimmedNewDraft);
-            }
-        }
-
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             textInputRef.current.blur();
@@ -291,7 +316,7 @@ function ReportActionItemMessageEdit(props) {
         }
         Report.editReportComment(props.reportID, props.action, trimmedNewDraft);
         deleteDraft();
-    }, [props.action, debouncedSaveDraft, deleteDraft, draft, props.reportID, props.drafts]);
+    }, [props.action, debouncedSaveDraft, deleteDraft, draft, props.reportID]);
 
     /**
      * @param {String} emoji
@@ -333,30 +358,6 @@ function ReportActionItemMessageEdit(props) {
     return (
         <>
             <View style={[styles.chatItemMessage, styles.flexRow]}>
-                <View style={[styles.justifyContentEnd]}>
-                    <Tooltip text={translate('common.cancel')}>
-                        <PressableWithFeedback
-                            onPress={deleteDraft}
-                            style={styles.chatItemSubmitButton}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            accessibilityLabel={translate('common.close')}
-                            // disable dimming
-                            hoverDimmingValue={1}
-                            pressDimmingValue={1}
-                            hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
-                            pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
-                            // Keep focus on the composer when cancel button is clicked.
-                            onMouseDown={(e) => e.preventDefault()}
-                        >
-                            {({hovered, pressed}) => (
-                                <Icon
-                                    src={Expensicons.Close}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                />
-                            )}
-                        </PressableWithFeedback>
-                    </Tooltip>
-                </View>
                 <View
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
@@ -366,10 +367,28 @@ function ReportActionItemMessageEdit(props) {
                         hasExceededMaxCommentLength && styles.borderColorDanger,
                     ]}
                 >
-                    <View style={containerComposeStyles}>
+                    <View style={[styles.justifyContentEnd, styles.mb1]}>
+                        <Tooltip text={translate('common.cancel')}>
+                            <PressableWithFeedback
+                                onPress={deleteDraft}
+                                style={styles.composerSizeButton}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                accessibilityLabel={translate('common.close')}
+                                // disable dimming
+                                hoverDimmingValue={1}
+                                pressDimmingValue={1}
+                                // Keep focus on the composer when cancel button is clicked.
+                                onMouseDown={(e) => e.preventDefault()}
+                            >
+                                <Icon src={Expensicons.Close} />
+                            </PressableWithFeedback>
+                        </Tooltip>
+                    </View>
+                    <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                         <Composer
                             multiline
                             ref={(el) => {
+                                ReportActionComposeFocusManager.editComposerRef.current = el;
                                 textInputRef.current = el;
                                 // eslint-disable-next-line no-param-reassign
                                 props.forwardedRef.current = el;
@@ -442,6 +461,7 @@ function ReportActionItemMessageEdit(props) {
             </View>
             <ExceededCommentLength
                 comment={draft}
+                reportID={props.reportID}
                 onExceededMaxCommentLength={(hasExceeded) => setHasExceededMaxCommentLength(hasExceeded)}
             />
         </>
@@ -452,17 +472,10 @@ ReportActionItemMessageEdit.propTypes = propTypes;
 ReportActionItemMessageEdit.defaultProps = defaultProps;
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-export default compose(
-    withLocalize,
-    withReportActionsDrafts({
-        propName: 'drafts',
-    }),
-)(
-    React.forwardRef((props, ref) => (
-        <ReportActionItemMessageEdit
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+export default React.forwardRef((props, ref) => (
+    <ReportActionItemMessageEdit
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));

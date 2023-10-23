@@ -3,7 +3,7 @@ import _ from 'underscore';
 
 import * as TestHelper from '../utils/TestHelper';
 import HttpUtils from '../../src/libs/HttpUtils';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import CONST from '../../src/CONST';
 import * as NetworkStore from '../../src/libs/Network/NetworkStore';
@@ -12,9 +12,10 @@ import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as API from '../../src/libs/API';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as Request from '../../src/libs/Request';
+import * as RequestThrottle from '../../src/libs/RequestThrottle';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('../../src/libs/Log');
-jest.useFakeTimers();
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -31,10 +32,9 @@ beforeEach(() => {
     NetworkStore.checkRequiredData();
 
     // Wait for any Log command to finish and Onyx to fully clear
-    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-    return waitForPromisesToResolve()
+    return waitForBatchedUpdates()
         .then(() => Onyx.clear())
-        .then(waitForPromisesToResolve);
+        .then(waitForBatchedUpdates);
 });
 
 afterEach(() => {
@@ -57,7 +57,7 @@ describe('APITests', () => {
                 API.write('mock command', {param1: 'value1'});
                 API.read('mock command', {param2: 'value2'});
                 API.write('mock command', {param3: 'value3'});
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 // Then `xhr` should only be called for the read (where it would not succeed in real life) and write requests should be persisted to storage
@@ -70,7 +70,7 @@ describe('APITests', () => {
                 ]);
 
                 PersistedRequests.clear();
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 expect(PersistedRequests.getAll()).toEqual([]);
@@ -92,7 +92,7 @@ describe('APITests', () => {
                     // When API Write commands are made
                     API.write('mock command', {param1: 'value1'});
                     API.write('mock command', {param2: 'value2'});
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     const persisted = PersistedRequests.getAll();
@@ -101,7 +101,7 @@ describe('APITests', () => {
 
                 // When we resume connectivity
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-                .then(waitForPromisesToResolve)
+                .then(waitForBatchedUpdates)
                 .then(() => {
                     expect(NetworkStore.isOffline()).toBe(false);
                     expect(SequentialQueue.isRunning()).toBe(false);
@@ -141,40 +141,39 @@ describe('APITests', () => {
                     // When API Write commands are made
                     API.write('mock command', {param1: 'value1'});
                     API.write('mock command', {param2: 'value2'});
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
 
                 // When we resume connectivity
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-                .then(waitForPromisesToResolve)
+                .then(waitForBatchedUpdates)
                 .then(() => {
                     // Then requests should remain persisted until the xhr call is resolved
                     expect(_.size(PersistedRequests.getAll())).toEqual(2);
 
                     xhrCalls[0].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
-                .then(waitForPromisesToResolve)
+                .then(waitForBatchedUpdates)
                 .then(() => {
                     expect(_.size(PersistedRequests.getAll())).toEqual(1);
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
 
                     // When a request fails it should be retried
                     xhrCalls[1].reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     expect(_.size(PersistedRequests.getAll())).toEqual(1);
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
 
                     // We need to advance past the request throttle back off timer because the request won't be retried until then
-                    jest.advanceTimersByTime(CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
-                    return waitForPromisesToResolve();
+                    return new Promise((resolve) => setTimeout(resolve, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS)).then(waitForBatchedUpdates);
                 })
                 .then(() => {
                     // Finally, after it succeeds the queue should be empty
                     xhrCalls[2].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     expect(_.size(PersistedRequests.getAll())).toEqual(0);
@@ -204,12 +203,12 @@ describe('APITests', () => {
                 .then(() => {
                     // When API Write commands are made
                     API.write('mock command', {param1: 'value1'});
-                    return waitForPromisesToResolve();
+                    return waitForNetworkPromises();
                 })
 
                 // When we resume connectivity
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-                .then(waitForPromisesToResolve)
+                .then(waitForBatchedUpdates)
                 .then(() => {
                     // Then there has only been one request so far
                     expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -219,8 +218,7 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
-                    jest.runOnlyPendingTimers();
-                    return waitForPromisesToResolve();
+                    return new Promise((resolve) => setTimeout(resolve, RequestThrottle.getLastRequestWaitTime()));
                 })
                 .then(() => {
                     // Then we have retried the failing request
@@ -231,8 +229,7 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
-                    jest.runOnlyPendingTimers();
-                    return waitForPromisesToResolve();
+                    return new Promise((resolve) => setTimeout(resolve, RequestThrottle.getLastRequestWaitTime())).then(waitForBatchedUpdates);
                 })
                 .then(() => {
                     // Then the request is retried again
@@ -284,16 +281,16 @@ describe('APITests', () => {
         // Given we have a request made while we're offline and we have credentials available to reauthenticate
         Onyx.merge(ONYXKEYS.CREDENTIALS, {autoGeneratedLogin: 'test', autoGeneratedPassword: 'passwd'});
         return (
-            waitForPromisesToResolve()
+            waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: true}))
                 .then(() => {
                     API.write('Mock', {param1: 'value1'});
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
 
                 // When we resume connectivity
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-                .then(waitForPromisesToResolve)
+                .then(waitForBatchedUpdates)
                 .then(() => {
                     const nonLogCalls = _.filter(xhr.mock.calls, ([commandName]) => commandName !== 'Log');
 
@@ -328,10 +325,10 @@ describe('APITests', () => {
                 API.write('MockCommand', {content: 'value5'});
                 API.write('MockCommand', {content: 'value6'});
 
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-            .then(waitForPromisesToResolve)
+            .then(waitForBatchedUpdates)
             .then(() => {
                 // Then expect all 7 calls to have been made and for the Writes to be made in the order that we made them
                 // The read command would have been made first (and would have failed in real-life)
@@ -363,10 +360,10 @@ describe('APITests', () => {
                 API.write('MockCommand', {content: 'value4'});
                 API.write('MockCommand', {content: 'value5'});
                 API.write('MockCommand', {content: 'value6'});
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-            .then(waitForPromisesToResolve)
+            .then(waitForBatchedUpdates)
             .then(() => {
                 // Then expect only 8 calls to have been made total and for them to be made in the order that we made them despite requiring reauthentication
                 expect(xhr.mock.calls.length).toBe(8);
@@ -401,10 +398,11 @@ describe('APITests', () => {
             .then(() => {
                 // When we queue both non-persistable and persistable commands that will trigger reauthentication and go offline at the same time
                 API.makeRequestWithSideEffects('AuthenticatePusher', {content: 'value1'});
+
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
                 expect(NetworkStore.isOffline()).toBe(false);
                 expect(NetworkStore.isAuthenticating()).toBe(false);
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 API.write('MockCommand');
@@ -416,13 +414,15 @@ describe('APITests', () => {
                 // We should only have a single call at this point as the main queue is stopped since we've gone offline
                 expect(xhr.mock.calls.length).toBe(1);
 
+                waitForBatchedUpdates();
+
                 // Come back from offline to trigger the sequential queue flush
-                return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+                Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
             })
             .then(() => {
                 // When we wait for the sequential queue to finish
                 expect(SequentialQueue.isRunning()).toBe(true);
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 // Then we should expect to see that...
@@ -482,7 +482,7 @@ describe('APITests', () => {
                 // When we go online and wait for promises to resolve
                 return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
             })
-            .then(waitForPromisesToResolve)
+            .then(waitForBatchedUpdates)
             .then(() => {
                 expect(processWithMiddleware).toHaveBeenCalled();
 
@@ -495,7 +495,7 @@ describe('APITests', () => {
                     [ONYXKEYS.SESSION]: {authToken: 'oldToken'},
                 });
             })
-            .then(waitForPromisesToResolve)
+            .then(waitForBatchedUpdates)
             .then(() => {
                 // Then we should expect XHR to run
                 expect(xhr).toHaveBeenCalled();
@@ -518,7 +518,7 @@ describe('APITests', () => {
                 expect(PersistedRequests.getAll().length).toBe(2);
 
                 // WHEN we wait for the queue to run and finish processing
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 // THEN the queue should be stopped and there should be no more requests to run
@@ -535,8 +535,7 @@ describe('APITests', () => {
                 expect(secondRequestCommandName).toBe('MockCommandThree');
 
                 // WHEN we advance the main queue timer and wait for promises
-                jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-                return waitForPromisesToResolve();
+                return new Promise((resolve) => setTimeout(resolve, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS));
             })
             .then(() => {
                 // THEN we should see that our third (non-persistable) request has run last

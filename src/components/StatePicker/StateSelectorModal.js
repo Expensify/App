@@ -84,6 +84,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
+                testID={StateSelectorModal.displayName}
             >
                 <HeaderWithBackButton
                     title={label || translate('common.state')}

@@ -27,6 +27,17 @@ type DirectionProps = {
     coordinates: Array<[number, number]>;
 };
 
+type PendingMapViewProps = {
+    /** Title message below the icon */
+    title?: string;
+
+    /** Subtitle message below the title */
+    subtitle?: string;
+
+    /** Style applied to PendingMapView */
+    style?: StyleProp<ViewStyle>;
+};
+
 // Initial state of the map
 type InitialState = {
     // Coordinate on which to center the map
@@ -55,4 +66,4 @@ type MapViewHandle = {
     fitBounds: (ne: [number, number], sw: [number, number], paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {DirectionStyle, WayPoint, MapViewProps, DirectionProps, MapViewHandle};
+export type {DirectionStyle, WayPoint, MapViewProps, DirectionProps, PendingMapViewProps, MapViewHandle};

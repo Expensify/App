@@ -11,12 +11,14 @@ import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import useNetwork from '../../../hooks/useNetwork';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Session from '../../../libs/actions/Session';
+import participantPropTypes from '../../../components/participantPropTypes';
 
 const propTypes = {
     /** Report object for the current report */
@@ -25,20 +27,26 @@ const propTypes = {
     /** Report actions for the current report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
-    /** Offline status */
-    isOffline: PropTypes.bool.isRequired,
-
     /** Callback fired when the comment is submitted */
     onSubmitComment: PropTypes.func,
 
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
 
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
     /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
 
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
+
+    /** Height of the list which the composer is part of */
+    listHeight: PropTypes.number,
+
+    /** Whetjer the report is ready for display */
+    isReportReadyForDisplay: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 };
@@ -48,12 +56,16 @@ const defaultProps = {
     reportActions: [],
     onSubmitComment: () => {},
     pendingAction: null,
+    personalDetails: {},
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
+    listHeight: 0,
+    isReportReadyForDisplay: true,
 };
 
 function ReportFooter(props) {
-    const chatFooterStyles = {...styles.chatFooter, minHeight: !props.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+    const {isOffline} = useNetwork();
+    const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const isAnonymousUser = Session.isAnonymousUser();
 
@@ -68,6 +80,7 @@ function ReportFooter(props) {
                         <AnonymousReportFooter
                             report={props.report}
                             isSmallSizeLayout={isSmallSizeLayout}
+                            personalDetails={props.personalDetails}
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
@@ -87,6 +100,8 @@ function ReportFooter(props) {
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
                             disabled={props.shouldDisableCompose}
+                            listHeight={props.listHeight}
+                            isReportReadyForDisplay={props.isReportReadyForDisplay}
                         />
                     </SwipeableView>
                 </View>
@@ -101,6 +116,9 @@ ReportFooter.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withOnyx({
-        shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
+        shouldShowComposeInput: {
+            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+            initialValue: false,
+        },
     }),
 )(ReportFooter);

@@ -8,7 +8,6 @@ import {withReportCommentDrafts} from '../OnyxProvider';
 import SidebarUtils from '../../libs/SidebarUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../withCurrentReportID';
 import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
 import * as Report from '../../libs/actions/Report';
 import * as UserUtils from '../../libs/UserUtils';
@@ -20,8 +19,8 @@ import CONST from '../../CONST';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 
 const propTypes = {
-    /** If true will disable ever setting the OptionRowLHN to focused */
-    shouldDisableFocusOptions: PropTypes.bool,
+    /** Whether row should be focused */
+    isFocused: PropTypes.bool,
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -51,20 +50,17 @@ const propTypes = {
         /** The ID of the transaction */
         transactionID: PropTypes.string,
     }),
-
-    ...withCurrentReportIDPropTypes,
     ...basePropTypes,
 };
 
 const defaultProps = {
-    shouldDisableFocusOptions: false,
+    isFocused: false,
     personalDetails: {},
     fullReport: {},
     policy: {},
     parentReportActions: {},
     transaction: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
-    ...withCurrentReportIDDefaultProps,
     ...baseDefaultProps,
 };
 
@@ -75,8 +71,7 @@ const defaultProps = {
  * re-render if the data really changed.
  */
 function OptionRowLHNData({
-    shouldDisableFocusOptions,
-    currentReportID,
+    isFocused,
     fullReport,
     reportActions,
     personalDetails,
@@ -89,9 +84,6 @@ function OptionRowLHNData({
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
-    // We only want to pass a boolean to the memoized component,
-    // instead of a changing number (so we prevent unnecessary re-renders).
-    const isFocused = !shouldDisableFocusOptions && currentReportID === reportID;
 
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
@@ -106,7 +98,7 @@ function OptionRowLHNData({
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy);
+        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
@@ -156,6 +148,7 @@ const personalDetailsSelector = (personalDetails) =>
                 firstName: personalData.firstName,
                 status: personalData.status,
                 avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
+                fallbackIcon: personalData.fallbackIcon,
             };
             return finalPersonalDetails;
         },
@@ -171,7 +164,6 @@ const personalDetailsSelector = (personalDetails) =>
  */
 export default React.memo(
     compose(
-        withCurrentReportID,
         withReportCommentDrafts({
             propName: 'comment',
             transformValue: (drafts, props) => {
@@ -181,7 +173,7 @@ export default React.memo(
         }),
         withOnyx({
             fullReport: {
-                key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
+                key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             },
             reportActions: {
                 key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -195,6 +187,7 @@ export default React.memo(
                 key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             },
         }),
+        // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
         withOnyx({
             parentReportActions: {
                 key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
@@ -209,6 +202,7 @@ export default React.memo(
             // However, performance overhead of this is minimized by using memos inside the component.
             receiptTransactions: {key: ONYXKEYS.COLLECTION.TRANSACTION},
         }),
+        // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
         withOnyx({
             transaction: {
                 key: ({fullReport, parentReportActions}) =>

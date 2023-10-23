@@ -1,24 +1,35 @@
 import React from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import useLocalize from '../hooks/useLocalize';
 import Text from './Text';
 
-function MoneyRequestHeaderStatusBar() {
-    const {translate} = useLocalize();
+const propTypes = {
+    /** Title displayed in badge */
+    title: PropTypes.string.isRequired,
 
+    /** Banner Description */
+    description: PropTypes.string.isRequired,
+
+    /** Whether we show the border bottom */
+    shouldShowBorderBottom: PropTypes.bool.isRequired,
+};
+
+function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom}) {
+    const borderBottomStyle = shouldShowBorderBottom ? styles.borderBottom : {};
     return (
-        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.overflowHidden, styles.ph5, styles.pb3, styles.borderBottom, styles.w100]}>
+        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.overflowHidden, styles.ph5, styles.pb3, borderBottomStyle]}>
             <View style={[styles.moneyRequestHeaderStatusBarBadge]}>
-                <Text style={[styles.textStrong, styles.textLabel]}>{translate('iou.receiptStatusTitle')}</Text>
+                <Text style={[styles.textStrong, styles.textLabel]}>{title}</Text>
             </View>
             <View style={[styles.flexShrink1]}>
-                <Text style={[styles.textLabelSupporting]}>{translate('iou.receiptStatusText')}</Text>
+                <Text style={[styles.textLabelSupporting]}>{description}</Text>
             </View>
         </View>
     );
 }
 
 MoneyRequestHeaderStatusBar.displayName = 'MoneyRequestHeaderStatusBar';
+MoneyRequestHeaderStatusBar.propTypes = propTypes;
 
 export default MoneyRequestHeaderStatusBar;

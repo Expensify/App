@@ -11,6 +11,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 import CONST from '../../CONST';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Tooltip for the popup icon */
@@ -45,6 +46,12 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    /** Whether the popover menu should overlay the current view */
+    shouldOverlay: PropTypes.bool,
+
+    /** Should we announce the Modal visibility changes? */
+    shouldSetModalVisibility: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -57,9 +64,11 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
+    shouldOverlay: false,
+    shouldSetModalVisibility: true,
 };
 
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility}) {
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();
@@ -87,6 +96,13 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                                 onIconPress();
                             }
                         }}
+                        onMouseDown={(e) => {
+                            /* Keep the focus state on mWeb like we did on the native apps. */
+                            if (!Browser.isMobile()) {
+                                return;
+                            }
+                            e.preventDefault();
+                        }}
                         ref={buttonRef}
                         style={[styles.touchableButtonImage, ...iconStyles]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
@@ -106,7 +122,8 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                 anchorAlignment={anchorAlignment}
                 onItemSelected={hidePopoverMenu}
                 menuItems={menuItems}
-                withoutOverlay
+                withoutOverlay={!shouldOverlay}
+                shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
             />
         </>

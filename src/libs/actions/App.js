@@ -1,3 +1,6 @@
+// Do not remove this import until moment package is fully removed.
+// Issue - https://github.com/Expensify/App/issues/26719
+import 'moment/locale/es';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -39,6 +42,19 @@ let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val),
+});
+
+let priorityMode;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: (nextPriorityMode) => {
+        // When someone switches their priority mode we need to fetch all their chats because only #focus mode works with a subset of a user's chats. This is only possible via the OpenApp command.
+        if (nextPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
+            // eslint-disable-next-line no-use-before-define
+            openApp();
+        }
+        priorityMode = nextPriorityMode;
+    },
 });
 
 let resolveIsReadyPromise;
@@ -141,10 +157,11 @@ function getPolicyParamsForOpenOrReconnect() {
 
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
+ * @param {Boolean} isOpenApp
  * @returns {Object}
  */
-function getOnyxDataForOpenOrReconnect() {
-    return {
+function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
+    const defaultData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -167,6 +184,35 @@ function getOnyxDataForOpenOrReconnect() {
             },
         ],
     };
+    if (!isOpenApp) {
+        return defaultData;
+    }
+    return {
+        optimisticData: [
+            ...defaultData.optimisticData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: true,
+            },
+        ],
+        successData: [
+            ...defaultData.successData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: false,
+            },
+        ],
+        failureData: [
+            ...defaultData.failureData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_APP,
+                value: false,
+            },
+        ],
+    };
 }
 
 /**
@@ -174,7 +220,8 @@ function getOnyxDataForOpenOrReconnect() {
  */
 function openApp() {
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect());
+        const params = {enablePriorityModeFilter: true, ...policyParams};
+        API.read('OpenApp', params, getOnyxDataForOpenOrReconnect(true));
     });
 }
 
@@ -291,16 +338,50 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
         .then(() => {
             if (transitionFromOldDot) {
                 // We must call goBack() to remove the /transition route from history
-                Navigation.goBack();
+                Navigation.goBack(ROUTES.HOME);
             }
 
             if (shouldNavigateToAdminChat) {
-                Navigation.navigate(ROUTES.getReportRoute(adminsChatReportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
             }
 
-            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
         })
         .then(endSignOnTransition);
+}
+
+/**
+ * Create a new draft workspace and navigate to it
+ *
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {String} [policyName] Optional, custom policy name we will use for created workspace
+ * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
+ */
+function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false) {
+    const policyID = Policy.generatePolicyID();
+    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID);
+
+    Navigation.isNavigationReady()
+        .then(() => {
+            if (transitionFromOldDot) {
+                // We must call goBack() to remove the /transition route from history
+                Navigation.goBack(ROUTES.HOME);
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        })
+        .then(endSignOnTransition);
+}
+
+/**
+ * Create a new workspace and delete the draft
+ *
+ * @param {String} [policyID] the ID of the policy to use
+ * @param {String} [policyName] custom policy name we will use for created workspace
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ */
+function savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail = '', makeMeAdmin = false) {
+    Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
 }
 
 /**
@@ -342,9 +423,6 @@ function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
 
     // Sign out the current user if we're transitioning with a different user
     const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
-    if (isLoggingInAsNewUser && isTransitioning) {
-        Session.signOut();
-    }
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
@@ -355,7 +433,7 @@ function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
         Navigation.isNavigationReady()
             .then(() => {
                 // We must call goBack() to remove the /transition route from history
-                Navigation.goBack();
+                Navigation.goBack(ROUTES.HOME);
                 Navigation.navigate(exitTo);
             })
             .then(endSignOnTransition);
@@ -371,7 +449,7 @@ function redirectThirdPartyDesktopSignIn() {
 
     if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.HOME);
             Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
         });
     }
@@ -480,4 +558,6 @@ export {
     createWorkspaceAndNavigateToIt,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,
+    savePolicyDraftByNewWorkspace,
+    createWorkspaceWithPolicyDraftAndNavigateToIt,
 };

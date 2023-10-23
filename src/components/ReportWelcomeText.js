@@ -48,9 +48,6 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     ...withLocalizePropTypes,
 };
 
@@ -58,7 +55,6 @@ const defaultProps = {
     report: {},
     policy: {},
     personalDetails: {},
-    betas: [],
 };
 
 function ReportWelcomeText(props) {
@@ -73,7 +69,7 @@ function ReportWelcomeText(props) {
     );
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(props.policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, isUserPolicyAdmin);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs, props.betas);
+    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs);
 
     return (
         <>
@@ -102,7 +98,7 @@ function ReportWelcomeText(props) {
                         {roomWelcomeMessage.showReportName && (
                             <Text
                                 style={[styles.textStrong]}
-                                onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID))}
                                 suppressHighlighting
                             >
                                 {ReportUtils.getReportName(props.report)}
@@ -122,7 +118,7 @@ function ReportWelcomeText(props) {
                                     ) : (
                                         <Text
                                             style={[styles.textStrong]}
-                                            onPress={() => Navigation.navigate(ROUTES.getProfileRoute(accountID))}
+                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID))}
                                             suppressHighlighting
                                         >
                                             {displayName}
@@ -137,7 +133,9 @@ function ReportWelcomeText(props) {
                         ))}
                     </Text>
                 )}
-                {moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST) && <Text>{props.translate('reportActionsView.usePlusButton')}</Text>}
+                {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && (
+                    <Text>{props.translate('reportActionsView.usePlusButton')}</Text>
+                )}
             </Text>
         </>
     );
@@ -150,9 +148,6 @@ ReportWelcomeText.displayName = 'ReportWelcomeText';
 export default compose(
     withLocalize,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
