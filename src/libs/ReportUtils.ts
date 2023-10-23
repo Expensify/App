@@ -2301,7 +2301,14 @@ function buildOptimisticIOUReportAction(
 /**
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  */
-function buildOptimisticApprovedReportAction(amount: number, currency: string, expenseReportID: string) {
+function buildOptimisticApprovedReportAction(
+    amount: number,
+    currency: string,
+    expenseReportID: string,
+): Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+> {
     const originalMessage = {
         amount,
         currency,
@@ -2363,6 +2370,20 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
     };
 }
 
+type OptimisticReportPreviw = Pick<
+    ReportAction,
+    | 'actionName'
+    | 'reportActionID'
+    | 'pendingAction'
+    | 'originalMessage'
+    | 'message'
+    | 'created'
+    | 'actorAccountID'
+    | 'childMoneyRequestCount'
+    | 'childLastMoneyRequestComment'
+    | 'childRecentReceiptTransactionIDs'
+    | 'whisperedToAccountIDs'
+> & {reportID?: string; accountID?: number};
 /**
  * Builds an optimistic report preview action with a randomly generated reportActionID.
  *
@@ -2371,7 +2392,7 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
  * @param  [comment] - User comment for the IOU.
  * @param  [transaction] - optimistic first transaction of preview
  */
-function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: OnyxEntry<Report>, comment = '', transaction: Transaction | undefined = undefined) {
+function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: OnyxEntry<Report>, comment = '', transaction: Transaction | undefined = undefined): OptimisticReportPreviw {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && transaction && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
@@ -2398,7 +2419,7 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
         actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.managerID ?? 0,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
-        childRecentReceiptTransactionIDs: hasReceipt && transaction ? {[transaction.transactionID]: created} : [],
+        childRecentReceiptTransactionIDs: hasReceipt && transaction ? {[transaction.transactionID]: created} : undefined,
         whisperedToAccountIDs: isReceiptBeingScanned ? [currentUserAccountID] : [],
     };
 }
@@ -2442,7 +2463,10 @@ function buildOptimisticModifiedExpenseReportAction(
         shouldShow: true,
     };
 }
-
+type UpdateReportPreview = Pick<
+    ReportAction,
+    'created' | 'message' | 'childLastMoneyRequestComment' | 'childMoneyRequestCount' | 'childRecentReceiptTransactionIDs' | 'whisperedToAccountIDs'
+>;
 /**
  * Updates a report preview action that exists for an IOU report.
  *
@@ -2459,14 +2483,23 @@ function updateReportPreview(
     isPayRequest = false,
     comment = '',
     transaction: OnyxEntry<Transaction> | undefined = undefined,
-) {
+): UpdateReportPreview {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const recentReceiptTransactions = reportPreviewAction?.childRecentReceiptTransactionIDs ?? {};
     const transactionsToKeep = TransactionUtils.getRecentTransactions(recentReceiptTransactions);
-    const previousTransactions = Object.entries(recentReceiptTransactions ?? {}).map((item) => {
+    const previousTransactionsArray = Object.entries(recentReceiptTransactions ?? {}).map((item) => {
         const [key, value] = item;
-        return transactionsToKeep.includes(key) ? value : null;
+        return transactionsToKeep.includes(key) ? {[key]: value} : null;
     });
+    const previousTransactions: Record<string, string> = {};
+
+    for (const obj of previousTransactionsArray) {
+        for (const key in obj) {
+            if (Object.hasOwn(obj, key)) {
+                previousTransactions[key] = obj[key];
+            }
+        }
+    }
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
