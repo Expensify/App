@@ -9,6 +9,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The report action */
@@ -47,34 +48,41 @@ function ReportActionItemMessage(props) {
         }
     }
 
+    const isApprovedOrSubmittedReportActionType = _.contains([CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED], props.action.actionName);
+
+    const flaggedContentText = <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>;
+
+    const getReportActionItemFragment = (fragment, index) => {
+        return (
+            <ReportActionItemFragment
+                key={`actionFragment-${props.action.reportActionID}-${index}`}
+                fragment={fragment}
+                iouMessage={iouMessage}
+                isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
+                attachmentInfo={props.action.attachmentInfo}
+                pendingAction={props.action.pendingAction}
+                source={lodashGet(props.action, 'originalMessage.source')}
+                accountID={props.action.actorAccountID}
+                style={props.style}
+                displayAsGroup={props.displayAsGroup}
+                actionName={props.action.actionName}
+            />
+        );
+    };
+
+    const content = !props.isHidden ? _.map(messages, (fragment, index) => getReportActionItemFragment(fragment, index)) : flaggedContentText;
+
     return (
         <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
-            {/* 
-                Wrapping ReportActionItemFragment inside 'Text' so that text isn't broken up into separate lines when  
-                there are multiple messages of type 'TEXT', as seen when approving a report from a policy on Old 
-                Dot and then viewing the report on New Dot. 
-            */}
-            <Text>
-                {!props.isHidden ? (
-                    _.map(messages, (fragment, index) => (
-                        <ReportActionItemFragment
-                            key={`actionFragment-${props.action.reportActionID}-${index}`}
-                            fragment={fragment}
-                            iouMessage={iouMessage}
-                            isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
-                            attachmentInfo={props.action.attachmentInfo}
-                            pendingAction={props.action.pendingAction}
-                            source={lodashGet(props.action, 'originalMessage.source')}
-                            accountID={props.action.actorAccountID}
-                            style={props.style}
-                            displayAsGroup={props.displayAsGroup}
-                            actionName={props.action.actionName}
-                        />
-                    ))
-                ) : (
-                    <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>
-                )}
-            </Text>
+            {isApprovedOrSubmittedReportActionType ? (
+                // Wrapping 'ReportActionItemFragment' inside '<Text>' so that text isn't broken up into separate lines when
+                // there are multiple messages of type 'TEXT', as seen when a report is submitted/approved from a
+                // policy on Old Dot and then viewed on New Dot.
+
+                <Text>{content}</Text>
+            ) : (
+                <>{content}</>
+            )}
         </View>
     );
 }

@@ -169,8 +169,7 @@ function ReportActionItemFragment(props) {
                         style={[
                             styles.chatItemMessageHeaderSender,
                             props.isSingleLine ? styles.pre : styles.preWrap,
-                            _.contains([CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED], props.actionName) 
-                                && {color: styles.colorMuted.color, fontWeight: 'normal'},
+                            _.contains([CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED], props.actionName) && {color: styles.colorMuted.color, fontWeight: 'normal'},
                         ]}
                     >
                         {props.fragment.text}
