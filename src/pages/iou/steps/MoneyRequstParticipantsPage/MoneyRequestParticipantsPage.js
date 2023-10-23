@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState, useMemo, useCallback} from 'react';
+import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
