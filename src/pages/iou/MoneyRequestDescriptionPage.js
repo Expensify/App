@@ -9,7 +9,6 @@ import {iouPropTypes, iouDefaultProps} from './propTypes';
 import TextInput from '../../components/TextInput';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -20,6 +19,8 @@ import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
 import * as Browser from '../../libs/Browser';
+import FormProvider from '../../components/Form/FormProvider';
+import InputWrapper from '../../components/Form/InputWrapper';
 
 const propTypes = {
     /** Onyx Props */
@@ -115,7 +116,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                     title={translate('common.description')}
                     onBackButtonPress={() => navigateBack()}
                 />
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                     onSubmit={(value) => updateComment(value)}
@@ -123,7 +124,8 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="moneyRequestComment"
                             name="moneyRequestComment"
                             defaultValue={iou.comment}
@@ -143,7 +145,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                             submitOnEnter={!Browser.isMobile()}
                         />
                     </View>
-                </Form>
+                </FormProvider>
             </>
         </ScreenWrapper>
     );
