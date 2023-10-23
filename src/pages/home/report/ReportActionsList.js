@@ -24,6 +24,7 @@ import DateUtils from '../../../libs/DateUtils';
 import reportPropTypes from '../../reportPropTypes';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -97,6 +98,10 @@ function keyExtractor(item) {
 }
 
 function isMessageUnread(message, lastReadTime) {
+    if (!lastReadTime) {
+        return Boolean(!ReportActionsUtils.isCreatedAction(message));
+    }
+
     return Boolean(message && lastReadTime && message.created && lastReadTime < message.created);
 }
 
@@ -314,7 +319,8 @@ function ReportActionsList({
             if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadRef.current);
-                shouldDisplay = isCurrentMessageUnread && !isMessageUnread(nextMessage, lastReadRef.current);
+                shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadRef.current));
+
                 if (!messageManuallyMarkedUnread) {
                     shouldDisplay = shouldDisplay && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
@@ -422,6 +428,7 @@ function ReportActionsList({
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     extraData={extraData}
+                    testID="report-actions-list"
                 />
             </Animated.View>
         </>

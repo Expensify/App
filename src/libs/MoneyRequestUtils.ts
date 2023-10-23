@@ -78,8 +78,8 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
 /**
  * Check if distance request or not
  */
-function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, selectedTab: ValueOf<typeof CONST.TAB>): boolean {
-    return iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && selectedTab === CONST.TAB.DISTANCE;
+function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, selectedTab: ValueOf<typeof CONST.TAB>): boolean {
+    return iouType === CONST.IOU.TYPE.REQUEST && selectedTab === CONST.TAB.DISTANCE;
 }
 
 /**
