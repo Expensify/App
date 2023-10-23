@@ -137,9 +137,6 @@ const defaultProps = {
     resultTypes: 'address',
 };
 
-// Do not convert to class component! It's been tried before and presents more challenges than it's worth.
-// Relevant thread: https://expensify.slack.com/archives/C03TQ48KC/p1634088400387400
-// Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 function AddressSearch({
     canUseCurrentLocation,
     containerStyles,
@@ -372,7 +369,7 @@ function AddressSearch({
         [isTyping, translate, network.isOffline],
     );
 
-    const listLoader = useCallback(
+    const listLoader = useMemo(
         () => (
             <View style={[styles.pv4]}>
                 <ActivityIndicator
