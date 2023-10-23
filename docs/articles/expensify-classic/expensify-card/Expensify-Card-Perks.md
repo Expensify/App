@@ -28,7 +28,7 @@ Swipe to Win is a new [Expensify Card](https://use.expensify.com/company-credit-
 Winners can choose to _Send a Smile_ or _Send a Laugh_. To start, we’re offering one gift per option:
 
 - **Send A Smile:** Champagne by Expensify
-- **Send a Laugh:** Jenge Set
+- **Send a Laugh:** Jenga Set
 
 **How to Participate**
 It’s easy! Once you have an Expensify Card, you just need to start using it. With each swipe, you're automatically entered to win and have a 1 in 250 chance of getting a prize!
