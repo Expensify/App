@@ -133,6 +133,7 @@ function BaseInvertedFlatList(props) {
             // Web requires that items be measured or else crazy things happen when scrolling.
             getItemLayout={shouldMeasureItems ? getItemLayout : undefined}
             windowSize={15}
+            inverted
         />
     );
 }

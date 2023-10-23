@@ -26,7 +26,9 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
 import Permissions from '../../libs/Permissions';
 import Tooltip from '../Tooltip';
+import DomUtils from '../../libs/DomUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** Style for hovered state */
@@ -167,18 +169,27 @@ function OptionRowLHN(props) {
                             if (e) {
                                 e.preventDefault();
                             }
-
+                            // Enable Composer to focus on clicking the same chat after opening the context menu.
+                            ReportActionComposeFocusManager.focus();
                             props.onSelectRow(optionItem, popoverAnchor);
                         }}
                         onMouseDown={(e) => {
+                            // Allow composer blur on right click
                             if (!e) {
                                 return;
                             }
 
-                            // Prevent losing Composer focus
+                            // Prevent composer blur on left click
                             e.preventDefault();
                         }}
-                        onSecondaryInteraction={(e) => showPopover(e)}
+                        testID={optionItem.reportID}
+                        onSecondaryInteraction={(e) => {
+                            showPopover(e);
+                            // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
+                            if (DomUtils.getActiveElement()) {
+                                DomUtils.getActiveElement().blur();
+                            }
+                        }}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
                         style={[
