@@ -50,7 +50,7 @@ jobs:
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Build APK
-        # if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
+        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
@@ -135,7 +135,7 @@ jobs:
         uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
         id: downloadBaselineAPK
         with:
-          name: baseline-apk
+          name: baseline-apk-${{ needs.buildBaseline.outputs.VERSION }}
           path: zip
 
       # The downloaded artifact will be a file named "app-e2e-release.apk" so we have to rename it
