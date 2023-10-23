@@ -83,6 +83,7 @@ async function writeASTToFile(filePath, fileContents, ast) {
 
 async function migrateStylesForClassComponent(filePath, fileContents, ast) {
     const relativePathToStylesDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/styles');
+    const relativePathToComponentsDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/components');
     let styleIdentifier = '';
     let themeColorsIdentifier = '';
 
@@ -92,6 +93,18 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
             const source = node.source.value;
             if (source === `${relativePathToStylesDir}/styles`) {
                 styleIdentifier = node.specifiers[0].local.name;
+                node.specifiers[0].local.name = 'withThemeStyles';
+                node.specifiers.push({
+                    type: 'ImportSpecifier',
+                    imported: {
+                        type: 'Identifier',
+                        name: 'withThemeStylesPropTypes',
+                    },
+                });
+                node.source.value = `${relativePathToComponentsDir}/withThemeStyles`;
+            }
+            if (source === `${relativePathToStylesDir}/themes/default`) {
+                themeColorsIdentifier = node.specifiers[0].local.name;
                 node.specifiers[0].local.name = 'withTheme';
                 node.specifiers.push({
                     type: 'ImportSpecifier',
@@ -100,19 +113,7 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
                         name: 'withThemePropTypes',
                     },
                 });
-                node.source.value = `${relativePathToStylesDir}/withTheme`;
-            }
-            if (source === `${relativePathToStylesDir}/themes/default`) {
-                themeColorsIdentifier = node.specifiers[0].local.name;
-                node.specifiers[0].local.name = 'withThemeColors';
-                node.specifiers.push({
-                    type: 'ImportSpecifier',
-                    imported: {
-                        type: 'Identifier',
-                        name: 'withThemeColorPropTypes',
-                    },
-                });
-                node.source.value = `${relativePathToStylesDir}/withThemeColors`;
+                node.source.value = `${relativePathToComponentsDir}/withTheme`;
             }
         },
     });
@@ -124,11 +125,11 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
             }
 
             if (styleIdentifier) {
-                node.init.properties.push({type: 'SpreadElement', argument: {type: 'Identifier', name: 'withThemePropTypes'}});
+                node.init.properties.push({type: 'SpreadElement', argument: {type: 'Identifier', name: 'withThemeStylesPropTypes'}});
             }
 
             if (themeColorsIdentifier) {
-                node.init.properties.push({type: 'SpreadElement', argument: {type: 'Identifier', name: 'withThemeColorPropTypes'}});
+                node.init.properties.push({type: 'SpreadElement', argument: {type: 'Identifier', name: 'withThemePropTypes'}});
             }
         },
         MemberExpression({node}) {
@@ -235,6 +236,7 @@ async function migrateStaticStylesForDirectory(directoryPath) {
  */
 async function stripBlankLinesFromDiff() {
     try {
+        console.log('Stripping blank lines from diff...');
         const {stdout: diff} = await exec("git diff --ignore-blank-lines -- ':!scripts/codemods/MigrateStaticStylesToThemeHooks.js'");
         await exec('git restore src/components/Button/index.js');
         await exec(`echo "${diff}" | git apply -`);
