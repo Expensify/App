@@ -20,7 +20,7 @@ function addNewDotParams(url) {
     const urlObj = new URL(url);
     urlObj.searchParams.append('isInNewDot', true);
     urlObj.searchParams.append('isDarkMode', true);
-    return urlObj.toString();
+    return decodeURIComponent(urlObj.toString());
 }
 
 function getNewDotURL(url) {
