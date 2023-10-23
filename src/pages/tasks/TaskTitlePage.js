@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
@@ -19,6 +18,8 @@ import Navigation from '../../libs/Navigation/Navigation';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
+import FormProvider from '../../components/Form/FormProvider';
+import InputWrapper from '../../components/Form/InputWrapper';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -84,7 +85,7 @@ function TaskTitlePage(props) {
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton title={props.translate('task.task')} />
-                    <Form
+                    <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
                         validate={validate}
@@ -93,7 +94,8 @@ function TaskTitlePage(props) {
                         enabledWhenOffline
                     >
                         <View style={[styles.mb4]}>
-                            <TextInput
+                            <InputWrapper
+                                InputComponent={TextInput}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="title"
                                 name="title"
@@ -111,7 +113,7 @@ function TaskTitlePage(props) {
                                 }}
                             />
                         </View>
-                    </Form>
+                    </FormProvider>
                 </FullPageNotFoundView>
             )}
         </ScreenWrapper>
