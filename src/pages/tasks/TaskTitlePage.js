@@ -118,7 +118,7 @@ TaskTitlePage.displayName = 'TaskTitlePage';
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
