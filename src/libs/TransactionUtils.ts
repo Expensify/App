@@ -309,7 +309,7 @@ function getTag(transaction: OnyxEntry<Transaction>): string {
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
 function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
-    const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
+    const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created ?? '';
     const createdDate = new Date(created);
     if (isValid(createdDate)) {
         return format(createdDate, dateFormat);

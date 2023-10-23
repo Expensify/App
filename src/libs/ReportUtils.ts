@@ -272,8 +272,8 @@ function sortReportsByLastRead(reports: OnyxCollection<Report>): Array<OnyxEntry
     return Object.values(reports ?? {})
         .filter((report) => report?.reportID && report?.lastReadTime)
         .sort((a, b) => {
-            const aTime = a?.lastReadTime ? parseISO(a.lastReadTime) : 0;
-            const bTime = b?.lastReadTime ? parseISO(b.lastReadTime) : 0;
+            const aTime = a?.lastReadTime ? a.lastReadTime : 0;
+            const bTime = b?.lastReadTime ? b.lastReadTime : 0;
             return Number(aTime) - Number(bTime);
         });
 }
@@ -584,12 +584,10 @@ function hasSingleParticipant(report?: OnyxEntry<Report>): boolean {
 /**
  * Checks whether all the transactions linked to the IOU report are of the Distance Request type
  *
- * @param {string|null} iouReportID
- * @returns {boolean}
  */
-function hasOnlyDistanceRequestTransactions(iouReportID) {
+function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): boolean {
     const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return _.all(allTransactions, (transaction) => TransactionUtils.isDistanceRequest(transaction));
+    return allTransactions.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
 }
 
 /**
@@ -1272,6 +1270,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
     }
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (report?.hasOutstandingIOU || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
@@ -1576,7 +1575,7 @@ function getModifiedExpenseMessage(reportAction: OnyxEntry<ReportAction>): strin
         // Take only the YYYY-MM-DD value as the original date includes timestamp
         let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ?? '');
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
-        g;
+
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage?.created ?? '', formattedOldCreated?.toString?.(), Localize.translateLocal('common.date'), false);
     }
 
@@ -3124,10 +3123,13 @@ function chatIncludesChronos(report: OnyxEntry<Report>): boolean {
 function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined): boolean {
     const report = getReport(reportID);
     const isCurrentUserAction = reportAction?.actorAccountID === currentUserAccountID;
-
+    const isOriginalMessageHaveHtml =
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST;
     if (ReportActionsUtils.isWhisperAction(reportAction)) {
         // Allow flagging welcome message whispers as they can be set by any room creator
-        if (report?.welcomeMessage && !isCurrentUserAction && reportAction?.originalMessage?.html === report.welcomeMessage) {
+        if (report?.welcomeMessage && !isCurrentUserAction && isOriginalMessageHaveHtml && reportAction?.originalMessage?.html === report.welcomeMessage) {
             return true;
         }
 
@@ -3316,7 +3318,7 @@ function canRequestMoney(report: OnyxEntry<Report>, participants: number[]) {
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: number[]): (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE][] {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: number[]): Array<(typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]> {
     // In any thread or task report, we do not allow any new money requests yet
     if (isChatThread(report) || isTaskReport(report)) {
         return [];
@@ -3501,12 +3503,12 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner: string) {
     return expenseChat.reportID;
 }
 
-function canCreateRequest(report: OnyxEntry<Report>, betas: Beta[], iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
+function canCreateRequest(report: OnyxEntry<Report>, iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     if (shouldDisableWriteActions(report)) {
         return false;
     }
-    return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
+    return getMoneyRequestOptions(report, participantAccountIDs).includes(iouType);
 }
 
 function getWorkspaceChats(policyID: string, accountIDs: number[]) {
