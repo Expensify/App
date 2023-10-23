@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {memo, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -77,4 +77,4 @@ export default compose(
             initialValue: {},
         },
     }),
-)(ReportTypingIndicator);
+)(memo(ReportTypingIndicator));

@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useMemo} from 'react';
+import React, {useEffect, useState, useMemo, memo} from 'react';
 import PropTypes from 'prop-types';
 import {debounce} from 'lodash';
 import {withOnyx} from 'react-native-onyx';
@@ -65,4 +65,4 @@ export default withOnyx({
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         initialValue: '',
     },
-})(ExceededCommentLength);
+})(memo(ExceededCommentLength));
