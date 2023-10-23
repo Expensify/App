@@ -333,14 +333,7 @@ function endSignOnTransition() {
  * @param {Boolean} [isThereModalToDismiss] Optional, if there is a modal to dismiss
 
  */
-function createWorkspaceAndNavigateToIt(
-    policyOwnerEmail = '',
-    makeMeAdmin = false,
-    policyName = '',
-    transitionFromOldDot = false,
-    shouldNavigateToAdminChat = true,
-    isThereModalToDismiss = true,
-) {
+function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false, shouldNavigateToAdminChat = true) {
     const policyID = Policy.generatePolicyID();
     const adminsChatReportID = Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
     Navigation.isNavigationReady()
@@ -351,26 +344,10 @@ function createWorkspaceAndNavigateToIt(
             }
 
             if (shouldNavigateToAdminChat) {
-                if (isThereModalToDismiss) {
-                    Navigation.dismissModal(adminsChatReportID);
-                    setTimeout(() => {
-                        Navigation.navigate(ROUTES.SETTINGS);
-                        setTimeout(() => {
-                            Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
-                            setTimeout(() => {
-                                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-                            }, 50);
-                        }, 50);
-                    }, 50);
-                } else {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
-                    setTimeout(() => {
-                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-                    }, 50);
-                }
-            } else {
-                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
             }
+
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
         })
         .then(endSignOnTransition);
 }
