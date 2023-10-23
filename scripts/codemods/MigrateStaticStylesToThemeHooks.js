@@ -116,9 +116,6 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
                 node.source.value = `${relativePathToComponentsDir}/withTheme`;
             }
         },
-    });
-
-    traverse.default(ast, {
         VariableDeclarator({node}) {
             if (node.id.name !== 'propTypes') {
                 return;
