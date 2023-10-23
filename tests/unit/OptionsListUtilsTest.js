@@ -1744,24 +1744,12 @@ describe('OptionsListUtils', () => {
         };
         const result = [
             {
+                name: 'Taxes',
+                enabled: true,
+            },
+            {
                 name: 'Taxi',
                 enabled: false,
-            },
-            {
-                name: 'Test1',
-                enabled: true,
-            },
-            {
-                name: 'Test1: Subtest1',
-                enabled: true,
-            },
-            {
-                name: 'Test1: Subtest2',
-                enabled: true,
-            },
-            {
-                name: 'Test1: Subtest3',
-                enabled: true,
             },
             {
                 name: 'Test',
@@ -1796,7 +1784,19 @@ describe('OptionsListUtils', () => {
                 enabled: true,
             },
             {
-                name: 'Taxes',
+                name: 'Test1',
+                enabled: true,
+            },
+            {
+                name: 'Test1: Subtest1',
+                enabled: true,
+            },
+            {
+                name: 'Test1: Subtest2',
+                enabled: true,
+            },
+            {
+                name: 'Test1: Subtest3',
                 enabled: true,
             },
             {
@@ -1884,26 +1884,6 @@ describe('OptionsListUtils', () => {
                 name: 'Cars: Mercedes-Benz',
             },
             {
-                enabled: false,
-                name: 'Medical',
-            },
-            {
-                enabled: true,
-                name: 'Travel: Meals',
-            },
-            {
-                enabled: true,
-                name: 'Travel: Meals: Breakfast',
-            },
-            {
-                enabled: false,
-                name: 'Travel: Meals: Dinner',
-            },
-            {
-                enabled: true,
-                name: 'Travel: Meals: Lunch',
-            },
-            {
                 enabled: true,
                 name: 'Food',
             },
@@ -1920,12 +1900,32 @@ describe('OptionsListUtils', () => {
                 name: 'Food: Vegetables',
             },
             {
+                enabled: false,
+                name: 'Medical',
+            },
+            {
                 enabled: true,
                 name: 'Restaurant',
             },
             {
                 enabled: false,
                 name: 'Taxi',
+            },
+            {
+                enabled: true,
+                name: 'Travel: Meals',
+            },
+            {
+                enabled: true,
+                name: 'Travel: Meals: Breakfast',
+            },
+            {
+                enabled: false,
+                name: 'Travel: Meals: Dinner',
+            },
+            {
+                enabled: true,
+                name: 'Travel: Meals: Lunch',
             },
         ];
         const categoriesIncorrectOrdering3 = {
@@ -1957,19 +1957,11 @@ describe('OptionsListUtils', () => {
         const result3 = [
             {
                 enabled: true,
-                name: 'Movies',
-            },
-            {
-                enabled: true,
-                name: 'Movies: Mr. Nobody',
+                name: 'Dr. House',
             },
             {
                 enabled: true,
                 name: 'House, M.D.',
-            },
-            {
-                enabled: true,
-                name: 'Dr. House',
             },
             {
                 enabled: true,
@@ -1978,6 +1970,14 @@ describe('OptionsListUtils', () => {
             {
                 enabled: false,
                 name: 'More.Many.dots.on.the.way.',
+            },
+            {
+                enabled: true,
+                name: 'Movies',
+            },
+            {
+                enabled: true,
+                name: 'Movies: Mr. Nobody',
             },
         ];
 

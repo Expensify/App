@@ -671,6 +671,19 @@ function hasEnabledOptions(options) {
  * @returns {Array<Object>}
  */
 function sortCategories(categories) {
+    // Sorts categories alphabetically by name.
+    const sortedCategories = _.values(categories).sort((a, b) => {
+        if (a.name < b.name) {
+            return -1;
+        }
+
+        if (a.name > b.name) {
+            return 1;
+        }
+
+        return 0;
+    });
+
     // An object that respects nesting of categories. Also, can contain only uniq categories.
     const hierarchy = {};
 
@@ -689,7 +702,7 @@ function sortCategories(categories) {
      *   }
      * }
      */
-    _.each(categories, (category) => {
+    _.each(sortedCategories, (category) => {
         const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
         const existedValue = lodashGet(hierarchy, path, {});
 
