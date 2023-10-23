@@ -219,7 +219,7 @@ function getIframeRouteNameAndParams(state) {
 }
 
 // TODO: use proper URL
-const BASE_IFRAME_URL = 'http://localhost:3000';
+const BASE_IFRAME_URL = 'https://expensify.com.dev';
 
 function IFrame({session}) {
     const [oldDotURL, setOldDotURL] = useState(undefined);
@@ -227,22 +227,15 @@ function IFrame({session}) {
 
     useEffect(() => {
         window.addEventListener('message', (event) => {
-            let data = {};
-            try {
-                data = JSON.parse(event.data);
-            } catch {
-                data = {};
-            }
+            const {data} = event;
 
-            if (data.iframeId !== 'OldDot' || data.type !== 'URL_CHANGED') {
+            if (data.iFrameId !== 'OldDot' || data.type !== 'URL_CHANGED') {
                 return;
             }
 
-            const {url} = data.payload ?? {};
-
             // TODO: use this value to navigate to a new path
             // eslint-disable-next-line no-unused-vars
-            const newDotURL = getNewDotURL(url);
+            const newDotURL = getNewDotURL(data.payload);
 
             // TODO: The line below should be enough but I can't test it because of cookies issue.
             // navigation.navigate(newDotURL);
