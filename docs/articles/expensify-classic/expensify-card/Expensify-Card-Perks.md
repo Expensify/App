@@ -37,7 +37,7 @@ It’s easy! Once you have an Expensify Card, you just need to start using it. W
 Winners will be notified immediately via the Expensify app, and receive additional instructions on how to choose and send their desired gift. 
 
 If you don't have Expensify notifications turned on yet, here are some helpful guides:
-- [Apple Notification Preferences](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fsupport.apple.com%2Fen-us%2FHT201925)
+- [Apple Notification Preferences](https://support.apple.com/en-us/HT201925)
 - [Android Notification Preferences](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fsupport.google.com%2Fandroid%2Fanswer%2F9079661%3Fhl%3Den)
 
 # Partner Specific Perks
