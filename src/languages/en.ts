@@ -550,7 +550,7 @@ export default {
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
-        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount} with Expensify`,
+        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         payElsewhere: 'Pay elsewhere',
         nextSteps: 'Next Steps',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
@@ -869,6 +869,7 @@ export default {
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a Workspace admin to manage company spend.',
         expensifyCard: 'Expensify Card',
+        walletActivationPending: "We're reviewing your information and we'll be in touch shortly.",
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
