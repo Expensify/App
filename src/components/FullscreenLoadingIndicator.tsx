@@ -19,4 +19,6 @@ function FullScreenLoadingIndicator({style = []}: FullScreenLoadingIndicatorProp
     );
 }
 
+FullScreenLoadingIndicator.displayName = 'FullScreenLoadingIndicator';
+
 export default FullScreenLoadingIndicator;
