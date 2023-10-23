@@ -2769,7 +2769,9 @@ const CONST = {
         CHATS: 'chats',
         MONEY: 'money',
         WORKSPACES: 'workspaces',
-        DOMAINS: 'domains',
+
+        WORKSPACE_NESTED: 'workspace',
+        DOMAIN_NESTED: 'domains',
     },
 
     MISSING_TRANSLATION: 'MISSING TRANSLATION',

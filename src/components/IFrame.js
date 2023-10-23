@@ -284,7 +284,11 @@ function IFrame({session}) {
                     <Text style={{fontSize: 40, color: 'white'}}>{`${routeName}\n${JSON.stringify(params)} \n${oldDotURL}\n${time}`}</Text>
                     <Button
                         text="go to nested domains"
-                        onPress={() => navigation.navigate(ROUTES.DOMAIN_OLDDOT_TEST)}
+                        onPress={() => navigation.navigate(ROUTES.DOMAIN_COMPANY_CARDS_OLDDOT)}
+                    />
+                    <Button
+                        text="go to nested workspace"
+                        onPress={() => navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_OLDDOT)}
                     />
                     <iframe
                         // If we don't remount iframe it will mess up with the browser history.

@@ -377,5 +377,26 @@ export default {
         getRoute: (workspaceID: string, section: string) => `workspaces/${workspaceID}/${section}`,
     },
 
-    DOMAIN_OLDDOT_TEST: 'domain_test',
+    // TODO: use proper urls for these screens
+    WORKSPACE_OVERVIEW_OLDDOT: 'Workspace_Overview_OLDDOT',
+    WORKSPACE_EXPENSES_OLDDOT: 'Workspace_Expenses_OLDDOT',
+    WORKSPACE_REPORTS_OLDDOT: 'Workspace_Reports_OLDDOT',
+    WORKSPACE_CONNECTIONS_OLDDOT: 'Workspace_Connections_OLDDOT',
+    WORKSPACE_CATEGORIES_OLDDOT: 'Workspace_Categories_OLDDOT',
+    WORKSPACE_TAGS_OLDDOT: 'Workspace_Tags_OLDDOT',
+    WORKSPACE_TAX_OLDDOT: 'Workspace_Tax_OLDDOT',
+    WORKSPACE_MEMBERS_OLDDOT: 'Workspace_Members_OLDDOT',
+    WORKSPACE_REIMBURSEMENT_OLDDOT: 'Workspace_Reimbursement_OLDDOT',
+    WORKSPACE_TRAVEL_OLDDOT: 'Workspace_Travel_OLDDOT',
+    WORKSPACE_PER_DIEM_OLDDOT: 'Workspace_PerDiem_OLDDOT',
+    WORKSPACE_EXPORT_FORMATS_OLDDOT: 'Workspace_ExportFormats_OLDDOT',
+    WORKSPACE_INVOICES_OLDDOT: 'Workspace_Invoices_OLDDOT',
+    WORKSPACE_PLAN_OLDDOT: 'Workspace_Plan_OLDDOT',
+
+    DOMAIN_COMPANY_CARDS_OLDDOT: 'Domain_CompanyCards_OLDDOT',
+    DOMAIN_ADMINS_OLDDOT: 'Domain_Admins_OLDDOT',
+    DOMAIN_MEMBERS_OLDDOT: 'Domain_Members_OLDDOT',
+    DOMAIN_GROUPS_OLDDOT: 'Domain_Groups_OLDDOT',
+    DOMAIN_REPORTING_TOOLS_OLDDOT: 'Domain_ReportingTools_OLDDOT',
+    DOMAIN_SAML_OLDDOT: 'Domain_SAML_OLDDOT',
 } as const;
