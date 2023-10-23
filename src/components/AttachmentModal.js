@@ -394,7 +394,7 @@ function AttachmentModal(props) {
             <Modal
                 type={modalType}
                 onSubmit={submitAndClose}
-                onClose={closeModal}
+                onClose={(isDeleteReceiptConfirmModalVisible || isAttachmentInvalid) ? null : closeModal}
                 isVisible={isModalOpen}
                 backgroundColor={themeColors.componentBG}
                 onModalShow={() => {
