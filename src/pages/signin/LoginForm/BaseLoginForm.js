@@ -66,6 +66,7 @@ const propTypes = {
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
 
+    /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,

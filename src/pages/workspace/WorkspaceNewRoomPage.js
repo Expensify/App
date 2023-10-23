@@ -61,6 +61,7 @@ const propTypes = {
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
 
+    /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 };
 const defaultProps = {

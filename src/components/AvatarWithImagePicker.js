@@ -91,6 +91,7 @@ const propTypes = {
     /** File name of the avatar */
     originalFileName: PropTypes.string,
 
+    /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,

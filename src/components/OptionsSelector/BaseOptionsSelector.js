@@ -31,6 +31,8 @@ const propTypes = {
 
     /** List styles for OptionsList */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
+    /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 
     ...optionsSelectorPropTypes,
