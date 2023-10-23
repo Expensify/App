@@ -8,9 +8,8 @@ type FullScreenLoadingIndicatorProps = {
 };
 
 function FullScreenLoadingIndicator({style = []}: FullScreenLoadingIndicatorProps) {
-    const additionalStyles = Array.isArray(style) ? style : [style];
     return (
-        <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, ...additionalStyles]}>
+        <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, style]}>
             <ActivityIndicator
                 color={themeColors.spinner}
                 size="large"
