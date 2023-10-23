@@ -93,7 +93,6 @@ const propTypes = {
 
     /** A map of inputID key names */
     renamedInputKeys: PropTypes.shape({
-        name: PropTypes.string,
         street: PropTypes.string,
         street2: PropTypes.string,
         city: PropTypes.string,
@@ -128,7 +127,6 @@ const defaultProps = {
     isLimitedToUSA: false,
     canUseCurrentLocation: false,
     renamedInputKeys: {
-        name: 'name',
         street: 'addressStreet',
         street2: 'addressStreet2',
         city: 'addressCity',
