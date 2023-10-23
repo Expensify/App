@@ -16,7 +16,7 @@ import convertToLTR from '../../../../libs/convertToLTR';
 import CONST from '../../../../CONST';
 import editedLabelStyles from '../../../../styles/editedLabelStyles';
 import RenderCommentHTML from './RenderCommentHTML';
-import * as Browser from "../../../../libs/Browser";
+import * as Browser from '../../../../libs/Browser';
 
 const propTypes = {
     /** The reportAction's source */
