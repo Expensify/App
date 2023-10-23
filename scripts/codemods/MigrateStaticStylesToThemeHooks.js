@@ -170,33 +170,73 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
             }
         },
         ExportDefaultDeclaration({node}) {
-            if (node.declaration.type !== 'CallExpression') {
+            const newHOCs = [];
+            if (styleIdentifier) {
+                newHOCs.push({
+                    type: 'Identifier',
+                    name: 'withThemeStyles',
+                });
+            }
+            if (themeColorsIdentifier) {
+                newHOCs.push({
+                    type: 'Identifier',
+                    name: 'withTheme',
+                });
+            }
+
+            if (newHOCs.length === 0) {
+                return;
+            }
+
+            if (node.declaration.type === 'Identifier') {
+                const prevDeclaration = node.declaration;
+                if (newHOCs.length === 1) {
+                    node.declartion = {
+                        type: 'CallExpression',
+                        callee: newHOCs[0],
+                        arguments: [prevDeclaration],
+                    };
+                } else {
+                    node.declaration = {
+                        type: 'CallExpression',
+                        callee: {
+                            type: 'CallExpression',
+                            callee: {
+                                type: 'Identifier',
+                                name: 'compose',
+                            },
+                            arguments: newHOCs,
+                        },
+                        arguments: [prevDeclaration],
+                    };
+                    // TODO: import compose
+                }
                 return;
             }
 
             // Export is wrapped with composed HOCs
-            if (node.declaration.callee.callee.name === 'compose') {
-                const newArgs = [];
-                if (styleIdentifier) {
-                    newArgs.push({
+            if (node.declaration.callee?.callee?.name === 'compose') {
+                node.declaration.callee.arguments = node.declaration.callee.arguments.concat(newHOCs);
+                return;
+            }
+
+            // Export is wrapped with a single HOC
+            const previousHOC = node.declaration.callee?.callee || node.declaration.callee;
+            if (previousHOC.name.startsWith('with')) {
+                node.declaration.callee = {
+                    type: 'CallExpression',
+                    callee: {
                         type: 'Identifier',
-                        name: 'withThemeStyles',
-                    });
-                }
-                if (themeColorsIdentifier) {
-                    newArgs.push({
-                        type: 'Identifier',
-                        name: 'withTheme',
-                    });
-                }
-                if (newArgs.length === 0) {
-                    return;
-                }
-                if (node.declaration.callee.arguments && node.declaration.callee.arguments.length) {
-                    node.declaration.callee.arguments = node.declaration.callee.arguments.concat(newArgs);
-                    return;
-                }
-                node.declaration.callee.arguments = newArgs;
+                        name: 'compose',
+                    },
+                    arguments: [
+                        {
+                            type: previousHOC.type,
+                            name: previousHOC.name,
+                        },
+                        ...newHOCs,
+                    ],
+                };
             }
         },
     });
@@ -283,7 +323,7 @@ async function run() {
             await migrateStaticStylesForDirectory(directoryPath);
             console.log('Running prettier...');
             await exec('npm run prettier');
-            await stripBlankLinesFromDiff();
+            // await stripBlankLinesFromDiff();
         } catch (error) {
             console.error('Error:', error);
         }
