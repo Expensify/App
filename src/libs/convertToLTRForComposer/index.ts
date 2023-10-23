@@ -3,7 +3,7 @@ import ConvertToLTRForComposer from './types';
 
 function hasLTRorRTLCharacters(text: string): boolean {
     // Regular expressions to match LTR and RTL character ranges.
-    // eslint-disable-next-line
+    // eslint-disable-next-line no-control-regex
     const ltrPattern = /[\u0001-\u05FF\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/;
     const rtlPattern = /[\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC]/;
 
