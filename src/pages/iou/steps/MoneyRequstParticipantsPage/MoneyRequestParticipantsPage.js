@@ -54,7 +54,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
-    const [selectedParticipants, setSelectedParticipants] = useState([]);
+    const [selectedParticipants, setSelectedParticipants] = useState(iou.participants);
 
     useEffect(() => {
         if (isDistanceRequest) {
