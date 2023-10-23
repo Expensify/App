@@ -1,12 +1,12 @@
+import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 
 let isTestToolsModalOpen = false;
 Onyx.connect({
     key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
-    callback: (val) => (isTestToolsModalOpen = val || false),
+    callback: (val) => (isTestToolsModalOpen = val ?? false),
 });
 
 /**
@@ -15,7 +15,7 @@ Onyx.connect({
  */
 function toggleTestToolsModal() {
     const toggle = () => Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, !isTestToolsModalOpen);
-    const throttledToggle = _.throttle(toggle, CONST.TIMING.TEST_TOOLS_MODAL_THROTTLE_TIME);
+    const throttledToggle = throttle(toggle, CONST.TIMING.TEST_TOOLS_MODAL_THROTTLE_TIME);
     throttledToggle();
 }
 
