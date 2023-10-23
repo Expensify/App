@@ -1,10 +1,10 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
+import {runOnJS} from 'react-native-reanimated';
 import {PortalHost} from '@gorhom/portal';
 import styles from '../../../../styles/styles';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -21,23 +21,17 @@ import ParticipantLocalTime from '../ParticipantLocalTime';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import {withNetwork} from '../../../../components/OnyxProvider';
 import * as User from '../../../../libs/actions/User';
-import EmojiPickerButton from '../../../../components/EmojiPicker/EmojiPickerButton';
-import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import OfflineIndicator from '../../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../../components/ExceededCommentLength';
 import ReportDropUI from '../ReportDropUI';
 import reportPropTypes from '../../../reportPropTypes';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
-import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import reportActionPropTypes from '../reportActionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import getModalState from '../../../../libs/getModalState';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
-import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
-import updatePropsPaperWorklet from '../../../../libs/updatePropsPaperWorklet';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -45,9 +39,6 @@ const propTypes = {
 
     /** The ID of the report actions will be created for */
     reportID: PropTypes.string.isRequired,
-
-    /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -111,14 +102,14 @@ function ReportActionCompose({
     personalDetails,
     report,
     reportID,
-    reportActions,
+    isEmptyChat,
+    lastReportAction,
     listHeight,
     shouldShowComposeInput,
     isReportReadyForDisplay,
 }) {
     const {translate} = useLocalize();
-    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
-    const animatedRef = useAnimatedRef();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const actionButtonRef = useRef(null);
 
     /**
@@ -134,10 +125,6 @@ function ReportActionCompose({
      * Updates the should clear state of the composer
      */
     const [textInputShouldClear, setTextInputShouldClear] = useState(false);
-    const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
-        const draftComment = getDraftComment(reportID);
-        return !draftComment || !!draftComment.match(/^(\s)*$/);
-    });
 
     /**
      * Updates the visibility state of the menu
@@ -164,7 +151,9 @@ function ReportActionCompose({
         [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
     );
 
-    const isBlockedFromConcierge = useMemo(() => ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge), [report, blockedFromConcierge]);
+    const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participantAccountIDs: report.participantAccountIDs}), [report.participantAccountIDs]);
+    const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
+    const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
@@ -175,8 +164,8 @@ function ReportActionCompose({
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
-        if (ReportUtils.chatIncludesConcierge(report)) {
-            if (User.isBlockedFromConcierge(blockedFromConcierge)) {
+        if (includesConcierge) {
+            if (userBlockedFromConcierge) {
                 return translate('reportActionCompose.blockedFromConcierge');
             }
 
@@ -184,7 +173,7 @@ function ReportActionCompose({
         }
 
         return translate('reportActionCompose.writeSomething');
-    }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
+    }, [includesConcierge, translate, userBlockedFromConcierge, conciergePlaceholderRandomIndex]);
 
     const focus = () => {
         if (composerRef === null || composerRef.current === null) {
@@ -322,24 +311,16 @@ function ReportActionCompose({
 
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
-    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
+    const isSendDisabled = isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
 
     const handleSendMessage = useCallback(() => {
-        'worklet';
-
         if (isSendDisabled || !isReportReadyForDisplay) {
             return;
         }
 
-        const viewTag = animatedRef();
-        const viewName = 'RCTMultilineTextInputView';
-        const updates = {text: ''};
-        // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
-        runOnJS(setIsCommentEmpty)(true);
         runOnJS(resetFullComposerSize)();
-        updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
         runOnJS(submitForm)();
-    }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
+    }, [isSendDisabled, resetFullComposerSize, submitForm, isReportReadyForDisplay]);
 
     return (
         <View
@@ -391,12 +372,13 @@ function ReportActionCompose({
                                 />
                                 <ComposerWithSuggestions
                                     ref={composerRef}
-                                    animatedRef={animatedRef}
                                     suggestionsRef={suggestionsRef}
                                     isNextModalWillOpenRef={isNextModalWillOpenRef}
                                     reportID={reportID}
-                                    report={report}
-                                    reportActions={reportActions}
+                                    parentReportID={report.parentReportID}
+                                    includesChronos={ReportUtils.chatIncludesChronos(report)}
+                                    isEmptyChat={isEmptyChat}
+                                    lastReportAction={lastReportAction}
                                     isMenuVisible={isMenuVisible}
                                     inputPlaceholder={inputPlaceholder}
                                     isComposerFullSize={isComposerFullSize}
@@ -407,13 +389,13 @@ function ReportActionCompose({
                                     disabled={disabled}
                                     isFullComposerAvailable={isFullComposerAvailable}
                                     setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                    setIsCommentEmpty={setIsCommentEmpty}
                                     handleSendMessage={handleSendMessage}
                                     shouldShowComposeInput={shouldShowComposeInput}
                                     onFocus={onFocus}
                                     onBlur={onBlur}
                                     measureParentContainer={measureContainer}
                                     listHeight={listHeight}
+                                    isSendDisabled={isSendDisabled}
                                 />
                                 <ReportDropUI
                                     onDrop={(e) => {
@@ -427,18 +409,6 @@ function ReportActionCompose({
                             </>
                         )}
                     </AttachmentModal>
-                    {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
-                        <EmojiPickerButton
-                            isDisabled={isBlockedFromConcierge || disabled}
-                            onModalHide={focus}
-                            onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
-                            emojiPickerID={report.reportID}
-                        />
-                    )}
-                    <SendButton
-                        isDisabled={isSendDisabled}
-                        handleSendMessage={handleSendMessage}
-                    />
                 </View>
                 <View
                     style={[
@@ -477,4 +447,4 @@ export default compose(
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         },
     }),
-)(ReportActionCompose);
+)(memo(ReportActionCompose));

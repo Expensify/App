@@ -1,9 +1,10 @@
-import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
+import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle, memo} from 'react';
 import {View, NativeModules, findNodeHandle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
 import styles from '../../../../styles/styles';
 import themeColors from '../../../../styles/themes/default';
 import Composer from '../../../../components/Composer';
@@ -23,7 +24,6 @@ import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import * as User from '../../../../libs/actions/User';
 import * as ReportUtils from '../../../../libs/ReportUtils';
 import * as SuggestionUtils from '../../../../libs/SuggestionUtils';
-import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
@@ -36,6 +36,10 @@ import focusWithDelay from '../../../../libs/focusWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
 import updateMultilineInputRange from '../../../../libs/UpdateMultilineInputRange';
 import * as InputFocus from '../../../../libs/actions/InputFocus';
+import SendButton from './SendButton';
+import updatePropsPaperWorklet from '../../../../libs/updatePropsPaperWorklet';
+import EmojiPickerButton from '../../../../components/EmojiPicker/EmojiPickerButton';
+import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -70,14 +74,14 @@ function ComposerWithSuggestions({
     // Onyx
     modal,
     preferredSkinTone,
-    parentReportActions,
     numberOfLines,
     // HOCs
     isKeyboardShown,
     // Props: Report
     reportID,
-    report,
-    reportActions,
+    includeChronos,
+    isEmptyChat,
+    lastReportAction,
     // Focus
     onFocus,
     onBlur,
@@ -92,14 +96,13 @@ function ComposerWithSuggestions({
     disabled,
     isFullComposerAvailable,
     setIsFullComposerAvailable,
-    setIsCommentEmpty,
+    isSendDisabled,
     handleSendMessage,
     shouldShowComposeInput,
     measureParentContainer,
     listHeight,
     // Refs
     suggestionsRef,
-    animatedRef,
     forwardedRef,
     isNextModalWillOpenRef,
     editFocused,
@@ -108,19 +111,21 @@ function ComposerWithSuggestions({
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef([]);
+
+    const draftComment = getDraftComment(reportID) || '';
+    const [isCommentEmpty, setIsCommentEmpty] = useState(() => !draftComment || !!draftComment.match(/^(\s)*$/));
+    const animatedRef = useAnimatedRef();
     const [value, setValue] = useState(() => {
-        const draft = getDraftComment(reportID) || '';
-        if (draft) {
-            emojisPresentBefore.current = EmojiUtils.extractEmojis(draft);
+        if (draftComment) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
         }
-        return draft;
+        return draftComment;
     });
     const commentRef = useRef(value);
 
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
@@ -202,6 +207,20 @@ function ComposerWithSuggestions({
         [],
     );
 
+    const sendMessage = useCallback(() => {
+        'worklet';
+
+        if (isCommentEmpty) {
+            return;
+        }
+
+        runOnJS(handleSendMessage)();
+        const viewTag = animatedRef();
+        const viewName = 'RCTMultilineTextInputView';
+        const updates = {text: ''};
+        updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
+    }, [animatedRef, handleSendMessage, isCommentEmpty]);
+
     /**
      * Update the value of the comment in Onyx
      *
@@ -225,7 +244,13 @@ function ComposerWithSuggestions({
                 }
             }
             emojisPresentBefore.current = emojis;
-            setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
+            const isNewCommentEmpty = !!newComment.match(/^(\s)*$/);
+            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
+
+            /** Only update isCommentEmpty state if it's different from previous one */
+            if (isNewCommentEmpty !== isPrevCommentEmpty) {
+                setIsCommentEmpty(isNewCommentEmpty);
+            }
             setValue(newComment);
             if (commentValue !== newComment) {
                 const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
@@ -338,26 +363,20 @@ function ComposerWithSuggestions({
             // Submit the form when Enter is pressed
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
                 e.preventDefault();
-                handleSendMessage();
+                sendMessage();
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
             const valueLength = valueRef.current.length;
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && valueLength === 0 && !ReportUtils.chatIncludesChronos(report)) {
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && valueLength === 0 && !includeChronos) {
                 e.preventDefault();
 
-                const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
-                const parentReportAction = lodashGet(parentReportActions, [parentReportActionID], {});
-                const lastReportAction = _.find(
-                    [...reportActions, parentReportAction],
-                    (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
-                );
                 if (lastReportAction) {
                     Report.saveReportActionDraft(reportID, lastReportAction, _.last(lastReportAction.message).html);
                 }
             }
         },
-        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
+        [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, sendMessage, lastReportAction, reportID],
     );
 
     const onSelectionChange = useCallback(
@@ -561,6 +580,19 @@ function ComposerWithSuggestions({
                     }}
                     onScroll={hideSuggestionMenu}
                 />
+
+                {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
+                    <EmojiPickerButton
+                        isDisabled={isBlockedFromConcierge || disabled}
+                        onModalHide={focus}
+                        onEmojiSelected={(...args) => replaceSelectionWithText(...args)}
+                        emojiPickerID={reportID}
+                    />
+                )}
+                <SendButton
+                    isDisabled={isSendDisabled || isCommentEmpty}
+                    handleSendMessage={sendMessage}
+                />
             </View>
 
             <Suggestions
@@ -581,7 +613,6 @@ function ComposerWithSuggestions({
 
             <SilentCommentUpdater
                 reportID={reportID}
-                report={report}
                 value={value}
                 updateComment={updateComment}
                 commentRef={commentRef}
@@ -613,18 +644,15 @@ export default compose(
         editFocused: {
             key: ONYXKEYS.INPUT_FOCUSED,
         },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            canEvict: false,
-            initWithStoredValues: false,
-        },
     }),
 )(
-    React.forwardRef((props, ref) => (
-        <ComposerWithSuggestions
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
+    memo(
+        React.forwardRef((props, ref) => (
+            <ComposerWithSuggestions
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                forwardedRef={ref}
+            />
+        )),
+    ),
 );
