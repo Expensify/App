@@ -2,6 +2,8 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
+import {useRoute} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import CONST from '../../../CONST';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
@@ -21,6 +23,7 @@ import reportPropTypes from '../../reportPropTypes';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import reportActionPropTypes from './reportActionPropTypes';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -31,6 +34,9 @@ const propTypes = {
 
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID: PropTypes.string,
+
+    /** The report metadata loading states */
+    isLoadingReportActions: PropTypes.bool,
 
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: PropTypes.bool,
@@ -61,6 +67,7 @@ const defaultProps = {
     personalDetails: {},
     onScroll: () => {},
     mostRecentIOUReportActionID: '',
+    isLoadingReportActions: false,
     isLoadingMoreReportActions: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -91,11 +98,17 @@ function keyExtractor(item) {
 }
 
 function isMessageUnread(message, lastReadTime) {
+    if (!lastReadTime) {
+        return Boolean(!ReportActionsUtils.isCreatedAction(message));
+    }
+
     return Boolean(message && lastReadTime && message.created && lastReadTime < message.created);
 }
 
 function ReportActionsList({
     report,
+    isLoadingReportActions,
+    isLoadingMoreReportActions,
     sortedReportActions,
     windowHeight,
     onScroll,
@@ -111,16 +124,19 @@ function ReportActionsList({
     const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
+    const firstRenderRef = useRef(true);
+    const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
-    // Considering that renderItem is enclosed within a useCallback, marking it as "read" twice will retain the value as "true," preventing the useCallback from re-executing.
-    // However, if we create and listen to an object, it will lead to a new useCallback execution.
-    const [messageManuallyMarked, setMessageManuallyMarked] = useState({read: false});
+    // This state is used to force a re-render when the user manually marks a message as unread
+    // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
+    const [messageManuallyMarkedUnread, setMessageManuallyMarkedUnread] = useState(0);
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -129,7 +145,6 @@ function ReportActionsList({
     useEffect(() => {
         opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
-    const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
@@ -167,14 +182,14 @@ function ReportActionsList({
 
     useEffect(() => {
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
-        if (!didManuallyMarkReportAsUnread) {
-            setMessageManuallyMarked({read: false});
+        if (didManuallyMarkReportAsUnread) {
+            // Clearing the current unread marker so that it can be recalculated
+            setCurrentUnreadMarker(null);
+            setMessageManuallyMarkedUnread(new Date().getTime());
             return;
         }
 
-        // Clearing the current unread marker so that it can be recalculated
-        setCurrentUnreadMarker(null);
-        setMessageManuallyMarked({read: true});
+        setMessageManuallyMarkedUnread(0);
 
         // We only care when a new lastReadTime is set in the report
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -268,44 +283,57 @@ function ReportActionsList({
     );
 
     /**
-     * @param {Object} args
-     * @param {Number} args.index
-     * @returns {React.Component}
+     * Evaluate new unread marker visibility for each of the report actions.
+     * @returns boolean
      */
-    const renderItem = useCallback(
-        ({item: reportAction, index}) => {
-            let shouldDisplayNewMarker = false;
 
+    const shouldDisplayNewMarker = useCallback(
+        (reportAction, index) => {
+            let shouldDisplay = false;
             if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
-                shouldDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
-
-                if (!messageManuallyMarked.read) {
-                    shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
-                }
-                const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
-
-                if (!currentUnreadMarker && shouldDisplayNewMarker && canDisplayMarker) {
-                    setCurrentUnreadMarker(reportAction.reportActionID);
+                shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, report.lastReadTime));
+                if (!messageManuallyMarkedUnread) {
+                    shouldDisplay = shouldDisplay && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
             } else {
-                shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker;
+                shouldDisplay = reportAction.reportActionID === currentUnreadMarker;
             }
-            return (
-                <ReportActionsListItemRenderer
-                    reportAction={reportAction}
-                    index={index}
-                    report={report}
-                    hasOutstandingIOU={hasOutstandingIOU}
-                    sortedReportActions={sortedReportActions}
-                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                    shouldDisplayNewMarker={shouldDisplayNewMarker}
-                />
-            );
+            return shouldDisplay;
         },
-        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarked, shouldHideThreadDividerLine, currentUnreadMarker],
+        [currentUnreadMarker, sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread],
+    );
+
+    useEffect(() => {
+        // Iterate through the report actions and set appropriate unread marker.
+        // This is to avoid a warning of:
+        // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
+        _.each(sortedReportActions, (reportAction, index) => {
+            if (!shouldDisplayNewMarker(reportAction, index)) {
+                return;
+            }
+            if (!currentUnreadMarker && currentUnreadMarker !== reportAction.reportActionID) {
+                setCurrentUnreadMarker(reportAction.reportActionID);
+            }
+        });
+    }, [sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
+
+    const renderItem = useCallback(
+        ({item: reportAction, index}) => (
+            <ReportActionsListItemRenderer
+                reportAction={reportAction}
+                index={index}
+                report={report}
+                linkedReportActionID={linkedReportActionID}
+                hasOutstandingIOU={hasOutstandingIOU}
+                sortedReportActions={sortedReportActions}
+                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
+            />
+        ),
+        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
@@ -313,6 +341,36 @@ function ReportActionsList({
     const extraData = [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)];
     const hideComposer = ReportUtils.shouldDisableWriteActions(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
+
+    const renderFooter = useCallback(() => {
+        // Skip this hook on the first render, as we are not sure if more actions are going to be loaded
+        // Therefore showing the skeleton on footer might be misleading
+        if (firstRenderRef.current) {
+            firstRenderRef.current = false;
+            return null;
+        }
+
+        if (isLoadingMoreReportActions) {
+            return <ReportActionsSkeletonView />;
+        }
+
+        // Make sure the oldest report action loaded is not the first. This is so we do not show the
+        // skeleton view above the created action in a newly generated optimistic chat or one with not
+        // that many comments.
+        const lastReportAction = _.last(sortedReportActions) || {};
+        if (isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return <ReportActionsSkeletonView animate={!isOffline} />;
+        }
+
+        return null;
+    }, [isLoadingMoreReportActions, isLoadingReportActions, sortedReportActions, isOffline]);
+
+    const onLayoutInner = useCallback(
+        (event) => {
+            onLayout(event);
+        },
+        [onLayout],
+    );
 
     return (
         <>
@@ -333,33 +391,12 @@ function ReportActionsList({
                     initialNumToRender={initialNumToRender}
                     onEndReached={loadMoreChats}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={() => {
-                        if (report.isLoadingMoreReportActions) {
-                            return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
-                        }
-
-                        // Make sure the oldest report action loaded is not the first. This is so we do not show the
-                        // skeleton view above the created action in a newly generated optimistic chat or one with not
-                        // that many comments.
-                        const lastReportAction = _.last(sortedReportActions) || {};
-                        if (report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-                            return (
-                                <ReportActionsSkeletonView
-                                    containerHeight={skeletonViewHeight}
-                                    animate={!isOffline}
-                                />
-                            );
-                        }
-
-                        return null;
-                    }}
+                    ListFooterComponent={renderFooter}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={(event) => {
-                        setSkeletonViewHeight(event.nativeEvent.layout.height);
-                        onLayout(event);
-                    }}
+                    onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     extraData={extraData}
+                    testID="report-actions-list"
                 />
             </Animated.View>
         </>

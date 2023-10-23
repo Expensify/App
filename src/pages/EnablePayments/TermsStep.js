@@ -15,8 +15,12 @@ import LongTermsForm from './TermsPage/LongTermsForm';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import walletTermsPropTypes from './walletTermsPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import userWalletPropTypes from './userWalletPropTypes';
 
 const propTypes = {
+    /** The user's wallet */
+    userWallet: userWalletPropTypes,
+
     /** Comes from Onyx. Information about the terms for the wallet */
     walletTerms: walletTermsPropTypes,
 
@@ -24,6 +28,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    userWallet: {},
     walletTerms: {},
 };
 
@@ -59,7 +64,7 @@ function TermsStep(props) {
                 style={styles.flex1}
                 contentContainerStyle={styles.ph5}
             >
-                <ShortTermsForm />
+                <ShortTermsForm userWallet={props.userWallet} />
                 <LongTermsForm />
                 <CheckboxWithLabel
                     accessibilityLabel={props.translate('termsStep.haveReadAndAgree')}
@@ -103,6 +108,7 @@ function TermsStep(props) {
                     }}
                     message={errorMessage}
                     isAlertVisible={error || Boolean(errorMessage)}
+                    isLoading={!!props.walletTerms.isLoading}
                     containerStyles={[styles.mh0, styles.mv4]}
                 />
             </ScrollView>

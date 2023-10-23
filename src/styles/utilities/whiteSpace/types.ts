@@ -1,5 +1,5 @@
-import {CSSProperties} from 'react';
+import {TextStyle} from 'react-native';
 
-type WhiteSpaceStyles = Record<'noWrap' | 'preWrap' | 'pre', Partial<Pick<CSSProperties, 'whiteSpace'>>>;
+type WhiteSpaceStyles = Record<'noWrap' | 'preWrap' | 'pre', Pick<TextStyle, 'whiteSpace'>>;
 
 export default WhiteSpaceStyles;

@@ -35,8 +35,8 @@ const propTypes = {
 
     withoutOverlay: PropTypes.bool,
 
-    /** Function to call on modal hide */
-    onModalHide: PropTypes.func,
+    /** Should we announce the Modal visibility changes? */
+    shouldSetModalVisibility: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -47,7 +47,7 @@ const defaultProps = {
     },
     anchorRef: () => {},
     withoutOverlay: false,
-    onModalHide: () => {},
+    shouldSetModalVisibility: true,
 };
 
 function PopoverMenu(props) {
@@ -82,7 +82,6 @@ function PopoverMenu(props) {
             isVisible={props.isVisible}
             onModalHide={() => {
                 setFocusedIndex(-1);
-                props.onModalHide();
                 if (selectedItemIndex.current !== null) {
                     props.menuItems[selectedItemIndex.current].onSelected();
                     selectedItemIndex.current = null;
@@ -94,6 +93,7 @@ function PopoverMenu(props) {
             disableAnimation={props.disableAnimation}
             fromSidebarMediumScreen={props.fromSidebarMediumScreen}
             withoutOverlay={props.withoutOverlay}
+            shouldSetModalVisibility={props.shouldSetModalVisibility}
         >
             <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                 {!_.isEmpty(props.headerText) && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{props.headerText}</Text>}
@@ -103,7 +103,9 @@ function PopoverMenu(props) {
                         icon={item.icon}
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
+                        iconFill={item.iconFill}
                         title={item.text}
+                        shouldCheckActionAllowedOnPress={false}
                         description={item.description}
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}

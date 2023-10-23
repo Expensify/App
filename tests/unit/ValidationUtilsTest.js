@@ -253,6 +253,14 @@ describe('ValidationUtils', () => {
         test('room name with spanish Accented letters and dashes', () => {
             expect(ValidationUtils.isValidRoomName('#sala-de-opinión')).toBe(true);
         });
+
+        test('room name with division sign (÷)', () => {
+            expect(ValidationUtils.isValidRoomName('#room-name-with-÷-sign')).toBe(false);
+        });
+
+        test('room name with Greek alphabets and Cyrillic alphabets', () => {
+            expect(ValidationUtils.isValidRoomName('#σοβαρός-серьезный')).toBe(true);
+        });
     });
 
     describe('isValidWebsite', () => {
