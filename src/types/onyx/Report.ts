@@ -81,6 +81,7 @@ type Report = {
     /** Report cached total */
     cachedTotal?: string;
 
+    lastMessageTranslationKey?: string;
     parentReportID?: string;
     parentReportActionID?: string;
     isOptimisticReport?: boolean;
