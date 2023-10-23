@@ -49,7 +49,7 @@ All Expensify customers that have adopted The Expensify Card qualify when they a
 
 **Apply now by going [to this link](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Faws.amazon.com%2Factivate%2Fportfolio-signup) and using the OrgID: 0qyIA (Case Sensitive)**
 
-The full details on the AWS Activate program can be found in AWS's [terms & conditions](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Faws.amazon.com%2Factivate%2Fterms%2F) and the [Activate FAQs](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Faws.amazon.com%2Factivate%2Ffaq%2F).
+The full details on the AWS Activate program can be found in AWS's [terms & conditions](https://aws.amazon.com/activate/terms/) and the [Activate FAQs](https://aws.amazon.com/startups/faq).
 
 ## Stripe
 Whether you’re creating a subscription service, an on-demand marketplace, or an e-commerce store, Stripe’s integrated payments platform helps you build and scale your business globally.
