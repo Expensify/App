@@ -1,4 +1,4 @@
-import {format, parseISO} from 'date-fns';
+import {format} from 'date-fns';
 import {SvgProps} from 'react-native-svg';
 import Str from 'expensify-common/lib/str';
 import lodashEscape from 'lodash/escape';
@@ -579,6 +579,17 @@ function isDM(report?: OnyxEntry<Report>): boolean {
  */
 function hasSingleParticipant(report?: OnyxEntry<Report>): boolean {
     return report?.participantAccountIDs?.length === 1;
+}
+
+/**
+ * Checks whether all the transactions linked to the IOU report are of the Distance Request type
+ *
+ * @param {string|null} iouReportID
+ * @returns {boolean}
+ */
+function hasOnlyDistanceRequestTransactions(iouReportID) {
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.all(allTransactions, (transaction) => TransactionUtils.isDistanceRequest(transaction));
 }
 
 /**
@@ -1241,29 +1252,31 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
 }
 
 /**
- * Get the title for a IOU or expense chat which will be showing the payer and the amount
+ * Get the title for an IOU or expense chat which will be showing the payer and the amount
+ *
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined) {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(report), report?.currency);
-    const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID ?? -1);
-    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {
+    const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency, hasOnlyDistanceRequestTransactions(report?.reportID));
+    const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID);
+    const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerName,
         amount: formattedAmount,
     });
 
     if (report?.isWaitingOnBankAccount) {
-        return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
+        return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
     if (hasNonReimbursableTransactions(report?.reportID)) {
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    if (report?.hasOutstandingIOU) {
+    if (report?.hasOutstandingIOU || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    return payerPaidAmountMesssage;
+    return payerPaidAmountMessage;
 }
 
 /**
@@ -1402,7 +1415,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>) {
     const transactionDetails = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? ''),
+        formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '', TransactionUtils.isDistanceRequest(transaction)),
         comment: transactionDetails?.comment,
     });
 }
@@ -1561,9 +1574,9 @@ function getModifiedExpenseMessage(reportAction: OnyxEntry<ReportAction>): strin
     const hasModifiedCreated = Object.hasOwn(reportActionOriginalMessage, 'oldCreated') && Object.hasOwn(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated: Date | string = parseISO(reportActionOriginalMessage?.oldCreated ?? '');
+        let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ?? '');
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
-
+        g;
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage?.created ?? '', formattedOldCreated?.toString?.(), Localize.translateLocal('common.date'), false);
     }
 
@@ -2294,7 +2307,6 @@ function buildOptimisticIOUReportAction(
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        receipt,
         whisperedToAccountIDs: [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === receipt?.state) ? [currentUserAccountID] : [],
     };
 }
@@ -2991,7 +3003,7 @@ function shouldReportBeInOptionList(
         (report.participantAccountIDs &&
             report.participantAccountIDs.length === 0 &&
             !isChatThread(report) &&
-            !isPublicRoom(report) &&
+            !isUserCreatedPolicyRoom(report) &&
             !isArchivedRoom(report) &&
             !isMoneyRequestReport(report) &&
             !isTaskReport(report))
@@ -3105,16 +3117,30 @@ function chatIncludesChronos(report: OnyxEntry<Report>): boolean {
 /**
  * Can only flag if:
  *
- * - It was written by someone else
+ * - It was written by someone else and isn't a whisper
+ * - It's a welcome message whisper
  * - It's an ADDCOMMENT that is not an attachment
  */
 function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined): boolean {
+    const report = getReport(reportID);
+    const isCurrentUserAction = reportAction?.actorAccountID === currentUserAccountID;
+
+    if (ReportActionsUtils.isWhisperAction(reportAction)) {
+        // Allow flagging welcome message whispers as they can be set by any room creator
+        if (report?.welcomeMessage && !isCurrentUserAction && reportAction?.originalMessage?.html === report.welcomeMessage) {
+            return true;
+        }
+
+        // Disallow flagging the rest of whisper as they are sent by us
+        return false;
+    }
+
     return (
-        reportAction?.actorAccountID !== currentUserAccountID &&
+        !isCurrentUserAction &&
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-        isAllowedToComment(getReport(reportID))
+        isAllowedToComment(report)
     );
 }
 
@@ -3194,8 +3220,16 @@ function parseReportRouteParams(route: string) {
     }
 
     const pathSegments = parsingRoute.split('/');
+
+    const reportIDSegment = pathSegments[1];
+
+    // Check for "undefined" or any other unwanted string values
+    if (!reportIDSegment || reportIDSegment === 'undefined') {
+        return {reportID: '', isSubReportPageRoute: false};
+    }
+
     return {
-        reportID: pathSegments[1],
+        reportID: reportIDSegment,
         isSubReportPageRoute: pathSegments.length > 2,
     };
 }
@@ -3282,7 +3316,7 @@ function canRequestMoney(report: OnyxEntry<Report>, participants: number[]) {
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: number[]) {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: number[]): (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE][] {
     // In any thread or task report, we do not allow any new money requests yet
     if (isChatThread(report) || isTaskReport(report)) {
         return [];
@@ -3465,6 +3499,14 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner: string) {
         return null;
     }
     return expenseChat.reportID;
+}
+
+function canCreateRequest(report: OnyxEntry<Report>, betas: Beta[], iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
+    const participantAccountIDs = report?.participantAccountIDs ?? [];
+    if (shouldDisableWriteActions(report)) {
+        return false;
+    }
+    return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
 }
 
 function getWorkspaceChats(policyID: string, accountIDs: number[]) {
@@ -3775,6 +3817,7 @@ export {
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
+    canCreateRequest,
     hasIOUWaitingOnCurrentUserBankAccount,
     canRequestMoney,
     getWhisperDisplayNames,
@@ -3814,10 +3857,12 @@ export {
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getTransactionsWithReceipts,
+    hasOnlyDistanceRequestTransactions,
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
     isReportDraft,
     shouldUseFullTitleToDisplay,
+    parseReportRouteParams,
 };

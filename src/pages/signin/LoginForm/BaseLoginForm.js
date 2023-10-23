@@ -213,6 +213,7 @@ function LoginForm(props) {
                     accessibilityLabel={translate('loginForm.phoneOrEmail')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={login}
+                    returnKeyType="go"
                     autoCompleteType="username"
                     textContentType="username"
                     nativeID="username"
