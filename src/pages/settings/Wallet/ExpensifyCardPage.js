@@ -163,12 +163,12 @@ function ExpensifyCardPage({
                                 />
                                 {!_.isEmpty(virtualCard) && (
                                     <>
-                                        {shouldShowCardDetails ? (
+                                        {details.pan ? (
                                             <CardDetails
-                                                // This is just a temporary mock, it will be replaced in this issue https://github.com/orgs/Expensify/projects/58?pane=issue&itemId=33286617
-                                                pan="1234123412341234"
-                                                expiration="11/02/2024"
-                                                cvv="321"
+                                                pan={details.pan}
+                                                expiration={details.expiration}
+                                                cvv={details.cvv}
+                                                privatePersonalDetails={{address: details.address}}
                                                 domain={domain}
                                             />
                                         ) : (
@@ -177,12 +177,15 @@ function ExpensifyCardPage({
                                                 title={CardUtils.maskCard(virtualCard.lastFourPAN)}
                                                 interactive={false}
                                                 titleStyle={styles.walletCardNumber}
+                                                error={errorMessage}
                                                 shouldShowRightComponent
                                                 rightComponent={
                                                     <Button
                                                         medium
                                                         text={translate('cardPage.cardDetails.revealDetails')}
                                                         onPress={handleRevealDetails}
+                                                        isDisabled={isLoading || isOffline}
+                                                        isLoading={isLoading}
                                                     />
                                                 }
                                             />
