@@ -137,7 +137,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 setFormError('');
             }
 
-            // setCurrentAmount contains another setState making it error-prone. This solution introducing the hasSelectionBeenSet flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
+            // setCurrentAmount contains another setState(setSelection) making it error-prone since it is leading to setSelection being called twice for a single setCurrentAmount call. This solution introducing the hasSelectionBeenSet flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
 
             let hasSelectionBeenSet = false;
             setCurrentAmount((prevAmount) => {
