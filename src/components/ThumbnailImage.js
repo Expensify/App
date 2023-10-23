@@ -10,7 +10,6 @@ import useWindowDimensions from '../hooks/useWindowDimensions';
 import useNetwork from '../hooks/useNetwork';
 import Icon from '../../src/components/Icon';
 import * as Expensicons from '../../src/components/Icon/Expensicons';
-import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Source URL for the preview image */
@@ -43,13 +42,13 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iconFill: themeColors.textLight,
+    iconFill: '#3bd47c',
     style: {},
     imageWidth: 200,
     imageHeight: 200,
     shouldDynamicallyResize: true,
     fallbackIcon: Expensicons.ReceiptPlaceholderImage, // Default fallback icon
-    iconSize: 100, // Default icon size
+    iconSize: 113, // Default icon size
 };
 
 /**
