@@ -6,7 +6,6 @@ import {subYears} from 'date-fns';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
-import Form from '../../../../components/Form';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
@@ -18,6 +17,7 @@ import compose from '../../../../libs/compose';
 import styles from '../../../../styles/styles';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import FormProvider from '../../../../components/Form/FormProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -72,7 +72,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
                     validate={validate}
@@ -87,7 +87,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                         minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
                         maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
                     />
-                </Form>
+                </FormProvider>
             )}
         </ScreenWrapper>
     );

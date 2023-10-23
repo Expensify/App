@@ -127,6 +127,7 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
+    // // The reportID is used inside a collection key and should not be empty, as an empty reportID will result in the entire collection being returned.
     return String(lodashGet(route, 'params.reportID', null));
 }
 
@@ -156,6 +157,7 @@ function ReportScreen({
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
+    const [listHeight, setListHeight] = useState(0);
 
     const reportID = getReportID(route);
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
@@ -171,7 +173,6 @@ function ReportScreen({
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
@@ -188,7 +189,7 @@ function ReportScreen({
         />
     );
 
-    if (isSingleTransactionView && !isDeletedParentAction) {
+    if (isSingleTransactionView) {
         headerView = (
             <MoneyRequestHeader
                 report={report}
@@ -307,12 +308,16 @@ function ReportScreen({
         const prevOnyxReportID = prevReport.reportID;
         const routeReportID = getReportID(route);
 
-        // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room)
+        // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
         if (
             // non-optimistic case
             (!prevUserLeavingStatus && userLeavingStatus) ||
             // optimistic case
-            (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && prevReport.statusNum === CONST.REPORT.STATUS.OPEN && report.statusNum === CONST.REPORT.STATUS.CLOSED)
+            (prevOnyxReportID &&
+                prevOnyxReportID === routeReportID &&
+                !onyxReportID &&
+                prevReport.statusNum === CONST.REPORT.STATUS.OPEN &&
+                (report.statusNum === CONST.REPORT.STATUS.CLOSED || !report.statusNum))
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
@@ -340,6 +345,9 @@ function ReportScreen({
     }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum, prevReport.parentReportID]);
 
     useEffect(() => {
+        if (!ReportUtils.isValidReportIDFromPath(reportID)) {
+            return;
+        }
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
@@ -351,7 +359,8 @@ function ReportScreen({
         }
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
-    const onListLayout = useCallback(() => {
+    const onListLayout = useCallback((e) => {
+        setListHeight((prev) => lodashGet(e, 'nativeEvent.layout.height', prev));
         if (!markReadyForHydration) {
             return;
         }
@@ -438,6 +447,8 @@ function ReportScreen({
                                         isComposerFullSize={isComposerFullSize}
                                         onSubmitComment={onSubmitComment}
                                         policies={policies}
+                                        listHeight={listHeight}
+                                        personalDetails={personalDetails}
                                     />
                                 ) : (
                                     <ReportFooter isReportReadyForDisplay={false} />
