@@ -1,6 +1,9 @@
 import {Parser as HtmlParser} from 'htmlparser2';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import * as TransactionUtils from '../../../libs/TransactionUtils';
+import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 import CONST from '../../../CONST';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 
@@ -25,9 +28,12 @@ function extractAttachmentsFromReport(report, reportActions) {
             // By iterating actions in chronological order and prepending each attachment
             // we ensure correct order of attachments even across actions with multiple attachments.
             attachments.unshift({
+                reportActionID: attribs['data-id'],
                 source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
                 isAuthTokenRequired: Boolean(expensifySource),
                 file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
+                isReceipt: false,
+                hasBeenFlagged: attribs['data-flagged'] === 'true',
             });
         },
     });
@@ -36,7 +42,34 @@ function extractAttachmentsFromReport(report, reportActions) {
         if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
             return;
         }
-        htmlParser.write(_.get(action, ['message', 0, 'html']));
+
+        // We're handling receipts differently here because receipt images are not
+        // part of the report action message, the images are constructed client-side
+        if (ReportActionsUtils.isMoneyRequestAction(action)) {
+            const transactionID = lodashGet(action, ['originalMessage', 'IOUTransactionID']);
+            if (!transactionID) {
+                return;
+            }
+
+            const transaction = TransactionUtils.getTransaction(transactionID);
+            if (TransactionUtils.hasReceipt(transaction)) {
+                const {image} = ReceiptUtils.getThumbnailAndImageURIs(transaction);
+                const isLocalFile = typeof image === 'string' && (image.startsWith('blob:') || image.startsWith('file:'));
+                attachments.unshift({
+                    source: tryResolveUrlFromApiRoot(image),
+                    isAuthTokenRequired: !isLocalFile,
+                    file: {name: transaction.filename},
+                    isReceipt: true,
+                    transactionID,
+                });
+                return;
+            }
+        }
+
+        const decision = _.get(action, ['message', 0, 'moderationDecision', 'decision'], '');
+        const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
+        const html = _.get(action, ['message', 0, 'html'], '').replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
+        htmlParser.write(html);
     });
     htmlParser.end();
 

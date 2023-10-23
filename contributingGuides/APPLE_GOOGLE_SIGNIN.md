@@ -80,9 +80,7 @@ Due to Expensify's expectation that a user will be using the same account on web
 
 The current Sign in with Google library for web [does not allow arbitrary customization of the sign-in button](https://developers.google.com/identity/gsi/web/guides/offerings#sign_in_with_google_button). (The recently deprecated version of the Sign in with Google for web did offer this capability.)
 
-This means the button is limited in design: there are no offline or hover states, and there can only be a white background for the button. We were able to get the official Apple button options to match, so we used the Google options as the starting point for the design.
-
-Additionally, note that the Google button has a rectangular white background when shown in a client app served on `localhost`, due to the iframe it uses in that scenario. This is expected, and will not be present when the app is hosted on other domains.
+This means the button is limited in design: there are no offline or hover states, and there can only be a white background for the button. We were able to get the official Apple button options to match, so we used the Google options as the starting point for the design. 
 
 ### Sign in with Apple does not allow `localhost`
 
@@ -146,10 +144,17 @@ On an Android build, alter the `AppleSignIn` component to log the token generate
 
 If you need to check that you received the correct data, check it on [jwt.io](https://jwt.io), which will decode it if it is a valid JWT token. It will also show when the token expires.
 
-Add this token to a `.env` file at the root of the project:
+Hardcode this token into `Session.beginAppleSignIn`, and but also verify a valid token was passed into the function, for example:
 
 ```
-ASI_TOKEN_OVERRIDE="..."
+function beginAppleSignIn(idToken) {
++   // Show that a token was passed in, without logging the token, for privacy
++   window.alert(`ORIGINAL ID TOKEN LENGTH: ${idToken.length}`);
++   const hardcodedToken = '...';
+    const {optimisticData, successData, failureData} = signInAttemptState();
++   API.write('SignInWithApple', {idToken: hardcodedToken}, {optimisticData, successData, failureData});
+-   API.write('SignInWithApple', {idToken}, {optimisticData, successData, failureData});
+}
 ```
 
 #### Configure the SSH tunneling

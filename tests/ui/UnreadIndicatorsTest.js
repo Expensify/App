@@ -3,12 +3,13 @@ import Onyx from 'react-native-onyx';
 import {Linking, AppState} from 'react-native';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import lodashGet from 'lodash/get';
-import moment from 'moment';
+import {subMinutes, format, addSeconds, subSeconds} from 'date-fns';
+import {utcToZonedTime} from 'date-fns-tz';
 import App from '../../src/App';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
-import waitForPromisesToResolveWithAct from '../utils/waitForPromisesToResolveWithAct';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import * as TestHelper from '../utils/TestHelper';
 import appSetup from '../../src/setup';
 import fontWeightBold from '../../src/styles/fontWeight/bold';
@@ -87,7 +88,7 @@ function navigateToSidebar() {
     const hintText = Localize.translateLocal('accessibilityHints.navigateToChatsList');
     const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
     fireEvent(reportHeaderBackButton, 'press');
-    return waitForPromisesToResolve();
+    return waitForBatchedUpdates();
 }
 
 /**
@@ -98,7 +99,7 @@ function navigateToSidebarOption(index) {
     const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
     const optionRows = screen.queryAllByAccessibilityHint(hintText);
     fireEvent(optionRows[index], 'press');
-    return waitForPromisesToResolve();
+    return waitForBatchedUpdates();
 }
 
 /**
@@ -117,7 +118,6 @@ const USER_B_ACCOUNT_ID = 2;
 const USER_B_EMAIL = 'user_b@test.com';
 const USER_C_ACCOUNT_ID = 3;
 const USER_C_EMAIL = 'user_c@test.com';
-const MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss.SSS';
 let reportAction3CreatedDate;
 let reportAction9CreatedDate;
 
@@ -129,7 +129,7 @@ let reportAction9CreatedDate;
 function signInAndGetAppWithUnreadChat() {
     // Render the App and sign in as a test user.
     render(<App />);
-    return waitForPromisesToResolveWithAct()
+    return waitForBatchedUpdatesWithAct()
         .then(() => {
             const hintText = Localize.translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
@@ -139,12 +139,12 @@ function signInAndGetAppWithUnreadChat() {
         })
         .then(() => {
             User.subscribeToUserEvents();
-            return waitForPromisesToResolve();
+            return waitForBatchedUpdates();
         })
         .then(() => {
-            const MOMENT_TEN_MINUTES_AGO = moment().subtract(10, 'minutes');
-            reportAction3CreatedDate = MOMENT_TEN_MINUTES_AGO.clone().add(30, 'seconds').format(MOMENT_FORMAT);
-            reportAction9CreatedDate = MOMENT_TEN_MINUTES_AGO.clone().add(90, 'seconds').format(MOMENT_FORMAT);
+            const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+            reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
+            reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
 
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
@@ -161,7 +161,7 @@ function signInAndGetAppWithUnreadChat() {
                 [createdReportActionID]: {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     automatic: false,
-                    created: MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT),
+                    created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
                     reportActionID: createdReportActionID,
                     message: [
                         {
@@ -176,14 +176,14 @@ function signInAndGetAppWithUnreadChat() {
                         },
                     ],
                 },
-                1: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '1'),
-                2: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '2'),
+                1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1'),
+                2: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2'),
                 3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
-                4: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '4'),
-                5: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '5'),
-                6: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '6'),
-                7: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '7'),
-                8: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '8'),
+                4: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 40), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '4'),
+                5: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 50), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '5'),
+                6: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 60), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '6'),
+                7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7'),
+                8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8'),
                 9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
             });
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -192,7 +192,7 @@ function signInAndGetAppWithUnreadChat() {
 
             // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
             AppActions.setSidebarLoaded(true);
-            return waitForPromisesToResolve();
+            return waitForBatchedUpdates();
         });
 }
 
@@ -287,10 +287,10 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
-                // We set the created moment 5 seconds in the past to ensure that time has passed when we open the report
+                // We set the created date 5 seconds in the past to ensure that time has passed when we open the report
                 const NEW_REPORT_ID = '2';
-                const NEW_REPORT_CREATED_MOMENT = moment().subtract(5, 'seconds');
-                const NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT = NEW_REPORT_CREATED_MOMENT.add(1, 'seconds');
+                const NEW_REPORT_CREATED_DATE = subSeconds(new Date(), 5);
+                const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
 
                 const createdReportActionID = NumberUtils.rand64();
                 const commentReportActionID = NumberUtils.rand64();
@@ -306,9 +306,10 @@ describe('Unread Indicators', () => {
                                     reportID: NEW_REPORT_ID,
                                     reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                                     lastReadTime: '',
-                                    lastVisibleActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
+                                    lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
                                     lastMessageText: 'Comment 1',
                                     participantAccountIDs: [USER_C_ACCOUNT_ID],
+                                    type: CONST.REPORT.TYPE.CHAT,
                                 },
                             },
                             {
@@ -318,14 +319,14 @@ describe('Unread Indicators', () => {
                                     [createdReportActionID]: {
                                         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                                         automatic: false,
-                                        created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
+                                        created: format(NEW_REPORT_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
                                         reportActionID: createdReportActionID,
                                     },
                                     [commentReportActionID]: {
                                         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                                         actorAccountID: USER_C_ACCOUNT_ID,
                                         person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
-                                        created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
+                                        created: format(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
                                         message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
                                         reportActionID: commentReportActionID,
                                     },
@@ -342,7 +343,7 @@ describe('Unread Indicators', () => {
                         ],
                     },
                 ]);
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 // Verify notification was created
@@ -369,6 +370,7 @@ describe('Unread Indicators', () => {
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
             })
+            .then(waitForBatchedUpdates)
             .then(() => {
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -388,7 +390,7 @@ describe('Unread Indicators', () => {
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
                 Report.markCommentAsUnread(REPORT_ID, reportAction3CreatedDate);
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 // Verify the indicator appears above the last action
@@ -454,7 +456,7 @@ describe('Unread Indicators', () => {
 
                 // Leave a comment as the current user and verify the indicator is removed
                 Report.addComment(REPORT_ID, 'Current User Comment 1');
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
@@ -487,7 +489,7 @@ describe('Unread Indicators', () => {
 
                 // Mark a previous comment as unread and verify the unread action indicator returns
                 Report.markCommentAsUnread(REPORT_ID, reportAction9CreatedDate);
-                return waitForPromisesToResolve();
+                return waitForBatchedUpdates();
             })
             .then(() => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
@@ -517,7 +519,7 @@ describe('Unread Indicators', () => {
                 .then(() => {
                     // Leave a comment as the current user
                     Report.addComment(REPORT_ID, 'Current User Comment 1');
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // Simulate the response from the server so that the comment can be deleted in this test
@@ -528,7 +530,7 @@ describe('Unread Indicators', () => {
                         lastActorAccountID: lastReportAction.actorAccountID,
                         reportID: REPORT_ID,
                     });
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // Verify the chat preview text matches the last comment from the current user
@@ -538,7 +540,7 @@ describe('Unread Indicators', () => {
                     expect(alternateText[0].props.children).toBe('Current User Comment 1');
 
                     Report.deleteReportComment(REPORT_ID, lastReportAction);
-                    return waitForPromisesToResolve();
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');

@@ -58,10 +58,10 @@ function navigateBack() {
         return;
     }
 
-    const hubs = JSON.parse(document.getElementById('hubs-data').value);
-    const hubToNavigate = hubs.find((hub) => window.location.pathname.includes(hub)); // eslint-disable-line rulesdir/prefer-underscore-method
-    if (hubToNavigate) {
-        window.location.href = `/hubs/${hubToNavigate}`;
+    // Path name is of the form /articles/[platform]/[hub]/[resource]
+    const path = window.location.pathname.split('/');
+    if (path[2] && path[3]) {
+        window.location.href = `/${path[2]}/hubs/${path[3]}`;
     } else {
         window.location.href = '/';
     }
@@ -73,16 +73,6 @@ function navigateBack() {
 function injectFooterCopywrite() {
     const footer = document.getElementById('footer-copywrite-date');
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
-}
-
-function openSidebar() {
-    document.getElementById('sidebar-layer').style.display = 'block';
-
-    // Make body unscrollable
-    const yAxis = document.documentElement.style.getPropertyValue('y-axis');
-    const body = document.body;
-    body.style.position = 'fixed';
-    body.style.top = `-${yAxis}`;
 }
 
 function closeSidebar() {
@@ -98,6 +88,31 @@ function closeSidebar() {
 
     // Scroll to the original scroll position
     window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
+}
+
+function closeSidebarOnClickOutside(event) {
+    const sidebarLayer = document.getElementById('sidebar-layer');
+
+    if (event.target !== sidebarLayer) {
+        return;
+    }
+    closeSidebar();
+}
+
+function openSidebar() {
+    document.getElementById('sidebar-layer').style.display = 'block';
+
+    // Make body unscrollable
+    const yAxis = document.documentElement.style.getPropertyValue('y-axis');
+    const body = document.body;
+    body.style.position = 'fixed';
+    body.style.top = `-${yAxis}`;
+
+    // Close the sidebar when clicking sidebar layer (outside the sidebar search)
+    const sidebarLayer = document.getElementById('sidebar-layer');
+    if (sidebarLayer) {
+        sidebarLayer.addEventListener('click', closeSidebarOnClickOutside);
+    }
 }
 
 // Function to adapt & fix cropped SVG viewBox from Google based on viewport (Mobile or Tablet-Desktop)
@@ -191,13 +206,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
             // If there is a fixed article scroll container, set to calculate titles' offset
             scrollContainer: 'content-area',
-
-            // onclick function to apply to all links in toc. will be called with
-            // the event as the first parameter, and this can be used to stop,
-            // propagation, prevent default or perform action
-            onClick() {
-                toggleHeaderMenu();
-            },
         });
     }
 
@@ -211,6 +219,18 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const articleContent = document.getElementById('article-content');
     const lhnContent = document.getElementById('lhn-content');
+
+    // This event listener checks if a link clicked in the LHN points to some section of the same page and toggles
+    // the LHN menu in responsive view.
+    lhnContent.addEventListener('click', (event) => {
+        const clickedLink = event.target;
+        if (clickedLink) {
+            const href = clickedLink.getAttribute('href');
+            if (href && href.startsWith('#') && !!document.getElementById(href.slice(1))) {
+                toggleHeaderMenu();
+            }
+        }
+    });
     lhnContent.addEventListener('wheel', (e) => {
         const scrollTop = lhnContent.scrollTop;
         const isScrollingPastLHNTop = e.deltaY < 0 && scrollTop === 0;

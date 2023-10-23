@@ -1,11 +1,12 @@
 import _ from 'underscore';
-import moment from 'moment';
+import {isAfter} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import {AppState} from 'react-native';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
+import * as ActiveClientManager from '../ActiveClientManager';
 
 let authToken;
 Onyx.connect({
@@ -41,13 +42,17 @@ const setExpirationTimer = () => {
     }, REFRESH_INTERVAL);
 };
 
-const hasTokenExpired = () => moment().isAfter(currentToken.expiration);
+const hasTokenExpired = () => isAfter(new Date(), new Date(currentToken.expiration));
 
 const clearToken = () => {
     console.debug('[MapboxToken] Deleting the token stored in Onyx');
-
     // Use Onyx.set() to delete the key from Onyx, which will trigger a new token to be retrieved from the API.
     Onyx.set(ONYXKEYS.MAPBOX_ACCESS_TOKEN, null);
+};
+
+const fetchToken = () => {
+    API.read('GetMapboxAccessToken');
+    isCurrentlyFetchingToken = true;
 };
 
 const init = () => {
@@ -66,6 +71,13 @@ const init = () => {
          * @param {String[]} [token.errors]
          */
         callback: (token) => {
+            // Only the leader should be in charge of the mapbox token, or else when you have multiple tabs open, the Onyx connection fires multiple times
+            // and it sets up duplicate refresh timers. This would be a big waste of tokens.
+            if (!ActiveClientManager.isClientTheLeader()) {
+                console.debug('[MapboxToken] This client is not the leader so ignoring onyx callback');
+                return;
+            }
+
             // If the user has logged out, don't do anything and ignore changes to the access token
             if (!authToken) {
                 console.debug('[MapboxToken] Ignoring changes to token because user signed out');
@@ -75,9 +87,7 @@ const init = () => {
             // If the token is falsy or an empty object, the token needs to be retrieved from the API.
             // The API sets a token in Onyx with a 30 minute expiration.
             if (_.isEmpty(token)) {
-                console.debug('[MapboxToken] Token does not exist so fetching one');
-                API.write('GetMapboxAccessToken');
-                isCurrentlyFetchingToken = true;
+                fetchToken();
                 return;
             }
 
@@ -118,9 +128,13 @@ const init = () => {
             callback: (val) => {
                 // When the network reconnects, check if the token has expired. If it has, then clearing the token will
                 // trigger the fetch of a new one
-                if (network && network.isOffline && val && !val.isOffline && !isCurrentlyFetchingToken && hasTokenExpired()) {
-                    console.debug('[MapboxToken] Token is expired after network came online');
-                    clearToken();
+                if (network && network.isOffline && val && !val.isOffline) {
+                    if (_.isEmpty(currentToken)) {
+                        fetchToken();
+                    } else if (!isCurrentlyFetchingToken && hasTokenExpired()) {
+                        console.debug('[MapboxToken] Token is expired after network came online');
+                        clearToken();
+                    }
                 }
                 network = val;
             },
@@ -132,12 +146,15 @@ const stop = () => {
     console.debug('[MapboxToken] Stopping all listeners and timers');
     if (connectionIDForToken) {
         Onyx.disconnect(connectionIDForToken);
+        connectionIDForToken = null;
     }
     if (connectionIDForNetwork) {
         Onyx.disconnect(connectionIDForNetwork);
+        connectionIDForNetwork = null;
     }
     if (appStateSubscription) {
         appStateSubscription.remove();
+        appStateSubscription = null;
     }
     clearTimeout(refreshTimeoutID);
 };

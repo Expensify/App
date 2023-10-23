@@ -43,7 +43,9 @@
 - [1.2](#forwardRef) **`forwardRef`**
 
   ```ts
-  import { forwardRef, useRef, ReactNode } from "react";
+  // CustomTextInput.tsx
+
+  import { forwardRef, useRef, ReactNode, ForwardedRef } from "react";
   import { TextInput, View } from "react-native";
 
   export type CustomTextInputProps = {
@@ -51,16 +53,18 @@
     children?: ReactNode;
   };
 
-  const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(
-    (props, ref) => {
-      return (
-        <View>
-          <TextInput ref={ref} />
-          {props.children}
-        </View>
-      );
-    }
-  );
+  function CustomTextInput(props: CustomTextInputProps, ref: ForwardedRef<TextInput>) {
+    return (
+      <View>
+        <TextInput ref={ref} />
+        {props.children}
+      </View>
+    );
+  };
+
+  export default forwardRef(CustomTextInput);
+
+  // ParentComponent.tsx
 
   function ParentComponent() {
     const ref = useRef<TextInput>();

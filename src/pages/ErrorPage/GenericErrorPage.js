@@ -1,6 +1,6 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {useErrorBoundary} from 'react-error-boundary';
 import Icon from '../../components/Icon';
 import defaultTheme from '../../styles/themes/default';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -19,12 +19,11 @@ import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
-
-    /** Callback to call on refresh button click */
-    onRefresh: PropTypes.func.isRequired,
 };
 
-function GenericErrorPage(props) {
+function GenericErrorPage({translate}) {
+    const {resetBoundary} = useErrorBoundary();
+
     return (
         <SafeAreaConsumer>
             {({paddingBottom}) => (
@@ -40,12 +39,12 @@ function GenericErrorPage(props) {
                                 />
                             </View>
                             <View style={styles.mb5}>
-                                <Text style={[styles.textHeadline]}>{props.translate('genericErrorPage.title')}</Text>
+                                <Text style={[styles.textHeadline]}>{translate('genericErrorPage.title')}</Text>
                             </View>
                             <View style={styles.mb5}>
                                 <ErrorBodyText />
                                 <Text>
-                                    {`${props.translate('genericErrorPage.body.helpTextConcierge')} `}
+                                    {`${translate('genericErrorPage.body.helpTextConcierge')} `}
                                     <TextLink
                                         href={`mailto:${CONST.EMAIL.CONCIERGE}`}
                                         style={[styles.link]}
@@ -59,17 +58,17 @@ function GenericErrorPage(props) {
                                     <Button
                                         success
                                         medium
-                                        onPress={props.onRefresh}
-                                        text={props.translate('genericErrorPage.refresh')}
+                                        onPress={resetBoundary}
+                                        text={translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
                                     />
                                     <Button
                                         medium
                                         onPress={() => {
                                             Session.signOutAndRedirectToSignIn();
-                                            props.onRefresh();
+                                            resetBoundary();
                                         }}
-                                        text={props.translate('initialSettingsPage.signOut')}
+                                        text={translate('initialSettingsPage.signOut')}
                                     />
                                 </View>
                             </View>

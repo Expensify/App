@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -17,9 +17,11 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
+import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
-
 import * as Task from '../../libs/actions/Task';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 
 const propTypes = {
     /** Beta features list */
@@ -76,15 +78,26 @@ function TaskAssigneeSelectorModal(props) {
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
     const [filteredCurrentUserOption, setFilteredCurrentUserOption] = useState(null);
+    const [isLoading, setIsLoading] = React.useState(true);
+
+    const optionRef = useRef();
 
     const updateOptions = useCallback(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getNewChatOptions(
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
             props.reports,
             props.personalDetails,
             props.betas,
             searchValue.trim(),
             [],
             CONST.EXPENSIFY_EMAILS,
+            false,
+            true,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
             false,
         );
 
@@ -94,7 +107,10 @@ function TaskAssigneeSelectorModal(props) {
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(personalDetails);
         setFilteredCurrentUserOption(currentUserOption);
-    }, [props, searchValue]);
+        if (isLoading) {
+            setIsLoading(false);
+        }
+    }, [props, searchValue, isLoading]);
 
     useEffect(() => {
         const debouncedSearch = _.debounce(updateOptions, 200);
@@ -114,6 +130,12 @@ function TaskAssigneeSelectorModal(props) {
         }
         return props.reports[`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`];
     }, [props.reports, props.route.params]);
+
+    if (report && !ReportUtils.isTaskReport(report)) {
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal(report.reportID);
+        });
+    }
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -175,14 +197,22 @@ function TaskAssigneeSelectorModal(props) {
             const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
 
             // Pass through the selected assignee
-            Task.editTaskAssigneeAndNavigate(props.task.report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
+            Task.editTaskAssigneeAndNavigate(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
         }
     };
 
+    const isOpen = ReportUtils.isOpenTaskReport(report);
+    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
+    const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
+
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
+            testID={TaskAssigneeSelectorModal.displayName}
+        >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
-                <>
+                <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton
                         title={props.translate('task.assignee')}
                         onBackButtonPress={() => (lodashGet(props.route.params, 'reportID') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
@@ -195,12 +225,14 @@ function TaskAssigneeSelectorModal(props) {
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
                             showTitleTooltip
-                            shouldShowOptions={didScreenTransitionEnd}
+                            shouldShowOptions={didScreenTransitionEnd && !isLoading}
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            autoFocus={false}
+                            ref={optionRef}
                         />
                     </View>
-                </>
+                </FullPageNotFoundView>
             )}
         </ScreenWrapper>
     );
@@ -212,6 +244,7 @@ TaskAssigneeSelectorModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

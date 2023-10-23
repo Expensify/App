@@ -1,7 +1,6 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
-import DemoSetupPage from '../../../pages/signin/DemoSetupPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
 import SCREENS from '../../../SCREENS';
@@ -9,6 +8,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
 import AppleSignInDesktopPage from '../../../pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '../../../pages/signin/GoogleSignInDesktopPage';
+import SAMLSignInPage from '../../../pages/signin/SAMLSignInPage';
 
 const RootStack = createStackNavigator();
 
@@ -19,11 +19,6 @@ function PublicScreens() {
                 name={SCREENS.HOME}
                 options={defaultScreenOptions}
                 component={SignInPage}
-            />
-            <RootStack.Screen
-                name="SaaStrHome"
-                options={defaultScreenOptions}
-                component={DemoSetupPage}
             />
             <RootStack.Screen
                 name={SCREENS.TRANSITION_BETWEEN_APPS}
@@ -49,6 +44,11 @@ function PublicScreens() {
                 name="GoogleSignInDesktop"
                 options={defaultScreenOptions}
                 component={GoogleSignInDesktopPage}
+            />
+            <RootStack.Screen
+                name="SAMLSignIn"
+                options={defaultScreenOptions}
+                component={SAMLSignInPage}
             />
         </RootStack.Navigator>
     );

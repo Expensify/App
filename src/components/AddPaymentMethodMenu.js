@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -10,7 +11,6 @@ import withWindowDimensions from './withWindowDimensions';
 import Permissions from '../libs/Permissions';
 import PopoverMenu from './PopoverMenu';
 import refPropTypes from './refPropTypes';
-import paypalMeDataPropTypes from './paypalMeDataPropTypes';
 
 const propTypes = {
     /** Should the component be visible? */
@@ -25,11 +25,11 @@ const propTypes = {
         vertical: PropTypes.number,
     }),
 
-    /** Account details for PayPal.Me */
-    payPalMeData: paypalMeDataPropTypes,
-
-    /** Should we show the Paypal option */
-    shouldShowPaypal: PropTypes.bool,
+    /** Where the popover should be positioned relative to the anchor points. */
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -42,8 +42,10 @@ const propTypes = {
 
 const defaultProps = {
     anchorPosition: {},
-    payPalMeData: {},
-    shouldShowPaypal: true,
+    anchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
     betas: [],
     anchorRef: () => {},
 };
@@ -54,6 +56,7 @@ function AddPaymentMethodMenu(props) {
             isVisible={props.isVisible}
             onClose={props.onClose}
             anchorPosition={props.anchorPosition}
+            anchorAlignment={props.anchorAlignment}
             anchorRef={props.anchorRef}
             onItemSelected={props.onClose}
             menuItems={[
@@ -73,15 +76,6 @@ function AddPaymentMethodMenu(props) {
                           },
                       ]
                     : []),
-                ...(props.shouldShowPaypal && !props.payPalMeData.description
-                    ? [
-                          {
-                              text: props.translate('common.payPalMe'),
-                              icon: Expensicons.PayPal,
-                              onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.PAYPAL),
-                          },
-                      ]
-                    : []),
             ]}
             withoutOverlay
         />
@@ -96,9 +90,6 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
-        payPalMeData: {
-            key: ONYXKEYS.PAYPAL,
-        },
         betas: {
             key: ONYXKEYS.BETAS,
         },

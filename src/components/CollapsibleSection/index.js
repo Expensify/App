@@ -51,6 +51,7 @@ class CollapsibleSection extends React.Component {
                     <Text
                         selectable={false}
                         style={[styles.flex1, styles.textStrong]}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         {this.props.title}
                     </Text>

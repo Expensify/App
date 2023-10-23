@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import {useFocusEffect} from '@react-navigation/native';
 import MagicCodeInput from '../../../../../components/MagicCodeInput';
 import * as ErrorUtils from '../../../../../libs/ErrorUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
@@ -76,6 +77,8 @@ function BaseValidateCodeForm(props) {
     const loginData = props.loginList[props.contactMethod];
     const inputValidateCodeRef = useRef();
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+    const shouldDisableResendValidateCode = props.network.isOffline || props.account.isLoading;
+    const focusTimeoutRef = useRef(null);
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
@@ -85,6 +88,21 @@ function BaseValidateCodeForm(props) {
             inputValidateCodeRef.current.focus();
         },
     }));
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!inputValidateCodeRef.current) {
+                return;
+            }
+            focusTimeoutRef.current = setTimeout(inputValidateCodeRef.current.focus, CONST.ANIMATED_TRANSITION);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, []),
+    );
 
     useEffect(() => {
         Session.clearAccountMessages();
@@ -100,7 +118,6 @@ function BaseValidateCodeForm(props) {
         if (!props.hasMagicCodeBeenSent) {
             return;
         }
-        setValidateCode('');
         inputValidateCodeRef.current.clear();
     }, [props.hasMagicCodeBeenSent]);
 
@@ -109,8 +126,7 @@ function BaseValidateCodeForm(props) {
      */
     const resendValidateCode = () => {
         User.requestContactMethodValidateCode(props.contactMethod);
-        setValidateCode('');
-        inputValidateCodeRef.current.focus();
+        inputValidateCodeRef.current.clear();
     };
 
     /**
@@ -170,7 +186,7 @@ function BaseValidateCodeForm(props) {
             >
                 <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
                     <PressableWithFeedback
-                        disabled={props.network.isOffline}
+                        disabled={shouldDisableResendValidateCode}
                         style={[styles.mr1]}
                         onPress={resendValidateCode}
                         underlayColor={themeColors.componentBG}
@@ -179,7 +195,7 @@ function BaseValidateCodeForm(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                     >
-                        <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                        <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                     </PressableWithFeedback>
                     {props.hasMagicCodeBeenSent && (
                         <DotIndicatorMessage

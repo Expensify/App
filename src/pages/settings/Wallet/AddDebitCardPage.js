@@ -20,18 +20,24 @@ import Form from '../../../components/Form';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import usePrevious from '../../../hooks/usePrevious';
+import NotFoundPage from '../../ErrorPage/NotFoundPage';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     /* Onyx Props */
     formData: PropTypes.shape({
         setupComplete: PropTypes.bool,
     }),
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     formData: {
         setupComplete: false,
     },
+    betas: [],
 };
 
 function DebitCardPage(props) {
@@ -60,34 +66,31 @@ function DebitCardPage(props) {
      * @returns {Boolean}
      */
     const validate = (values) => {
-        const errors = {};
+        const requiredFields = ['nameOnCard', 'cardNumber', 'expirationDate', 'securityCode', 'addressStreet', 'addressZipCode', 'addressState'];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-        if (!values.nameOnCard || !ValidationUtils.isValidLegalName(values.nameOnCard)) {
+        if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
             errors.nameOnCard = 'addDebitCardPage.error.invalidName';
         }
 
-        if (!values.cardNumber || !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
+        if (values.cardNumber && !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
             errors.cardNumber = 'addDebitCardPage.error.debitCardNumber';
         }
 
-        if (!values.expirationDate || !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
+        if (values.expirationDate && !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
             errors.expirationDate = 'addDebitCardPage.error.expirationDate';
         }
 
-        if (!values.securityCode || !ValidationUtils.isValidSecurityCode(values.securityCode)) {
+        if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
             errors.securityCode = 'addDebitCardPage.error.securityCode';
         }
 
-        if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
+        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
             errors.addressStreet = 'addDebitCardPage.error.addressStreet';
         }
 
-        if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
             errors.addressZipCode = 'addDebitCardPage.error.addressZipCode';
-        }
-
-        if (!values.addressState || !values.addressState) {
-            errors.addressState = 'addDebitCardPage.error.addressState';
         }
 
         if (!values.acceptTerms) {
@@ -97,10 +100,15 @@ function DebitCardPage(props) {
         return errors;
     };
 
+    if (!Permissions.canUseWallet(props.betas)) {
+        return <NotFoundPage />;
+    }
+
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => nameOnCardRef.current && nameOnCardRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
+            testID={DebitCardPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('addDebitCardPage.addADebitCard')}
@@ -159,6 +167,8 @@ function DebitCardPage(props) {
                         label={translate('addDebitCardPage.billingAddress')}
                         containerStyles={[styles.mt4]}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                        // Limit the address search only to the USA until we fully can support international debit cards
+                        isLimitedToUSA
                     />
                 </View>
                 <TextInput
@@ -192,9 +202,13 @@ function DebitCardPage(props) {
 
 DebitCardPage.propTypes = propTypes;
 DebitCardPage.defaultProps = defaultProps;
+DebitCardPage.displayName = 'DebitCardPage';
 
 export default withOnyx({
     formData: {
         key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
     },
 })(DebitCardPage);

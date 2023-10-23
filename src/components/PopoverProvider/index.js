@@ -22,7 +22,11 @@ function PopoverContextProvider(props) {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
             return;
         }
+
         activePopoverRef.current.close();
+        if (activePopoverRef.current.onCloseCallback) {
+            activePopoverRef.current.onCloseCallback();
+        }
         activePopoverRef.current = null;
         setIsOpen(false);
     }, []);
@@ -48,7 +52,10 @@ function PopoverContextProvider(props) {
     }, [closePopover]);
 
     React.useEffect(() => {
-        const listener = () => {
+        const listener = (e) => {
+            if (!activePopoverRef.current || !activePopoverRef.current.ref || !activePopoverRef.current.ref.current || activePopoverRef.current.ref.current.contains(e.target)) {
+                return;
+            }
             closePopover();
         };
         document.addEventListener('contextmenu', listener);
@@ -103,23 +110,25 @@ function PopoverContextProvider(props) {
                 closePopover(activePopoverRef.current.anchorRef);
             }
             activePopoverRef.current = popoverParams;
+            if (popoverParams && popoverParams.onOpenCallback) {
+                popoverParams.onOpenCallback();
+            }
             setIsOpen(true);
         },
         [closePopover],
     );
 
-    return (
-        <PopoverContext.Provider
-            value={{
-                onOpen,
-                close: closePopover,
-                popover: activePopoverRef.current,
-                isOpen,
-            }}
-        >
-            {props.children}
-        </PopoverContext.Provider>
+    const contextValue = React.useMemo(
+        () => ({
+            onOpen,
+            close: closePopover,
+            popover: activePopoverRef.current,
+            isOpen,
+        }),
+        [onOpen, closePopover, isOpen],
     );
+
+    return <PopoverContext.Provider value={contextValue}>{props.children}</PopoverContext.Provider>;
 }
 
 PopoverContextProvider.defaultProps = defaultProps;
