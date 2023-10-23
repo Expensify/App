@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import moment from 'moment';
-import 'moment/locale/es';
+import {format} from 'date-fns';
+import DateUtils from '../../../libs/DateUtils';
 import * as Lounge from '../../../libs/actions/Lounge';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -117,17 +117,16 @@ function LoungeAccessPage({
      *
      * @returns {String}
      */
-    const nextCheckIn = () => {
+    const localizeDate = () => {
         // The .format('LL') returns localized format of the date:
-        // - November 1, 2023 - for English language
+        // - 1 November 2023 - for English language
         // - 1 de noviembre de 2023 - for Spanish language
-        const dayMonthYear = moment(nextCheckInReset).locale(preferredLocale).format('LL');
+        DateUtils.setLocale(preferredLocale);
+        const dayMonthYear = format(new Date(nextCheckInReset), CONST.DATE.LOCALIZED_DATE_FORMAT)
 
         // We only care about the day and the month, so we
         // get rid of the year for both languages:
-        return dayMonthYear
-            .replace(/, \d{4}/, '') // Drop English year
-            .replace(/ de \d{4}/, ''); // Drop Spanish year
+        return dayMonthYear.replace(/ (?:de )?\d{4}$/, '') // Drop English or Spanish year
     };
 
     return (
@@ -145,7 +144,7 @@ function LoungeAccessPage({
                 {checkInsRemaining === 0 && !isCheckedIn ? (
                     <Text style={[styles.mb4]}>
                         <Text style={[styles.textStrong]}>{translate('loungeAccessPage.noCheckInsLeftFirstPart')}</Text>
-                        {translate('loungeAccessPage.noCheckInsLeftSecondPart', {nextCheckIn: nextCheckIn()})}
+                        {translate('loungeAccessPage.noCheckInsLeftSecondPart', {nextCheckIn: localizeDate()})}
                     </Text>
                 ) : (
                     <Text style={[styles.mb4]}>
