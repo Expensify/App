@@ -873,6 +873,10 @@ export default {
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
         reportFraud: 'Reportar fraude con la tarjeta virtual',
+        reviewTransaction: 'Revisar transacción',
+        suspiciousBannerTitle: 'Transacción sospechosa',
+        suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haga click abajo para revisarla.',
+        cardLocked: 'La tarjeta está temporalmente bloqueada mientras nuestro equipo revisa la cuenta de tu empresa.',
         cardDetails: {
             cardNumber: 'Número de tarjeta virtual',
             expiration: 'Expiración',
