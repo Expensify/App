@@ -38,7 +38,6 @@ import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
 import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
 import updatePropsPaperWorklet from '../../../../libs/updatePropsPaperWorklet';
-import PersonalDetailsContext from './PersonalDetailsContext';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -390,34 +389,32 @@ function ReportActionCompose({
                                     onItemSelected={onItemSelected}
                                     actionButtonRef={actionButtonRef}
                                 />
-                                <PersonalDetailsContext.Provider value={personalDetails}>
-                                    <ComposerWithSuggestions
-                                        ref={composerRef}
-                                        animatedRef={animatedRef}
-                                        suggestionsRef={suggestionsRef}
-                                        isNextModalWillOpenRef={isNextModalWillOpenRef}
-                                        reportID={reportID}
-                                        report={report}
-                                        reportActions={reportActions}
-                                        isMenuVisible={isMenuVisible}
-                                        inputPlaceholder={inputPlaceholder}
-                                        isComposerFullSize={isComposerFullSize}
-                                        displayFileInModal={displayFileInModal}
-                                        textInputShouldClear={textInputShouldClear}
-                                        setTextInputShouldClear={setTextInputShouldClear}
-                                        isBlockedFromConcierge={isBlockedFromConcierge}
-                                        disabled={disabled}
-                                        isFullComposerAvailable={isFullComposerAvailable}
-                                        setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                        setIsCommentEmpty={setIsCommentEmpty}
-                                        handleSendMessage={handleSendMessage}
-                                        shouldShowComposeInput={shouldShowComposeInput}
-                                        onFocus={onFocus}
-                                        onBlur={onBlur}
-                                        measureParentContainer={measureContainer}
-                                        listHeight={listHeight}
-                                    />
-                                </PersonalDetailsContext.Provider>
+                                <ComposerWithSuggestions
+                                    ref={composerRef}
+                                    animatedRef={animatedRef}
+                                    suggestionsRef={suggestionsRef}
+                                    isNextModalWillOpenRef={isNextModalWillOpenRef}
+                                    reportID={reportID}
+                                    report={report}
+                                    reportActions={reportActions}
+                                    isMenuVisible={isMenuVisible}
+                                    inputPlaceholder={inputPlaceholder}
+                                    isComposerFullSize={isComposerFullSize}
+                                    displayFileInModal={displayFileInModal}
+                                    textInputShouldClear={textInputShouldClear}
+                                    setTextInputShouldClear={setTextInputShouldClear}
+                                    isBlockedFromConcierge={isBlockedFromConcierge}
+                                    disabled={disabled}
+                                    isFullComposerAvailable={isFullComposerAvailable}
+                                    setIsFullComposerAvailable={setIsFullComposerAvailable}
+                                    setIsCommentEmpty={setIsCommentEmpty}
+                                    handleSendMessage={handleSendMessage}
+                                    shouldShowComposeInput={shouldShowComposeInput}
+                                    onFocus={onFocus}
+                                    onBlur={onBlur}
+                                    measureParentContainer={measureContainer}
+                                    listHeight={listHeight}
+                                />
                                 <ReportDropUI
                                     onDrop={(e) => {
                                         if (isAttachmentPreviewActive) {

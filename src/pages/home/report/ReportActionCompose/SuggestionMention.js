@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useRef, useImperativeHandle, useEffect, useContext} from 'react';
+import React, {useState, useCallback, useRef, useImperativeHandle, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../../../CONST';
@@ -9,7 +9,6 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 import useLocalize from '../../../../hooks/useLocalize';
 import * as SuggestionProps from './suggestionProps';
-import PersonalDetailsContext from './PersonalDetailsContext';
 
 /**
  * Check if this piece of string looks like a mention
@@ -37,7 +36,6 @@ const defaultProps = {
 };
 
 function SuggestionMention({value, setValue, selection, setSelection, isComposerFullSize, updateComment, composerHeight, forwardedRef, isAutoSuggestionPickerLarge, measureParentContainer}) {
-    const personalDetails = useContext(PersonalDetailsContext);
     const {translate} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
