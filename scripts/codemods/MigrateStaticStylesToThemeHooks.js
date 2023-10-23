@@ -222,7 +222,7 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
 
             // Export is wrapped with a single HOC
             const previousHOC = node.declaration.callee?.callee || node.declaration.callee;
-            if (previousHOC.name.startsWith('with')) {
+            if (previousHOC.name?.startsWith('with')) {
                 node.declaration.callee = {
                     type: 'CallExpression',
                     callee: {
@@ -237,6 +237,31 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
                         ...newHOCs,
                     ],
                 };
+                // TODO: import compose
+            }
+
+            // Export is another function, most probably React.forwardRef
+            const prevDeclaration = node.declaration;
+            if (newHOCs.length === 1) {
+                node.declaration = {
+                    type: 'CallExpression',
+                    callee: newHOCs[0],
+                    arguments: [prevDeclaration],
+                };
+            } else {
+                node.declaration = {
+                    type: 'CallExpression',
+                    callee: {
+                        type: 'CallExpression',
+                        callee: {
+                            type: 'Identifier',
+                            name: 'compose',
+                        },
+                        arguments: newHOCs,
+                    },
+                    arguments: [prevDeclaration],
+                };
+                // TODO: import compose
             }
         },
     });
