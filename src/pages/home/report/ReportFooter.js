@@ -18,6 +18,7 @@ import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Session from '../../../libs/actions/Session';
+import participantPropTypes from '../../../components/participantPropTypes';
 
 const propTypes = {
     /** Report object for the current report */
@@ -32,11 +33,17 @@ const propTypes = {
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
 
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
     /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
 
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
+
+    /** Height of the list which the composer is part of */
+    listHeight: PropTypes.number,
 
     /** Whetjer the report is ready for display */
     isReportReadyForDisplay: PropTypes.bool,
@@ -49,8 +56,10 @@ const defaultProps = {
     reportActions: [],
     onSubmitComment: () => {},
     pendingAction: null,
+    personalDetails: {},
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
+    listHeight: 0,
     isReportReadyForDisplay: true,
 };
 
@@ -71,6 +80,7 @@ function ReportFooter(props) {
                         <AnonymousReportFooter
                             report={props.report}
                             isSmallSizeLayout={isSmallSizeLayout}
+                            personalDetails={props.personalDetails}
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
@@ -90,6 +100,7 @@ function ReportFooter(props) {
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
                             disabled={props.shouldDisableCompose}
+                            listHeight={props.listHeight}
                             isReportReadyForDisplay={props.isReportReadyForDisplay}
                         />
                     </SwipeableView>
@@ -105,7 +116,9 @@ ReportFooter.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withOnyx({
-        shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
-        initialValue: false,
+        shouldShowComposeInput: {
+            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+            initialValue: false,
+        },
     }),
 )(ReportFooter);

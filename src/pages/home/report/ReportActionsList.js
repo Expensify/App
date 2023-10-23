@@ -22,6 +22,7 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import reportActionPropTypes from './reportActionPropTypes';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -104,6 +105,10 @@ function keyExtractor(item) {
 }
 
 function isMessageUnread(message, lastReadTime) {
+    if (!lastReadTime) {
+        return Boolean(!ReportActionsUtils.isCreatedAction(message));
+    }
+
     return Boolean(message && lastReadTime && message.created && lastReadTime < message.created);
 }
 
@@ -134,7 +139,8 @@ function ReportActionsList({
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
-    const firstComponentsRenderRef = useRef({header: true, footer: true});
+    const hasHeaderRendered = useRef(false);
+    const hasFooterRendered = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
@@ -288,45 +294,57 @@ function ReportActionsList({
     );
 
     /**
-     * @param {Object} args
-     * @param {Number} args.index
-     * @returns {React.Component}
+     * Evaluate new unread marker visibility for each of the report actions.
+     * @returns boolean
      */
-    const renderItem = useCallback(
-        ({item: reportAction, index}) => {
-            let shouldDisplayNewMarker = false;
 
+    const shouldDisplayNewMarker = useCallback(
+        (reportAction, index) => {
+            let shouldDisplay = false;
             if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
-                shouldDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
-
+                shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, report.lastReadTime));
                 if (!messageManuallyMarkedUnread) {
-                    shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
-                }
-                const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
-
-                if (!currentUnreadMarker && shouldDisplayNewMarker && canDisplayMarker) {
-                    setCurrentUnreadMarker(reportAction.reportActionID);
+                    shouldDisplay = shouldDisplay && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
             } else {
-                shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker;
+                shouldDisplay = reportAction.reportActionID === currentUnreadMarker;
             }
-            return (
-                <ReportActionsListItemRenderer
-                    reportAction={reportAction}
-                    index={index}
-                    report={report}
-                    linkedReportActionID={linkedReportActionID}
-                    hasOutstandingIOU={hasOutstandingIOU}
-                    sortedReportActions={sortedReportActions}
-                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                    shouldDisplayNewMarker={shouldDisplayNewMarker}
-                />
-            );
+            return shouldDisplay;
         },
-        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarkedUnread, shouldHideThreadDividerLine, currentUnreadMarker],
+        [currentUnreadMarker, sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread],
+    );
+
+    useEffect(() => {
+        // Iterate through the report actions and set appropriate unread marker.
+        // This is to avoid a warning of:
+        // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
+        _.each(sortedReportActions, (reportAction, index) => {
+            if (!shouldDisplayNewMarker(reportAction, index)) {
+                return;
+            }
+            if (!currentUnreadMarker && currentUnreadMarker !== reportAction.reportActionID) {
+                setCurrentUnreadMarker(reportAction.reportActionID);
+            }
+        });
+    }, [sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
+
+    const renderItem = useCallback(
+        ({item: reportAction, index}) => (
+            <ReportActionsListItemRenderer
+                reportAction={reportAction}
+                index={index}
+                report={report}
+                linkedReportActionID={linkedReportActionID}
+                hasOutstandingIOU={hasOutstandingIOU}
+                sortedReportActions={sortedReportActions}
+                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
+            />
+        ),
+        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
@@ -343,8 +361,8 @@ function ReportActionsList({
     const listFooterComponent = useCallback(() => {
         // Skip this hook on the first render, as we are not sure if more actions are going to be loaded
         // Therefore showing the skeleton on footer might be misleading
-        if (firstComponentsRenderRef.current.footer) {
-            firstComponentsRenderRef.current.footer = false;
+        if (!hasFooterRendered.current) {
+            hasFooterRendered.current = true;
             return null;
         }
 
@@ -366,8 +384,8 @@ function ReportActionsList({
     );
 
     const listHeaderComponent = useCallback(() => {
-        if (firstComponentsRenderRef.current.header) {
-            firstComponentsRenderRef.current.header = false;
+        if (!hasHeaderRendered.current) {
+            hasHeaderRendered.current = true;
             return null;
         }
         return (
@@ -411,6 +429,7 @@ function ReportActionsList({
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     extraData={extraData}
+                    testID="report-actions-list"
                 />
             </Animated.View>
         </>

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 26.5.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!-- Generator: Adobe Illustrator 27.3.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 40 40" style="enable-background:new 0 0 40 40;" xml:space="preserve">
 <style type="text/css">
 	.st0{fill:#8B9C8F;}
-	.st1{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
+	.st1{fill-rule:evenodd;clip-rule:evenodd;fill:#E7ECE9;}
 </style>
-<path class="st0" d="M20,0L20,0c11,0,20,9,20,20l0,0c0,11-9,20-20,20l0,0C9,40,0,31,0,20l0,0C0,9,9,0,20,0z"/>
-<path class="st1" d="M20.6,11.4c-0.3-0.2-0.8-0.2-1.1,0l-5.2,3.5c-0.2,0.1-0.4,0.2-0.6,0.2H12v2h1c0.6,0,1,0.4,1,1v6
-	c0,0.6-0.4,1-1,1h-1v2h16v-2h-1c-0.6,0-1-0.4-1-1v-6c0-0.6,0.4-1,1-1h1v-2h-1.7c-0.2,0-0.4-0.1-0.6-0.2L20.6,11.4z M24,18
-	c0-0.6-0.4-1-1-1h-1c-0.6,0-1,0.4-1,1v6c0,0.6,0.4,1,1,1h1c0.6,0,1-0.4,1-1V18z M18,17c0.6,0,1,0.4,1,1v6c0,0.6-0.4,1-1,1h-1
-	c-0.6,0-1-0.4-1-1v-6c0-0.6,0.4-1,1-1H18z"/>
+<rect class="st0" width="40" height="40"/>
+<path class="st1" d="M20.555,11.37c-0.336-0.224-0.774-0.224-1.109,0l-5.193,3.462C14.088,14.942,13.895,15,13.697,15H12v2h1
+	c0.552,0,1,0.448,1,1v6c0,0.552-0.448,1-1,1h-1v2h16v-2h-1c-0.552,0-1-0.448-1-1v-6c0-0.552,0.448-1,1-1h1v-2h-1.697
+	c-0.197,0-0.39-0.058-0.555-0.168L20.555,11.37z M24,18c0-0.552-0.448-1-1-1h-1c-0.552,0-1,0.448-1,1v6c0,0.552,0.448,1,1,1h1
+	c0.552,0,1-0.448,1-1V18z M18,17c0.552,0,1,0.448,1,1v6c0,0.552-0.448,1-1,1h-1c-0.552,0-1-0.448-1-1v-6c0-0.552,0.448-1,1-1H18z"/>
 </svg>

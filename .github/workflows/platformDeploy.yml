@@ -16,7 +16,7 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' }}
+      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' || github.actor == 'os-botify[bot]' }}
     steps:
       - name: Check if user is deployer
         id: isUserDeployer
@@ -103,6 +103,13 @@ jobs:
         with:
           name: android-sourcemap
           path: android/app/build/generated/sourcemaps/react/release/*.map
+
+      - name: Upload Android version to GitHub artifacts
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-production-release.aab
+          path: android/app/build/outputs/bundle/productionRelease/app-production-release.aab
 
       - name: Upload Android version to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -237,6 +244,13 @@ jobs:
         with:
           name: ios-sourcemap
           path: main.jsbundle.map
+
+      - name: Upload iOS version to GitHub artifacts
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: New Expensify.ipa
+          path: /Users/runner/work/App/App/New Expensify.ipa
 
       - name: Upload iOS version to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}

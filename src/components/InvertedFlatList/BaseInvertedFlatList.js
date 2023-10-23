@@ -136,6 +136,7 @@ function BaseInvertedFlatList(props) {
             maintainVisibleContentPosition={{
                 minIndexForVisible: 0,
             }}
+            inverted
         />
     );
 }

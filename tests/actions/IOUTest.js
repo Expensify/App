@@ -13,6 +13,7 @@ import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
+import * as PolicyActions from '../../src/libs/actions/Policy';
 import * as PersonalDetailsUtils from '../../src/libs/PersonalDetailsUtils';
 import * as User from '../../src/libs/actions/User';
 import PusherHelper from '../utils/PusherHelper';
@@ -1104,9 +1105,9 @@ describe('actions/IOU', () => {
                                         `Split bill with ${RORY_EMAIL}, ${CARLOS_EMAIL}, ${JULES_EMAIL}, and ${VIT_EMAIL} [${DateUtils.getDBTime().slice(0, 10)}]`,
                                     );
 
-                                    expect(carlosTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
-                                    expect(julesTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
-                                    expect(vitTransaction.comment.source).toBe(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
+                                    expect(carlosTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
+                                    expect(julesTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
+                                    expect(vitTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
 
                                     expect(carlosTransaction.comment.originalTransactionID).toBe(groupTransaction.transactionID);
                                     expect(julesTransaction.comment.originalTransactionID).toBe(groupTransaction.transactionID);
@@ -1638,7 +1639,7 @@ describe('actions/IOU', () => {
 
             expect(resultAction.message).toEqual(REPORT_ACTION.message);
             expect(resultAction.person).toEqual(REPORT_ACTION.person);
-            expect(resultAction.pendingAction).toBeNull();
+            expect(resultAction.pendingAction).toBeUndefined();
 
             await waitForBatchedUpdates();
 
@@ -1647,7 +1648,7 @@ describe('actions/IOU', () => {
 
             // Then check the loading state of our action
             const resultActionAfterUpdate = reportActions[reportActionID];
-            expect(resultActionAfterUpdate.pendingAction).toBeNull();
+            expect(resultActionAfterUpdate.pendingAction).toBeUndefined();
 
             // When we attempt to delete a money request from the IOU report
             fetch.pause();
@@ -1818,7 +1819,7 @@ describe('actions/IOU', () => {
             // Then the report should have 2 actions
             expect(_.size(reportActions)).toBe(2);
             const resultActionAfter = reportActions[reportActionID];
-            expect(resultActionAfter.pendingAction).toBeNull();
+            expect(resultActionAfter.pendingAction).toBeUndefined();
 
             fetch.pause();
             // When deleting money request
@@ -1903,7 +1904,7 @@ describe('actions/IOU', () => {
 
             expect(resultAction.message).toEqual(REPORT_ACTION.message);
             expect(resultAction.person).toEqual(REPORT_ACTION.person);
-            expect(resultAction.pendingAction).toBeNull();
+            expect(resultAction.pendingAction).toBeUndefined();
 
             await waitForBatchedUpdates();
 
@@ -1913,7 +1914,7 @@ describe('actions/IOU', () => {
             let resultActionAfterUpdate = reportActions[reportActionID];
 
             // Verify that our action is no longer in the loading state
-            expect(resultActionAfterUpdate.pendingAction).toBeNull();
+            expect(resultActionAfterUpdate.pendingAction).toBeUndefined();
 
             await waitForBatchedUpdates();
 
@@ -1935,7 +1936,7 @@ describe('actions/IOU', () => {
 
             expect(resultAction.message).toEqual(REPORT_ACTION.message);
             expect(resultAction.person).toEqual(REPORT_ACTION.person);
-            expect(resultAction.pendingAction).toBeNull();
+            expect(resultAction.pendingAction).toBeUndefined();
 
             await waitForBatchedUpdates();
 
@@ -1945,7 +1946,7 @@ describe('actions/IOU', () => {
             resultActionAfterUpdate = reportActions[reportActionID];
 
             // Verify that our action is no longer in the loading state
-            expect(resultActionAfterUpdate.pendingAction).toBeNull();
+            expect(resultActionAfterUpdate.pendingAction).toBeUndefined();
 
             fetch.pause();
             // When we delete the money request
@@ -2156,6 +2157,208 @@ describe('actions/IOU', () => {
             IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             // Then we expect to navigate to the chat report
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
+        });
+    });
+
+    describe('submitReport', () => {
+        it('correctly submits a report', () => {
+            const amount = 10000;
+            const comment = '💸💸💸💸';
+            const merchant = 'NASDAQ';
+            let expenseReport = {};
+            let chatReport = {};
+            return waitForBatchedUpdates()
+                .then(() => {
+                    PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    chatReport = _.find(allReports, (report) => report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    IOU.requestMoney(
+                        chatReport,
+                        amount,
+                        CONST.CURRENCY.USD,
+                        '',
+                        merchant,
+                        RORY_EMAIL,
+                        RORY_ACCOUNT_ID,
+                        {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
+                        comment,
+                    );
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.EXPENSE);
+                                    Onyx.merge(`report_${expenseReport.reportID}`, {
+                                        statusNum: 0,
+                                        stateNum: 0,
+                                    });
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.EXPENSE);
+
+                                    // Verify report is a draft
+                                    expect(expenseReport.stateNum).toBe(0);
+                                    expect(expenseReport.statusNum).toBe(0);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    IOU.submitReport(expenseReport);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.EXPENSE);
+
+                                    // Report was submitted correctly
+                                    expect(expenseReport.stateNum).toBe(1);
+                                    expect(expenseReport.statusNum).toBe(1);
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
+        it('correctly implements error handling', () => {
+            const amount = 10000;
+            const comment = '💸💸💸💸';
+            const merchant = 'NASDAQ';
+            let expenseReport = {};
+            let chatReport = {};
+            return waitForBatchedUpdates()
+                .then(() => {
+                    PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    chatReport = _.find(allReports, (report) => report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    IOU.requestMoney(
+                        chatReport,
+                        amount,
+                        CONST.CURRENCY.USD,
+                        '',
+                        merchant,
+                        RORY_EMAIL,
+                        RORY_ACCOUNT_ID,
+                        {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
+                        comment,
+                    );
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.EXPENSE);
+                                    Onyx.merge(`report_${expenseReport.reportID}`, {
+                                        statusNum: 0,
+                                        stateNum: 0,
+                                    });
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.EXPENSE);
+
+                                    // Verify report is a draft
+                                    expect(expenseReport.stateNum).toBe(0);
+                                    expect(expenseReport.statusNum).toBe(0);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    fetch.fail();
+                    IOU.submitReport(expenseReport);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.EXPENSE);
+
+                                    // Report was submitted with some fail
+                                    expect(expenseReport.stateNum).toBe(0);
+                                    expect(expenseReport.statusNum).toBe(0);
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
     });
 });
