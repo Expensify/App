@@ -10,6 +10,7 @@ import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 import FormUtils from '../../../../libs/FormUtils';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 
 const propTypes = {
     /* Onyx Props */
@@ -31,7 +32,7 @@ function GetPhysicalCardPhone({draftValues: {phoneNumber}}) {
     const onValidate = (values) => {
         const errors = {};
 
-        if (!Str.isValidPhone(values.phoneNumber)) {
+        if (!parsePhoneNumber(values.phoneNumber).possible && !Str.isValidPhone(values.phoneNumber)) {
             errors.phoneNumber = 'common.error.phoneNumber';
         } else if (_.isEmpty(values.phoneNumber)) {
             errors.phoneNumber = 'common.error.fieldRequired';
