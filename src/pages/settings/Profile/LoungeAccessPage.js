@@ -74,10 +74,6 @@ function LoungeAccessPage({
 }) {
     const {translate} = useLocalize();
 
-    if (!hasLoungeAccess) {
-        return <NotFoundPage />;
-    }
-
     const checkIn = useCallback(() => {
         Lounge.recordLoungeVisit(checkInsRemaining);
     }, [checkInsRemaining]);
@@ -128,6 +124,10 @@ function LoungeAccessPage({
         // get rid of the year for both languages:
         return dayMonthYear.replace(/ (?:de )?\d{4}$/, '') // Drop English or Spanish year
     }, [nextCheckInReset, preferredLocale]);
+
+    if (!hasLoungeAccess) {
+        return <NotFoundPage />;
+    }
 
     return (
         <IllustratedHeaderPageLayout
