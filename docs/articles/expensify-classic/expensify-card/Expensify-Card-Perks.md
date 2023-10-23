@@ -237,7 +237,6 @@ Customers with an Expensify subscription can use Expensify’s lounge workplace,
 
 
 # FAQ
-<!--
 This section covers the useful but not as vital information, it should capture commonly queried elements which do not organically form part of the About or How-to sections.
 
 - What's idiosyncratic or potentially confusing about this feature?
