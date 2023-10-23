@@ -98,7 +98,7 @@ Guideline's full-service 401(k) plans make it easier and more affordable to offe
 ## Gusto
 Gusto's people platform helps businesses like yours onboard, pay, insure, and support your hardworking team. Payroll, benefits, and more
 
-**3-months free service** 
+**3 months free service** 
 
 **How to redeem:** Sign-up using your Expensify Card.
 
