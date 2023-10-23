@@ -32,7 +32,7 @@ function IconButton({src, fill, onPress, style, accessibilityLabel}) {
                 <PressableWithoutFeedback
                     accessibilityLabel={accessibilityLabel}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    onPressIn={onPress}
+                    onPress={onPress}
                     style={[{padding: 5, borderRadius: 4, backgroundColor: isHovered ? '#085239' : 'transparent'}, style]}
                 >
                     <Icon
