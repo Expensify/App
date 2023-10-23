@@ -24,6 +24,9 @@ const baseProps = {
 
     /** Meaures the parent container's position and dimensions. */
     measureParentContainer: PropTypes.func.isRequired,
+
+    /** Report composer focus state */
+    isComposerFocused: PropTypes.bool,
 };
 
 const implementationBaseProps = {

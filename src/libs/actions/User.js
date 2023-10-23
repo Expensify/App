@@ -541,7 +541,7 @@ function subscribeToUserEvents() {
 
 /**
  * Sync preferredSkinTone with Onyx and Server
- * @param {String} skinTone
+ * @param {Number} skinTone
  */
 function updatePreferredSkinTone(skinTone) {
     const optimisticData = [

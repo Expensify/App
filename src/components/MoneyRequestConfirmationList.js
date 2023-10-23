@@ -171,7 +171,7 @@ const defaultProps = {
     onConfirm: () => {},
     onSendMoney: () => {},
     onSelectParticipant: () => {},
-    iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+    iouType: CONST.IOU.TYPE.REQUEST,
     iouCategory: '',
     iouTag: '',
     iouIsBillable: false,
@@ -208,9 +208,9 @@ function MoneyRequestConfirmationList(props) {
     const {translate, toLocaleDigit} = useLocalize();
     const transaction = props.isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction;
 
-    const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
-    const isSplitBill = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
-    const isTypeSend = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+    const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
+    const isSplitBill = props.iouType === CONST.IOU.TYPE.SPLIT;
+    const isTypeSend = props.iouType === CONST.IOU.TYPE.SEND;
 
     const isSplitWithScan = isSplitBill && props.isScanRequest;
 
@@ -445,7 +445,7 @@ function MoneyRequestConfirmationList(props) {
                 return;
             }
 
-            if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+            if (props.iouType === CONST.IOU.TYPE.SEND) {
                 if (!paymentMethod) {
                     return;
                 }
@@ -491,7 +491,7 @@ function MoneyRequestConfirmationList(props) {
             return;
         }
 
-        const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+        const shouldShowSettlementButton = props.iouType === CONST.IOU.TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
@@ -506,7 +506,11 @@ function MoneyRequestConfirmationList(props) {
                 policyID={props.policyID}
                 shouldShowPaymentOptions
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                anchorAlignment={{
+                kycWallAnchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                }}
+                paymentMethodDropdownAnchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
@@ -537,7 +541,7 @@ function MoneyRequestConfirmationList(props) {
     }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, translate, formError]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =
-        props.receiptPath && props.receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptFilename) : {};
+        props.receiptPath && props.receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, props.receiptPath, props.receiptFilename) : {};
 
     return (
         <OptionsSelector
