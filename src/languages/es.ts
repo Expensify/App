@@ -619,7 +619,7 @@ export default {
         nextCheckInBeforeNumberCheckedIn: ({checkInsRemaining}: RemainingCheckInsParams) => `Estás registrado y te queda${checkInsRemaining === 1 ? '' : 'n'}`,
         nextCheckInNumberCountSingular: 'visita',
         nextCheckInNumberCountPlural: 'visitas',
-        nextCheckInAfterNumber: 'este mes',
+        nextCheckInAfterNumber: 'este mes.',
         noCheckInsLeftFirstPart: 'No te quedan más visitas este mes',
         noCheckInsLeftSecondPart: ({nextCheckIn}: NoCheckInsLeftParams) => `, pero podrás volver a realizar una visita el ${nextCheckIn}.`,
         loungeAccess: 'Acceso a la sala vip',
