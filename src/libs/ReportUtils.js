@@ -283,7 +283,7 @@ function isSettled(reportID) {
         return false;
     }
 
-    // In case the payment is scheduled and we are waiting for the payee to set up their walled,
+    // In case the payment is scheduled and we are waiting for the payee to set up their wallet,
     // consider the report as paid as well.
     if (report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS.APPROVED) {
         return true;
@@ -1253,7 +1253,6 @@ function getDeletedParentActionMessageForChatReport(reportAction) {
  * @param {Object} report
  * @returns {String}
  */
-
 function getReimbursementQueuedActionMessage(reportAction, report) {
     const submitterDisplayName = getDisplayNameForParticipant(report.ownerAccountID, true);
     let messageKey;
