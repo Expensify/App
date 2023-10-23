@@ -86,7 +86,7 @@ The integrated cloud reporting and forecasting tool that allows you to create in
 
 **20% discount off your subscription for the first 6 months, plus one free seat to Spotlight Certification.**
 
-**How do redeem:** Sign up using your Expensify Card.
+**How to redeem:** Sign up using your Expensify Card.
 
 ## Guideline
 Guideline's full-service 401(k) plans make it easier and more affordable to offer your employees the retirement benefits they deserve.
