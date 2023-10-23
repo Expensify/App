@@ -1309,25 +1309,63 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
  * Can only edit if:
  *
  * - in case of IOU report
- *    - the current user is the requestor
+ *    - the current user is the requestor and is not settled yet
  * - in case of expense report
- *    - the current user is the requestor
+ *    - the current user is the requestor and is not settled yet
  *    - or the user is an admin on the policy the expense report is tied to
  */
-function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
-    // If the report action i snot IOU type, return true early
+function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>) {
+    const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
+
+    if (isDeleted) {
+        return false;
+    }
+
+    // If the report action is not IOU type, return true early
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return true;
     }
-    const moneyRequestReportID = reportAction.originalMessage.IOUReportID ?? 0;
+
+    const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
+
     if (!moneyRequestReportID) {
         return false;
     }
-    const moneyRequestReport = getReport(String(moneyRequestReportID));
-    const isReportSettled = isSettled(moneyRequestReport?.reportID ?? '');
-    const isAdmin = isExpenseReport(moneyRequestReport) && (getPolicy(moneyRequestReport?.policyID ?? '')?.role ?? '') === CONST.POLICY.ROLE.ADMIN;
-    const isRequestor = currentUserAccountID === reportAction.actorAccountID;
-    return !isReportSettled && (isAdmin || isRequestor);
+
+    const moneyRequestReport = getReport(moneyRequestReportID);
+    const isReportSettled = isSettled(moneyRequestReport?.reportID);
+    const isAdmin = ((isExpenseReport(moneyRequestReport) && getPolicy(moneyRequestReport?.policyID ?? '')?.role) ?? '') === CONST.POLICY.ROLE.ADMIN;
+    const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
+
+    if (isAdmin) {
+        return true;
+    }
+
+    return !isReportSettled && isRequestor;
+}
+
+/**
+ * Checks if the current user can edit the provided property of a money request
+ *
+ */
+function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, reportID: string, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
+    // A list of fields that cannot be edited by anyone, once a money request has been settled
+    const nonEditableFieldsWhenSettled = [
+        CONST.EDIT_REQUEST_FIELD.AMOUNT,
+        CONST.EDIT_REQUEST_FIELD.CURRENCY,
+        CONST.EDIT_REQUEST_FIELD.DATE,
+        CONST.EDIT_REQUEST_FIELD.RECEIPT,
+        CONST.EDIT_REQUEST_FIELD.DISTANCE,
+    ];
+
+    // Checks if this user has permissions to edit this money request
+    if (!canEditMoneyRequest(reportAction)) {
+        return false; // User doesn't have permission to edit
+    }
+
+    // Checks if the report is settled
+    // Checks if the provided property is a restricted one
+    return !isSettled(reportID) || !nonEditableFieldsWhenSettled.some((item) => item === fieldToEdit);
 }
 
 /**
@@ -3856,6 +3894,7 @@ export {
     getTaskAssigneeChatOnyxData,
     getParticipantsIDs,
     canEditMoneyRequest,
+    canEditFieldOfMoneyRequest,
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getTransactionsWithReceipts,
