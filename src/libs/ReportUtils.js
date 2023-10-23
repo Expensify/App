@@ -283,6 +283,12 @@ function isSettled(reportID) {
         return false;
     }
 
+    // In case the payment is scheduled and we are waiting for the payee to set up their wallet,
+    // consider the report as paid as well.
+    if (report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS.APPROVED) {
+        return true;
+    }
+
     return report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
 }
 
@@ -1241,6 +1247,25 @@ function getDeletedParentActionMessageForChatReport(reportAction) {
 }
 
 /**
+ * Returns the preview message for `REIMBURSEMENTQUEUED` action
+ *
+ * @param {Object} reportAction
+ * @param {Object} report
+ * @returns {String}
+ */
+function getReimbursementQueuedActionMessage(reportAction, report) {
+    const submitterDisplayName = getDisplayNameForParticipant(report.ownerAccountID, true);
+    let messageKey;
+    if (lodashGet(reportAction, 'originalMessage.paymentType', '') === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        messageKey = 'iou.waitingOnEnabledWallet';
+    } else {
+        messageKey = 'iou.waitingOnBankAccount';
+    }
+
+    return Localize.translateLocal(messageKey, {submitterDisplayName});
+}
+
+/**
  * Returns the last visible message for a given report after considering the given optimistic actions
  *
  * @param {String} reportID - the report for which last visible message has to be fetched
@@ -1295,7 +1320,8 @@ function isWaitingForIOUActionFromCurrentUser(report) {
     }
 
     // Money request waiting for current user to add their credit bank account
-    if (report.hasOutstandingIOU && report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
+    // hasOutstandingIOU will be false if the user paid, but isWaitingOnBankAccount will be true if user don't have a wallet or bank account setup
+    if (!report.hasOutstandingIOU && report.isWaitingOnBankAccount && report.ownerAccountID === currentUserAccountID) {
         return true;
     }
 
@@ -1615,9 +1641,10 @@ function getTransactionReportName(reportAction) {
  * @param {Object} report
  * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
+ * @param {Boolean} isPreviewMessageForParentChatReport
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false) {
+function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1656,12 +1683,14 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         }
     }
 
-    if (isSettled(report.reportID)) {
+    // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
+    if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey = 'iou.paidElsewhereWithAmount';
         if (
             _.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], lodashGet(reportAction, 'originalMessage.paymentType')) ||
-            reportActionMessage.match(/ (with Expensify|using Expensify)$/)
+            reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
+            report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
@@ -4122,4 +4151,5 @@ export {
     isReportDraft,
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
+    getReimbursementQueuedActionMessage,
 };
