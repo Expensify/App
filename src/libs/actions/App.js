@@ -330,8 +330,6 @@ function endSignOnTransition() {
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
  * @param {Boolean} [shouldNavigateToAdminChat] Optional, navigate to the #admin room after creation
- * @param {Boolean} [isThereModalToDismiss] Optional, if there is a modal to dismiss
-
  */
 function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false, shouldNavigateToAdminChat = true) {
     const policyID = Policy.generatePolicyID();
