@@ -7,7 +7,6 @@ import lodashGet from 'lodash/get';
 import TextInput from '../../components/TextInput';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -16,6 +15,8 @@ import * as IOU from '../../libs/actions/IOU';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import {iouPropTypes, iouDefaultProps} from './propTypes';
+import FormProvider from '../../components/Form/FormProvider';
+import InputWrapper from '../../components/Form/InputWrapper';
 
 const propTypes = {
     /** Onyx Props */
@@ -99,7 +100,7 @@ function MoneyRequestMerchantPage({iou, route}) {
                 title={translate('common.merchant')}
                 onBackButtonPress={() => navigateBack()}
             />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={(value) => updateMerchant(value)}
@@ -108,7 +109,8 @@ function MoneyRequestMerchantPage({iou, route}) {
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="moneyRequestMerchant"
                         name="moneyRequestMerchant"
                         defaultValue={iou.merchant}
@@ -119,7 +121,7 @@ function MoneyRequestMerchantPage({iou, route}) {
                         ref={(el) => (inputRef.current = el)}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
