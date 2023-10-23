@@ -37,8 +37,6 @@ import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import WalletEmptyState from '../WalletEmptyState';
 import * as Illustrations from '../../../../components/Icon/Illustrations';
 import WalletSection from '../../../../components/WalletSection';
-import Icon from '../../../../components/Icon';
-import Text from '../../../../components/Text';
 
 function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {
     const {translate} = useLocalize();
@@ -416,6 +414,20 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                                     fill={themeColors.icon}
                                                                 />
                                                                 <Text style={alertTextStyle}>{translate('walletPage.walletActivationFailed')}</Text>
+                                                            </View>
+                                                        );
+                                                    }
+
+                                                    if (hasFailedOnfido) {
+                                                        return (
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
+                                                                <Icon
+                                                                    src={Expensicons.Exclamation}
+                                                                    fill={themeColors.textSupporting}
+                                                                />
+                                                                <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
+                                                                    Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.
+                                                                </Text>
                                                             </View>
                                                         );
                                                     }
