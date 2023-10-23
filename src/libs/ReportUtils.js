@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import _ from 'underscore';
-import {format, parseISO} from 'date-fns';
+import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
@@ -661,6 +661,17 @@ function hasSingleParticipant(report) {
 }
 
 /**
+ * Checks whether all the transactions linked to the IOU report are of the Distance Request type
+ *
+ * @param {string|null} iouReportID
+ * @returns {boolean}
+ */
+function hasOnlyDistanceRequestTransactions(iouReportID) {
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.all(allTransactions, (transaction) => TransactionUtils.isDistanceRequest(transaction));
+}
+
+/**
  * If the report is a thread and has a chat type set, it is a workspace chat.
  *
  * @param {Object} report
@@ -1213,6 +1224,46 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
 }
 
 /**
+ * For a deleted parent report action within a chat report,
+ * let us return the appropriate display message
+ *
+ * @param {Object} reportAction - The deleted report action of a chat report for which we need to return message.
+ * @return {String}
+ */
+function getDeletedParentActionMessageForChatReport(reportAction) {
+    // By default, let us display [Deleted message]
+    let deletedMessageText = Localize.translateLocal('parentReportAction.deletedMessage');
+    if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
+        // For canceled task report, let us display [Deleted task]
+        deletedMessageText = Localize.translateLocal('parentReportAction.deletedTask');
+    }
+    return deletedMessageText;
+}
+
+/**
+ * Returns the last visible message for a given report after considering the given optimistic actions
+ *
+ * @param {String} reportID - the report for which last visible message has to be fetched
+ * @param {Object} [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
+ * @return {Object}
+ */
+function getLastVisibleMessage(reportID, actionsToMerge = {}) {
+    const report = getReport(reportID);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, actionsToMerge);
+
+    // For Chat Report with deleted parent actions, let us fetch the correct message
+    if (ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && isChatReport(report)) {
+        const lastMessageText = getDeletedParentActionMessageForChatReport(lastVisibleAction);
+        return {
+            lastMessageText,
+        };
+    }
+
+    // Fetch the last visible message for report represented by reportID and based on actions to merge.
+    return ReportActionsUtils.getLastVisibleMessage(reportID, actionsToMerge);
+}
+
+/**
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
@@ -1375,33 +1426,34 @@ function getPolicyExpenseChatName(report, policy = undefined) {
 }
 
 /**
- * Get the title for a IOU or expense chat which will be showing the payer and the amount
+ * Get the title for an IOU or expense chat which will be showing the payer and the amount
  *
  * @param {Object} report
  * @param {Object} [policy]
  * @returns  {String}
  */
 function getMoneyRequestReportName(report, policy = undefined) {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(report), report.currency);
+    const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report.currency, hasOnlyDistanceRequestTransactions(report.reportID));
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
-    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {
+    const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerName,
         amount: formattedAmount,
     });
 
     if (report.isWaitingOnBankAccount) {
-        return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
+        return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
     if (hasNonReimbursableTransactions(report.reportID)) {
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    if (report.hasOutstandingIOU) {
+    if (report.hasOutstandingIOU || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    return payerPaidAmountMesssage;
+    return payerPaidAmountMessage;
 }
 
 /**
@@ -1486,7 +1538,7 @@ function canEditReportAction(reportAction) {
 /**
  * Gets all transactions on an IOU report with a receipt
  *
- * @param {Object|null} iouReportID
+ * @param {string|null} iouReportID
  * @returns {[Object]}
  */
 function getTransactionsWithReceipts(iouReportID) {
@@ -1552,7 +1604,7 @@ function getTransactionReportName(reportAction) {
     const {amount, currency, comment} = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency),
+        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency, TransactionUtils.isDistanceRequest(transaction)),
         comment,
     });
 }
@@ -1717,7 +1769,7 @@ function getModifiedExpenseMessage(reportAction) {
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated = parseISO(reportActionOriginalMessage.oldCreated);
+        let formattedOldCreated = new Date(reportActionOriginalMessage.oldCreated);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false);
     }
@@ -3116,7 +3168,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         (report.participantAccountIDs &&
             report.participantAccountIDs.length === 0 &&
             !isChatThread(report) &&
-            !isPublicRoom(report) &&
+            !isUserCreatedPolicyRoom(report) &&
             !isArchivedRoom(report) &&
             !isMoneyRequestReport(report) &&
             !isTaskReport(report))
@@ -3351,8 +3403,16 @@ function parseReportRouteParams(route) {
     }
 
     const pathSegments = parsingRoute.split('/');
+
+    const reportIDSegment = pathSegments[1];
+
+    // Check for "undefined" or any other unwanted string values
+    if (!reportIDSegment || reportIDSegment === 'undefined') {
+        return {reportID: '', isSubReportPageRoute: false};
+    }
+
     return {
-        reportID: pathSegments[1],
+        reportID: reportIDSegment,
         isSubReportPageRoute: pathSegments.length > 2,
     };
 }
@@ -3480,17 +3540,17 @@ function getMoneyRequestOptions(report, reportParticipants) {
         (hasMultipleParticipants && !isPolicyExpenseChat(report) && !isMoneyRequestReport(report)) ||
         (isControlPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat)
     ) {
-        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
+        return [CONST.IOU.TYPE.SPLIT];
     }
 
     // DM chats that only have 2 people will see the Send / Request money options.
     // IOU and open or processing expense reports should show the Request option.
     // Workspace chats should only see the Request money option or Split option in case of Control policies
     return [
-        ...(canRequestMoney(report, participants) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
+        ...(canRequestMoney(report, participants) ? [CONST.IOU.TYPE.REQUEST] : []),
 
         // Send money option should be visible only in DMs
-        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+        ...(isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.TYPE.SEND] : []),
     ];
 }
 
@@ -3667,6 +3727,21 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
         return null;
     }
     return expenseChat.reportID;
+}
+
+/**
+ * Check if the report can create the request with type is iouType
+ * @param {Object} report
+ * @param {Array} betas
+ * @param {String} iouType
+ * @returns {Boolean}
+ */
+function canCreateRequest(report, betas, iouType) {
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+    if (shouldDisableWriteActions(report)) {
+        return false;
+    }
+    return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
 }
 
 /**
@@ -3943,6 +4018,8 @@ export {
     getReport,
     getReportIDFromLink,
     getRouteFromLink,
+    getDeletedParentActionMessageForChatReport,
+    getLastVisibleMessage,
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
@@ -3996,6 +4073,7 @@ export {
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
+    canCreateRequest,
     hasIOUWaitingOnCurrentUserBankAccount,
     canRequestMoney,
     getWhisperDisplayNames,
@@ -4036,10 +4114,12 @@ export {
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getTransactionsWithReceipts,
+    hasOnlyDistanceRequestTransactions,
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
     isReportDraft,
     shouldUseFullTitleToDisplay,
+    parseReportRouteParams,
 };

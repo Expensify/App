@@ -55,6 +55,13 @@ function openPersonalBankAccountSetupView(exitReportID: string) {
     });
 }
 
+/**
+ * Whether after adding a bank account we should continue with the KYC flow. If so, we must specify the fallback route.
+ */
+function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: string) {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute});
+}
+
 function clearPersonalBankAccount() {
     clearPlaid();
     Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
@@ -138,7 +145,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
 /**
  * Adds a bank account via Plaid
  *
- * @TODO offline pattern for this command will have to be added later once the pattern B design doc is complete
+ * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
 function addPersonalBankAccount(account: PlaidBankAccount) {
     const commandName = 'AddPersonalBankAccount';
@@ -431,6 +438,7 @@ export {
     connectBankAccountWithPlaid,
     deletePaymentBankAccount,
     handlePlaidError,
+    setPersonalBankAccountContinueKYCOnSuccess,
     openPersonalBankAccountSetupView,
     clearReimbursementAccount,
     openReimbursementAccountPage,

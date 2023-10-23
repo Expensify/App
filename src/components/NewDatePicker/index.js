@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {setYear} from 'date-fns';
+import moment from 'moment';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
 import TextInput from '../TextInput';
@@ -14,13 +14,13 @@ import InputWrapper from '../Form/InputWrapper';
 
 const propTypes = {
     /**
-     * The datepicker supports any value that `new Date()` can parse.
+     * The datepicker supports any value that `moment` can parse.
      * `onInputChange` would always be called with a Date (or null)
      */
     value: PropTypes.string,
 
     /**
-     * The datepicker supports any defaultValue that `new Date()` can parse.
+     * The datepicker supports any defaultValue that `moment` can parse.
      * `onInputChange` would always be called with a Date (or null)
      */
     defaultValue: PropTypes.string,
@@ -39,8 +39,8 @@ const propTypes = {
 
 const datePickerDefaultProps = {
     ...defaultBaseTextInputPropTypes,
-    minDate: setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-    maxDate: setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
+    maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
     value: undefined,
 };
 

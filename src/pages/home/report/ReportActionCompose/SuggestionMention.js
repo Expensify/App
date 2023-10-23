@@ -55,6 +55,7 @@ function SuggestionMention({
     forwardedRef,
     isAutoSuggestionPickerLarge,
     measureParentContainer,
+    isComposerFocused,
 }) {
     const {translate} = useLocalize();
     const previousValue = usePrevious(value);
@@ -183,7 +184,7 @@ function SuggestionMention({
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockCalc.current || selectionEnd < 1) {
+            if (shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
@@ -231,7 +232,7 @@ function SuggestionMention({
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value],
+        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused],
     );
 
     useEffect(() => {
