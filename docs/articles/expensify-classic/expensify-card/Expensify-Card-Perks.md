@@ -25,7 +25,7 @@ You can sign up for free [here](https://use.expensify.com) if you’re not an Ex
 ## Swipe to Win
 Swipe to Win is a new [Expensify Card](https://use.expensify.com/company-credit-card) perk that gives cardholders the chance to send a gift to a friend, family member, or essential worker on the frontlines!
 
-Winners can choose to Send a Smile or Send a Laugh. To start, we’re offering one gift per option:
+Winners can choose to _Send a Smile_ or _Send a Laugh_. To start, we’re offering one gift per option:
 
 - **Send A Smile:** Champagne by Expensify
 - **Send a Laugh:** Jenge Set
