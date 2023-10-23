@@ -11,7 +11,6 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import emojiAssets from '../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../Text';
-import {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import compose from '../../../libs/compose';
 import getOperatingSystem from '../../../libs/getOperatingSystem';
@@ -38,9 +37,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.object),
 
-    /** Props related to the dimensions of the window */
-    ...windowDimensionsPropTypes,
-
     ...withLocalizePropTypes,
 };
 
@@ -53,9 +49,9 @@ const defaultProps = {
 const throttleTime = Browser.isMobile() ? 200 : 50;
 
 function EmojiPickerMenu(props) {
-    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, isSmallScreenWidth, translate} = props;
+    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, translate} = props;
 
-    const {windowHeight} = useWindowDimensions();
+    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
 
     // Ref for the emoji search input
     const searchInputRef = useRef(null);

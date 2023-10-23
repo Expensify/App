@@ -6,7 +6,6 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withViewportOffsetTop from '../withViewportOffsetTop';
 import * as StyleUtils from '../../styles/StyleUtils';
 import calculateAnchorPosition from '../../libs/calculateAnchorPosition';
@@ -18,7 +17,6 @@ const DEFAULT_ANCHOR_ORIGIN = {
 };
 
 const propTypes = {
-    ...windowDimensionsPropTypes,
     viewportOffsetTop: PropTypes.number.isRequired,
 };
 
@@ -34,7 +32,7 @@ const EmojiPicker = forwardRef((props, ref) => {
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
     const emojiSearchInput = useRef();
-    const {windowHeight} = useWindowDimensions();
+    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
 
     /**
      * Show the emoji picker menu.
@@ -126,7 +124,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
             if (!emojiPopoverAnchor.current) {
                 // In small screen width, the window size change might be due to keyboard open/hide, we should avoid hide EmojiPicker in those cases
-                if (isEmojiPickerVisible && !props.isSmallScreenWidth) {
+                if (isEmojiPickerVisible && !isSmallScreenWidth) {
                     hideEmojiPicker();
                 }
                 return;
@@ -138,7 +136,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         return () => {
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible, props.isSmallScreenWidth, emojiPopoverAnchorOrigin]);
+    }, [isEmojiPickerVisible, isSmallScreenWidth, emojiPopoverAnchorOrigin]);
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
