@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -78,9 +78,9 @@ function LoungeAccessPage({
         return <NotFoundPage />;
     }
 
-    const checkIn = () => {
+    const checkIn = useCallback(() => {
         Lounge.recordLoungeVisit(checkInsRemaining);
-    };
+    }, [checkInsRemaining]);
 
     const overlayContent = () => (
         <LinearGradient
@@ -112,22 +112,22 @@ function LoungeAccessPage({
 
     /**
      * Returns 1st day of the next month in proper locale, e.g.
-     * - November 1 - for English language
+     * - 1 November - for English language
      * - 1 de noviembre - for Spanish language
      *
      * @returns {String}
      */
-    const localizeDate = () => {
+    const localizeDate = useMemo(() => {
+        DateUtils.setLocale(preferredLocale);
         // The .format('LL') returns localized format of the date:
         // - 1 November 2023 - for English language
         // - 1 de noviembre de 2023 - for Spanish language
-        DateUtils.setLocale(preferredLocale);
         const dayMonthYear = format(new Date(nextCheckInReset), CONST.DATE.LOCALIZED_DATE_FORMAT)
 
         // We only care about the day and the month, so we
         // get rid of the year for both languages:
         return dayMonthYear.replace(/ (?:de )?\d{4}$/, '') // Drop English or Spanish year
-    };
+    }, [nextCheckInReset, preferredLocale]);
 
     return (
         <IllustratedHeaderPageLayout
@@ -144,7 +144,7 @@ function LoungeAccessPage({
                 {checkInsRemaining === 0 && !isCheckedIn ? (
                     <Text style={[styles.mb4]}>
                         <Text style={[styles.textStrong]}>{translate('loungeAccessPage.noCheckInsLeftFirstPart')}</Text>
-                        {translate('loungeAccessPage.noCheckInsLeftSecondPart', {nextCheckIn: localizeDate()})}
+                        {translate('loungeAccessPage.noCheckInsLeftSecondPart', {nextCheckIn: localizeDate})}
                     </Text>
                 ) : (
                     <Text style={[styles.mb4]}>
