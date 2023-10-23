@@ -272,15 +272,14 @@ function sortReportsByLastRead(reports) {
  * Whether the Money Request report is settled
  *
  * @param {String} reportID
- * @param {Boolean} isReportFromChat
  * @returns {Boolean}
  */
-function isSettled(reportID, isReportFromChat) {
+function isSettled(reportID) {
     if (!allReports) {
         return false;
     }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
-    if ((typeof report === 'object' && Object.keys(report).length === 0) || (report.isWaitingOnBankAccount && !isReportFromChat)) {
+    if (typeof report === 'object' && Object.keys(report).length === 0) {
         return false;
     }
 
@@ -1317,7 +1316,7 @@ function isWaitingForIOUActionFromCurrentUser(report) {
     }
 
     // Money request waiting for current user to add their credit bank account
-    // hasOutstandingIOU will be false if the user paid, but isWaitingOnBankAccount will be true if user don't have a wallet setup
+    // hasOutstandingIOU will be false if the user paid, but isWaitingOnBankAccount will be true if user don't have a wallet or bank account setup
     if ((report.hasOutstandingIOU || report.isWaitingOnBankAccount) && report.ownerAccountID === currentUserAccountID) {
         return true;
     }
@@ -1638,10 +1637,10 @@ function getTransactionReportName(reportAction) {
  * @param {Object} report
  * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
- * @param {Boolean} isReportFromChat If the report is from 1:1 chat
+ * @param {Boolean} isPreviewMessageForParentChatReport If the report is from 1:1 chat
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isReportFromChat = false) {
+function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1680,7 +1679,8 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         }
     }
 
-    if (isSettled(report.reportID, isReportFromChat)) {
+    // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
+    if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && !isPreviewMessageForParentChatReport)) {
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey = 'iou.paidElsewhereWithAmount';
         if (
