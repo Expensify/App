@@ -35,12 +35,12 @@ PODS:
     - ExpoModulesCore
   - Expo (49.0.13):
     - ExpoModulesCore
-  - ExpoImage (1.3.4):
+  - ExpoImage (1.6.0):
     - ExpoModulesCore
-    - SDWebImage (~> 5.15.8)
-    - SDWebImageAVIFCoder (~> 0.10.0)
+    - SDWebImage (~> 5.17.0)
+    - SDWebImageAVIFCoder (~> 0.10.1)
     - SDWebImageSVGCoder (~> 1.7.0)
-    - SDWebImageWebPCoder (~> 0.11.0)
+    - SDWebImageWebPCoder (~> 0.13.0)
   - ExpoModulesCore (1.5.11):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
@@ -837,17 +837,17 @@ PODS:
     - React-RCTImage
   - RNSVG (13.14.0):
     - React-Core
-  - SDWebImage (5.15.8):
-    - SDWebImage/Core (= 5.15.8)
-  - SDWebImage/Core (5.15.8)
+  - SDWebImage (5.17.0):
+    - SDWebImage/Core (= 5.17.0)
+  - SDWebImage/Core (5.17.0)
   - SDWebImageAVIFCoder (0.10.1):
     - libavif (>= 0.11.0)
     - SDWebImage (~> 5.10)
   - SDWebImageSVGCoder (1.7.0):
     - SDWebImage/Core (~> 5.6)
-  - SDWebImageWebPCoder (0.11.0):
+  - SDWebImageWebPCoder (0.13.0):
     - libwebp (~> 1.0)
-    - SDWebImage/Core (~> 5.15)
+    - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.6.1)
   - Turf (2.6.1)
   - VisionCamera (2.16.2):
@@ -1217,7 +1217,7 @@ SPEC CHECKSUMS:
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   EXApplication: 042aa2e3f05258a16962ea1a9914bf288db9c9a1
   Expo: e7d2116b947e2e6fdeb09ee4f2754f819426d1b6
-  ExpoImage: 912063c1082ed72f8ae6bbbe0196602257022fa9
+  ExpoImage: 64cd716d10414edf59342de32043857a58e9a2a3
   ExpoModulesCore: 51cb2e7ab4c8da14be3f40b66d54c1781002e99d
   FBLazyVector: 5d4a3b7f411219a45a6d952f77d2c0a6c9989da5
   FBReactNativeSpec: 3fc2d478e1c4b08276f9dd9128f80ec6d5d85c1f
@@ -1338,10 +1338,10 @@ SPEC CHECKSUMS:
   RNReanimated: ab2e96c6d5591c3dfbb38a464f54c8d17fb34a87
   RNScreens: d037903436160a4b039d32606668350d2a808806
   RNSVG: d00c8f91c3cbf6d476451313a18f04d220d4f396
-  SDWebImage: cb032eba469c54e0000e78bcb0a13cdde0a52798
+  SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
   SDWebImageAVIFCoder: 8348fef6d0ec69e129c66c9fe4d74fbfbf366112
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
-  SDWebImageWebPCoder: 295a6573c512f54ad2dd58098e64e17dcf008499
+  SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 469ce2c3d22e5e8e4818d5a3b254699a5c89efa4
   VisionCamera: 95f969b8950b411285579d633a1014782fe0e634
