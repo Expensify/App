@@ -267,7 +267,6 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
         isMoneyRequestReport: false,
         isExpenseRequest: false,
         isWaitingOnBankAccount: false,
-        isLastMessageDeletedParentAction: false,
         isAllowedToComment: true,
     };
 
@@ -429,7 +428,6 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
-    result.isLastMessageDeletedParentAction = report.isLastMessageDeletedParentAction;
 
     if (status) {
         result.status = status;

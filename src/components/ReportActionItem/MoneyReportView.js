@@ -7,7 +7,6 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
-import CONST from '../../CONST';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -41,9 +40,9 @@ function MoneyReportView(props) {
     const subAmountTextStyles = [styles.taskTitleMenuItem, styles.alignSelfCenter, StyleUtils.getFontSizeStyle(variables.fontSizeh1), StyleUtils.getColorStyle(themeColors.textSupporting)];
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
+        <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
             <AnimatedEmptyStateBackground />
-            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth, true)]}>
                 <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
                         <Text
@@ -70,51 +69,51 @@ function MoneyReportView(props) {
                         </Text>
                     </View>
                 </View>
+                {shouldShowBreakdown ? (
+                    <>
+                        <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
+                            <View style={[styles.flex1, styles.justifyContentCenter]}>
+                                <Text
+                                    style={[styles.textLabelSupporting]}
+                                    numberOfLines={1}
+                                >
+                                    {translate('cardTransactions.outOfPocket')}
+                                </Text>
+                            </View>
+                            <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={subAmountTextStyles}
+                                >
+                                    {formattedOutOfPocketAmount}
+                                </Text>
+                            </View>
+                        </View>
+                        <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
+                            <View style={[styles.flex1, styles.justifyContentCenter]}>
+                                <Text
+                                    style={[styles.textLabelSupporting]}
+                                    numberOfLines={1}
+                                >
+                                    {translate('cardTransactions.companySpend')}
+                                </Text>
+                            </View>
+                            <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={subAmountTextStyles}
+                                >
+                                    {formattedCompanySpendAmount}
+                                </Text>
+                            </View>
+                        </View>
+                    </>
+                ) : undefined}
+                <SpacerView
+                    shouldShow={props.shouldShowHorizontalRule}
+                    style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+                />
             </View>
-            {shouldShowBreakdown ? (
-                <>
-                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
-                        <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
-                                style={[styles.textLabelSupporting]}
-                                numberOfLines={1}
-                            >
-                                {translate('cardTransactions.outOfPocket')}
-                            </Text>
-                        </View>
-                        <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                            <Text
-                                numberOfLines={1}
-                                style={subAmountTextStyles}
-                            >
-                                {formattedOutOfPocketAmount}
-                            </Text>
-                        </View>
-                    </View>
-                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
-                        <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
-                                style={[styles.textLabelSupporting]}
-                                numberOfLines={1}
-                            >
-                                {translate('cardTransactions.companySpend')}
-                            </Text>
-                        </View>
-                        <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                            <Text
-                                numberOfLines={1}
-                                style={subAmountTextStyles}
-                            >
-                                {formattedCompanySpendAmount}
-                            </Text>
-                        </View>
-                    </View>
-                </>
-            ) : undefined}
-            <SpacerView
-                shouldShow={props.shouldShowHorizontalRule}
-                style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
-            />
         </View>
     );
 }
