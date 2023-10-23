@@ -283,8 +283,13 @@ function isSettled(reportID) {
         return false;
     }
 
-    // APPROVED status is for free group policy
-    return report.statusNum === CONST.REPORT.STATUS.REIMBURSED || report.statusNum === CONST.REPORT.STATUS.APPROVED;
+    // In case the payment is scheduled and we are waiting for the payee to set up their walled,
+    // consider the report as paid as well.
+    if (report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS.APPROVED) {
+        return true;
+    }
+
+    return report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
 }
 
 /**
@@ -1685,7 +1690,8 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         let translatePhraseKey = 'iou.paidElsewhereWithAmount';
         if (
             _.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], lodashGet(reportAction, 'originalMessage.paymentType')) ||
-            reportActionMessage.match(/ (with Expensify|using Expensify)$/)
+            reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
+            report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
