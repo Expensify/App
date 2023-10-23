@@ -64,7 +64,7 @@ function SetTimePage({translate, privatePersonalDetails, customStatus}) {
                     formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_TIME_FORM}
                     onSubmit={onSubmit}
                     submitButtonText={translate('common.save')}
-                    submitButtonContainerStyles={[styles.flex0, styles.justifyContentStart, styles.mh5, styles.setTimeFormButtonContainer]}
+                    submitButtonStyles={[styles.flex0, styles.justifyContentStart, styles.mh5, styles.setTimeFormButtonContainer]}
                     errorMessageStyle={styles.timePickerButtonErrorText}
                     validate={validate}
                     enabledWhenOffline
