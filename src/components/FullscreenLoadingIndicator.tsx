@@ -1,10 +1,10 @@
 import React from 'react';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import {ActivityIndicator, StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 
 type FullScreenLoadingIndicatorProps = {
-    style: Record<string, unknown> | Array<Record<string, unknown>>;
+    style: StyleProp<ViewStyle>;
 };
 
 function FullScreenLoadingIndicator({style = []}: FullScreenLoadingIndicatorProps) {
