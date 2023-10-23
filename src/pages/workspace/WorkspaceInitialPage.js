@@ -32,6 +32,7 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import * as ReportUtils from '../../libs/ReportUtils';
 import withWindowDimensions from '../../components/withWindowDimensions';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     ...policyPropTypes,
@@ -78,8 +79,6 @@ function WorkspaceInitialPage(props) {
         const policyReports = _.filter(props.reports, (report) => report && report.policyID === policy.id);
         Policy.deleteWorkspace(policy.id, policyReports, policy.name);
         setIsDeleteModalOpen(false);
-        // Pop the deleted workspace page before opening workspace settings.
-        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     }, [props.reports, policy]);
 
     useEffect(() => {
@@ -193,6 +192,14 @@ function WorkspaceInitialPage(props) {
         },
     ];
 
+    const prevPolicy = usePrevious(policy);
+
+    useEffect(() => {
+        if (PolicyUtils.isPendingDeletePolicy(policy) && !PolicyUtils.isPendingDeletePolicy(prevPolicy)) {
+            Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+        }
+    }, [policy, prevPolicy]);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -201,7 +208,7 @@ function WorkspaceInitialPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                    shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy))}
                     subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
                     <HeaderWithBackButton
