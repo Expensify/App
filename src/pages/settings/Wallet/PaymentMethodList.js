@@ -337,7 +337,7 @@ function PaymentMethodList({
 
     return (
         <>
-            <View style={style}>
+            <View style={[style, {minHeight: ESTIMATED_ITEM_SIZE}]}>
                 <FlashList
                     estimatedItemSize={ESTIMATED_ITEM_SIZE}
                     data={filteredPaymentMethods}
