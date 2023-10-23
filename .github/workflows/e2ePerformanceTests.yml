@@ -53,7 +53,7 @@ jobs:
         # if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
-          ARTIFACT_NAME: baseline-apk
+          ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
 
   buildDelta:
     runs-on: ubuntu-latest-xl
