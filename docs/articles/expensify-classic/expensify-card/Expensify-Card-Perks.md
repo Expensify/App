@@ -47,7 +47,7 @@ Whether you are a two-person startup launching a new company or a venture-backed
 
 All Expensify customers that have adopted The Expensify Card qualify when they add their Expensify Card for billing with AWS!
 
-**Apply now by going [to this link](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Faws.amazon.com%2Factivate%2Fportfolio-signup) and using the OrgID: 0qyIA (Case Sensitive)**
+**Apply now by going [to this link](https://aws.amazon.com/startups/credits) and using the OrgID: 0qyIA (Case Sensitive)**
 
 The full details on the AWS Activate program can be found in AWS's [terms & conditions](https://aws.amazon.com/activate/terms/) and the [Activate FAQs](https://aws.amazon.com/startups/faq).
 
