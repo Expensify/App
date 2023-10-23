@@ -184,7 +184,7 @@ class AuthScreens extends React.Component {
             App.reconnectApp(this.props.lastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);
+        App.setUpPoliciesAndNavigate(this.props.session);
         App.redirectThirdPartyDesktopSignIn();
 
         // Check if we should be running any demos immediately after signing in.
