@@ -703,13 +703,6 @@ describe('OptionsListUtils', () => {
                 indexOffset: 0,
                 data: [
                     {
-                        text: 'Restaurant',
-                        keyForList: 'Restaurant',
-                        searchText: 'Restaurant',
-                        tooltipText: 'Restaurant',
-                        isDisabled: false,
-                    },
-                    {
                         text: 'Food',
                         keyForList: 'Food',
                         searchText: 'Food',
@@ -721,6 +714,13 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Food: Meat',
                         searchText: 'Food: Meat',
                         tooltipText: 'Meat',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Restaurant',
+                        keyForList: 'Restaurant',
+                        searchText: 'Restaurant',
+                        tooltipText: 'Restaurant',
                         isDisabled: false,
                     },
                 ],
@@ -850,10 +850,24 @@ describe('OptionsListUtils', () => {
                 indexOffset: 2,
                 data: [
                     {
-                        text: 'Restaurant',
-                        keyForList: 'Restaurant',
-                        searchText: 'Restaurant',
-                        tooltipText: 'Restaurant',
+                        text: 'Cars',
+                        keyForList: 'Cars',
+                        searchText: 'Cars',
+                        tooltipText: 'Cars',
+                        isDisabled: true,
+                    },
+                    {
+                        text: '    Audi',
+                        keyForList: 'Cars: Audi',
+                        searchText: 'Cars: Audi',
+                        tooltipText: 'Audi',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    Mercedes-Benz',
+                        keyForList: 'Cars: Mercedes-Benz',
+                        searchText: 'Cars: Mercedes-Benz',
+                        tooltipText: 'Mercedes-Benz',
                         isDisabled: false,
                     },
                     {
@@ -878,24 +892,10 @@ describe('OptionsListUtils', () => {
                         isDisabled: false,
                     },
                     {
-                        text: 'Cars',
-                        keyForList: 'Cars',
-                        searchText: 'Cars',
-                        tooltipText: 'Cars',
-                        isDisabled: true,
-                    },
-                    {
-                        text: '    Audi',
-                        keyForList: 'Cars: Audi',
-                        searchText: 'Cars: Audi',
-                        tooltipText: 'Audi',
-                        isDisabled: false,
-                    },
-                    {
-                        text: '    Mercedes-Benz',
-                        keyForList: 'Cars: Mercedes-Benz',
-                        searchText: 'Cars: Mercedes-Benz',
-                        tooltipText: 'Mercedes-Benz',
+                        text: 'Restaurant',
+                        keyForList: 'Restaurant',
+                        searchText: 'Restaurant',
+                        tooltipText: 'Restaurant',
                         isDisabled: false,
                     },
                     {
