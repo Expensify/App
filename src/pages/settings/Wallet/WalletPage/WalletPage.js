@@ -411,7 +411,9 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                                     src={Expensicons.Exclamation}
                                                                     fill={themeColors.textSupporting}
                                                                 />
-                                                                <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.</Text>
+                                                                <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
+                                                                    Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.
+                                                                </Text>
                                                             </View>
                                                         );
                                                     }
