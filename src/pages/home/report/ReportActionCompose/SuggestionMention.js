@@ -9,6 +9,7 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 import useLocalize from '../../../../hooks/useLocalize';
 import * as SuggestionProps from './suggestionProps';
+import {usePersonalDetails} from '../../../../components/OnyxProvider';
 
 /**
  * Check if this piece of string looks like a mention
@@ -41,7 +42,6 @@ function SuggestionMention({
     selection,
     setSelection,
     isComposerFullSize,
-    personalDetails,
     updateComment,
     composerHeight,
     forwardedRef,
@@ -49,6 +49,7 @@ function SuggestionMention({
     measureParentContainer,
     isComposerFocused,
 }) {
+    const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const {translate} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
