@@ -48,7 +48,9 @@ function useTabNavigatorFocus({cameraTabIndex, isInTabNavigator}) {
 
         const listenerId = tabPositionAnimation.addListener(({value}) => {
             // Activate camera as soon the index is animating towards the `cameraTabIndex`
-            setIsTabFocused(value > index - 1 && value < index + 1);
+            requestAnimationFrame(() => {
+                setIsTabFocused(value > index - 1 && value < index + 1);
+            });
         });
 
         // We need to get the position animation value on component initialization to determine
@@ -57,7 +59,9 @@ function useTabNavigatorFocus({cameraTabIndex, isInTabNavigator}) {
         // eslint-disable-next-line no-underscore-dangle
         const initialTabPositionValue = tabPositionAnimation.__getValue();
 
-        setIsTabFocused(initialTabPositionValue > index - 1 && initialTabPositionValue < index + 1);
+        requestAnimationFrame(() => {
+            setIsTabFocused(initialTabPositionValue > index - 1 && initialTabPositionValue < index + 1);
+        });
 
         return () => {
             tabPositionAnimation.removeListener(listenerId);
