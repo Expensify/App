@@ -1,31 +1,23 @@
-import _ from 'underscore';
 import React, {useState, useRef, useEffect} from 'react';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
+import {View, ViewStyle} from 'react-native';
+import delay from 'lodash/delay';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
-import Image from './Image';
+import Image, {RESIZE_MODES} from './Image';
 
-const propTypes = {
+type ImageWithSizeCalculationProps = {
     /** Url for image to display */
-    url: PropTypes.string.isRequired,
+    url: string;
 
     /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
+    style: ViewStyle;
 
     /** Callback fired when the image has been measured. */
-    onMeasure: PropTypes.func,
+    onMeasure: (args: {width: number; height: number}) => void;
 
     /** Whether the image requires an authToken */
-    isAuthTokenRequired: PropTypes.bool,
-};
-
-const defaultProps = {
-    style: {},
-    onMeasure: () => {},
-    isAuthTokenRequired: false,
+    isAuthTokenRequired: boolean;
 };
 
 /**
@@ -33,23 +25,19 @@ const defaultProps = {
  * Image size must be provided by parent via width and height props. Useful for
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
- *
- * @param {Object} props
- * @returns {React.Component}
- *
  */
-function ImageWithSizeCalculation(props) {
-    const isLoadedRef = useRef(null);
+function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: ImageWithSizeCalculationProps) {
+    const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
 
     const onError = () => {
-        Log.hmmm('Unable to fetch image to calculate size', {url: props.url});
+        Log.hmmm('Unable to fetch image to calculate size', {url});
     };
 
-    const imageLoadedSuccessfully = (event) => {
+    const imageLoadedSuccessfully = (event: {nativeEvent: {width: number; height: number}}) => {
         isLoadedRef.current = true;
-        props.onMeasure({
+        onMeasure({
             width: event.nativeEvent.width,
             height: event.nativeEvent.height,
         });
@@ -57,10 +45,10 @@ function ImageWithSizeCalculation(props) {
 
     /** Delay the loader to detect whether the image is being loaded from the cache or the internet. */
     useEffect(() => {
-        if (isLoadedRef.current || !isLoading) {
+        if (isLoadedRef.current ?? !isLoading) {
             return;
         }
-        const timeout = _.delay(() => {
+        const timeout = delay(() => {
             if (!isLoading || isLoadedRef.current) {
                 return;
             }
@@ -70,14 +58,14 @@ function ImageWithSizeCalculation(props) {
     }, [isLoading]);
 
     return (
-        <View style={[styles.w100, styles.h100, props.style]}>
+        <View style={[styles.w100, styles.h100, style]}>
             <Image
                 style={[styles.w100, styles.h100]}
-                source={{uri: props.url}}
-                isAuthTokenRequired={props.isAuthTokenRequired}
-                resizeMode={Image.resizeMode.cover}
+                source={{uri: url}}
+                isAuthTokenRequired={isAuthTokenRequired}
+                resizeMode={RESIZE_MODES.cover}
                 onLoadStart={() => {
-                    if (isLoadedRef.current || isLoading) {
+                    if (isLoadedRef.current ?? isLoading) {
                         return;
                     }
                     setIsLoading(true);
@@ -94,7 +82,5 @@ function ImageWithSizeCalculation(props) {
     );
 }
 
-ImageWithSizeCalculation.propTypes = propTypes;
-ImageWithSizeCalculation.defaultProps = defaultProps;
 ImageWithSizeCalculation.displayName = 'ImageWithSizeCalculation';
 export default React.memo(ImageWithSizeCalculation);
