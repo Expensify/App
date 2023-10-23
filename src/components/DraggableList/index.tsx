@@ -73,6 +73,7 @@ function DraggableList<T>(
         <ScrollView
             ref={ref}
             style={styles.flex1}
+            contentContainerStyle={styles.flex1}
         >
             <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable

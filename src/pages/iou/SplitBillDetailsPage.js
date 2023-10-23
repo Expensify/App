@@ -133,7 +133,7 @@ function SplitBillDetailsPage(props) {
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
-                            iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                            iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}
                             shouldShowSmartScanFields
                             receiptPath={props.transaction.receipt && props.transaction.receipt.source}
@@ -145,6 +145,7 @@ function SplitBillDetailsPage(props) {
                             reportActionID={reportAction.reportActionID}
                             transactionID={props.transaction.transactionID}
                             onConfirm={onConfirm}
+                            isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(props.report)}
                         />
                     )}
                 </View>

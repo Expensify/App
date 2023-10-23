@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-import {format, isValid} from 'date-fns';
+import moment from 'moment';
 import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
@@ -13,8 +13,8 @@ function DatePicker({maxDate, minDate, onInputChange, innerRef, label, value, pl
     useEffect(() => {
         // Adds nice native datepicker on web/desktop. Not possible to set this through props
         inputRef.current.setAttribute('type', 'date');
-        inputRef.current.setAttribute('max', format(new Date(maxDate), CONST.DATE.FNS_FORMAT_STRING));
-        inputRef.current.setAttribute('min', format(new Date(minDate), CONST.DATE.FNS_FORMAT_STRING));
+        inputRef.current.setAttribute('max', moment(maxDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+        inputRef.current.setAttribute('min', moment(minDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
         inputRef.current.classList.add('expensify-datepicker');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -29,9 +29,9 @@ function DatePicker({maxDate, minDate, onInputChange, innerRef, label, value, pl
             return;
         }
 
-        const date = new Date(text);
-        if (isValid(date)) {
-            onInputChange(format(date, CONST.DATE.FNS_FORMAT_STRING));
+        const asMoment = moment(text, true);
+        if (asMoment.isValid()) {
+            onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
     };
 
