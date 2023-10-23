@@ -5,10 +5,10 @@ const attachmentViewPropTypes = {
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
-    /** URL to full-sized attachment or SVG function */
+    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
     source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
 
-    /** File object maybe be instance of File or Object */
+    /** File object can be an instance of File or Object */
     file: AttachmentsPropTypes.attachmentFilePropType,
 
     /** Whether this view is the active screen  */

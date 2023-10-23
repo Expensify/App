@@ -126,25 +126,25 @@ function AttachmentPickerWithMenuItems({
      */
     const moneyRequestOptions = useMemo(() => {
         const options = {
-            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
+            [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: translate('iou.splitBill'),
             },
-            [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
+            [CONST.IOU.TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: translate('iou.requestMoney'),
             },
-            [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
+            [CONST.IOU.TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: translate('iou.sendMoney'),
             },
         };
 
-        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs, betas), (option) => ({
+        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs), (option) => ({
             ...options[option],
             onSelected: () => IOU.startMoneyRequest(option, report.reportID),
         }));
-    }, [betas, report, reportParticipantIDs, translate]);
+    }, [report, reportParticipantIDs, translate]);
 
     /**
      * Determines if we can show the task option

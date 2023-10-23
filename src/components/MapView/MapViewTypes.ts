@@ -33,6 +33,9 @@ type PendingMapViewProps = {
 
     /** Subtitle message below the title */
     subtitle?: string;
+
+    /** Style applied to PendingMapView */
+    style?: StyleProp<ViewStyle>;
 };
 
 // Initial state of the map

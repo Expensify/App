@@ -50,6 +50,8 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
     const [shouldShowForm, setShouldShowForm] = useState(false);
     const textInputRef = useRef(null);
 
+    const focusTimeoutRef = useRef(null);
+
     const errorText = useMemo(() => {
         if (isPasswordInvalid) {
             return translate('attachmentView.passwordIncorrect');
@@ -67,7 +69,19 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
         if (!textInputRef.current) {
             return;
         }
-        textInputRef.current.focus();
+        /**
+         * We recommend using setTimeout to wait for the animation to finish and then focus on the input
+         * Relevant thread: https://expensify.slack.com/archives/C01GTK53T8Q/p1694660990479979
+         */
+        focusTimeoutRef.current = setTimeout(() => {
+            textInputRef.current.focus();
+        }, CONST.ANIMATED_TRANSITION);
+        return () => {
+            if (!focusTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(focusTimeoutRef.current);
+        };
     }, [isFocused]);
 
     const updatePassword = (newPassword) => {
@@ -95,11 +109,6 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
         onSubmit(password);
     };
 
-    const validateAndNotifyPasswordBlur = () => {
-        validate();
-        onPasswordFieldFocused(false);
-    };
-
     return shouldShowForm ? (
         <ScrollView
             keyboardShouldPersistTaps="handled"
@@ -122,11 +131,11 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 autoCorrect={false}
                 textContentType="password"
                 onChangeText={updatePassword}
-                returnKeyType="done"
+                returnKeyType="go"
                 onSubmitEditing={submitPassword}
                 errorText={errorText}
                 onFocus={() => onPasswordFieldFocused(true)}
-                onBlur={validateAndNotifyPasswordBlur}
+                onBlur={() => onPasswordFieldFocused(false)}
                 autoFocus
                 shouldDelayFocus={shouldDelayFocus}
                 secureTextEntry

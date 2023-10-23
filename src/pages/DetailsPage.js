@@ -48,13 +48,10 @@ const propTypes = {
     /** Route params */
     route: matchType.isRequired,
 
-    /** Login list for the user that is signed in */
-    loginList: PropTypes.shape({
-        /** Date login was validated, used to show info indicator status */
-        validatedDate: PropTypes.string,
-
-        /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
     }),
 
     ...withLocalizePropTypes,
@@ -63,7 +60,9 @@ const propTypes = {
 const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
-    loginList: {},
+    session: {
+        accountID: 0,
+    },
 };
 
 /**
@@ -90,8 +89,6 @@ function DetailsPage(props) {
     let details = _.find(props.personalDetails, (detail) => detail.login === login.toLowerCase());
 
     if (!details) {
-        // TODO: these personal details aren't in my local test account but are in
-        // my staging account, i wonder why!
         if (login === CONST.EMAIL.CONCIERGE) {
             details = {
                 accountID: CONST.ACCOUNT_ID.CONCIERGE,
@@ -123,7 +120,7 @@ function DetailsPage(props) {
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
 
-    const isCurrentUser = _.keys(props.loginList).includes(details.login);
+    const isCurrentUser = props.session.accountID === details.accountID;
 
     return (
         <ScreenWrapper testID={DetailsPage.displayName}>
@@ -225,8 +222,8 @@ export default compose(
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
-        loginList: {
-            key: ONYXKEYS.LOGIN_LIST,
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(DetailsPage);

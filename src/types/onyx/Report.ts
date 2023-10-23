@@ -18,9 +18,6 @@ type Report = {
     /** Indicates if the report is pinned to the LHN or not */
     isPinned?: boolean;
 
-    /** The email of the last message's actor */
-    lastActorEmail?: string;
-
     /** The text of the last message on the report */
     lastMessageText?: string;
 
@@ -38,9 +35,6 @@ type Report = {
 
     /** The email address of the report owner */
     ownerEmail?: string;
-
-    /** List of primarylogins of participants of the report */
-    participants?: string[];
 
     /** Linked policy's ID */
     policyID?: string;
@@ -63,6 +57,7 @@ type Report = {
     /** The report type */
     type?: string;
 
+    lastMessageTranslationKey?: string;
     parentReportID?: string;
     parentReportActionID?: string;
     isOptimisticReport?: boolean;
@@ -78,6 +73,8 @@ type Report = {
     total?: number;
     currency?: string;
     preexistingReportID?: string;
+    /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
+    nonReimbursableTotal?: number;
 };
 
 export default Report;

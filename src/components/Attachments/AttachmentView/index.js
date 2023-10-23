@@ -1,8 +1,9 @@
 import React, {memo, useState} from 'react';
-import {View, ActivityIndicator} from 'react-native';
+import {View, ScrollView, ActivityIndicator} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import Icon from '../../Icon';
 import * as Expensicons from '../../Icon/Expensicons';
@@ -17,7 +18,11 @@ import AttachmentViewPdf from './AttachmentViewPdf';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
+import * as TransactionUtils from '../../../libs/TransactionUtils';
+import DistanceEReceipt from '../../DistanceEReceipt';
 import useNetwork from '../../../hooks/useNetwork';
+import ONYXKEYS from '../../../ONYXKEYS';
+import EReceipt from '../../EReceipt';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -38,6 +43,10 @@ const propTypes = {
 
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
+
+    /** The id of the transaction related to the attachment */
+    // eslint-disable-next-line react/no-unused-prop-types
+    transactionID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -47,6 +56,7 @@ const defaultProps = {
     onToggleKeyboard: () => {},
     containerStyles: [],
     isWorkspaceAvatar: false,
+    transactionID: '',
 };
 
 function AttachmentView({
@@ -64,9 +74,9 @@ function AttachmentView({
     isFocused,
     isWorkspaceAvatar,
     fallbackSource,
+    transaction,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
-
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
@@ -92,9 +102,22 @@ function AttachmentView({
         );
     }
 
-    // Check both source and file.name since PDFs dragged into the the text field
+    if (TransactionUtils.hasEReceipt(transaction)) {
+        return (
+            <View style={[styles.flex1, styles.alignItemsCenter]}>
+                <ScrollView
+                    style={styles.w100}
+                    contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
+                >
+                    <EReceipt transactionID={transaction.transactionID} />
+                </ScrollView>
+            </View>
+        );
+    }
+
+    // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
-    if (Str.isPDF(source) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
+    if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         return (
@@ -113,9 +136,14 @@ function AttachmentView({
         );
     }
 
+    if (TransactionUtils.isDistanceRequest(transaction)) {
+        return <DistanceEReceipt transaction={transaction} />;
+    }
+
     // For this check we use both source and file.name since temporary file source is a blob
-    // both PDFs and images will appear as images when pasted into the the text field
-    const isImage = Str.isImage(source);
+    // both PDFs and images will appear as images when pasted into the text field.
+    // We also check for numeric source since this is how static images (used for preview) are represented in RN.
+    const isImage = typeof source === 'number' || Str.isImage(source);
     if (isImage || (file && Str.isImage(file.name))) {
         return (
             <AttachmentViewImage
@@ -167,4 +195,12 @@ AttachmentView.propTypes = propTypes;
 AttachmentView.defaultProps = defaultProps;
 AttachmentView.displayName = 'AttachmentView';
 
-export default compose(memo, withLocalize)(AttachmentView);
+export default compose(
+    memo,
+    withLocalize,
+    withOnyx({
+        transaction: {
+            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        },
+    }),
+)(AttachmentView);
