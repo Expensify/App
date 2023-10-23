@@ -47,7 +47,7 @@ runs:
 
     - name: Generate a token
       id: generateToken
-      uses: actions/create-github-app-token@v1
+      uses: actions/create-github-app-token@v1.5.0
       with:
         app-id: ${{ inputs.OS_BOTIFY_APP_ID }}
         private-key: ${{ inputs.OS_BOTIFY_PRIVATE_KEY }}
