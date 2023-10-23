@@ -250,7 +250,7 @@ RoomInvitePage.defaultProps = defaultProps;
 RoomInvitePage.displayName = 'RoomInvitePage';
 
 export default compose(
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

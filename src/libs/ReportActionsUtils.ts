@@ -1,4 +1,3 @@
-import {isEqual, max} from 'date-fns';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -90,6 +89,10 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
 
 function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
+}
+
+function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
 }
 
 /**
@@ -370,24 +373,19 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
 /**
  */
 function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
-    const updatedActionsToMerge: ReportActions = {};
+    let reportActions: ReportActions;
     if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
-        Object.keys(actionsToMerge).forEach(
-            (actionToMergeID) => (updatedActionsToMerge[actionToMergeID] = {...allReportActions?.[reportID]?.[actionToMergeID], ...actionsToMerge[actionToMergeID]}),
-        );
+        reportActions = {...allReportActions?.[reportID]};
+        Object.keys(actionsToMerge).forEach((actionToMergeID) => (reportActions[actionToMergeID] = {...allReportActions?.[reportID]?.[actionToMergeID], ...actionsToMerge[actionToMergeID]}));
+    } else {
+        reportActions = allReportActions?.[reportID] ?? {};
     }
-    const actions = Object.values({
-        ...allReportActions?.[reportID],
-        ...updatedActionsToMerge,
-    });
-    const visibleActions = actions.filter((action) => shouldReportActionBeVisibleAsLastAction(action));
-
-    if (visibleActions.length === 0) {
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
+    const sortedReportActions = getSortedReportActions(visibleReportActions, true);
+    if (sortedReportActions.length === 0) {
         return null;
     }
-    const maxDate = max(visibleActions.map((action) => new Date(action.created)));
-    const maxAction = visibleActions.find((action) => isEqual(new Date(action.created), maxDate));
-    return maxAction ?? null;
+    return sortedReportActions[0];
 }
 
 function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions = {}): LastVisibleMessage {
@@ -642,6 +640,7 @@ export {
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
+    isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
 };
