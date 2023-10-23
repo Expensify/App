@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import globalStyles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -10,12 +10,12 @@ type SelectCircleProps = {
     isChecked: boolean;
 
     /** Additional styles to pass to SelectCircle */
-    styles: Array<Record<string, unknown>>;
+    styles: StyleProp<ViewStyle>;
 };
 
 function SelectCircle({isChecked = false, styles = []}: SelectCircleProps) {
     return (
-        <View style={[globalStyles.selectCircle, globalStyles.alignSelfCenter, ...styles]}>
+        <View style={[globalStyles.selectCircle, globalStyles.alignSelfCenter, styles]}>
             {isChecked && (
                 <Icon
                     src={Expensicons.Checkmark}
@@ -25,5 +25,7 @@ function SelectCircle({isChecked = false, styles = []}: SelectCircleProps) {
         </View>
     );
 }
+
+SelectCircle.displayName = 'SelectCircle';
 
 export default SelectCircle;
