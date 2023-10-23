@@ -283,7 +283,7 @@ function isSettled(reportID) {
         return false;
     }
 
-    // APPROVED status is for Personal policies
+    // APPROVED status is for free group policy
     return report.statusNum === CONST.REPORT.STATUS.REIMBURSED || report.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
