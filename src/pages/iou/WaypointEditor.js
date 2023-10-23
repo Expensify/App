@@ -234,7 +234,6 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             renamedInputKeys={{
                                 address: `waypoint${waypointIndex}`,
-                                name: null,
                                 city: null,
                                 country: null,
                                 street: null,
