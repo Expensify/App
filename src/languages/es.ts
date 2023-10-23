@@ -2386,5 +2386,21 @@ export default {
         individual: 'Individual',
         groups: 'Grupos',
         cardsAndDomains: 'Tarjetas y Dominios',
+
+        // TODO: get proper translations
+        overview: 'Overview',
+        connections: 'Connections',
+        categories: 'Categories',
+        tags: 'Tags',
+        tax: 'Tax',
+        perDiem: 'Per diem',
+        exportFormats: 'Export formats',
+        plan: 'Plan',
+
+        companyCards: 'Company cards',
+        domainAdmins: 'Domain admins',
+        domainMembers: 'Domain members',
+        reportingTools: 'Reporting tools',
+        SAML: 'SAML',
     },
 } satisfies EnglishTranslation;
