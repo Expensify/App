@@ -50,7 +50,7 @@ function SuggestionMention({
     measureParentContainer,
     isComposerFocused,
 }) {
-    const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate} = useLocalize();
     const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
