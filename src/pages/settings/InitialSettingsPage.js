@@ -356,14 +356,14 @@ function InitialSettingsPage(props) {
                         </PressableWithoutFeedback>
                     </Tooltip>
                     <PressableWithoutFeedback
-                        style={[styles.mt1, styles.mw100]}
+                        style={[styles.mt1, styles.w100, styles.mw100]}
                         onPress={openProfileSettings}
                         accessibilityLabel={translate('common.profile')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                     >
                         <Tooltip text={translate('common.profile')}>
                             <Text
-                                style={[styles.textHeadline, styles.pre]}
+                                style={[styles.textHeadline, styles.pre, styles.mh2, styles.textAlignCenter]}
                                 numberOfLines={1}
                             >
                                 {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}

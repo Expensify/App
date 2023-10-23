@@ -187,12 +187,14 @@ function ProfilePage(props) {
                                 )}
                             </AttachmentModal>
                             {Boolean(displayName) && (
-                                <Text
-                                    style={[styles.textHeadline, styles.mb6, styles.pre]}
-                                    numberOfLines={1}
-                                >
-                                    {displayName}
-                                </Text>
+                                <View style={[styles.mb6, styles.w100]}>
+                                    <Text
+                                        style={[styles.textHeadline, styles.pre, styles.mh2, styles.textAlignCenter]}
+                                        numberOfLines={1}
+                                    >
+                                        {displayName}
+                                    </Text>
+                                </View>
                             )}
                             {hasStatus && (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
