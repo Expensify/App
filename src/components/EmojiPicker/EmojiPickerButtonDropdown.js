@@ -1,7 +1,6 @@
 import React, {useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import _ from 'lodash';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
 import * as StyleUtils from '../../styles/StyleUtils';
