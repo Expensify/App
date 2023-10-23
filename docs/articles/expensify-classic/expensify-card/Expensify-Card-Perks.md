@@ -23,7 +23,7 @@ Enjoy complimentary cocktails and snacks in a vibrant atmosphere with blazing-fa
 You can sign up for free [here](https://use.expensify.com) if you’re not an Expensify member. If you have any questions, reach out to concierge@expensify.com and [check this out](https://use.expensify.com/lounge) for more info.
 
 ## Swipe to Win
-Swipe to Win is a new [Expensify Card](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fuse.expensify.com%2Fcard) perk that gives cardholders the chance to send a gift to a friend, family member, or essential worker on the frontlines!
+Swipe to Win is a new [Expensify Card](https://use.expensify.com/company-credit-card) perk that gives cardholders the chance to send a gift to a friend, family member, or essential worker on the frontlines!
 
 Winners can choose to Send a Smile or Send a Laugh. To start, we’re offering one gift per option:
 
