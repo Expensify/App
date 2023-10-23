@@ -1637,7 +1637,7 @@ function getTransactionReportName(reportAction) {
  * @param {Object} report
  * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
- * @param {Boolean} isPreviewMessageForParentChatReport If the report is from 1:1 chat
+ * @param {Boolean} isPreviewMessageForParentChatReport
  * @returns  {String}
  */
 function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false) {
