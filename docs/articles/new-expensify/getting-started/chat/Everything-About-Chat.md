@@ -1,6 +1,7 @@
 ---
 title: Everything About Chat
 description: Everything you need to know about Expensify's Chat Features!
+redirect_from: articles/other/Everything-About-Chat/
 ---
 
 <!-- The lines above are required by Jekyll to process the .md file -->

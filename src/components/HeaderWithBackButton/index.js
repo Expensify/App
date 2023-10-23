@@ -46,6 +46,7 @@ function HeaderWithBackButton({
         horizontal: 0,
     },
     threeDotsMenuItems = [],
+    shouldEnableDetailPageNavigation = false,
     children = null,
     shouldOverlay = false,
 }) {
@@ -75,14 +76,14 @@ function HeaderWithBackButton({
                         </PressableWithoutFeedback>
                     </Tooltip>
                 )}
-                {shouldShowAvatarWithDisplay && (
+                {shouldShowAvatarWithDisplay ? (
                     <AvatarWithDisplayName
                         report={report}
                         policy={policy}
                         personalDetails={personalDetails}
+                        shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     />
-                )}
-                {!shouldShowAvatarWithDisplay && (
+                ) : (
                     <Header
                         title={title}
                         subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
@@ -120,7 +121,7 @@ function HeaderWithBackButton({
                     {shouldShowGetAssistanceButton && (
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
-                                onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(guidesCallTaskID))}
+                                onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}

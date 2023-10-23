@@ -3,6 +3,7 @@ import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-nati
 import PropTypes from 'prop-types';
 import variables from '../styles/variables';
 import * as StyleUtils from '../styles/StyleUtils';
+import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
 
 const propTypes = {
     /**
@@ -27,11 +28,15 @@ const propTypes = {
      * @default 0.5
      */
     dimmingValue: PropTypes.number,
+
+    /** Whether the view needs to be rendered offscreen (for Android only) */
+    needsOffscreenAlphaCompositing: PropTypes.bool,
 };
 
 const defaultProps = {
     style: [],
     dimmingValue: variables.hoverDimValue,
+    needsOffscreenAlphaCompositing: false,
 };
 
 function OpacityView(props) {
@@ -48,7 +53,14 @@ function OpacityView(props) {
         }
     }, [props.shouldDim, props.dimmingValue, opacity]);
 
-    return <Animated.View style={[opacityStyle, ...StyleUtils.parseStyleAsArray(props.style)]}>{props.children}</Animated.View>;
+    return (
+        <Animated.View
+            style={[opacityStyle, ...StyleUtils.parseStyleAsArray(props.style)]}
+            needsOffscreenAlphaCompositing={shouldRenderOffscreen ? props.needsOffscreenAlphaCompositing : undefined}
+        >
+            {props.children}
+        </Animated.View>
+    );
 }
 
 OpacityView.displayName = 'OpacityView';

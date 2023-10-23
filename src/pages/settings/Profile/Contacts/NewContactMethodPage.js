@@ -98,6 +98,7 @@ function NewContactMethodPage(props) {
             }}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={NewContactMethodPage.displayName}
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
@@ -121,7 +122,7 @@ function NewContactMethodPage(props) {
                         ref={(el) => (loginInputRef.current = el)}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
-                        returnKeyType="done"
+                        returnKeyType="go"
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>
@@ -132,6 +133,7 @@ function NewContactMethodPage(props) {
 
 NewContactMethodPage.propTypes = propTypes;
 NewContactMethodPage.defaultProps = defaultProps;
+NewContactMethodPage.displayName = 'NewContactMethodPage';
 
 export default compose(
     withLocalize,

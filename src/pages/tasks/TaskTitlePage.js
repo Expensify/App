@@ -79,6 +79,7 @@ function TaskTitlePage(props) {
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             shouldEnableMaxHeight
+            testID={TaskTitlePage.displayName}
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
@@ -119,11 +120,12 @@ function TaskTitlePage(props) {
 
 TaskTitlePage.propTypes = propTypes;
 TaskTitlePage.defaultProps = defaultProps;
+TaskTitlePage.displayName = 'TaskTitlePage';
 
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,

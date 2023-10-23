@@ -47,7 +47,7 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
     };
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={StatusSetPage.displayName}>
             <HeaderWithBackButton
                 title={translate('statusPage.status')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}

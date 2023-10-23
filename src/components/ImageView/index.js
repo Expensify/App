@@ -22,13 +22,16 @@ const propTypes = {
 
     /** image file name */
     fileName: PropTypes.string.isRequired,
+
+    onError: PropTypes.func,
 };
 
 const defaultProps = {
     isAuthTokenRequired: false,
+    onError: () => {},
 };
 
-function ImageView({isAuthTokenRequired, url, fileName}) {
+function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     const [isLoading, setIsLoading] = useState(true);
     const [containerHeight, setContainerHeight] = useState(0);
     const [containerWidth, setContainerWidth] = useState(0);
@@ -238,6 +241,7 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
                     resizeMode={zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
+                    onError={onError}
                 />
                 {(isLoading || zoomScale === 0) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
             </View>
@@ -268,6 +272,7 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
                     resizeMode={Image.resizeMode.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
+                    onError={onError}
                 />
             </PressableWithoutFeedback>
 

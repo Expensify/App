@@ -71,6 +71,16 @@ function isSidebarLoadedReady() {
     return sidebarIsReadyPromise;
 }
 
+function compareStringDates(stringA, stringB) {
+    if (stringA < stringB) {
+        return -1;
+    }
+    if (stringA > stringB) {
+        return 1;
+    }
+    return 0;
+}
+
 function setIsSidebarLoadedReady() {
     resolveSidebarIsReadyPromise();
 }
@@ -148,7 +158,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReportsDict);
+        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReportsDict);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -184,12 +194,13 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     pinnedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     outstandingIOUReports.sort((a, b) => b.iouReportAmount - a.iouReportAmount || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     draftReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
+
     if (isInDefaultMode) {
         nonArchivedReports.sort(
-            (a, b) => new Date(b.lastVisibleActionCreated) - new Date(a.lastVisibleActionCreated) || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()),
+            (a, b) => compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()),
         );
         // For archived reports ensure that most recent reports are at the top by reversing the order
-        archivedReports.sort((a, b) => new Date(a.lastVisibleActionCreated) - new Date(b.lastVisibleActionCreated));
+        archivedReports.sort((a, b) => compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated));
     } else {
         nonArchivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
         archivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
@@ -210,9 +221,10 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
  * @param {Object} personalDetails
  * @param {String} preferredLocale
  * @param {Object} [policy]
+ * @param {Object} parentReportAction
  * @returns {Object}
  */
-function getOptionData(report, reportActions, personalDetails, preferredLocale, policy) {
+function getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -266,8 +278,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
     if (result.isTaskReport) {
-        result.isCompletedTaskReport = ReportUtils.isCompletedTaskReport(report);
-        result.isTaskAssignee = ReportUtils.isReportManager(report);
+        result.isWaitingForTaskCompleteFromAssignee = ReportUtils.isWaitingForTaskCompleteFromAssignee(report, parentReportAction);
     }
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -320,9 +331,9 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
               }
             : null;
     }
-    let lastMessageText =
-        hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
-    lastMessageText += report ? lastMessageTextFromReport : '';
+    const lastActorDisplayName =
+        hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? lastActorDetails.displayName : '';
+    let lastMessageText = lastMessageTextFromReport;
 
     if (result.isArchivedRoom) {
         const archiveReason =
@@ -336,15 +347,45 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
         const lastAction = visibleReportActionItems[report.reportID];
-        if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+        if (lastAction && lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lodashGet(lastAction, 'originalMessage.newName', '');
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
-        } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}: ${report.reportName}`;
-        } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
-            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}: ${report.reportName}`;
+        } else if (lastAction && lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
+            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}`;
+        } else if (lastAction && lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
+            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}`;
+        } else if (
+            lastAction &&
+            _.includes(
+                [
+                    CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM,
+                    CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM,
+                    CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM,
+                    CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM,
+                ],
+                lastAction.actionName,
+            )
+        ) {
+            const targetAccountIDs = lodashGet(lastAction, 'originalMessage.targetAccountIDs', []);
+            const verb =
+                lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                    ? 'invited'
+                    : 'removed';
+            const users = targetAccountIDs.length > 1 ? 'users' : 'user';
+            result.alternateText = `${verb} ${targetAccountIDs.length} ${users}`;
+
+            const roomName = lodashGet(lastAction, 'originalMessage.roomName', '');
+            if (roomName) {
+                const preposition =
+                    lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                        ? ' to'
+                        : ' from';
+                result.alternateText += `${preposition} ${roomName}`;
+            }
+        } else if (lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
+            result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
-            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = lastAction && lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
     } else {
         if (!lastMessageText) {
@@ -371,7 +412,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result);
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail.accountID;
@@ -385,7 +426,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), true, '', -1, policy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
     result.isLastMessageDeletedParentAction = report.isLastMessageDeletedParentAction;

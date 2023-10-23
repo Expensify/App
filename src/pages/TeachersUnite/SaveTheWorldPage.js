@@ -14,15 +14,9 @@ import Text from '../../components/Text';
 import MenuItem from '../../components/MenuItem';
 import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
 import * as LottieAnimations from '../../components/LottieAnimations';
-import * as LoginUtils from '../../libs/LoginUtils';
 import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
-    /** Current user session */
-    session: PropTypes.shape({
-        /** Current user primary login */
-        email: PropTypes.string.isRequired,
-    }),
     /** The list of this user's policies */
     policy: PropTypes.shape({
         /** The user's role in the policy */
@@ -31,24 +25,12 @@ const propTypes = {
 };
 
 const defaultProps = {
-    session: {
-        email: null,
-    },
     policy: {},
 };
 
 function SaveTheWorldPage(props) {
     const {translate} = useLocalize();
-    const isLoggedInEmailPublicDomain = LoginUtils.isEmailPublicDomain(props.session.email);
     const isTeacherAlreadyInvited = !_.isUndefined(props.policy) && props.policy.role === CONST.POLICY.ROLE.USER;
-
-    const handleNavigation = () => {
-        if (isLoggedInEmailPublicDomain) {
-            Navigation.navigate(ROUTES.I_AM_A_TEACHER);
-        } else {
-            Navigation.navigate(ROUTES.INTRO_SCHOOL_PRINCIPAL);
-        }
-    };
 
     return (
         <IllustratedHeaderPageLayout
@@ -73,7 +55,7 @@ function SaveTheWorldPage(props) {
                 <MenuItem
                     shouldShowRightIcon
                     title={translate('teachersUnitePage.iAmATeacher')}
-                    onPress={handleNavigation}
+                    onPress={() => Navigation.navigate(ROUTES.I_AM_A_TEACHER)}
                 />
             )}
         </IllustratedHeaderPageLayout>
@@ -85,9 +67,6 @@ SaveTheWorldPage.defaultProps = defaultProps;
 SaveTheWorldPage.displayName = 'SaveTheWorldPage';
 
 export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
     policy: {
         key: () => `${ONYXKEYS.COLLECTION.POLICY}${CONST.TEACHERS_UNITE.POLICY_ID}`,
     },

@@ -31,23 +31,39 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         ];
     }, [selectedCategory]);
 
+    const sections = useMemo(() => {
+        const validPolicyRecentlyUsedCategories = _.filter(policyRecentlyUsedCategories, (p) => !_.isEmpty(p));
+        const {categoryOptions} = OptionsListUtils.getFilteredOptions(
+            {},
+            {},
+            [],
+            searchValue,
+            selectedOptions,
+            [],
+            false,
+            false,
+            true,
+            policyCategories,
+            validPolicyRecentlyUsedCategories,
+            false,
+        );
+
+        return categoryOptions;
+    }, [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions]);
+
     const initialFocusedIndex = useMemo(() => {
-        if (isCategoriesCountBelowThreshold && selectedOptions.length > 0) {
-            return _.chain(policyCategories)
-                .values()
-                .findIndex((category) => category.name === selectedOptions[0].name, true)
-                .value();
+        let categoryInitialFocusedIndex = 0;
+
+        if (!_.isEmpty(searchValue) || isCategoriesCountBelowThreshold) {
+            const index = _.findIndex(lodashGet(sections, '[0].data', []), (category) => category.searchText === selectedCategory);
+
+            categoryInitialFocusedIndex = index === -1 ? 0 : index;
         }
 
-        return 0;
-    }, [policyCategories, selectedOptions, isCategoriesCountBelowThreshold]);
+        return categoryInitialFocusedIndex;
+    }, [selectedCategory, searchValue, isCategoriesCountBelowThreshold, sections]);
 
-    const sections = useMemo(
-        () => OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, true, policyCategories, policyRecentlyUsedCategories, false).categoryOptions,
-        [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions],
-    );
-
-    const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
     const shouldShowTextInput = !isCategoriesCountBelowThreshold;
 
     return (

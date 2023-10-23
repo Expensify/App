@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -20,6 +20,7 @@ import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import variables from '../styles/variables';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** Beta features list */
@@ -34,22 +35,27 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    isSearchingForReports: false,
 };
 
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) {
+function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports}) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState();
     const [selectedOptions, setSelectedOptions] = useState([]);
+    const {isOffline} = useNetwork();
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -65,13 +71,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
         const sectionsList = [];
         let indexOffset = 0;
 
-        sectionsList.push({
-            title: undefined,
-            data: selectedOptions,
-            shouldShow: !_.isEmpty(selectedOptions),
-            indexOffset,
-        });
-        indexOffset += selectedOptions.length;
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, {}, false, indexOffset);
+        sectionsList.push(formatResults.section);
+        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return sectionsList;
@@ -103,7 +105,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
         }
 
         return sectionsList;
-    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions]);
+    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions, searchTerm]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -124,7 +126,24 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
             recentReports,
             personalDetails: newChatPersonalDetails,
             userToInvite,
-        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, newSelectedOptions, excludedGroupEmails);
+        } = OptionsListUtils.getFilteredOptions(
+            reports,
+            personalDetails,
+            betas,
+            searchTerm,
+            newSelectedOptions,
+            isGroupChat ? excludedGroupEmails : [],
+            false,
+            true,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            true,
+        );
 
         setSelectedOptions(newSelectedOptions);
         setFilteredRecentReports(recentReports);
@@ -159,7 +178,24 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
             recentReports,
             personalDetails: newChatPersonalDetails,
             userToInvite,
-        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, selectedOptions, isGroupChat ? excludedGroupEmails : []);
+        } = OptionsListUtils.getFilteredOptions(
+            reports,
+            personalDetails,
+            betas,
+            searchTerm,
+            selectedOptions,
+            isGroupChat ? excludedGroupEmails : [],
+            false,
+            true,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            true,
+        );
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
@@ -167,12 +203,20 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports, personalDetails, searchTerm]);
 
+    // When search term updates we will fetch any reports
+    const setSearchTermAndSearchInServer = useCallback((text = '') => {
+        if (text.length) {
+            Report.searchInServer(text);
+        }
+        setSearchTerm(text);
+    }, []);
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
             includeSafeAreaPaddingBottom={false}
             includePaddingTop={false}
             shouldEnableMaxHeight
+            testID={NewChatPage.displayName}
         >
             {({safeAreaPaddingBottomStyle, insets}) => (
                 <KeyboardAvoidingView
@@ -194,16 +238,18 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
                             selectedOptions={selectedOptions}
                             value={searchTerm}
                             onSelectRow={(option) => createChat(option)}
-                            onChangeText={setSearchTerm}
+                            onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             boldStyle
-                            shouldFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                             shouldShowOptions={isOptionsDataReady}
                             shouldShowConfirmButton
                             confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
+                            textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             onConfirmSelection={createGroup}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            isLoadingNewOptions={isSearchingForReports}
                         />
                     </View>
                 </KeyboardAvoidingView>
@@ -228,6 +274,10 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isSearchingForReports: {
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            initWithStoredValues: false,
         },
     }),
 )(NewChatPage);

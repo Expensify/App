@@ -61,7 +61,7 @@ const propTypes = {
     size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.func,
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
 
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
@@ -296,6 +296,7 @@ class AvatarWithImagePicker extends React.Component {
                         headerTitle={this.props.headerTitle}
                         source={this.props.previewSource}
                         originalFileName={this.props.originalFileName}
+                        fallbackSource={this.props.fallbackIcon}
                     >
                         {({show}) => (
                             <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>

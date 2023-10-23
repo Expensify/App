@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
+import {isBefore} from 'date-fns';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
@@ -460,7 +460,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP) {
         return false;
     }
 
-    return moment().isBefore(moment(blockedFromConciergeNVP.expiresAt), 'day');
+    return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
 function triggerNotifications(onyxUpdates) {
@@ -471,8 +471,10 @@ function triggerNotifications(onyxUpdates) {
 
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = _.values(update.value);
-        const sortedReportActions = ReportActionsUtils.getSortedReportActions(reportActions);
-        Report.showReportActionNotification(reportID, _.last(sortedReportActions));
+
+        // eslint-disable-next-line rulesdir/no-negated-variables
+        const notifiableActions = _.filter(reportActions, (action) => ReportActionsUtils.isNotifiableReportAction(action));
+        _.each(notifiableActions, (action) => Report.showReportActionNotification(reportID, action));
     });
 }
 
@@ -539,7 +541,7 @@ function subscribeToUserEvents() {
 
 /**
  * Sync preferredSkinTone with Onyx and Server
- * @param {String} skinTone
+ * @param {Number} skinTone
  */
 function updatePreferredSkinTone(skinTone) {
     const optimisticData = [

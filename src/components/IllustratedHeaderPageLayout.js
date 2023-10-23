@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Lottie from 'lottie-react-native';
+import Lottie from './Lottie';
 import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
