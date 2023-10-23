@@ -191,7 +191,7 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
             if (node.declaration.type === 'Identifier') {
                 const prevDeclaration = node.declaration;
                 if (newHOCs.length === 1) {
-                    node.declartion = {
+                    node.declaration = {
                         type: 'CallExpression',
                         callee: newHOCs[0],
                         arguments: [prevDeclaration],
