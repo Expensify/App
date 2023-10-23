@@ -6,6 +6,8 @@ type WalletTerms = {
 
     /** When the user accepts the Wallet's terms in order to pay an IOU, this is the ID of the chatReport the IOU is linked to */
     chatReportID?: string;
+
+    source?: string;
 };
 
 export default WalletTerms;
