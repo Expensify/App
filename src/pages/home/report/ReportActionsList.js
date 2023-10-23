@@ -327,7 +327,7 @@ function ReportActionsList({
                 report={report}
                 linkedReportActionID={linkedReportActionID}
                 hasOutstandingIOU={hasOutstandingIOU}
-                sortedReportActions={sortedReportActions}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}

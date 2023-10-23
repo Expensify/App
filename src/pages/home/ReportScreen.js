@@ -1,10 +1,10 @@
-import React, {useRef, useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useRef, useState, useEffect, useMemo, useCallback, memo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
+import _, {isEqual} from 'underscore';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -163,8 +163,9 @@ function ReportScreen({
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
+    const isEmptyChat = useMemo(() => _.isEmpty(reportActions), [reportActions]);
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingReportActions;
+    const isLoadingInitialReportActions = isEmptyChat && reportMetadata.isLoadingReportActions;
 
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
 
@@ -173,6 +174,10 @@ function ReportScreen({
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const lastReportAction = useMemo(
+        () => _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action)),
+        [reportActions, parentReportAction],
+    );
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
@@ -252,16 +257,6 @@ function ReportScreen({
     const chatWithAccountManager = useCallback(() => {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID));
     }, [accountManagerReportID]);
-
-    /**
-     * @param {String} text
-     */
-    const onSubmitComment = useCallback(
-        (text) => {
-            Report.addComment(getReportID(route), text);
-        },
-        [route],
-    );
 
     useFocusEffect(
         useCallback(() => {
@@ -441,14 +436,15 @@ function ReportScreen({
 
                                 {isReportReadyForDisplay ? (
                                     <ReportFooter
-                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        reportActions={reportActions}
                                         report={report}
+                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                        reportID={reportID}
                                         isComposerFullSize={isComposerFullSize}
-                                        onSubmitComment={onSubmitComment}
                                         policies={policies}
                                         listHeight={listHeight}
                                         personalDetails={personalDetails}
+                                        isEmptyChat={isEmptyChat}
+                                        lastReportAction={lastReportAction}
                                     />
                                 ) : (
                                     <ReportFooter isReportReadyForDisplay={false} />
@@ -515,4 +511,24 @@ export default compose(
         },
         true,
     ),
-)(ReportScreen);
+)(
+    memo(
+        ReportScreen,
+        (prevProps, nextProps) =>
+            prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
+            isEqual(prevProps.reportActions, nextProps.reportActions) &&
+            isEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
+            prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
+            isEqual(prevProps.betas, nextProps.betas) &&
+            isEqual(prevProps.policies, nextProps.policies) &&
+            prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
+            isEqual(prevProps.personalDetails, nextProps.personalDetails) &&
+            prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
+            prevProps.report.reportID === nextProps.report.reportID &&
+            prevProps.report.policyID === nextProps.report.policyID &&
+            prevProps.report.isOptimisticReport === nextProps.report.isOptimisticReport &&
+            prevProps.report.statusNum === nextProps.report.statusNum &&
+            isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
+            prevProps.currentReportID === nextProps.currentReportID,
+    ),
+);

@@ -179,6 +179,14 @@ function ReportActionsView(props) {
         }
     };
 
+    const report = useMemo(
+        () => ({
+            lastReadTime: props.report.lastReadTime,
+            reportID: props.report.reportID,
+        }),
+        [props.report.lastReadTime, props.report.reportID],
+    );
+
     // Comments have not loaded at all yet do nothing
     if (!_.size(props.reportActions)) {
         return null;
@@ -187,7 +195,7 @@ function ReportActionsView(props) {
     return (
         <>
             <ReportActionsList
-                report={props.report}
+                report={report}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}

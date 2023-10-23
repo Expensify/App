@@ -22,9 +22,6 @@ const propTypes = {
     /** Whether the option has an outstanding IOU */
     hasOutstandingIOU: PropTypes.bool,
 
-    /** Sorted actions prepared for display */
-    sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)).isRequired,
-
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID: PropTypes.string,
 
@@ -36,6 +33,8 @@ const propTypes = {
 
     /** Linked report action ID */
     linkedReportActionID: PropTypes.string,
+
+    displayAsGroup: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -49,7 +48,7 @@ function ReportActionsListItemRenderer({
     index,
     report,
     hasOutstandingIOU,
-    sortedReportActions,
+    displayAsGroup,
     mostRecentIOUReportActionID,
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
@@ -73,7 +72,7 @@ function ReportActionsListItemRenderer({
             report={report}
             action={reportAction}
             linkedReportActionID={linkedReportActionID}
-            displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
+            displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
                 (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&

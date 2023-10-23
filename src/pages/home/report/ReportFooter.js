@@ -1,14 +1,14 @@
-import React from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import {View, Keyboard} from 'react-native';
+import {isEqual} from 'underscore';
 import CONST from '../../../CONST';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import AnonymousReportFooter from '../../../components/AnonymousReportFooter';
 import SwipeableView from '../../../components/SwipeableView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
-import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import useNetwork from '../../../hooks/useNetwork';
@@ -19,25 +19,21 @@ import reportPropTypes from '../../reportPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Session from '../../../libs/actions/Session';
 import participantPropTypes from '../../../components/participantPropTypes';
+import * as Report from '../../../libs/actions/Report';
 
 const propTypes = {
     /** Report object for the current report */
     report: reportPropTypes,
 
-    /** Report actions for the current report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    lastReportAction: PropTypes.shape(reportActionPropTypes),
 
-    /** Callback fired when the comment is submitted */
-    onSubmitComment: PropTypes.func,
+    isEmptyChat: PropTypes.bool,
 
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
-
-    /** Whether the composer input should be shown */
-    shouldShowComposeInput: PropTypes.bool,
 
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
@@ -53,14 +49,13 @@ const propTypes = {
 
 const defaultProps = {
     report: {reportID: '0'},
-    reportActions: [],
-    onSubmitComment: () => {},
     pendingAction: null,
     personalDetails: {},
-    shouldShowComposeInput: true,
     shouldDisableCompose: false,
     listHeight: 0,
     isReportReadyForDisplay: true,
+    lastReportAction: null,
+    isEmptyChat: true,
 };
 
 function ReportFooter(props) {
@@ -71,6 +66,33 @@ function ReportFooter(props) {
 
     const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = ReportUtils.shouldDisableWriteActions(props.report);
+
+    const [shouldShowComposeInput, setShouldShowComposeInput] = useState(false);
+
+    useEffect(() => {
+        // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
+        const connID = Onyx.connect({
+            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+            callback: (val) => {
+                if (val === shouldShowComposeInput) {
+                    return;
+                }
+                setShouldShowComposeInput(val);
+            },
+        });
+
+        return () => {
+            Onyx.disconnect(connID);
+        };
+    }, [shouldShowComposeInput]);
+
+    const onSubmitComment = useCallback(
+        (text) => {
+            Report.addComment(props.reportID, text);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
+    );
 
     return (
         <>
@@ -89,14 +111,14 @@ function ReportFooter(props) {
                     )}
                 </View>
             )}
-            {!hideComposer && (props.shouldShowComposeInput || !props.isSmallScreenWidth) && (
+            {!hideComposer && (shouldShowComposeInput || !props.isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, props.isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
-                            onSubmit={props.onSubmitComment}
-                            reportID={props.report.reportID.toString()}
-                            reportActions={props.reportActions}
-                            report={props.report}
+                            onSubmit={onSubmitComment}
+                            reportID={props.reportID}
+                            isEmptyChat={props.isEmptyChat}
+                            lastReportAction={props.lastReportAction}
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
                             disabled={props.shouldDisableCompose}
@@ -113,12 +135,17 @@ function ReportFooter(props) {
 ReportFooter.displayName = 'ReportFooter';
 ReportFooter.propTypes = propTypes;
 ReportFooter.defaultProps = defaultProps;
-export default compose(
-    withWindowDimensions,
-    withOnyx({
-        shouldShowComposeInput: {
-            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
-            initialValue: false,
-        },
-    }),
-)(ReportFooter);
+
+export default withWindowDimensions(
+    memo(
+        ReportFooter,
+        (prevProps, nextProps) =>
+            isEqual(prevProps.report, nextProps.report) &&
+            isEqual(prevProps.reportActions, nextProps.reportActions) &&
+            isEqual(prevProps.personalDetails, nextProps.personalDetails) &&
+            prevProps.pendingAction === nextProps.pendingAction &&
+            prevProps.shouldDisableCompose === nextProps.shouldDisableCompose &&
+            prevProps.listHeight === nextProps.listHeight &&
+            prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay,
+    ),
+);
