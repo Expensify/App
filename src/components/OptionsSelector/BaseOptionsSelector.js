@@ -396,6 +396,9 @@ class BaseOptionsSelector extends Component {
                 spellCheck={false}
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
                 isLoading={this.props.isLoadingNewOptions}
+                autoGrowHeight
+                containerStyles={[styles.autoGrowHeightMultilineInput]}
+                inputStyle={[styles.h4]}
             />
         );
         const optionsList = (

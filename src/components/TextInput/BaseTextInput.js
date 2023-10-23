@@ -295,7 +295,7 @@ function BaseTextInput(props) {
                             </>
                         ) : null}
                         <View
-                            style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer]}
+                            style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.overflowHidden]}
                             pointerEvents="box-none"
                         >
                             {Boolean(props.prefixCharacter) && (
@@ -346,6 +346,7 @@ function BaseTextInput(props) {
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
                                     // Add disabled color theme when field is not editable.
                                     props.disabled && styles.textInputDisabled,
+                                    styles.overflowHidden,
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={props.maxLength}
@@ -368,7 +369,7 @@ function BaseTextInput(props) {
                                 <ActivityIndicator
                                     size="small"
                                     color={themeColors.iconSuccessFill}
-                                    style={[styles.mt4, styles.ml1]}
+                                    style={[styles.mt4, styles.ml1, styles.alignSelfEnd]}
                                 />
                             )}
                             {Boolean(props.secureTextEntry) && (
