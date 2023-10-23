@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -118,11 +118,11 @@ function LoungeAccessPage({
         // The .format('LL') returns localized format of the date:
         // - 1 November 2023 - for English language
         // - 1 de noviembre de 2023 - for Spanish language
-        const dayMonthYear = format(new Date(nextCheckInReset), CONST.DATE.LOCALIZED_DATE_FORMAT)
+        const dayMonthYear = format(new Date(nextCheckInReset), CONST.DATE.LOCALIZED_DATE_FORMAT);
 
         // We only care about the day and the month, so we
         // get rid of the year for both languages:
-        return dayMonthYear.replace(/ (?:de )?\d{4}$/, '') // Drop English or Spanish year
+        return dayMonthYear.replace(/ (?:de )?\d{4}$/, '');
     }, [nextCheckInReset, preferredLocale]);
 
     if (!hasLoungeAccess) {
