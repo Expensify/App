@@ -6,13 +6,13 @@ import Tab from '../actions/Tab';
 import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
-    /* ID of the tab component to be saved in onyx */
+    /** ID of the tab component to be saved in onyx */
     id: PropTypes.string.isRequired,
 
-    /* Name of the selected tab */
+    /** Name of the selected tab */
     selectedTab: PropTypes.string,
 
-    /* Children nodes */
+    /** Children nodes */
     children: PropTypes.node.isRequired,
 };
 

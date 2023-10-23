@@ -78,7 +78,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
     const initialMousePosition = useRef({x: 0, y: 0});
 
     const updateTargetAndMousePosition = useCallback((e) => {
-        target.current = e.target;
+        target.current = e.currentTarget;
         initialMousePosition.current = {x: e.clientX, y: e.clientY};
     }, []);
 
