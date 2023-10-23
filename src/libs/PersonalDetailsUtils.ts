@@ -1,45 +1,41 @@
-import lodashGet from 'lodash/get';
-import Onyx from 'react-native-onyx';
-import _ from 'underscore';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
+import * as OnyxTypes from '../types/onyx';
 
-let personalDetails = [];
-let allPersonalDetails = {};
+type PersonalDetailsList = Record<string, OnyxTypes.PersonalDetails | null>;
+
+let personalDetails: OnyxTypes.PersonalDetails[] = [];
+let allPersonalDetails: OnyxEntry<Record<string, OnyxTypes.PersonalDetails>> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        personalDetails = _.values(val);
+        personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
     },
 });
 
 /**
- * @param {Object} passedPersonalDetails
- * @param {Array} pathToDisplayName
- * @param {String} [defaultValue] optional default display name value
- * @returns {String}
+ * @param [defaultValue] optional default display name value
  */
-function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
-    const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
-
-    return displayName || defaultValue || Localize.translateLocal('common.hidden');
+function getDisplayNameOrDefault(displayName: string, defaultValue?: string): string {
+    return displayName ?? defaultValue ?? Localize.translateLocal('common.hidden');
 }
 
 /**
  * Given a list of account IDs (as number) it will return an array of personal details objects.
- * @param {Array<number>} accountIDs  - Array of accountIDs
- * @param {Number} currentUserAccountID
- * @param {Boolean} shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
- * @returns {Array} - Array of personal detail objects
+ * @param accountIDs  - Array of accountIDs
+ * @param currentUserAccountID
+ * @param shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
+ * @returns - Array of personal detail objects
  */
-function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeUserDisplayName = false) {
-    return _.chain(accountIDs)
-        .filter((accountID) => !!allPersonalDetails[accountID])
+function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: number, shouldChangeUserDisplayName = false): OnyxTypes.PersonalDetails[] {
+    const result: OnyxTypes.PersonalDetails[] = accountIDs
+        .filter((accountID) => !!allPersonalDetails?.[accountID])
         .map((accountID) => {
-            const detail = allPersonalDetails[accountID];
+            const detail = (allPersonalDetails?.[accountID] ?? {}) as OnyxTypes.PersonalDetails;
 
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 return {
@@ -49,69 +45,62 @@ function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeU
             }
 
             return detail;
-        })
-        .value();
+        });
+
+    return result;
 }
 
 /**
  * Given a list of logins, find the associated personal detail and return related accountIDs.
  *
- * @param {Array<string>} logins Array of user logins
- * @returns {Array} - Array of accountIDs according to passed logins
+ * @param logins Array of user logins
+ * @returns Array of accountIDs according to passed logins
  */
-function getAccountIDsByLogins(logins) {
-    return _.reduce(
-        logins,
-        (foundAccountIDs, login) => {
-            const currentDetail = _.find(personalDetails, (detail) => detail.login === login);
-            if (!currentDetail) {
-                // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
-                foundAccountIDs.push(UserUtils.generateAccountID(login));
-            } else {
-                foundAccountIDs.push(Number(currentDetail.accountID));
-            }
-            return foundAccountIDs;
-        },
-        [],
-    );
+function getAccountIDsByLogins(logins: string[]): number[] {
+    return logins.reduce((foundAccountIDs: number[], login) => {
+        const currentDetail = personalDetails.find((detail) => detail.login === login);
+        if (!currentDetail) {
+            // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
+            foundAccountIDs.push(UserUtils.generateAccountID(login));
+        } else {
+            foundAccountIDs.push(Number(currentDetail.accountID));
+        }
+        return foundAccountIDs;
+    }, []);
 }
 
 /**
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
- * @param {Array<number>} accountIDs Array of user accountIDs
- * @returns {Array} - Array of logins according to passed accountIDs
+ * @param accountIDs Array of user accountIDs
+ * @returns Array of logins according to passed accountIDs
  */
-function getLoginsByAccountIDs(accountIDs) {
-    return _.reduce(
-        accountIDs,
-        (foundLogins, accountID) => {
-            const currentDetail = _.find(personalDetails, (detail) => Number(detail.accountID) === Number(accountID)) || {};
-            if (currentDetail.login) {
-                foundLogins.push(currentDetail.login);
-            }
-            return foundLogins;
-        },
-        [],
-    );
+function getLoginsByAccountIDs(accountIDs: number[]): string[] {
+    return accountIDs.reduce((foundLogins: string[], accountID) => {
+        const currentDetail: Partial<OnyxTypes.PersonalDetails> = personalDetails.find((detail) => Number(detail.accountID) === Number(accountID)) ?? {};
+        if (currentDetail.login) {
+            foundLogins.push(currentDetail.login);
+        }
+        return foundLogins;
+    }, []);
 }
 
 /**
  * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored
  *
- * @param {Array<string>} logins Array of user logins
- * @param {Array<number>} accountIDs Array of user accountIDs
- * @returns {Object} - Object with optimisticData, successData and failureData (object of personal details objects)
+ * @param logins Array of user logins
+ * @param accountIDs Array of user accountIDs
+ * @returns Object with optimisticData, successData and failureData (object of personal details objects)
  */
-function getNewPersonalDetailsOnyxData(logins, accountIDs) {
-    const optimisticData = {};
-    const successData = {};
-    const failureData = {};
+function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]) {
+    const optimisticData: PersonalDetailsList = {};
+    const successData: PersonalDetailsList = {};
+    const failureData: PersonalDetailsList = {};
 
-    _.each(logins, (login, index) => {
+    logins.forEach((login, index) => {
         const accountID = accountIDs[index];
 
-        if (_.isEmpty(allPersonalDetails[accountID])) {
+        if (allPersonalDetails && Object.keys(allPersonalDetails[accountID]).length === 0) {
             optimisticData[accountID] = {
                 login,
                 accountID,
@@ -155,23 +144,24 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
 /**
  * Applies common formatting to each piece of an address
  *
- * @param {String} piece - address piece to format
- * @returns {String} - formatted piece
+ * @param piece - address piece to format
+ * @returns - formatted piece
  */
-function formatPiece(piece) {
+function formatPiece(piece?: string): string {
     return piece ? `${piece}, ` : '';
 }
 
 /**
  * Formats an address object into an easily readable string
  *
- * @param {OnyxTypes.PrivatePersonalDetails} privatePersonalDetails - details object
- * @returns {String} - formatted address
+ * @param privatePersonalDetails - details object
+ * @returns - formatted address
  */
-function getFormattedAddress(privatePersonalDetails) {
+function getFormattedAddress(privatePersonalDetails: OnyxTypes.PrivatePersonalDetails): string {
     const {address} = privatePersonalDetails;
-    const [street1, street2] = (address.street || '').split('\n');
-    const formattedAddress = formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
+    const [street1, street2] = (address?.street ?? '').split('\n');
+    const formattedAddress =
+        formatPiece(street1) + formatPiece(street2) + formatPiece(address?.city) + formatPiece(address?.state) + formatPiece(address?.zip) + formatPiece(address?.country);
 
     // Remove the last comma of the address
     return formattedAddress.trim().replace(/,$/, '');
