@@ -2,12 +2,14 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import React, {useRef, useMemo} from 'react';
+import React, {useEffect, useRef, useMemo} from 'react';
 import {deepEqual} from 'fast-equals';
+import {withReportCommentDrafts} from '../OnyxProvider';
 import SidebarUtils from '../../libs/SidebarUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
+import * as Report from '../../libs/actions/Report';
 import * as UserUtils from '../../libs/UserUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
@@ -68,7 +70,21 @@ const defaultProps = {
  * The OptionRowLHN component is memoized, so it will only
  * re-render if the data really changed.
  */
-function OptionRowLHNData({isFocused, fullReport, reportActions, personalDetails, preferredLocale, policy, receiptTransactions, parentReportActions, transaction, ...propsToForward}) {
+function OptionRowLHNData({
+    isFocused,
+    fullReport,
+    reportActions,
+    personalDetails,
+    preferredLocale,
+    comment,
+    policy,
+    receiptTransactions,
+    parentReportActions,
+    transaction,
+    ...propsToForward
+}) {
+    const reportID = propsToForward.reportID;
+
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
     const optionItemRef = useRef();
@@ -92,6 +108,14 @@ function OptionRowLHNData({isFocused, fullReport, reportActions, personalDetails
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
+
+    useEffect(() => {
+        if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
+            return;
+        }
+        Report.setReportWithDraft(reportID, true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <OptionRowLHN
@@ -140,6 +164,13 @@ const personalDetailsSelector = (personalDetails) =>
  */
 export default React.memo(
     compose(
+        withReportCommentDrafts({
+            propName: 'comment',
+            transformValue: (drafts, props) => {
+                const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
+                return lodashGet(drafts, draftKey, '');
+            },
+        }),
         withOnyx({
             fullReport: {
                 key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
