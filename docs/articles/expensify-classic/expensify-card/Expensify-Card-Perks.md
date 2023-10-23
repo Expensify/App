@@ -20,7 +20,7 @@ We invite you to visit our sleek San Francisco lounge, where sweeping city views
 
 Enjoy complimentary cocktails and snacks in a vibrant atmosphere with blazing-fast WiFi. Whether you want a place to focus on work, socialize with other members, or simply kick back and relax – our lounge is ready and waiting to welcome you.
 
-You can sign up for free [here](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fuse.expensify.com%2F) if you’re not an Expensify member. If you have any questions, reach out to concierge@expensify.com and [check](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fuse.expensify.com%2Flounges) this out for more info.
+You can sign up for free [here](https://use.expensify.com) if you’re not an Expensify member. If you have any questions, reach out to concierge@expensify.com and [check this out](https://use.expensify.com/lounge) for more info.
 
 ## Swipe to Win
 Swipe to Win is a new [Expensify Card](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fuse.expensify.com%2Fcard) perk that gives cardholders the chance to send a gift to a friend, family member, or essential worker on the frontlines!
