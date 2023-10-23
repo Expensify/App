@@ -542,7 +542,7 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
-        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount} con Expensify`,
+        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
         payElsewhere: 'Pagar de otra forma',
         nextSteps: 'Pasos Siguientes',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
@@ -865,6 +865,7 @@ export default {
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del Espacio de Trabajo para gestionar los gastos de la empresa.',
         expensifyCard: 'Tarjeta Expensify',
+        walletActivationPending: 'Estamos revisando la información y nos pondremos en contacto contigo en breve.',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
