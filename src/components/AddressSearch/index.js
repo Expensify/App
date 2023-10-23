@@ -307,7 +307,6 @@ function AddressSearch(props) {
                 const location = {
                     lat: successData.coords.latitude,
                     lng: successData.coords.longitude,
-                    name: CONST.YOUR_LOCATION_TEXT,
                     address: CONST.YOUR_LOCATION_TEXT,
                 };
                 props.onPress(location);
