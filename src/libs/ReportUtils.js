@@ -284,7 +284,8 @@ function isSettled(reportID, isReportFromChat) {
         return false;
     }
 
-    return report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
+    // APPROVED status is for Personal policies
+    return report.statusNum === CONST.REPORT.STATUS.REIMBURSED || report.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
 /**
@@ -1239,6 +1240,26 @@ function getDeletedParentActionMessageForChatReport(reportAction) {
         deletedMessageText = Localize.translateLocal('parentReportAction.deletedTask');
     }
     return deletedMessageText;
+}
+
+/**
+ * Returns the preview message for `REIMBURSEMENTQUEUED` action
+ *
+ * @param {Object} reportAction
+ * @param {Object} report
+ * @returns {String}
+ */
+
+function getReimbursementQueuedActionMessage(reportAction, report) {
+    const submitterDisplayName = getDisplayNameForParticipant(report.ownerAccountID, true);
+    let messageKey;
+    if (lodashGet(reportAction, 'originalMessage.paymentType', '') === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        messageKey = 'iou.waitingOnEnabledWallet';
+    } else {
+        messageKey = 'iou.waitingOnBankAccount';
+    }
+
+    return Localize.translateLocal(messageKey, {submitterDisplayName});
 }
 
 /**
@@ -4125,4 +4146,5 @@ export {
     isReportDraft,
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
+    getReimbursementQueuedActionMessage,
 };
