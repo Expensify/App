@@ -16,7 +16,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
-import Tooltip from './Tooltip';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
 import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import getImageResolution from '../libs/fileDownload/getImageResolution';

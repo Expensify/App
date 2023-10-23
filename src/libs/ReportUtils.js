@@ -283,6 +283,12 @@ function isSettled(reportID) {
         return false;
     }
 
+    // In case the payment is scheduled and we are waiting for the payee to set up their wallet,
+    // consider the report as paid as well.
+    if (report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS.APPROVED) {
+        return true;
+    }
+
     return report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
 }
 
@@ -1202,25 +1208,50 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
  * @returns {Array}
  */
 function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
-    return _.map(personalDetailsList, (user) => {
-        const accountID = Number(user.accountID);
-        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
-        const avatar = UserUtils.getDefaultAvatar(accountID);
+    return _.chain(personalDetailsList)
+        .map((user) => {
+            const accountID = Number(user.accountID);
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
+            const avatar = UserUtils.getDefaultAvatar(accountID);
 
-        let pronouns = user.pronouns;
-        if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
-            const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-            pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
-        }
+            let pronouns = user.pronouns;
+            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+                const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+            }
 
-        return {
-            displayName,
-            avatar,
-            login: user.login || '',
-            accountID,
-            pronouns,
-        };
-    });
+            return {
+                displayName,
+                avatar,
+                login: user.login || '',
+                accountID,
+                pronouns,
+            };
+        })
+        .sort((first, second) => {
+            // First sort by displayName/login
+            const displayNameLoginOrder = first.displayName.localeCompare(second.displayName);
+            if (displayNameLoginOrder !== 0) {
+                return displayNameLoginOrder;
+            }
+
+            // Then fallback on accountID as the final sorting criteria.
+            return first.accountID > second.accountID;
+        })
+        .value();
+}
+
+/**
+ * Gets a joined string of display names from the list of display name with tooltip objects.
+ *
+ * @param {Object} displayNamesWithTooltips
+ * @returns {String}
+ */
+function getDisplayNamesStringFromTooltips(displayNamesWithTooltips) {
+    return _.filter(
+        _.map(displayNamesWithTooltips, ({displayName}) => displayName),
+        (displayName) => !_.isEmpty(displayName),
+    ).join(', ');
 }
 
 /**
@@ -1238,6 +1269,25 @@ function getDeletedParentActionMessageForChatReport(reportAction) {
         deletedMessageText = Localize.translateLocal('parentReportAction.deletedTask');
     }
     return deletedMessageText;
+}
+
+/**
+ * Returns the preview message for `REIMBURSEMENTQUEUED` action
+ *
+ * @param {Object} reportAction
+ * @param {Object} report
+ * @returns {String}
+ */
+function getReimbursementQueuedActionMessage(reportAction, report) {
+    const submitterDisplayName = getDisplayNameForParticipant(report.ownerAccountID, true);
+    let messageKey;
+    if (lodashGet(reportAction, 'originalMessage.paymentType', '') === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        messageKey = 'iou.waitingOnEnabledWallet';
+    } else {
+        messageKey = 'iou.waitingOnBankAccount';
+    }
+
+    return Localize.translateLocal(messageKey, {submitterDisplayName});
 }
 
 /**
@@ -1295,7 +1345,8 @@ function isWaitingForIOUActionFromCurrentUser(report) {
     }
 
     // Money request waiting for current user to add their credit bank account
-    if (report.hasOutstandingIOU && report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
+    // hasOutstandingIOU will be false if the user paid, but isWaitingOnBankAccount will be true if user don't have a wallet or bank account setup
+    if (!report.hasOutstandingIOU && report.isWaitingOnBankAccount && report.ownerAccountID === currentUserAccountID) {
         return true;
     }
 
@@ -1657,9 +1708,10 @@ function getTransactionReportName(reportAction) {
  * @param {Object} report
  * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
+ * @param {Boolean} isPreviewMessageForParentChatReport
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false) {
+function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1698,12 +1750,14 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         }
     }
 
-    if (isSettled(report.reportID)) {
+    // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
+    if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey = 'iou.paidElsewhereWithAmount';
         if (
             _.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], lodashGet(reportAction, 'originalMessage.paymentType')) ||
-            reportActionMessage.match(/ (with Expensify|using Expensify)$/)
+            reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
+            report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
@@ -4010,6 +4064,32 @@ function getIOUReportActionDisplayMessage(reportAction) {
 }
 
 /**
+ * Checks if a report is a group chat.
+ *
+ * A report is a group chat if it meets the following conditions:
+ * - Not a chat thread.
+ * - Not a task report.
+ * - Not a money request / IOU report.
+ * - Not an archived room.
+ * - Not a public / admin / announce chat room (chat type doesn't match any of the specified types).
+ * - More than 2 participants.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isGroupChat(report) {
+    return (
+        report &&
+        !isChatThread(report) &&
+        !isTaskReport(report) &&
+        !isMoneyRequestReport(report) &&
+        !isArchivedRoom(report) &&
+        !Object.values(CONST.REPORT.CHAT_TYPE).includes(getChatType(report)) &&
+        lodashGet(report, 'participantAccountIDs.length', 0) > 2
+    );
+}
+
+/**
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -4069,6 +4149,7 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
+    getDisplayNamesStringFromTooltips,
     getReportName,
     getReport,
     getReportIDFromLink,
@@ -4175,7 +4256,9 @@ export {
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
+    isGroupChat,
     isReportDraft,
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
+    getReimbursementQueuedActionMessage,
 };
