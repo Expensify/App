@@ -52,23 +52,21 @@ function ReportActionItemMessage(props) {
 
     const flaggedContentText = <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>;
 
-    const getReportActionItemFragment = (fragment, index) => {
-        return (
-            <ReportActionItemFragment
-                key={`actionFragment-${props.action.reportActionID}-${index}`}
-                fragment={fragment}
-                iouMessage={iouMessage}
-                isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
-                attachmentInfo={props.action.attachmentInfo}
-                pendingAction={props.action.pendingAction}
-                source={lodashGet(props.action, 'originalMessage.source')}
-                accountID={props.action.actorAccountID}
-                style={props.style}
-                displayAsGroup={props.displayAsGroup}
-                actionName={props.action.actionName}
-            />
-        );
-    };
+    const getReportActionItemFragment = (fragment, index) => (
+        <ReportActionItemFragment
+            key={`actionFragment-${props.action.reportActionID}-${index}`}
+            fragment={fragment}
+            iouMessage={iouMessage}
+            isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
+            attachmentInfo={props.action.attachmentInfo}
+            pendingAction={props.action.pendingAction}
+            source={lodashGet(props.action, 'originalMessage.source')}
+            accountID={props.action.actorAccountID}
+            style={props.style}
+            displayAsGroup={props.displayAsGroup}
+            actionName={props.action.actionName}
+        />
+    );
 
     const content = !props.isHidden ? _.map(messages, (fragment, index) => getReportActionItemFragment(fragment, index)) : flaggedContentText;
 
