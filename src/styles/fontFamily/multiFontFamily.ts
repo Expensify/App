@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import {multiBold} from './bold';
 import FontFamilyStyles from './types';
 import CONST from '../../CONST';
@@ -20,7 +19,9 @@ const fontFamily: FontFamilyStyles = {
 };
 
 if (getOperatingSystem() === CONST.OS.WINDOWS) {
-    _.each(fontFamily, (value, key) => fontFamily[key as keyof FontFamilyStyles] = value.replace('Segoe UI Emoji', 'Windows Segoe UI Emoji'));
+    Object.keys(fontFamily).forEach((key) => {
+        fontFamily[key as keyof FontFamilyStyles] = fontFamily[key as keyof FontFamilyStyles].replace('Segoe UI Emoji', 'Windows Segoe UI Emoji');
+    });
 }
 
 export default fontFamily;
