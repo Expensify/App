@@ -18,13 +18,19 @@ const defaultProps = {
 
 function PopoverAnchorTooltip({shouldRender, children, ...props}) {
     const {isOpen, popover} = useContext(PopoverContext);
-
     const tooltipRef = useRef(null);
 
     const isPopoverRelatedToTooltipOpen = useMemo(() => {
         // eslint-disable-next-line
         const tooltipNode = tooltipRef.current ? tooltipRef.current._childNode : null;
-        if (isOpen && popover && popover.anchorRef.current && tooltipNode && (tooltipNode.contains(popover.anchorRef.current) || tooltipNode === popover.anchorRef.current)) {
+        if (
+            isOpen &&
+            popover &&
+            popover.anchorRef &&
+            popover.anchorRef.current &&
+            tooltipNode &&
+            (tooltipNode.contains(popover.anchorRef.current) || tooltipNode === popover.anchorRef.current)
+        ) {
             return true;
         }
 
