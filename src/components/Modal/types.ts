@@ -1,4 +1,5 @@
 import {ValueOf} from 'type-fest';
+import {StyleProp, ViewStyle} from 'react-native';
 import {ModalProps} from 'react-native-modal';
 import ChildrenProps from '../../types/utils/ChildrenProps';
 import {WindowDimensionsProps} from '../withWindowDimensions/types';
@@ -30,6 +31,8 @@ type BaseModalProps = WindowDimensionsProps &
         /** Callback method fired when the modal is shown */
         onModalShow?: () => void;
 
+        propagateSwipe?: Pick<ModalProps, 'propagateSwipe'>;
+
         /** Style of modal to display */
         // type: PropTypes.oneOf(_.values(CONST.MODAL.MODAL_TYPE)),
         type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
@@ -39,6 +42,12 @@ type BaseModalProps = WindowDimensionsProps &
 
         /** A react-native-animatable animation definition for the modal hide animation. */
         animationOut?: Pick<ModalProps, 'animationOut'>;
+
+        useNativeDriver?: Pick<ModalProps, 'useNativeDriver'>;
+
+        animationInTiming?: Pick<ModalProps, 'animationInTiming'>;
+
+        animationOutTiming?: Pick<ModalProps, 'animationOutTiming'>;
 
         /** The anchor position of a popover modal. Has no effect on other modal types. */
         popoverAnchorPosition?: {
@@ -51,8 +60,12 @@ type BaseModalProps = WindowDimensionsProps &
         /** Modal container styles  */
         innerContainerStyle?: Pick<ModalProps, 'style'>;
 
+        outerStyle?: StyleProp<ViewStyle>;
+
         /** Whether the modal should go under the system statusbar */
         statusBarTranslucent?: boolean;
+
+        onLayout: Pick<ModalProps, 'onLayout'>;
 
         /** Whether the modal should avoid the keyboard */
         avoidKeyboard?: boolean;

@@ -15,43 +15,34 @@ import CONST from '../../CONST';
 import ComposerFocusManager from '../../libs/ComposerFocusManager';
 import useNativeDriver from '../../libs/useNativeDriver';
 import usePrevious from '../../hooks/usePrevious';
+import BaseModalProps from './types';
 
-const propTypes = {
-    ...modalPropTypes,
-
-    /** The ref to the modal container */
-    forwardedRef: PropTypes.func,
-};
-
-const defaultProps = {
-    ...modalDefaultProps,
-    forwardedRef: () => {},
-};
-
-function BaseModal({
-    isVisible,
-    onClose,
-    shouldSetModalVisibility,
-    onModalHide,
-    type,
-    popoverAnchorPosition,
-    innerContainerStyle,
-    outerStyle,
-    onModalShow,
-    propagateSwipe,
-    fullscreen,
-    animationIn,
-    animationOut,
-    useNativeDriver: useNativeDriverProp,
-    hideModalContentWhileAnimating,
-    animationInTiming,
-    animationOutTiming,
-    statusBarTranslucent,
-    onLayout,
-    avoidKeyboard,
-    forwardedRef,
-    children,
-}) {
+function BaseModal(
+    {
+        isVisible,
+        onClose,
+        shouldSetModalVisibility,
+        onModalHide,
+        type,
+        popoverAnchorPosition,
+        innerContainerStyle,
+        outerStyle,
+        onModalShow,
+        propagateSwipe,
+        fullscreen,
+        animationIn,
+        animationOut,
+        useNativeDriver: useNativeDriverProp,
+        hideModalContentWhileAnimating,
+        animationInTiming,
+        animationOutTiming,
+        statusBarTranslucent,
+        onLayout,
+        avoidKeyboard,
+        children,
+    }: BaseModalProps,
+    ref: React.ForwardedRef<View>,
+) {
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -69,7 +60,7 @@ function BaseModal({
                 Modal.setModalVisibility(false);
             }
             if (callHideCallback) {
-                onModalHide();
+                onModalHide?.();
             }
             Modal.onModalDidClose();
             if (!fullscreen) {
@@ -207,7 +198,7 @@ function BaseModal({
         >
             <View
                 style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
-                ref={forwardedRef}
+                ref={ref}
             >
                 {children}
             </View>
@@ -215,14 +206,6 @@ function BaseModal({
     );
 }
 
-BaseModal.propTypes = propTypes;
-BaseModal.defaultProps = defaultProps;
 BaseModal.displayName = 'BaseModal';
 
-export default forwardRef((props, ref) => (
-    <BaseModal
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
+export default forwardRef(BaseModal);
