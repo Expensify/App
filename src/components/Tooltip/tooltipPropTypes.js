@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import refPropType from '../refPropTypes';
+import refPropTypes from '../refPropTypes';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
 
@@ -34,7 +34,7 @@ const propTypes = {
     shouldHandleScroll: PropTypes.bool,
 
     /** Reference to the tooltip container */
-    tooltipRef: refPropType,
+    tooltipRef: refPropTypes,
 };
 
 const defaultProps = {
