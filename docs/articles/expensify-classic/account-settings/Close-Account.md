@@ -1,5 +1,5 @@
 ---
-title: Close-Account.md
+title: Close Account 
 description: Close Account
 --- 
 # Overview 
