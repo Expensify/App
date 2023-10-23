@@ -18,15 +18,13 @@ type TextWithEllipsisProps = {
 
     /** Styles for parent View */
     wrapperStyle: StyleProp<ViewStyle>;
-}
+};
 
 function TextWithEllipsis({leadingText, trailingText, textStyle = {}, leadingTextParentStyle = {}, wrapperStyle = {}}: TextWithEllipsisProps) {
     return (
         <View style={[styles.flexRow, wrapperStyle]}>
             <View style={[styles.flexShrink1, leadingTextParentStyle]}>
-                <Text style={textStyle}>
-                    {leadingText}
-                </Text>
+                <Text style={textStyle}>{leadingText}</Text>
             </View>
             <View style={styles.flexShrink0}>
                 <Text style={textStyle}>{trailingText}</Text>
