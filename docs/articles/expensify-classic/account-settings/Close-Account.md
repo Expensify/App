@@ -100,7 +100,7 @@ Before closing the account, you need to verify that you have access to the email
 
 Here's how to do it:
 
-1. Go to[ www.expensify.com](http://www.expensify.com/).
+1. Go to [www.expensify.com](http://www.expensify.com/).
 2. Enter your email address or phone number (whichever is associated with the unwanted account).
 3. Click the **Resend Link** button.
 4. Check your Home Page for the most recent email with the subject line "Please validate your Expensify login." Click the link provided in the email to validate your email address.
