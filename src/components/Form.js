@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import FormUtils from '@libs/FormUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
@@ -541,7 +542,7 @@ export default compose(
             key: (props) => props.formID,
         },
         draftValues: {
-            key: (props) => `${props.formID}Draft`,
+            key: (props) => FormUtils.getDraftKey(props.formID),
         },
     }),
 )(Form);

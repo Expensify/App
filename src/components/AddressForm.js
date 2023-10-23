@@ -16,22 +16,35 @@ import StatePicker from './StatePicker';
 import TextInput from './TextInput';
 
 const propTypes = {
+    /** User home address */
     city: PropTypes.string,
     country: PropTypes.string,
-    formID: PropTypes.string.isRequired,
-    onAddressChanged: PropTypes.func,
-    onSubmit: PropTypes.func.isRequired,
     state: PropTypes.string,
     street1: PropTypes.string,
     street2: PropTypes.string,
-    submitButtonText: PropTypes.string,
     zip: PropTypes.string,
+
+    /** Callback which is executed when the user changes address, city or state */
+    onAddressChanged: PropTypes.func,
+
+    /** Callback which is executed when the user submits his address changes */
+    onSubmit: PropTypes.func.isRequired,
+
+    /** Whether or not should the form data should be saved as draft */
+    shouldSaveDraft: PropTypes.bool,
+
+    /** Text displayed on the bottom submit button */
+    submitButtonText: PropTypes.string,
+
+    /** A unique Onyx key identifying the form */
+    formID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
     city: '',
     country: '',
     onAddressChanged: () => {},
+    shouldSaveDraft: false,
     state: '',
     street1: '',
     street2: '',
@@ -39,7 +52,7 @@ const defaultProps = {
     zip: '',
 };
 
-function AddressForm({city, country, formID, onAddressChanged, onSubmit, state, street1, street2, submitButtonText, zip}) {
+function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldSaveDraft, state, street1, street2, submitButtonText, zip}) {
     const {translate} = useLocalize();
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [country, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
@@ -104,9 +117,9 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, state, 
                 <AddressSearch
                     inputID="addressLine1"
                     label={translate('common.addressLine', {lineNumber: 1})}
-                    onValueChange={() => {
-                        onAddressChanged();
-                        // This enforces the country selector to use the country from address instead of the previous selected country
+                    onValueChange={(data, key) => {
+                        onAddressChanged(data, key);
+                        // This enforces the country selector to use the country from address instead of the country from URL
                         Navigation.setParams({country: undefined});
                     }}
                     defaultValue={street1 || ''}
@@ -119,6 +132,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, state, 
                         country: 'country',
                     }}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                    shouldSaveDraft={shouldSaveDraft}
                 />
             </View>
             <View style={styles.formSpaceVertical} />
@@ -131,12 +145,14 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, state, 
                 defaultValue={street2 || ''}
                 maxLength={CONST.FORM_CHARACTER_LIMIT}
                 spellCheck={false}
+                shouldSaveDraft={shouldSaveDraft}
             />
             <View style={styles.formSpaceVertical} />
             <View style={styles.mhn5}>
                 <CountrySelector
                     inputID="country"
                     value={country}
+                    shouldSaveDraft={shouldSaveDraft}
                 />
             </View>
             <View style={styles.formSpaceVertical} />
@@ -146,6 +162,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, state, 
                         inputID="state"
                         defaultValue={state}
                         onValueChange={onAddressChanged}
+                        shouldSaveDraft={shouldSaveDraft}
                     />
                 </View>
             ) : (
@@ -159,6 +176,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, state, 
                     maxLength={CONST.FORM_CHARACTER_LIMIT}
                     spellCheck={false}
                     onValueChange={onAddressChanged}
+                    shouldSaveDraft={shouldSaveDraft}
                 />
             )}
             <View style={styles.formSpaceVertical} />
@@ -172,6 +190,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, state, 
                 maxLength={CONST.FORM_CHARACTER_LIMIT}
                 spellCheck={false}
                 onValueChange={onAddressChanged}
+                shouldSaveDraft={shouldSaveDraft}
             />
             <View style={styles.formSpaceVertical} />
             <TextInput
@@ -185,6 +204,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, state, 
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={zipFormat}
                 onValueChange={onAddressChanged}
+                shouldSaveDraft={shouldSaveDraft}
             />
         </Form>
     );

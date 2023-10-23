@@ -32,7 +32,22 @@ const propTypes = {
     /* Onyx Props */
     /** The details about the Expensify cards */
     cardList: PropTypes.objectOf(assignedCardPropTypes),
-    loginList: PropTypes.shape({}),
+    loginList: PropTypes.shape({
+        /** The partner creating the account. It depends on the source: website, mobile, integrations, ... */
+        partnerName: PropTypes.string,
+
+        /** Phone/Email associated with user */
+        partnerUserID: PropTypes.string,
+
+        /** The date when the login was validated, used to show the brickroad status */
+        validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+
+        /** Field-specific pending states for offline UI status */
+        pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    }),
     /** User's private personal details */
     privatePersonalDetails: PropTypes.shape({
         legalFirstName: PropTypes.string,
@@ -111,6 +126,30 @@ function ExpensifyCardPage({
             })
             .catch(setCardDetailsError)
             .finally(() => setIsLoading(false));
+    };
+
+    const goToGetPhysicalCardFlow = () => {
+        const {
+            address: {city, country, state, street = '', zip},
+            legalFirstName,
+            legalLastName,
+            phoneNumber,
+        } = privatePersonalDetails;
+        // Form draft data needs to be initialized with the private personal details
+        // so that the form doesn't modify this data during the get physical card flow
+        FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, {
+            legalFirstName,
+            legalLastName,
+            address: street,
+            addressLine1: street.split('\n')[0],
+            addressLine2: street.split('\n')[1],
+            city,
+            country,
+            phoneNumber: phoneNumber || UserUtils.getSecondaryPhoneLogin(loginList) || '',
+            state,
+            zipPostCode: zip,
+        });
+        Navigation.goToNextPhysicalCardRoute(privatePersonalDetails, loginList);
     };
 
     const hasDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
@@ -244,7 +283,7 @@ function ExpensifyCardPage({
                             success
                             text={translate('cardPage.getPhysicalCard')}
                             pressOnEnter
-                            onPress={() => Navigation.goToNextPhysicalCardRoute(privatePersonalDetails, loginList)}
+                            onPress={goToGetPhysicalCardFlow}
                             style={[styles.mh5, styles.mb5]}
                         />
                     )}

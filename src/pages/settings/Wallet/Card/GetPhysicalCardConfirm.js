@@ -10,8 +10,7 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
-import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
-import * as UserUtils from '../../../../libs/UserUtils';
+import FormUtils from '../../../../libs/FormUtils';
 
 const goToGetPhysicalCardName = (domain) => {
     Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain));
@@ -27,22 +26,15 @@ const goToGetPhysicalCardAddress = (domain) => {
 
 const propTypes = {
     /* Onyx Props */
-    loginList: PropTypes.shape({}),
-    /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
+    /** Draft values used by the get physical card form */
+    draftValues: PropTypes.shape({
+        address: PropTypes.string,
+        phoneNumber: PropTypes.string,
         legalFirstName: PropTypes.string,
         legalLastName: PropTypes.string,
-        phoneNumber: PropTypes.string,
-        /** User's home address */
-        address: PropTypes.shape({
-            street: PropTypes.string,
-            city: PropTypes.string,
-            state: PropTypes.string,
-            zip: PropTypes.string,
-            country: PropTypes.string,
-        }),
     }),
 
+    /* Navigation Props */
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
         params: PropTypes.shape({
@@ -53,29 +45,20 @@ const propTypes = {
 };
 
 const defaultProps = {
-    loginList: {},
-    privatePersonalDetails: {
+    draftValues: {
+        address: '',
+        phoneNumber: '',
         legalFirstName: '',
         legalLastName: '',
-        phoneNumber: null,
-        address: {
-            street: '',
-            city: '',
-            state: '',
-            zip: '',
-            country: '',
-        },
     },
 };
 
 function GetPhysicalCardConfirm({
-    loginList,
-    privatePersonalDetails,
+    draftValues: {address, legalFirstName, legalLastName, phoneNumber},
     route: {
         params: {domain},
     },
 }) {
-    const {legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails;
     const {translate} = useLocalize();
 
     return (
@@ -99,14 +82,14 @@ function GetPhysicalCardConfirm({
                 iconRight={Expensicons.ArrowRight}
                 onPress={() => goToGetPhysicalCardPhone(domain)}
                 shouldShowRightIcon
-                title={phoneNumber || UserUtils.getSecondaryPhoneLogin(loginList)}
+                title={phoneNumber}
             />
             <MenuItemWithTopDescription
                 description={translate('getPhysicalCard.address')}
                 iconRight={Expensicons.ArrowRight}
                 onPress={() => goToGetPhysicalCardAddress(domain)}
                 shouldShowRightIcon
-                title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails)}
+                title={address}
             />
         </BaseGetPhysicalCard>
     );
@@ -117,10 +100,7 @@ GetPhysicalCardConfirm.displayName = 'GetPhysicalCardConfirm';
 GetPhysicalCardConfirm.propTypes = propTypes;
 
 export default withOnyx({
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    loginList: {
-        key: ONYXKEYS.LOGIN_LIST,
+    draftValues: {
+        key: FormUtils.getDraftKey(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM),
     },
 })(GetPhysicalCardConfirm);

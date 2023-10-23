@@ -1,24 +1,25 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import AddressForm from '../../../../components/AddressForm';
 import useLocalize from '../../../../hooks/useLocalize';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
+import * as FormActions from '../../../../libs/actions/FormActions';
+import FormUtils from '../../../../libs/FormUtils';
 
 const propTypes = {
     /* Onyx Props */
-    /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        /** User's home address */
-        address: PropTypes.shape({
-            street: PropTypes.string,
-            city: PropTypes.string,
-            state: PropTypes.string,
-            zip: PropTypes.string,
-            country: PropTypes.string,
-        }),
+    /** Draft values used by the get physical card form */
+    draftValues: PropTypes.shape({
+        // User home address
+        address: PropTypes.string,
+        addressLine1: PropTypes.string,
+        addressLine2: PropTypes.string,
+        city: PropTypes.string,
+        country: PropTypes.string,
+        state: PropTypes.string,
+        zipPostCode: PropTypes.string,
     }),
 
     /** Route from navigation */
@@ -32,22 +33,31 @@ const propTypes = {
 };
 
 const defaultProps = {
-    privatePersonalDetails: {
-        address: {
-            street: '',
-            city: '',
-            state: '',
-            zip: '',
-            country: '',
-        },
+    draftValues: {
+        address: '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        country: '',
+        state: '',
+        zipPostCode: '',
     },
 };
 
-function GetPhysicalCardAddress({privatePersonalDetails, route}) {
+function GetPhysicalCardAddress({
+    draftValues: {addressLine1, addressLine2, city, state, zipPostCode, country},
+    route: {
+        params: {country: countryFromUrl},
+    },
+}) {
     const {translate} = useLocalize();
-    const countryFromUrl = lodashGet(route, 'params.country');
-    const {street, city, state, zip, country} = lodashGet(privatePersonalDetails, 'address') || {};
-    const [street1, street2] = (street || '').split('\n');
+
+    useEffect(() => {
+        if (!countryFromUrl) {
+            return;
+        }
+        FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, {country: countryFromUrl});
+    }, [countryFromUrl]);
 
     const renderContent = useCallback(
         (onSubmit, submitButtonText) => (
@@ -56,14 +66,15 @@ function GetPhysicalCardAddress({privatePersonalDetails, route}) {
                 onSubmit={onSubmit}
                 submitButtonText={submitButtonText}
                 city={city}
-                country={countryFromUrl || country}
+                country={country}
+                shouldSaveDraft
                 state={state}
-                street1={street1}
-                street2={street2}
-                zip={zip}
+                street1={addressLine1}
+                street2={addressLine2}
+                zip={zipPostCode}
             />
         ),
-        [city, country, countryFromUrl, state, street1, street2, zip],
+        [addressLine1, addressLine2, city, country, state, zipPostCode],
     );
 
     return (
@@ -81,7 +92,7 @@ GetPhysicalCardAddress.displayName = 'GetPhysicalCardAddress';
 GetPhysicalCardAddress.propTypes = propTypes;
 
 export default withOnyx({
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    draftValues: {
+        key: FormUtils.getDraftKey(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM),
     },
 })(GetPhysicalCardAddress);
