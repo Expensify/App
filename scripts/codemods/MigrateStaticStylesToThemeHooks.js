@@ -169,6 +169,36 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
                 };
             }
         },
+        ExportDefaultDeclaration({node}) {
+            if (node.declaration.type !== 'CallExpression') {
+                return;
+            }
+
+            // Export is wrapped with composed HOCs
+            if (node.declaration.callee.callee.name === 'compose') {
+                const newArgs = [];
+                if (styleIdentifier) {
+                    newArgs.push({
+                        type: 'Identifier',
+                        name: 'withThemeStyles',
+                    });
+                }
+                if (themeColorsIdentifier) {
+                    newArgs.push({
+                        type: 'Identifier',
+                        name: 'withTheme',
+                    });
+                }
+                if (newArgs.length === 0) {
+                    return;
+                }
+                if (node.declaration.callee.arguments && node.declaration.callee.arguments.length) {
+                    node.declaration.callee.arguments = node.declaration.callee.arguments.concat(newArgs);
+                    return;
+                }
+                node.declaration.callee.arguments = newArgs;
+            }
+        },
     });
 
     writeASTToFile(filePath, fileContents, ast);
