@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming, runOnJS} from 'react-native-reanimated';
+import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
@@ -9,12 +10,13 @@ const propTypes = {
 
     position: PropTypes.number.isRequired,
 
-    updatePostiion: PropTypes.func.isRequired,
+    seekPosition: PropTypes.func.isRequired,
 };
 
 const defaultProps = {};
 
-function ProgressBar({duration, position, updatePostiion}) {
+function ProgressBar({duration, position, seekPosition}) {
+    const {updateIsSeeking, pauseVideo, playVideo} = usePlaybackContext();
     const [sliderWidth, setSliderWidth] = useState(1);
     const progressWidth = useSharedValue(0);
 
@@ -22,13 +24,22 @@ function ProgressBar({duration, position, updatePostiion}) {
         setSliderWidth(e.nativeEvent.layout.width);
     };
 
-    const pan = Gesture.Pan().onChange((event) => {
-        progressWidth.value = (event.x / sliderWidth) * 100;
-        runOnJS(updatePostiion)((event.x / sliderWidth) * duration);
-    });
+    const pan = Gesture.Pan()
+        .onBegin(() => {
+            console.log('onStart');
+            pauseVideo();
+        })
+        .onChange((event) => {
+            progressWidth.value = (event.x / sliderWidth) * 100;
+            runOnJS(seekPosition)((event.x / sliderWidth) * duration);
+        })
+        .onEnd(() => {
+            console.log('onEnd');
+            playVideo();
+        });
 
     useEffect(() => {
-        progressWidth.value = withTiming((position / duration) * 100, {duration: 270});
+        progressWidth.value = (position / duration) * 100;
     }, [duration, position, progressWidth]);
 
     const progressBarStyle = useAnimatedStyle(() => ({width: `${progressWidth.value}%`}));

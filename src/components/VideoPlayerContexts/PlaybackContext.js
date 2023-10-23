@@ -9,6 +9,9 @@ function PlaybackContextProvider({children}) {
     const [originalParent, setOriginalParent] = useState(null);
 
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isSeeking, setIsSeeking] = useState(false);
+    const [duration, setDuration] = useState(0);
+    const [position, setPosition] = useState(0);
 
     const currentVideoPlayerRef = useRef(null);
 
@@ -54,12 +57,24 @@ function PlaybackContextProvider({children}) {
         currentVideoPlayerRef.current.presentFullscreenPlayer();
     }, [currentVideoPlayerRef]);
 
-    const updatePostiion = useCallback(
+    const updatePosition = useCallback((newPosition) => {
+        setPosition(newPosition);
+    }, []);
+
+    const seekPosition = useCallback(
         (newPosition) => {
             currentVideoPlayerRef.current.setStatusAsync({positionMillis: newPosition});
         },
         [currentVideoPlayerRef],
     );
+
+    const updateDuration = useCallback((newDuration) => {
+        setDuration(newDuration);
+    }, []);
+
+    const updateIsSeeking = useCallback((isCurrentlySeeking) => {
+        setIsSeeking(isCurrentlySeeking);
+    }, []);
 
     const contextValue = useMemo(
         () => ({
@@ -68,25 +83,37 @@ function PlaybackContextProvider({children}) {
             originalParent,
             sharedElement,
             updateSharedElements,
-
             togglePlay,
             isPlaying,
             enterFullScreenMode,
-            updatePostiion,
             currentVideoPlayerRef,
             updateCurrentVideoPlayerRef,
+            position,
+            updatePosition,
+            seekPosition,
+            duration,
+            updateDuration,
+            updateIsSeeking,
+            playVideo,
+            pauseVideo,
         }),
         [
-            currentVideoPlayerRef,
             currentlyPlayingURL,
+            duration,
             enterFullScreenMode,
             isPlaying,
             originalParent,
+            pauseVideo,
+            playVideo,
+            position,
+            seekPosition,
             sharedElement,
             togglePlay,
             updateCurrentVideoPlayerRef,
             updateCurrentlyPlayingURL,
-            updatePostiion,
+            updateDuration,
+            updateIsSeeking,
+            updatePosition,
         ],
     );
     return <PlaybackContext.Provider value={contextValue}>{children}</PlaybackContext.Provider>;

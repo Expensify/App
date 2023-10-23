@@ -43,9 +43,9 @@ const defaultProps = {
 
 function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement}) {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, updateCurrentVideoPlayerRef} = usePlaybackContext();
-    const [duration, setDuration] = useState(0);
-    const [position, setPosition] = useState(0);
+    const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, updateCurrentVideoPlayerRef, updateDuration, updatePosition, duration, position, isPlaying} =
+        usePlaybackContext();
+
     const [isVideoLoading, setIsVideoLoading] = React.useState(true);
 
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({vertical: 0, horizontal: 0});
@@ -151,23 +151,29 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             style={style}
                             videoStyle={videoStyle}
                             source={{
-                                uri: url || 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
+                                uri: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
                             }}
                             shouldPlay={shouldPlay}
                             useNativeControls={false}
                             resizeMode={resizeMode}
                             isLooping={isLooping}
                             onReadyForDisplay={(e) => {
+                                if (!isVideoLoading) {
+                                    return;
+                                }
                                 setIsVideoLoading(false);
                                 onVideoLoaded(e);
                             }}
                             onLoadStart={() => setIsVideoLoading(true)}
                             onPlaybackStatusUpdate={(e) => {
+                                if (!isPlaying) {
+                                    return;
+                                }
                                 const videoDuration = e.durationMillis;
                                 if (videoDuration > 0 && !_.isNaN(videoDuration)) {
-                                    setDuration(videoDuration);
+                                    updateDuration(videoDuration);
                                 }
-                                setPosition(e.positionMillis);
+                                updatePosition(e.positionMillis);
                             }}
                         />
                     </View>

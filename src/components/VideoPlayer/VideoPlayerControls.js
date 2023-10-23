@@ -23,7 +23,7 @@ const propTypes = {
 const defaultProps = {};
 
 function VideoPlayerControls({duration, position, toggleCreateMenu, url}) {
-    const {togglePlay, isPlaying, updatePostiion, enterFullScreenMode, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {togglePlay, isPlaying, seekPosition, enterFullScreenMode, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const [durationFormatted, setDurationFormatted] = React.useState('0:00');
 
     const isCurrentlySet = currentlyPlayingURL === url;
@@ -89,7 +89,7 @@ function VideoPlayerControls({duration, position, toggleCreateMenu, url}) {
                 <ProgressBar
                     duration={duration}
                     position={position}
-                    updatePostiion={updatePostiion}
+                    seekPosition={seekPosition}
                 />
             </View>
         </Animated.View>
