@@ -67,7 +67,8 @@ function ReportActionItemMessage(props) {
                             source={lodashGet(props.action, 'originalMessage.source')}
                             accountID={props.action.actorAccountID}
                             style={props.style}
-                        displayAsGroup={props.displayAsGroup}
+                            displayAsGroup={props.displayAsGroup}
+                            actionName={props.action.actionName}
                         />
                     ))
                 ) : (

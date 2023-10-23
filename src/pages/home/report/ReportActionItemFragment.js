@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -63,6 +64,9 @@ const propTypes = {
     /** Whether the comment is a thread parent message/the first message in a thread */
     isThreadParentMessage: PropTypes.bool,
 
+    /** The report's action name/type e.g. APPROVED, SUBMITTED, etc. */
+    actionName: PropTypes.string,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -86,6 +90,7 @@ const defaultProps = {
     delegateAccountID: 0,
     actorIcon: {},
     isThreadParentMessage: false,
+    actionName: '',
     displayAsGroup: false,
 };
 
@@ -161,7 +166,12 @@ function ReportActionItemFragment(props) {
                 >
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}
+                        style={[
+                            styles.chatItemMessageHeaderSender,
+                            props.isSingleLine ? styles.pre : styles.preWrap,
+                            _.contains([CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED], props.actionName) 
+                                && {color: styles.colorMuted.color, fontWeight: 'normal'},
+                        ]}
                     >
                         {props.fragment.text}
                     </Text>
