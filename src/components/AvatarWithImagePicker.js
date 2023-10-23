@@ -140,27 +140,27 @@ function AvatarWithImagePicker({
     const [imageData, setImageData] = useState({
         uri: '',
         name: '',
-        type: ''
+        type: '',
     });
     const anchorRef = useRef();
     const {translate} = useLocalize();
 
-     /**
+    /**
      * @param {String} error
      * @param {Object} phraseParam
      */
-     const setError = (error, phraseParam) => {
+    const setError = (error, phraseParam) => {
         setErrorData({
-           validationError: error,
-           phraseParam,
+            validationError: error,
+            phraseParam,
         });
     };
-    
+
     useEffect(() => {
         if (isFocused) {
             return;
         }
-    
+
         // Reset the error if the component is no longer focused.
         setError(null, {});
     }, [isFocused]);
@@ -172,16 +172,16 @@ function AvatarWithImagePicker({
      * @returns {Boolean}
      */
     const isValidExtension = (image) => {
-        const { fileExtension } = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
         return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension.toLowerCase());
     };
 
     /**
-    * Check if the attachment size is less than allowed size.
-    *
-    * @param {Object} image
-    * @returns {Boolean}
-    */
+     * Check if the attachment size is less than allowed size.
+     *
+     * @param {Object} image
+     * @returns {Boolean}
+     */
     const isValidSize = (image) => image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
 
     /**
@@ -190,13 +190,9 @@ function AvatarWithImagePicker({
      * @param {Object} image
      * @returns {Promise}
      */
-    const isValidResolution = (image) => 
-    getImageResolution(image)
-        .then(({ height, width }) => 
-            height >= CONST.AVATAR_MIN_HEIGHT_PX &&
-            width >= CONST.AVATAR_MIN_WIDTH_PX &&
-            height <= CONST.AVATAR_MAX_HEIGHT_PX &&
-            width <= CONST.AVATAR_MAX_WIDTH_PX
+    const isValidResolution = (image) =>
+        getImageResolution(image).then(
+            ({height, width}) => height >= CONST.AVATAR_MIN_HEIGHT_PX && width >= CONST.AVATAR_MIN_WIDTH_PX && height <= CONST.AVATAR_MAX_HEIGHT_PX && width <= CONST.AVATAR_MAX_WIDTH_PX,
         );
 
     /**
@@ -206,11 +202,11 @@ function AvatarWithImagePicker({
      */
     const showAvatarCropModal = (image) => {
         if (!isValidExtension(image)) {
-            setError('avatarWithImagePicker.notAllowedExtension', { allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS });
+            setError('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS});
             return;
         }
         if (!isValidSize(image)) {
-            setError('avatarWithImagePicker.sizeExceeded', { maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024) });
+            setError('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)});
             return;
         }
 
@@ -231,7 +227,7 @@ function AvatarWithImagePicker({
             setImageData({
                 uri: image.uri,
                 name: image.name,
-                type: image.type
+                type: image.type,
             });
         });
     };
@@ -289,7 +285,7 @@ function AvatarWithImagePicker({
                 >
                     <Tooltip text={translate('avatarWithImagePicker.editImage')}>
                         <PressableWithoutFeedback
-                            onPress={() => setIsMenuVisible(prev => !prev)}
+                            onPress={() => setIsMenuVisible((prev) => !prev)}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen}
@@ -326,9 +322,9 @@ function AvatarWithImagePicker({
                     originalFileName={originalFileName}
                     fallbackSource={fallbackIcon}
                 >
-                    {({ show }) => (
+                    {({show}) => (
                         <AttachmentPicker>
-                            {({ openPicker }) => {
+                            {({openPicker}) => {
                                 const menuItems = createMenuItems(openPicker);
 
                                 // If the current avatar isn't a default avatar, allow the "View Photo" option
@@ -370,7 +366,7 @@ function AvatarWithImagePicker({
             {errorData.validationError && (
                 <DotIndicatorMessage
                     style={[styles.mt6]}
-                    messages={{ 0: translate(errorData.validationError, errorData.phraseParam) }}
+                    messages={{0: translate(errorData.validationError, errorData.phraseParam)}}
                     type="error"
                 />
             )}
