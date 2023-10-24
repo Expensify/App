@@ -168,7 +168,7 @@ function formatPiece(piece) {
  * @param {String} street2 - street line 2
  * @returns {String} formatted street
  */
-function getFormattedStreet(street1, street2) {
+function getFormattedStreet(street1 = '', street2 = '') {
     return `${street1}\n${street2}`;
 }
 
