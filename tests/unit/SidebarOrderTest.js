@@ -404,7 +404,6 @@ describe('Sidebar', () => {
             const currentReportId = report2.reportID;
             const currentlyLoggedInUserAccountID = 9;
             LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
-            console.log('iouReport :>> ', iouReport);
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
