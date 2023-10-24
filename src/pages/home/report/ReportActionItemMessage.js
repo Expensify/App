@@ -52,7 +52,13 @@ function ReportActionItemMessage(props) {
 
     const flaggedContentText = <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>;
 
-    const getReportActionItemFragment = (fragment, index) => (
+    /**
+     * Get a ReportActionItemFragment
+     * @param {Object} fragment the current message fragment
+     * @param {Number} index the current message fragment's index
+     * @returns {Object} report action item fragment
+     */
+    const renderReportActionItemFragment = (fragment, index) => (
         <ReportActionItemFragment
             key={`actionFragment-${props.action.reportActionID}-${index}`}
             fragment={fragment}
@@ -68,8 +74,6 @@ function ReportActionItemMessage(props) {
         />
     );
 
-    const content = !props.isHidden ? _.map(messages, (fragment, index) => getReportActionItemFragment(fragment, index)) : flaggedContentText;
-
     return (
         <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
             {isApprovedOrSubmittedReportActionType ? (
@@ -77,9 +81,9 @@ function ReportActionItemMessage(props) {
                 // there are multiple messages of type 'TEXT', as seen when a report is submitted/approved from a
                 // policy on Old Dot and then viewed on New Dot.
 
-                <Text>{content}</Text>
+                <Text>{!props.isHidden ? _.map(messages, (fragment, index) => renderReportActionItemFragment(fragment, index)) : flaggedContentText}</Text>
             ) : (
-                <>{content}</>
+                <>{!props.isHidden ? _.map(messages, (fragment, index) => renderReportActionItemFragment(fragment, index)) : flaggedContentText}</>
             )}
         </View>
     );
