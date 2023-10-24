@@ -2161,7 +2161,6 @@ const styles = (theme: ThemeDefault) =>
             // It's being used on Web/Desktop only to vertically center short PDFs,
             // while preventing the overflow of the top of long PDF files.
             ...display.dGrid,
-            backgroundColor: theme.modalBackground,
             width: '100%',
             height: '100%',
             justifyContent: 'center',
@@ -3954,8 +3953,11 @@ const styles = (theme: ThemeDefault) =>
         },
 
         walletCardMenuItem: {
+            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontWeight: fontWeightBold,
             color: theme.text,
             fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         walletCardHolder: {
@@ -3973,6 +3975,33 @@ const styles = (theme: ThemeDefault) =>
             fontSize: 45,
             paddingTop: 0,
             paddingBottom: 0,
+        },
+
+        walletDangerSection: {
+            backgroundColor: theme.dangerSection,
+            color: theme.dangerSection,
+            borderRadius: variables.componentBorderRadiusCard,
+            width: 'auto',
+            marginHorizontal: 20,
+            marginBottom: 6,
+        },
+
+        walletDangerSectionTitle: {
+            fontSize: variables.fontSizeNormal,
+            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontWeight: fontWeightBold,
+            lineHeight: variables.lineHeightXLarge,
+        },
+
+        walletDangerSectionText: {
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
+
+        walletLockedMessage: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         aspectRatioLottie: (source) => {
