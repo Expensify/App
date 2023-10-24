@@ -86,7 +86,7 @@ function MoneyRequestSelectorPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen() && props.selectedTab === CONST.TAB.MANUAL}
             headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
             testID={MoneyRequestSelectorPage.displayName}
         >
