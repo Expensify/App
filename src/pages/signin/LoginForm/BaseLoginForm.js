@@ -95,10 +95,7 @@ const defaultProps = {
 
 function LoginForm(props) {
     const input = useRef();
-    const [login, setLogin] = useState(() => {
-        const userLogin = Str.removeSMSDomain(props.credentials.login || '');
-        return userLogin;
-    });
+    const [login, setLogin] = useState(() => Str.removeSMSDomain(props.credentials.login));
     const [formError, setFormError] = useState(false);
     const prevIsVisible = usePrevious(props.isVisible);
 
