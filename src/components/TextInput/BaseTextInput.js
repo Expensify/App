@@ -29,6 +29,7 @@ function BaseTextInput(props) {
     const initialActiveLabel = props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
 
     const [isFocused, setIsFocused] = useState(false);
+
     const [passwordHidden, setPasswordHidden] = useState(props.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
@@ -39,6 +40,8 @@ function BaseTextInput(props) {
 
     const input = useRef(null);
     const isLabelActive = useRef(initialActiveLabel);
+
+    const operatingSystem = getOperatingSystem();
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -295,7 +298,7 @@ function BaseTextInput(props) {
                             </>
                         ) : null}
                         <View
-                            style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.overflowHidden]}
+                            style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.justifyContentBetween]}
                             pointerEvents="box-none"
                         >
                             {Boolean(props.prefixCharacter) && (
@@ -346,7 +349,6 @@ function BaseTextInput(props) {
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
                                     // Add disabled color theme when field is not editable.
                                     props.disabled && styles.textInputDisabled,
-                                    styles.overflowHidden,
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={props.maxLength}
@@ -365,13 +367,14 @@ function BaseTextInput(props) {
                                 // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
                                 dataSet={{submitOnEnter: isMultiline && props.submitOnEnter}}
                             />
-                            {props.isLoading && (
-                                <ActivityIndicator
-                                    size="small"
-                                    color={themeColors.iconSuccessFill}
-                                    style={[styles.mt4, styles.ml1, styles.alignSelfEnd]}
-                                />
-                            )}
+
+                            <ActivityIndicator
+                                size="small"
+                                color={themeColors.iconSuccessFill}
+                                style={[styles.mt4, styles.ml1, ['Android', 'iOS'].includes(operatingSystem) && !props.isLoading ? styles.dNone : {}]}
+                                animating={props.isLoading}
+                            />
+
                             {Boolean(props.secureTextEntry) && (
                                 <Checkbox
                                     style={[styles.flex1, styles.textInputIconContainer]}
