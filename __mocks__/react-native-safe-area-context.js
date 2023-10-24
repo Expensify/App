@@ -28,9 +28,9 @@ function withSafeAreaInsets(WrappedComponent) {
             forwardedRef={ref}
         />
     ));
-    
+
     WithSafeAreaInsetsWithRef.displayName = 'WithSafeAreaInsetsWithRef';
-    
+
     return WithSafeAreaInsetsWithRef;
 }
 

@@ -24,10 +24,10 @@ jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
     function WithNavigationFocus(props) {
         return (
             <Component
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            isFocused={false}
-        />
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                isFocused={false}
+            />
         );
     }
 

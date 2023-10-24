@@ -123,5 +123,5 @@ export default function (shouldRequireReportID = true) {
                 key: ONYXKEYS.COLLECTION.POLICY,
             },
         })(WithReportOrNotFoundWithRef);
-    }
+    };
 }

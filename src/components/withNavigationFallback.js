@@ -40,7 +40,7 @@ export default function (WrappedComponent) {
             forwardedRef={ref}
         />
     ));
-    
+
     WithNavigationFallbackWithRef.displayName = `WithNavigationFallbackWithRef`;
 
     return WithNavigationFallbackWithRef;

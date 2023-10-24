@@ -509,7 +509,4 @@ const AddressSearchWithRef = React.forwardRef((props, ref) => (
 
 AddressSearchWithRef.displayName = 'AddressSearchWithRef';
 
-export default compose(
-    withNetwork(),
-    withLocalize,
-)(AddressSearchWithRef);
+export default compose(withNetwork(), withLocalize)(AddressSearchWithRef);

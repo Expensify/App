@@ -499,8 +499,4 @@ const ComposerWithRef = React.forwardRef((props, ref) => (
 
 ComposerWithRef.displayName = 'ComposerWithRef';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withNavigation,
-)(ComposerWithRef);
+export default compose(withLocalize, withWindowDimensions, withNavigation)(ComposerWithRef);

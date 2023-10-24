@@ -30,7 +30,7 @@ export default function withAnimatedRef(WrappedComponent) {
             forwardedRef={ref}
         />
     ));
-    
+
     WithAnimatedRefWithRef.displayName = 'WithAnimatedRefWithRef';
 
     return WithAnimatedRefWithRef;

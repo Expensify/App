@@ -195,8 +195,4 @@ const SignInPageLayoutWithRef = forwardRef((props, ref) => (
 
 SignInPageLayoutWithRef.displayName = 'SignInPageLayoutWithRef';
 
-export default compose(
-    withWindowDimensions,
-    withSafeAreaInsets,
-    withLocalize,
-)(SignInPageLayoutWithRef);
+export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(SignInPageLayoutWithRef);

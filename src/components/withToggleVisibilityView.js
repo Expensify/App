@@ -43,7 +43,7 @@ export default function (WrappedComponent) {
             forwardedRef={ref}
         />
     ));
-    
+
     WithToggleVisibilityViewWithRef.displayName = `WithToggleVisibilityViewWithRef`;
 
     return WithToggleVisibilityViewWithRef;

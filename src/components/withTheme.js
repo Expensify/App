@@ -36,7 +36,7 @@ export default function withTheme(WrappedComponent) {
             forwardedRef={ref}
         />
     ));
-    
+
     WithThemeWithRef.displayName = `WithThemeWithRef`;
 
     return WithThemeWithRef;
