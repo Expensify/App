@@ -45,10 +45,6 @@ function ParticipantLocalTime(props) {
 
     const reportRecipientDisplayName = lodashGet(props, 'participant.firstName') || lodashGet(props, 'participant.displayName');
 
-    if (!reportRecipientDisplayName) {
-        return null;
-    }
-
     return (
         <View style={[styles.chatItemComposeSecondaryRow]}>
             <Text

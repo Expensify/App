@@ -54,7 +54,12 @@ function HeaderWithBackButton({
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     return (
-        <View style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
+        <View
+            // Hover on some part of close icons will not work on Electron if dragArea is true
+            // https://github.com/Expensify/App/issues/29598
+            dataSet={{dragArea: false}}
+            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}
+        >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>

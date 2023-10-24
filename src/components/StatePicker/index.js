@@ -88,10 +88,14 @@ StatePicker.propTypes = propTypes;
 StatePicker.defaultProps = defaultProps;
 StatePicker.displayName = 'StatePicker';
 
-export default React.forwardRef((props, ref) => (
+const StatePickerWithRef = React.forwardRef((props, ref) => (
     <StatePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+StatePickerWithRef.displayName = 'StatePickerWithRef';
+
+export default StatePickerWithRef;
