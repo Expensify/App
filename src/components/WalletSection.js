@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import styles from '@styles/styles';
+import sourcePropTypes from './Image/sourcePropTypes';
 import Section from './Section';
 
 const propTypes = {
@@ -8,7 +9,7 @@ const propTypes = {
     children: PropTypes.node,
 
     /** The icon to display along with the title */
-    icon: PropTypes.func,
+    icon: sourcePropTypes,
 
     /** The text to display in the subtitle of the section */
     subtitle: PropTypes.string,
