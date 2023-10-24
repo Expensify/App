@@ -80,6 +80,7 @@ function AddressPage({privatePersonalDetails, route}) {
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
+    const [city, setCity] = useState(address.city);
 
     useEffect(() => {
         if (!address) {
@@ -87,6 +88,7 @@ function AddressPage({privatePersonalDetails, route}) {
         }
         setState(address.state);
         setCurrentCountry(address.country);
+        setCity(address.city);
     }, [address]);
 
     /**
@@ -135,23 +137,28 @@ function AddressPage({privatePersonalDetails, route}) {
     }, []);
 
     const handleAddressChange = useCallback((value, key) => {
-        if (key !== 'country' && key !== 'state') {
+        if (key !== 'country' && key !== 'state' && key !== 'city') {
             return;
         }
         if (key === 'country') {
             setCurrentCountry(value);
             setState('');
+            setCity('');
             return;
         }
-        setState(value);
+        if (key === 'state') {
+            setState(value);
+            return;
+        }
+        setCity(value);
     }, []);
 
     useEffect(() => {
-        if (!countryFromUrl || countryFromUrl === currentCountry) {
+        if (!countryFromUrl) {
             return;
         }
         handleAddressChange(countryFromUrl, 'country');
-    }, [countryFromUrl, handleAddressChange, currentCountry]);
+    }, [countryFromUrl, handleAddressChange]);
 
     return (
         <ScreenWrapper
@@ -159,7 +166,7 @@ function AddressPage({privatePersonalDetails, route}) {
             testID={AddressPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('privatePersonalDetails.homeAddress')}
+                title={translate('privatePersonalDetails.address')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
@@ -235,9 +242,10 @@ function AddressPage({privatePersonalDetails, route}) {
                         label={translate('common.city')}
                         accessibilityLabel={translate('common.city')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={address.city || ''}
+                        value={city || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
+                        onValueChange={handleAddressChange}
                     />
                     <View style={styles.formSpaceVertical} />
                     <TextInput

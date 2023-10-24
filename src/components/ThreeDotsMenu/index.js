@@ -1,16 +1,17 @@
 import React, {useState, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Icon from '../Icon';
 import PopoverMenu from '../PopoverMenu';
 import styles from '../../styles/styles';
 import useLocalize from '../../hooks/useLocalize';
-import Tooltip from '../Tooltip';
+import Tooltip from '../Tooltip/PopoverAnchorTooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 import CONST from '../../CONST';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Tooltip for the popup icon */
@@ -46,11 +47,11 @@ const propTypes = {
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
-    /** Function to call on modal hide */
-    onModalHide: PropTypes.func,
-
     /** Whether the popover menu should overlay the current view */
     shouldOverlay: PropTypes.bool,
+
+    /** Should we announce the Modal visibility changes? */
+    shouldSetModalVisibility: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -63,11 +64,11 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
-    onModalHide: () => {},
     shouldOverlay: false,
+    shouldSetModalVisibility: true,
 };
 
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, onModalHide, shouldOverlay}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility}) {
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();
@@ -77,9 +78,6 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
     };
 
     const hidePopoverMenu = () => {
-        InteractionManager.runAfterInteractions(() => {
-            onModalHide();
-        });
         setPopupMenuVisible(false);
     };
 
@@ -98,6 +96,13 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                                 onIconPress();
                             }
                         }}
+                        onMouseDown={(e) => {
+                            /* Keep the focus state on mWeb like we did on the native apps. */
+                            if (!Browser.isMobile()) {
+                                return;
+                            }
+                            e.preventDefault();
+                        }}
                         ref={buttonRef}
                         style={[styles.touchableButtonImage, ...iconStyles]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
@@ -112,13 +117,13 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
-                onPopoverHide={onModalHide}
                 isVisible={isPopupMenuVisible}
                 anchorPosition={anchorPosition}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={hidePopoverMenu}
                 menuItems={menuItems}
                 withoutOverlay={!shouldOverlay}
+                shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
             />
         </>

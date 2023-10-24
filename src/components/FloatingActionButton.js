@@ -6,9 +6,10 @@ import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import themeColors from '../styles/themes/default';
-import Tooltip from './Tooltip';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import variables from '../styles/variables';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
@@ -100,6 +101,8 @@ class FloatingActionButton extends PureComponent {
                         style={[styles.floatingActionButton, StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
                     >
                         <AnimatedIcon
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
                             src={Expensicons.Plus}
                             fill={fill}
                         />

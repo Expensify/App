@@ -23,6 +23,7 @@ import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescr
 import ROUTES from '../../../ROUTES';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
+import DisplayNames from '../../../components/DisplayNames';
 
 const propTypes = {
     /** Route params */
@@ -58,12 +59,13 @@ function ReportSettingsPage(props) {
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => _.find(policies, (policy) => policy && policy.id === report.policyID), [policies, report.policyID]);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
     // We only want policy owners and admins to be able to modify the welcome message.
     const shouldDisableWelcomeMessage =
-        ReportUtils.isArchivedRoom(report) || !ReportUtils.isChatRoom(report) || _.isEmpty(linkedWorkspace) || linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
+        isMoneyRequestReport || ReportUtils.isArchivedRoom(report) || !ReportUtils.isChatRoom(report) || _.isEmpty(linkedWorkspace) || linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
 
-    const shouldDisableSettings = _.isEmpty(report) || ReportUtils.shouldDisableSettings(report) || ReportUtils.isArchivedRoom(report);
+    const shouldDisableSettings = _.isEmpty(report) || ReportUtils.isArchivedRoom(report);
     const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
     const notificationPreference =
         report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
@@ -72,7 +74,13 @@ function ReportSettingsPage(props) {
     const writeCapability = ReportUtils.isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
-    const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN && !ReportUtils.isAdminRoom(report);
+    const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN && !ReportUtils.isAdminRoom(report) && !isMoneyRequestReport;
+
+    const shouldShowNotificationPref = !isMoneyRequestReport && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
+    const reportName = ReportUtils.getReportName(props.report);
+
+    const shouldShowWriteCapability = !isMoneyRequestReport;
 
     return (
         <ScreenWrapper testID={ReportSettingsPage.displayName}>
@@ -82,7 +90,7 @@ function ReportSettingsPage(props) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID))}
                 />
                 <ScrollView style={[styles.flex1]}>
-                    {report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && (
+                    {shouldShowNotificationPref && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
                             title={notificationPreference}
@@ -103,14 +111,15 @@ function ReportSettingsPage(props) {
                                         style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
                                         numberOfLines={1}
                                     >
-                                        {translate('newRoomPage.roomName')}
+                                        {roomNameLabel}
                                     </Text>
-                                    <Text
+                                    <DisplayNames
+                                        fullTitle={reportName}
+                                        tooltipEnabled
                                         numberOfLines={1}
-                                        style={[styles.optionAlternateText, styles.pre]}
-                                    >
-                                        {report.reportName}
-                                    </Text>
+                                        textStyles={[styles.optionAlternateText, styles.pre]}
+                                        shouldUseFullTitle
+                                    />
                                 </View>
                             ) : (
                                 <MenuItemWithTopDescription
@@ -122,29 +131,30 @@ function ReportSettingsPage(props) {
                             )}
                         </OfflineWithFeedback>
                     )}
-                    {shouldAllowWriteCapabilityEditing ? (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={writeCapabilityText}
-                            description={translate('writeCapabilityPage.label')}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(report.reportID))}
-                        />
-                    ) : (
-                        <View style={[styles.ph5, styles.pv3]}>
-                            <Text
-                                style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
-                                numberOfLines={1}
-                            >
-                                {translate('writeCapabilityPage.label')}
-                            </Text>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.optionAlternateText, styles.pre]}
-                            >
-                                {writeCapabilityText}
-                            </Text>
-                        </View>
-                    )}
+                    {shouldShowWriteCapability &&
+                        (shouldAllowWriteCapabilityEditing ? (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={writeCapabilityText}
+                                description={translate('writeCapabilityPage.label')}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(report.reportID))}
+                            />
+                        ) : (
+                            <View style={[styles.ph5, styles.pv3]}>
+                                <Text
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                    numberOfLines={1}
+                                >
+                                    {translate('writeCapabilityPage.label')}
+                                </Text>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.optionAlternateText, styles.pre]}
+                                >
+                                    {writeCapabilityText}
+                                </Text>
+                            </View>
+                        ))}
                     <View style={[styles.ph5]}>
                         {Boolean(linkedWorkspace) && (
                             <View style={[styles.pv3]}>
@@ -154,12 +164,13 @@ function ReportSettingsPage(props) {
                                 >
                                     {translate('workspace.common.workspace')}
                                 </Text>
-                                <Text
+                                <DisplayNames
+                                    fullTitle={linkedWorkspace.name}
+                                    tooltipEnabled
                                     numberOfLines={1}
-                                    style={[styles.optionAlternateText, styles.pre]}
-                                >
-                                    {linkedWorkspace.name}
-                                </Text>
+                                    textStyles={[styles.optionAlternateText, styles.pre]}
+                                    shouldUseFullTitle
+                                />
                             </View>
                         )}
                         {Boolean(report.visibility) && (
@@ -198,7 +209,7 @@ ReportSettingsPage.propTypes = propTypes;
 ReportSettingsPage.defaultProps = defaultProps;
 ReportSettingsPage.displayName = 'ReportSettingsPage';
 export default compose(
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

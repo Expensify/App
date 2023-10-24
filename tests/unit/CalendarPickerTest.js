@@ -1,10 +1,17 @@
 import {render, fireEvent, within} from '@testing-library/react-native';
-import moment from 'moment';
+import {format, eachMonthOfInterval, subYears, addYears} from 'date-fns';
+import DateUtils from '../../src/libs/DateUtils';
 import CalendarPicker from '../../src/components/NewDatePicker/CalendarPicker';
 import CONST from '../../src/CONST';
 
-moment.locale(CONST.LOCALES.EN);
-const monthNames = moment.localeData().months();
+DateUtils.setLocale(CONST.LOCALES.EN);
+const fullYear = new Date().getFullYear();
+const monthsArray = eachMonthOfInterval({
+    start: new Date(fullYear, 0, 1), // January 1st of the current year
+    end: new Date(fullYear, 11, 31), // December 31st of the current year
+});
+// eslint-disable-next-line rulesdir/prefer-underscore-method
+const monthNames = monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
 
 jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({navigate: jest.fn()}),
@@ -33,8 +40,8 @@ describe('CalendarPicker', () => {
 
     test('displays the current month and year', () => {
         const currentDate = new Date();
-        const maxDate = moment(currentDate).add(1, 'Y').toDate();
-        const minDate = moment(currentDate).subtract(1, 'Y').toDate();
+        const maxDate = addYears(new Date(currentDate), 1);
+        const minDate = subYears(new Date(currentDate), 1);
         const {getByText} = render(
             <CalendarPicker
                 maxDate={maxDate}
