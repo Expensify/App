@@ -5,13 +5,14 @@ import {useFocusEffect} from '@react-navigation/native';
 import TextInput from '../components/TextInput';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Form from '../components/Form';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
 import * as Browser from '../libs/Browser';
 import updateMultilineInputRange from '../libs/UpdateMultilineInputRange';
+import FormProvider from '../components/Form/FormProvider';
+import InputWrapper from '../components/Form/InputWrapper';
 
 const propTypes = {
     /** Transaction default description value */
@@ -49,7 +50,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
             testID={EditRequestDescriptionPage.displayName}
         >
             <HeaderWithBackButton title={translate('common.description')} />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                 onSubmit={onSubmit}
@@ -57,8 +58,9 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <TextInput
+                    <InputWrapper
                         // Comment field does not have its modified counterpart
+                        InputComponent={TextInput}
                         inputID="comment"
                         name="comment"
                         defaultValue={defaultDescription}
@@ -78,7 +80,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         submitOnEnter={!Browser.isMobile()}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
