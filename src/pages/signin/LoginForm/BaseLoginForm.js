@@ -60,6 +60,12 @@ const propTypes = {
         success: PropTypes.string,
     }),
 
+    /** The credentials of the logged in person */
+    credentials: PropTypes.shape({
+        /** The email the user logged in with */
+        login: PropTypes.string,
+    }),
+
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
@@ -78,6 +84,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    credentials: {},
     closeAccount: {},
     blurOnSubmit: false,
     innerRef: () => {},
@@ -86,7 +93,10 @@ const defaultProps = {
 
 function LoginForm(props) {
     const input = useRef();
-    const [login, setLogin] = useState('');
+    const [login, setLogin] = useState(() => {
+        const userLogin = Str.removeSMSDomain(props.credentials.login || '');
+        return userLogin;
+    });
     const [formError, setFormError] = useState(false);
     const prevIsVisible = usePrevious(props.isVisible);
 
@@ -289,6 +299,7 @@ export default compose(
     withNavigationFocus,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     }),
     withWindowDimensions,
