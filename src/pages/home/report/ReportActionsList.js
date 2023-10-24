@@ -9,6 +9,7 @@ import InvertedFlatList from '../../../components/InvertedFlatList';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import useNetwork from '../../../hooks/useNetwork';
 import useLocalize from '../../../hooks/useLocalize';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import DateUtils from '../../../libs/DateUtils';
@@ -131,6 +132,7 @@ function ReportActionsList({
 }) {
     const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
