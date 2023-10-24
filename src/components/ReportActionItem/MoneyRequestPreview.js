@@ -305,7 +305,7 @@ function MoneyRequestPreview(props) {
                             </View>
                             {shouldShowMerchant && (
                                 <View style={[styles.flexRow]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>{requestMerchant}</Text>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]} numberOfLines={3}>{requestMerchant}</Text>
                                 </View>
                             )}
                             <View style={[styles.flexRow, styles.mt1]}>
@@ -313,7 +313,7 @@ function MoneyRequestPreview(props) {
                                     {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
                                         <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
                                     )}
-                                    {shouldShowDescription && <Text style={[styles.colorMuted]}>{description}</Text>}
+                                    {shouldShowDescription && <Text style={[styles.colorMuted]} numberOfLines={3}>{description}</Text>}
                                 </View>
                                 {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
