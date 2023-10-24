@@ -14,6 +14,10 @@ const propTypes = {
     /** Extra styles for the section list container */
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Style for section headers */
+    // eslint-disable-next-line react/forbid-prop-types
+    sectionHeaderStyle: PropTypes.object,
+
     /** Sections for the section list */
     sections: PropTypes.arrayOf(
         PropTypes.shape({
@@ -101,6 +105,7 @@ const propTypes = {
 const defaultProps = {
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
+    sectionHeaderStyle: undefined,
     listContainerStyles: [styles.flex1],
     sections: [],
     focusedIndex: 0,

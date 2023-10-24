@@ -108,6 +108,10 @@ const propTypes = {
     /** Hover style for options in the OptionsList */
     optionHoveredStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Style for section headers */
+    // eslint-disable-next-line react/forbid-prop-types
+    sectionHeaderStyle: PropTypes.object,
+
     /** Whether to show options list */
     shouldShowOptions: PropTypes.bool,
 
@@ -159,6 +163,7 @@ const defaultProps = {
     shouldTextInputAppearBelowOptions: false,
     footerContent: undefined,
     optionHoveredStyle: styles.hoveredComponentBG,
+    sectionHeaderStyle: undefined,
     shouldShowOptions: true,
     disableArrowKeysActions: false,
     isDisabled: false,
