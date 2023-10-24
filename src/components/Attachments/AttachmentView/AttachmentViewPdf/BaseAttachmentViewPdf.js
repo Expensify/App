@@ -15,7 +15,19 @@ const defaultProps = {
     ...attachmentViewPdfDefaultProps,
 };
 
-function BaseAttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete, errorLabelStyles, style, updateScaleRef}) {
+function BaseAttachmentViewPdf({
+    file,
+    encryptedSourceUrl,
+    isFocused,
+    isUsedInCarousel,
+    onPress,
+    onScaleChanged: onScaleChangedProp,
+    onToggleKeyboard,
+    onLoadComplete,
+    errorLabelStyles,
+    style,
+    updateScaleRef,
+}) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     useEffect(() => {
