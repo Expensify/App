@@ -7,7 +7,7 @@ type FixedFooterProps = {
     children: ReactNode;
 
     /** Styles to be assigned to Container */
-    style: Array<StyleProp<ViewStyle>>;
+    style?: Array<StyleProp<ViewStyle>>;
 };
 
 function FixedFooter({style = [], children}: FixedFooterProps) {
