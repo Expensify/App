@@ -53,6 +53,9 @@ const propTypes = {
 
     /** Whether or not the receipt selector is in a tab navigator for tab animations */
     isInTabNavigator: PropTypes.bool,
+
+    /** Name of the selected receipt tab */
+    selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
@@ -60,9 +63,10 @@ const defaultProps = {
     iou: iouDefaultProps,
     transactionID: '',
     isInTabNavigator: true,
+    selectedTab: '',
 };
 
-function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) {
+function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, selectedTab}) {
     const device = useCameraDevice('back');
 
     const camera = useRef(null);
@@ -194,6 +198,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     photo
                     cameraTabIndex={pageIndex}
                     isInTabNavigator={isInTabNavigator}
+                    selectedTab={selectedTab}
                 />
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>

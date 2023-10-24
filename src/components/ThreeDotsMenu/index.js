@@ -6,7 +6,7 @@ import Icon from '../Icon';
 import PopoverMenu from '../PopoverMenu';
 import styles from '../../styles/styles';
 import useLocalize from '../../hooks/useLocalize';
-import Tooltip from '../Tooltip';
+import Tooltip from '../Tooltip/PopoverAnchorTooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 import CONST from '../../CONST';
