@@ -30,7 +30,7 @@ import GoogleSignIn from '../../../components/SignInButtons/GoogleSignIn';
 import isInputAutoFilled from '../../../libs/isInputAutoFilled';
 import * as PolicyUtils from '../../../libs/PolicyUtils';
 import Log from '../../../libs/Log';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../../../components/withNavigationFocus';
+import withNavigationFocus from '../../../components/withNavigationFocus';
 import usePrevious from '../../../hooks/usePrevious';
 import * as MemoryOnlyKeys from '../../../libs/actions/MemoryOnlyKeys/MemoryOnlyKeys';
 
@@ -66,13 +66,14 @@ const propTypes = {
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
 
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
 
     ...toggleVisibilityViewPropTypes,
-
-    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
