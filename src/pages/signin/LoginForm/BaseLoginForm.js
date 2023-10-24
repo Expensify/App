@@ -285,6 +285,16 @@ LoginForm.propTypes = propTypes;
 LoginForm.defaultProps = defaultProps;
 LoginForm.displayName = 'LoginForm';
 
+const LoginFormWithRef = forwardRef((props, ref) => (
+    <LoginForm
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+LoginFormWithRef.displayName = 'LoginFormWithRef';
+
 export default compose(
     withNavigationFocus,
     withOnyx({
@@ -295,12 +305,4 @@ export default compose(
     withLocalize,
     withToggleVisibilityView,
     withNetwork(),
-)(
-    forwardRef((props, ref) => (
-        <LoginForm
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+)(LoginFormWithRef);

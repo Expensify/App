@@ -130,10 +130,14 @@ CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;
 CheckboxWithLabel.displayName = 'CheckboxWithLabel';
 
-export default React.forwardRef((props, ref) => (
+const CheckboxWithLabelWithRef = React.forwardRef((props, ref) => (
     <CheckboxWithLabel
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+CheckboxWithLabelWithRef.displayName = 'CheckboxWithLabelWithRef';
+
+export default CheckboxWithLabelWithRef;
