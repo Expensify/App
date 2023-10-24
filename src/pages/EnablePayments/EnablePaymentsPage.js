@@ -42,9 +42,10 @@ function EnablePaymentsPage({userWallet}) {
 
         if (isPendingOnfidoResult || hasFailedOnfido) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET, CONST.NAVIGATION.TYPE.UP);
-        } else {
-            Wallet.openEnablePaymentsPage();
+            return;
         }
+
+        Wallet.openEnablePaymentsPage();
     }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
 
     if (_.isEmpty(userWallet)) {
