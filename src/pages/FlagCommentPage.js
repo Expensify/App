@@ -22,6 +22,7 @@ import * as Session from '../libs/actions/Session';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 import ONYXKEYS from '../ONYXKEYS';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Array of report actions for this report */
@@ -160,7 +161,10 @@ function FlagCommentPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
-                    <HeaderWithBackButton title={props.translate('reportActionContextMenu.flagAsOffensive')} />
+                    <HeaderWithBackButton
+                        title={props.translate('reportActionContextMenu.flagAsOffensive')}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(props.report.reportID))}
+                    />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
                         style={styles.settingsPageBackground}
