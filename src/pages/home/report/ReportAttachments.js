@@ -11,6 +11,7 @@ import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportPropTypes from '../../reportPropTypes';
 import reportMetadataPropTypes from '../../../pages/reportMetadataPropTypes';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -51,6 +52,7 @@ function getReportID(route) {
 function ReportAttachments(props) {
     const reportID = _.get(props, ['route', 'params', 'reportID']);
     const source = decodeURI(_.get(props, ['route', 'params', 'source']));
+    const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
     const reportActionsLoadedRef = useRef(false);
 
     /** This effects handles 2x cases when report attachments are opened with deep link */
@@ -66,7 +68,7 @@ function ReportAttachments(props) {
         // of a chat we haven't opened after login (from any page other than the chat itself), the
         // report actions are not loaded for that report
         const reportActions = ReportActionUtils.getAllReportActions(reportID);
-        if (props.reportMetadata.isLoadingReportActions || !_.isEmpty(reportActions)) {
+        if (props.reportMetadata.isLoadingReportActions || (!_.isEmpty(reportActions) && _.has(reportActions, sourceID))) {
             reportActionsLoadedRef.current = true;
             return;
         }
