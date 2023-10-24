@@ -103,6 +103,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
     const inputRefs = useRef(null);
     const touchedInputs = useRef({});
     const [inputValues, setInputValues] = useState({});
+    const submitPressed = useRef(false);
     const [errors, setErrors] = useState({});
     const hasServerError = useMemo(() => Boolean(formState) && !_.isEmpty(formState.errors), [formState]);
 
@@ -159,7 +160,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
             }
 
-            const touchedInputErrors = _.pick(validateErrors, (inputValue, inputID) => Boolean(touchedInputs.current[inputID]));
+            const touchedInputErrors = _.pick(validateErrors, (inputValue, inputID) => Boolean(touchedInputs.current[inputID]) || submitPressed.current);
 
             if (!_.isEqual(errors, touchedInputErrors)) {
                 setErrors(touchedInputErrors);
@@ -181,6 +182,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
     );
 
     const submit = useCallback(() => {
+        submitPressed.current = true;
         // Return early if the form is already submitting to avoid duplicate submission
         if (formState.isLoading) {
             return;
