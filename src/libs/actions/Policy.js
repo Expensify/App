@@ -134,8 +134,6 @@ function hasActiveFreePolicy(policies) {
  */
 function deleteWorkspace(policyID, reports, policyName) {
     const filteredPolicies = filter(allPolicies, (policy) => policy.id !== policyID);
-    const oldReimbursementAccount = reimbursementAccount;
-
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -202,7 +200,7 @@ function deleteWorkspace(policyID, reports, policyName) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
             value: {
-                errors: lodashGet(oldReimbursementAccount, 'errors', null),
+                errors: lodashGet(reimbursementAccount, 'errors', null),
             },
         },
     ];
