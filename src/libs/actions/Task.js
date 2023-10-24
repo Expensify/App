@@ -133,11 +133,11 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
     // FOR TASK REPORT
     const failureData = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
             value: {
                 errorFields: {
-                    createChat: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
+                    createTask: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
                 },
             },
         },
@@ -913,7 +913,19 @@ function canModifyTask(taskReport, sessionAccountID) {
 /**
  * @param {String} reportID
  */
-function clearEditTaskErrors(reportID) {
+function clearTaskErrors(reportID) {
+    const report = ReportUtils.getReport(reportID);
+    if (lodashGet(report, 'pendingFields.createChat') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
+            [report.parentReportActionID]: null
+        });
+
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID));
+        return;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         pendingFields: null,
         errorFields: null,
@@ -968,7 +980,7 @@ export {
     cancelTask,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
-    clearEditTaskErrors,
+    clearTaskErrors,
     canModifyTask,
     getTaskReportActionMessage,
 };
