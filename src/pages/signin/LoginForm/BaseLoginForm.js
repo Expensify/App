@@ -84,7 +84,9 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
-    credentials: {},
+    credentials: {
+        login: '',
+    },
     closeAccount: {},
     blurOnSubmit: false,
     innerRef: () => {},
