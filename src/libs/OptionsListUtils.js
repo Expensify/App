@@ -867,10 +867,10 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
     const filteredRecentlyUsedCategories = _.chain(recentlyUsedCategories)
-        .filter((categoryName) => !_.includes(selectedOptionNames, categoryName) && lodashGet(categories, `${categoryName}.enabled`, false))
+        .filter((categoryName) => !_.includes(selectedOptionNames, categoryName) && lodashGet(categories, [categoryName, 'enabled'], false))
         .map((categoryName) => ({
             name: categoryName,
-            enabled: lodashGet(categories, `${categoryName}.enabled`, false),
+            enabled: lodashGet(categories, [categoryName, 'enabled'], false),
         }))
         .value();
 
