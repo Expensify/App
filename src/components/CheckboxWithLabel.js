@@ -8,7 +8,7 @@ import Text from './Text';
 import FormHelpMessage from './FormHelpMessage';
 import variables from '../styles/variables';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import refPropTypes from "./refPropTypes";
+import refPropTypes from './refPropTypes';
 
 /**
  * Returns an error if the required props are not provided
