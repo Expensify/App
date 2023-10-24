@@ -9,9 +9,6 @@ still runs the release version of the app, which is hard to debug.
 
 I recommend doing the following.
 
-> [!NOTE]
-> All of the steps can be executed at once by running XXX (todo)
-
 1. We need to compile a android development app version that has capturing metrics enabled:
 ```bash
 # Make sure that your .env file is the one we need for e2e testing:
