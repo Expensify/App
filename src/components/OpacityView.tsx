@@ -3,7 +3,6 @@ import Animated, {AnimatedStyle, useAnimatedStyle, useSharedValue, withTiming} f
 import {StyleProp, ViewStyle} from 'react-native';
 import variables from '../styles/variables';
 import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
-import styles from '../styles/styles';
 
 type OpacityViewProps = {
     /**
