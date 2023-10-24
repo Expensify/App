@@ -54,6 +54,7 @@ function BaseOptionsList({
     showScrollIndicator,
     listContainerStyles,
     shouldDisableRowInnerPadding,
+    shouldPreventDefaultFocusOnSelectRow,
     disableFocusOptions,
     canSelectMultipleOptions,
     shouldShowMultipleOptionSelectorAsButton,
@@ -65,6 +66,9 @@ function BaseOptionsList({
     isDisabled,
     innerRef,
     isRowMultilineSupported,
+    isLoadingNewOptions,
+    nestedScrollEnabled,
+    bounces,
 }) {
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
@@ -206,6 +210,7 @@ function BaseOptionsList({
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 isMultilineSupported={isRowMultilineSupported}
             />
         );
@@ -243,18 +248,21 @@ function BaseOptionsList({
                 <OptionsListSkeletonView shouldAnimate />
             ) : (
                 <>
-                    {headerMessage ? (
+                    {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
+                    {/* This is misleading because we might be in the process of loading fresh options from the server. */}
+                    {!isLoadingNewOptions && headerMessage ? (
                         <View style={[styles.ph5, styles.pb5]}>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                         </View>
                     ) : null}
                     <SectionList
                         ref={innerRef}
-                        nestedScrollEnabled
                         style={listStyles}
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
                         keyboardDismissMode={keyboardDismissMode}
+                        nestedScrollEnabled={nestedScrollEnabled}
+                        scrollEnabled={nestedScrollEnabled}
                         onScrollBeginDrag={onScrollBeginDrag}
                         onScroll={onScroll}
                         contentContainerStyle={contentContainerStyles}
@@ -271,6 +279,7 @@ function BaseOptionsList({
                         windowSize={5}
                         viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                         onViewableItemsChanged={onViewableItemsChanged}
+                        bounces={bounces}
                     />
                 </>
             )}

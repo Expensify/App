@@ -1,9 +1,9 @@
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
+import withNavigationFocus from '../../components/withNavigationFocus';
 import * as Report from '../../libs/actions/Report';
 import * as App from '../../libs/actions/App';
 import useLocalize from '../../hooks/useLocalize';
@@ -25,6 +25,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
+import useDelayedInputFocus from '../../hooks/useDelayedInputFocus';
 import ValuePicker from '../../components/ValuePicker';
 
 const propTypes = {
@@ -60,7 +61,8 @@ const propTypes = {
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
 
-    ...withNavigationFocusPropTypes,
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
 };
 const defaultProps = {
     betas: [],
@@ -97,7 +99,7 @@ function WorkspaceNewRoomPage(props) {
         }
 
         setWriteCapability(CONST.REPORT.WRITE_CAPABILITIES.ALL);
-    }, [policyID, isPolicyAdmin]);
+    }, [isPolicyAdmin]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -154,6 +156,11 @@ function WorkspaceNewRoomPage(props) {
         [translate],
     );
 
+    const roomNameInputRef = useRef(null);
+
+    // use a 600ms delay for delayed focus on the room name input field so that it works consistently on native iOS / Android
+    useDelayedInputFocus(roomNameInputRef, 600);
+
     return (
         <FullPageNotFoundView
             shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}
@@ -170,8 +177,8 @@ function WorkspaceNewRoomPage(props) {
             >
                 {({insets}) => (
                     <KeyboardAvoidingView
-                        style={{height: '100%'}}
-                        behavior="height"
+                        style={styles.h100}
+                        behavior="padding"
                         // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                         // This is because when wrapping whole screen the screen was freezing when changing Tabs.
                         keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
@@ -186,6 +193,7 @@ function WorkspaceNewRoomPage(props) {
                         >
                             <View style={styles.mb5}>
                                 <RoomNameInput
+                                    ref={(el) => (roomNameInputRef.current = el)}
                                     inputID="roomName"
                                     isFocused={props.isFocused}
                                     shouldDelayFocus

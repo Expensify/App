@@ -30,7 +30,7 @@ import GoogleSignIn from '../../../components/SignInButtons/GoogleSignIn';
 import isInputAutoFilled from '../../../libs/isInputAutoFilled';
 import * as PolicyUtils from '../../../libs/PolicyUtils';
 import Log from '../../../libs/Log';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../../../components/withNavigationFocus';
+import withNavigationFocus from '../../../components/withNavigationFocus';
 import usePrevious from '../../../hooks/usePrevious';
 import * as MemoryOnlyKeys from '../../../libs/actions/MemoryOnlyKeys/MemoryOnlyKeys';
 
@@ -63,13 +63,17 @@ const propTypes = {
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
+    /** Whether or not the sign in page is being rendered in the RHP modal */
+    isInModal: PropTypes.bool,
+
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
 
     ...toggleVisibilityViewPropTypes,
-
-    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
@@ -77,6 +81,7 @@ const defaultProps = {
     closeAccount: {},
     blurOnSubmit: false,
     innerRef: () => {},
+    isInModal: false,
 };
 
 function LoginForm(props) {
@@ -159,13 +164,19 @@ function LoginForm(props) {
     useEffect(() => {
         // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
         // this component will also be mounted, resetting account.isLoading will cause the app to briefly display the session expiration page.
-        if (props.isFocused) {
+        if (props.isFocused && props.isVisible) {
             Session.clearAccountMessages();
         }
         if (!canFocusInputOnScreenFocus() || !input.current || !props.isVisible) {
             return;
         }
-        input.current.focus();
+        let focusTimeout;
+        if (props.isInModal) {
+            focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
+        } else {
+            input.current.focus();
+        }
+        return () => clearTimeout(focusTimeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
@@ -203,6 +214,7 @@ function LoginForm(props) {
                     accessibilityLabel={translate('loginForm.phoneOrEmail')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={login}
+                    returnKeyType="go"
                     autoCompleteType="username"
                     textContentType="username"
                     nativeID="username"

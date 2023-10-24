@@ -11,6 +11,7 @@ import SafeAreaConsumer from '../SafeAreaConsumer';
 import ScrollViewWithContext from '../ScrollViewWithContext';
 
 import stylePropTypes from '../../styles/stylePropTypes';
+import errorsPropType from './errorsPropType';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -36,7 +37,7 @@ const propTypes = {
         isLoading: PropTypes.bool,
 
         /** Server side errors keyed by microtime */
-        errors: PropTypes.objectOf(PropTypes.oneOf([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])),
+        errors: errorsPropType,
 
         /** Field-specific server side errors keyed by microtime */
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
@@ -59,7 +60,7 @@ const propTypes = {
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
-    errors: PropTypes.objectOf(PropTypes.string).isRequired,
+    errors: errorsPropType.isRequired,
 
     inputRefs: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.func, PropTypes.object])).isRequired,
 };
@@ -104,8 +105,8 @@ function FormWrapper(props) {
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={() => {
                             const errorFields = !_.isEmpty(errors) ? errors : formState.errorFields;
-                            const focusKey = _.find(_.keys(inputRefs), (key) => _.keys(errorFields).includes(key));
-                            const focusInput = inputRefs[focusKey].current;
+                            const focusKey = _.find(_.keys(inputRefs.current), (key) => _.keys(errorFields).includes(key));
+                            const focusInput = inputRefs.current[focusKey].current;
 
                             // Dismiss the keyboard for non-text fields by checking if the component has the isFocused method, as only TextInput has this method.
                             if (typeof focusInput.isFocused !== 'function') {
