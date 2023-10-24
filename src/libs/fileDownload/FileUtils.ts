@@ -65,7 +65,9 @@ function showCameraPermissionsAlert() {
             },
             {
                 text: Localize.translateLocal('common.settings'),
-                onPress: () => { Linking.openSettings() }
+                onPress: () => {
+                    Linking.openSettings();
+                },
             },
         ],
         {cancelable: false},
