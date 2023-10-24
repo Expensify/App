@@ -10,7 +10,7 @@ function CustomStatusBar() {
             // If we don't have any colour defined for a route, fall back to
             // appBG color.
             const currentRoute = navigationRef.getCurrentRoute();
-            let currentScreenBackgroundColor = themeColors.appBG;
+            let currentScreenBackgroundColor = themeColors.sidebar;
             if (currentRoute && 'name' in currentRoute && currentRoute.name in themeColors.PAGE_BACKGROUND_COLORS) {
                 currentScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name];
             }

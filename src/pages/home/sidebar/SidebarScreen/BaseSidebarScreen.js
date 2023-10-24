@@ -35,15 +35,15 @@ function BaseSidebarScreen(props) {
             testID={BaseSidebarScreen.displayName}
             isSidebar
         >
-            {({insets, paddingTop}) => (
+            {({insets}) => (
                 <>
                     <View style={[styles.flex1, styles.flexRow, styles.globalAndSubNavigationContainer]}>
                         <GlobalNavigation />
                         <SubNavigation
                             onLinkClick={startTimer}
                             insets={insets}
-                            // Don't display radius if there is exisiting padding top or platform is desktop. In this cases HeaderGap component is handling it.
-                            shouldDisplayRadius={!(paddingTop || isDesktop)}
+                            // Don't display radius if platform is desktop. In this cases HeaderGap component is handling it.
+                            shouldDisplayRadius={!isDesktop}
                         />
                     </View>
                     {props.children}

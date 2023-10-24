@@ -131,7 +131,7 @@ function ScreenWrapper({
                                     enabled={shouldEnablePickerAvoiding}
                                 >
                                     <HeaderGap
-                                        styles={[includePaddingTop && Boolean(paddingTop) && {height: paddingTop}, ...headerGapStyles]}
+                                        styles={[includePaddingTop && {height: paddingTop}, ...headerGapStyles]}
                                         isSidebar={isSidebar}
                                     />
                                     {isDevelopment && <TestToolsModal />}
@@ -143,7 +143,6 @@ function ScreenWrapper({
                                                   insets,
                                                   safeAreaPaddingBottomStyle,
                                                   didScreenTransitionEnd,
-                                                  paddingTop,
                                               })
                                             : children
                                     }

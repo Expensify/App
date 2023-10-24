@@ -87,7 +87,7 @@ const darkTheme = {
 } satisfies ThemeBase;
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
-    [SCREENS.HOME]: darkTheme.sidebar,
+    [SCREENS.HOME]: darkTheme.highlightBG,
     [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
     [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
     [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
