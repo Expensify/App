@@ -1,9 +1,9 @@
 import React from 'react';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {ViewStyle} from 'react-native';
+import Animated, {AnimatedStyle, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {StyleProp, ViewStyle} from 'react-native';
 import variables from '../styles/variables';
-import * as StyleUtils from '../styles/StyleUtils';
 import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
+import styles from '../styles/styles';
 
 type OpacityViewProps = {
     /**
@@ -20,8 +20,7 @@ type OpacityViewProps = {
      * Array of style objects
      * @default []
      */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: ViewStyle | ViewStyle[];
+    style: StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>;
 
     /**
      * The value to use for the opacity when the view is dimmed
@@ -49,7 +48,7 @@ function OpacityView({shouldDim, children, style = [], dimmingValue = variables.
 
     return (
         <Animated.View
-            style={[opacityStyle, ...StyleUtils.parseStyleAsArray(style)]}
+            style={[opacityStyle, style]}
             needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOffscreenAlphaCompositing : undefined}
         >
             {children}
