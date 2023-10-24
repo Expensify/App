@@ -674,17 +674,10 @@ function hasEnabledOptions(options) {
  */
 function sortCategories(categories) {
     // Sorts categories alphabetically by name.
-    const sortedCategories = _.values(categories).sort((a, b) => {
-        if (a.name < b.name) {
-            return -1;
-        }
-
-        if (a.name > b.name) {
-            return 1;
-        }
-
-        return 0;
-    });
+    const sortedCategories = _.chain(categories)
+        .values()
+        .sortBy((category) => category.name)
+        .value();
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
     const hierarchy = {};
