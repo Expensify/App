@@ -46,6 +46,7 @@ import TreasureChest from '../../../assets/images/simple-illustrations/simple-il
 import ThumbsUpStars from '../../../assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import Hands from '../../../assets/images/product-illustrations/home-illustration-hands.svg';
 import HandEarth from '../../../assets/images/simple-illustrations/simple-illustration__handearth.svg';
+import SmartScan from '../../../assets/images/product-illustrations/simple-illustration__smartscan.svg';
 
 export {
     Abracadabra,
@@ -96,4 +97,5 @@ export {
     ThumbsUpStars,
     Hands,
     HandEarth,
+    SmartScan,
 };

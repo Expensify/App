@@ -1,7 +1,7 @@
 import React, {useState, useRef, useCallback, useEffect} from 'react';
 import {Button, View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
-import {format} from 'date-fns';
+import moment from 'moment';
 import isFunction from 'lodash/isFunction';
 import TextInput from '../TextInput';
 import Popover from '../Popover';
@@ -13,9 +13,8 @@ import useKeyboardState from '../../hooks/useKeyboardState';
 import useLocalize from '../../hooks/useLocalize';
 
 function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLocale, minDate, maxDate, label, disabled, onBlur, placeholder, containerStyles, errorText}) {
-    const dateValue = value || defaultValue;
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(dateValue ? new Date(dateValue) : new Date());
+    const [selectedDate, setSelectedDate] = useState(moment(value || defaultValue).toDate());
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
     const initialValue = useRef(null);
@@ -66,7 +65,8 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
      */
     const selectDate = () => {
         setIsPickerVisible(false);
-        onInputChange(format(selectedDate, CONST.DATE.FNS_FORMAT_STRING));
+        const asMoment = moment(selectedDate, true);
+        onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
     };
 
     /**
@@ -77,7 +77,7 @@ function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLoca
         setSelectedDate(date);
     };
 
-    const dateAsText = dateValue ? format(new Date(dateValue), CONST.DATE.FNS_FORMAT_STRING) : '';
+    const dateAsText = value || defaultValue ? moment(value || defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
 
     return (
         <>
