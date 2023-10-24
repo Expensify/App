@@ -962,7 +962,7 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
         tagSections.push({
             // "Search" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getTagsOptions(searchTags),
         });
@@ -1004,7 +1004,7 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
         tagSections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getTagsOptions(selectedTagOptions),
         });
