@@ -1,5 +1,5 @@
 import {ValueOf} from 'type-fest';
-import {StyleProp, ViewStyle} from 'react-native';
+import {ViewStyle} from 'react-native';
 import {ModalProps} from 'react-native-modal';
 import ChildrenProps from '../../types/utils/ChildrenProps';
 import {WindowDimensionsProps} from '../withWindowDimensions/types';
@@ -51,16 +51,16 @@ type BaseModalProps = WindowDimensionsProps &
 
         /** The anchor position of a popover modal. Has no effect on other modal types. */
         popoverAnchorPosition?: {
-            top: number;
-            right: number;
-            bottom: number;
-            left: number;
+            top?: number;
+            right?: number;
+            bottom?: number;
+            left?: number;
         };
 
         /** Modal container styles  */
         innerContainerStyle?: Pick<ModalProps, 'style'>;
 
-        outerStyle?: StyleProp<ViewStyle>;
+        outerStyle?: ViewStyle;
 
         /** Whether the modal should go under the system statusbar */
         statusBarTranslucent?: boolean;
