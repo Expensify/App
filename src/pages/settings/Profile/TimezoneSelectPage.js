@@ -37,18 +37,15 @@ const getUserTimezone = (currentUserPersonalDetails) => lodashGet(currentUserPer
 function TimezoneSelectPage(props) {
     const {translate} = useLocalize();
     const timezone = getUserTimezone(props.currentUserPersonalDetails);
-    const allTimezones = useInitialValue(
-        () =>
-            _.chain(TIMEZONES)
-                .filter((tz) => !tz.startsWith('Etc/GMT'))
-                .map((text) => ({
-                    text,
-                    keyForList: getKey(text),
-                    isSelected: text === timezone.selected,
-                }))
-                .value(),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
+    const allTimezones = useInitialValue(() =>
+        _.chain(TIMEZONES)
+            .filter((tz) => !tz.startsWith('Etc/GMT'))
+            .map((text) => ({
+                text,
+                keyForList: getKey(text),
+                isSelected: text === timezone.selected,
+            }))
+            .value(),
     );
     const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
