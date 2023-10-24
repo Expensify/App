@@ -94,15 +94,15 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
     if (!personalDetails) {
         return;
     }
-    const firstName = personalDetails.legalFirstName || '';
-    const lastName = personalDetails.legalLastName || '';
-    const dob = personalDetails.dob || '';
-    const addressStreet = personalDetails.addressStreet || '';
-    const addressCity = personalDetails.addressCity || '';
-    const addressState = personalDetails.addressState || '';
-    const addressZip = personalDetails.addressZip || '';
-    const ssn = personalDetails.ssn || '';
-    const phoneNumber = personalDetails.phoneNumber || '';
+    const firstName = personalDetails.legalFirstName ?? '';
+    const lastName = personalDetails.legalLastName ?? '';
+    const dob = personalDetails.dob ?? '';
+    const addressStreet = personalDetails.addressStreet ?? '';
+    const addressCity = personalDetails.addressCity ?? '';
+    const addressState = personalDetails.addressState ?? '';
+    const addressZip = personalDetails.addressZip ?? '';
+    const ssn = personalDetails.ssn ?? '';
+    const phoneNumber = personalDetails.phoneNumber ?? '';
 
     const optimisticData: OnyxUpdate[] = [
         {
