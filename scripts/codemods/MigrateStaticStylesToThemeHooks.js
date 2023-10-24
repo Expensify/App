@@ -412,9 +412,10 @@ async function migrateStaticStylesForDirectory(directoryPath) {
 async function stripBlankLinesFromDiff() {
     try {
         console.log('Stripping blank lines from diff...');
-        const {stdout: diff} = await exec("git diff --ignore-blank-lines -- ':!scripts/codemods/MigrateStaticStylesToThemeHooks.js'");
-        await exec('git restore src/components/Button/index.js');
-        await exec(`echo "${diff}" | git apply -`);
+        await exec("git diff --ignore-blank-lines -- ':!scripts/codemods/MigrateStaticStylesToThemeHooks.js' > tmp.patch");
+        await exec('git restore src/components');
+        await exec(`git apply -v tmp.patch`);
+        await exec('rm tmp.patch');
     } catch (error) {
         console.error('Error stripping blank lines from diff', error);
     }
@@ -431,7 +432,7 @@ async function run() {
             await migrateStaticStylesForDirectory(directoryPath);
             console.log('Running prettier...');
             await exec("npx prettier --write $(git diff --name-only --diff-filter d | grep -E '\\.js|\\.tsx$' | xargs)");
-            // await stripBlankLinesFromDiff();
+            await stripBlankLinesFromDiff();
         } catch (error) {
             console.error('Error:', error);
         }
