@@ -13,10 +13,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Exit early if the PR doesn't affect the main app
+        id: shouldSkip
+        run: |
+          if git diff --exit-code --name-only main -- ':!docs/' ':!.github/' ':!contributingGuides' ':!tests' ':!workflow_tests'; then
+            echo "Only unrelated changed detecting, skipping reassure..."
+            echo "SHOULD_SKIP=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "SHOULD_SKIP=false" >> "GITHUB_OUTPUT"
+          fi
+
       - name: Setup NodeJS
+        if: steps.shouldSkip.outputs.SHOULD_SKIP != 'true'
         uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Run performance testing script
+        if: steps.shouldSkip.outputs.SHOULD_SKIP != 'true'
         shell: bash
         run: |
           set -e
@@ -30,12 +42,14 @@ jobs:
           npx reassure --branch
 
       - name: Read output.json
+        if: steps.shouldSkip.outputs.SHOULD_SKIP != 'true'
         id: reassure
         uses: juliangruber/read-file-action@v1
         with:
           path: .reassure/output.json
 
       - name: Validate output.json
+        if: steps.shouldSkip.outputs.SHOULD_SKIP != 'true'
         id: validateReassureOutput
         uses: Expensify/App/.github/actions/javascript/validateReassureOutput@main
         with:
