@@ -277,7 +277,7 @@ function ExpensifyCardPage({
                             text={translate('activateCardPage.activatePhysicalCard')}
                         />
                     )}
-                    {_.isEmpty(physicalCard) && (
+                    {physicalCard.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED && (
                         <Button
                             success
                             text={translate('cardPage.getPhysicalCard')}
