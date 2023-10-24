@@ -385,7 +385,7 @@ describe('Sidebar', () => {
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
-                hasOutstandingIOU: false,
+                hasOutstandingChildRequest: false,
 
                 // This has to be added after the IOU report is generated
                 iouReportID: null,
@@ -395,7 +395,7 @@ describe('Sidebar', () => {
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 2,
-                hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -404,7 +404,7 @@ describe('Sidebar', () => {
             const currentReportId = report2.reportID;
             const currentlyLoggedInUserAccountID = 9;
             LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
-
+            console.log('iouReport :>> ', iouReport);
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
@@ -431,7 +431,7 @@ describe('Sidebar', () => {
                         expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Two owes $100.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Two paid $100.00');
                         expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                     })
             );
@@ -733,7 +733,7 @@ describe('Sidebar', () => {
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 2,
-                hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -743,7 +743,7 @@ describe('Sidebar', () => {
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 3,
-                hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -753,7 +753,7 @@ describe('Sidebar', () => {
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 4,
-                hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 100000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -763,7 +763,7 @@ describe('Sidebar', () => {
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 5,
-                hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -773,7 +773,7 @@ describe('Sidebar', () => {
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 6,
-                hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
@@ -814,11 +814,11 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(5);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Four owes $1,000.00');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Five owes $100.00');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Email Six owes $100.00');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Email Three owes $100.00');
-                        expect(lodashGet(displayNames, [4, 'props', 'children'])).toBe('Email Two owes $100.00');
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Four paid $1,000.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Five paid $100.00');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Email Six paid $100.00');
+                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Email Three paid $100.00');
+                        expect(lodashGet(displayNames, [4, 'props', 'children'])).toBe('Email Two paid $100.00');
                     })
             );
         });
