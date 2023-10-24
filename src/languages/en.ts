@@ -265,7 +265,6 @@ export default {
         all: 'All',
         tbd: 'TBD',
         selectCurrency: 'Select a currency',
-        allCurrencies: 'All currencies',
         card: 'Card',
     },
     location: {
