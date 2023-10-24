@@ -9,6 +9,7 @@ import ROUTES from '../../../ROUTES';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import FeatureList from '../../../components/FeatureList';
 import themeColors from '../../../styles/themes/default';
+import SCREENS from '../../../SCREENS';
 
 const propTypes = {
     /** The function that is called when a menu item is pressed */
@@ -34,7 +35,7 @@ function WalletEmptyState({onAddPaymentMethod}) {
     const {translate} = useLocalize();
     return (
         <IllustratedHeaderPageLayout
-            backgroundColor={themeColors.walletPageBG}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WALLET]}
             illustration={LottieAnimations.FastMoney}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.wallet')}
