@@ -3730,7 +3730,7 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
  */
 function canCreateRequest(report, betas, iouType) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
-    if (shouldDisableWriteActions(report)) {
+    if (!canUserPerformWriteAction(report)) {
         return false;
     }
     return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
