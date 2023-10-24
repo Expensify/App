@@ -6,6 +6,7 @@ import useLocalize from '../hooks/useLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
+import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 
 const propTypes = {
     /** Transaction default amount value */
@@ -43,6 +44,7 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={EditRequestAmountPage.displayName}
         >
             <HeaderWithBackButton title={translate('iou.amount')} />
