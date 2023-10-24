@@ -214,6 +214,18 @@ function isCanceledTaskReport(report = {}, parentReportAction = {}) {
 }
 
 /**
+ * Checks if a canceled task should be hidden.
+ * When a canceled task does not have any visible actions, it can be hidden in report screen and LHN.
+ *
+ * @param {Object} report - Represents the parent Chat Report of the canceled task.
+ * @param {Object} parentReportAction - Represents the task preview action of the canceled task in Chat Report
+ * @returns {Boolean}
+ */
+function shouldHideCanceledTaskReport(report = {}, parentReportAction = {}) {
+    return isCanceledTaskReport(report, parentReportAction) && !ReportActionsUtils.isDeletedParentAction(parentReportAction);
+}
+
+/**
  * Checks if a report is an open task report.
  *
  * @param {Object} report
@@ -3282,6 +3294,14 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return true;
     }
 
+    // Hide the canceled task report with no visible actions
+    if (isTaskReport(report)) {
+        const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
+        if (shouldHideCanceledTaskReport(report, parentReportAction)) {
+            return false;
+        }
+    }
+
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft, having an outstanding IOU, or being assigned to an open task.
     if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
         return true;
@@ -4197,6 +4217,7 @@ export {
     isTaskReport,
     isOpenTaskReport,
     isCanceledTaskReport,
+    shouldHideCanceledTaskReport,
     isCompletedTaskReport,
     isReportManager,
     isReportApproved,
