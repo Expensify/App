@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import withNavigationFocus from '../../components/withNavigationFocus';
 import * as Report from '../../libs/actions/Report';
-import * as App from '../../libs/actions/App';
 import useLocalize from '../../hooks/useLocalize';
 import styles from '../../styles/styles';
 import RoomNameInput from '../../components/RoomNameInput';
