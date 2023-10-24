@@ -91,6 +91,10 @@ function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
 
+function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
+}
+
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
@@ -449,6 +453,19 @@ function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEnt
 }
 
 /**
+ * The first visible action is the second last action in sortedReportActions which satisfy following conditions:
+ * 1. That is not pending deletion as pending deletion actions are kept in sortedReportActions in memory.
+ * 2. That has at least one visible child action.
+ * 3. While offline all actions in `sortedReportActions` are visible.
+ * 4. We will get the second last action from filtered actions because the last
+ *    action is always the created action
+ */
+function getFirstVisibleReportActionID(sortedReportActions: ReportAction[], isOffline: boolean): string {
+    const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
+    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions[sortedFilterReportActions.length - 2].reportActionID : '';
+}
+
+/**
  * @returns The latest report action in the `onyxData` or `null` if one couldn't be found
  */
 function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): OnyxEntry<ReportAction> {
@@ -636,6 +653,8 @@ export {
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
+    isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
+    getFirstVisibleReportActionID,
 };
