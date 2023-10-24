@@ -228,6 +228,10 @@ function BaseOptionsList({
      * @return {Component}
      */
     const renderSectionHeader = ({section: {title, shouldShow}}) => {
+        if (!title && shouldShow && !hideSectionHeaders && sectionHeaderStyle) {
+            return <View style={sectionHeaderStyle} />;
+        }
+
         if (title && shouldShow && !hideSectionHeaders) {
             return (
                 // Note: The `optionsListSectionHeader` style provides an explicit height to section headers.
