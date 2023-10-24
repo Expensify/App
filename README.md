@@ -35,7 +35,7 @@ These instructions should get you set up ready to work on New Expensify 🙌
 1. Install `nvm` then `node` & `npm`: `brew install nvm && nvm install`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Install `mkcert`: `brew install mkcert` followed by `npm run setup-https`. If you're using another OS, follow the instructions [here](https://github.com/FiloSottile/mkcert?tab=readme-ov-file#installation). 
+4. Install `mkcert`: `brew install mkcert` followed by `npm run setup-https`. If you are not using macOS, follow the instructions [here](https://github.com/FiloSottile/mkcert?tab=readme-ov-file#installation). 
 5. Create a host entry in your local hosts file, `/etc/hosts` for new.expensify.com.dev pointing to localhost:
 ```
 127.0.0.1 new.expensify.com.dev
