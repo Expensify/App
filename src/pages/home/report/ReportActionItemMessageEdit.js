@@ -183,8 +183,6 @@ function ReportActionItemMessageEdit(props) {
             });
         }
 
-        updateDraft(draft);
-
         return () => {
             // Skip if the current report action is not active
             if (!isActive()) {
@@ -204,6 +202,11 @@ function ReportActionItemMessageEdit(props) {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
     }, [props.action.reportActionID]);
+
+    useEffect(() => {
+        updateDraft(draft);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
+    }, [props.action.reportActionID, preferredLocale]);
 
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
