@@ -1263,7 +1263,7 @@ const CONST = {
         BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
-            INDIVIDUAL: 'individal',
+            INDIVIDUAL: 'individual',
             NONE: 'none',
         },
         STATE: {

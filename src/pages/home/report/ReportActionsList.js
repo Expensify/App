@@ -9,6 +9,7 @@ import InvertedFlatList from '../../../components/InvertedFlatList';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import useNetwork from '../../../hooks/useNetwork';
 import useLocalize from '../../../hooks/useLocalize';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import DateUtils from '../../../libs/DateUtils';
@@ -133,6 +134,7 @@ function ReportActionsList({
 }) {
     const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
@@ -283,14 +285,13 @@ function ReportActionsList({
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }, [windowHeight]);
 
-    const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
      */
     const shouldHideThreadDividerLine = useMemo(
-        () => sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === currentUnreadMarker,
-        [sortedReportActions, currentUnreadMarker],
+        () => ReportActionsUtils.getFirstVisibleReportActionID(sortedReportActions, isOffline) === currentUnreadMarker,
+        [sortedReportActions, isOffline, currentUnreadMarker],
     );
 
     /**
@@ -357,6 +358,8 @@ function ReportActionsList({
         () => [styles.chatContentScrollView,  isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
         [isLoadingNewerReportActions],
     );
+
+    const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
 
     const listFooterComponent = useCallback(() => {
         // Skip this hook on the first render, as we are not sure if more actions are going to be loaded
