@@ -1,12 +1,11 @@
 import {ValueOf} from 'type-fest';
 import {ViewStyle} from 'react-native';
 import {ModalProps} from 'react-native-modal';
-import ChildrenProps from '../../types/utils/ChildrenProps';
 import {WindowDimensionsProps} from '../withWindowDimensions/types';
 import CONST from '../../CONST';
 
 type BaseModalProps = WindowDimensionsProps &
-    ChildrenProps & {
+    ModalProps & {
         /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
         fullscreen?: boolean;
 
@@ -31,23 +30,9 @@ type BaseModalProps = WindowDimensionsProps &
         /** Callback method fired when the modal is shown */
         onModalShow?: () => void;
 
-        propagateSwipe?: Pick<ModalProps, 'propagateSwipe'>;
-
         /** Style of modal to display */
         // type: PropTypes.oneOf(_.values(CONST.MODAL.MODAL_TYPE)),
         type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
-
-        /** A react-native-animatable animation definition for the modal display animation. */
-        animationIn?: Pick<ModalProps, 'animationIn'>;
-
-        /** A react-native-animatable animation definition for the modal hide animation. */
-        animationOut?: Pick<ModalProps, 'animationOut'>;
-
-        useNativeDriver?: Pick<ModalProps, 'useNativeDriver'>;
-
-        animationInTiming?: Pick<ModalProps, 'animationInTiming'>;
-
-        animationOutTiming?: Pick<ModalProps, 'animationOutTiming'>;
 
         /** The anchor position of a popover modal. Has no effect on other modal types. */
         popoverAnchorPosition?: {
@@ -57,18 +42,16 @@ type BaseModalProps = WindowDimensionsProps &
             left?: number;
         };
 
-        /** Modal container styles  */
-        innerContainerStyle?: Pick<ModalProps, 'style'>;
-
         outerStyle?: ViewStyle;
 
         /** Whether the modal should go under the system statusbar */
         statusBarTranslucent?: boolean;
 
-        onLayout: Pick<ModalProps, 'onLayout'>;
-
         /** Whether the modal should avoid the keyboard */
         avoidKeyboard?: boolean;
+
+        /** Modal container styles  */
+        innerContainerStyle?: ViewStyle;
 
         /**
          * Whether the modal should hide its content while animating. On iOS, set to true
