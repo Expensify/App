@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, InteractionManager, ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import Button from '@components/Button';
@@ -256,6 +256,26 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     const navigateToWalletOrTransferBalancePage = (source) => {
         Navigation.navigate(source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET ? ROUTES.SETTINGS_WALLET : ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
+
+    // TODO: REMOVE THIS AFTER TESTING
+    useEffect(() => {
+        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+        Onyx.merge(`cardList`, {
+            234523452345: {
+                key: 'virtual-1',
+                cardID: 234523452345,
+                state: 3,
+                bank: 'Expensify Card',
+                availableSpend: 10000,
+                domainName: 'Expensify',
+                lastFourPAN: '',
+                isVirtual: true,
+                cardholderFirstName: 'Test',
+                cardholderLastName: 'Test',
+                fraud: 'domain',
+            },
+        });
+    }, [cardList]);
 
     useEffect(() => {
         PaymentMethods.openWalletPage();
