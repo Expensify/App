@@ -917,7 +917,7 @@ function clearTaskErrors(reportID) {
     const report = ReportUtils.getReport(reportID);
     if (lodashGet(report, 'pendingFields.createChat') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
-            [report.parentReportActionID]: null
+            [report.parentReportActionID]: null,
         });
 
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
