@@ -472,10 +472,14 @@ ReportActionItemMessageEdit.propTypes = propTypes;
 ReportActionItemMessageEdit.defaultProps = defaultProps;
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-export default React.forwardRef((props, ref) => (
+const ReportActionItemMessageEditWithRef = React.forwardRef((props, ref) => (
     <ReportActionItemMessageEdit
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+ReportActionItemMessageEditWithRef.displayName = 'ReportActionItemMessageEditWithRef';
+
+export default ReportActionItemMessageEditWithRef;

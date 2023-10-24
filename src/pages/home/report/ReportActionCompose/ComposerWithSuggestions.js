@@ -594,6 +594,16 @@ ComposerWithSuggestions.propTypes = propTypes;
 ComposerWithSuggestions.defaultProps = defaultProps;
 ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
+const ComposerWithSuggestionsWithRef = React.forwardRef((props, ref) => (
+    <ComposerWithSuggestions
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+ComposerWithSuggestionsWithRef.displayName = 'ComposerWithSuggestionsWithRef';
+
 export default compose(
     withKeyboardState,
     withOnyx({
@@ -619,12 +629,4 @@ export default compose(
             initWithStoredValues: false,
         },
     }),
-)(
-    React.forwardRef((props, ref) => (
-        <ComposerWithSuggestions
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(ComposerWithSuggestionsWithRef);

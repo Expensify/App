@@ -489,16 +489,18 @@ function Composer({
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
+const ComposerWithRef = React.forwardRef((props, ref) => (
+    <Composer
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+ComposerWithRef.displayName = 'ComposerWithRef';
+
 export default compose(
     withLocalize,
     withWindowDimensions,
     withNavigation,
-)(
-    React.forwardRef((props, ref) => (
-        <Composer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(ComposerWithRef);

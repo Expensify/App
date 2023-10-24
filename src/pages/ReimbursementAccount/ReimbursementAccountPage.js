@@ -534,6 +534,7 @@ class ReimbursementAccountPage extends React.Component {
 
 ReimbursementAccountPage.propTypes = propTypes;
 ReimbursementAccountPage.defaultProps = defaultProps;
+ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
 
 export default compose(
     withNetwork(),
