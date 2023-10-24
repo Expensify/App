@@ -56,10 +56,10 @@ type ModalPaddingStylesParams = {
     safeAreaPaddingBottom: number;
     safeAreaPaddingLeft: number;
     safeAreaPaddingRight: number;
-    modalContainerStyleMarginTop: number;
-    modalContainerStyleMarginBottom: number;
-    modalContainerStylePaddingTop: number;
-    modalContainerStylePaddingBottom: number;
+    modalContainerStyleMarginTop: DimensionValue | undefined;
+    modalContainerStyleMarginBottom: DimensionValue | undefined;
+    modalContainerStylePaddingTop: DimensionValue | undefined;
+    modalContainerStylePaddingBottom: DimensionValue | undefined;
     insets: EdgeInsets;
 };
 
@@ -287,12 +287,19 @@ function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyl
     return eReceiptColorStyles[colorCode];
 }
 
+type SafeAreaPadding = {
+    paddingTop: number;
+    paddingBottom: number;
+    paddingLeft: number;
+    paddingRight: number;
+};
+
 /**
  * Takes safe area insets and returns padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): ViewStyle {
+function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): SafeAreaPadding {
     return {
-        paddingTop: insets?.top,
+        paddingTop: insets?.top ?? 0,
         paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
         paddingLeft: (insets?.left ?? 0) * insetsPercentage,
         paddingRight: (insets?.right ?? 0) * insetsPercentage,
@@ -568,6 +575,14 @@ function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
     };
 }
 
+function getCombinedSpacing(modalContainerValue: DimensionValue | undefined, safeAreaValue: number, shouldAddSafeAreaValue: boolean): number | DimensionValue | undefined {
+    if (typeof modalContainerValue === 'number') {
+        return (modalContainerValue ?? 0) + (shouldAddSafeAreaValue ? safeAreaValue : 0);
+    }
+
+    return modalContainerValue;
+}
+
 function getModalPaddingStyles({
     shouldAddBottomSafeAreaMargin,
     shouldAddTopSafeAreaMargin,
@@ -585,12 +600,12 @@ function getModalPaddingStyles({
 }: ModalPaddingStylesParams): ViewStyle {
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
-    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStylePaddingTop === 'number' ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
     return {
-        marginTop: (modalContainerStyleMarginTop ?? 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
-        marginBottom: (modalContainerStyleMarginBottom ?? 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottomWithFallback : 0),
-        paddingTop: shouldAddTopSafeAreaPadding ? (modalContainerStylePaddingTop ?? 0) + safeAreaPaddingTop : modalContainerStylePaddingTop ?? 0,
-        paddingBottom: shouldAddBottomSafeAreaPadding ? (modalContainerStylePaddingBottom ?? 0) + safeAreaPaddingBottomWithFallback : modalContainerStylePaddingBottom ?? 0,
+        marginTop: getCombinedSpacing(modalContainerStyleMarginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
+        marginBottom: getCombinedSpacing(modalContainerStyleMarginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
+        paddingTop: getCombinedSpacing(modalContainerStylePaddingTop, safeAreaPaddingTop, shouldAddTopSafeAreaPadding),
+        paddingBottom: getCombinedSpacing(modalContainerStylePaddingBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaPadding),
         paddingLeft: safeAreaPaddingLeft ?? 0,
         paddingRight: safeAreaPaddingRight ?? 0,
     };
