@@ -18,10 +18,10 @@ const propTypes = {
 function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}) {
     const {translate} = useLocalize();
     return (
-        <Tooltip text={translate('iOUCurrencySelection.selectCurrency')}>
+        <Tooltip text={translate('common.selectCurrency')}>
             <PressableWithoutFeedback
                 onPress={onCurrencyButtonPress}
-                accessibilityLabel={translate('iOUCurrencySelection.selectCurrency')}
+                accessibilityLabel={translate('common.selectCurrency')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Text style={styles.iouAmountText}>{currencySymbol}</Text>
