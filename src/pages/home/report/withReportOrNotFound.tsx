@@ -24,57 +24,66 @@ type ComponentProps = OnyxProps & {
     route: RouteProp<{params: {reportID: string}}>;
 };
 
-export default function <TProps extends ComponentProps, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof OnyxProps>> {
-    function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-        const contentShown = React.useRef(false);
+export default function (
+    shouldRequireReportID = true,
+): <TProps extends ComponentProps, TRef>(
+    WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>,
+) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof OnyxProps>> {
+    return function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+        function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
+            const contentShown = React.useRef(false);
 
-        const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
+            const isReportIdInRoute = props.route.params.reportID?.length;
 
-        const shouldShowNotFoundPage = !Object.entries(props.report ?? {}).length || !props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {});
+            if (shouldRequireReportID || isReportIdInRoute) {
+                const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
 
-        // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
-        // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-        if (shouldShowNotFoundPage && contentShown.current) {
-            return null;
+                const shouldShowNotFoundPage =
+                    !Object.entries(props.report ?? {}).length || !props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {});
+
+                // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
+                // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
+                if (shouldShowNotFoundPage && contentShown.current) {
+                    return null;
+                }
+
+                if (shouldShowFullScreenLoadingIndicator) {
+                    return <FullscreenLoadingIndicator />;
+                }
+
+                if (shouldShowNotFoundPage) {
+                    return <NotFoundPage />;
+                }
+            }
+
+            if (!contentShown.current) {
+                contentShown.current = true;
+            }
+
+            return (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    ref={ref}
+                />
+            );
         }
 
-        if (shouldShowFullScreenLoadingIndicator) {
-            return <FullscreenLoadingIndicator />;
-        }
+        WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-        if (shouldShowNotFoundPage) {
-            return <NotFoundPage />;
-        }
-
-        if (!contentShown.current) {
-            contentShown.current = true;
-        }
-
-        return (
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                ref={ref}
-            />
-        );
-    }
-
-    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
-
-    return withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    })(React.forwardRef(WithReportOrNotFound));
+        return withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
+            report: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+            },
+            isLoadingReportData: {
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            },
+            betas: {
+                key: ONYXKEYS.BETAS,
+            },
+            policies: {
+                key: ONYXKEYS.COLLECTION.POLICY,
+            },
+        })(React.forwardRef(WithReportOrNotFound));
+    };
 }
