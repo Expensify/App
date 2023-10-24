@@ -29,48 +29,33 @@ const parser = require('@babel/parser');
 const traverse = require('@babel/traverse');
 const generate = require('@babel/generator');
 
-function getFunctionComponentName(ast) {
-    let hasReactImport = false;
-    let componentName = '';
+function getComponentInfo(ast) {
+    let componentInfo = {};
     const functionNames = new Set();
     traverse.default(ast, {
-        ImportDeclaration({node}) {
-            const source = node.source.value;
-            if (source === 'react') {
-                hasReactImport = true;
-            }
-        },
         FunctionDeclaration({node}) {
             functionNames.add(node.id?.name);
         },
         ExpressionStatement({node}) {
             const expression = node.expression;
-            if (hasReactImport && expression.type === 'AssignmentExpression' && functionNames.has(expression.left.object?.name) && expression.left.property?.name === 'displayName') {
-                componentName = expression.left.object.name;
-            }
-        },
-    });
-    return componentName;
-}
-
-function isClassComponent(ast) {
-    let hasReactImport = false;
-    let hasClassComponentDeclaration = false;
-    traverse.default(ast, {
-        ImportDeclaration({node}) {
-            const source = node.source.value;
-            if (source === 'react') {
-                hasReactImport = true;
+            if (expression.type === 'AssignmentExpression' && functionNames.has(expression.left.object?.name) && expression.left.property?.name === 'displayName') {
+                componentInfo = {
+                    name: expression.left.object.name,
+                    isClassComponent: false,
+                };
             }
         },
         ClassDeclaration({node}) {
             if (!node.superClass || (node.superClass.name !== 'Component' && node.superClass.name !== 'React.Component')) {
                 return;
             }
-            hasClassComponentDeclaration = true;
+            componentInfo = {
+                name: node.id.name,
+                isClassComponent: true,
+            };
         },
     });
-    return hasReactImport && hasClassComponentDeclaration;
+    return componentInfo;
 }
 
 async function writeASTToFile(filePath, fileContents, ast) {
@@ -378,14 +363,20 @@ async function migrateStaticStylesForFile(filePath) {
     });
 
     console.log('Parsing file:', filePath);
-    const functionComponentName = getFunctionComponentName(ast);
-    if (functionComponentName) {
-        console.log('File contains function component', filePath);
-        migrateStylesForFunctionComponent(filePath, fileContents, ast, functionComponentName);
-    } else if (isClassComponent(ast)) {
+    const {name: componentName, isClassComponent} = getComponentInfo(ast);
+
+    if (!componentName) {
+        return;
+    }
+
+    if (isClassComponent) {
         console.log('File contains class component', filePath);
         migrateStylesForClassComponent(filePath, fileContents, ast);
+        return;
     }
+
+    console.log('File contains function component', filePath);
+    migrateStylesForFunctionComponent(filePath, fileContents, ast, componentName);
 }
 
 async function migrateStaticStylesForDirectory(directoryPath) {
