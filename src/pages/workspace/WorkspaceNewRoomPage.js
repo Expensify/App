@@ -166,17 +166,13 @@ function WorkspaceNewRoomPage(props) {
     useDelayedInputFocus(roomNameInputRef, 600);
 
     return (
-        <FullPageNotFoundView
-            shouldShow={!Permissions.canUsePolicyRooms(props.betas)}
-            shouldShowBackButton={false}
-            linkKey="workspace.emptyWorkspace.title"
-            onLinkPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, false)}
-        >
+        <FullPageNotFoundView shouldShow={!Permissions.canUsePolicyRooms(props.betas)}>
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 includeSafeAreaPaddingBottom={false}
                 includePaddingTop={false}
                 shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicator={false}
                 testID={WorkspaceNewRoomPage.displayName}
             >
                 {({insets}) =>
