@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import _ from 'underscore';
 import CONST from '../../../CONST';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
@@ -59,6 +59,41 @@ function ReportActionsListItemRenderer({
         ReportUtils.isChatThread(report) &&
         !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
 
+    const action = useMemo(
+        () => ({
+            reportActionID: reportAction.reportActionID,
+            message: reportAction.message,
+            pendingAction: reportAction.pendingAction,
+            actionName: reportAction.actionName,
+            errors: reportAction.errors,
+            originalMessage: reportAction.originalMessage,
+            childCommenterCount: reportAction.childCommenterCount,
+            linkMetadata: reportAction.linkMetadata,
+            childReportID: reportAction.childReportID,
+            childLastVisibleActionCreated: reportAction.childLastVisibleActionCreated,
+            whisperedToAccountIDs: reportAction.whisperedToAccountIDs,
+            error: reportAction.error,
+            created: reportAction.created,
+            actorAccountID: reportAction.actorAccountID,
+        }),
+        [
+            reportAction.actionName,
+            reportAction.childCommenterCount,
+            reportAction.childLastVisibleActionCreated,
+            reportAction.childReportID,
+            reportAction.created,
+            reportAction.error,
+            reportAction.errors,
+            reportAction.linkMetadata,
+            reportAction.message,
+            reportAction.originalMessage,
+            reportAction.pendingAction,
+            reportAction.reportActionID,
+            reportAction.whisperedToAccountIDs,
+            reportAction.actorAccountID,
+        ],
+    );
+
     return shouldDisplayParentAction ? (
         <ReportActionItemParentAction
             shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
@@ -70,7 +105,7 @@ function ReportActionsListItemRenderer({
         <ReportActionItem
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             report={report}
-            action={reportAction}
+            action={action}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
