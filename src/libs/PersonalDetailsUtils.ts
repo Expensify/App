@@ -5,7 +5,7 @@ import * as UserUtils from './UserUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as OnyxTypes from '../types/onyx';
 
-type PersonalDetailsList = Record<string, OnyxTypes.PersonalDetails | null>;
+type PersonalDetailsList = Record<string, OnyxEntry<OnyxTypes.PersonalDetails>>;
 
 let personalDetails: OnyxTypes.PersonalDetails[] = [];
 let allPersonalDetails: OnyxEntry<Record<string, OnyxTypes.PersonalDetails>> = {};
@@ -57,7 +57,7 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
  * @returns Array of accountIDs according to passed logins
  */
 function getAccountIDsByLogins(logins: string[]): number[] {
-    return logins.reduce((foundAccountIDs: number[], login) => {
+    return logins.reduce<number[]>((foundAccountIDs, login) => {
         const currentDetail = personalDetails.find((detail) => detail.login === login);
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
