@@ -1,12 +1,13 @@
 import React, {useState, useEffect, useRef, forwardRef, useImperativeHandle} from 'react';
 import {Dimensions} from 'react-native';
 import _ from 'underscore';
+import PropTypes from 'prop-types';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../withViewportOffsetTop';
+import withViewportOffsetTop from '../withViewportOffsetTop';
 import compose from '../../libs/compose';
 import * as StyleUtils from '../../styles/StyleUtils';
 import calculateAnchorPosition from '../../libs/calculateAnchorPosition';
@@ -18,7 +19,7 @@ const DEFAULT_ANCHOR_ORIGIN = {
 
 const propTypes = {
     ...windowDimensionsPropTypes,
-    ...viewportOffsetTopPropTypes,
+    viewportOffsetTop: PropTypes.number.isRequired,
 };
 
 const EmojiPicker = forwardRef((props, ref) => {
