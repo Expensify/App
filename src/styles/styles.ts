@@ -1303,10 +1303,11 @@ const styles = (theme: ThemeDefault) =>
             alignItems: 'center',
         },
 
-        subNavigationContainer: {
+        subNavigationContainer: (shouldDisplayRadius = true) => ({
             backgroundColor: theme.sidebar,
             flex: 1,
-        },
+            borderTopLeftRadius: shouldDisplayRadius ? variables.componentBorderRadiusRounded : 0,
+        }),
 
         sidebarAnimatedWrapperContainer: {
             height: '100%',

@@ -104,10 +104,6 @@ function ScreenWrapper({
             {({insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle}) => {
                 const paddingStyle = {};
 
-                if (includePaddingTop) {
-                    paddingStyle.paddingTop = paddingTop;
-                }
-
                 // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
                 if (includeSafeAreaPaddingBottom || isOffline) {
                     paddingStyle.paddingBottom = paddingBottom;
@@ -135,7 +131,7 @@ function ScreenWrapper({
                                     enabled={shouldEnablePickerAvoiding}
                                 >
                                     <HeaderGap
-                                        styles={headerGapStyles}
+                                        styles={[includePaddingTop && Boolean(paddingTop) && {height: paddingTop}, ...headerGapStyles]}
                                         isSidebar={isSidebar}
                                     />
                                     {isDevelopment && <TestToolsModal />}
@@ -147,6 +143,7 @@ function ScreenWrapper({
                                                   insets,
                                                   safeAreaPaddingBottomStyle,
                                                   didScreenTransitionEnd,
+                                                  paddingTop,
                                               })
                                             : children
                                     }

@@ -9,6 +9,7 @@ import Performance from '../../../../libs/Performance';
 import * as Browser from '../../../../libs/Browser';
 import GlobalNavigation from '../GlobalNavigation';
 import SubNavigation from '../SubNavigation/SubNavigation';
+import getPlatform from '../../../../libs/getPlatform';
 
 const propTypes = {
     /** Children to wrap (floating button). */
@@ -23,6 +24,8 @@ const startTimer = () => {
     Performance.markStart(CONST.TIMING.SWITCH_REPORT);
 };
 
+const isDesktop = getPlatform() === CONST.PLATFORM.DESKTOP;
+
 function BaseSidebarScreen(props) {
     return (
         <ScreenWrapper
@@ -32,13 +35,15 @@ function BaseSidebarScreen(props) {
             testID={BaseSidebarScreen.displayName}
             isSidebar
         >
-            {({insets}) => (
+            {({insets, paddingTop}) => (
                 <>
                     <View style={[styles.flex1, styles.flexRow, styles.globalAndSubNavigationContainer]}>
                         <GlobalNavigation />
                         <SubNavigation
                             onLinkClick={startTimer}
                             insets={insets}
+                            // Don't display radius if there is exisiting padding top or platform is desktop. In this cases HeaderGap component is handling it.
+                            shouldDisplayRadius={!(paddingTop || isDesktop)}
                         />
                     </View>
                     {props.children}

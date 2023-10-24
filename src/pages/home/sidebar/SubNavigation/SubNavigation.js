@@ -14,16 +14,19 @@ const propTypes = {
 
     /** Insets for SidebarLInksData */
     insets: safeAreaInsetPropTypes.isRequired,
+
+    /** Whether the sidebar should display a radius */
+    shouldDisplayRadius: PropTypes.bool.isRequired,
 };
 
-function SubNavigation({onLinkClick, insets}) {
+function SubNavigation({onLinkClick, insets, shouldDisplayRadius}) {
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
     }, []);
 
     return (
-        <View style={styles.subNavigationContainer}>
+        <View style={styles.subNavigationContainer(shouldDisplayRadius)}>
             <SidebarLinksData
                 insets={insets}
                 onLinkClick={onLinkClick}
