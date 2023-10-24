@@ -326,7 +326,6 @@ function addActions(reportID, text = '', file) {
         lastMessageHtml: lastCommentText,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
-        isLastMessageDeletedParentAction: null,
     };
 
     // Optimistically add the new actions to the store before waiting to save them to the server
@@ -1047,25 +1046,17 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    if (reportAction.childVisibleActionCount === 0) {
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
+    if (lastMessageText || lastMessageTranslationKey) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
+        const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+        const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
         optimisticReport = {
-            lastMessageTranslationKey: '',
-            lastMessageText: '',
-            isLastMessageDeletedParentAction: true,
+            lastMessageTranslationKey,
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
         };
-    } else {
-        const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
-        if (lastMessageText || lastMessageTranslationKey) {
-            const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-            const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
-            const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
-            optimisticReport = {
-                lastMessageTranslationKey,
-                lastMessageText,
-                lastVisibleActionCreated,
-                lastActorAccountID,
-            };
-        }
     }
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
@@ -1735,25 +1726,6 @@ function clearIOUError(reportID) {
 }
 
 /**
- * Returns true if the accountID has reacted to the report action (with the given skin tone).
- * Uses the NEW FORMAT for "emojiReactions"
- * @param {String} accountID
- * @param {Array<Object | String | number>} users
- * @param {Number} [skinTone]
- * @returns {boolean}
- */
-function hasAccountIDEmojiReacted(accountID, users, skinTone) {
-    if (_.isUndefined(skinTone)) {
-        return Boolean(users[accountID]);
-    }
-    const usersReaction = users[accountID];
-    if (!usersReaction || !usersReaction.skinTones || !_.size(usersReaction.skinTones)) {
-        return false;
-    }
-    return Boolean(usersReaction.skinTones[skinTone]);
-}
-
-/**
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
@@ -1882,7 +1854,7 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
-    if (existingReactionObject && hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
+    if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
         return;
     }
@@ -1931,8 +1903,9 @@ function getCurrentUserAccountID() {
  * Leave a report by setting the state to submitted and closed
  *
  * @param {String} reportID
+ * @param {Boolean} isWorkspaceMemberLeavingWorkspaceRoom
  */
-function leaveRoom(reportID) {
+function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     const report = lodashGet(allReports, [reportID], {});
     const reportKeys = _.keys(report);
 
@@ -1941,38 +1914,150 @@ function leaveRoom(reportID) {
     // between Onyx report being null and Pusher's leavingStatus becoming true.
     broadcastUserIsLeavingRoom(reportID);
 
+    // If a workspace member is leaving a workspace room, they don't actually lose the room from Onyx.
+    // Instead, their notification preference just gets set to "hidden".
+    const optimisticData = [
+        isWorkspaceMemberLeavingWorkspaceRoom
+            ? {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                  value: {
+                      notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                  },
+              }
+            : {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                  value: {
+                      stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                      statusNum: CONST.REPORT.STATUS.CLOSED,
+                  },
+              },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: isWorkspaceMemberLeavingWorkspaceRoom ? {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN} : _.object(reportKeys, Array(reportKeys.length).fill(null)),
+        },
+    ];
+
     API.write(
         'LeaveRoom',
         {
             reportID,
         },
         {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                        statusNum: CONST.REPORT.STATUS.CLOSED,
-                    },
-                },
-            ],
-            // Manually clear the report using merge. Should not use set here since it would cause race condition
-            // if it was called right after a merge.
-            successData: [
+            optimisticData,
+            successData,
+            failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: _.object(reportKeys, Array(reportKeys.length).fill(null)),
+                    value: report,
+                },
+            ],
+        },
+    );
+
+    if (isWorkspaceMemberLeavingWorkspaceRoom) {
+        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
+        const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
+    }
+}
+
+/**
+ * Invites people to a room
+ *
+ * @param {String} reportID
+ * @param {Object} inviteeEmailsToAccountIDs
+ */
+function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
+    const report = lodashGet(allReports, [reportID], {});
+
+    const inviteeEmails = _.keys(inviteeEmailsToAccountIDs);
+    const inviteeAccountIDs = _.values(inviteeEmailsToAccountIDs);
+
+    const {participantAccountIDs} = report;
+    const participantAccountIDsAfterInvitation = _.uniq([...participantAccountIDs, ...inviteeAccountIDs]);
+
+    API.write(
+        'InviteToRoom',
+        {
+            reportID,
+            inviteeEmails,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        participantAccountIDs: participantAccountIDsAfterInvitation,
+                    },
                 },
             ],
             failureData: [
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                        statusNum: CONST.REPORT.STATUS.OPEN,
+                        participantAccountIDs,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
+ * Removes people from a room
+ *
+ * @param {String} reportID
+ * @param {Array} targetAccountIDs
+ */
+function removeFromRoom(reportID, targetAccountIDs) {
+    const report = lodashGet(allReports, [reportID], {});
+
+    const {participantAccountIDs} = report;
+    const participantAccountIDsAfterRemoval = _.difference(participantAccountIDs, targetAccountIDs);
+
+    API.write(
+        'RemoveFromRoom',
+        {
+            reportID,
+            targetAccountIDs,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        participantAccountIDs: participantAccountIDsAfterRemoval,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        participantAccountIDs,
+                    },
+                },
+            ],
+
+            // We need to add success data here since in high latency situations,
+            // the OpenRoomMembersPage call has the chance of overwriting the optimistic data we set above.
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        participantAccountIDs: participantAccountIDsAfterRemoval,
                     },
                 },
             ],
@@ -2194,6 +2279,17 @@ function getReportPrivateNote(reportID) {
 }
 
 /**
+ * Loads necessary data for rendering the RoomMembersPage
+ *
+ * @param {String|Number} reportID
+ */
+function openRoomMembersPage(reportID) {
+    API.read('OpenRoomMembersPage', {
+        reportID,
+    });
+}
+
+/**
  * Checks if there are any errors in the private notes for a given report
  *
  * @param {Object} report
@@ -2328,9 +2424,10 @@ export {
     notifyNewAction,
     showReportActionNotification,
     toggleEmojiReaction,
-    hasAccountIDEmojiReacted,
     shouldShowReportActionNotification,
     leaveRoom,
+    inviteToRoom,
+    removeFromRoom,
     getCurrentUserAccountID,
     setLastOpenedPublicRoom,
     flagComment,
@@ -2339,6 +2436,7 @@ export {
     getReportPrivateNote,
     clearPrivateNotesError,
     hasErrorInPrivateNotes,
+    openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
 };

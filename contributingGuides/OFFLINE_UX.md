@@ -104,7 +104,7 @@ This pattern greys out the submit button on a form and does not allow the form t
 
 **How to implement:** Use the `<FormAlertWithSubmitButton/>` component. This pattern should use the `API.write()` method.
 
-**Example:** Inviting new memebers to a workspace.
+**Example:** Inviting new members to a workspace.
 
 ### D - Full Page Blocking UI Pattern
 This pattern blocks the user from interacting with an entire page.
