@@ -5,6 +5,7 @@ import lodashEscape from 'lodash/escape';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
+import lodashMap from 'lodash/map';
 
 import {ValueOf} from 'type-fest';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -272,9 +273,9 @@ function sortReportsByLastRead(reports: OnyxCollection<Report>): Array<OnyxEntry
     return Object.values(reports ?? {})
         .filter((report) => report?.reportID && report?.lastReadTime)
         .sort((a, b) => {
-            const aTime = a?.lastReadTime ? a.lastReadTime : 0;
-            const bTime = b?.lastReadTime ? b.lastReadTime : 0;
-            return Number(aTime) - Number(bTime);
+            const aTime = new Date(a?.lastReadTime ?? '');
+            const bTime = new Date(b?.lastReadTime ?? '');
+            return aTime - bTime;
         });
 }
 
@@ -1048,39 +1049,37 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
 }
 
 function getDisplayNamesWithTooltips(
-    personalDetailsList: PersonalDetails[],
+    personalDetailsList: PersonalDetails[] | Record<string, PersonalDetails>,
     isMultipleParticipantReport: boolean,
 ): Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>> {
-    return personalDetailsList
-        ?.map?.((user) => {
-            const accountID = Number(user.accountID);
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) ?? user.login ?? '';
-            const avatar = UserUtils.getDefaultAvatar(accountID);
+    return lodashMap(personalDetailsList, (user: PersonalDetails) => {
+        const accountID = Number(user.accountID);
+        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) ?? user.login ?? '';
+        const avatar = UserUtils.getDefaultAvatar(accountID);
 
-            let pronouns = user.pronouns;
-            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
-                const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
-            }
+        let pronouns = user.pronouns;
+        if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+            const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+            pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+        }
 
-            return {
-                displayName,
-                avatar,
-                login: user.login ?? '',
-                accountID,
-                pronouns,
-            };
-        })
-        .sort((first, second) => {
-            // First sort by displayName/login
-            const displayNameLoginOrder = first.displayName.localeCompare(second.displayName);
-            if (displayNameLoginOrder !== 0) {
-                return displayNameLoginOrder;
-            }
+        return {
+            displayName,
+            avatar,
+            login: user.login ?? '',
+            accountID,
+            pronouns,
+        };
+    }).sort((first: PersonalDetails, second: PersonalDetails) => {
+        // First sort by displayName/login
+        const displayNameLoginOrder = first.displayName.localeCompare(second.displayName);
+        if (displayNameLoginOrder !== 0) {
+            return displayNameLoginOrder;
+        }
 
-            // Then fallback on accountID as the final sorting criteria.
-            return first.accountID - second.accountID;
-        });
+        // Then fallback on accountID as the final sorting criteria.
+        return first.accountID - second.accountID;
+    });
 }
 
 /**
