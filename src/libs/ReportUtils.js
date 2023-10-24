@@ -1381,6 +1381,17 @@ function hasNonReimbursableTransactions(iouReportID) {
 }
 
 /**
+ * Returns number of transactions that are reimbursable
+ *
+ * @param {Object|null} iouReportID
+ * @returns {Boolean}
+ */
+function hasReimbursableTransactions(iouReportID) {
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.filter(allTransactions, (transaction) => transaction.reimbursable === true).length > 0;
+}
+
+/**
  * @param {Object} report
  * @param {Object} allReportsDict
  * @returns {Number}
@@ -4253,6 +4264,7 @@ export {
     getTransactionsWithReceipts,
     hasOnlyDistanceRequestTransactions,
     hasNonReimbursableTransactions,
+    hasReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,

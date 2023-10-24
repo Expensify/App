@@ -1124,6 +1124,7 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
+            MARK_AS_DONE: 'Done',
         },
         TYPE: {
             SEND: 'send',
