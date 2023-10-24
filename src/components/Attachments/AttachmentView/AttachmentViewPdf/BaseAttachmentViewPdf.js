@@ -74,8 +74,8 @@ function BaseAttachmentViewPdf({
     );
 }
 
-BaseAttachmentViewPdf.propTypes = attachmentViewPdfPropTypes;
-BaseAttachmentViewPdf.defaultProps = attachmentViewPdfDefaultProps;
+BaseAttachmentViewPdf.propTypes = propTypes;
+BaseAttachmentViewPdf.defaultProps = defaultProps;
 BaseAttachmentViewPdf.displayName = 'BaseAttachmentViewPdf';
 
 export default memo(BaseAttachmentViewPdf);
