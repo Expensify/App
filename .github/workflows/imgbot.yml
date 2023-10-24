@@ -6,12 +6,17 @@ permissions:
   pull-requests: write
 
 jobs:
-  merge:
+  approveAndMerge:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'imgbot[bot]' }}
     steps:
       - name: Approve imgbot PR
         run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Merge imgbot PR
+        run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
