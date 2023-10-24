@@ -71,6 +71,7 @@ function ValueSelectorModal({currentValue, items, selectedItem, label, isVisible
                     sections={[{data: sectionsData}]}
                     onSelectRow={onItemSelected}
                     initiallyFocusedOptionKey={currentValue}
+                    shouldStopPropagation
                 />
             </ScreenWrapper>
         </Modal>

@@ -116,9 +116,10 @@ function getPlatformEquivalentForKeys(keys) {
  * @param {Number} [priority] The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added.
  * @param {Boolean} [shouldPreventDefault] Should call event.preventDefault after callback?
  * @param {Array<String>} [excludedNodes] Do not capture key events targeting excluded nodes (i.e. do not prevent default and let the event bubble)
+ * @param {Boolean} [shouldStopPropagation] Should call event.stopPropagation after callback?
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true, excludedNodes = []) {
+function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true, excludedNodes = [], shouldStopPropagation = false) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
     if (!_.has(eventHandlers, displayName)) {
@@ -133,6 +134,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
         shouldPreventDefault,
         shouldBubble,
         excludedNodes,
+        shouldStopPropagation,
     });
 
     if (descriptionKey) {

@@ -57,6 +57,7 @@ function BaseSelectionList({
     inputRef = null,
     disableKeyboardShortcuts = false,
     children,
+    shouldStopPropagation = false,
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -339,6 +340,7 @@ function BaseSelectionList({
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+        shouldStopPropagation,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
     });
 

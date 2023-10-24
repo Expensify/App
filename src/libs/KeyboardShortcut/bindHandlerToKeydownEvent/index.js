@@ -42,7 +42,9 @@ function bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEven
         if (callback.shouldPreventDefault) {
             event.preventDefault();
         }
-
+        if (callback.shouldStopPropagation) {
+            event.stopPropagation();
+        }
         // If the event should not bubble, short-circuit the loop
         return shouldBubble;
     });

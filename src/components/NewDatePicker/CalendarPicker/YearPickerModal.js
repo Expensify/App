@@ -82,6 +82,7 @@ function YearPickerModal(props) {
                     onSelectRow={(option) => props.onYearChange(option.value)}
                     initiallyFocusedOptionKey={props.currentYear.toString()}
                     showScrollIndicator
+                    shouldStopPropagation
                 />
             </ScreenWrapper>
         </Modal>
