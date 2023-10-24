@@ -57,7 +57,7 @@ import type {
     ConfirmThatParams,
     UntilTimeParams,
     StepCounterParams,
-    UserIsAlreadyMemberOfWorkspaceParams,
+    UserIsAlreadyMemberParams,
     GoToRoomParams,
     WelcomeNoteParams,
     RoomNameReservedErrorParams,
@@ -381,6 +381,14 @@ export default {
         termsOfService: 'Terms of Service',
         privacy: 'Privacy',
     },
+    samlSignIn: {
+        welcomeSAMLEnabled: 'Continue logging in with single sign-on:',
+        orContinueWithMagicCode: 'Or optionally, your company allows signing in with a magic code',
+        useSingleSignOn: 'Use single sign-on',
+        useMagicCode: 'Use magic code',
+        launching: 'Launching...',
+        oneMoment: "One moment while we redirect you to your company's single sign-on portal.",
+    },
     reportActionCompose: {
         addAction: 'Actions',
         dropToUpload: 'Drop to upload',
@@ -479,8 +487,8 @@ export default {
     sidebarScreen: {
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
-        fabNewChat: 'Send message',
-        fabNewChatExplained: 'Send message (Floating action)',
+        fabNewChat: 'Start chat',
+        fabNewChatExplained: 'Start chat (Floating action)',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
@@ -518,6 +526,7 @@ export default {
         approved: 'Approved',
         cash: 'Cash',
         card: 'Card',
+        original: 'Original',
         split: 'Split',
         addToSplit: 'Add to split',
         splitBill: 'Split bill',
@@ -535,13 +544,15 @@ export default {
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
+        transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
-        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount} with Expensify`,
+        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         payElsewhere: 'Pay elsewhere',
+        nextSteps: 'Next Steps',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
@@ -551,6 +562,8 @@ export default {
         payerOwes: ({payer}: PayerOwesParams) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} paid ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} paid: `,
+        payerSpentAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} spent ${amount}`,
+        payerSpent: ({payer}: PayerPaidParams) => `${payer} spent: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} approved:`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
@@ -571,6 +584,7 @@ export default {
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
+        categorySelection: 'Select a category to add additional organization to your money',
         error: {
             invalidAmount: 'Please enter a valid amount before continuing.',
             invalidSplit: 'Split amounts do not equal total amount',
@@ -582,6 +596,8 @@ export default {
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
         },
+        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
+        enableWallet: 'Enable Wallet',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -838,6 +854,22 @@ export default {
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
         addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
+        getPaidFaster: 'Get paid faster',
+        addPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
+        getPaidBackFaster: 'Get paid back faster',
+        secureAccessToYourMoney: 'Secure access to your money',
+        receiveMoney: 'Receive money in your local currency',
+        expensifyWallet: 'Expensify Wallet',
+        sendAndReceiveMoney: 'Send and receive money from your Expensify Wallet.',
+        enableWalletToSendAndReceiveMoney: 'Enable your Expensify Wallet to start sending and receiving money with friends!',
+        enableWallet: 'Enable wallet',
+        bankAccounts: 'Bank accounts',
+        addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
+        addBankAccount: 'Add bank account',
+        assignedCards: 'Assigned cards',
+        assignedCardsDescription: 'These are cards assigned by a Workspace admin to manage company spend.',
+        expensifyCard: 'Expensify Card',
+        walletActivationPending: "We're reviewing your information, please check back in a few minutes!",
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -845,6 +877,10 @@ export default {
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
         reportFraud: 'Report virtual card fraud',
+        reviewTransaction: 'Review transaction',
+        suspiciousBannerTitle: 'Suspicious transaction',
+        suspiciousBannerDescription: 'We noticed suspicious transaction on your card. Tap below to review.',
+        cardLocked: "Your card is temporarily locked while our team reviews your company's account.",
         cardDetails: {
             cardNumber: 'Virtual card number',
             expiration: 'Expiration',
@@ -852,6 +888,7 @@ export default {
             address: 'Address',
             revealDetails: 'Reveal details',
             copyCardNumber: 'Copy card number',
+            updateAddress: 'Update address',
         },
     },
     reportFraudPage: {
@@ -914,6 +951,7 @@ export default {
     },
     welcomeMessagePage: {
         welcomeMessage: 'Welcome message',
+        welcomeMessageOptional: 'Welcome message (optional)',
         explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
     },
     languagePage: {
@@ -1017,7 +1055,7 @@ export default {
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
-        homeAddress: 'Home address',
+        address: 'Address',
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
@@ -1173,7 +1211,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Invalid email',
-        userIsAlreadyMemberOfWorkspace: ({login, workspace}: UserIsAlreadyMemberOfWorkspaceParams) => `${login} is already a member of ${workspace}`,
+        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} is already a member of ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
@@ -1192,7 +1230,7 @@ export default {
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
-        helpText: 'We need to confirm the following information before we can process this payment.',
+        helpText: 'We need to confirm the following information before you can send and receive money from your Wallet.',
         helpTextIdologyQuestions: 'We need to ask you just a few more questions to finish validating your identity.',
         helpLink: 'Learn more about why we need this.',
         legalFirstNameLabel: 'Legal first name',
@@ -1563,12 +1601,17 @@ export default {
         selectAWorkspace: 'Select a workspace',
         growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
         visibilityOptions: {
-            restricted: 'Restricted',
+            restricted: 'Workspace', // the translation for "restricted" visibility is actually workspace. This is so we can display restricted visibility rooms as "workspace" without having to change what's stored.
             private: 'Private',
             public: 'Public',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             public_announce: 'Public Announce',
         },
+    },
+    roomMembersPage: {
+        memberNotFound: 'Member not found. To invite a new member to the room, please use the Invite button above.',
+        notAuthorized: `You do not have access to this page. Are you trying to join the room? Please reach out to a member of this room so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
+        removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
     },
     newTaskPage: {
         assignTask: 'Assign task',
@@ -1825,7 +1868,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'Not activated',
-        outOfPocketSpend: 'Out-of-pocket spend',
+        outOfPocket: 'Out of pocket',
         companySpend: 'Company spend',
     },
     distance: {
@@ -1847,11 +1890,25 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
     },
-    globalNavigationOptions: {
-        chats: 'Chats',
+    reportCardLostOrDamaged: {
+        report: 'Report physical card loss / damage',
+        screenTitle: 'Report card lost or damaged',
+        nextButtonLabel: 'Next',
+        reasonTitle: 'Why do you need a new card?',
+        cardDamaged: 'My card was damaged',
+        cardLostOrStolen: 'My card was lost or stolen',
+        confirmAddressTitle: "Please confirm the address below is where you'd like us to send your new card.",
+        currentCardInfo: 'Your current card will be permanently deactivated as soon as your order is placed. Most cards arrive in a few business days.',
+        address: 'Address',
+        deactivateCardButton: 'Deactivate card',
+        addressError: 'Address is required',
+        reasonError: 'Reason is required',
     },
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',
         transactionDate: 'Transaction date',
+    },
+    globalNavigationOptions: {
+        chats: 'Chats',
     },
 } satisfies TranslationBase;

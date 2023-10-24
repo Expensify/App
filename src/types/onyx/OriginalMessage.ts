@@ -1,5 +1,19 @@
 import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
+import DeepValueOf from '../utils/DeepValueOf';
+
+type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
+
+type OriginalMessageApproved = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
+    originalMessage: unknown;
+};
+
+type IOUDetails = {
+    amount: number;
+    comment?: string;
+    currency: string;
+};
 
 type OriginalMessageIOU = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.IOU;
@@ -8,23 +22,38 @@ type OriginalMessageIOU = {
         IOUTransactionID?: string;
 
         IOUReportID?: number;
+
+        /** Only exists when we are sending money */
+        IOUDetails?: IOUDetails;
+
         amount: number;
         comment?: string;
         currency: string;
         lastModified?: string;
         participantAccountIDs?: number[];
-        type: string;
+        type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     };
 };
 
-type FlagSeverityName = 'spam' | 'inconsiderate' | 'bullying' | 'intimidation' | 'harassment' | 'assault';
+type FlagSeverityName = ValueOf<
+    Pick<
+        typeof CONST.MODERATION,
+        'FLAG_SEVERITY_SPAM' | 'FLAG_SEVERITY_INCONSIDERATE' | 'FLAG_SEVERITY_INTIMIDATION' | 'FLAG_SEVERITY_BULLYING' | 'FLAG_SEVERITY_HARASSMENT' | 'FLAG_SEVERITY_ASSAULT'
+    >
+>;
 type FlagSeverity = {
     accountID: number;
     timestamp: string;
 };
 
+type DecisionName = ValueOf<
+    Pick<
+        typeof CONST.MODERATION,
+        'MODERATOR_DECISION_PENDING' | 'MODERATOR_DECISION_PENDING_HIDE' | 'MODERATOR_DECISION_PENDING_REMOVE' | 'MODERATOR_DECISION_APPROVED' | 'MODERATOR_DECISION_HIDDEN'
+    >
+>;
 type Decision = {
-    decision: string;
+    decision: DecisionName;
     timestamp: string;
 };
 
@@ -62,7 +91,7 @@ type OriginalMessageClosed = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CLOSED;
     originalMessage: {
         policyName: string;
-        reason: 'default' | 'accountClosed' | 'accountMerged' | 'removedPolicy' | 'policyDeleted';
+        reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
         lastModified?: string;
     };
 };
@@ -128,7 +157,18 @@ type OriginalMessagePolicyTask = {
     originalMessage: unknown;
 };
 
+type OriginalMessageModifiedExpense = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+    originalMessage: unknown;
+};
+
+type OriginalMessageReimbursementQueued = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
+    originalMessage: unknown;
+};
+
 type OriginalMessage =
+    | OriginalMessageApproved
     | OriginalMessageIOU
     | OriginalMessageAddComment
     | OriginalMessageSubmitted
@@ -138,7 +178,9 @@ type OriginalMessage =
     | OriginalMessageChronosOOOList
     | OriginalMessageReportPreview
     | OriginalMessagePolicyChangeLog
-    | OriginalMessagePolicyTask;
+    | OriginalMessagePolicyTask
+    | OriginalMessageModifiedExpense
+    | OriginalMessageReimbursementQueued;
 
 export default OriginalMessage;
-export type {Reaction, ChronosOOOEvent};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName};

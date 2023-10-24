@@ -44,6 +44,51 @@ function reportVirtualExpensifyCardFraud(cardID) {
 }
 
 /**
+ * Call the API to deactivate the card and request a new one
+ * @param {String} cardId - id of the card that is going to be replaced
+ * @param {String} reason - reason for replacement ('damaged' | 'stolen')
+ */
+function requestReplacementExpensifyCard(cardId, reason) {
+    API.write(
+        'RequestReplacementExpensifyCard',
+        {
+            cardId,
+            reason,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+                    value: {
+                        isLoading: true,
+                        errors: null,
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
  * Activates the physical Expensify card based on the last four digits of the card number
  *
  * @param {Number} lastFourDigits
@@ -101,4 +146,4 @@ function clearCardListErrors(cardID) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
 }
 
-export {reportVirtualExpensifyCardFraud, activatePhysicalExpensifyCard, clearCardListErrors};
+export {requestReplacementExpensifyCard, activatePhysicalExpensifyCard, clearCardListErrors, reportVirtualExpensifyCardFraud};
