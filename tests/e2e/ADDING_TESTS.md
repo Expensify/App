@@ -12,12 +12,20 @@ I recommend doing the following.
 > [!NOTE]
 > All of the steps can be executed at once by running XXX (todo)
 
-1. Rename `./index.js` to `./appIndex.js`
-2. Create a new `./index.js` with the following content:
+1. We need to compile a android development app version that has capturing metrics enabled:
+```bash
+# Make sure that your .env file is the one we need for e2e testing:
+cp ./tests/e2e/.env.e2e .env
+
+# Build the android app like you normally would with
+npm run android
+```
+2. Rename `./index.js` to `./appIndex.js`
+3. Create a new `./index.js` with the following content:
 ```js
 require('./src/libs/E2E/reactNativeLaunchingTest');
 ```
-3. In `./src/libs/E2E/reactNativeLaunchingTest.js` change the main app import to the new `./appIndex.js` file:
+4. In `./src/libs/E2E/reactNativeLaunchingTest.js` change the main app import to the new `./appIndex.js` file:
 ```diff
 - import '../../../index';
 + import '../../../appIndex';
@@ -29,7 +37,7 @@ require('./src/libs/E2E/reactNativeLaunchingTest');
 Now you can start the metro bundler in e2e mode with:
 
 ```
-CAPTURE_METRICS=TRUE E2E_Testing=true npm start -- --reset-cache
+CAPTURE_METRICS=true E2E_TESTING=true npm start -- --reset-cache
 ```
 
 Then we can execute our test with:
@@ -38,11 +46,7 @@ Then we can execute our test with:
 npm run test:e2e:dev -- --includes "My new test name"
 ```
 
-> - `--development` will run the tests with a local config, which will run the tests with fewer iterations
-> - `--skipInstallDeps` will skip the `npm install` step, which you probably don't need
-> - `--buildMode skip` will skip rebuilding the app, and just run the existing app
-> - `--includes "MyTestName"` will only run the test with the name "MyTestName"
-
+> - `--includes "MyTestName"` will only run the test with the name "MyTestName", but is optional
 
 
 ## Creating a new test
