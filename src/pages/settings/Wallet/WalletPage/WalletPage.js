@@ -262,17 +262,15 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.merge(`cardList`, {
             234523452345: {
-                key: 'virtual-1',
+                key: '234523452345',
                 cardID: 234523452345,
-                state: 3,
+                state: 2,
                 bank: 'Expensify Card',
                 availableSpend: 10000,
-                domainName: 'Expensify',
-                lastFourPAN: '',
-                isVirtual: true,
-                cardholderFirstName: 'Test',
-                cardholderLastName: 'Test',
-                fraud: 'domain',
+                domainName: 'expensify.com',
+                lastFourPAN: '2345',
+                isVirtual: false,
+                fraud: null,
             },
         });
     }, [cardList]);
@@ -465,6 +463,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                             shouldShowAddPaymentMethodButton={false}
                                             shouldShowAssignedCards
                                             shouldShowEmptyListMessage={false}
+                                            shouldEnableScroll={false}
                                             onPress={paymentMethodPressed}
                                             style={styles.mt5}
                                             isAddPaymentMenuActive={shouldShowAddPaymentMenu}
