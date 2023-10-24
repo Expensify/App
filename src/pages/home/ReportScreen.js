@@ -26,7 +26,7 @@ import Banner from '../../components/Banner';
 import reportPropTypes from '../reportPropTypes';
 import reportMetadataPropTypes from '../reportMetadataPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
+import withViewportOffsetTop from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
@@ -39,6 +39,7 @@ import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
+import reportWithoutHasDraftSelector from '../../libs/OnyxSelectors/reportWithoutHasDraftSelector';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -94,7 +95,7 @@ const propTypes = {
     /** Whether user is leaving the current report */
     userLeavingStatus: PropTypes.bool,
 
-    ...viewportOffsetTopPropTypes,
+    viewportOffsetTop: PropTypes.number.isRequired,
     ...withCurrentReportIDPropTypes,
 };
 
@@ -127,7 +128,8 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
-    return String(lodashGet(route, 'params.reportID', ''));
+    // // The reportID is used inside a collection key and should not be empty, as an empty reportID will result in the entire collection being returned.
+    return String(lodashGet(route, 'params.reportID', null));
 }
 
 function ReportScreen({
@@ -307,12 +309,16 @@ function ReportScreen({
         const prevOnyxReportID = prevReport.reportID;
         const routeReportID = getReportID(route);
 
-        // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room)
+        // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
         if (
             // non-optimistic case
             (!prevUserLeavingStatus && userLeavingStatus) ||
             // optimistic case
-            (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && prevReport.statusNum === CONST.REPORT.STATUS.OPEN && report.statusNum === CONST.REPORT.STATUS.CLOSED)
+            (prevOnyxReportID &&
+                prevOnyxReportID === routeReportID &&
+                !onyxReportID &&
+                prevReport.statusNum === CONST.REPORT.STATUS.OPEN &&
+                (report.statusNum === CONST.REPORT.STATUS.CLOSED || (!report.statusNum && !prevReport.parentReportID)))
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
@@ -477,6 +483,7 @@ export default compose(
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
                 allowStaleData: true,
+                selector: reportWithoutHasDraftSelector,
             },
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,

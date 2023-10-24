@@ -1054,7 +1054,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
 
         // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
-        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
+        // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
+        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || '').toLowerCase();
         const accountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
@@ -1106,7 +1107,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneIOUReport.reportID,
             comment,
             '',
-            CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
+            CONST.IOU.TYPE.SPLIT,
             splitTransaction.transactionID,
             undefined,
             undefined,
@@ -1641,7 +1642,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
             oneOnOneIOUReport.reportID,
             updatedTransaction.comment.comment,
             updatedTransaction.modifiedCreated,
-            CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
+            CONST.IOU.TYPE.SPLIT,
             transactionID,
             updatedTransaction.modifiedMerchant,
             {...updatedTransaction.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
@@ -1893,17 +1894,17 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: transaction,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: iouReport,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`,
             value: chatReport,
         },
@@ -2006,7 +2007,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         }
 
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
-        updatedIOUReport.lastVisibleActionCreated = lastVisibleAction.created;
+        updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
 
         updatedReportPreviewAction = {...reportPreviewAction};
         const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
@@ -2068,7 +2069,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                           hasOutstandingIOU: false,
                           iouReportID: null,
                           lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).lastMessageText,
-                          lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).created,
+                          lastVisibleActionCreated: lodashGet(ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}), 'created'),
                       },
                   },
               ]
