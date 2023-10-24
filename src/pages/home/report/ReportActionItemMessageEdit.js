@@ -183,6 +183,8 @@ function ReportActionItemMessageEdit(props) {
             });
         }
 
+        updateDraft(draft);
+
         return () => {
             // Skip if the current report action is not active
             if (!isActive()) {
