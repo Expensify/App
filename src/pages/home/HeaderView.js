@@ -34,6 +34,7 @@ import * as Session from '../../libs/actions/Session';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../reportPropTypes';
+import reportWithoutHasDraftSelector from '../../libs/OnyxSelectors/reportWithoutHasDraftSelector';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -80,7 +81,8 @@ function HeaderView(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
-    const title = ReportUtils.getReportName(reportHeaderData);
+    // Use sorted display names for the title for group chats on native small screen widths
+    const title = ReportUtils.isGroupChat(props.report) ? ReportUtils.getDisplayNamesStringFromTooltips(displayNamesWithTooltips) : ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
@@ -280,6 +282,7 @@ export default compose(
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
+            selector: reportWithoutHasDraftSelector,
         },
         session: {
             key: ONYXKEYS.SESSION,
