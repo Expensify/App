@@ -97,7 +97,7 @@ function LegalNamePage(props) {
                     enabledWhenOffline
                 >
                     <View style={[styles.mb4]}>
-                        <InputWrapper 
+                        <InputWrapper
                             InputComponent={TextInput}
                             inputID="legalFirstName"
                             name="lfname"
@@ -110,7 +110,7 @@ function LegalNamePage(props) {
                         />
                     </View>
                     <View>
-                        <InputWrapper 
+                        <InputWrapper
                             InputComponent={TextInput}
                             inputID="legalLastName"
                             name="llname"
