@@ -155,7 +155,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('sidebarScreen.buttonSearch')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        style={[styles.flexRow, styles.ph5]}
                         onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                     >
                         <Icon src={Expensicons.MagnifyingGlass} />
