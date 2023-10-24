@@ -1,7 +1,7 @@
 import React, {useState, useRef, useEffect} from 'react';
 import {View, ViewStyle} from 'react-native';
 import delay from 'lodash/delay';
-import { OnLoadEvent } from 'react-native-fast-image'
+import {OnLoadEvent} from 'react-native-fast-image';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
