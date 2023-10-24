@@ -5,13 +5,14 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import styles from '@styles/styles';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
+import sourcePropTypes from '../Image/sourcePropTypes';
 
 const propTypes = {
     /** Function to call when onPress */
     onPress: PropTypes.func,
 
     /** Icon to display on tab */
-    icon: PropTypes.func,
+    icon: sourcePropTypes,
 
     /** Title of the tab */
     title: PropTypes.string,

@@ -39,8 +39,8 @@ function Image(props) {
             {...rest}
             source={imageSource}
             onLoad={(evt) => {
-                const {width, height} = evt.nativeEvent;
-                dimensionsCache.set(source.uri, {width, height});
+                const {width, height, url} = evt.source;
+                dimensionsCache.set(url, {width, height});
                 if (props.onLoad) {
                     props.onLoad(evt);
                 }

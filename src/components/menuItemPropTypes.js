@@ -45,7 +45,7 @@ const propTypes = {
     shouldShowTitleIcon: PropTypes.bool,
 
     /** Icon to display at right side of title */
-    titleIcon: PropTypes.func,
+    titleIcon: sourcePropTypes,
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon: PropTypes.bool,
