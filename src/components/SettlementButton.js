@@ -169,8 +169,9 @@ function SettlementButton({
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
-        let paymentMethod = isExpenseReport && !ReportUtils.hasReimbursableTransactions(iouReport) ? CONST.IOU.PAYMENT_TYPE.MARK_AS_DONE : _.get(nvp_lastPaymentMethod, policyID, '');
-        if (!shouldShowPaymentOptions) {
+        const isNonReimbursable = isExpenseReport && !ReportUtils.hasReimbursableTransactions(iouReport);
+        let paymentMethod = isNonReimbursable ? CONST.IOU.PAYMENT_TYPE.MARK_AS_DONE : _.get(nvp_lastPaymentMethod, policyID, '');
+        if (!shouldShowPaymentOptions || isNonReimbursable) {
             if (!paymentMethod) {
                 // In case the user hasn't paid a request yet, let's default to VBBA payment type in case of expense reports
                 if (isExpenseReport) {
@@ -187,7 +188,9 @@ function SettlementButton({
             return [
                 {
                     ...paymentMethods[paymentMethod],
-                    text: paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE ? translate('iou.payElsewhere') : translate('iou.pay'),
+                    text: paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || paymentMethod === CONST.IOU.PAYMENT_TYPE.MARK_AS_DONE
+                        ? paymentMethods[paymentMethod].text
+                        : translate('iou.pay'),
                 },
             ];
         }
