@@ -281,7 +281,6 @@ function ReportActionsList({
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }, [windowHeight]);
 
-    const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
@@ -355,6 +354,8 @@ function ReportActionsList({
         () => [styles.chatContentScrollView, isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
         [isLoadingNewerReportActions],
     );
+
+    const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
 
     const listFooterComponent = useCallback(() => {
         // Skip this hook on the first render, as we are not sure if more actions are going to be loaded
