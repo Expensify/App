@@ -19,7 +19,7 @@ import withLocalize from '../../withLocalize';
 import FullscreenLoadingIndicator from '../../FullscreenLoadingIndicator';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
-function AttachmentCarousel({report, reportMetadata, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportMetadata, reportActions, source, onNavigate, onClose, setDownloadButtonVisibility, translate}) {
     const pagerRef = useRef(null);
 
     const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
@@ -36,7 +36,7 @@ function AttachmentCarousel({report, reportMetadata, reportActions, source, onNa
                 const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
                 return attachment.transactionID === transactionID;
             }
-            return attachment.source === source;
+            return attachment.source.includes(source);
         },
         [source, report],
     );
