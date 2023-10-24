@@ -6,6 +6,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import CONFIG from '../../../CONFIG';
 import * as Session from '../../../libs/actions/Session';
 import SAMLLoadingIndicator from '../../../components/SAMLLoadingIndicator';
+import getPlatform from '../../../libs/getPlatform';
 
 const propTypes = {
     /** The credentials of the logged in person */
@@ -20,7 +21,7 @@ const defaultProps = {
 };
 
 function SAMLSignInPage({credentials}) {
-    const samlLoginURL = `${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`;
+    const samlLoginURL = `${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}&platform=${getPlatform()}`;
 
     /**
      * Handles in-app navigation once we get a response back from Expensify
