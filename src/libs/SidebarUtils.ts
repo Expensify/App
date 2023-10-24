@@ -264,7 +264,6 @@ type OptionData = {
     isMoneyRequestReport?: boolean | null;
     isExpenseRequest?: boolean | null;
     isWaitingOnBankAccount?: boolean | null;
-    isLastMessageDeletedParentAction?: boolean | null;
     isAllowedToComment?: boolean | null;
     isThread?: boolean | null;
     isTaskReport?: boolean | null;
