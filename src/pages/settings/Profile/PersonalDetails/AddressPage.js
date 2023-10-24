@@ -154,11 +154,11 @@ function AddressPage({privatePersonalDetails, route}) {
     }, []);
 
     useEffect(() => {
-        if (!countryFromUrl || countryFromUrl === currentCountry) {
+        if (!countryFromUrl) {
             return;
         }
         handleAddressChange(countryFromUrl, 'country');
-    }, [countryFromUrl, handleAddressChange, currentCountry]);
+    }, [countryFromUrl, handleAddressChange]);
 
     return (
         <ScreenWrapper
@@ -166,7 +166,7 @@ function AddressPage({privatePersonalDetails, route}) {
             testID={AddressPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('privatePersonalDetails.homeAddress')}
+                title={translate('privatePersonalDetails.address')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />

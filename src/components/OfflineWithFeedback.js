@@ -58,6 +58,9 @@ const propTypes = {
 
     /** Whether to apply needsOffscreenAlphaCompositing prop to the children */
     needsOffscreenAlphaCompositing: PropTypes.bool,
+
+    /** Whether we can dismiss the error message */
+    canDismissError: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -72,6 +75,7 @@ const defaultProps = {
     errorRowStyles: [],
     shouldDisableStrikeThrough: false,
     needsOffscreenAlphaCompositing: false,
+    canDismissError: true,
 };
 
 /**
@@ -130,16 +134,18 @@ function OfflineWithFeedback(props) {
                         messages={errorMessages}
                         type="error"
                     />
-                    <Tooltip text={translate('common.close')}>
-                        <PressableWithoutFeedback
-                            onPress={props.onClose}
-                            style={[styles.touchableButtonImage]}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            accessibilityLabel={translate('common.close')}
-                        >
-                            <Icon src={Expensicons.Close} />
-                        </PressableWithoutFeedback>
-                    </Tooltip>
+                    {props.canDismissError && (
+                        <Tooltip text={translate('common.close')}>
+                            <PressableWithoutFeedback
+                                onPress={props.onClose}
+                                style={[styles.touchableButtonImage]}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                accessibilityLabel={translate('common.close')}
+                            >
+                                <Icon src={Expensicons.Close} />
+                            </PressableWithoutFeedback>
+                        </Tooltip>
+                    )}
                 </View>
             )}
         </View>

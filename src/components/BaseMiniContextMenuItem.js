@@ -6,7 +6,7 @@ import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
 import variables from '../styles/variables';
-import Tooltip from './Tooltip';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReportActionComposeFocusManager from '../libs/ReportActionComposeFocusManager';
 import DomUtils from '../libs/DomUtils';
@@ -73,6 +73,7 @@ function BaseMiniContextMenuItem(props) {
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
+                    props.isDelayButtonStateComplete && styles.cursorDefault,
                 ]}
             >
                 {(pressableState) => (
