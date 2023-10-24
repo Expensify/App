@@ -110,6 +110,8 @@ function isExpensifyGuideTeam(email: string): boolean {
  */
 const isPolicyAdmin = (policy: OnyxEntry<Policy>): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
 
+const isPolicyMember = (policyID: string, policies: Record<string, Policy>): boolean => Object.values(policies).some((policy) => policy?.id === policyID);
+
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
  *
@@ -214,4 +216,5 @@ export {
     getTagListName,
     getTagList,
     isPendingDeletePolicy,
+    isPolicyMember,
 };
