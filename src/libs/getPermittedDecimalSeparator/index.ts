@@ -8,7 +8,7 @@ const getPermittedDecimalSeparator: GetPermittedDecimalSeparator = (localizedSep
         return getPermittedDecimalSeparatorIOS(localizedSeparator);
     }
 
-    return localizedSeparator ?? '.';
+    return localizedSeparator;
 };
 
 export default getPermittedDecimalSeparator;
