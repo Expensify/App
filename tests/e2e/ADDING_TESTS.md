@@ -15,7 +15,7 @@ I recommend doing the following.
 1. Rename `./index.js` to `./appIndex.js`
 2. Create a new `./index.js` with the following content:
 ```js
-requrire("./src/libs/E2E/reactNativeLaunchingTest.js");
+require('./src/libs/E2E/reactNativeLaunchingTest');
 ```
 3. In `./src/libs/E2E/reactNativeLaunchingTest.js` change the main app import to the new `./appIndex.js` file:
 ```diff
