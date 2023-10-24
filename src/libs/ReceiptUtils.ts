@@ -35,18 +35,17 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
     const isReceiptImage = Str.isImage(filename);
 
     const hasEReceipt = transaction?.hasEReceipt;
-    
-    if (!Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')){
 
+    if (!Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) {
         if (hasEReceipt) {
             return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction};
         }
-    
+
         // For local files, we won't have a thumbnail yet
         if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
             return {thumbnail: null, image: path};
         }
-    
+
         if (isReceiptImage) {
             return {thumbnail: `${path}.1024.jpg`, image: path};
         }
