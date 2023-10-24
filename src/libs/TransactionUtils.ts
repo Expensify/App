@@ -378,7 +378,7 @@ function hasRoute(transaction: Transaction): boolean {
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getLinkedTransaction(reportAction?: OnyxEntry<ReportAction>): Transaction | Record<string, never> {
+function getLinkedTransaction(reportAction: OnyxEntry<ReportAction>): Transaction | Record<string, never> {
     let transactionID = '';
 
     if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {

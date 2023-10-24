@@ -7,6 +7,7 @@ type Session = {
     /** Currently logged in user authToken */
     authToken?: string;
 
+    /** Type of token for currently logged user */
     authTokenType?: string;
 
     supportAuthToken?: string;

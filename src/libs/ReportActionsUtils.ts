@@ -127,7 +127,7 @@ function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction>): boolean
  * Returns whether the thread is a transaction thread, which is any thread with IOU parent
  * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
  */
-function isTransactionThread(parentReportAction: ReportAction): boolean {
+function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boolean {
     return (
         parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
         (parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||

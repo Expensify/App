@@ -1332,7 +1332,7 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>) {
         return false;
     }
 
-    const moneyRequestReport = getReport(moneyRequestReportID);
+    const moneyRequestReport = getReport(String(moneyRequestReportID));
     const isReportSettled = isSettled(moneyRequestReport?.reportID);
     const isAdmin = ((isExpenseReport(moneyRequestReport) && getPolicy(moneyRequestReport?.policyID ?? '')?.role) ?? '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
@@ -1890,7 +1890,7 @@ function navigateToDetailsPage(report: OnyxEntry<Report>) {
  * this is more than random enough for our needs.
  */
 function generateReportID() {
-    return (Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32)).toString();
+    return Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32).toString();
 }
 
 function hasReportNameError(report: OnyxEntry<Report>): boolean {
