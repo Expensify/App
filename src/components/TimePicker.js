@@ -337,7 +337,7 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View
                     nativeID={AMOUNT_VIEW_ID}
-                    style={[styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter, styles.timePickerInputsContainer]}
+                    style={[styles.flexRow, styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer]}
                 >
                     <AmountTextInput
                         formattedAmount={hours}
