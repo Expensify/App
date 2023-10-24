@@ -29,7 +29,7 @@ function BaseAttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCar
     const onScaleChanged = useCallback(
         (scale) => {
             updateScaleRef(scale);
-            onScaleChangedProp(scale);
+            onScaleChangedProp();
 
             // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
             if (isUsedInCarousel) {
