@@ -1,48 +1,31 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {TextStyle} from 'react-native';
 import styles from '../styles/styles';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Text from './Text';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import UserWallet from '../types/onyx/UserWallet';
 
-const propTypes = {
+type CurrentWalletBalanceOnyxProps = {
     /** The user's wallet account */
-    userWallet: PropTypes.shape({
-        /** The user's current wallet balance */
-        currentBalance: PropTypes.number,
-    }),
-
-    /** Styles of the amount */
-    // eslint-disable-next-line react/forbid-prop-types
-    balanceStyles: PropTypes.arrayOf(PropTypes.object),
-
-    ...withLocalizePropTypes,
+    userWallet: OnyxEntry<UserWallet>;
 };
 
-const defaultProps = {
-    userWallet: {
-        // Default to zero if userWallet and currentBalance is not set yet to avoid NaN
-        currentBalance: 0,
-    },
-    balanceStyles: [],
+type CurrentWalletBalanceProps = CurrentWalletBalanceOnyxProps & {
+    balanceStyles?: TextStyle[];
 };
 
-function CurrentWalletBalance(props) {
-    const formattedBalance = CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance);
-    return <Text style={[styles.pv5, styles.alignSelfCenter, styles.textHeadline, styles.textXXXLarge, ...props.balanceStyles]}>{`${formattedBalance}`}</Text>;
+function CurrentWalletBalance({userWallet, balanceStyles = []}: CurrentWalletBalanceProps) {
+    const formattedBalance = CurrencyUtils.convertToDisplayString(userWallet?.currentBalance ?? 0);
+    return <Text style={[styles.pv5, styles.alignSelfCenter, styles.textHeadline, styles.textXXXLarge, ...balanceStyles]}>{`${formattedBalance}`}</Text>;
 }
 
-CurrentWalletBalance.propTypes = propTypes;
-CurrentWalletBalance.defaultProps = defaultProps;
 CurrentWalletBalance.displayName = 'CurrentWalletBalance';
-export default compose(
-    withLocalize,
-    withOnyx({
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
-    }),
-)(CurrentWalletBalance);
+
+export default withOnyx<CurrentWalletBalanceProps, CurrentWalletBalanceOnyxProps>({
+    userWallet: {
+        key: ONYXKEYS.USER_WALLET,
+    },
+})(CurrentWalletBalance);
