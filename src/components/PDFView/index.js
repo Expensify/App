@@ -15,11 +15,11 @@ import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
 import withWindowDimensions from '../withWindowDimensions';
 import withLocalize from '../withLocalize';
-import Text from '../Text';
 import compose from '../../libs/compose';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import Log from '../../libs/Log';
 import ONYXKEYS from '../../ONYXKEYS';
+import Text from '../Text';
 
 /**
  * Each page has a default border. The app should take this size into account
@@ -283,7 +283,7 @@ class PDFView extends Component {
                     }) => this.setState({containerWidth: width, containerHeight: height})}
                 >
                     <Document
-                        error={<Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
+                        error={<Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
                         loading={<FullScreenLoadingIndicator />}
                         file={this.props.sourceURL}
                         options={{
