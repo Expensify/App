@@ -35,7 +35,7 @@ CAPTURE_METRICS=TRUE E2E_Testing=true npm start -- --reset-cache
 Then we can execute our test with:
 
 ```
-npm run test:e2e -- --development --skipInstallDeps --buildMode skip --includes "My new test name"
+npm run test:e2e:dev -- --includes "My new test name"
 ```
 
 > - `--development` will run the tests with a local config, which will run the tests with fewer iterations
