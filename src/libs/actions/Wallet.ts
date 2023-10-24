@@ -5,7 +5,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as OnyxCommon from '../../types/onyx/OnyxCommon';
 import * as API from '../API';
 import {WalletAdditionalQuestionsDetails} from '../../types/onyx';
-import WalletOnfido from '../../types/onyx/WalletOnfido';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
@@ -21,7 +20,27 @@ function openOnfidoFlow() {
             key: ONYXKEYS.WALLET_ONFIDO,
             value: {
                 isLoading: true,
-            } as WalletOnfido,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ONFIDO,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ONFIDO,
+            value: {
+                isLoading: false,
+            },
         },
     ];
 
@@ -30,24 +49,8 @@ function openOnfidoFlow() {
         {},
         {
             optimisticData,
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_ONFIDO,
-                    value: {
-                        isLoading: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_ONFIDO,
-                    value: {
-                        isLoading: false,
-                    },
-                },
-            ],
+            successData,
+            failureData,
         },
     );
 }
@@ -101,6 +104,39 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
     const addressZip = personalDetails.addressZip ?? '';
     const ssn = personalDetails.ssn ?? '';
     const phoneNumber = personalDetails.phoneNumber ?? '';
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            value: {
+                isLoading: true,
+                errors: null,
+                errorFields: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
     API.write(
         'UpdatePersonalDetailsForWallet',
         {
@@ -115,35 +151,9 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
             phoneNumber,
         },
         {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-                    value: {
-                        isLoading: true,
-                        errors: null,
-                        errorFields: null,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-                    value: {
-                        isLoading: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-                    value: {
-                        isLoading: false,
-                    },
-                },
-            ],
+            optimisticData,
+            successData,
+            failureData,
         },
     );
 }
@@ -161,50 +171,56 @@ type IdentityVerification = {
 function verifyIdentity(parameters: IdentityVerification) {
     const onfidoData = parameters.onfidoData;
 
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ONFIDO,
+            value: {
+                isLoading: true,
+                errors: null,
+                fixableErrors: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                shouldShowFailedKYC: false,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ONFIDO,
+            value: {
+                isLoading: false,
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ONFIDO,
+            value: {
+                isLoading: false,
+                hasAcceptedPrivacyPolicy: false,
+            },
+        },
+    ];
+
     API.write(
         'VerifyIdentity',
         {
             onfidoData,
         },
         {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_ONFIDO,
-                    value: {
-                        isLoading: true,
-                        errors: null,
-                        fixableErrors: null,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.USER_WALLET,
-                    value: {
-                        shouldShowFailedKYC: false,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_ONFIDO,
-                    value: {
-                        isLoading: false,
-                        errors: null,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_ONFIDO,
-                    value: {
-                        isLoading: false,
-                        hasAcceptedPrivacyPolicy: false,
-                    },
-                },
-            ],
+            optimisticData,
+            successData,
+            failureData,
         },
     );
 }
@@ -220,7 +236,7 @@ type WalletTerms = {
  * @param parameters.chatReportID When accepting the terms of wallet to pay an IOU, indicates the parent chat ID of the IOU
  */
 function acceptWalletTerms(parameters: WalletTerms) {
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
@@ -230,7 +246,7 @@ function acceptWalletTerms(parameters: WalletTerms) {
         },
     ];
 
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_TERMS,
@@ -240,7 +256,7 @@ function acceptWalletTerms(parameters: WalletTerms) {
         },
     ];
 
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
@@ -286,6 +302,37 @@ function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP>) {
 
 function answerQuestionsForWallet(answers: unknown[], idNumber: string) {
     const idologyAnswers = JSON.stringify(answers);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
     API.write(
         'AnswerQuestionsForWallet',
         {
@@ -293,33 +340,9 @@ function answerQuestionsForWallet(answers: unknown[], idNumber: string) {
             idNumber,
         },
         {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-                    value: {
-                        isLoading: true,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-                    value: {
-                        isLoading: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-                    value: {
-                        isLoading: false,
-                    },
-                },
-            ],
+            optimisticData,
+            successData,
+            failureData,
         },
     );
 }
