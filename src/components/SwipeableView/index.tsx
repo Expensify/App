@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { View } from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 import SwipeableViewProps from './types';
 
 const MIN_DELTA_Y = 25;
@@ -15,9 +15,9 @@ const isTextSelection = (): boolean => {
     return false;
 };
 
-function SwipeableView({ onSwipeUp, onSwipeDown, style, children }: SwipeableViewProps) {
+function SwipeableView({onSwipeUp, onSwipeDown, style, children}: SwipeableViewProps) {
     const ref = useRef<View | null>(null);
-    const scrollableChildRef = useRef<EventTarget | null>(null);
+    const scrollableChildRef = useRef<HTMLElement | null>(null);
     const startY = useRef(0);
     const isScrolling = useRef(false);
 
@@ -57,7 +57,7 @@ function SwipeableView({ onSwipeUp, onSwipeDown, style, children }: SwipeableVie
             if (!event.target || scrollableChildRef.current) {
                 return;
             }
-            scrollableChildRef.current = event.target;
+            scrollableChildRef.current = event.target as HTMLElement;
         };
 
         element.addEventListener('touchstart', handleTouchStart);
