@@ -19,8 +19,8 @@ type LastVisibleMessage = {
 };
 
 type SlicedResult = {
-  catted: ReportAction[];
-  expanded: ReportAction[];
+    catted: ReportAction[];
+    expanded: ReportAction[];
 };
 
 const allReports: OnyxCollection<Report> = {};
@@ -218,7 +218,7 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
  * param {String} id
  * returns {ReportAction}
  */
-function getRangeFromArrayByID(array: ReportAction[], id: string): ReportAction[] {
+function getRangeFromArrayByID(array: ReportAction[], id?: string): ReportAction[] {
     let index;
 
     if (id) {
@@ -543,10 +543,17 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  */
 function getSortedReportActionsForDisplay(reportActions: ReportActions | null): ReportAction[] {
     const filteredReportActions = Object.entries(reportActions ?? {})
-        .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
+        // .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
     return getSortedReportActions(baseURLAdjustedReportActions, true);
+}
+
+function getReportActionsWithoutRemoved(reportActions: ReportAction[] | null): ReportAction[] {
+    if (!reportActions) {
+        return [];
+    }
+    return reportActions.filter((item) => shouldReportActionBeVisible(item, item.reportActionID));
 }
 
 /**
@@ -734,6 +741,7 @@ export {
     getReportPreviewAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
+    getReportActionsWithoutRemoved,
     isConsecutiveActionMadeByPreviousActor,
     isCreatedAction,
     isCreatedTaskReportAction,

@@ -150,7 +150,8 @@ function ReportScreen({
     route,
     report,
     reportMetadata,
-    sortedReportActions,
+    // sortedReportActions,
+    allReportActions,
     accountManagerReportID,
     personalDetails,
     markReadyForHydration,
@@ -175,9 +176,12 @@ function ReportScreen({
     const [isLinkingToMessage, setLinkingToMessageTrigger] = useState(false);
 
     const reportActions = useMemo(() => {
-        const val = ReportActionsUtils.getRangeFromArrayByID(sortedReportActions, reportActionID);
-        return val;
-    }, [sortedReportActions, reportActionID]);
+        if (allReportActions?.length === 0) return [];
+        const sorterReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions);
+        const cattedRangeOfReportActions = ReportActionsUtils.getRangeFromArrayByID(sorterReportActions, reportActionID);
+        const reportActionsWithoutDeleted = ReportActionsUtils.getReportActionsWithoutRemoved(cattedRangeOfReportActions);
+        return reportActionsWithoutDeleted;
+    }, [reportActionID, allReportActions]);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
 
@@ -289,10 +293,10 @@ function ReportScreen({
                 flatListRef.current.scrollToOffset({animated: false, offset: 0});
             }, 10);
 
-          return () => clearTimeout(refID);
-      },
-      [route],
-  );
+            return () => clearTimeout(refID);
+        },
+        [route],
+    );
 
     useFocusEffect(
         useCallback(() => {
@@ -455,7 +459,6 @@ function ReportScreen({
                                 onLayout={onListLayout}
                             >
                                 {isReportReadyForDisplay && !isLoading && (
-
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
@@ -511,10 +514,9 @@ export default compose(
             isSidebarLoaded: {
                 key: ONYXKEYS.IS_SIDEBAR_LOADED,
             },
-            reportActions: {
+            allReportActions: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
                 canEvict: false,
-                selector: ReportActionsUtils.getSortedReportActionsForDisplay,
             },
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
@@ -550,12 +552,12 @@ export default compose(
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
                 initialValue: false,
             },
-            sortedReportActions: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-                canEvict: false,
-                selector: ReportActionsUtils.getSortedReportActionsForDisplay,
-                // selector: ReportActionsUtils.processReportActions,
-            },
+            // sortedReportActions: {
+            //     key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+            //     canEvict: false,
+            //     selector: ReportActionsUtils.getSortedReportActionsForDisplay,
+            //     // selector: ReportActionsUtils.processReportActions,
+            // },
         },
         true,
     ),
