@@ -1,17 +1,14 @@
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../styles/styles';
 import * as Modal from '../../libs/actions/Modal';
 import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
-import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './modalPropTypes';
 import getModalStyles from '../../styles/getModalStyles';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import variables from '../../styles/variables';
-import CONST from '../../CONST';
 import ComposerFocusManager from '../../libs/ComposerFocusManager';
 import useNativeDriver from '../../libs/useNativeDriver';
 import usePrevious from '../../hooks/usePrevious';
@@ -21,24 +18,24 @@ function BaseModal(
     {
         isVisible,
         onClose,
-        shouldSetModalVisibility,
-        onModalHide,
+        shouldSetModalVisibility = true,
+        onModalHide = () => {},
         type,
-        popoverAnchorPosition,
-        innerContainerStyle,
+        popoverAnchorPosition = {},
+        innerContainerStyle = {},
         outerStyle,
-        onModalShow,
+        onModalShow = () => {},
         propagateSwipe,
-        fullscreen,
+        fullscreen = true,
         animationIn,
         animationOut,
         useNativeDriver: useNativeDriverProp,
-        hideModalContentWhileAnimating,
+        hideModalContentWhileAnimating = false,
         animationInTiming,
         animationOutTiming,
-        statusBarTranslucent,
+        statusBarTranslucent = true,
         onLayout,
-        avoidKeyboard,
+        avoidKeyboard = false,
         children,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
@@ -101,13 +98,10 @@ function BaseModal(
         if (shouldSetModalVisibility) {
             Modal.setModalVisibility(true);
         }
-        onModalShow();
+        onModalShow?.();
     };
 
-    const handleBackdropPress = (e) => {
-        if (e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
-            return;
-        }
+    const handleBackdropPress = () => {
         onClose();
     };
 
@@ -186,8 +180,8 @@ function BaseModal(
             style={modalStyle}
             deviceHeight={windowHeight}
             deviceWidth={windowWidth}
-            animationIn={animationIn || modalStyleAnimationIn}
-            animationOut={animationOut || modalStyleAnimationOut}
+            animationIn={animationIn ?? modalStyleAnimationIn}
+            animationOut={animationOut ?? modalStyleAnimationOut}
             useNativeDriver={useNativeDriverProp && useNativeDriver}
             hideModalContentWhileAnimating={hideModalContentWhileAnimating}
             animationInTiming={animationInTiming}
