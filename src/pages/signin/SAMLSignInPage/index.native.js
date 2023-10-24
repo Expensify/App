@@ -19,15 +19,14 @@ const defaultProps = {
     credentials: {},
 };
 
-
 function SAMLSignInPage({credentials}) {
     const samlLoginURL = `${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`;
 
     /**
-    * Handles in-app navigation once we get a response back from Expensify
-    *
-    * @param {String} params.url
-    */
+     * Handles in-app navigation once we get a response back from Expensify
+     *
+     * @param {String} params.url
+     */
     const handleNavigationStateChange = useCallback(
         ({url}) => {
             const searchParams = new URLSearchParams(new URL(url).search);

@@ -22,9 +22,7 @@ function SAMLSignInPage({credentials}) {
         window.open(`${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`, '_self');
     }, [credentials.login]);
 
-    return (
-        <SAMLLoadingIndicator />
-    );
+    return <SAMLLoadingIndicator />;
 }
 
 SAMLSignInPage.propTypes = propTypes;
