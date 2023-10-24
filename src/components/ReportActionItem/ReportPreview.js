@@ -129,17 +129,23 @@ function ReportPreview(props) {
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(props.iouReportID);
-    const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
-    const previewSubtitle = hasOnlyOneReceiptRequest
-        ? TransactionUtils.getMerchant(transactionsWithReceipts[0])
-        : props.translate('iou.requestCount', {
-              count: numberOfRequests,
-              scanningReceipts: numberOfScanningReceipts,
-          });
+    let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
+    const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => lodashGet(transaction, 'pendingFields.waypoints', null));
+    if (hasPendingWaypoints){
+        formattedMerchant = formattedMerchant.replace(/.+?(?=\s)/, props.translate('common.tbd'))
+    }
+    const previewSubtitle = formattedMerchant ||
+        props.translate('iou.requestCount', {
+            count: numberOfRequests,
+            scanningReceipts: numberOfScanningReceipts,
+        });
 
     const shouldShowSubmitButton = isReportDraft && reimbursableSpend !== 0;
 
     const getDisplayAmount = () => {
+        if (hasPendingWaypoints){
+            return props.translate('common.tbd'); 
+        }
         if (totalDisplaySpend) {
             return CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.iouReport.currency);
         }
