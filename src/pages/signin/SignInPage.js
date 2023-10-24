@@ -19,7 +19,6 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
-import getPlatform from '../../libs/getPlatform';
 import CONST from '../../CONST';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
