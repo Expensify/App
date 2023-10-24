@@ -20,10 +20,8 @@ const defaultProps = {
     credentials: {},
 };
 
-const renderLoading = () => <FullScreenLoadingIndicator />;
 
 function SAMLSignInPage({credentials}) {
-    const webViewRef = useRef();
     const samlLoginURL = `${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`;
 
     /**
@@ -48,7 +46,7 @@ function SAMLSignInPage({credentials}) {
             source={{uri: samlLoginURL}}
             incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
             startInLoadingState
-            renderLoading={renderLoading}
+            renderLoading={() => <SAMLLoadingIndicator />}
             onNavigationStateChange={handleNavigationStateChange}
         />
     );
