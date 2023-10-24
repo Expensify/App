@@ -1149,14 +1149,17 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
-    // Update optimistic data for parent report action if the report is a child report
-    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
-        originalReportID,
-        optimisticReport.lastVisibleActionCreated,
-        CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
-    if (!_.isEmpty(optimisticParentReportData)) {
-        optimisticData.push(optimisticParentReportData);
+    // Update optimistic data for parent report action if the report is a child report and the reportAction has no visible child
+    const childVisibleActionCount = reportAction.childVisibleActionCount || 0;
+    if (childVisibleActionCount === 0) {
+        const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
+            originalReportID,
+            optimisticReport.lastVisibleActionCreated,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        if (!_.isEmpty(optimisticParentReportData)) {
+            optimisticData.push(optimisticParentReportData);
+        }
     }
 
     // Check to see if the report action we are deleting is the first comment on a thread report. In this case, we need to trigger
