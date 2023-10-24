@@ -302,6 +302,7 @@ describe('ReportUtils', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: 99,
+                hasOutstandingIOU: true,
                 hasOutstandingChildRequest: true,
                 isWaitingOnBankAccount: false,
             };
