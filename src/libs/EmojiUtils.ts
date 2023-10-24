@@ -451,17 +451,8 @@ const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: number): string 
 /**
  * Given an emoji object and a list of senders it will return an
  * array of emoji codes, that represents all used variations of the
-
  * emoji, sorted by the reaction timestamp.
- *
- * const getUniqueEmojiCodes = (emojiAsset: Emoji, users: UserEmojiPreference[]): string[] => {
- *     const uniqueEmojiCodes: string[] = [];
- *     users.forEach((userSkinTones) => {
- *         userSkinTones.skinTones.forEach(({skinTone}) => {
- *             const emojiCode = getPreferredEmojiCode(emojiAsset, skinTone);
- *             if (emojiCode && !uniqueEmojiCodes.includes(emojiCode)) {
- *                 uniqueEmojiCodes.push(emojiCode);
- * */
+ */
 const getUniqueEmojiCodes = (emojiAsset: Emoji, users: TimestampedUsersReactions): string[] => {
     const emojiCodes: Record<string, string> = Object.values(users ?? {}).reduce((result: Record<string, string>, userSkinTones) => {
         Object.keys(userSkinTones.skinTones).forEach((skinTone) => {
