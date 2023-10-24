@@ -2996,15 +2996,6 @@ function buildTransactionThread(reportAction, moneyRequestReportID) {
  * @param {Object} report
  * @returns {Boolean}
  */
-function isEmptyReport(report) {
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
-    return !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
-}
-
-/**
- * @param {Object} report
- * @returns {Boolean}
- */
 function isUnread(report) {
     if (!report) {
         return false;
@@ -3412,8 +3403,16 @@ function parseReportRouteParams(route) {
     }
 
     const pathSegments = parsingRoute.split('/');
+
+    const reportIDSegment = pathSegments[1];
+
+    // Check for "undefined" or any other unwanted string values
+    if (!reportIDSegment || reportIDSegment === 'undefined') {
+        return {reportID: '', isSubReportPageRoute: false};
+    }
+
     return {
-        reportID: pathSegments[1],
+        reportID: reportIDSegment,
         isSubReportPageRoute: pathSegments.length > 2,
     };
 }
@@ -3731,6 +3730,21 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
 }
 
 /**
+ * Check if the report can create the request with type is iouType
+ * @param {Object} report
+ * @param {Array} betas
+ * @param {String} iouType
+ * @returns {Boolean}
+ */
+function canCreateRequest(report, betas, iouType) {
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+    if (shouldDisableWriteActions(report)) {
+        return false;
+    }
+    return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
+}
+
+/**
  * @param {String} policyID
  * @param {Array} accountIDs
  * @returns {Array}
@@ -4009,7 +4023,6 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
-    isEmptyReport,
     isUnread,
     isUnreadWithMention,
     buildOptimisticWorkspaceChats,
@@ -4060,6 +4073,7 @@ export {
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
+    canCreateRequest,
     hasIOUWaitingOnCurrentUserBankAccount,
     canRequestMoney,
     getWhisperDisplayNames,
