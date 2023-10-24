@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import WebView from 'react-native-webview';
@@ -6,7 +6,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import CONFIG from '../../../CONFIG';
 import * as Session from '../../../libs/actions/Session';
 import SAMLLoadingIndicator from '../../../components/SAMLLoadingIndicator';
-import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /** The credentials of the logged in person */
@@ -35,7 +34,6 @@ function SAMLSignInPage({credentials}) {
             if (searchParams.has('shortLivedAuthToken')) {
                 const shortLivedAuthToken = searchParams.get('shortLivedAuthToken');
                 Session.signInWithShortLivedAuthToken(credentials.login, shortLivedAuthToken);
-                return;
             }
         },
         [credentials.login],

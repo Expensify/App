@@ -1,6 +1,5 @@
-import _ from 'underscore';
 import React from 'react';
-import {ActivityIndicator, View, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import Icon from './Icon';
