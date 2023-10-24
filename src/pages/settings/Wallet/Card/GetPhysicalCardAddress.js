@@ -13,7 +13,6 @@ const propTypes = {
     /** Draft values used by the get physical card form */
     draftValues: PropTypes.shape({
         // User home address
-        address: PropTypes.string,
         addressLine1: PropTypes.string,
         addressLine2: PropTypes.string,
         city: PropTypes.string,
@@ -34,7 +33,6 @@ const propTypes = {
 
 const defaultProps = {
     draftValues: {
-        address: '',
         addressLine1: '',
         addressLine2: '',
         city: '',

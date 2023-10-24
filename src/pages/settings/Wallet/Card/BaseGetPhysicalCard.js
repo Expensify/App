@@ -13,6 +13,7 @@ import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
 import * as FormActions from '../../../../libs/actions/FormActions';
 import * as CardUtils from '../../../../libs/CardUtils';
+import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import assignedCardPropTypes from '../assignedCardPropTypes';
 import FormUtils from '../../../../libs/FormUtils';
 
@@ -23,7 +24,8 @@ const propTypes = {
 
     /** Draft values used by the get physical card form */
     draftValues: PropTypes.shape({
-        address: PropTypes.string,
+        addressLine1: PropTypes.string,
+        addressLine2: PropTypes.string,
         city: PropTypes.string,
         country: PropTypes.string,
         phoneNumber: PropTypes.string,
@@ -88,7 +90,8 @@ const defaultProps = {
     children: null,
     domain: '',
     draftValues: {
-        address: '',
+        addressLine1: '',
+        addressLine2: '',
         city: '',
         country: '',
         phoneNumber: '',
@@ -119,7 +122,7 @@ function BaseGetPhysicalCard({
     cardList,
     children,
     domain,
-    draftValues: {address, city, country, legalFirstName, legalLastName, phoneNumber, state, zipPostCode},
+    draftValues: {addressLine1, addressLine2, city, country, legalFirstName, legalLastName, phoneNumber, state, zipPostCode},
     headline,
     isConfirmation,
     loginList,
@@ -134,7 +137,7 @@ function BaseGetPhysicalCard({
             legalFirstName,
             legalLastName,
             phoneNumber,
-            address: {street: address, city, country, state, zip: zipPostCode},
+            address: {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode},
         };
         // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {

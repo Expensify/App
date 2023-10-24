@@ -1,3 +1,4 @@
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -10,7 +11,6 @@ import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 import FormUtils from '../../../../libs/FormUtils';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 
 const propTypes = {
     /* Onyx Props */

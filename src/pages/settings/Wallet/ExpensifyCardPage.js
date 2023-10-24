@@ -140,7 +140,6 @@ function ExpensifyCardPage({
         FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, {
             legalFirstName,
             legalLastName,
-            address: street,
             addressLine1: street.split('\n')[0],
             addressLine2: street.split('\n')[1],
             city,

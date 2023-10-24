@@ -11,6 +11,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import FormUtils from '../../../../libs/FormUtils';
+import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 
 const goToGetPhysicalCardName = (domain) => {
     Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain));
@@ -28,7 +29,12 @@ const propTypes = {
     /* Onyx Props */
     /** Draft values used by the get physical card form */
     draftValues: PropTypes.shape({
-        address: PropTypes.string,
+        addressLine1: PropTypes.string,
+        addressLine2: PropTypes.string,
+        city: PropTypes.string,
+        state: PropTypes.string,
+        country: PropTypes.string,
+        zipPostCode: PropTypes.string,
         phoneNumber: PropTypes.string,
         legalFirstName: PropTypes.string,
         legalLastName: PropTypes.string,
@@ -46,7 +52,12 @@ const propTypes = {
 
 const defaultProps = {
     draftValues: {
-        address: '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        country: '',
+        zipPostCode: '',
         phoneNumber: '',
         legalFirstName: '',
         legalLastName: '',
@@ -54,7 +65,7 @@ const defaultProps = {
 };
 
 function GetPhysicalCardConfirm({
-    draftValues: {address, legalFirstName, legalLastName, phoneNumber},
+    draftValues: {addressLine1, addressLine2, city, state, country, zipPostCode, legalFirstName, legalLastName, phoneNumber},
     route: {
         params: {domain},
     },
@@ -89,7 +100,15 @@ function GetPhysicalCardConfirm({
                 iconRight={Expensicons.ArrowRight}
                 onPress={() => goToGetPhysicalCardAddress(domain)}
                 shouldShowRightIcon
-                title={address}
+                title={PersonalDetailsUtils.getFormattedAddress({
+                    address: {
+                        street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2),
+                        city,
+                        state,
+                        zip: zipPostCode,
+                        country,
+                    },
+                })}
             />
         </BaseGetPhysicalCard>
     );
