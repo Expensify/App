@@ -29,9 +29,9 @@ const parser = require('@babel/parser');
 const traverse = require('@babel/traverse');
 const generate = require('@babel/generator');
 
-function isFunctionComponent(ast) {
+function getFunctionComponentName(ast) {
     let hasReactImport = false;
-    let hasReactComponent = false;
+    let componentName = '';
     const functionNames = new Set();
     traverse.default(ast, {
         ImportDeclaration({node}) {
@@ -45,12 +45,12 @@ function isFunctionComponent(ast) {
         },
         ExpressionStatement({node}) {
             const expression = node.expression;
-            if (expression.type === 'AssignmentExpression' && functionNames.has(expression.left.object?.name) && expression.left.property?.name === 'displayName') {
-                hasReactComponent = true;
+            if (hasReactImport && expression.type === 'AssignmentExpression' && functionNames.has(expression.left.object?.name) && expression.left.property?.name === 'displayName') {
+                componentName = expression.left.object.name;
             }
         },
     });
-    return hasReactImport && hasReactComponent;
+    return componentName;
 }
 
 function isClassComponent(ast) {
@@ -290,19 +290,80 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
     writeASTToFile(filePath, fileContents, ast);
 }
 
-async function migrateStylesForFunctionComponent(filePath, fileContents, ast) {
+async function migrateStylesForFunctionComponent(filePath, fileContents, ast, componentName) {
     const relativePathToStylesDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/styles');
+    let styleIdentifier = '';
+    let themeColorsIdentifier = '';
     traverse.default(ast, {
         ImportDeclaration({node}) {
             const source = node.source.value;
             if (source === `${relativePathToStylesDir}/styles`) {
+                styleIdentifier = node.specifiers[0].local.name;
                 node.specifiers[0].local.name = 'useThemeStyles';
                 node.source.value = `${relativePathToStylesDir}/useThemeStyles`;
             }
             if (source === `${relativePathToStylesDir}/themes/default`) {
+                themeColorsIdentifier = node.specifiers[0].local.name;
                 node.specifiers[0].local.name = 'useTheme';
-                node.source.value = `${relativePathToStylesDir}/useTheme`;
+                node.source.value = `${relativePathToStylesDir}/themes/useTheme`;
             }
+        },
+        FunctionDeclaration({node}) {
+            if (node.id.name !== componentName) {
+                return;
+            }
+            if (styleIdentifier) {
+                node.body.body.unshift({
+                    type: 'VariableDeclaration',
+                    kind: 'const',
+                    declarations: [
+                        {
+                            type: 'VariableDeclarator',
+                            id: {
+                                type: 'Identifier',
+                                name: 'styles',
+                            },
+                            init: {
+                                type: 'CallExpression',
+                                callee: {
+                                    type: 'Identifier',
+                                    name: 'useThemeStyles',
+                                },
+                                arguments: [],
+                            },
+                        },
+                    ],
+                });
+            }
+            if (themeColorsIdentifier) {
+                node.body.body.unshift({
+                    type: 'VariableDeclaration',
+                    kind: 'const',
+                    declarations: [
+                        {
+                            type: 'VariableDeclarator',
+                            id: {
+                                type: 'Identifier',
+                                name: 'theme',
+                            },
+                            init: {
+                                type: 'CallExpression',
+                                callee: {
+                                    type: 'Identifier',
+                                    name: 'useTheme',
+                                },
+                                arguments: [],
+                            },
+                        },
+                    ],
+                });
+            }
+        },
+        MemberExpression({node}) {
+            if (!themeColorsIdentifier || node.object.name !== themeColorsIdentifier) {
+                return;
+            }
+            node.object.name = 'theme';
         },
     });
 
@@ -317,9 +378,10 @@ async function migrateStaticStylesForFile(filePath) {
     });
 
     console.log('Parsing file:', filePath);
-    if (isFunctionComponent(ast)) {
+    const functionComponentName = getFunctionComponentName(ast);
+    if (functionComponentName) {
         console.log('File contains function component', filePath);
-        migrateStylesForFunctionComponent(filePath, fileContents, ast);
+        migrateStylesForFunctionComponent(filePath, fileContents, ast, functionComponentName);
     } else if (isClassComponent(ast)) {
         console.log('File contains class component', filePath);
         migrateStylesForClassComponent(filePath, fileContents, ast);
