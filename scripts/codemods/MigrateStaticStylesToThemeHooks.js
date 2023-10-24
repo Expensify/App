@@ -347,7 +347,7 @@ async function run() {
         try {
             await migrateStaticStylesForDirectory(directoryPath);
             console.log('Running prettier...');
-            await exec('npm run prettier');
+            await exec("npx prettier --write $(git diff --name-only --diff-filter d | grep -E '\\.js|\\.tsx$' | xargs)");
             // await stripBlankLinesFromDiff();
         } catch (error) {
             console.error('Error:', error);
