@@ -890,7 +890,7 @@ export default {
             copyCardNumber: 'Copy card number',
             updateAddress: 'Update address',
         },
-        cardDetailsLoadingFailure: 'An error occurred loading card details, please try again.',
+        cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please try again.',
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
