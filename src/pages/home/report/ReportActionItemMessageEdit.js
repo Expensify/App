@@ -111,7 +111,7 @@ function ReportActionItemMessageEdit(props) {
         }
         return initialDraft;
     });
-    const [selection, setSelection] = useState(getInitialSelection());
+    const [selection, setSelection] = useState(getInitialSelection);
     const [isFocused, setIsFocused] = useState(false);
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
     const [modal, setModal] = useState(false);
