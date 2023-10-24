@@ -60,6 +60,12 @@ const propTypes = {
         success: PropTypes.string,
     }),
 
+    /** The credentials of the logged in person */
+    credentials: PropTypes.shape({
+        /** The email the user logged in with */
+        login: PropTypes.string,
+    }),
+
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
@@ -78,6 +84,9 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    credentials: {
+        login: '',
+    },
     closeAccount: {},
     blurOnSubmit: false,
     innerRef: () => {},
@@ -86,7 +95,7 @@ const defaultProps = {
 
 function LoginForm(props) {
     const input = useRef();
-    const [login, setLogin] = useState('');
+    const [login, setLogin] = useState(() => Str.removeSMSDomain(props.credentials.login));
     const [formError, setFormError] = useState(false);
     const prevIsVisible = usePrevious(props.isVisible);
 
@@ -285,22 +294,25 @@ LoginForm.propTypes = propTypes;
 LoginForm.defaultProps = defaultProps;
 LoginForm.displayName = 'LoginForm';
 
+const LoginFormWithRef = forwardRef((props, ref) => (
+    <LoginForm
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+LoginFormWithRef.displayName = 'LoginFormWithRef';
+
 export default compose(
     withNavigationFocus,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     }),
     withWindowDimensions,
     withLocalize,
     withToggleVisibilityView,
     withNetwork(),
-)(
-    forwardRef((props, ref) => (
-        <LoginForm
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+)(LoginFormWithRef);
