@@ -69,7 +69,6 @@ function setAdditionalDetailsErrorMessage(additionalErrorMessage: string) {
 }
 
 /**
-
  * Save the source that triggered the KYC wall and optionally the chat report ID associated with the IOU
  */
 function setKYCWallSource(source: string, chatReportID = '') {
@@ -95,15 +94,15 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
     if (!personalDetails) {
         return;
     }
-    const firstName = personalDetails.legalFirstName ?? '';
-    const lastName = personalDetails.legalLastName ?? '';
-    const dob = personalDetails.dob ?? '';
-    const addressStreet = personalDetails.addressStreet ?? '';
-    const addressCity = personalDetails.addressCity ?? '';
-    const addressState = personalDetails.addressState ?? '';
-    const addressZip = personalDetails.addressZip ?? '';
-    const ssn = personalDetails.ssn ?? '';
-    const phoneNumber = personalDetails.phoneNumber ?? '';
+    const firstName = personalDetails.legalFirstName || '';
+    const lastName = personalDetails.legalLastName || '';
+    const dob = personalDetails.dob || '';
+    const addressStreet = personalDetails.addressStreet || '';
+    const addressCity = personalDetails.addressCity || '';
+    const addressState = personalDetails.addressState || '';
+    const addressZip = personalDetails.addressZip || '';
+    const ssn = personalDetails.ssn || '';
+    const phoneNumber = personalDetails.phoneNumber || '';
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -239,9 +238,9 @@ function acceptWalletTerms(parameters: WalletTerms) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.USER_WALLET,
+            key: ONYXKEYS.WALLET_TERMS,
             value: {
-                shouldShowWalletActivationSuccess: true,
+                isLoading: true,
             },
         },
     ];
@@ -252,6 +251,7 @@ function acceptWalletTerms(parameters: WalletTerms) {
             key: ONYXKEYS.WALLET_TERMS,
             value: {
                 errors: null,
+                isLoading: false,
             },
         },
     ];
@@ -261,8 +261,15 @@ function acceptWalletTerms(parameters: WalletTerms) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
-                shouldShowWalletActivationSuccess: null,
+                isPendingOnfidoResult: null,
                 shouldShowFailedKYC: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.WALLET_TERMS,
+            value: {
+                isLoading: false,
             },
         },
     ];

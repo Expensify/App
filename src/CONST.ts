@@ -124,7 +124,16 @@ const CONST = {
             VIEW_HEIGHT: 275,
         },
         MONEY_REPORT: {
-            MIN_HEIGHT: 280,
+            SMALL_SCREEN: {
+                IMAGE_HEIGHT: 300,
+                CONTAINER_MINHEIGHT: 280,
+                VIEW_HEIGHT: 220,
+            },
+            WIDE_SCREEN: {
+                IMAGE_HEIGHT: 450,
+                CONTAINER_MINHEIGHT: 280,
+                VIEW_HEIGHT: 275,
+            },
         },
     },
 
@@ -1254,7 +1263,7 @@ const CONST = {
         BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
-            INDIVIDUAL: 'individal',
+            INDIVIDUAL: 'individual',
             NONE: 'none',
         },
         STATE: {

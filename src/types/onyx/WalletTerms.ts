@@ -8,6 +8,8 @@ type WalletTerms = {
     chatReportID?: string;
 
     source?: string;
+
+    isLoading?: boolean;
 };
 
 export default WalletTerms;
