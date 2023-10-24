@@ -132,7 +132,7 @@ TaskDescriptionPage.displayName = 'TaskDescriptionPage';
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
