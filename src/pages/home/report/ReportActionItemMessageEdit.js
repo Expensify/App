@@ -246,16 +246,16 @@ function ReportActionItemMessageEdit(props) {
                 }
             }
             emojisPresentBefore.current = emojis;
-            setDraft((prevDraft) => {
-                if (newDraftInput !== newDraft) {
-                    const remainder = ComposerUtils.getCommonSuffixLength(prevDraft, newDraft);
-                    setSelection({
-                        start: newDraft.length - remainder,
-                        end: newDraft.length - remainder,
-                    });
-                }
-                return newDraft;
-            });
+
+            setDraft(newDraft);
+
+            if (newDraftInput !== newDraft) {
+                const remainder = ComposerUtils.getCommonSuffixLength(newDraftInput, newDraft);
+                setSelection({
+                    start: newDraft.length - remainder,
+                    end: newDraft.length - remainder,
+                });
+            }
 
             // This component is rendered only when draft is set to a non-empty string. In order to prevent component
             // unmount when user deletes content of textarea, we set previous message instead of empty string.
@@ -461,6 +461,7 @@ function ReportActionItemMessageEdit(props) {
             </View>
             <ExceededCommentLength
                 comment={draft}
+                reportID={props.reportID}
                 onExceededMaxCommentLength={(hasExceeded) => setHasExceededMaxCommentLength(hasExceeded)}
             />
         </>

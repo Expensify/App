@@ -156,6 +156,14 @@ function isExpensifyGuideTeam(email) {
 const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
 
 /**
+ *
+ * @param {String} policyID
+ * @param {Object} policies
+ * @returns {Boolean}
+ */
+const isPolicyMember = (policyID, policies) => _.some(policies, (policy) => lodashGet(policy, 'id') === policyID);
+
+/**
  * @param {Object} policyMembers
  * @param {Object} personalDetails
  * @returns {Object}
@@ -174,7 +182,7 @@ function getMemberAccountIDsForWorkspace(policyMembers, personalDetails) {
         if (!personalDetail || !personalDetail.login) {
             return;
         }
-        memberEmailsToAccountIDs[personalDetail.login] = accountID;
+        memberEmailsToAccountIDs[personalDetail.login] = Number(accountID);
     });
     return memberEmailsToAccountIDs;
 }
@@ -276,6 +284,7 @@ export {
     isPolicyAdmin,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
+    isPolicyMember,
     getTag,
     getTagListName,
     getTagList,
