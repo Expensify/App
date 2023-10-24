@@ -2,10 +2,10 @@
 
 ## Running your new test in development mode
 
-Typically you'd run all the tests with `npm run test:e2e` on your machine,
-this will run the tests with some local settings, however that is not
-optimal when you add a new test for which you want to quickly test if it works, as it
-still runs the release version of the app.
+Typically you'd run all the tests with `npm run test:e2e` on your machine.
+This will run the tests with some local settings, however that is not
+optimal when you add a new test for which you want to quickly test if it works, as the prior command
+still runs the release version of the app, which is hard to debug.
 
 I recommend doing the following.
 
