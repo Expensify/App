@@ -65,7 +65,7 @@ function showCameraPermissionsAlert() {
             },
             {
                 text: Localize.translateLocal('common.settings'),
-                onPress: () => Linking.openSettings(),
+                onPress: () => { Linking.openSettings() }
             },
         ],
         {cancelable: false},
@@ -144,6 +144,7 @@ function appendTimeToFileName(fileName: string): string {
 /**
  * Reads a locally uploaded file
  * @param path - the blob url of the locally uploaded file
+ * @param fileName - name of the file to read
  */
 const readFileAsync: ReadFileAsync = (path, fileName) =>
     new Promise((resolve) => {
@@ -182,16 +183,16 @@ const readFileAsync: ReadFileAsync = (path, fileName) =>
  * Converts a base64 encoded image string to a File instance.
  * Adds a `uri` property to the File instance for accessing the blob as a URI.
  *
- * @param {string} base64 - The base64 encoded image string.
- * @param {string} filename - Desired filename for the File instance.
- * @returns {File} The File instance created from the base64 string with an additional `uri` property.
+ * @param base64 - The base64 encoded image string.
+ * @param filename - Desired filename for the File instance.
+ * @returns The File instance created from the base64 string with an additional `uri` property.
  *
  * @example
  * const base64Image = "data:image/png;base64,..."; // your base64 encoded image
  * const imageFile = base64ToFile(base64Image, "example.png");
  * console.log(imageFile.uri); // Blob URI
  */
-function base64ToFile(base64, filename) {
+function base64ToFile(base64: string, filename: string): File {
     // Decode the base64 string
     const byteString = atob(base64.split(',')[1]);
 
