@@ -870,6 +870,7 @@ export default {
         assignedCardsDescription: 'These are cards assigned by a Workspace admin to manage company spend.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information, please check back in a few minutes!",
+        walletActivationFailed: 'Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
