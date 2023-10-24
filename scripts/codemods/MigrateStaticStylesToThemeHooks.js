@@ -81,6 +81,27 @@ async function writeASTToFile(filePath, fileContents, ast) {
     await fs.writeFile(filePath, modifiedCode, {encoding: 'utf8'});
 }
 
+function addComposeImport(filePath, ast) {
+    const relativePathToLibsDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/libs');
+    const lastImportIndex = ast.program.body.findLastIndex((node) => node.type === 'ImportDeclaration');
+    ast.program.body.splice(lastImportIndex + 1, 0, {
+        type: 'ImportDeclaration',
+        specifiers: [
+            {
+                type: 'ImportDefaultSpecifier',
+                local: {
+                    type: 'Identifier',
+                    name: 'compose',
+                },
+            },
+        ],
+        source: {
+            type: 'StringLiteral',
+            value: `${relativePathToLibsDir}/compose`,
+        },
+    });
+}
+
 async function migrateStylesForClassComponent(filePath, fileContents, ast) {
     const relativePathToStylesDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/styles');
     const relativePathToComponentsDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/components');
@@ -209,7 +230,7 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
                         },
                         arguments: [prevDeclaration],
                     };
-                    // TODO: import compose
+                    addComposeImport(filePath, ast);
                 }
                 return;
             }
@@ -237,7 +258,7 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
                         ...newHOCs,
                     ],
                 };
-                // TODO: import compose
+                addComposeImport(filePath, ast);
             }
 
             // Export is another function, most probably React.forwardRef
@@ -261,7 +282,7 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
                     },
                     arguments: [prevDeclaration],
                 };
-                // TODO: import compose
+                addComposeImport(filePath, ast);
             }
         },
     });
