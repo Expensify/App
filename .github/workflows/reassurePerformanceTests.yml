@@ -16,7 +16,7 @@ jobs:
       - name: Exit early if the PR doesn't affect the main app
         id: shouldSkip
         run: |
-          if git diff --exit-code --name-only main -- ':!docs/' ':!.github/' ':!contributingGuides' ':!tests' ':!workflow_tests'; then
+          if git diff --exit-code --name-only main -- ':!docs/' ':!.github/' ':!contributingGuides' ':!tests' ':!workflow_tests' ':!*.md'; then
             echo "Only unrelated changed detecting, skipping reassure..."
             echo "SHOULD_SKIP=true" >> "$GITHUB_OUTPUT"
           else
