@@ -9,7 +9,7 @@ If you're a Domain Admin, you have the power to connect and manage your company 
 1. Go to **Settings > Domains > _Domain Name_ > Company Cards**
 2. Click **Import Card** 
 
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/ExpensifyHelp_DomainCards.png){:width="100%"}
+[Expensify domain cards](https://help.expensify.com/assets/images/ExpensifyHelp_DomainCards.png){:width="100%"}
 
 3. Select your card issuer and input the **master administrative login credentials**
 4. You will then be able to assign accounts to cardholders
@@ -19,14 +19,14 @@ After connecting your company cards with Expensify, you can assign each card to 
 To assign the company cards, go to **Settings > Domains > _Domain Name_ > Company Cards**.
 If you have more than one card feed, select the correct feed in the drop-down list in the Company Card section. 
 
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/ExpensifyHelp_DomainCardsList.png){:width="100%"}
+[Expensify domain card list](https://help.expensify.com/assets/images/ExpensifyHelp_DomainCardsList.png){:width="100%"}
 
 
 Once you’ve selected the appropriate feed, click the `Assign New Cards` button to populate the emails and the last four digits of the cardholder. 
 
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/ExpensifyHelp_AssignCardBtn.png){:width="100%"}
+[Expensify assign cards](https://help.expensify.com/assets/images/ExpensifyHelp_AssignCardBtn.png){:width="100%"}
 
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/ExpensifyHelp_AssignCardForm.png){:width="100%"}
+[Expensify domain assign card form](https://help.expensify.com/assets/images/ExpensifyHelp_AssignCardForm.png){:width="100%"}
 
  **Select the cardholder:** Search the populated list for all employee email addresses. The employee will need to have an email address under this Domain to assign a card.
  
@@ -39,7 +39,7 @@ Please note we can only import data for the time period the bank is releasing to
 
 **Click the Assign button:** Once assigned, you will see each cardholder associated with their card and the start date listed.
 
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/ExpensifyHelp_AssignedCard.png){:width="100%"}
+[Expensify domain assigned cards](https://help.expensify.com/assets/images/ExpensifyHelp_AssignedCard.png){:width="100%"}
 
 
 ## How to unassign company cards
@@ -47,7 +47,7 @@ _**Important** - Before you begin the unassigning process, please note that unas
 
 If you need to unassign a certain card, click the **Actions** button associated with the card in question and then click **Unassign**.
 
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/ExpensifyHelp_UnassignCard.png){:width="100%"}
+[Expensify domain unassign cards](https://help.expensify.com/assets/images/ExpensifyHelp_UnassignCard.png){:width="100%"}
 
 To completely remove the card connection, unassign every card from the list and then refresh the page.
 
@@ -61,7 +61,7 @@ If you're using a connected accounting system such as NetSuite, Xero, Sage Intac
 2. Click **Edit Exports** on the right-hand side of the card table and select the GL account you want to export expenses to 
 3. You're all done. After the account is set, exported expenses will be mapped to the specific account selected when exported by a Domain Admin.
 
-![Insert alt text for accessibility here](https://help.expensify.com/assets/images/ExpensifyHelp_UnassignCard-1.png){:width="100%"}
+[Expensify domain cards settings](https://help.expensify.com/assets/images/ExpensifyHelp_UnassignCard-1.png){:width="100%"}
 
 
 You can access the remaining company card settings by navigating to **Settings > Domains > _Domain Name_ > Company Cards > Settings.**  More information on card settings can be found by searching **“How to configure company card settings”**. 
