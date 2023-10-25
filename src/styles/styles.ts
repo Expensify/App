@@ -605,7 +605,6 @@ const styles = (theme: ThemeDefault) =>
         },
 
         buttonCTA: {
-            paddingVertical: 6,
             ...spacing.mh4,
         },
 
