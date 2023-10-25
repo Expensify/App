@@ -538,7 +538,7 @@ function MoneyRequestConfirmationList(props) {
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={translate(formError)}
+                        message={formError}
                     />
                 )}
                 {button}

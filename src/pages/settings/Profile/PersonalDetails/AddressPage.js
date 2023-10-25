@@ -75,7 +75,7 @@ function AddressPage({privatePersonalDetails, route}) {
     const countryFromUrl = lodashGet(route, 'params.country');
     const [currentCountry, setCurrentCountry] = useState(address.country);
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
-    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
+    const zipFormat = ['common.zipCodeExampleFormat', {zipSampleFormat}];
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');

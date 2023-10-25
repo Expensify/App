@@ -266,7 +266,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 <FormHelpMessage
                     style={[styles.ph5]}
                     isError
-                    message={translate(formError)}
+                    message={formError}
                 />
             )}
             <View

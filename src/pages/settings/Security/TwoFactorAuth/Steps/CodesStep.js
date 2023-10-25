@@ -112,7 +112,7 @@ function CodesStep({account = defaultAccount}) {
                     {!_.isEmpty(error) && (
                         <FormHelpMessage
                             isError
-                            message={translate(error)}
+                            message={error}
                             style={[styles.mb3]}
                         />
                     )}
