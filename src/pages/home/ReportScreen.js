@@ -1,6 +1,5 @@
 import React, {useRef, useState, useEffect, useMemo, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -17,7 +16,6 @@ import ReportActionsView from './report/ReportActionsView';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import compose from '../../libs/compose';
-import Visibility from '../../libs/Visibility';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
@@ -29,7 +27,6 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import withViewportOffsetTop from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
-import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import MoneyReportHeader from '../../components/MoneyReportHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
