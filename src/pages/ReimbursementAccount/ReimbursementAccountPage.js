@@ -269,7 +269,9 @@ function ReimbursementAccountPage({
         // Update refs with current values
         prevIsOfflineRef.current = isOffline;
         prevReimbursementAccountRef.current = reimbursementAccount;
-    }, [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton]);
+    }, 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton]);
 
     const continueFunction = () => {
         setShouldShowContinueSetupButton(false);
