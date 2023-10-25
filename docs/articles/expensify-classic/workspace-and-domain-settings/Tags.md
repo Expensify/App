@@ -55,6 +55,7 @@ If you need to make changes to your multi-level tags, follow these steps:
 2. Import the revised tags into Expensify.
 3. Remember to back up your tags! Uploading a CSV will replace your existing settings.
 4. Safest Option: Download the old CSV from the Tags page using 'Export to CSV,' make edits, then import it.
+
 ## Manage multi-level tags
 Once multi-level tagging has been set up, employees will be able to choose more than one tag per expense. Based on the choice made for the first tag, the second subset of tag options will appear. After the second tag is chosen, more tag lists can appear, customizable up to 5 tag levels.
 
