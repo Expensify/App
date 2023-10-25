@@ -140,64 +140,65 @@ import FlatList from '../FlatList/index.web';
 //     />
 // ));
 
-
-
 function ReportScreen() {
-  const [data, setData] = useState(generatePosts(15));
+    const [data, setData] = useState(generatePosts(15));
 
-  const loadNewerChats = () => {
-    const lastId = data[0].id - 1;
-    setData([...generatePosts(5, lastId - 4), ...data]);
-  };
+    const loadNewerChats = () => {
+        const lastId = data[0].id - 1;
+        setData([...generatePosts(5, lastId - 4), ...data]);
+    };
 
-  const renderItem = ({ item }) => <Item data={item} />;
-  const keyExtractor = (item) => item.id.toString();
+    const renderItem = ({item}) => <Item data={item} />;
+    const keyExtractor = (item) => item.id.toString();
 
-  return (
-    <>
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        inverted
-        maintainVisibleContentPosition={{
-          minIndexForVisible: 0
-        }}
-        windowSize={15}
-      />
-      <Button title="load newer" onPress={loadNewerChats} />
-    </>
-  );
+    return (
+        <>
+            <FlatList
+                data={data}
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
+                inverted
+                maintainVisibleContentPosition={{
+                    minIndexForVisible: 0,
+                }}
+                windowSize={15}
+            />
+            <Button
+                title="load newer"
+                onPress={loadNewerChats}
+            />
+        </>
+    );
 }
 
-function Item({ data }) {
-  return (
-    <View style={styles.item}>
-      <Text style={styles.title}>
-        {data.id} - {data.title}
-      </Text>
-    </View>
-  );
+function Item({data}) {
+    return (
+        <View style={styles.item}>
+            <Text style={styles.title}>
+                {data.id} - {data.title}
+            </Text>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  item: {
-    backgroundColor: "#f9c2ff",
-    padding: 20,
-    marginVertical: 8,
-    marginHorizontal: 16
-  },
-  title: {
-    fontSize: 24
-  }
+    item: {
+        backgroundColor: '#f9c2ff',
+        padding: 20,
+        marginVertical: 8,
+        marginHorizontal: 16,
+    },
+    title: {
+        fontSize: 24,
+    },
 });
 
 const generatePosts = (count, start = 0) => {
-  return Array.from({ length: count }, (_, i) => ({
-    title: `Title ${start + i + 1}`,
-    vote: 10,
-    id: start + i
-  }));
+    return Array.from({length: count}, (_, i) => ({
+        title: `Title ${start + i + 1}`,
+        vote: 10,
+        id: start + i,
+    }));
 };
 
 export default ReportScreen;

@@ -68,16 +68,17 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
 
         const scrollOffset = getScrollOffset();
 
-        for (let i = mvcpMinIndexForVisible; i < contentView.childNodes.length; i++) {
-            const subview = contentView.childNodes[i];
+        const contentViewLength = contentView.childNodes.length;
+        for (let i = mvcpMinIndexForVisible; i < contentViewLength; i++) {
+            const subview = contentView.childNodes[inverted ? contentViewLength - i - 1 : i];
             const subviewOffset = horizontal ? subview.offsetLeft : subview.offsetTop;
-            if (subviewOffset > scrollOffset || i === contentView.childNodes.length - 1) {
+            if (subviewOffset > scrollOffset || i === contentViewLength - 1) {
                 prevFirstVisibleOffsetRef.current = subviewOffset;
                 firstVisibleViewRef.current = subview;
                 break;
             }
         }
-    }, [getContentView, getScrollOffset, mvcpMinIndexForVisible, horizontal]);
+    }, [getContentView, getScrollOffset, mvcpMinIndexForVisible, horizontal, inverted]);
 
     const adjustForMaintainVisibleContentPosition = React.useCallback(() => {
         if (mvcpMinIndexForVisible == null) {
