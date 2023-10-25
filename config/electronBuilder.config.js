@@ -68,4 +68,8 @@ module.exports = {
         name: 'New Expensify',
         schemes: ['new-expensify'],
     },
+    target: {
+        target: 'default',
+        arch: ['x64', 'arm64'],
+    },
 };
