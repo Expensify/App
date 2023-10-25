@@ -64,5 +64,8 @@ module.exports = {
         [TEST_NAMES.OpenSearchPage]: {
             name: TEST_NAMES.OpenSearchPage,
         },
+        [TEST_NAMES.ReportTyping]: {
+            name: TEST_NAMES.ReportTyping,
+        },
     },
 };
