@@ -28,14 +28,14 @@ const propTypes = {
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
-        /** Currently logged in user accountID */
+        /** accountID of currently logged in user */
         accountID: PropTypes.number,
     }),
 
     route: PropTypes.shape({
         /** Params from the URL path */
         params: PropTypes.shape({
-            /** reportID and accountID passed via route: /r/:reportID/notes */
+            /** reportID and accountID passed via route: /r/:reportID/notes/:accountID */
             reportID: PropTypes.string,
             accountID: PropTypes.string,
         }),
@@ -63,8 +63,7 @@ export default function (WrappedComponent) {
             }
 
             Report.getReportPrivateNote(report.reportID);
-            // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add isLoadingPrivateNotes to dependencies
-        }, [report.reportID, network.isOffline]);
+        }, [report.reportID, report.isLoadingPrivateNotes, network.isOffline]);
 
         const isPrivateNotesEmpty = accountID ? _.isEmpty(lodashGet(report, ['privateNotes', accountID, 'note'], '')) : _.isEmpty(report.privateNotes);
         const shouldShowFullScreenLoadingIndicator = isLoadingPrivateNotes !== false && isPrivateNotesEmpty;
@@ -114,6 +113,8 @@ export default function (WrappedComponent) {
             forwardedRef={ref}
         />
     ));
+
+    withReportAndPrivateNotesOrNotFound.displayName = 'withReportAndPrivateNotesOrNotFoundWithRef';
 
     return compose(
         withReportOrNotFound,
