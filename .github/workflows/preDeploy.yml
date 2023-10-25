@@ -2,8 +2,8 @@ name: Process new code merged to main
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths-ignore: [docs, contributingGuides, jest, tests, workflow_tests]
 
 jobs:
   typecheck:
