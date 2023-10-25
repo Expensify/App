@@ -7,6 +7,7 @@ import stylePropTypes from '../styles/stylePropTypes';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import Icon from './Icon';
+import * as ErrorUtils from '../libs/ErrorUtils';
 import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -103,7 +104,7 @@ function OfflineWithFeedback(props) {
     const hasErrors = !_.isEmpty(props.errors);
 
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
-    const errorMessages = _.omit(props.errors, (e) => e === null);
+    const errorMessages = ErrorUtils.getErrorMessagesWithTranslationData(_.omit(props.errors, (e) => e === null));
     const hasErrorMessages = !_.isEmpty(errorMessages);
     const isOfflinePendingAction = isOffline && props.pendingAction;
     const isUpdateOrDeleteError = hasErrors && (props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);

@@ -365,7 +365,7 @@ class AvatarWithImagePicker extends React.Component {
                 {this.state.validationError && (
                     <DotIndicatorMessage
                         style={[styles.mt6]}
-                        messages={{0: this.props.translate(this.state.validationError, this.state.phraseParam)}}
+                        messages={{0: [this.state.validationError, this.state.phraseParam]}}
                         type="error"
                     />
                 )}

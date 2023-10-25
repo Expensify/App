@@ -239,11 +239,10 @@ function LoginForm(props) {
             </View>
             {!_.isEmpty(props.account.success) && <Text style={[styles.formSuccess]}>{props.account.success}</Text>}
             {!_.isEmpty(props.closeAccount.success || props.account.message) && (
-                // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
                 <DotIndicatorMessage
                     style={[styles.mv2]}
                     type="success"
-                    messages={{0: props.closeAccount.success || props.account.message}}
+                    messages={ErrorUtils.getErrorMessagesWithTranslationData(props.closeAccount.success || props.account.message)}
                 />
             )}
             {

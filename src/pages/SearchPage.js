@@ -202,7 +202,9 @@ class SearchPage extends Component {
                                 shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 textInputAlert={
-                                    this.props.network.isOffline ? `${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('search.resultsAreLimited')}` : ''
+                                    this.props.network.isOffline
+                                        ? [`${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('search.resultsAreLimited')}`, {isTranslated: true}]
+                                        : ''
                                 }
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}

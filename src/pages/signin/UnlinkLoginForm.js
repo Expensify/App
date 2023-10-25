@@ -7,6 +7,7 @@ import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -63,18 +64,17 @@ function UnlinkLoginForm(props) {
                 <Text>{props.translate('unlinkLoginForm.noLongerHaveAccess', {primaryLogin})}</Text>
             </View>
             {!_.isEmpty(props.account.message) && (
-                // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
                 <DotIndicatorMessage
                     style={[styles.mb5, styles.flex0]}
                     type="success"
-                    messages={{0: props.translate(props.account.message)}}
+                    messages={ErrorUtils.getErrorMessagesWithTranslationData(props.account.message)}
                 />
             )}
             {!_.isEmpty(props.account.errors) && (
                 <DotIndicatorMessage
                     style={[styles.mb5]}
                     type="error"
-                    messages={props.account.errors}
+                    messages={ErrorUtils.getErrorMessagesWithTranslationData(props.account.errors)}
                 />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
