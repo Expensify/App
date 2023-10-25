@@ -207,7 +207,7 @@ function Button({
     forwardedRef,
 }) {
     useEffect(() => {
-        if (pressOnEnter) {
+        if (!pressOnEnter) {
             return () => {};
         }
 
@@ -217,6 +217,7 @@ function Button({
         return KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             (e) => {
+                console.log('OPA')
                 if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, e)) {
                     return;
                 }
