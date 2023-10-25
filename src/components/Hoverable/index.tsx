@@ -1,7 +1,7 @@
 import _ from 'underscore';
-import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
+import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle, ReactNode} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import {propTypes, defaultProps} from './hoverablePropTypes';
+import { HoverableProps } from './types';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import CONST from '../../CONST';
 
@@ -9,11 +9,11 @@ import CONST from '../../CONST';
  * Maps the children of a Hoverable component to
  * - a function that is called with the parameter
  * - the child itself if it is the only child
- * @param {Array|Function|ReactNode} children - The children to map.
- * @param {Object} callbackParam - The parameter to pass to the children function.
- * @returns {ReactNode} The mapped children.
+ * @param children The children to map.
+ * @param callbackParam The parameter to pass to the children function.
+ * @returns The mapped children.
  */
-function mapChildren(children, callbackParam) {
+ function mapChildren(children: ((isHovered: boolean) => ReactNode) | ReactNode, callbackParam: boolean) {
     if (_.isArray(children) && children.length === 1) {
         return children[0];
     }
@@ -27,21 +27,20 @@ function mapChildren(children, callbackParam) {
 
 /**
  * Assigns a ref to an element, either by setting the current property of the ref object or by calling the ref function
- * @param {Object|Function} ref - The ref object or function.
- * @param {HTMLElement} el - The element to assign the ref to.
+ * @param ref The ref object or function.
+ * @param element The element to assign the ref to.
  */
-function assignRef(ref, el) {
+function assignRef(ref: React.MutableRefObject<HTMLElement | null>, element: HTMLElement) {
     if (!ref) {
         return;
     }
 
     if (_.has(ref, 'current')) {
-        // eslint-disable-next-line no-param-reassign
-        ref.current = el;
+        ref.current = element;
     }
 
     if (_.isFunction(ref)) {
-        ref(el);
+        ref(element);
     }
 }
 
@@ -50,16 +49,15 @@ function assignRef(ref, el) {
  * because nesting Pressables causes issues where the hovered state of the child cannot be easily propagated to the
  * parent. https://github.com/necolas/react-native-web/issues/1875
  */
-
-const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, onMouseEnter, onMouseLeave, children, shouldHandleScroll}, outerRef) => {
+ const Hoverable = React.forwardRef<HTMLElement, HoverableProps>(({disabled = false, onHoverIn = () => {}, onHoverOut = () => {}, onMouseEnter = () => {}, onMouseLeave = () => {}, children, shouldHandleScroll = false}, outerRef) => {
     const [isHovered, setIsHovered] = useState(false);
 
     const isScrolling = useRef(false);
     const isHoveredRef = useRef(false);
-    const ref = useRef(null);
+    const ref = useRef<HTMLElement | null>(null);
 
     const updateIsHoveredOnScrolling = useCallback(
-        (hovered) => {
+        (hovered: boolean) => {
             if (disabled) {
                 return;
             }
@@ -106,14 +104,14 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, onMouseEnt
          * Checks the hover state of a component and updates it based on the event target.
          * This is necessary to handle cases where the hover state might get stuck due to an unreliable mouseleave trigger,
          * such as when an element is removed before the mouseleave event is triggered.
-         * @param {Event} e - The hover event object.
+         * @param event The hover event object.
          */
-        const unsetHoveredIfOutside = (e) => {
+        const unsetHoveredIfOutside = (event: MouseEvent) => {
             if (!ref.current || !isHovered) {
                 return;
             }
 
-            if (ref.current.contains(e.target)) {
+            if (ref.current.contains(event.target as Node)) {
                 return;
             }
 
@@ -150,45 +148,45 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, onMouseEnt
     const child = useMemo(() => React.Children.only(mapChildren(children, isHovered)), [children, isHovered]);
 
     const enableHoveredOnMouseEnter = useCallback(
-        (el) => {
+        (event: MouseEvent) => {
             updateIsHoveredOnScrolling(true);
 
             if (_.isFunction(onMouseEnter)) {
-                onMouseEnter(el);
+                onMouseEnter(event);
             }
 
             if (_.isFunction(child.props.onMouseEnter)) {
-                child.props.onMouseEnter(el);
+                child.props.onMouseEnter(event);
             }
         },
         [child.props, onMouseEnter, updateIsHoveredOnScrolling],
     );
 
     const disableHoveredOnMouseLeave = useCallback(
-        (el) => {
+        (event: MouseEvent) => {
             updateIsHoveredOnScrolling(false);
 
             if (_.isFunction(onMouseLeave)) {
-                onMouseLeave(el);
+                onMouseLeave(event);
             }
 
             if (_.isFunction(child.props.onMouseLeave)) {
-                child.props.onMouseLeave(el);
+                child.props.onMouseLeave(event);
             }
         },
         [child.props, onMouseLeave, updateIsHoveredOnScrolling],
     );
 
     const disableHoveredOnBlur = useCallback(
-        (el) => {
+        (event: MouseEvent) => {
             // Check if the blur event occurred due to clicking outside the element
             // and the wrapperView contains the element that caused the blur and reset isHovered
-            if (!ref.current.contains(el.target) && !ref.current.contains(el.relatedTarget)) {
+            if (!ref.current?.contains(event.target as Node) && !ref.current?.contains(event.relatedTarget as Node)) {
                 setIsHovered(false);
             }
 
             if (_.isFunction(child.props.onBlur)) {
-                child.props.onBlur(el);
+                child.props.onBlur(event);
             }
         },
         [child.props],
@@ -199,9 +197,9 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, onMouseEnt
     }
 
     return React.cloneElement(child, {
-        ref: (el) => {
-            ref.current = el;
-            assignRef(child.ref, el);
+        ref: (element: HTMLElement) => {
+            ref.current = element;
+            assignRef(child.ref, element);
         },
         onMouseEnter: enableHoveredOnMouseEnter,
         onMouseLeave: disableHoveredOnMouseLeave,
@@ -209,8 +207,6 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, onMouseEnt
     });
 });
 
-Hoverable.propTypes = propTypes;
-Hoverable.defaultProps = defaultProps;
 Hoverable.displayName = 'Hoverable';
 
 export default Hoverable;
