@@ -1,0 +1,9 @@
+.mapboxgl-ctrl-bottom-left {
+  -webkit-transform: translate3d(0, 0, 1px);
+  transform: translate3d(0, 0, 1px);
+}
+
+.mapboxgl-ctrl-bottom-right {
+  -webkit-transform: translate3d(0, 0, 1px);
+  transform: translate3d(0, 0, 1px);
+}

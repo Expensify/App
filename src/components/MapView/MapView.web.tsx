@@ -18,6 +18,7 @@ import Direction from './Direction';
 import {MapViewHandle, MapViewProps} from './MapViewTypes';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
+import './css-fix.css';
 
 const MapView = forwardRef<MapViewHandle, MapViewProps>(
     ({style, styleURL, waypoints, mapPadding, accessToken, directionCoordinates, initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM}}, ref) => {
