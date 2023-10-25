@@ -8,6 +8,8 @@ import Login from '../types/onyx/Login';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
+type AvatarSource = React.FC<SvgProps> | string;
+
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '';
 
 /**
@@ -104,7 +106,7 @@ function getDefaultAvatarURL(accountID: string | number = '', isNewDot = false):
  * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
  * @param [avatarSource] - the avatar source from user's personalDetails
  */
-function isDefaultAvatar(avatarSource?: React.FC<SvgProps> | string): boolean {
+function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
     if (typeof avatarSource === 'string') {
         if (avatarSource.includes('images/avatars/avatar_') || avatarSource.includes('images/avatars/default-avatar_') || avatarSource.includes('images/avatars/user/default')) {
             return true;
@@ -131,7 +133,7 @@ function isDefaultAvatar(avatarSource?: React.FC<SvgProps> | string): boolean {
  * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatar(avatarSource: React.FC<SvgProps> | string, accountID?: number): React.FC<SvgProps> | string {
+function getAvatar(avatarSource: AvatarSource, accountID?: number): AvatarSource {
     return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID) : avatarSource;
 }
 
@@ -150,7 +152,7 @@ function getAvatarUrl(avatarURL: string, accountID: number): string {
  * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
  * This removes that part of the URL so the full version of the image can load.
  */
-function getFullSizeAvatar(avatarSource: React.FC<SvgProps> | string, accountID: number): React.FC<SvgProps> | string {
+function getFullSizeAvatar(avatarSource: AvatarSource, accountID: number): AvatarSource {
     const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;
@@ -162,7 +164,7 @@ function getFullSizeAvatar(avatarSource: React.FC<SvgProps> | string, accountID:
  * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
  * source URL (before the file type) if it doesn't exist there already.
  */
-function getSmallSizeAvatar(avatarSource: React.FC<SvgProps> | string, accountID?: number): React.FC<SvgProps> | string {
+function getSmallSizeAvatar(avatarSource: AvatarSource, accountID?: number): AvatarSource {
     const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;
@@ -202,3 +204,4 @@ export {
     getFullSizeAvatar,
     generateAccountID,
 };
+export type {AvatarSource};
