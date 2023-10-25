@@ -14,10 +14,10 @@ import stylePropTypes from '../styles/stylePropTypes';
 import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
-    // The error messages to display
+    /* The messages to display */
     messages: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))])),
 
-    // The type of message, 'error' shows a red dot, 'success' shows a green dot
+    /* The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: PropTypes.oneOf(['error', 'success']).isRequired,
 
     /** A function to run when the X button next to the message is clicked */
@@ -26,18 +26,18 @@ const propTypes = {
     /** Additional style object for the container */
     containerStyles: stylePropTypes,
 
-    /** Whether we can dismiss the error message */
-    canDismissError: PropTypes.bool,
+    /** Whether we can dismiss the messages */
+    canDismiss: PropTypes.bool,
 };
 
 const defaultProps = {
     messages: {},
     onClose: () => {},
     containerStyles: [],
-    canDismissError: true,
+    canDismiss: true,
 };
 
-function MessagesRow({messages, type, onClose, containerStyles, canDismissError}) {
+function MessagesRow({messages, type, onClose, containerStyles, canDismiss}) {
     const {translate} = useLocalize();
     if (_.isEmpty(messages)) {
         return null;
@@ -50,7 +50,7 @@ function MessagesRow({messages, type, onClose, containerStyles, canDismissError}
                 messages={messages}
                 type={type}
             />
-            {canDismissError && (
+            {canDismiss && (
                 <Tooltip text={translate('common.close')}>
                     <PressableWithoutFeedback
                         onPress={onClose}

@@ -127,7 +127,7 @@ function OfflineWithFeedback(props) {
                     type="error"
                     onClose={props.onClose}
                     containerStyles={props.errorRowStyles}
-                    canDismissError={props.canDismissError}
+                    canDismiss={props.canDismissError}
                 />
             )}
         </View>
