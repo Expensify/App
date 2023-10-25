@@ -327,7 +327,7 @@ function MockedReportActionItemSingle({shouldShowSubscriptAvatar, report, report
             displayName: 'Email One',
             avatar: 'https://example.com/avatar.png',
             firstName: 'One',
-        }
+        },
     };
 
     return (
