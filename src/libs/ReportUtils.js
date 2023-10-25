@@ -1314,7 +1314,10 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
 }
 
 /**
- * Determines if a report child has an outstanding request that is waiting for an action from the current user (either Pay or Add a credit bank account)
+ * Determines if a report should show a GBR (green dot) in the LHN. This can happen when the report: 
+    - is unread and the user was mentioned in one of the unread comments
+    - is for an outstanding task waiting on the user
+    - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
  *
  * @param {Object} report (chatReport or iouReport)
  * @returns {boolean}
