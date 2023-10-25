@@ -1,5 +1,6 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
+import {init} from 'react-native-encryptify';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import platformSetup from './platformSetup';
@@ -8,7 +9,7 @@ import * as Device from '../libs/actions/Device';
 import intlPolyfill from '../libs/IntlPolyfill';
 import exposeGlobalMemoryOnlyKeysMethods from '../libs/actions/MemoryOnlyKeys/exposeGlobalMemoryOnlyKeysMethods';
 
-export default function () {
+const nonBlocking = function () {
     /*
      * Initialize the Onyx store when the app loads for the first time.
      *
@@ -56,4 +57,10 @@ export default function () {
 
     // Perform any other platform-specific setup
     platformSetup();
-}
+};
+
+const blocking = function () {
+    return init();
+};
+
+export {nonBlocking, blocking};

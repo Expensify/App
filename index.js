@@ -6,8 +6,8 @@ import {enableLegacyWebImplementation} from 'react-native-gesture-handler';
 import {AppRegistry} from 'react-native';
 import App from './src/App';
 import Config from './src/CONFIG';
-import additionalAppSetup from './src/setup';
+import * as Setup from './src/setup';
 
 enableLegacyWebImplementation(true);
-AppRegistry.registerComponent(Config.APP_NAME, () => App);
-additionalAppSetup();
+Setup.blocking().then(() => AppRegistry.registerComponent(Config.APP_NAME, () => App));
+Setup.nonBlockingSetup();
