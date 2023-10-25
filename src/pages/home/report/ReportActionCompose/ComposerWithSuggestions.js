@@ -40,6 +40,7 @@ import SendButton from './SendButton';
 import updatePropsPaperWorklet from '../../../../libs/updatePropsPaperWorklet';
 import EmojiPickerButton from '../../../../components/EmojiPicker/EmojiPickerButton';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
+import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -540,6 +541,26 @@ function ComposerWithSuggestions({
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
 
+    const onLayout = useCallback(
+        (e) => {
+            const composerLayoutHeight = e.nativeEvent.layout.height;
+            if (composerHeight === composerLayoutHeight) {
+                return;
+            }
+            setComposerHeight(composerLayoutHeight);
+        },
+        [composerHeight],
+    );
+
+    const onClear = useCallback(() => {
+        setTextInputShouldClear(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const onChangeText = useCallback((text) => {
+        updateComment(text, true);
+    }, []);
+
     return (
         <>
             <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
@@ -551,7 +572,7 @@ function ComposerWithSuggestions({
                     textAlignVertical="top"
                     placeholder={inputPlaceholder}
                     placeholderTextColor={themeColors.placeholderText}
-                    onChangeText={(commentValue) => updateComment(commentValue, true)}
+                    onChangeText={onChangeText}
                     onKeyPress={triggerHotkeyActions}
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                     maxLines={maxComposerLines}
@@ -560,7 +581,7 @@ function ComposerWithSuggestions({
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
-                    onClear={() => setTextInputShouldClear(false)}
+                    onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}
                     isReportActionCompose
                     selection={selection}
@@ -572,13 +593,7 @@ function ComposerWithSuggestions({
                     numberOfLines={numberOfLines}
                     onNumberOfLinesChange={updateNumberOfLines}
                     shouldCalculateCaretPosition
-                    onLayout={(e) => {
-                        const composerLayoutHeight = e.nativeEvent.layout.height;
-                        if (composerHeight === composerLayoutHeight) {
-                            return;
-                        }
-                        setComposerHeight(composerLayoutHeight);
-                    }}
+                    onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
                 />
 

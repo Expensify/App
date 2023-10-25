@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import reportActionPropTypes from '../reportActionPropTypes';
 import CONST from '../../../../CONST';
 
 const propTypes = {
@@ -18,19 +17,8 @@ const propTypes = {
     /** Whether the keyboard is open or not */
     isKeyboardShown: PropTypes.bool.isRequired,
 
-    /** The actions from the parent report */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
-
     /** The ID of the report */
     reportID: PropTypes.string.isRequired,
-
-    /** The report currently being looked at */
-    report: PropTypes.shape({
-        parentReportID: PropTypes.string,
-    }).isRequired,
 
     /** Callback when the input is focused */
     onFocus: PropTypes.func.isRequired,
@@ -68,9 +56,6 @@ const propTypes = {
     /** Function to set whether the full composer is available or not */
     setIsFullComposerAvailable: PropTypes.func.isRequired,
 
-    /** Function to set whether the comment is empty or not */
-    setIsCommentEmpty: PropTypes.func.isRequired,
-
     /** A method to call when the form is submitted */
     handleSendMessage: PropTypes.func.isRequired,
 
@@ -96,9 +81,6 @@ const propTypes = {
             onSelectionChange: PropTypes.func.isRequired,
         }),
     }).isRequired,
-
-    /** Ref for the animated view (text input) */
-    animatedRef: PropTypes.func.isRequired,
 
     /** Ref for the composer */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
