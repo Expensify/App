@@ -20,7 +20,7 @@ phases:
     commands:
       - cd zip
       - npm install underscore
-      - node e2e/testRunner.js -- --skipInstallDeps --buildMode "skip" --skipCheckout
+      - node e2e/testRunner.js -- --skipInstallDeps --buildMode "skip" --skipCheckout --label delta --appPath app-e2eRelease-delta.apk
 
 artifacts:
 - $WORKING_DIRECTORY

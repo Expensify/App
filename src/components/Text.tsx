@@ -1,54 +1,46 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
+import React, {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Text as RNText} from 'react-native';
+import type {TextStyle} from 'react-native';
 import fontFamily from '../styles/fontFamily';
 import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
 
-const propTypes = {
+type TextProps = {
     /** The color of the text */
-    color: PropTypes.string,
+    color?: string;
 
     /** The size of the text */
-    fontSize: PropTypes.number,
+    fontSize?: number;
 
     /** The alignment of the text */
-    textAlign: PropTypes.string,
+    textAlign?: 'left' | 'right' | 'auto' | 'center' | 'justify';
 
     /** Any children to display */
-    children: PropTypes.node,
+    children: React.ReactNode;
 
     /** The family of the font to use */
-    family: PropTypes.string,
+    family?: keyof typeof fontFamily;
 
     /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
-};
-const defaultProps = {
-    color: themeColors.text,
-    fontSize: variables.fontSizeNormal,
-    family: 'EXP_NEUE',
-    textAlign: 'left',
-    children: null,
-    style: {},
+    style?: TextStyle | TextStyle[];
 };
 
-const Text = React.forwardRef(({color, fontSize, textAlign, children, family, style, ...props}, ref) => {
+function Text(
+    {color = themeColors.text, fontSize = variables.fontSizeNormal, textAlign = 'left', children = null, family = 'EXP_NEUE', style = {}, ...props}: TextProps,
+    ref: ForwardedRef<RNText>,
+) {
     // If the style prop is an array of styles, we need to mix them all together
-    const mergedStyles = !_.isArray(style)
+    const mergedStyles = !Array.isArray(style)
         ? style
-        : _.reduce(
-              style,
+        : style.reduce(
               (finalStyles, s) => ({
                   ...finalStyles,
                   ...s,
               }),
               {},
           );
-    const componentStyle = {
+    const componentStyle: TextStyle = {
         color,
         fontSize,
         textAlign,
@@ -71,10 +63,8 @@ const Text = React.forwardRef(({color, fontSize, textAlign, children, family, st
             {children}
         </RNText>
     );
-});
+}
 
-Text.propTypes = propTypes;
-Text.defaultProps = defaultProps;
 Text.displayName = 'Text';
 
-export default Text;
+export default React.forwardRef(Text);

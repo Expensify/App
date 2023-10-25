@@ -477,6 +477,7 @@ function ReimbursementAccountPage({
             <EnableStep
                 reimbursementAccount={reimbursementAccount}
                 policyName={policyName}
+                onBackButtonPress={goBack}
             />
         );
     }
