@@ -194,6 +194,7 @@ function DebitCardPage(props) {
                         </Text>
                     )}
                     style={[styles.mt4]}
+                    defaultValue={false}
                 />
             </Form>
         </ScreenWrapper>
