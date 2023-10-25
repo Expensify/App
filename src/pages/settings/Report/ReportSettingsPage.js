@@ -209,7 +209,7 @@ ReportSettingsPage.propTypes = propTypes;
 ReportSettingsPage.defaultProps = defaultProps;
 ReportSettingsPage.displayName = 'ReportSettingsPage';
 export default compose(
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

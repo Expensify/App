@@ -1,4 +1,3 @@
-import {isEqual, max} from 'date-fns';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -90,6 +89,14 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
 
 function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
+}
+
+function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
+}
+
+function shouldExcludeModifiedAction(parentReportAction: OnyxEntry<ReportAction> | Record<string, never>, reportAction: OnyxEntry<ReportAction>): boolean {
+    return isDeletedAction(parentReportAction) && isModifiedExpenseAction(reportAction);
 }
 
 /**
@@ -369,31 +376,28 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
 
 /**
  */
-function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
-    const updatedActionsToMerge: ReportActions = {};
+function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}, shouldExclude = (action: ReportAction) => !action): OnyxEntry<ReportAction> {
+    let reportActions: ReportActions;
     if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
-        Object.keys(actionsToMerge).forEach(
-            (actionToMergeID) => (updatedActionsToMerge[actionToMergeID] = {...allReportActions?.[reportID]?.[actionToMergeID], ...actionsToMerge[actionToMergeID]}),
-        );
+        reportActions = {...allReportActions?.[reportID]};
+        Object.keys(actionsToMerge).forEach((actionToMergeID) => (reportActions[actionToMergeID] = {...allReportActions?.[reportID]?.[actionToMergeID], ...actionsToMerge[actionToMergeID]}));
+    } else {
+        reportActions = allReportActions?.[reportID] ?? {};
     }
-    const actions = Object.values({
-        ...allReportActions?.[reportID],
-        ...updatedActionsToMerge,
-    });
 
     const parentReportAction = getParentReportAction(allReports?.[reportID] ?? null);
-    const visibleActions = actions.filter((action) => shouldReportActionBeVisibleAsLastAction(action) && (!isDeletedAction(parentReportAction) || !isModifiedExpenseAction(action)));
-
-    if (visibleActions.length === 0) {
+    const visibleReportActions = Object.values(reportActions ?? {}).filter(
+        (action) => shouldReportActionBeVisibleAsLastAction(action) && !shouldExcludeModifiedAction(parentReportAction, action) && !shouldExclude(action),
+    );
+    const sortedReportActions = getSortedReportActions(visibleReportActions, true);
+    if (sortedReportActions.length === 0) {
         return null;
     }
-    const maxDate = max(visibleActions.map((action) => new Date(action.created)));
-    const maxAction = visibleActions.find((action) => isEqual(new Date(action.created), maxDate));
-    return maxAction ?? null;
+    return sortedReportActions[0];
 }
 
-function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions = {}): LastVisibleMessage {
-    const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
+function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions = {}, shouldExclude = (action: ReportAction) => !action): LastVisibleMessage {
+    const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge, shouldExclude);
     const message = lastVisibleAction?.message?.[0];
 
     if (message && isReportMessageAttachment(message)) {
@@ -454,6 +458,19 @@ function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEnt
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions);
     return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) ?? null;
+}
+
+/**
+ * The first visible action is the second last action in sortedReportActions which satisfy following conditions:
+ * 1. That is not pending deletion as pending deletion actions are kept in sortedReportActions in memory.
+ * 2. That has at least one visible child action.
+ * 3. While offline all actions in `sortedReportActions` are visible.
+ * 4. We will get the second last action from filtered actions because the last
+ *    action is always the created action
+ */
+function getFirstVisibleReportActionID(sortedReportActions: ReportAction[], isOffline: boolean): string {
+    const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
+    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions[sortedFilterReportActions.length - 2].reportActionID : '';
 }
 
 /**
@@ -644,6 +661,9 @@ export {
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
+    isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
+    getFirstVisibleReportActionID,
+    shouldExcludeModifiedAction,
 };
