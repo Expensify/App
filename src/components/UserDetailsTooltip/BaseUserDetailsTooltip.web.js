@@ -16,8 +16,7 @@ import {defaultProps, propTypes} from './userDetailsTooltipPropTypes';
 
 function BaseUserDetailsTooltip(props) {
     const {translate} = useLocalize();
-
-    const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
+    const userDetails = props.personalDetails ?? props.fallbackUserDetails;
     let userDisplayName = userDetails.displayName ? userDetails.displayName.trim() : '';
     let userLogin = (userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
     let userAvatar = userDetails.avatar;
@@ -26,11 +25,8 @@ function BaseUserDetailsTooltip(props) {
     // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
     // the Copilot feature is implemented.
     if (props.delegateAccountID) {
-        const delegateUserDetails = lodashGet(props.personalDetailsList, props.delegateAccountID, {});
-        const delegateUserDisplayName = delegateUserDetails.displayName ? delegateUserDetails.displayName.trim() : '';
-        userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
-        userLogin = delegateUserDetails.login;
-        userAvatar = delegateUserDetails.avatar;
+        userDisplayName = `${userDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
+        userLogin = userDetails.login;
         userAccountID = props.delegateAccountID;
     }
 
@@ -79,7 +75,10 @@ BaseUserDetailsTooltip.defaultProps = defaultProps;
 BaseUserDetailsTooltip.displayName = 'BaseUserDetailsTooltip';
 
 export default withOnyx({
-    personalDetailsList: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    personalDetails: {
+        key: ({delegateAccountID, accountID}) => {
+            const id = delegateAccountID ?? accountID;
+            return `${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${id}`;
+        },
     },
 })(BaseUserDetailsTooltip);
