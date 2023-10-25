@@ -37,10 +37,11 @@ export default function () {
 
                     const reportActionID = onyxKey.split('_').pop();
                     const newOnyxKey = onyxKey.replace(`_${reportActionID}`, '');
+
+                    // If newReportActionsDrafts[newOnyxKey] isn't set, fall back on the migrated draft if there is one
+                    const currentActionsDrafts = newReportActionsDrafts[newOnyxKey] || allReportActionsDrafts[newOnyxKey];
                     newReportActionsDrafts[newOnyxKey] = {
-                        ...(newReportActionsDrafts[newOnyxKey] ||
-                            // Includes the existing migrated draft
-                            allReportActionsDrafts[newOnyxKey]),
+                        ...currentActionsDrafts,
                         [reportActionID]: reportActionDraft,
                     };
                 });
