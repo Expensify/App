@@ -250,26 +250,27 @@ function MoneyRequestParticipantsSelector({
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
-    const shouldShowErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
+    const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
     const isAllowedToSplit = !isDistanceRequest && iouType !== CONST.IOU.TYPE.SEND;
 
-    const footerContent = <View>
-        {shouldShowErrorMessage && (
-            <FormHelpMessage
-                style={[styles.ph1, styles.mb2]}
-                isError
-                message={"Having multiple participants that include a workspace"}
+    const footerContent = (
+        <View>
+            {shouldShowSplitBillErrorMessage && (
+                <FormHelpMessage
+                    style={[styles.ph1, styles.mb2]}
+                    isError
+                    message="iou.error.splitBillMultipleParticipantsIncludingWorkspace"
+                />
+            )}
+            <Button
+                success
+                text={translate('iou.addToSplit')}
+                onPress={navigateToSplit}
+                pressOnEnter
+                isDisabled={shouldShowSplitBillErrorMessage}
             />
-        )}
-        <Button
-            success
-            style={[styles.w100]}
-            text={translate('iou.addToSplit')}
-            onPress={navigateToSplit}
-            pressOnEnter
-            isDisabled={shouldShowErrorMessage}
-        />
-    </View>
+        </View>
+    );
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
