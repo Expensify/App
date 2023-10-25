@@ -44,9 +44,7 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
-    report: {
-        isLoadingPrivateNotes: true,
-    },
+    report: {},
     session: {
         accountID: null,
     },
@@ -57,7 +55,7 @@ export default function (WrappedComponent) {
     function WithReportAndPrivateNotesOrNotFound({forwardedRef, ...props}) {
         const {route, report, network, session} = props;
         const accountID = route.params.accountID;
-        const isLoadingPrivateNotes = report.isLoadingPrivateNotes;
+        const isLoadingPrivateNotes = report.isLoadingPrivateNotes ?? true;
 
         useEffect(() => {
             if (network.isOffline && isLoadingPrivateNotes) {
