@@ -311,7 +311,12 @@ function setIsNavigationReady() {
  * @param {Array<String>} loginList
  */
 function goToNextPhysicalCardRoute(privatePersonalDetails, loginList) {
-    const {address, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails;
+    const {
+        address: {street, city, state, country, zip},
+        legalFirstName,
+        legalLastName,
+        phoneNumber,
+    } = privatePersonalDetails;
     const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
     const {domain} = (currentRoute && currentRoute.params) || {domain: ''};
 
@@ -323,7 +328,7 @@ function goToNextPhysicalCardRoute(privatePersonalDetails, loginList) {
         navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.getRoute(domain));
         return;
     }
-    if (!address) {
+    if (!(street && city && state && country && zip)) {
         navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.getRoute(domain));
         return;
     }
