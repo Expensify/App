@@ -10,7 +10,7 @@ import CONST from '../CONST';
 import compose from '../libs/compose';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
-import { PersonalDetails } from '../types/onyx';
+import {PersonalDetails} from '../types/onyx';
 import {EnglishTranslation, TranslationPaths, TranslateType} from '../languages/types';
 
 type CurrentUserPersonalDetails = Pick<PersonalDetails, 'timezone'>;
