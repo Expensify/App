@@ -44,7 +44,9 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
-    report: {},
+    report: {
+        isLoadingPrivateNotes: true,
+    },
     session: {
         accountID: null,
     },
@@ -58,15 +60,16 @@ export default function (WrappedComponent) {
         const isLoadingPrivateNotes = report.isLoadingPrivateNotes;
 
         useEffect(() => {
-            if (network.isOffline && report.isLoadingPrivateNotes) {
+            if (network.isOffline && isLoadingPrivateNotes) {
                 return;
             }
 
             Report.getReportPrivateNote(report.reportID);
-        }, [report.reportID, report.isLoadingPrivateNotes, network.isOffline]);
+            // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add isLoadingPrivateNotes to dependencies
+        }, [report.reportID, network.isOffline]);
 
         const isPrivateNotesEmpty = accountID ? _.isEmpty(lodashGet(report, ['privateNotes', accountID, 'note'], '')) : _.isEmpty(report.privateNotes);
-        const shouldShowFullScreenLoadingIndicator = isLoadingPrivateNotes !== false && isPrivateNotesEmpty;
+        const shouldShowFullScreenLoadingIndicator = isLoadingPrivateNotes && isPrivateNotesEmpty;
 
         // eslint-disable-next-line rulesdir/no-negated-variables
         const shouldShowNotFoundPage = useMemo(() => {
@@ -76,7 +79,7 @@ export default function (WrappedComponent) {
             }
 
             // Don't show not found view if the notes are still loading, or if the notes are non-empty.
-            if (isLoadingPrivateNotes !== false || !isPrivateNotesEmpty) {
+            if (isLoadingPrivateNotes || !isPrivateNotesEmpty) {
                 return false;
             }
 
@@ -106,7 +109,7 @@ export default function (WrappedComponent) {
     WithReportAndPrivateNotesOrNotFound.displayName = `withReportAndPrivateNotesOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const withReportAndPrivateNotesOrNotFound = React.forwardRef((props, ref) => (
+    const WithReportAndPrivateNotesOrNotFoundWithRef = React.forwardRef((props, ref) => (
         <WithReportAndPrivateNotesOrNotFound
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
@@ -114,15 +117,15 @@ export default function (WrappedComponent) {
         />
     ));
 
-    withReportAndPrivateNotesOrNotFound.displayName = 'withReportAndPrivateNotesOrNotFoundWithRef';
+    WithReportAndPrivateNotesOrNotFoundWithRef.displayName = 'WithReportAndPrivateNotesOrNotFoundWithRef';
 
     return compose(
-        withReportOrNotFound,
+        withReportOrNotFound(),
         withOnyx({
             session: {
                 key: ONYXKEYS.SESSION,
             },
         }),
         withNetwork(),
-    )(withReportAndPrivateNotesOrNotFound);
+    )(WithReportAndPrivateNotesOrNotFoundWithRef);
 }
