@@ -363,7 +363,7 @@ function WorkspaceMembersPage(props) {
                         source: UserUtils.getAvatar(details.avatar, accountID),
                         name: details.login,
                         type: CONST.ICON_TYPE_AVATAR,
-                        id: accountID
+                        id: accountID,
                     },
                 ],
                 errors: policyMember.errors,
