@@ -242,7 +242,7 @@ function ReportPreview(props) {
                                 policyID={props.policyID}
                                 chatReportID={props.chatReportID}
                                 iouReport={props.iouReport}
-                                onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
+                                onPress={(paymentType) => IOU.settleMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
                                 shouldShowPaymentOptions

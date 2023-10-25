@@ -2666,16 +2666,7 @@ function submitReport(expenseReport) {
     );
 }
 
-function settleMoneyRequest(paymentType, chatReport, iouReport) {
-    if (paymentType === CONST.IOU.PAYMENT_TYPE.MARK_AS_DONE) {
-
-    } else {
-        payMoneyRequest(paymentType, chatReport, iouReport);
-    }
-}
-
 function markAsDone(chatReport, iouReport) {
-
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2698,18 +2689,16 @@ function markAsDone(chatReport, iouReport) {
             },
         },
     ];
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-            value: {
-                [optimisticIOUReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
-                },
-            },
-        },
-    ];
 
+    API.write('MarkAsDone', {iouReport}, {optimisticData});
+}
+
+function settleMoneyRequest(paymentType, chatReport, iouReport) {
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.MARK_AS_DONE) {
+        markAsDone(chatReport, iouReport);
+    } else {
+        payMoneyRequest(paymentType, chatReport, iouReport);
+    }
 }
 
 /**
@@ -2995,4 +2984,5 @@ export {
     replaceReceipt,
     detachReceipt,
     getIOUReportID,
+    settleMoneyRequest,
 };
