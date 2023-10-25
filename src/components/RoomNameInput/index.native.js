@@ -53,10 +53,14 @@ RoomNameInput.propTypes = roomNameInputPropTypes.propTypes;
 RoomNameInput.defaultProps = roomNameInputPropTypes.defaultProps;
 RoomNameInput.displayName = 'RoomNameInput';
 
-export default React.forwardRef((props, ref) => (
+const RoomNameInputWithRef = React.forwardRef((props, ref) => (
     <RoomNameInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+RoomNameInputWithRef.displayName = 'RoomNameInputWithRef';
+
+export default RoomNameInputWithRef;
