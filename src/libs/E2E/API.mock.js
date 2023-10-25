@@ -22,6 +22,7 @@ const mocks = {
     OpenApp: mockOpenApp,
     ReconnectApp: mockOpenApp,
     OpenReport: mockOpenReport,
+    ReconnectToReport: mockOpenReport,
     AuthenticatePusher: mockAuthenticatePusher,
     ReadNewestAction: mockReadNewestAction,
 };
