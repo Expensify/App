@@ -16,7 +16,7 @@ function beforeAppLoad() {
 
 function afterAppLoad() {
     // Perform any other platform-specific setup
-    PlatformSetup.afterAppLoad();
+    return PlatformSetup.afterAppLoad();
 }
 
 function additional() {
@@ -65,9 +65,7 @@ function additional() {
     // Polyfill the Intl API if locale data is not as expected
     intlPolyfill();
 
-    PlatformSetup.additional();
-
-    return Promise.resolve();
+    return PlatformSetup.additional();
 }
 
 export {beforeAppLoad, afterAppLoad, additional};
