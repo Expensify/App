@@ -26,6 +26,10 @@ const MIN_AMOUNT_FOR_EXPANDING = 3;
 const MIN_AMOUNT_OF_STEPS = 2;
 
 function InteractiveStepSubHeader({stepNames, startStep, onStepSelected}, ref) {
+    if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
+        throw new Error('stepNames prop must have at least 2 elements.');
+    }
+
     const [currentStep, setCurrentStep] = useState(startStep);
     useImperativeHandle(
         ref,
@@ -36,11 +40,6 @@ function InteractiveStepSubHeader({stepNames, startStep, onStepSelected}, ref) {
         }),
         [],
     );
-
-    if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
-        console.warn('InteractiveStepSubHeader: stepNames prop must have at least 2 elements');
-        return null;
-    }
 
     const amountOfUnions = stepNames.length - 1;
 
