@@ -204,7 +204,7 @@ dependencies {
     implementation "androidx.work:work-runtime-ktx:2.8.0"
 
     // This okhttp3 dependency prevents the app from crashing - See https://github.com/plaid/react-native-plaid-link-sdk/issues/74#issuecomment-648435002
-    implementation "com.squareup.okhttp3:okhttp-urlconnection:4.+"
+    implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.2"
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
 }
