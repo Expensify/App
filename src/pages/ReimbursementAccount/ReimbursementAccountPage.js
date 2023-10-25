@@ -225,7 +225,7 @@ function ReimbursementAccountPage({
 
     useEffect(() => {
         fetchData();
-    }); // The empty dependency array ensures this runs only once after the component mounts.
+    }, []); // The empty dependency array ensures this runs only once after the component mounts.
 
     useEffect(() => {
         // Check for network change from offline to online
