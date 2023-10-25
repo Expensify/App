@@ -53,23 +53,10 @@ Onyx.connect({
 });
 
 let allReports;
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (val) => (allReports = val),
-});
-
-let draftReportIDs = {};
-Onyx.connect({
-    key: ONYXKEYS.DRAFT_REPORT_IDS,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        draftReportIDs = val;
-    },
 });
 
 let doesDomainHaveApprovedAccountant;
@@ -3314,7 +3301,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     }
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft, having an outstanding IOU, or being assigned to an open task.
-    if (draftReportIDs[report.reportID] || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
+    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);

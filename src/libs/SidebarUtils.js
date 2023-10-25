@@ -103,7 +103,6 @@ let hasInitialReportActions = false;
 
 /**
  * @param {String} currentReportId
- * @param {Object} draftReportIDs
  * @param {Object} allReportsDict
  * @param {Object} betas
  * @param {String[]} policies
@@ -111,11 +110,11 @@ let hasInitialReportActions = false;
  * @param {Object} allReportActions
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
-function getOrderedReportIDs(currentReportId, draftReportIDs, allReportsDict, betas, policies, priorityMode, allReportActions) {
+function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions) {
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
         // eslint-disable-next-line es/no-optional-chaining
-        [currentReportId, draftReportIDs, allReportsDict, betas, policies, priorityMode, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
+        [currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
         (key, value) => {
             /**
              *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,
@@ -182,7 +181,7 @@ function getOrderedReportIDs(currentReportId, draftReportIDs, allReportsDict, be
             pinnedReports.push(report);
         } else if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
             outstandingIOUReports.push(report);
-        } else if (draftReportIDs[report.reportID]) {
+        } else if (report.hasDraft) {
             draftReports.push(report);
         } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(report);
@@ -253,6 +252,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
         phoneNumber: null,
         isUnread: null,
         isUnreadWithMention: null,
+        hasDraftComment: false,
         keyForList: null,
         searchText: null,
         isPinned: false,
@@ -296,6 +296,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.statusNum = report.statusNum;
     result.isUnread = ReportUtils.isUnread(report);
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
+    result.hasDraftComment = report.hasDraft;
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);

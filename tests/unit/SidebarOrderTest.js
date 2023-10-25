@@ -24,7 +24,6 @@ const ONYXKEYS = {
         REPORT_ACTIONS: 'reportActions_',
     },
     NETWORK: 'network',
-    DRAFT_REPORT_IDS: 'draftReportIDs',
 };
 
 describe('Sidebar', () => {
@@ -149,8 +148,12 @@ describe('Sidebar', () => {
 
         it('changes the order when adding a draft to the active report', () => {
             // Given three reports in the recently updated order of 3, 2, 1
+            // And the first report has a draft
             // And the currently viewed report is the first report
-            const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
+            const report1 = {
+                ...LHNTestUtils.getFakeReport([1, 2], 3),
+                hasDraft: true,
+            };
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
@@ -173,9 +176,6 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
-
-                            // Setting the draft status for first report
-                            [ONYXKEYS.DRAFT_REPORT_IDS]: {[report1.reportID]: true},
                         }),
                     )
 
@@ -188,7 +188,7 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two'); // this has a `reportID` in `draftReportID` so it will be on top
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two'); // this has `hasDraft` flag enabled so it will be on top
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                     })
@@ -244,9 +244,13 @@ describe('Sidebar', () => {
 
         it('reorders the reports to keep draft reports on top', () => {
             // Given three reports in the recently updated order of 3, 2, 1
+            // And the second report has a draft
             // And the currently viewed report is the second report
             const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
-            const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
+            const report2 = {
+                ...LHNTestUtils.getFakeReport([3, 4], 2),
+                hasDraft: true,
+            };
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
             // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
@@ -268,9 +272,6 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
-
-                            // Setting the draft status for second report
-                            [ONYXKEYS.DRAFT_REPORT_IDS]: {[report2.reportID]: true},
                         }),
                     )
 
@@ -299,7 +300,11 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a single report
-            const report = LHNTestUtils.getFakeReport([1, 2]);
+            // And the report has a draft
+            const report = {
+                ...LHNTestUtils.getFakeReport([1, 2]),
+                hasDraft: true,
+            };
 
             return (
                 waitForBatchedUpdates()
@@ -310,9 +315,6 @@ describe('Sidebar', () => {
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-
-                            // Setting the draft status for the report
-                            [ONYXKEYS.DRAFT_REPORT_IDS]: {[report.reportID]: true},
                         }),
                     )
 
@@ -322,7 +324,7 @@ describe('Sidebar', () => {
                     })
 
                     // When the draft is removed
-                    .then(() => Onyx.set(ONYXKEYS.DRAFT_REPORT_IDS, {}))
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {hasDraft: null}))
 
                     // Then the pencil icon goes away
                     .then(() => {
@@ -371,13 +373,16 @@ describe('Sidebar', () => {
         it('sorts chats by pinned > IOU > draft', () => {
             // Given three reports in the recently updated order of 3, 2, 1
             // with the current user set to email9@ (someone not participating in any of the chats)
-            // with a report that is pinned, and
+            // with a report that has a draft, a report that is pinned, and
             //    an outstanding IOU report that doesn't belong to the current user
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3),
                 isPinned: true,
             };
-            const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
+            const report2 = {
+                ...LHNTestUtils.getFakeReport([3, 4], 2),
+                hasDraft: true,
+            };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
                 hasOutstandingIOU: false,
@@ -413,9 +418,6 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                             [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
-
-                            // Setting the draft status for second report
-                            [ONYXKEYS.DRAFT_REPORT_IDS]: {[report2.reportID]: true},
                         }),
                     )
 
@@ -497,10 +499,23 @@ describe('Sidebar', () => {
 
         it('alphabetizes all the chats that have drafts', () => {
             // Given three reports in the recently updated order of 3, 2, 1
-            const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
-            const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
-            const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
-            const report4 = LHNTestUtils.getFakeReport([7, 8], 0);
+            // and they all have drafts
+            const report1 = {
+                ...LHNTestUtils.getFakeReport([1, 2], 3),
+                hasDraft: true,
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport([3, 4], 2),
+                hasDraft: true,
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport([5, 6], 1),
+                hasDraft: true,
+            };
+            const report4 = {
+                ...LHNTestUtils.getFakeReport([7, 8], 0),
+                hasDraft: true,
+            };
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
                 waitForBatchedUpdates()
@@ -513,14 +528,6 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
-
-                            // Setting the draft status for all reports
-                            [ONYXKEYS.DRAFT_REPORT_IDS]: {
-                                [report1.reportID]: true,
-                                [report2.reportID]: true,
-                                [report3.reportID]: true,
-                                [report4.reportID]: true,
-                            },
                         }),
                     )
 

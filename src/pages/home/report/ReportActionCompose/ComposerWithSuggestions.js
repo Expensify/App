@@ -34,7 +34,6 @@ import withKeyboardState from '../../../../components/withKeyboardState';
 import {propTypes, defaultProps} from './composerWithSuggestionsProps';
 import focusWithDelay from '../../../../libs/focusWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
-import setDraftStatusForReportID from '../../../../libs/actions/DraftReports';
 import updateMultilineInputRange from '../../../../libs/UpdateMultilineInputRange';
 import * as InputFocus from '../../../../libs/actions/InputFocus';
 
@@ -246,12 +245,12 @@ function ComposerWithSuggestions({
 
             // Indicate that draft has been created.
             if (commentRef.current.length === 0 && newComment.length !== 0) {
-                setDraftStatusForReportID(reportID, true);
+                Report.setReportWithDraft(reportID, true);
             }
 
             // The draft has been deleted.
             if (newComment.length === 0) {
-                setDraftStatusForReportID(reportID, false);
+                Report.setReportWithDraft(reportID, false);
             }
 
             commentRef.current = newComment;
@@ -511,7 +510,7 @@ function ComposerWithSuggestions({
         if (value.length === 0) {
             return;
         }
-        setDraftStatusForReportID(reportID, true);
+        Report.setReportWithDraft(reportID, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

@@ -11,9 +11,6 @@ const ONYXKEYS = {
     /** Holds information about the users account that is logging in */
     ACCOUNT: 'account',
 
-    /** Holds the reportIDs which are currently in draft */
-    DRAFT_REPORT_IDS: 'draftReportIDs',
-
     /** Holds the reportID for the report between the user and their account manager */
     ACCOUNT_MANAGER_REPORT_ID: 'accountManagerReportID',
 
@@ -314,7 +311,6 @@ type OnyxKey = DeepValueOf<Omit<OnyxKeysMap, 'COLLECTION'>>;
 
 type OnyxValues = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
-    [ONYXKEYS.DRAFT_REPORT_IDS]: Record<string, boolean>;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
     [ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER]: boolean;
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];

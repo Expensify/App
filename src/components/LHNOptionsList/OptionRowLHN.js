@@ -1,9 +1,8 @@
 import _ from 'underscore';
-import React, {useState, useRef, useCallback, useEffect} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
@@ -27,11 +26,9 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
 import Permissions from '../../libs/Permissions';
 import Tooltip from '../Tooltip';
-import ONYXKEYS from '../../ONYXKEYS';
 import DomUtils from '../../libs/DomUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
-import setDraftStatusForReportID from '../../libs/actions/DraftReports';
 
 const propTypes = {
     /** Style for hovered state */
@@ -58,11 +55,6 @@ const propTypes = {
     /** The item that should be rendered */
     // eslint-disable-next-line react/forbid-prop-types
     optionItem: PropTypes.object,
-
-    // eslint-disable-next-line react/forbid-prop-types
-    draftReportIDs: PropTypes.object,
-
-    shouldUpdateDraftStatus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -73,8 +65,6 @@ const defaultProps = {
     optionItem: null,
     isFocused: false,
     betas: [],
-    draftReportIDs: {},
-    shouldUpdateDraftStatus: false,
 };
 
 function OptionRowLHN(props) {
@@ -86,17 +76,6 @@ function OptionRowLHN(props) {
 
     const optionItem = props.optionItem;
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
-
-    const hasDraft = props.draftReportIDs[props.reportID];
-
-    useEffect(() => {
-        if (props.shouldUpdateDraftStatus || hasDraft) {
-            return;
-        }
-
-        setDraftStatusForReportID(props.reportID, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -313,7 +292,7 @@ function OptionRowLHN(props) {
                                     />
                                 </View>
                             )}
-                            {hasDraft && optionItem.isAllowedToComment && (
+                            {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}
@@ -341,13 +320,6 @@ OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-export default React.memo(
-    withOnyx({
-        draftReportIDs: {
-            key: ONYXKEYS.DRAFT_REPORT_IDS,
-            initialValue: {},
-        },
-    })(OptionRowLHN),
-);
+export default React.memo(OptionRowLHN);
 
 export {propTypes, defaultProps};

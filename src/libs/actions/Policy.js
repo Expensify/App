@@ -15,18 +15,6 @@ import * as ReportUtils from '../ReportUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
 
-let draftReportIDs = {};
-Onyx.connect({
-    key: ONYXKEYS.DRAFT_REPORT_IDS,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        draftReportIDs = val;
-    },
-});
-
 const allPolicies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -43,12 +31,11 @@ Onyx.connect({
             const cleanUpMergeQueries = {};
             const cleanUpSetQueries = {};
             _.each(policyReports, ({reportID}) => {
+                cleanUpMergeQueries[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {hasDraft: false};
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
-                delete draftReportIDs[reportID];
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
             Onyx.multiSet(cleanUpSetQueries);
-            Onyx.set(ONYXKEYS.DRAFT_REPORT_IDS, draftReportIDs);
             delete allPolicies[key];
             return;
         }
@@ -124,6 +111,7 @@ function deleteWorkspace(policyID, reports, policyName) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
+                hasDraft: false,
                 oldPolicyName: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].name,
             },
         })),
@@ -148,12 +136,13 @@ function deleteWorkspace(policyID, reports, policyName) {
 
     // Restore the old report stateNum and statusNum
     const failureData = [
-        ..._.map(reports, ({reportID, stateNum, statusNum, oldPolicyName}) => ({
+        ..._.map(reports, ({reportID, stateNum, statusNum, hasDraft, oldPolicyName}) => ({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 stateNum,
                 statusNum,
+                hasDraft,
                 oldPolicyName,
             },
         })),

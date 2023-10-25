@@ -151,9 +151,10 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
  * @param {boolean} hasAddWorkspaceError
  * @param {boolean} isUnread
  * @param {boolean} isPinned
+ * @param {boolean} hasDraft
  * @returns {Object}
  */
-function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned) {
+function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
     return {
         ...getFakeReport([1, 2], 0, isUnread),
         type: CONST.REPORT.TYPE.CHAT,
@@ -162,6 +163,7 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
         stateNum: isArchived ? CONST.REPORT.STATE_NUM.SUBMITTED : 0,
         errorFields: hasAddWorkspaceError ? {addWorkspaceRoom: 'blah'} : null,
         isPinned,
+        hasDraft,
     };
 }
 
