@@ -84,11 +84,8 @@ describe('ReportUtils', () => {
             const participants = ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false);
             expect(participants).toHaveLength(5);
 
-            expect(participants[0].avatar).toBeInstanceOf(Function);
-            expect(participants[0].displayName).toBe('Ragnar Lothbrok');
-            expect(participants[0].login).toBe('ragnar@vikings.net');
-            expect(participants[0].accountID).toBe(1);
-            expect(participants[0].pronouns).toBeUndefined();
+            expect(participants[0].displayName).toBe('(833) 240-3627');
+            expect(participants[0].login).toBe('+18332403627@expensify.sms');
 
             expect(participants[2].avatar).toBeInstanceOf(Function);
             expect(participants[2].displayName).toBe('Lagertha Lothbrok');
@@ -96,8 +93,11 @@ describe('ReportUtils', () => {
             expect(participants[2].accountID).toBe(3);
             expect(participants[2].pronouns).toBe('She/her');
 
-            expect(participants[3].displayName).toBe('(833) 240-3627');
-            expect(participants[3].login).toBe('+18332403627@expensify.sms');
+            expect(participants[4].avatar).toBeInstanceOf(Function);
+            expect(participants[4].displayName).toBe('Ragnar Lothbrok');
+            expect(participants[4].login).toBe('ragnar@vikings.net');
+            expect(participants[4].accountID).toBe(1);
+            expect(participants[4].pronouns).toBeUndefined();
         });
     });
 
@@ -271,23 +271,23 @@ describe('ReportUtils', () => {
                 expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
             });
         });
-        it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
+        it('returns true when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 hasOutstandingIOU: false,
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: true,
             };
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
         });
-        it('returns true when the report has oustanding IOU and is waiting for a bank account and the logged user is the report owner', () => {
+        it('returns false when the report has outstanding IOU and is not waiting for a bank account and the logged user is the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 hasOutstandingIOU: true,
                 ownerAccountID: currentUserAccountID,
-                isWaitingOnBankAccount: true,
+                isWaitingOnBankAccount: false,
             };
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
         });
         it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
             const report = {
@@ -408,7 +408,7 @@ describe('ReportUtils', () => {
                             chatType,
                         };
                         const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], []);
-                        return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
+                        return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
                     },
                 );
                 expect(onlyHaveSplitOption).toBe(true);
@@ -421,7 +421,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], []);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
 
             it('user has send money permission', () => {
@@ -431,7 +431,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
 
             it("it's a group chat report", () => {
@@ -442,7 +442,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
         });
 
@@ -455,7 +455,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
 
             it("it is an expense report tied to user's own policy expense chat", () => {
@@ -471,7 +471,7 @@ describe('ReportUtils', () => {
                     };
                     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID], [CONST.BETAS.IOU_SEND]);
                     expect(moneyRequestOptions.length).toBe(1);
-                    expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+                    expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
                 });
             });
 
@@ -485,7 +485,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], []);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
 
             it('it is an IOU report in submitted state even with send money permissions', () => {
@@ -498,7 +498,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
         });
 
@@ -509,8 +509,8 @@ describe('ReportUtils', () => {
             };
             const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], [CONST.BETAS.IOU_SEND]);
             expect(moneyRequestOptions.length).toBe(2);
-            expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
-            expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND)).toBe(true);
+            expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
+            expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND)).toBe(true);
         });
     });
 

@@ -103,6 +103,7 @@ function MagicCodeInput(props) {
     const [input, setInput] = useState('');
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
+    const [wasSubmitted, setWasSubmitted] = useState(false);
 
     const blurMagicCodeInput = () => {
         inputRefs.current[editIndex].blur();
@@ -124,8 +125,11 @@ function MagicCodeInput(props) {
 
     const validateAndSubmit = () => {
         const numbers = decomposeString(props.value, props.maxLength);
-        if (!props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== props.maxLength || props.network.isOffline) {
+        if (wasSubmitted || !props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== props.maxLength || props.network.isOffline) {
             return;
+        }
+        if (!wasSubmitted) {
+            setWasSubmitted(true);
         }
         // Blurs the input and removes focus from the last input and, if it should submit
         // on complete, it will call the onFulfill callback.
@@ -352,12 +356,14 @@ function MagicCodeInput(props) {
 MagicCodeInput.propTypes = propTypes;
 MagicCodeInput.defaultProps = defaultProps;
 
-export default withNetwork()(
-    forwardRef((props, ref) => (
-        <MagicCodeInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+const MagicCodeInputWithRef = forwardRef((props, ref) => (
+    <MagicCodeInput
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+MagicCodeInputWithRef.displayName = 'MagicCodeInputWithRef';
+
+export default withNetwork()(MagicCodeInputWithRef);

@@ -3,7 +3,7 @@ import {SectionList as RNSectionList} from 'react-native';
 import ForwardedSectionList from './types';
 
 // eslint-disable-next-line react/function-component-definition
-const SectionList: ForwardedSectionList = (props, ref) => (
+const SectionListWithRef: ForwardedSectionList = (props, ref) => (
     <RNSectionList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
@@ -15,6 +15,6 @@ const SectionList: ForwardedSectionList = (props, ref) => (
     />
 );
 
-SectionList.displayName = 'SectionList';
+SectionListWithRef.displayName = 'SectionListWithRef';
 
-export default forwardRef(SectionList);
+export default forwardRef(SectionListWithRef);

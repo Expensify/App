@@ -14,7 +14,6 @@ import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import reportPropTypes from '../reportPropTypes';
 import transactionPropTypes from '../../components/transactionPropTypes';
 import withReportAndReportActionOrNotFound from '../home/report/withReportAndReportActionOrNotFound';
-import useLocalize from '../../hooks/useLocalize';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as IOU from '../../libs/actions/IOU';
@@ -23,6 +22,7 @@ import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmat
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import MoneyRequestHeaderStatusBar from '../../components/MoneyRequestHeaderStatusBar';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /* Onyx Props */
@@ -70,8 +70,8 @@ const defaultProps = {
 };
 
 function SplitBillDetailsPage(props) {
-    const {translate} = useLocalize();
     const {reportID} = props.report;
+    const {translate} = useLocalize();
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
 
@@ -133,7 +133,7 @@ function SplitBillDetailsPage(props) {
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
-                            iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                            iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}
                             shouldShowSmartScanFields
                             receiptPath={props.transaction.receipt && props.transaction.receipt.source}
@@ -145,6 +145,7 @@ function SplitBillDetailsPage(props) {
                             reportActionID={reportAction.reportActionID}
                             transactionID={props.transaction.transactionID}
                             onConfirm={onConfirm}
+                            isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(props.report)}
                         />
                     )}
                 </View>
