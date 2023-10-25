@@ -195,6 +195,8 @@ function Expensify(props) {
         //     return;
         // }
 
+        console.log('call Encryptify');
+
         const kemKeys = Encryptify.KEMGenKeys();
 
         console.log({kemKeys});
