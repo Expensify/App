@@ -20,7 +20,7 @@ const propTypes = {
 const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigator, selectedTab, ...props}, ref) => {
     // Get navigation to get initial isFocused value (only needed once during init!)
     const navigation = useNavigation();
-    const [isCameraActive, setIsCameraActive] = useState(navigation.isFocused());
+    const [isCameraActive, setIsCameraActive] = useState(() => navigation.isFocused());
 
     // Retrieve the animation value from the tab navigator, which ranges from 0 to the total number of pages displayed.
     // Even a minimal scroll towards the camera page (e.g., a value of 0.001 at start) should activate the camera for immediate responsiveness.
@@ -80,4 +80,14 @@ const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigato
 NavigationAwareCamera.propTypes = propTypes;
 NavigationAwareCamera.displayName = 'NavigationAwareCamera';
 
-export default NavigationAwareCamera;
+const NavigationAwareCameraWithRef = React.forwardRef((props, ref) => (
+    <NavigationAwareCamera
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+NavigationAwareCameraWithRef.displayName = 'NavigationAwareCameraWithRef';
+
+export default NavigationAwareCameraWithRef;
