@@ -143,7 +143,7 @@ function assignRef(ref: React.MutableRefObject<HTMLElement | null>, element: HTM
     }, [disabled, isHovered, onHoverIn, onHoverOut]);
 
     // Expose inner ref to parent through outerRef. This enable us to use ref both in parent and child.
-    useImperativeHandle(outerRef, () => ref.current, []);
+    useImperativeHandle<HTMLElement | null, HTMLElement | null>(outerRef, () => ref.current, []);
 
     const child = useMemo(() => React.Children.only(mapChildren(children, isHovered)), [children, isHovered]);
 
