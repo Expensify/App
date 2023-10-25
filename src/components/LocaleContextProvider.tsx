@@ -11,6 +11,7 @@ import compose from '../libs/compose';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 import { PersonalDetails } from '../types/onyx';
+import {EnglishTranslation, TranslationPaths, TranslateType} from '../languages/types';
 
 type CurrentUserPersonalDetails = Pick<PersonalDetails, 'timezone'>;
 
@@ -27,7 +28,11 @@ type LocaleContextProviderProps = LocaleContextProviderOnyxProps & {
     children: React.ReactNode;
 };
 
-type Translate = (phrase: string, variables: Record<string, string>) => string;
+type Translate = <TKey extends TranslationPaths>(
+    phrase: TKey,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    variables?: TranslateType<EnglishTranslation, TKey> extends (...args: any) => any ? Parameters<TranslateType<EnglishTranslation, TKey>>[0] : never,
+) => string;
 
 type NumberFormat = (number: number, options: Intl.NumberFormatOptions) => string;
 
