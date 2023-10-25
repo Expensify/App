@@ -1,0 +1,29 @@
+import crashlytics from '@react-native-firebase/crashlytics';
+
+import BaseErrorBoundary, {LogError, BaseErrorBoundaryProps} from './BaseErrorBoundary';
+import Log from '../../libs/Log';
+
+const logError: LogError = (errorMessage, error, errorInfo) => {
+    // Log the error to the server
+    Log.alert(`${errorMessage} - ${error.message}`, {errorInfo}, false);
+
+    /* On native we also log the error to crashlytics
+     * Since the error was handled we need to manually tell crashlytics about it */
+    crashlytics().log(`errorInfo: ${errorInfo}`);
+    crashlytics().recordError(error);
+};
+
+function ErrorBoundary({errorMessage, children}: BaseErrorBoundaryProps) {
+    return (
+        <BaseErrorBoundary
+            errorMessage={errorMessage}
+            logError={logError}
+        >
+            {children}
+        </BaseErrorBoundary>
+    );
+}
+
+ErrorBoundary.displayName = 'ErrorBoundary';
+
+export default ErrorBoundary;
