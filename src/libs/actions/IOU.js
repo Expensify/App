@@ -1809,6 +1809,8 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         optimisticPolicyRecentlyUsedTags[tagListName] = [transactionChanges.tag, ...uniquePolicyRecentlyUsedTags];
     }
 
+    const isScanning = TransactionUtils.hasReceipt(updatedTransaction) && TransactionUtils.isReceiptBeingScanned(updatedTransaction);
+
     // STEP 4: Compose the optimistic data
     const currentTime = DateUtils.getDBTime();
     const optimisticData = [
@@ -1842,6 +1844,28 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                 lastVisibleActionCreated: currentTime,
             },
         },
+        ...(!isScanning
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                      value: {
+                          [transactionThread.parentReportActionID]: {
+                              whisperedToAccountIDs: [],
+                          },
+                      },
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`,
+                      value: {
+                          [iouReport.parentReportActionID]: {
+                              whisperedToAccountIDs: [],
+                          },
+                      },
+                  },
+              ]
+            : []),
     ];
 
     if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
