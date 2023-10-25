@@ -86,7 +86,7 @@ jobs:
         uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -133,7 +133,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-    runs-on: macos-12-xl
+    runs-on: macos-13-xlarge
     steps:
       # This action checks-out the repository, so the workflow can access it.
       - name: Checkout
@@ -157,7 +157,7 @@ jobs:
         run: sudo xcode-select -switch /Applications/Xcode_14.2.app
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -218,7 +218,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-    runs-on: macos-12-xl
+    runs-on: macos-13-xlarge
     steps:
       - name: Checkout
         uses: actions/checkout@v3
