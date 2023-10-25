@@ -102,21 +102,21 @@ function getDefaultAvatarURL(accountID: string | number = '', isNewDot = false):
 
 /**
  * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
- * @param [avatarURL] - the avatar source from user's personalDetails
+ * @param [avatarSource] - the avatar source from user's personalDetails
  */
-function isDefaultAvatar(avatarURL?: React.FC<SvgProps> | string): boolean {
-    if (typeof avatarURL === 'string') {
-        if (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/default-avatar_') || avatarURL.includes('images/avatars/user/default')) {
+function isDefaultAvatar(avatarSource?: React.FC<SvgProps> | string): boolean {
+    if (typeof avatarSource === 'string') {
+        if (avatarSource.includes('images/avatars/avatar_') || avatarSource.includes('images/avatars/default-avatar_') || avatarSource.includes('images/avatars/user/default')) {
             return true;
         }
 
         // We use a hardcoded "default" Concierge avatar
-        if (avatarURL === CONST.CONCIERGE_ICON_URL_2021 || avatarURL === CONST.CONCIERGE_ICON_URL) {
+        if (avatarSource === CONST.CONCIERGE_ICON_URL_2021 || avatarSource === CONST.CONCIERGE_ICON_URL) {
             return true;
         }
     }
 
-    if (!avatarURL) {
+    if (!avatarSource) {
         // If null URL, we should also use a default avatar
         return true;
     }
@@ -128,11 +128,11 @@ function isDefaultAvatar(avatarURL?: React.FC<SvgProps> | string): boolean {
  * Provided a source URL, if source is a default avatar, return the associated SVG.
  * Otherwise, return the URL pointing to a user-uploaded avatar.
  *
- * @param avatarURL - the avatar source from user's personalDetails
+ * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatar(avatarURL: React.FC<SvgProps> | string, accountID?: number): React.FC<SvgProps> | string {
-    return isDefaultAvatar(avatarURL) ? getDefaultAvatar(accountID) : avatarURL;
+function getAvatar(avatarSource: React.FC<SvgProps> | string, accountID?: number): React.FC<SvgProps> | string {
+    return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID) : avatarSource;
 }
 
 /**
@@ -150,8 +150,8 @@ function getAvatarUrl(avatarURL: string, accountID: number): string {
  * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
  * This removes that part of the URL so the full version of the image can load.
  */
-function getFullSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgProps> | string {
-    const source = getAvatar(avatarURL, accountID);
+function getFullSizeAvatar(avatarSource: React.FC<SvgProps> | string, accountID: number): React.FC<SvgProps> | string {
+    const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;
     }
@@ -162,8 +162,8 @@ function getFullSizeAvatar(avatarURL: string, accountID: number): React.FC<SvgPr
  * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
  * source URL (before the file type) if it doesn't exist there already.
  */
-function getSmallSizeAvatar(avatarURL: React.FC<SvgProps> | string, accountID?: number): React.FC<SvgProps> | string {
-    const source = getAvatar(avatarURL, accountID);
+function getSmallSizeAvatar(avatarSource: React.FC<SvgProps> | string, accountID?: number): React.FC<SvgProps> | string {
+    const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;
     }
