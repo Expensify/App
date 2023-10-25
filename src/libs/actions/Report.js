@@ -326,7 +326,6 @@ function addActions(reportID, text = '', file) {
         lastMessageHtml: lastCommentText,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
-        isLastMessageDeletedParentAction: null,
     };
 
     // Optimistically add the new actions to the store before waiting to save them to the server
@@ -478,8 +477,9 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isLoadingReportActions: true,
-                isLoadingMoreReportActions: false,
+                isLoadingInitialReportActions: true,
+                isLoadingOlderReportActions: false,
+                isLoadingNewerReportActions: false,
             },
         },
     ];
@@ -502,7 +502,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isLoadingReportActions: false,
+                isLoadingInitialReportActions: false,
             },
         },
     ];
@@ -512,7 +512,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isLoadingReportActions: false,
+                isLoadingInitialReportActions: false,
             },
         },
     ];
@@ -738,8 +738,9 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingReportActions: true,
-                        isLoadingMoreReportActions: false,
+                        isLoadingInitialReportActions: true,
+                        isLoadingNewerReportActions: false,
+                        isLoadingOlderReportActions: false,
                     },
                 },
             ],
@@ -748,7 +749,7 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingReportActions: false,
+                        isLoadingInitialReportActions: false,
                     },
                 },
             ],
@@ -757,7 +758,7 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingReportActions: false,
+                        isLoadingInitialReportActions: false,
                     },
                 },
             ],
@@ -772,9 +773,9 @@ function reconnect(reportID) {
  * @param {String} reportID
  * @param {String} reportActionID
  */
-function readOldestAction(reportID, reportActionID) {
+function getOlderActions(reportID, reportActionID) {
     API.read(
-        'ReadOldestAction',
+        'GetOlderActions',
         {
             reportID,
             reportActionID,
@@ -785,7 +786,7 @@ function readOldestAction(reportID, reportActionID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingMoreReportActions: true,
+                        isLoadingOlderReportActions: true,
                     },
                 },
             ],
@@ -794,7 +795,7 @@ function readOldestAction(reportID, reportActionID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingMoreReportActions: false,
+                        isLoadingOlderReportActions: false,
                     },
                 },
             ],
@@ -803,7 +804,53 @@ function readOldestAction(reportID, reportActionID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingMoreReportActions: false,
+                        isLoadingOlderReportActions: false,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
+ * Gets the newer actions that have not been read yet.
+ * Normally happens when you are not located at the bottom of the list and scroll down on a chat.
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ */
+function getNewerActions(reportID, reportActionID) {
+    API.read(
+        'GetNewerActions',
+        {
+            reportID,
+            reportActionID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
+                        isLoadingNewerReportActions: true,
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
+                        isLoadingNewerReportActions: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
+                        isLoadingNewerReportActions: false,
                     },
                 },
             ],
@@ -1047,25 +1094,17 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    if (reportAction.childVisibleActionCount === 0) {
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
+    if (lastMessageText || lastMessageTranslationKey) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
+        const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+        const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
         optimisticReport = {
-            lastMessageTranslationKey: '',
-            lastMessageText: '',
-            isLastMessageDeletedParentAction: true,
+            lastMessageTranslationKey,
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
         };
-    } else {
-        const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
-        if (lastMessageText || lastMessageTranslationKey) {
-            const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-            const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
-            const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
-            optimisticReport = {
-                lastMessageTranslationKey,
-                lastMessageText,
-                lastVisibleActionCreated,
-                lastActorAccountID,
-            };
-        }
     }
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
@@ -1735,25 +1774,6 @@ function clearIOUError(reportID) {
 }
 
 /**
- * Returns true if the accountID has reacted to the report action (with the given skin tone).
- * Uses the NEW FORMAT for "emojiReactions"
- * @param {String} accountID
- * @param {Array<Object | String | number>} users
- * @param {Number} [skinTone]
- * @returns {boolean}
- */
-function hasAccountIDEmojiReacted(accountID, users, skinTone) {
-    if (_.isUndefined(skinTone)) {
-        return Boolean(users[accountID]);
-    }
-    const usersReaction = users[accountID];
-    if (!usersReaction || !usersReaction.skinTones || !_.size(usersReaction.skinTones)) {
-        return false;
-    }
-    return Boolean(usersReaction.skinTones[skinTone]);
-}
-
-/**
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
@@ -1882,7 +1902,7 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
-    if (existingReactionObject && hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
+    if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
         return;
     }
@@ -1988,6 +2008,12 @@ function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
             ],
         },
     );
+
+    if (isWorkspaceMemberLeavingWorkspaceRoom) {
+        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
+        const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
+    }
 }
 
 /**
@@ -2433,7 +2459,6 @@ export {
     expandURLPreview,
     markCommentAsUnread,
     readNewestAction,
-    readOldestAction,
     openReport,
     openReportFromDeepLink,
     navigateToAndOpenReport,
@@ -2446,7 +2471,6 @@ export {
     notifyNewAction,
     showReportActionNotification,
     toggleEmojiReaction,
-    hasAccountIDEmojiReacted,
     shouldShowReportActionNotification,
     leaveRoom,
     inviteToRoom,
@@ -2459,6 +2483,8 @@ export {
     getReportPrivateNote,
     clearPrivateNotesError,
     hasErrorInPrivateNotes,
+    getOlderActions,
+    getNewerActions,
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,

@@ -23,11 +23,15 @@ export default function withAnimatedRef(WrappedComponent) {
         forwardedRef: undefined,
     };
 
-    return React.forwardRef((props, ref) => (
+    const WithAnimatedRefWithRef = React.forwardRef((props, ref) => (
         <WithAnimatedRef
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithAnimatedRefWithRef.displayName = 'WithAnimatedRefWithRef';
+
+    return WithAnimatedRefWithRef;
 }

@@ -239,6 +239,7 @@ class WorkspaceInviteMessagePage extends React.Component {
 
 WorkspaceInviteMessagePage.propTypes = propTypes;
 WorkspaceInviteMessagePage.defaultProps = defaultProps;
+WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
 
 export default compose(
     withLocalize,

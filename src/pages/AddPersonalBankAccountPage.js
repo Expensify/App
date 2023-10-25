@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -7,10 +7,8 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import * as BankAccounts from '../libs/actions/BankAccounts';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
 import getPlaidOAuthReceivedRedirectURI from '../libs/getPlaidOAuthReceivedRedirectURI';
-import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Form from '../components/Form';
@@ -18,10 +16,9 @@ import ROUTES from '../ROUTES';
 import * as PlaidDataProps from './ReimbursementAccount/plaidDataPropTypes';
 import ConfirmationPage from '../components/ConfirmationPage';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     /** Contains plaid data */
     plaidData: PlaidDataProps.plaidDataPropTypes,
 
@@ -35,6 +32,9 @@ const propTypes = {
 
         /** Any reportID we should redirect to at the end of the flow */
         exitReportID: PropTypes.string,
+
+        /** Whether we should continue with KYC at the end of the flow  */
+        shouldContinueKYCOnSuccess: PropTypes.bool,
 
         /** Whether the form is loading */
         isLoading: PropTypes.bool,
@@ -52,115 +52,97 @@ const defaultProps = {
         isLoading: false,
         plaidAccountID: '',
         exitReportID: '',
+        shouldContinueKYCOnSuccess: false,
     },
 };
 
-class AddPersonalBankAccountPage extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.validate = this.validate.bind(this);
-        this.submit = this.submit.bind(this);
-        this.exitFlow = this.exitFlow.bind(this);
-
-        this.state = {
-            selectedPlaidAccountID: '',
-        };
-    }
-
-    componentWillUnmount() {
-        BankAccounts.clearPersonalBankAccount();
-    }
+function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
+    const {translate} = useLocalize();
+    const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
+    const shouldShowSuccess = lodashGet(personalBankAccount, 'shouldShowSuccess', false);
 
     /**
      * @returns {Object}
      */
-    validate() {
-        return {};
-    }
+    const validateBankAccountForm = () => ({});
 
-    submit() {
-        const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
-            plaidAccountID: this.state.selectedPlaidAccountID,
+    const submitBankAccountForm = useCallback(() => {
+        const selectedPlaidBankAccount = _.findWhere(lodashGet(plaidData, 'bankAccounts', []), {
+            plaidAccountID: selectedPlaidAccountId,
         });
 
         BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
-    }
+    }, [plaidData, selectedPlaidAccountId]);
 
-    exitFlow(shouldContinue = false) {
-        const exitReportID = lodashGet(this.props, 'personalBankAccount.exitReportID');
-        const onSuccessFallbackRoute = lodashGet(this.props, 'personalBankAccount.onSuccessFallbackRoute', '');
+    const exitFlow = useCallback(
+        (shouldContinue = false) => {
+            const exitReportID = lodashGet(personalBankAccount, 'exitReportID');
+            const onSuccessFallbackRoute = lodashGet(personalBankAccount, 'onSuccessFallbackRoute', '');
 
-        if (exitReportID) {
-            Navigation.dismissModal(exitReportID);
-        } else if (shouldContinue && onSuccessFallbackRoute) {
-            PaymentMethods.continueSetup(onSuccessFallbackRoute);
-        } else {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET);
-        }
-    }
+            if (exitReportID) {
+                Navigation.dismissModal(exitReportID);
+            } else if (shouldContinue && onSuccessFallbackRoute) {
+                PaymentMethods.continueSetup(onSuccessFallbackRoute);
+            } else {
+                Navigation.goBack(ROUTES.SETTINGS_WALLET);
+            }
+        },
+        [personalBankAccount],
+    );
 
-    render() {
-        const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
+    useEffect(() => BankAccounts.clearPersonalBankAccount, []);
 
-        return (
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={shouldShowSuccess}
-                shouldEnablePickerAvoiding={false}
-                shouldShowOfflineIndicator={false}
-                testID={AddPersonalBankAccountPage.displayName}
-            >
-                <HeaderWithBackButton
-                    title={this.props.translate('bankAccount.addBankAccount')}
-                    onBackButtonPress={this.exitFlow}
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={shouldShowSuccess}
+            shouldEnablePickerAvoiding={false}
+            shouldShowOfflineIndicator={false}
+            testID={AddPersonalBankAccountPage.displayName}
+        >
+            <HeaderWithBackButton
+                title={translate('bankAccount.addBankAccount')}
+                onBackButtonPress={exitFlow}
+            />
+            {shouldShowSuccess ? (
+                <ConfirmationPage
+                    heading={translate('addPersonalBankAccountPage.successTitle')}
+                    description={translate('addPersonalBankAccountPage.successMessage')}
+                    shouldShowButton
+                    buttonText={translate('common.continue')}
+                    onButtonPress={() => exitFlow(true)}
                 />
-                {shouldShowSuccess ? (
-                    <ConfirmationPage
-                        heading={this.props.translate('addPersonalBankAccountPage.successTitle')}
-                        description={this.props.translate('addPersonalBankAccountPage.successMessage')}
-                        shouldShowButton
-                        buttonText={this.props.translate('common.continue')}
-                        onButtonPress={() => this.exitFlow(true)}
+            ) : (
+                <Form
+                    formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
+                    isSubmitButtonVisible={Boolean(selectedPlaidAccountId)}
+                    submitButtonText={translate('common.saveAndContinue')}
+                    scrollContextEnabled
+                    onSubmit={submitBankAccountForm}
+                    validate={validateBankAccountForm}
+                    style={[styles.mh5, styles.flex1]}
+                >
+                    <AddPlaidBankAccount
+                        onSelect={setSelectedPlaidAccountId}
+                        plaidData={plaidData}
+                        onExitPlaid={() => Navigation.goBack(ROUTES.HOME)}
+                        receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                        selectedPlaidAccountID={selectedPlaidAccountId}
                     />
-                ) : (
-                    <Form
-                        formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
-                        isSubmitButtonVisible={Boolean(this.state.selectedPlaidAccountID)}
-                        submitButtonText={this.props.translate('common.saveAndContinue')}
-                        scrollContextEnabled
-                        onSubmit={this.submit}
-                        validate={this.validate}
-                        style={[styles.mh5, styles.flex1]}
-                    >
-                        <>
-                            <AddPlaidBankAccount
-                                onSelect={(selectedPlaidAccountID) => {
-                                    this.setState({selectedPlaidAccountID});
-                                }}
-                                plaidData={this.props.plaidData}
-                                onExitPlaid={() => Navigation.goBack(ROUTES.HOME)}
-                                receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                                selectedPlaidAccountID={this.state.selectedPlaidAccountID}
-                            />
-                        </>
-                    </Form>
-                )}
-            </ScreenWrapper>
-        );
-    }
+                </Form>
+            )}
+        </ScreenWrapper>
+    );
 }
-
+AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 AddPersonalBankAccountPage.propTypes = propTypes;
 AddPersonalBankAccountPage.defaultProps = defaultProps;
+AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        personalBankAccount: {
-            key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-        },
-        plaidData: {
-            key: ONYXKEYS.PLAID_DATA,
-        },
-    }),
-)(AddPersonalBankAccountPage);
+export default withOnyx({
+    personalBankAccount: {
+        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+    },
+    plaidData: {
+        key: ONYXKEYS.PLAID_DATA,
+    },
+})(AddPersonalBankAccountPage);

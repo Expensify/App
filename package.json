@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.3.87-1",
+  "version": "1.3.90-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -49,7 +49,9 @@
     "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.common.js --env envFile=.env.production",
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
-    "test:e2e": "node tests/e2e/testRunner.js --development",
+    "test:e2e:main": "node tests/e2e/testRunner.js --development --branch main --skipCheckout",
+    "test:e2e:delta": "node tests/e2e/testRunner.js --development --branch main --label delta --skipCheckout",
+    "test:e2e:compare": "node tests/e2e/merge.js",
     "gh-actions-unused-styles": "./.github/scripts/findUnusedKeys.sh",
     "workflow-test": "./workflow_tests/scripts/runWorkflowTests.sh",
     "workflow-test:generate": "node workflow_tests/utils/preGenerateTest.js"
@@ -238,7 +240,7 @@
     "electron-builder": "24.6.4",
     "eslint": "^7.6.0",
     "eslint-config-airbnb-typescript": "^17.1.0",
-    "eslint-config-expensify": "^2.0.39",
+    "eslint-config-expensify": "^2.0.42",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-jest": "^24.1.0",
     "eslint-plugin-jsdoc": "^46.2.6",

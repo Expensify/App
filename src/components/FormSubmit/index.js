@@ -75,10 +75,14 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
 FormSubmit.propTypes = formSubmitPropTypes.propTypes;
 FormSubmit.defaultProps = formSubmitPropTypes.defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const FormSubmitWithRef = React.forwardRef((props, ref) => (
     <FormSubmit
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+FormSubmitWithRef.displayName = 'FormSubmitWithRef';
+
+export default FormSubmitWithRef;

@@ -89,8 +89,6 @@ function DetailsPage(props) {
     let details = _.find(props.personalDetails, (detail) => detail.login === login.toLowerCase());
 
     if (!details) {
-        // TODO: these personal details aren't in my local test account but are in
-        // my staging account, i wonder why!
         if (login === CONST.EMAIL.CONCIERGE) {
             details = {
                 accountID: CONST.ACCOUNT_ID.CONCIERGE,

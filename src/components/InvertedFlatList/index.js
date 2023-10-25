@@ -130,10 +130,14 @@ InvertedFlatList.defaultProps = {
     onScroll: () => {},
 };
 
-export default forwardRef((props, ref) => (
+const InvertedFlatListWithRef = forwardRef((props, ref) => (
     <InvertedFlatList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+InvertedFlatListWithRef.displayName = 'InvertedFlatListWithRef';
+
+export default InvertedFlatListWithRef;

@@ -103,17 +103,19 @@ function BaseTwoFactorAuthForm(props) {
 BaseTwoFactorAuthForm.propTypes = propTypes;
 BaseTwoFactorAuthForm.defaultProps = defaultProps;
 
+const BaseTwoFactorAuthFormWithRef = forwardRef((props, ref) => (
+    <BaseTwoFactorAuthForm
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+BaseTwoFactorAuthFormWithRef.displayName = 'BaseTwoFactorAuthFormWithRef';
+
 export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
     }),
-)(
-    forwardRef((props, ref) => (
-        <BaseTwoFactorAuthForm
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+)(BaseTwoFactorAuthFormWithRef);

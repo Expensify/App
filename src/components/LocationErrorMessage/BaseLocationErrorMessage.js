@@ -59,6 +59,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                 <Tooltip text={translate('common.close')}>
                     <PressableWithoutFeedback
                         onPress={onClose}
+                        onMouseDown={(e) => e.preventDefault()}
                         style={[styles.touchableButtonImage]}
                         role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}

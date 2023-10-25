@@ -299,10 +299,14 @@ MoneyRequestAmountForm.propTypes = propTypes;
 MoneyRequestAmountForm.defaultProps = defaultProps;
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
-export default React.forwardRef((props, ref) => (
+const MoneyRequestAmountFormWithRef = React.forwardRef((props, ref) => (
     <MoneyRequestAmountForm
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+MoneyRequestAmountFormWithRef.displayName = 'MoneyRequestAmountFormWithRef';
+
+export default MoneyRequestAmountFormWithRef;
