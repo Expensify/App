@@ -54,7 +54,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
     // We need to edit the note in markdown format, but display it in HTML format
     const parser = new ExpensiMark();
     const [privateNote, setPrivateNote] = useState(
-        Report.getDraftPrivateNote(report.reportID) || parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim(),
+        () => Report.getDraftPrivateNote(report.reportID) || parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim(),
     );
 
     /**

@@ -17,6 +17,7 @@ import TextLink from '../../TextLink';
 import ONYXKEYS from '../../../ONYXKEYS';
 import useLocalize from '../../../hooks/useLocalize';
 import CONST from '../../../CONST';
+import * as LocalePhoneNumber from '../../../libs/LocalePhoneNumber';
 
 const propTypes = {
     ...htmlRendererPropTypes,
@@ -40,7 +41,7 @@ function MentionUserRenderer(props) {
     if (!_.isEmpty(htmlAttribAccountID)) {
         const user = lodashGet(props.personalDetails, htmlAttribAccountID);
         accountID = parseInt(htmlAttribAccountID, 10);
-        displayNameOrLogin = lodashGet(user, 'login', '') || lodashGet(user, 'displayName', '') || translate('common.hidden');
+        displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(lodashGet(user, 'login', '')) || lodashGet(user, 'displayName', '') || translate('common.hidden');
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
     } else if (!_.isEmpty(props.tnode.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
