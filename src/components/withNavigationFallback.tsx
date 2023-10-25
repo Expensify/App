@@ -18,7 +18,14 @@ export default function <TProps, TRef>(WrappedComponent: ComponentType<TProps & 
     function WithNavigationFallback(props: TProps, ref: ForwardedRef<TRef>) {
         const context = useContext(NavigationContext);
 
-        const navigationContextValue: NavigationContextValue = useMemo(() => ({isFocused: () => true, addListener: () => () => {}, removeListener: () => () => {}}), []);
+        const navigationContextValue: NavigationContextValue = useMemo(
+            () => ({
+                isFocused: () => true,
+                addListener: () => () => {},
+                removeListener: () => () => {},
+            }),
+            [],
+        );
 
         return context ? (
             <WrappedComponent
