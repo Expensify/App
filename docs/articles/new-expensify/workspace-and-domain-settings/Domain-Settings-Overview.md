@@ -2,10 +2,8 @@
 title: The title of the post, page, or document
 description: Want to gain greater control over your company settings in Expensify? Read on to find out more about our Domains feature and how it can help you save time and effort when managing your company expenses. 
 ---
-<!-- The lines above are required by Jekyll to process the .md file -->
 
 # Overview
-<!--
 Domains is a feature in Expensify that allows admins to have more nuanced control over a specific Expensify activity, as well as providing a bird’s eye view of company card expenditure. Think of it as your command center for things like managing user account access, enforcing stricter Workspace rules for certain groups, or issuing cards and reconciling statements.
 There are several settings within Domains that you can configure so that you have more control and visibility into your organization’s settings. Those features are:
 - Company Cards
@@ -23,20 +21,17 @@ There are two ways to use Domains – as an unverified domain or a verified doma
 3. Configure SAML SSO for easier login to Expensify
 4. Set vacation delegates for your domain members
 5. Use consolidated domain billing
--->
 
 # How to claim a domain
-<!--
 To use the domains feature with an unverified domain, you’ll need to claim the domain first. 
 To claim a domain, you need to be a Workspace Admin with a company email address. This allows you to manage company bills, company cards, and reconciliation. Claiming requires an email matching your company's domain.
 1. Create an Expensify account
 2. Set up an expense Workspace
 3. Go to **Settings > _Domains_**. 
 Whichever member runs through those steps will automatically be made a Domain Admin. 
--->
+
 
 # How to verify a domain
-<!--
 To use the domains feature with a verified domain, you’ll want to go through the steps of verifying it. 
 
 To verify domain ownership, follow these steps:
@@ -57,10 +52,9 @@ Google/GSuite
 [Godaddy](https://www.godaddy.com/)
 When creating the TXT record, input only the code and no other values or information.
 You can always confirm if you added the TXT code correctly here: https://viewdns.info/dnsrecord/?domain=[enterdomainhere]
--->
 
 # Domain settings
-<!--
+
 ## Domain Admins
 Domain Admins have full authority over domain settings. They can modify member group names and rules, link or modify Company Cards, and add or remove domain members and other admins.
 
@@ -136,13 +130,11 @@ To enable SAML SSO in Expensify you will first need to claim and verify your dom
 - When using SAML, two-factor authentication cannot be required.
 - For disputing digital Expensify Card purchases, two-factor authentication must be enabled.
 - It might take up to 2 hours for domain-level enforcement to take effect, and users will be prompted to configure their individual 2FA settings on their next login to Expensify.
--->
 
 # FAQ
-<!--
+
 ## How many domains can I have?
 You can manage multiple domains by adding them through **Settings > Domains > New Domain**. However, to verify additional domains, you must be a Workspace Admin on a Control Workspace. Keep in mind that the Collect plan allows verification for just one domain.
 
 ## What’s the difference between claiming a domain and verifying a domain?
 Claiming a domain is limited to users with matching email domains, and allows Workspace Admins with a company email to manage bills, company cards, and reconciliation. Verifying a domain offers extra features and security.
--->
