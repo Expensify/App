@@ -52,4 +52,4 @@ jobs:
 
           So it might take a while before you're paid for your work, but we typically post multiple new jobs every day, so there's plenty of opportunity. I hope you've had a positive experience contributing to this repo! :blush:"
         env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
