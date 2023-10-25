@@ -492,7 +492,6 @@ class ReimbursementAccountPage extends React.Component {
                 <RequestorStep
                     ref={this.requestorStepRef}
                     reimbursementAccount={this.props.reimbursementAccount}
-                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}
                     shouldShowOnfido={Boolean(shouldShowOnfido)}
                     getDefaultStateForField={this.getDefaultStateForField}
@@ -535,6 +534,7 @@ class ReimbursementAccountPage extends React.Component {
 
 ReimbursementAccountPage.propTypes = propTypes;
 ReimbursementAccountPage.defaultProps = defaultProps;
+ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
 
 export default compose(
     withNetwork(),
