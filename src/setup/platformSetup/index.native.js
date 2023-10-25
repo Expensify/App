@@ -4,7 +4,15 @@ import PushNotification from '../../libs/Notification/PushNotification';
 import Performance from '../../libs/Performance';
 import subscribeToReportCommentPushNotifications from '../../libs/Notification/PushNotification/subscribeToReportCommentPushNotifications';
 
-export default function () {
+function beforeAppLoad() {
+    return Promise.resolve();
+}
+
+function afterAppLoad() {
+    return Promise.resolve();
+}
+
+function additional() {
     // We do not want to send crash reports if we are on a locally built release version of the app.
     // Crashlytics is disabled by default for debug builds, but not local release builds so we are using
     // an environment variable to enable them in the staging & production apps and opt-out everywhere else.
@@ -22,4 +30,8 @@ export default function () {
     subscribeToReportCommentPushNotifications();
 
     Performance.setupPerformanceObserver();
+
+    return Promise.resolve();
 }
+
+export {beforeAppLoad, afterAppLoad, additional};

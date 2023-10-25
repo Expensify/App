@@ -1,15 +1,25 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
-import {init} from 'react-native-encryptify';
+import {init as initEncryptify} from 'react-native-encryptify';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import platformSetup from './platformSetup';
+import * as PlatformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
 import * as Device from '../libs/actions/Device';
 import intlPolyfill from '../libs/IntlPolyfill';
 import exposeGlobalMemoryOnlyKeysMethods from '../libs/actions/MemoryOnlyKeys/exposeGlobalMemoryOnlyKeysMethods';
 
-const nonBlocking = function () {
+function beforeAppLoad() {
+    PlatformSetup.beforeAppLoad();
+    return initEncryptify();
+}
+
+function afterAppLoad() {
+    // Perform any other platform-specific setup
+    PlatformSetup.afterAppLoad();
+}
+
+function additional() {
     /*
      * Initialize the Onyx store when the app loads for the first time.
      *
@@ -55,12 +65,9 @@ const nonBlocking = function () {
     // Polyfill the Intl API if locale data is not as expected
     intlPolyfill();
 
-    // Perform any other platform-specific setup
-    platformSetup();
-};
+    PlatformSetup.additional();
 
-const blocking = function () {
-    return init();
-};
+    return Promise.resolve();
+}
 
-export {nonBlocking, blocking};
+export {beforeAppLoad, afterAppLoad, additional};

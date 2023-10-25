@@ -55,11 +55,19 @@ const webUpdater = () => ({
     update: () => webUpdate(),
 });
 
-export default function () {
+function beforeAppLoad() {
+    return Promise.resolve();
+}
+
+function afterAppLoad() {
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
     });
 
+    return Promise.resolve();
+}
+
+function additional() {
     // When app loads, get current version (production only)
     if (Config.IS_IN_PRODUCTION) {
         checkForUpdates(webUpdater());
@@ -67,4 +75,8 @@ export default function () {
 
     // Start current date updater
     DateUtils.startCurrentDateUpdater();
+
+    return Promise.resolve();
 }
+
+export {beforeAppLoad, afterAppLoad, additional};

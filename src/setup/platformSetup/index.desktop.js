@@ -6,7 +6,15 @@ import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 
-export default function () {
+function beforeAppLoad() {
+    return Promise.resolve();
+}
+
+function afterAppLoad() {
+    return Promise.resolve();
+}
+
+function additional() {
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
     });
@@ -23,4 +31,8 @@ export default function () {
 
     // Start current date updater
     DateUtils.startCurrentDateUpdater();
+
+    return Promise.resolve();
 }
+
+export {beforeAppLoad, afterAppLoad, additional};
