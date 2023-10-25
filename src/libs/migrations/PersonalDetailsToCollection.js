@@ -29,16 +29,9 @@ export default function PersonalDetailsToCollection() {
                         }
 
                         Log.info('[Migrate Onyx] Running PersonalDetailsToCollection migration');
-                        const dataToSave = _.reduce(
+                        const dataToSave = _.mapKeys(
                             personalDetailsList,
-                            (result, personalDetails, key) => {
-                                const personalDetailsKey = `${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${key}`;
-                                // Param reassign justified to avoid creating a new object on each iteration
-                                // eslint-disable-next-line no-param-reassign
-                                result[personalDetailsKey] = personalDetails;
-                                return result;
-                            },
-                            {},
+                            (_value, key) => `${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${key}`
                         );
 
                         // eslint-disable-next-line rulesdir/prefer-actions-set-data
