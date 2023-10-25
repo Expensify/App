@@ -57,21 +57,21 @@ function DotIndicatorMessage(props) {
         .map((message) => Localize.translateIfPhraseKey(message))
         .value();
 
-    const isErrorMessageType = props.type === 'error';
+    const isErrorMessage = props.type === 'error';
 
     return (
         <View style={[styles.dotIndicatorMessage, ...props.style]}>
             <View style={styles.offlineFeedback.errorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
-                    fill={isErrorMessageType ? themeColors.danger : themeColors.success}
+                    fill={isErrorMessage ? themeColors.danger : themeColors.success}
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
                 {_.map(sortedMessages, (message, i) => (
                     <Text
                         key={i}
-                        style={[styles.offlineFeedback.text, ...props.textStyles, isErrorMessageType && {color: styles.formError.color}]}
+                        style={[styles.offlineFeedback.text, ...props.textStyles, isErrorMessage && {color: styles.formError.color}]}
                     >
                         {message}
                     </Text>
