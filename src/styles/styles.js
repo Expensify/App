@@ -3905,6 +3905,10 @@ const styles = (theme) => ({
         alignItems:'center',
         justifyContent:'center'
     },
+
+    thumbnailBgColor: {
+        backgroundColor: colors.green800 
+    },
 });
 
 // For now we need to export the styles function that takes the theme as an argument

@@ -10,6 +10,7 @@ import useWindowDimensions from '../hooks/useWindowDimensions';
 import useNetwork from '../hooks/useNetwork';
 import Icon from '../../src/components/Icon';
 import * as Expensicons from '../../src/components/Icon/Expensicons';
+import colors from '../styles/colors'; 
 
 const propTypes = {
     /** Source URL for the preview image */
@@ -34,21 +35,21 @@ const propTypes = {
     /** Icon to use as a fallback when offline */
     fallbackIcon: PropTypes.string,
 
-     /** Size of the icon container that will be rendered */
-    iconSize: PropTypes.number,
-
-      /** The fill color to pass into the icon. */
+    /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
 };
 
+const screenDimensions = Dimensions.get('window');
+const iconSize = Math.min(screenDimensions.width, screenDimensions.height) * 0.12; // Adjust the factor (0.2) as needed
+
 const defaultProps = {
-    iconFill: '#3bd47c',
+    iconFill: colors.green700,
     style: {},
     imageWidth: 200,
     imageHeight: 200,
     shouldDynamicallyResize: true,
     fallbackIcon: Expensicons.ReceiptPlaceholderImage, // Default fallback icon
-    iconSize: 113, // Default icon size
+    iconSize, // Default icon size
 };
 
 /**
@@ -109,7 +110,7 @@ function ThumbnailImage(props) {
     const {isOffline} = useNetwork();
 
     return (
-        <View style={[props.style, styles.overflowHidden]}>
+        <View style={[props.style, styles.overflowHidden,styles.thumbnailBgColor]}>
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 {isOffline ? (
                     <Icon
