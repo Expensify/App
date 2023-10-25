@@ -22,8 +22,8 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Timezone} from '@src/types/onyx/PersonalDetails';
-import * as CurrentDate from './actions/CurrentDate';
-import * as Localize from './Localize';
+import * as CurrentDate from '@libs/actions/CurrentDate';
+import * as Localize from '@libs/Localize';
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({
