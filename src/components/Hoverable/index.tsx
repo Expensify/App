@@ -1,7 +1,7 @@
-import _ from 'underscore';
-import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle, ReactNode} from 'react';
+import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle, ReactNode, MutableRefObject} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import { HoverableProps } from './types';
+import _ from 'lodash';
+import HoverableProps from './types';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import CONST from '../../CONST';
 
@@ -14,11 +14,11 @@ import CONST from '../../CONST';
  * @returns The mapped children.
  */
  function mapChildren(children: ((isHovered: boolean) => ReactNode) | ReactNode, callbackParam: boolean) {
-    if (_.isArray(children) && children.length === 1) {
+    if (Array.isArray(children) && children.length === 1) {
         return children[0];
     }
 
-    if (_.isFunction(children)) {
+    if (typeof children === 'function') {
         return children(callbackParam);
     }
 
@@ -30,17 +30,15 @@ import CONST from '../../CONST';
  * @param ref The ref object or function.
  * @param element The element to assign the ref to.
  */
-function assignRef(ref: React.MutableRefObject<HTMLElement | null>, element: HTMLElement) {
+function assignRef(ref: MutableRefObject<HTMLElement> | ((element: HTMLElement) => void), element: HTMLElement) {
     if (!ref) {
         return;
     }
 
-    if (_.has(ref, 'current')) {
-        ref.current = element;
-    }
-
-    if (_.isFunction(ref)) {
+    if (typeof ref === 'function') {
         ref(element);
+    } else if (_.has(ref, 'current')) {
+        ref.current = element;
     }
 }
 
@@ -150,12 +148,9 @@ function assignRef(ref: React.MutableRefObject<HTMLElement | null>, element: HTM
     const enableHoveredOnMouseEnter = useCallback(
         (event: MouseEvent) => {
             updateIsHoveredOnScrolling(true);
+            onMouseEnter(event);
 
-            if (_.isFunction(onMouseEnter)) {
-                onMouseEnter(event);
-            }
-
-            if (_.isFunction(child.props.onMouseEnter)) {
+            if (typeof child.props.onMouseEnter === 'function') {
                 child.props.onMouseEnter(event);
             }
         },
@@ -165,12 +160,9 @@ function assignRef(ref: React.MutableRefObject<HTMLElement | null>, element: HTM
     const disableHoveredOnMouseLeave = useCallback(
         (event: MouseEvent) => {
             updateIsHoveredOnScrolling(false);
+            onMouseLeave(event);
 
-            if (_.isFunction(onMouseLeave)) {
-                onMouseLeave(event);
-            }
-
-            if (_.isFunction(child.props.onMouseLeave)) {
+            if (typeof child.props.onMouseLeave === 'function') {
                 child.props.onMouseLeave(event);
             }
         },
@@ -185,7 +177,7 @@ function assignRef(ref: React.MutableRefObject<HTMLElement | null>, element: HTM
                 setIsHovered(false);
             }
 
-            if (_.isFunction(child.props.onBlur)) {
+            if (typeof child.props.onBlur === 'function') {
                 child.props.onBlur(event);
             }
         },

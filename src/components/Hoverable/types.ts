@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { NativeMouseEvent } from "react-native";
 
 type HoverableProps = {
     /** Children to wrap with Hoverable. */
@@ -24,4 +23,4 @@ type HoverableProps = {
     shouldHandleScroll?: boolean;
 }
 
-export type{HoverableProps};
+export default HoverableProps;

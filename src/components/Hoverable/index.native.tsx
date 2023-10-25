@@ -1,14 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
-import { HoverableProps } from './types';
-import _ from 'underscore';
+import HoverableProps from './types';
 
 /**
  * On mobile, there is no concept of hovering, so we return a plain wrapper around the component's children,
  * where the hover state is always false.
  */
 function Hoverable({children}: HoverableProps) {
-    const childrenWithHoverState = _.isFunction(children) ? children(false) : children;
+    const childrenWithHoverState = typeof children === 'function' ? children(false) : children;
 
     return <View>{childrenWithHoverState}</View>;
 }
