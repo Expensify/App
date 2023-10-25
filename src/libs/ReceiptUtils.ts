@@ -36,7 +36,7 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
 
     const hasEReceipt = transaction?.hasEReceipt;
 
-    if (!Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) {
+    if (!transaction?.pendingFields?.waypoints) {
         if (hasEReceipt) {
             return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction};
         }
