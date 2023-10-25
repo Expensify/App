@@ -21,7 +21,7 @@ import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import variables from '../styles/variables';
 import useNetwork from '../hooks/useNetwork';
-import useDelayedInputFocus from '../hooks/useDelayedInputFocus';
+import useAutoFocusInput from '../hooks/useAutoFocusInput';
 
 const propTypes = {
     /** Beta features list */
@@ -51,7 +51,6 @@ const defaultProps = {
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
 function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports}) {
-    const optionSelectorRef = React.createRef(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
@@ -213,7 +212,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         setSearchTerm(text);
     }, []);
 
-    useDelayedInputFocus(optionSelectorRef, 600);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     return (
         <ScreenWrapper
@@ -235,7 +234,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                 >
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                         <OptionsSelector
-                            ref={optionSelectorRef}
+                            ref={inputCallbackRef}
                             canSelectMultipleOptions
                             shouldShowMultipleOptionSelectorAsButton
                             multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}

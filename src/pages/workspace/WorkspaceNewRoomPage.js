@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -25,8 +25,8 @@ import policyMemberPropType from '../policyMemberPropType';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
-import useDelayedInputFocus from '../../hooks/useDelayedInputFocus';
 import ValuePicker from '../../components/ValuePicker';
+import useAutoFocusInput from '../../hooks/useAutoFocusInput';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -156,10 +156,7 @@ function WorkspaceNewRoomPage(props) {
         [translate],
     );
 
-    const roomNameInputRef = useRef(null);
-
-    // use a 600ms delay for delayed focus on the room name input field so that it works consistently on native iOS / Android
-    useDelayedInputFocus(roomNameInputRef, 600);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     return (
         <FullPageNotFoundView
@@ -193,7 +190,7 @@ function WorkspaceNewRoomPage(props) {
                         >
                             <View style={styles.mb5}>
                                 <RoomNameInput
-                                    ref={(el) => (roomNameInputRef.current = el)}
+                                    ref={inputCallbackRef}
                                     inputID="roomName"
                                     isFocused={props.isFocused}
                                     shouldDelayFocus

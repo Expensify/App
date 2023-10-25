@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useMemo, useCallback, useRef} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -22,6 +22,7 @@ import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
+import useAutoFocusInput from '../../hooks/useAutoFocusInput';
 
 const propTypes = {
     /** Beta features list */
@@ -80,7 +81,7 @@ function TaskAssigneeSelectorModal(props) {
     const [filteredCurrentUserOption, setFilteredCurrentUserOption] = useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
 
-    const optionRef = useRef();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const updateOptions = useCallback(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
@@ -208,7 +209,6 @@ function TaskAssigneeSelectorModal(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
             testID={TaskAssigneeSelectorModal.displayName}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -229,7 +229,7 @@ function TaskAssigneeSelectorModal(props) {
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
-                            ref={optionRef}
+                            ref={inputCallbackRef}
                         />
                     </View>
                 </FullPageNotFoundView>

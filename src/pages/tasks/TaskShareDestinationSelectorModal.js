@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useMemo, useCallback, useRef} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -19,6 +19,7 @@ import reportPropTypes from '../reportPropTypes';
 import * as Task from '../../libs/actions/Task';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
+import useAutoFocusInput from '../../hooks/useAutoFocusInput';
 
 const propTypes = {
     /* Onyx Props */
@@ -46,7 +47,7 @@ function TaskShareDestinationSelectorModal(props) {
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
 
-    const optionRef = useRef();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const filteredReports = useMemo(() => {
         const reports = {};
@@ -115,7 +116,6 @@ function TaskShareDestinationSelectorModal(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
             testID={TaskShareDestinationSelectorModal.displayName}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -138,7 +138,7 @@ function TaskShareDestinationSelectorModal(props) {
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
-                            ref={optionRef}
+                            ref={inputCallbackRef}
                         />
                     </View>
                 </>
