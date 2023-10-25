@@ -17,6 +17,7 @@ import * as Expensicons from './Icon/Expensicons';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as BankAccounts from '../libs/actions/BankAccounts';
 import ROUTES from '../ROUTES';
+import {hasNonReimbursableTransactions} from "../libs/ReportUtils";
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
@@ -169,7 +170,7 @@ function SettlementButton({
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
-        const isNonReimbursable = isExpenseReport && !ReportUtils.hasReimbursableTransactions(iouReport);
+        const isNonReimbursable = isExpenseReport && !ReportUtils.hasReimbursableTransactions(iouReport.reportID);
         let paymentMethod = isNonReimbursable ? CONST.IOU.PAYMENT_TYPE.MARK_AS_DONE : _.get(nvp_lastPaymentMethod, policyID, '');
         if (!shouldShowPaymentOptions || isNonReimbursable) {
             if (!paymentMethod) {
