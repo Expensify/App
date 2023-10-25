@@ -283,6 +283,16 @@ MoneyRequestParticipantsSelector.propTypes = propTypes;
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
+const MoneyRequestParticipantsSelectorWithRef = React.forwardRef((props, ref) => (
+    <MoneyRequestParticipantsSelector
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+MoneyRequestParticipantsSelectorWithRef.displayName = 'MoneyRequestParticipantsSelectorWithRef';
+
 export default compose(
     withLocalize,
     withOnyx({
@@ -296,12 +306,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(
-    React.forwardRef((props, ref) => (
-        <MoneyRequestParticipantsSelector
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(MoneyRequestParticipantsSelectorWithRef);

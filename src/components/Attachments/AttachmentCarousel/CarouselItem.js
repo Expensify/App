@@ -52,7 +52,7 @@ function CarouselItem({item, isFocused, onPress}) {
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
     // eslint-disable-next-line es/no-nullish-coalescing-operators
-    const [isHidden, setIsHidden] = useState(isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
+    const [isHidden, setIsHidden] = useState(() => isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
 
     const renderButton = (style) => (
         <Button

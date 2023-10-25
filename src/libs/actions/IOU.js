@@ -1809,6 +1809,8 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         optimisticPolicyRecentlyUsedTags[tagListName] = [transactionChanges.tag, ...uniquePolicyRecentlyUsedTags];
     }
 
+    const isScanning = TransactionUtils.hasReceipt(updatedTransaction) && TransactionUtils.isReceiptBeingScanned(updatedTransaction);
+
     // STEP 4: Compose the optimistic data
     const currentTime = DateUtils.getDBTime();
     const optimisticData = [
@@ -1842,6 +1844,28 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                 lastVisibleActionCreated: currentTime,
             },
         },
+        ...(!isScanning
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                      value: {
+                          [transactionThread.parentReportActionID]: {
+                              whisperedToAccountIDs: [],
+                          },
+                      },
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`,
+                      value: {
+                          [iouReport.parentReportActionID]: {
+                              whisperedToAccountIDs: [],
+                          },
+                      },
+                  },
+              ]
+            : []),
     ];
 
     if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
@@ -2246,7 +2270,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         },
     };
     const optimisticChatReportActionsData = {
-        onyxMethod: Onyx.METHOD.SET,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
         value: {
             [reportPreviewAction.reportActionID]: reportPreviewAction,
@@ -2863,7 +2887,7 @@ function setUpDistanceTransaction() {
  */
 function navigateToNextPage(iou, iouType, report, path = '') {
     const moneyRequestID = `${iouType}${report.reportID || ''}`;
-    const shouldReset = iou.id !== moneyRequestID;
+    const shouldReset = !_.isEmpty(report.reportID) && iou.id !== moneyRequestID;
 
     // If the money request ID in Onyx does not match the ID from params, we want to start a new request
     // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
