@@ -10,7 +10,7 @@ import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportPropTypes from '../../reportPropTypes';
-import reportMetadataPropTypes from '../../../pages/reportMetadataPropTypes';
+import reportMetadataPropTypes from '../../reportMetadataPropTypes';
 import CONST from '../../../CONST';
 
 const propTypes = {
@@ -74,7 +74,7 @@ function ReportAttachments(props) {
         }
 
         Report.openReport(reportID);
-    }, [props.reportMetadata, reportID]);
+    }, [props.reportMetadata, reportID, sourceID]);
 
     return (
         <AttachmentModal

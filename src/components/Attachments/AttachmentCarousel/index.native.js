@@ -72,7 +72,7 @@ function AttachmentCarousel({report, reportMetadata, reportActions, source, onNa
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportMetadata, reportActions, compareImage]);
+    }, [reportMetadata, sourceID, reportActions, compareImage]);
 
     /**
      * Updates the page state when the user navigates between attachments
