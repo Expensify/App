@@ -92,47 +92,27 @@ const propTypes = {
     ...withNavigationFocusPropTypes,
 };
 
-const defaultProps = {
-    source: '',
-    onImageSelected: () => {},
-    onImageRemoved: () => {},
-    style: [],
-    DefaultAvatar: () => {},
-    isUsingDefaultAvatar: false,
-    size: CONST.AVATAR_SIZE.DEFAULT,
-    fallbackIcon: Expensicons.FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    editorMaskImage: undefined,
-    errorRowStyles: [],
-    onErrorClose: () => {},
-    pendingAction: null,
-    errors: null,
-    headerTitle: '',
-    previewSource: '',
-    originalFileName: '',
-};
-
 function AvatarWithImagePicker({
     isFocused,
-    DefaultAvatar,
-    style,
-    pendingAction,
-    errors,
-    errorRowStyles,
-    onErrorClose,
-    source,
-    fallbackIcon,
-    size,
-    type,
-    headerTitle,
-    previewSource,
-    originalFileName,
-    isUsingDefaultAvatar,
-    onImageRemoved,
+    DefaultAvatar = () => {},
+    style = [],
+    pendingAction = null,
+    errors = null,
+    errorRowStyles = [],
+    onErrorClose = () => {},
+    source = '',
+    fallbackIcon = Expensicons.FallbackAvatar,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    type = CONST.ICON_TYPE_AVATAR,
+    headerTitle = '',
+    previewSource = '',
+    originalFileName = '',
+    isUsingDefaultAvatar = false,
+    onImageRemoved = () => {},
     anchorPosition,
     anchorAlignment,
-    onImageSelected,
-    editorMaskImage,
+    onImageSelected = () => {},
+    editorMaskImage = undefined
 }) {
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState({
@@ -278,7 +258,7 @@ function AvatarWithImagePicker({
     };
 
     return (
-        <View style={[styles.alignItemsCenter, ...additionalStyles]}>
+        <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
             <View style={[styles.pRelative, styles.avatarLarge]}>
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
@@ -387,7 +367,6 @@ function AvatarWithImagePicker({
 }
 
 AvatarWithImagePicker.propTypes = propTypes;
-AvatarWithImagePicker.defaultProps = defaultProps;
 AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
 
 export default withNavigationFocus(AvatarWithImagePicker);
