@@ -7,6 +7,9 @@ import CONFIG from '../../../CONFIG';
 import * as Session from '../../../libs/actions/Session';
 import SAMLLoadingIndicator from '../../../components/SAMLLoadingIndicator';
 import getPlatform from '../../../libs/getPlatform';
+import FullPageOfflineBlockingView from '../../../components/BlockingViews/FullPageOfflineBlockingView';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import ScreenWrapper from '../../../components/ScreenWrapper';
 
 const propTypes = {
     /** The credentials of the logged in person */
@@ -39,19 +42,32 @@ function SAMLSignInPage({credentials}) {
         [credentials.login],
     );
     return (
-        <WebView
-            originWhitelist={['https://*']}
-            source={{uri: samlLoginURL}}
-            incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
-            startInLoadingState
-            renderLoading={() => <SAMLLoadingIndicator />}
-            onNavigationStateChange={handleNavigationStateChange}
-        />
+        <ScreenWrapper
+            shouldShowOfflineIndicator={false}
+            includeSafeAreaPaddingBottom={false}
+            testID={SAMLSignInPage.displayName}
+        >
+            <HeaderWithBackButton
+                title=""
+                onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
+            />
+            <FullPageOfflineBlockingView>
+                <WebView
+                    originWhitelist={['https://*']}
+                    source={{uri: samlLoginURL}}
+                    incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
+                    startInLoadingState
+                    renderLoading={() => <SAMLLoadingIndicator />}
+                    onNavigationStateChange={handleNavigationStateChange}
+                />
+            </FullPageOfflineBlockingView>
+        </ScreenWrapper>
     );
 }
 
 SAMLSignInPage.propTypes = propTypes;
 SAMLSignInPage.defaultProps = defaultProps;
+SAMLSignInPage.displayName = "SAMLSignInPage"
 
 export default withOnyx({
     credentials: {key: ONYXKEYS.CREDENTIALS},
