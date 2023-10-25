@@ -294,7 +294,7 @@ async function migrateStylesForFunctionComponent(filePath, fileContents, ast, co
             }
         },
         FunctionDeclaration({node}) {
-            if (node.id.name !== componentName) {
+            if (node.id?.name !== componentName) {
                 return;
             }
             if (styleIdentifier) {
