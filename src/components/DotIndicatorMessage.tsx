@@ -36,10 +36,9 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
-                {uniqueMessages.map((message, i) => (
+                {uniqueMessages.map((message) => (
                     <Text
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={i}
+                        key={message}
                         style={[styles.offlineFeedback.text, textStyles]}
                     >
                         {message}
