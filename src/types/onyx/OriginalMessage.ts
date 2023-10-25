@@ -18,7 +18,7 @@ type IOUDetails = {
 type IOUMessage = {
     /** The ID of the iou transaction */
     IOUTransactionID?: string;
-    IOUReportID?: number;
+    IOUReportID?: string;
     amount: number;
     comment?: string;
     currency: string;
@@ -94,11 +94,7 @@ type OriginalMessageSubmitted = {
 
 type OriginalMessageClosed = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CLOSED;
-    originalMessage: {
-        policyName: string;
-        reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
-        lastModified?: string;
-    };
+    originalMessage: Closed;
 };
 
 type OriginalMessageCreated = {

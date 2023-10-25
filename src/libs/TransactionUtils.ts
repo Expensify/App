@@ -1,5 +1,6 @@
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {format, isValid} from 'date-fns';
+import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
@@ -266,8 +267,8 @@ function getMerchant(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
  */
-function getMCCGroup(transaction: Transaction): string {
-    return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup ?? '';
+function getMCCGroup(transaction: Transaction): ValueOf<typeof CONST.MCC_GROUPS> | undefined {
+    return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup;
 }
 
 /**
