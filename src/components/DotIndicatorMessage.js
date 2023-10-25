@@ -3,9 +3,10 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import styles from '../styles/styles';
+import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import colors from '../styles/colors';
+import themeColors from '../styles/themes/default';
 import Text from './Text';
 import * as Localize from '../libs/Localize';
 
@@ -25,11 +26,15 @@ const propTypes = {
     // Additional styles to apply to the container */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
+
+    // Additional styles to apply to the text
+    textStyles: stylePropTypes,
 };
 
 const defaultProps = {
     messages: {},
     style: [],
+    textStyles: [],
 };
 
 function DotIndicatorMessage(props) {
@@ -57,14 +62,14 @@ function DotIndicatorMessage(props) {
             <View style={styles.offlineFeedback.errorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
-                    fill={props.type === 'error' ? colors.red : colors.green}
+                    fill={props.type === 'error' ? themeColors.danger : themeColors.success}
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
                 {_.map(sortedMessages, (message, i) => (
                     <Text
                         key={i}
-                        style={styles.offlineFeedback.text}
+                        style={[styles.offlineFeedback.text, ...props.textStyles]}
                     >
                         {message}
                     </Text>

@@ -1,11 +1,18 @@
-import React, {memo, useCallback, useContext} from 'react';
-import styles from '../../../../styles/styles';
+import React, {memo, useCallback, useContext, useEffect} from 'react';
 import {attachmentViewPdfPropTypes, attachmentViewPdfDefaultProps} from './propTypes';
 import PDFView from '../../../PDFView';
 import AttachmentCarouselPagerContext from '../../AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 
-function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete}) {
+function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete, errorLabelStyles, style}) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+
+    useEffect(() => {
+        if (!attachmentCarouselPagerContext) {
+            return;
+        }
+        attachmentCarouselPagerContext.onPinchGestureChange(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+    }, []);
 
     const onScaleChanged = useCallback(
         (scale) => {
@@ -15,7 +22,11 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
             if (isUsedInCarousel) {
                 const shouldPagerScroll = scale === 1;
 
-                if (attachmentCarouselPagerContext.shouldPagerScroll.value === shouldPagerScroll) return;
+                attachmentCarouselPagerContext.onPinchGestureChange(!shouldPagerScroll);
+
+                if (attachmentCarouselPagerContext.shouldPagerScroll.value === shouldPagerScroll) {
+                    return;
+                }
 
                 attachmentCarouselPagerContext.shouldPagerScroll.value = shouldPagerScroll;
             }
@@ -29,10 +40,11 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}
             fileName={file.name}
-            style={styles.imageModalPDF}
+            style={style}
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}
             onLoadComplete={onLoadComplete}
+            errorLabelStyles={errorLabelStyles}
         />
     );
 }

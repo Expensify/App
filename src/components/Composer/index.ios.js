@@ -97,7 +97,9 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
      * @return {Number}
      */
     const maxNumberOfLines = useMemo(() => {
-        if (isComposerFullSize) return undefined;
+        if (isComposerFullSize) {
+            return;
+        }
         return maxLines;
     }, [isComposerFullSize, maxLines]);
 
@@ -130,10 +132,14 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const ComposerWithRef = React.forwardRef((props, ref) => (
     <Composer
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+ComposerWithRef.displayName = 'ComposerWithRef';
+
+export default ComposerWithRef;

@@ -10,10 +10,11 @@ import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 import useThrottledButtonState from '../../hooks/useThrottledButtonState';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Ref passed to the component by React.forwardRef (do not pass from parent) */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    innerRef: refPropTypes,
 
     /** The text to display */
     text: PropTypes.string,
@@ -101,6 +102,7 @@ function PressableWithDelayToggle(props) {
             ref={props.innerRef}
             onPress={updatePressState}
             accessibilityLabel={tooltipText}
+            suppressHighlighting={props.inline ? true : undefined}
         >
             <>
                 {props.inline && labelText}
@@ -112,7 +114,7 @@ function PressableWithDelayToggle(props) {
                         focusable={false}
                         accessible={false}
                         onPress={updatePressState}
-                        style={[styles.flexRow, ...props.styles]}
+                        style={[styles.flexRow, ...props.styles, !isActive && styles.cursorDefault]}
                     >
                         {({hovered, pressed}) => (
                             <>
@@ -139,10 +141,14 @@ function PressableWithDelayToggle(props) {
 PressableWithDelayToggle.propTypes = propTypes;
 PressableWithDelayToggle.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const PressableWithDelayToggleWithRef = React.forwardRef((props, ref) => (
     <PressableWithDelayToggle
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+PressableWithDelayToggleWithRef.displayName = 'PressableWithDelayToggleWithRef';
+
+export default PressableWithDelayToggleWithRef;

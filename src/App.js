@@ -9,7 +9,7 @@ import {PickerStateProvider} from 'react-native-picker-select';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
-import {LocaleContextProvider} from './components/withLocalize';
+import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import PopoverContextProvider from './components/PopoverProvider';
@@ -22,7 +22,11 @@ import ThemeProvider from './styles/themes/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
+import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import * as Session from './libs/actions/Session';
+import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
+import {SidebarNavigationContextProvider} from './pages/home/sidebar/SidebarNavigationContext';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -40,6 +44,8 @@ LogBox.ignoreLogs([
 const fill = {flex: 1};
 
 function App() {
+    useDefaultDragAndDrop();
+    OnyxUpdateManager();
     return (
         <GestureHandlerRootView style={fill}>
             <ComposeProviders
@@ -54,10 +60,12 @@ function App() {
                     KeyboardStateProvider,
                     PopoverContextProvider,
                     CurrentReportIDContextProvider,
+                    ReportAttachmentsProvider,
                     PickerStateProvider,
                     EnvironmentProvider,
                     ThemeProvider,
                     ThemeStylesProvider,
+                    SidebarNavigationContextProvider,
                 ]}
             >
                 <CustomStatusBar />

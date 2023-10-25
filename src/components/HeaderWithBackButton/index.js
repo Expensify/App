@@ -22,12 +22,12 @@ import useKeyboardState from '../../hooks/useKeyboardState';
 function HeaderWithBackButton({
     iconFill = undefined,
     guidesCallTaskID = '',
-    onBackButtonPress = () => Navigation.goBack(),
+    onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report = null,
-    policies = {},
+    policy = {},
     personalDetails = {},
     shouldShowAvatarWithDisplay = false,
     shouldShowBackButton = true,
@@ -46,13 +46,20 @@ function HeaderWithBackButton({
         horizontal: 0,
     },
     threeDotsMenuItems = [],
+    shouldEnableDetailPageNavigation = false,
     children = null,
+    shouldOverlay = false,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     return (
-        <View style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
+        <View
+            // Hover on some part of close icons will not work on Electron if dragArea is true
+            // https://github.com/Expensify/App/issues/29598
+            dataSet={{dragArea: false}}
+            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}
+        >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
@@ -74,14 +81,14 @@ function HeaderWithBackButton({
                         </PressableWithoutFeedback>
                     </Tooltip>
                 )}
-                {shouldShowAvatarWithDisplay && (
+                {shouldShowAvatarWithDisplay ? (
                     <AvatarWithDisplayName
                         report={report}
-                        policies={policies}
+                        policy={policy}
                         personalDetails={personalDetails}
+                        shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     />
-                )}
-                {!shouldShowAvatarWithDisplay && (
+                ) : (
                     <Header
                         title={title}
                         subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
@@ -119,7 +126,7 @@ function HeaderWithBackButton({
                     {shouldShowGetAssistanceButton && (
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
-                                onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(guidesCallTaskID))}
+                                onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
@@ -137,6 +144,7 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
+                            shouldOverlay={shouldOverlay}
                         />
                     )}
                     {shouldShowCloseButton && (

@@ -6,11 +6,12 @@ import ONYXKEYS from '../ONYXKEYS';
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
+ * These are policies that we can use to create reports with in NewDot.
  * @param {Object} policies
  * @returns {Array}
  */
 function getActivePolicies(policies) {
-    return _.filter(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return _.filter(policies, (policy) => policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
@@ -58,6 +59,42 @@ function hasCustomUnitsError(policy) {
 }
 
 /**
+ * @param {Number} value
+ * @param {Function} toLocaleDigit
+ * @returns {Number}
+ */
+function getNumericValue(value, toLocaleDigit) {
+    const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
+    if (Number.isNaN(numValue)) {
+        return NaN;
+    }
+    return numValue.toFixed(CONST.CUSTOM_UNITS.RATE_DECIMALS);
+}
+
+/**
+ * @param {Number} value
+ * @param {Function} toLocaleDigit
+ * @returns {String}
+ */
+function getRateDisplayValue(value, toLocaleDigit) {
+    const numValue = getNumericValue(value, toLocaleDigit);
+    if (Number.isNaN(numValue)) {
+        return '';
+    }
+    return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.length);
+}
+
+/**
+ * @param {Object} customUnitRate
+ * @param {Number} customUnitRate.rate
+ * @param {Function} toLocaleDigit
+ * @returns {String}
+ */
+function getUnitRateValue(customUnitRate, toLocaleDigit) {
+    return getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit);
+}
+
+/**
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  *
  * @param {Object} policy
@@ -86,7 +123,7 @@ function getPolicyBrickRoadIndicatorStatus(policy, policyMembersCollection) {
 function shouldShowPolicy(policy, isOffline) {
     return (
         policy &&
-        policy.type === CONST.POLICY.TYPE.FREE &&
+        policy.isPolicyExpenseChatEnabled &&
         policy.role === CONST.POLICY.ROLE.ADMIN &&
         (isOffline || policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policy.errors))
     );
@@ -119,6 +156,14 @@ function isExpensifyGuideTeam(email) {
 const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
 
 /**
+ *
+ * @param {String} policyID
+ * @param {Object} policies
+ * @returns {Boolean}
+ */
+const isPolicyMember = (policyID, policies) => _.some(policies, (policy) => lodashGet(policy, 'id') === policyID);
+
+/**
  * @param {Object} policyMembers
  * @param {Object} personalDetails
  * @returns {Object}
@@ -137,7 +182,7 @@ function getMemberAccountIDsForWorkspace(policyMembers, personalDetails) {
         if (!personalDetail || !personalDetail.login) {
             return;
         }
-        memberEmailsToAccountIDs[personalDetail.login] = accountID;
+        memberEmailsToAccountIDs[personalDetail.login] = Number(accountID);
     });
     return memberEmailsToAccountIDs;
 }
@@ -166,12 +211,72 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
     return memberEmailsToExclude;
 }
 
+/**
+ * Gets the tag from policy tags, defaults to the first if no key is provided.
+ *
+ * @param {Object} policyTags
+ * @param {String} [tagKey]
+ * @returns {Object}
+ */
+function getTag(policyTags, tagKey) {
+    if (_.isEmpty(policyTags)) {
+        return {};
+    }
+
+    const policyTagKey = tagKey || _.first(_.keys(policyTags));
+
+    return lodashGet(policyTags, policyTagKey, {});
+}
+
+/**
+ * Gets the first tag name from policy tags.
+ *
+ * @param {Object} policyTags
+ * @returns {String}
+ */
+function getTagListName(policyTags) {
+    if (_.isEmpty(policyTags)) {
+        return '';
+    }
+
+    const policyTagKeys = _.keys(policyTags) || [];
+
+    return lodashGet(policyTags, [_.first(policyTagKeys), 'name'], '');
+}
+
+/**
+ * Gets the tags of a policy for a specific key. Defaults to the first tag if no key is provided.
+ *
+ * @param {Object} policyTags
+ * @param {String} [tagKey]
+ * @returns {String}
+ */
+function getTagList(policyTags, tagKey) {
+    if (_.isEmpty(policyTags)) {
+        return {};
+    }
+
+    const policyTagKey = tagKey || _.first(_.keys(policyTags));
+
+    return lodashGet(policyTags, [policyTagKey, 'tags'], {});
+}
+
+/**
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isPendingDeletePolicy(policy) {
+    return policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
     hasPolicyError,
     hasPolicyErrorFields,
     hasCustomUnitsError,
+    getNumericValue,
+    getUnitRateValue,
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
     isExpensifyTeam,
@@ -179,4 +284,9 @@ export {
     isPolicyAdmin,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
+    isPolicyMember,
+    getTag,
+    getTagListName,
+    getTagList,
+    isPendingDeletePolicy,
 };

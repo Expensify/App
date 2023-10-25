@@ -6,13 +6,13 @@ import Tab from '../actions/Tab';
 import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
-    /* ID of the tab component to be saved in onyx */
+    /** ID of the tab component to be saved in onyx */
     id: PropTypes.string.isRequired,
 
-    /* Name of the selected tab */
+    /** Name of the selected tab */
     selectedTab: PropTypes.string,
 
-    /* Children nodes */
+    /** Children nodes */
     children: PropTypes.node.isRequired,
 };
 
@@ -33,6 +33,7 @@ function OnyxTabNavigator({id, selectedTab, children, ...rest}) {
             id={id}
             initialRouteName={selectedTab}
             backBehavior="initialRoute"
+            keyboardDismissMode="none"
             screenListeners={{
                 state: (event) => {
                     const state = event.data.state;
@@ -54,6 +55,6 @@ OnyxTabNavigator.displayName = 'OnyxTabNavigator';
 
 export default withOnyx({
     selectedTab: {
-        key: ({id}) => `${ONYXKEYS.SELECTED_TAB}_${id}`,
+        key: ({id}) => `${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`,
     },
 })(OnyxTabNavigator);

@@ -10,10 +10,11 @@ import Text from '../Text';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import {ScrollContext} from '../ScrollViewWithContext';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** A forwarded ref */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 
     /** BasePicker label */
     label: PropTypes.string,
@@ -257,6 +258,7 @@ function BasePicker(props) {
                     }}
                     pickerProps={{
                         ref: picker,
+                        tabIndex: -1,
                         onFocus: enableHighlight,
                         onBlur: () => {
                             disableHighlight();
@@ -281,7 +283,7 @@ BasePicker.propTypes = propTypes;
 BasePicker.defaultProps = defaultProps;
 BasePicker.displayName = 'BasePicker';
 
-export default React.forwardRef((props, ref) => (
+const BasePickerWithRef = React.forwardRef((props, ref) => (
     <BasePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
@@ -291,3 +293,7 @@ export default React.forwardRef((props, ref) => (
         key={props.inputID}
     />
 ));
+
+BasePickerWithRef.displayName = 'BasePickerWithRef';
+
+export default BasePickerWithRef;

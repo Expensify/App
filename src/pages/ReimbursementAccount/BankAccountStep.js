@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView, Linking} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -11,7 +11,7 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
 import Icon from '../../components/Icon';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 import withLocalize from '../../components/withLocalize';
 import Text from '../../components/Text';
@@ -27,6 +27,7 @@ import Button from '../../components/Button';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
+import * as Link from '../../libs/actions/Link';
 
 const propTypes = {
     ...StepPropTypes,
@@ -48,6 +49,9 @@ const propTypes = {
 
     /* The workspace name */
     policyName: PropTypes.string,
+
+    /* The workspace ID */
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -56,6 +60,7 @@ const defaultProps = {
     user: {},
     isPlaidDisabled: false,
     policyName: '',
+    policyID: '',
 };
 
 function BankAccountStep(props) {
@@ -65,7 +70,11 @@ function BankAccountStep(props) {
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
-    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
+    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(
+        'new',
+        props.policyID,
+        ROUTES.WORKSPACE_INITIAL.getRoute(props.policyID),
+    )}`;
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
         return (
@@ -90,7 +99,10 @@ function BankAccountStep(props) {
     }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={BankAccountStep.displayName}
+        >
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.connectBankAccount')}
@@ -116,8 +128,13 @@ function BankAccountStep(props) {
                         <Button
                             icon={Expensicons.Bank}
                             text={props.translate('bankAccount.connectOnlineWithPlaid')}
-                            onPress={() => BankAccounts.openPlaidView()}
-                            disabled={props.isPlaidDisabled || !props.user.validated}
+                            onPress={() => {
+                                if (props.isPlaidDisabled || !props.user.validated) {
+                                    return;
+                                }
+                                BankAccounts.openPlaidView();
+                            }}
+                            isDisabled={props.isPlaidDisabled || !props.user.validated}
                             style={[styles.mt4]}
                             iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
@@ -140,7 +157,7 @@ function BankAccountStep(props) {
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                             <Icon
                                 src={Expensicons.Exclamation}
-                                fill={colors.red}
+                                fill={themeColors.danger}
                             />
                             <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{props.translate('bankAccount.validateAccountError')}</Text>
                         </View>
@@ -148,7 +165,7 @@ function BankAccountStep(props) {
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                         <TextLink href="https://use.expensify.com/privacy">{props.translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
-                            onPress={() => Linking.openURL('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
+                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessibilityLabel={props.translate('bankAccount.yourDataIsSecure')}
                         >
@@ -158,7 +175,7 @@ function BankAccountStep(props) {
                             <View style={[styles.ml1]}>
                                 <Icon
                                     src={Expensicons.Lock}
-                                    fill={colors.blue}
+                                    fill={themeColors.link}
                                 />
                             </View>
                         </PressableWithoutFeedback>

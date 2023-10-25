@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useState, useRef, useEffect, useCallback} from 'react';
-import {View, Dimensions, Linking} from 'react-native';
+import {View, Dimensions} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -14,10 +14,11 @@ import themeColors from '../../styles/themes/default';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
-import Tooltip from '../Tooltip';
+import Tooltip from '../Tooltip/PopoverAnchorTooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
 import * as Session from '../../libs/actions/Session';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import * as Link from '../../libs/actions/Link';
 
 const propTypes = {
     /** Link to open when user wants to create a new google meet meeting */
@@ -40,7 +41,7 @@ function BaseVideoChatButtonAndMenu(props) {
             text: props.translate('videoChatButtonAndMenu.zoom'),
             onPress: () => {
                 setIsVideoChatMenuActive(false);
-                Linking.openURL(CONST.NEW_ZOOM_MEETING_URL);
+                Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
             },
         },
         {
@@ -48,7 +49,7 @@ function BaseVideoChatButtonAndMenu(props) {
             text: props.translate('videoChatButtonAndMenu.googleMeet'),
             onPress: () => {
                 setIsVideoChatMenuActive(false);
-                Linking.openURL(props.googleMeetURL);
+                Link.openExternalLink(props.googleMeetURL);
             },
         },
     ];
@@ -93,7 +94,7 @@ function BaseVideoChatButtonAndMenu(props) {
 
                             // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                             if (props.isConcierge && props.guideCalendarLink) {
-                                Linking.openURL(props.guideCalendarLink);
+                                Link.openExternalLink(props.guideCalendarLink);
                                 return;
                             }
                             setIsVideoChatMenuActive((previousVal) => !previousVal);

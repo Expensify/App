@@ -28,7 +28,7 @@ const propTypes = {
 };
 
 function ACHContractStep(props) {
-    const [beneficialOwners, setBeneficialOwners] = useState(
+    const [beneficialOwners, setBeneficialOwners] = useState(() =>
         lodashGet(props.reimbursementAccountDraft, 'beneficialOwners', lodashGet(props.reimbursementAccount, 'achData.beneficialOwners', [])),
     );
 
@@ -145,7 +145,10 @@ function ACHContractStep(props) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ACHContractStep.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('beneficialOwnersStep.additionalInformation')}
                 stepCounter={{step: 4, total: 5}}
@@ -154,7 +157,7 @@ function ACHContractStep(props) {
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
             />
             <Form
-                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
                 onSubmit={submit}
                 submitButtonText={props.translate('common.saveAndContinue')}

@@ -50,7 +50,7 @@ class QRShare extends Component {
             >
                 <View style={styles.expensifyQrLogo}>
                     <ExpensifyWordmark
-                        fill={defaultTheme.borderFocus}
+                        fill={defaultTheme.QRLogo}
                         width="100%"
                         height="100%"
                     />
@@ -76,7 +76,6 @@ class QRShare extends Component {
 
                 {!_.isEmpty(this.props.subtitle) && (
                     <Text
-                        family="EXP_NEUE_BOLD"
                         fontSize={variables.fontSizeLabel}
                         numberOfLines={2}
                         style={[styles.mt1, styles.textAlignCenter]}

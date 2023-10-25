@@ -6,8 +6,10 @@ import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
 import variables from '../styles/variables';
-import Tooltip from './Tooltip';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import ReportActionComposeFocusManager from '../libs/ReportActionComposeFocusManager';
+import DomUtils from '../libs/DomUtils';
 
 const propTypes = {
     /**
@@ -53,10 +55,25 @@ function BaseMiniContextMenuItem(props) {
             <PressableWithoutFeedback
                 ref={props.innerRef}
                 onPress={props.onPress}
+                onMouseDown={(e) => {
+                    if (!ReportActionComposeFocusManager.isFocused() && !ReportActionComposeFocusManager.isEditFocused()) {
+                        DomUtils.getActiveElement().blur();
+                        return;
+                    }
+
+                    // Allow text input blur on right click
+                    if (!e || e.button === 2) {
+                        return;
+                    }
+
+                    // Prevent text input blur on left click
+                    e.preventDefault();
+                }}
                 accessibilityLabel={props.tooltipText}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
+                    props.isDelayButtonStateComplete && styles.cursorDefault,
                 ]}
             >
                 {(pressableState) => (
@@ -73,10 +90,14 @@ BaseMiniContextMenuItem.propTypes = propTypes;
 BaseMiniContextMenuItem.defaultProps = defaultProps;
 BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
 
-export default React.forwardRef((props, ref) => (
+const BaseMiniContextMenuItemWithRef = React.forwardRef((props, ref) => (
     <BaseMiniContextMenuItem
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+BaseMiniContextMenuItemWithRef.displayName = 'BaseMiniContextMenuItemWithRef';
+
+export default BaseMiniContextMenuItemWithRef;

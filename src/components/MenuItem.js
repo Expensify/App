@@ -1,6 +1,7 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Text from './Text';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -14,7 +15,6 @@ import Badge from './Badge';
 import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
-import colors from '../styles/colors';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
@@ -24,6 +24,8 @@ import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
+import RenderHTML from './RenderHTML';
+import DisplayNames from './DisplayNames';
 
 const propTypes = menuItemPropTypes;
 
@@ -34,6 +36,7 @@ const defaultProps = {
     shouldShowBasicTitle: false,
     shouldShowDescriptionOnTop: false,
     shouldShowHeaderTitle: false,
+    shouldParseTitle: false,
     wrapperStyle: [],
     style: styles.popoverMenuItem,
     titleStyle: {},
@@ -42,12 +45,14 @@ const defaultProps = {
     descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
+    secondaryIcon: undefined,
     iconWidth: undefined,
     iconHeight: undefined,
     description: undefined,
     iconRight: Expensicons.ArrowRight,
     iconStyles: [],
     iconFill: undefined,
+    secondaryIconFill: undefined,
     focused: false,
     disabled: false,
     isSelected: false,
@@ -71,10 +76,17 @@ const defaultProps = {
     title: '',
     numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
+    error: '',
+    shouldRenderAsHTML: false,
+    rightComponent: undefined,
+    shouldShowRightComponent: false,
+    titleWithTooltips: [],
+    shouldCheckActionAllowedOnPress: true,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
     const {isSmallScreenWidth} = useWindowDimensions();
+    const [html, setHtml] = React.useState('');
 
     const isDeleted = _.contains(props.style, styles.offlineFeedback.deleted);
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
@@ -102,21 +114,63 @@ const MenuItem = React.forwardRef((props, ref) => {
 
     const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
+    const titleRef = React.useRef('');
+    useEffect(() => {
+        if (!props.title || (titleRef.current.length && titleRef.current === props.title) || !props.shouldParseTitle) {
+            return;
+        }
+        const parser = new ExpensiMark();
+        setHtml(parser.replace(props.title));
+        titleRef.current = props.title;
+    }, [props.title, props.shouldParseTitle]);
+
+    const getProcessedTitle = useMemo(() => {
+        let title = '';
+        if (props.shouldRenderAsHTML) {
+            title = convertToLTR(props.title);
+        }
+
+        if (props.shouldParseTitle) {
+            title = html;
+        }
+
+        return title ? `<comment>${title}</comment>` : '';
+    }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
+
+    const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
+
+    const renderTitleContent = () => {
+        if (props.titleWithTooltips && _.isArray(props.titleWithTooltips) && props.titleWithTooltips.length > 0) {
+            return (
+                <DisplayNames
+                    fullTitle={props.title}
+                    displayNamesWithTooltips={props.titleWithTooltips}
+                    tooltipEnabled
+                    numberOfLines={1}
+                />
+            );
+        }
+
+        return convertToLTR(props.title);
+    };
+
+    const onPressAction = (e) => {
+        if (props.disabled || !props.interactive) {
+            return;
+        }
+
+        if (e && e.type === 'click') {
+            e.currentTarget.blur();
+        }
+
+        props.onPress(e);
+    };
+
     return (
         <Hoverable>
             {(isHovered) => (
                 <PressableWithSecondaryInteraction
-                    onPress={Session.checkIfActionIsAllowed((e) => {
-                        if (props.disabled || !props.interactive) {
-                            return;
-                        }
-
-                        if (e && e.type === 'click') {
-                            e.currentTarget.blur();
-                        }
-
-                        props.onPress(e);
-                    }, props.isAnonymousAction)}
+                    onPress={props.shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, props.isAnonymousAction) : onPressAction}
                     onPressIn={() => props.shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={props.onSecondaryInteraction}
@@ -131,7 +185,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                     disabled={props.disabled}
                     ref={ref}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
-                    accessibilityLabel={props.title}
+                    accessibilityLabel={props.title ? props.title.toString() : ''}
                 >
                     {({pressed}) => (
                         <>
@@ -152,8 +206,8 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             size={props.avatarSize}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
-                                                pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
-                                                isHovered && !pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.border) : undefined,
+                                                pressed && props.interactive ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
+                                                isHovered && !pressed && props.interactive ? StyleUtils.getBackgroundAndBorderStyle(themeColors.border) : undefined,
                                             ]}
                                         />
                                     )}
@@ -161,6 +215,8 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize)]}>
                                             {props.iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
+                                                    hovered={isHovered}
+                                                    pressed={pressed}
                                                     src={props.icon}
                                                     width={props.iconWidth}
                                                     height={props.iconHeight}
@@ -193,6 +249,19 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             )}
                                         </View>
                                     )}
+                                    {Boolean(props.secondaryIcon) && (
+                                        <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
+                                            <Icon
+                                                src={props.secondaryIcon}
+                                                width={props.iconWidth}
+                                                height={props.iconHeight}
+                                                fill={
+                                                    props.secondaryIconFill ||
+                                                    StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true)
+                                                }
+                                            />
+                                        </View>
+                                    )}
                                     <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(props.isSmallAvatarSubscriptMenu)]}>
                                         {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
                                             <Text
@@ -203,12 +272,18 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(props.title) && (
+                                            {Boolean(props.title) && (Boolean(props.shouldRenderAsHTML) || (Boolean(props.shouldParseTitle) && Boolean(html.length))) && (
+                                                <View style={styles.renderHTMLTitle}>
+                                                    <RenderHTML html={getProcessedTitle} />
+                                                </View>
+                                            )}
+                                            {!props.shouldRenderAsHTML && !props.shouldParseTitle && Boolean(props.title) && (
                                                 <Text
                                                     style={titleTextStyle}
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
+                                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.interactive && props.disabled}}
                                                 >
-                                                    {convertToLTR(props.title)}
+                                                    {renderTitleContent()}
                                                 </Text>
                                             )}
                                             {Boolean(props.shouldShowTitleIcon) && (
@@ -227,6 +302,11 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             >
                                                 {props.description}
                                             </Text>
+                                        )}
+                                        {Boolean(props.error) && (
+                                            <View style={[styles.mt1]}>
+                                                <Text style={[styles.textLabelError]}>{props.error}</Text>
+                                            </View>
                                         )}
                                         {Boolean(props.furtherDetails) && (
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
@@ -247,7 +327,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     </View>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
+                            <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
                                 {Boolean(props.badgeText) && (
                                     <Badge
                                         text={props.badgeText}
@@ -280,7 +360,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
-                                            fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
+                                            fill={props.brickRoadIndicator === 'error' ? themeColors.danger : themeColors.success}
                                         />
                                     </View>
                                 )}
@@ -292,6 +372,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         />
                                     </View>
                                 )}
+                                {props.shouldShowRightComponent && props.rightComponent}
                                 {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                             </View>
                         </>

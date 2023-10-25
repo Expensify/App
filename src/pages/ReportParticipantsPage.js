@@ -26,7 +26,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** The active report */
     report: reportPropTypes.isRequired,
@@ -54,10 +54,8 @@ const defaultProps = {
  * @param {Object} translate The localize
  * @return {Array}
  */
-const getAllParticipants = (report, personalDetails, translate) => {
-    const {participantAccountIDs} = report;
-
-    return _.chain(participantAccountIDs)
+const getAllParticipants = (report, personalDetails, translate) =>
+    _.chain(ReportUtils.getParticipantsIDs(report))
         .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
             const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
@@ -83,7 +81,6 @@ const getAllParticipants = (report, personalDetails, translate) => {
         })
         .sortBy((participant) => participant.displayName.toLowerCase())
         .value();
-};
 
 function ReportParticipantsPage(props) {
     const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => ({
@@ -92,12 +89,19 @@ function ReportParticipantsPage(props) {
     }));
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ReportParticipantsPage.displayName}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || ReportUtils.isArchivedRoom(props.report)}>
                     <HeaderWithBackButton
                         title={props.translate(
-                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isChatThread(props.report)
+                            ReportUtils.isChatRoom(props.report) ||
+                                ReportUtils.isPolicyExpenseChat(props.report) ||
+                                ReportUtils.isChatThread(props.report) ||
+                                ReportUtils.isTaskReport(props.report) ||
+                                ReportUtils.isMoneyRequestReport(props.report)
                                 ? 'common.members'
                                 : 'common.details',
                         )}
@@ -117,7 +121,7 @@ function ReportParticipantsPage(props) {
                                     },
                                 ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
+                                    Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip
@@ -141,7 +145,7 @@ ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
 export default compose(
     withLocalize,
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
