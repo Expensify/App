@@ -1,5 +1,6 @@
 import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {Merge} from 'type-fest';
+import {InteractionManager} from 'react-native';
 import PusherUtils from '../PusherUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
@@ -61,19 +62,21 @@ function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdat
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
     console.debug(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, {request, response, updates});
 
-    if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) < lastUpdateIDAppliedToClient) {
-        console.debug('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates');
-        return Promise.resolve();
-    }
-    if (lastUpdateID && (lastUpdateIDAppliedToClient === null || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
-        Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
-    }
-    if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        return applyHTTPSOnyxUpdates(request, response);
-    }
-    if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
-        return applyPusherOnyxUpdates(updates);
-    }
+    InteractionManager.runAfterInteractions(() => {
+        if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) < lastUpdateIDAppliedToClient) {
+            console.debug('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates');
+            return Promise.resolve();
+        }
+        if (lastUpdateID && (lastUpdateIDAppliedToClient === null || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
+            Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
+        }
+        if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
+            return applyHTTPSOnyxUpdates(request, response);
+        }
+        if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
+            return applyPusherOnyxUpdates(updates);
+        }
+    });
 }
 
 /**
