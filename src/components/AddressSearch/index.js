@@ -369,7 +369,7 @@ function AddressSearch({
         [isTyping, translate, network.isOffline],
     );
 
-    const listLoader = useMemo(
+    const listLoader = useCallback(
         () => (
             <View style={[styles.pv4]}>
                 <ActivityIndicator
