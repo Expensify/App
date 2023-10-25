@@ -122,7 +122,8 @@ function ComposerWithSuggestions({
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
+    const parentAction = ReportActionsUtils.getParentReportAction(report);
+    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -572,6 +573,7 @@ function ComposerWithSuggestions({
             <Suggestions
                 ref={suggestionsRef}
                 isComposerFullSize={isComposerFullSize}
+                isComposerFocused={textInputRef.current && textInputRef.current.isFocused()}
                 updateComment={updateComment}
                 composerHeight={composerHeight}
                 measureParentContainer={measureParentContainer}
@@ -599,6 +601,16 @@ ComposerWithSuggestions.propTypes = propTypes;
 ComposerWithSuggestions.defaultProps = defaultProps;
 ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
+const ComposerWithSuggestionsWithRef = React.forwardRef((props, ref) => (
+    <ComposerWithSuggestions
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+ComposerWithSuggestionsWithRef.displayName = 'ComposerWithSuggestionsWithRef';
+
 export default compose(
     withKeyboardState,
     withOnyx({
@@ -624,12 +636,4 @@ export default compose(
             initWithStoredValues: false,
         },
     }),
-)(
-    React.forwardRef((props, ref) => (
-        <ComposerWithSuggestions
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(ComposerWithSuggestionsWithRef);

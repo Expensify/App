@@ -11,12 +11,7 @@
     border-image: url(../images/shadow.png) 9 9 repeat;
     background-color: rgba(255, 255, 255, 1);
 }
-.react-pdf__message {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-}
+
 .react-pdf__Page__annotations {
     height: 0;
 }
