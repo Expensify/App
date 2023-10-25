@@ -106,6 +106,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(transaction);
     const cardProgramName = isExpensifyCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
 
+    // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction) && !isExpensifyCardTransaction;
 
@@ -151,7 +152,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     let receiptURIs;
     let hasErrors = false;
     if (hasReceipt) {
-        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
         hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
@@ -159,130 +160,130 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const getPendingFieldAction = (fieldPath) => lodashGet(transaction, fieldPath) || pendingAction;
 
     return (
-        <View>
-            <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
-                <AnimatedEmptyStateBackground />
-            </View>
-
-            {hasReceipt && (
-                <OfflineWithFeedback pendingAction={pendingAction}>
-                    <View style={styles.moneyRequestViewImage}>
-                        <ReportActionItemImage
-                            thumbnail={receiptURIs.thumbnail}
-                            image={receiptURIs.image}
-                            enablePreviewModal
+        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
+            <AnimatedEmptyStateBackground />
+            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
+                {hasReceipt && (
+                    <OfflineWithFeedback pendingAction={pendingAction}>
+                        <View style={styles.moneyRequestViewImage}>
+                            <ReportActionItemImage
+                                thumbnail={receiptURIs.thumbnail}
+                                image={receiptURIs.image}
+                                transaction={transaction}
+                                enablePreviewModal
+                            />
+                        </View>
+                    </OfflineWithFeedback>
+                )}
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
+                    <MenuItemWithTopDescription
+                        title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
+                        shouldShowTitleIcon={isSettled}
+                        titleIcon={Expensicons.Checkmark}
+                        description={amountDescription}
+                        titleStyle={styles.newKansasLarge}
+                        interactive={canEdit && !isSettled}
+                        shouldShowRightIcon={canEdit && !isSettled}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                        brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
+                    />
+                </OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.comment')}>
+                    <MenuItemWithTopDescription
+                        description={translate('common.description')}
+                        shouldParseTitle
+                        title={transactionDescription}
+                        interactive={canEdit}
+                        shouldShowRightIcon={canEdit}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                        wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                        numberOfLinesTitle={0}
+                    />
+                </OfflineWithFeedback>
+                {isDistanceRequest ? (
+                    <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.distance')}
+                            title={transactionMerchant}
+                            interactive={canEdit && !isSettled}
+                            shouldShowRightIcon={canEdit && !isSettled}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
+                        />
+                    </OfflineWithFeedback>
+                ) : (
+                    <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.merchant')}
+                            title={transactionMerchant}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
+                            brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.created')}>
+                    <MenuItemWithTopDescription
+                        description={translate('common.date')}
+                        title={transactionDate}
+                        interactive={canEdit && !isSettled}
+                        shouldShowRightIcon={canEdit && !isSettled}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                        brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
+                    />
+                </OfflineWithFeedback>
+                {shouldShowCategory && (
+                    <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.category')}
+                            title={transactionCategory}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowTag && (
+                    <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.tag') || lodashGet(transaction, 'pendingAction')}>
+                        <MenuItemWithTopDescription
+                            description={lodashGet(policyTag, 'name', translate('common.tag'))}
+                            title={transactionTag}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {isExpensifyCardTransaction && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.cardID')}>
+                        <MenuItemWithTopDescription
+                            description={translate('iou.card')}
+                            title={cardProgramName}
+                            titleStyle={styles.flex1}
+                            interactive={canEdit}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowBillable && (
+                    <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                        <Text color={!transactionBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                        <Switch
+                            accessibilityLabel={translate('common.billable')}
+                            isOn={transactionBillable}
+                            onToggle={(value) => IOU.editMoneyRequest(transaction.transactionID, report.reportID, {billable: value})}
                         />
                     </View>
-                </OfflineWithFeedback>
-            )}
-            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
-                <MenuItemWithTopDescription
-                    title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
-                    shouldShowTitleIcon={isSettled}
-                    titleIcon={Expensicons.Checkmark}
-                    description={amountDescription}
-                    titleStyle={styles.newKansasLarge}
-                    interactive={canEdit}
-                    shouldShowRightIcon={canEdit}
-                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-                    brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
-                />
-            </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.comment')}>
-                <MenuItemWithTopDescription
-                    description={translate('common.description')}
-                    shouldParseTitle
-                    title={transactionDescription}
-                    interactive={canEdit}
-                    shouldShowRightIcon={canEdit}
-                    titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
-                    wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                    numberOfLinesTitle={0}
-                />
-            </OfflineWithFeedback>
-            {isDistanceRequest ? (
-                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
-                    <MenuItemWithTopDescription
-                        description={translate('common.distance')}
-                        title={transactionMerchant}
-                        interactive={canEdit}
-                        shouldShowRightIcon={canEdit}
-                        titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
-                    />
-                </OfflineWithFeedback>
-            ) : (
-                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
-                    <MenuItemWithTopDescription
-                        description={translate('common.merchant')}
-                        title={transactionMerchant}
-                        interactive={canEdit}
-                        shouldShowRightIcon={canEdit}
-                        titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
-                        brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                        error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
-                    />
-                </OfflineWithFeedback>
-            )}
-            <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.created')}>
-                <MenuItemWithTopDescription
-                    description={translate('common.date')}
-                    title={transactionDate}
-                    interactive={canEdit}
-                    shouldShowRightIcon={canEdit}
-                    titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
-                    brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
-                />
-            </OfflineWithFeedback>
-            {shouldShowCategory && (
-                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
-                    <MenuItemWithTopDescription
-                        description={translate('common.category')}
-                        title={transactionCategory}
-                        interactive={canEdit}
-                        shouldShowRightIcon={canEdit}
-                        titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
-                    />
-                </OfflineWithFeedback>
-            )}
-            {shouldShowTag && (
-                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.tag') || lodashGet(transaction, 'pendingAction')}>
-                    <MenuItemWithTopDescription
-                        description={lodashGet(policyTag, 'name', translate('common.tag'))}
-                        title={transactionTag}
-                        interactive={canEdit}
-                        shouldShowRightIcon={canEdit}
-                        titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
-                    />
-                </OfflineWithFeedback>
-            )}
-            {isExpensifyCardTransaction ? (
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.cardID')}>
-                    <MenuItemWithTopDescription
-                        description={translate('iou.card')}
-                        title={cardProgramName}
-                        titleStyle={styles.flex1}
-                        interactive={canEdit}
-                    />
-                </OfflineWithFeedback>
-            ) : null}
-            {shouldShowBillable && (
-                <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
-                    <Text color={!transactionBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
-                    <Switch
-                        accessibilityLabel={translate('common.billable')}
-                        isOn={transactionBillable}
-                        onToggle={(value) => IOU.editMoneyRequest(transaction.transactionID, report.reportID, {billable: value})}
-                    />
-                </View>
-            )}
+                )}
+            </View>
             <SpacerView
                 shouldShow={shouldShowHorizontalRule}
                 style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}

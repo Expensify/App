@@ -22,4 +22,6 @@ function FormScrollView({children, ...rest}: FormScrollViewProps, ref: Forwarded
     );
 }
 
+FormScrollView.displayName = 'FormScrollView';
+
 export default React.forwardRef(FormScrollView);
