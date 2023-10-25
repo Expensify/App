@@ -1,5 +1,5 @@
 ---
-title: The title of the post, page, or document
+title: Domains
 description: Want to gain greater control over your company settings in Expensify? Read on to find out more about our Domains feature and how it can help you save time and effort when managing your company expenses. 
 ---
 
