@@ -269,7 +269,7 @@ function ReimbursementAccountPage({
         prevReimbursementAccountRef.current = reimbursementAccount;
     }, [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton]);
 
-    function continueFunction() {
+    const continueFunction = () => {
         setShouldShowContinueSetupButton(false);
         fetchData(true);
     };
@@ -280,11 +280,11 @@ function ReimbursementAccountPage({
     *
     * @returns {String}
     */
-    function getDefaultStateForField(fieldName, defaultValue = '') {
-        return lodashGet(reimbursementAccount, ['achData', fieldName], defaultValue);
-    };
+    const getDefaultStateForField = (fieldName, defaultValue = '') => 
+    lodashGet(reimbursementAccount, ['achData', fieldName], defaultValue);
+  
 
-    function goBack() {
+    const goBack = () => {
         const subStep = achData.subStep;
         const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
         const backTo = lodashGet(route.params, 'backTo', ROUTES.HOME);
