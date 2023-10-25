@@ -4,7 +4,7 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 
 type FullScreenLoadingIndicatorProps = {
-    style: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle>;
 };
 
 function FullScreenLoadingIndicator({style = []}: FullScreenLoadingIndicatorProps) {
