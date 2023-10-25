@@ -45,16 +45,11 @@ Onyx.connect({
     },
 });
 
-const allPolicyMembers = {};
+let allPolicyMembers;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-    callback: (val, key) => {
-        if (!val || !key) {
-            return;
-        }
-        const policyID = CollectionUtils.extractCollectionItemID(key);
-        allPolicyMembers[policyID] = val;
-    },
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyMembers = val),
 });
 
 let lastAccessedWorkspacePolicyID = null;
@@ -259,12 +254,12 @@ function removeMembers(accountIDs, policyID) {
     // If we delete all these logins then we should clear the informative messages since they are no longer relevant.
     if (!_.isEmpty(policy.primaryLoginsInvited)) {
         // Take the current policy members and remove them optimistically
-        const policyMemberAccountIDs = _.keys(allPolicyMembers[policyID]);
+        const policyMemberAccountIDs = _.map(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`], (value, key) => Number(key));
         const remainingMemberAccountIDs = _.difference(policyMemberAccountIDs, accountIDs);
         const remainingLogins = PersonalDetailsUtils.getLoginsByAccountIDs(remainingMemberAccountIDs);
         const invitedPrimaryToSecondaryLogins = _.invert(policy.primaryLoginsInvited);
 
-        // Then, if no remaining members exist in primaryLoginsInvited, delete it
+        // Then, if no remaining members exist that were invited by a secondary login, clear the informative messages
         if (!_.some(remainingLogins, (remainingLogin) => Boolean(invitedPrimaryToSecondaryLogins[remainingLogin]))) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
