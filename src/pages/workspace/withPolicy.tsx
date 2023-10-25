@@ -84,7 +84,7 @@ export default function withPolicy<TProps extends WithPolicyProps, TRef>(
 ): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps>> {
     function WithPolicy(props: TProps, ref: ForwardedRef<TRef>) {
         const routes = useNavigationState((state) => state.routes || []);
-        const currentRoute = routes?.[routes.length - 1];
+        const currentRoute = routes?.at(-1);
         const policyID = getPolicyIDFromRoute(currentRoute as PolicyRoute);
 
         if (policyID.length > 0) {
