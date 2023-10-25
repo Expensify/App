@@ -60,7 +60,6 @@ function ExpensifyCardPage({
 
     const [isLoading, setIsLoading] = useState(false);
     const [details, setDetails] = useState({});
-    const [errorMessage, setErrorMessage] = useState('');
 
     if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
         return <NotFoundPage />;
@@ -76,7 +75,6 @@ function ExpensifyCardPage({
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         Card.revealVirtualCardDetails(virtualCard.cardID)
             .then(setDetails)
-            .catch(setErrorMessage)
             .finally(() => setIsLoading(false));
     };
 
@@ -125,7 +123,6 @@ function ExpensifyCardPage({
                                         interactive={false}
                                         titleStyle={styles.walletCardNumber}
                                         shouldShowRightComponent
-                                        error={errorMessage}
                                         rightComponent={
                                             <Button
                                                 medium
@@ -177,7 +174,6 @@ function ExpensifyCardPage({
                                                 title={CardUtils.maskCard(virtualCard.lastFourPAN)}
                                                 interactive={false}
                                                 titleStyle={styles.walletCardNumber}
-                                                error={errorMessage}
                                                 shouldShowRightComponent
                                                 rightComponent={
                                                     <Button

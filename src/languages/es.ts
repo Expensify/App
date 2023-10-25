@@ -886,7 +886,6 @@ export default {
             copyCardNumber: 'Copiar número de la tarjeta',
             updateAddress: 'Actualizar dirección',
         },
-        cardDetailsLoadingFailure: 'Ocurrió un error al cargar los detalles de la tarjeta. Por favor, inténtalo de nuevo.',
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
