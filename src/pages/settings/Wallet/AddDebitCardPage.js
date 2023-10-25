@@ -47,6 +47,10 @@ function DebitCardPage(props) {
 
     useEffect(() => {
         PaymentMethods.clearDebitCardFormErrorAndSubmit();
+
+        return () => {
+            PaymentMethods.clearDebitCardFormErrorAndSubmit();
+        };
     }, []);
 
     useEffect(() => {
@@ -55,10 +59,6 @@ function DebitCardPage(props) {
         }
 
         PaymentMethods.continueSetup();
-
-        return () => {
-            PaymentMethods.clearDebitCardFormErrorAndSubmit();
-        };
     }, [prevFormDataSetupComplete, props.formData.setupComplete]);
 
     /**
