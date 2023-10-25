@@ -111,7 +111,7 @@ function ReportActionItemMessageEdit(props) {
         }
         return initialDraft;
     });
-    const [selection, setSelection] = useState(getInitialSelection());
+    const [selection, setSelection] = useState(getInitialSelection);
     const [isFocused, setIsFocused] = useState(false);
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
     const [modal, setModal] = useState(false);
@@ -461,6 +461,7 @@ function ReportActionItemMessageEdit(props) {
             </View>
             <ExceededCommentLength
                 comment={draft}
+                reportID={props.reportID}
                 onExceededMaxCommentLength={(hasExceeded) => setHasExceededMaxCommentLength(hasExceeded)}
             />
         </>
@@ -471,10 +472,14 @@ ReportActionItemMessageEdit.propTypes = propTypes;
 ReportActionItemMessageEdit.defaultProps = defaultProps;
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-export default React.forwardRef((props, ref) => (
+const ReportActionItemMessageEditWithRef = React.forwardRef((props, ref) => (
     <ReportActionItemMessageEdit
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+ReportActionItemMessageEditWithRef.displayName = 'ReportActionItemMessageEditWithRef';
+
+export default ReportActionItemMessageEditWithRef;

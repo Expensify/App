@@ -133,7 +133,7 @@ function ReportWelcomeText(props) {
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)) && (
+                {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && (
                     <Text>{props.translate('reportActionsView.usePlusButton')}</Text>
                 )}
             </Text>

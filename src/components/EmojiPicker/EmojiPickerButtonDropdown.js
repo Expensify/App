@@ -50,7 +50,7 @@ function EmojiPickerButtonDropdown(props) {
                 onPress={onPress}
                 nativeID="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
-                accessibilityRole="text"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 {({hovered, pressed}) => (
                     <View style={styles.emojiPickerButtonDropdownContainer}>
@@ -76,12 +76,15 @@ function EmojiPickerButtonDropdown(props) {
 EmojiPickerButtonDropdown.propTypes = propTypes;
 EmojiPickerButtonDropdown.defaultProps = defaultProps;
 EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
-export default withLocalize(
-    React.forwardRef((props, ref) => (
-        <EmojiPickerButtonDropdown
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+
+const EmojiPickerButtonDropdownWithRef = React.forwardRef((props, ref) => (
+    <EmojiPickerButtonDropdown
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+EmojiPickerButtonDropdownWithRef.displayName = 'EmojiPickerButtonDropdownWithRef';
+
+export default withLocalize(EmojiPickerButtonDropdownWithRef);

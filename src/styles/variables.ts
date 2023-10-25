@@ -23,8 +23,10 @@ export default {
     componentBorderRadiusMedium: 6,
     componentBorderRadiusNormal: 8,
     componentBorderRadiusLarge: 16,
+    componentBorderRadiusXLarge: 28,
     componentBorderRadiusCard: 20,
     componentBorderRadiusRounded: 24,
+    componentBorderWidth: 8,
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
@@ -172,6 +174,8 @@ export default {
     reportActionImagesSingleImageHeight: 147,
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
+    bankCardWidth: 40,
+    bankCardHeight: 26,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility

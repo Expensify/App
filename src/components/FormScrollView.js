@@ -8,7 +8,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const FormScrollView = React.forwardRef((props, ref) => (
+const FormScrollViewWithRef = React.forwardRef((props, ref) => (
     <ScrollView
         style={[styles.w100, styles.flex1]}
         ref={ref}
@@ -21,5 +21,6 @@ const FormScrollView = React.forwardRef((props, ref) => (
     </ScrollView>
 ));
 
-FormScrollView.propTypes = propTypes;
-export default FormScrollView;
+FormScrollViewWithRef.displayName = 'FormScrollViewWithRef';
+FormScrollViewWithRef.propTypes = propTypes;
+export default FormScrollViewWithRef;
