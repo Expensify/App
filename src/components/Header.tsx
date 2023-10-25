@@ -1,5 +1,5 @@
 import React, {ReactElement} from 'react';
-import {View, TextStyle} from 'react-native';
+import {View, TextStyle, StyleProp} from 'react-native';
 import styles from '../styles/styles';
 import Text from './Text';
 import EnvironmentBadge from './EnvironmentBadge';
@@ -15,7 +15,7 @@ type HeaderProps = {
     shouldShowEnvironmentBadge?: boolean;
 
     /** Additional text styles */
-    textStyles?: TextStyle[];
+    textStyles?: StyleProp<TextStyle>;
 };
 
 function Header({title = '', subtitle = '', textStyles = [], shouldShowEnvironmentBadge = false}: HeaderProps) {
@@ -26,7 +26,7 @@ function Header({title = '', subtitle = '', textStyles = [], shouldShowEnvironme
                     ? Boolean(title) && (
                           <Text
                               numberOfLines={2}
-                              style={[styles.headerText, styles.textLarge, ...textStyles]}
+                              style={[styles.headerText, styles.textLarge, textStyles]}
                           >
                               {title}
                           </Text>

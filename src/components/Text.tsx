@@ -1,6 +1,7 @@
 import React, {ForwardedRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Text as RNText} from 'react-native';
+import {Text as RNText, StyleProp} from 'react-native';
+import lodashMerge from 'lodash/merge';
+import lodashFlattenDeep from 'lodash/flattenDeep';
 import type {TextStyle} from 'react-native';
 import fontFamily from '../styles/fontFamily';
 import themeColors from '../styles/themes/default';
@@ -30,7 +31,7 @@ type TextProps = {
     family?: keyof typeof fontFamily;
 
     /** Any additional styles to apply */
-    style?: TextStyle | TextStyle[];
+    style?: StyleProp<TextStyle>;
 };
 
 function Text(
@@ -38,15 +39,7 @@ function Text(
     ref: ForwardedRef<RNText>,
 ) {
     // If the style prop is an array of styles, we need to mix them all together
-    const mergedStyles = !Array.isArray(style)
-        ? style
-        : style.reduce(
-              (finalStyles, s) => ({
-                  ...finalStyles,
-                  ...s,
-              }),
-              {},
-          );
+    const mergedStyles = Array.isArray(style) ? lodashMerge({}, ...lodashFlattenDeep(style as TextStyle[])) : style;
     const componentStyle: TextStyle = {
         color,
         fontSize,
