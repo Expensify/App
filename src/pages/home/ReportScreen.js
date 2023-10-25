@@ -40,6 +40,7 @@ import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
 import reportWithoutHasDraftSelector from '../../libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -212,6 +213,10 @@ function ReportScreen({
                 parentReportAction={parentReportAction}
             />
         );
+    }
+
+    if (reportID === '') {
+        headerView = <ReportHeaderSkeletonView />;
     }
 
     /**
