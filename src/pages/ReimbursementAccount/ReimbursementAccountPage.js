@@ -16,7 +16,6 @@ import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
 import Text from '../../components/Text';
-import networkPropTypes from '../../components/networkPropTypes';
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
@@ -48,6 +47,11 @@ const propTypes = {
     /** The token required to initialize the Onfido SDK */
     onfidoToken: PropTypes.string,
 
+    /** Policy values needed in the component */
+    policy: PropTypes.shape({
+        name: PropTypes.string,
+    }),
+
     /** Indicated whether the report data is loading */
     isLoadingReportData: PropTypes.bool,
 
@@ -56,9 +60,6 @@ const propTypes = {
         /** Whether a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
     }),
-
-    /** Information about the network  */
-    network: networkPropTypes.isRequired,
 
     /** Current session for the user */
     session: PropTypes.shape({
@@ -81,6 +82,7 @@ const defaultProps = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
     reimbursementAccountDraft: {},
     onfidoToken: '',
+    policy: {},
     plaidLinkToken: '',
     isLoadingReportData: false,
     account: {},
@@ -107,6 +109,7 @@ const ROUTE_NAMES = {
 /**
 * We can pass stepToOpen in the URL to force which step to show.
 * Mainly needed when user finished the flow in verifying state, and Ops ask them to modify some fields from a specific step.
+* @param {Object} route
 * @returns {String}
 */
 function getStepToOpenFromRouteParams(route) {
@@ -140,20 +143,80 @@ function ReimbursementAccountPage({
     reimbursementAccountDraft,
 
 }) {
+    const achData = lodashGet(reimbursementAccount, 'achData', {});
+
+    /**
+     * @param {String} currentStep
+     * @returns {String}
+     */
+        function getRouteForCurrentStep(currentStep) {
+            switch (currentStep) {
+                case CONST.BANK_ACCOUNT.STEP.COMPANY:
+                    return ROUTE_NAMES.COMPANY;
+                case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+                    return ROUTE_NAMES.PERSONAL_INFORMATION;
+                case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
+                    return ROUTE_NAMES.CONTRACT;
+                case CONST.BANK_ACCOUNT.STEP.VALIDATION:
+                    return ROUTE_NAMES.VALIDATE;
+                case CONST.BANK_ACCOUNT.STEP.ENABLE:
+                    return ROUTE_NAMES.ENABLE;
+                case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+                default:
+                    return ROUTE_NAMES.NEW;
+            }
+        }
+        
+    /**
+    * Returns true if a VBBA exists in any state other than OPEN or LOCKED
+    * @returns {Boolean}
+    */
+    function hasInProgressVBBA() {
+        return achData.bankAccountID
+            && achData.state !== BankAccount.STATE.OPEN
+            && achData.state !== BankAccount.STATE.LOCKED;
+    };
+    /*
+    * Calculates the state used to show the "Continue with setup" view. If a bank account setup is already in progress and
+    * no specific further step was passed in the url we'll show the workspace bank account reset modal if the user wishes to start over
+    */
+    function getShouldShowContinueSetupButtonInitialValue() {
+        if (!hasInProgressVBBA()) {
+            // Since there is no VBBA in progress, we won't need to show the component ContinueBankAccountSetup
+            return false;
+        }
+        return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], getStepToOpenFromRouteParams());
+    }
+
+    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(
         hasACHDataBeenLoaded ? getShouldShowContinueSetupButtonInitialValue() : false
     );
-    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps);
-
-    const achData = lodashGet(reimbursementAccount, 'achData', {});
+    
     const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const policyName = lodashGet(policy, 'name', '');
     const policyID = lodashGet(route.params, 'policyID', '');
-    const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
+    const { translate } = useLocalize();
+    const { isOffline } = useNetwork();
     const prevIsOfflineRef = useRef(isOffline);
     const prevReimbursementAccountRef = useRef(reimbursementAccount);
     const requestorStepRef = useRef(null);
+
+    /**
+     * Retrieve verified business bank account currently being set up.
+     * @param {boolean} ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
+     */
+    function fetchData(ignoreLocalCurrentStep) {
+        // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
+        BankAccounts.setReimbursementAccountLoading(true);
+
+        // We can specify a step to navigate to by using route params when the component mounts.
+        // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
+        const stepToOpen = getStepToOpenFromRouteParams();
+        const subStep = achData.subStep || '';
+        const localCurrentStep = achData.currentStep || '';
+        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep);
+    };
 
     // Will run whenever reimbursementAccount prop changes, and update the hasACHDataBeenLoaded state if necessary
     useEffect(() => {
@@ -184,8 +247,6 @@ function ReimbursementAccountPage({
         ) {
             setShouldShowContinueSetupButton(hasInProgressVBBA());
         }
-
-        const currentStep = lodashGet(reimbursementAccount, 'achData.currentStep') || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
 
         if (shouldShowContinueSetupButton) {
             return;
@@ -224,8 +285,6 @@ function ReimbursementAccountPage({
     };
 
     function goBack() {
-        const achData = lodashGet(reimbursementAccount, 'achData', {});
-        const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const subStep = achData.subStep;
         const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
         const backTo = lodashGet(route.params, 'backTo', ROUTES.HOME);
@@ -274,69 +333,6 @@ function ReimbursementAccountPage({
         }
     };
 
-    /**
-     * Returns true if a VBBA exists in any state other than OPEN or LOCKED
-     * @returns {Boolean}
-     */
-    function hasInProgressVBBA() {
-        const achData = lodashGet(reimbursementAccount, 'achData', {});
-        return achData.bankAccountID
-            && achData.state !== BankAccount.STATE.OPEN
-            && achData.state !== BankAccount.STATE.LOCKED;
-    };
-
-    /*
-     * Calculates the state used to show the "Continue with setup" view. If a bank account setup is already in progress and
-     * no specific further step was passed in the url we'll show the workspace bank account reset modal if the user wishes to start over
-     */
-    function getShouldShowContinueSetupButtonInitialValue() {
-        if (!hasInProgressVBBA()) {
-            // Since there is no VBBA in progress, we won't need to show the component ContinueBankAccountSetup
-            return false;
-        }
-        const achData = lodashGet(reimbursementAccount, 'achData', {});
-        return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], getStepToOpenFromRouteParams());
-    }
-
-    /**
-     * Retrieve verified business bank account currently being set up.
-     * @param {boolean} ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
-     */
-    function fetchData(ignoreLocalCurrentStep) {
-        // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
-        BankAccounts.setReimbursementAccountLoading(true);
-
-        // We can specify a step to navigate to by using route params when the component mounts.
-        // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
-        const stepToOpen = getStepToOpenFromRouteParams();
-        const achData = lodashGet(reimbursementAccount, 'achData', {});
-        const subStep = achData.subStep || '';
-        const localCurrentStep = achData.currentStep || '';
-        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep);
-    };
-
-    /**
-     * @param {String} currentStep
-     * @returns {String}
-     */
-    function getRouteForCurrentStep(currentStep) {
-        switch (currentStep) {
-            case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                return ROUTE_NAMES.COMPANY;
-            case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                return ROUTE_NAMES.PERSONAL_INFORMATION;
-            case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
-                return ROUTE_NAMES.CONTRACT;
-            case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-                return ROUTE_NAMES.VALIDATE;
-            case CONST.BANK_ACCOUNT.STEP.ENABLE:
-                return ROUTE_NAMES.ENABLE;
-            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-            default:
-                return ROUTE_NAMES.NEW;
-        }
-    }
-    
     if (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy)) {
         return (
             <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
