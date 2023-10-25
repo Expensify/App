@@ -1,5 +1,5 @@
 ---
-title: Workspace-Tags.md
+title: Workspace Tags
 ---
 # Overview
 You can use tags to assign expenses to a specific department, project, location, cost center, and more. 
