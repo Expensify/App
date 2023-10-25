@@ -268,6 +268,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
         isExpenseRequest: false,
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
+        chatType: null,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
@@ -305,6 +306,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference || null;
     result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
+    result.chatType = report.chatType;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);

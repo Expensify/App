@@ -33,19 +33,20 @@ function EnablePaymentsPage({userWallet}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const {isPendingOnfidoResult} = userWallet;
+    const {isPendingOnfidoResult, hasFailedOnfido} = userWallet;
 
     useEffect(() => {
         if (isOffline) {
             return;
         }
 
-        if (!isPendingOnfidoResult) {
-            Wallet.openEnablePaymentsPage();
-        } else {
+        if (isPendingOnfidoResult || hasFailedOnfido) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET, CONST.NAVIGATION.TYPE.UP);
+            return;
         }
-    }, [isOffline, isPendingOnfidoResult]);
+
+        Wallet.openEnablePaymentsPage();
+    }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
 
     if (_.isEmpty(userWallet)) {
         return <FullScreenLoadingIndicator />;

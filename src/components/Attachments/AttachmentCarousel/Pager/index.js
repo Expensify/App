@@ -171,10 +171,14 @@ function AttachmentCarouselPager({
 AttachmentCarouselPager.propTypes = pagerPropTypes;
 AttachmentCarouselPager.defaultProps = pagerDefaultProps;
 
-export default React.forwardRef((props, ref) => (
+const AttachmentCarouselPagerWithRef = React.forwardRef((props, ref) => (
     <AttachmentCarouselPager
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+AttachmentCarouselPagerWithRef.displayName = 'AttachmentCarouselPagerWithRef';
+
+export default AttachmentCarouselPagerWithRef;

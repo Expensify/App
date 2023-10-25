@@ -499,15 +499,14 @@ AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
 AddressSearch.displayName = 'AddressSearch';
 
-export default compose(
-    withNetwork(),
-    withLocalize,
-)(
-    React.forwardRef((props, ref) => (
-        <AddressSearch
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+const AddressSearchWithRef = React.forwardRef((props, ref) => (
+    <AddressSearch
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+AddressSearchWithRef.displayName = 'AddressSearchWithRef';
+
+export default compose(withNetwork(), withLocalize)(AddressSearchWithRef);
