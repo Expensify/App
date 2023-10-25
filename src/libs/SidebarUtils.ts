@@ -271,6 +271,7 @@ type OptionData = {
     parentReportID?: string | null;
     notificationPreference?: string | number | null;
     displayNamesWithTooltips?: DisplayNamesWithTooltip[] | null;
+    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | null;
 };
 
 type DisplayNamesWithTooltip = {
