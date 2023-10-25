@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useCallback, useRef} from 'react';
+import React, {useState, useMemo, useCallback, useRef, useEffect} from 'react';
 import {Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -7,7 +7,6 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import OptionsSelector from '../../components/OptionsSelector';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -15,12 +14,11 @@ import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
-import themeColors from '../../styles/themes/default';
-import * as Expensicons from '../../components/Icon/Expensicons';
 import {iouPropTypes, iouDefaultProps} from './propTypes';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
+import SelectionList from '../../components/SelectionList';
 
 /**
  * IOU Currency selection for selecting currency
@@ -75,6 +73,28 @@ function IOUCurrencySelection(props) {
     const selectedCurrencyCode = (lodashGet(props.route, 'params.currency', props.iou.currency) || CONST.CURRENCY.USD).toUpperCase();
     const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.TYPE.REQUEST);
     const reportID = lodashGet(props.route, 'params.reportID', '');
+    const threadReportID = lodashGet(props.route, 'params.threadReportID', '');
+
+    // Decides whether to allow or disallow editing a money request
+    useEffect(() => {
+        // Do not dismiss the modal, when it is not the edit flow.
+        if (!threadReportID) {
+            return;
+        }
+
+        const report = ReportUtils.getReport(threadReportID);
+        const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
+
+        // Do not dismiss the modal, when a current user can edit this currency of this money request.
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, report.parentReportID, CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
+            return;
+        }
+
+        // Dismiss the modal when a current user cannot edit a money request.
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal();
+        });
+    }, [threadReportID]);
 
     const confirmCurrencySelection = useCallback(
         (option) => {
@@ -102,8 +122,7 @@ function IOUCurrencySelection(props) {
                 text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
                 currencyCode,
                 keyForList: currencyCode,
-                customIcon: isSelectedCurrency ? greenCheckmark : undefined,
-                boldStyle: isSelectedCurrency,
+                isSelected: isSelectedCurrency,
             };
         });
 
@@ -120,9 +139,7 @@ function IOUCurrencySelection(props) {
                 ? []
                 : [
                       {
-                          title: translate('iOUCurrencySelection.allCurrencies'),
                           data: filteredCurrencies,
-                          shouldShow: true,
                           indexOffset: 0,
                       },
                   ],
@@ -136,27 +153,20 @@ function IOUCurrencySelection(props) {
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             testID={IOUCurrencySelection.displayName}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('iOUCurrencySelection.selectCurrency')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
-                    />
-                    <OptionsSelector
-                        sections={sections}
-                        onSelectRow={confirmCurrencySelection}
-                        value={searchValue}
-                        onChangeText={setSearchValue}
-                        textInputLabel={translate('common.search')}
-                        headerMessage={headerMessage}
-                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                        shouldHaveOptionSeparator
-                        autoFocus={false}
-                        ref={optionsSelectorRef}
-                    />
-                </>
-            )}
+            <HeaderWithBackButton
+                title={translate('common.selectCurrency')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
+            />
+            <SelectionList
+                sections={sections}
+                textInputLabel={translate('common.search')}
+                textInputValue={searchValue}
+                onChangeText={setSearchValue}
+                onSelectRow={confirmCurrencySelection}
+                headerMessage={headerMessage}
+                initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                showScrollIndicator
+            />
         </ScreenWrapper>
     );
 }

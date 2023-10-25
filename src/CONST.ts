@@ -79,6 +79,10 @@ const CONST = {
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
 
+    LEGAL_NAME: {
+        MAX_LENGTH: 40,
+    },
+
     PULL_REQUEST_NUMBER,
 
     MERCHANT_NAME_MAX_LENGTH: 255,
@@ -120,7 +124,16 @@ const CONST = {
             VIEW_HEIGHT: 275,
         },
         MONEY_REPORT: {
-            MIN_HEIGHT: 280,
+            SMALL_SCREEN: {
+                IMAGE_HEIGHT: 300,
+                CONTAINER_MINHEIGHT: 280,
+                VIEW_HEIGHT: 220,
+            },
+            WIDE_SCREEN: {
+                IMAGE_HEIGHT: 450,
+                CONTAINER_MINHEIGHT: 280,
+                VIEW_HEIGHT: 275,
+            },
         },
     },
 
@@ -1069,6 +1082,12 @@ const CONST = {
         },
     },
 
+    KYC_WALL_SOURCE: {
+        REPORT: 'REPORT', // The user attempted to pay a money request
+        ENABLE_WALLET: 'ENABLE_WALLET', // The user clicked on the `Enable wallet` button on the Wallet page
+        TRANSFER_BALANCE: 'TRANSFER_BALANCE', // The user attempted to transfer their wallet balance to their bank account or debit card
+    },
+
     OS: {
         WINDOWS: 'Windows',
         MAC_OS: PLATFORM_OS_MACOS,
@@ -1244,7 +1263,7 @@ const CONST = {
         BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
-            INDIVIDUAL: 'individal',
+            INDIVIDUAL: 'individual',
             NONE: 'none',
         },
         STATE: {
@@ -2760,11 +2779,18 @@ const CONST = {
         SCROLLING: 'scrolling',
     },
 
+    CHAT_HEADER_LOADER_HEIGHT: 36,
+
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
         DEFAULT_MARGIN_VERTICAL: 8,
         HIDDEN_MARGIN_VERTICAL: 0,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
+    },
+
+    LIST_COMPONENTS: {
+        HEADER: 'header',
+        FOOTER: 'footer',
     },
 
     GLOBAL_NAVIGATION_OPTION: {

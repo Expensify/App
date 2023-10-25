@@ -267,8 +267,8 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
         isMoneyRequestReport: false,
         isExpenseRequest: false,
         isWaitingOnBankAccount: false,
-        isLastMessageDeletedParentAction: false,
         isAllowedToComment: true,
+        chatType: null,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
@@ -306,6 +306,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference || null;
     result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
+    result.chatType = report.chatType;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -429,7 +430,6 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
-    result.isLastMessageDeletedParentAction = report.isLastMessageDeletedParentAction;
 
     if (status) {
         result.status = status;

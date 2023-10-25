@@ -9,7 +9,7 @@ import reportPropTypes from '../../reportPropTypes';
 import FullscreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import * as ReportUtils from '../../../libs/ReportUtils';
 
-export default function (WrappedComponent) {
+export default function (shouldRequireReportID = true) {
     const propTypes = {
         /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
          * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
@@ -29,6 +29,14 @@ export default function (WrappedComponent) {
             }),
         ),
 
+        /** Route params */
+        route: PropTypes.shape({
+            params: PropTypes.shape({
+                /** Report ID passed via route */
+                reportID: PropTypes.string,
+            }),
+        }).isRequired,
+
         /** Beta features list */
         betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -44,67 +52,76 @@ export default function (WrappedComponent) {
         isLoadingReportData: true,
     };
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithReportOrNotFound(props) {
-        const contentShown = React.useRef(false);
-
-        const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
+    return (WrappedComponent) => {
         // eslint-disable-next-line rulesdir/no-negated-variables
-        const shouldShowNotFoundPage = _.isEmpty(props.report) || !props.report.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas);
+        function WithReportOrNotFound(props) {
+            const contentShown = React.useRef(false);
 
-        // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
-        // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-        if (shouldShowNotFoundPage && contentShown.current) {
-            return null;
+            const isReportIdInRoute = !_.isUndefined(props.route.params.reportID);
+
+            // If we should require reportID or we have a reportID in the route, we will check the reportID is valid or not
+            if (shouldRequireReportID || isReportIdInRoute) {
+                const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
+                // eslint-disable-next-line rulesdir/no-negated-variables
+                const shouldShowNotFoundPage = _.isEmpty(props.report) || !props.report.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas);
+
+                // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
+                // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
+                if (shouldShowNotFoundPage && contentShown.current) {
+                    return null;
+                }
+
+                if (shouldShowFullScreenLoadingIndicator) {
+                    return <FullscreenLoadingIndicator />;
+                }
+
+                if (shouldShowNotFoundPage) {
+                    return <NotFoundPage />;
+                }
+            }
+
+            if (!contentShown.current) {
+                contentShown.current = true;
+            }
+
+            const rest = _.omit(props, ['forwardedRef']);
+            return (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...rest}
+                    ref={props.forwardedRef}
+                />
+            );
         }
 
-        if (shouldShowFullScreenLoadingIndicator) {
-            return <FullscreenLoadingIndicator />;
-        }
+        WithReportOrNotFound.propTypes = propTypes;
+        WithReportOrNotFound.defaultProps = defaultProps;
+        WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-        if (shouldShowNotFoundPage) {
-            return <NotFoundPage />;
-        }
-
-        if (!contentShown.current) {
-            contentShown.current = true;
-        }
-
-        const rest = _.omit(props, ['forwardedRef']);
-        return (
-            <WrappedComponent
+        // eslint-disable-next-line rulesdir/no-negated-variables
+        const WithReportOrNotFoundWithRef = React.forwardRef((props, ref) => (
+            <WithReportOrNotFound
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...rest}
-                ref={props.forwardedRef}
+                {...props}
+                forwardedRef={ref}
             />
-        );
-    }
+        ));
 
-    WithReportOrNotFound.propTypes = propTypes;
-    WithReportOrNotFound.defaultProps = defaultProps;
-    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
+        WithReportOrNotFoundWithRef.displayName = 'WithReportOrNotFoundWithRef';
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const withReportOrNotFound = React.forwardRef((props, ref) => (
-        <WithReportOrNotFound
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    ));
-
-    return withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    })(withReportOrNotFound);
+        return withOnyx({
+            report: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+            },
+            isLoadingReportData: {
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            },
+            betas: {
+                key: ONYXKEYS.BETAS,
+            },
+            policies: {
+                key: ONYXKEYS.COLLECTION.POLICY,
+            },
+        })(WithReportOrNotFoundWithRef);
+    };
 }

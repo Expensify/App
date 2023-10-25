@@ -254,6 +254,7 @@ export default {
         recent: 'Reciente',
         all: 'Todo',
         tbd: 'Por determinar',
+        selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
     },
     location: {
@@ -328,10 +329,6 @@ export default {
         paidBy: 'Pagado por',
         splitWith: 'Dividir con',
         whatsItFor: '¿Para qué es?',
-    },
-    iOUCurrencySelection: {
-        selectCurrency: 'Selecciona una moneda',
-        allCurrencies: 'Todas las monedas',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
@@ -542,8 +539,9 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
-        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount} con Expensify`,
+        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
         payElsewhere: 'Pagar de otra forma',
+        nextSteps: 'Pasos Siguientes',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -577,6 +575,7 @@ export default {
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero`,
+        categorySelection: 'Seleccione una categoría para organizar mejor tu dinero',
         error: {
             invalidAmount: 'Por favor ingresa un monto válido antes de continuar.',
             invalidSplit: 'La suma de las partes no equivale al monto total',
@@ -588,6 +587,8 @@ export default {
             duplicateWaypointsErrorMessage: 'Por favor elimina los puntos de ruta duplicados',
             emptyWaypointsErrorMessage: 'Por favor introduce al menos dos puntos de ruta',
         },
+        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `nicio el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
+        enableWallet: 'Habilitar Billetera',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -808,7 +809,7 @@ export default {
         sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
         notesUnavailable: 'No se han encontrado notas para el usuario',
         composerLabel: 'Notas',
-        myNote: 'Mi notas',
+        myNote: 'Mi nota',
     },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',
@@ -853,12 +854,16 @@ export default {
         receiveMoney: 'Recibe dinero en tu moneda local',
         expensifyWallet: 'Billetera Expensify',
         sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
+        enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos',
+        enableWallet: 'Habilitar Billetera',
         bankAccounts: 'Cuentas bancarias',
         addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
         addBankAccount: 'Agregar cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del Espacio de Trabajo para gestionar los gastos de la empresa.',
         expensifyCard: 'Tarjeta Expensify',
+        walletActivationPending: 'Estamos revisando su información, por favor vuelve en unos minutos.',
+        walletActivationFailed: 'Lamentablemente, no podemos activar tu billetera en este momento. Chatea con Concierge para obtener más ayuda.',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -866,6 +871,10 @@ export default {
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
         reportFraud: 'Reportar fraude con la tarjeta virtual',
+        reviewTransaction: 'Revisar transacción',
+        suspiciousBannerTitle: 'Transacción sospechosa',
+        suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haga click abajo para revisarla.',
+        cardLocked: 'La tarjeta está temporalmente bloqueada mientras nuestro equipo revisa la cuenta de tu empresa.',
         cardDetails: {
             cardNumber: 'Número de tarjeta virtual',
             expiration: 'Expiración',
@@ -1238,7 +1247,7 @@ export default {
     },
     additionalDetailsStep: {
         headerTitle: 'Detalles adicionales',
-        helpText: 'Necesitamos confirmar la siguiente información antes de que podamos procesar el pago.',
+        helpText: 'Necesitamos confirmar la siguiente información antes de que puedas enviar y recibir dinero desde tu Billetera.',
         helpTextIdologyQuestions: 'Tenemos que preguntarte unas preguntas más para terminar de verificar tu identidad',
         helpLink: 'Obtén más información sobre por qué necesitamos esto.',
         legalFirstNameLabel: 'Primer nombre legal',
