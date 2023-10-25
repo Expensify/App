@@ -27,7 +27,7 @@ const propTypes = {
     isMessageHtml: PropTypes.bool,
 
     /** Error message to display above button */
-    message: PropTypes.string,
+    message: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed: PropTypes.func,

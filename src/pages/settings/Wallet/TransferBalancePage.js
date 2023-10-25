@@ -3,6 +3,7 @@ import React, {useEffect} from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import * as ErrorUtils from '../../../libs/ErrorUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -165,7 +166,7 @@ function TransferBalancePage(props) {
     const transferAmount = props.userWallet.currentBalance - calculatedFee;
     const isTransferable = transferAmount > 0;
     const isButtonDisabled = !isTransferable || !selectedAccount;
-    const errorMessage = !_.isEmpty(props.walletTransfer.errors) ? _.chain(props.walletTransfer.errors).values().first().value() : '';
+    const errorMessage = !_.isEmpty(props.walletTransfer.errors) ? ErrorUtils.getErrorMessagesWithTranslationData(_.chain(props.walletTransfer.errors).values().first().value()) : '';
 
     const shouldShowTransferView =
         PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, props.bankAccountList) &&

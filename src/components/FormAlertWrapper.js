@@ -27,7 +27,7 @@ const propTypes = {
     isMessageHtml: PropTypes.bool,
 
     /** Error message to display above button */
-    message: PropTypes.string,
+    message: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** Props to detect online status */
     network: networkPropTypes.isRequired,

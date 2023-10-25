@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -281,7 +282,7 @@ function WorkspaceInvitePage(props) {
                                 isAlertVisible={shouldShowAlertPrompt}
                                 buttonText={translate('common.next')}
                                 onSubmit={inviteUser}
-                                message={props.policy.alertMessage}
+                                message={ErrorUtils.getErrorMessagesWithTranslationData(props.policy.alertMessage)}
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
                                 enabledWhenOffline
                                 disablePressOnEnter
