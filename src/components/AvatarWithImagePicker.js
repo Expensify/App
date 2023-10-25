@@ -92,27 +92,47 @@ const propTypes = {
     ...withNavigationFocusPropTypes,
 };
 
+const defaultProps = {
+    source: '',
+    onImageSelected: () => {},
+    onImageRemoved: () => {},
+    style: [],
+    DefaultAvatar: () => {},
+    isUsingDefaultAvatar: false,
+    size: CONST.AVATAR_SIZE.DEFAULT,
+    fallbackIcon: Expensicons.FallbackAvatar,
+    type: CONST.ICON_TYPE_AVATAR,
+    editorMaskImage: undefined,
+    errorRowStyles: [],
+    onErrorClose: () => {},
+    pendingAction: null,
+    errors: null,
+    headerTitle: '',
+    previewSource: '',
+    originalFileName: '',
+};
+
 function AvatarWithImagePicker({
     isFocused,
-    DefaultAvatar = () => {},
-    style = [],
-    pendingAction = null,
-    errors = null,
-    errorRowStyles = [],
-    onErrorClose = () => {},
-    source = '',
-    fallbackIcon = Expensicons.FallbackAvatar,
-    size = CONST.AVATAR_SIZE.DEFAULT,
-    type = CONST.ICON_TYPE_AVATAR,
-    headerTitle = '',
-    previewSource = '',
-    originalFileName = '',
-    isUsingDefaultAvatar = false,
-    onImageRemoved = () => {},
+    DefaultAvatar,
+    style,
+    pendingAction,
+    errors,
+    errorRowStyles,
+    onErrorClose,
+    source,
+    fallbackIcon,
+    size,
+    type,
+    headerTitle,
+    previewSource,
+    originalFileName,
+    isUsingDefaultAvatar,
+    onImageRemoved,
     anchorPosition,
     anchorAlignment,
-    onImageSelected = () => {},
-    editorMaskImage = undefined
+    onImageSelected,
+    editorMaskImage,
 }) {
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState({
@@ -218,8 +238,6 @@ function AvatarWithImagePicker({
     const hideAvatarCropModal = () => {
         setIsAvatarCropModalOpen(false);
     };
-
-    const additionalStyles = _.isArray(style) ? style : [style];
 
     /**
      * Create menu items list for avatar menu
@@ -367,6 +385,7 @@ function AvatarWithImagePicker({
 }
 
 AvatarWithImagePicker.propTypes = propTypes;
+AvatarWithImagePicker.defaultProps = defaultProps;
 AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
 
 export default withNavigationFocus(AvatarWithImagePicker);
