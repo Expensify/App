@@ -21,6 +21,7 @@ import variables from '../../../styles/variables';
 import FullscreenLoadingIndicator from '../../FullscreenLoadingIndicator';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import CONST from '../../../CONST';
 
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
@@ -32,6 +33,7 @@ function AttachmentCarousel({report, reportMetadata, reportActions, source, onNa
     const scrollRef = useRef(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+    const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
 
     const [containerWidth, setContainerWidth] = useState(0);
     const [page, setPage] = useState(0);
@@ -52,10 +54,11 @@ function AttachmentCarousel({report, reportMetadata, reportActions, source, onNa
     );
 
     useEffect(() => {
-        // Even an empty chat will have the 'created' report action, if its not there
-        // then we are coming from a deep link and actions are not yet loaded. We should
-        // wait until actions load.
-        if (_.isEmpty(reportActions)) {
+        // Wait until attachment is loaded and return early if
+        // - Report actions are loading, i.e we called OpenReport
+        // - Report has no actions, i.e we just logged in
+        // - The current attachment doesn't exist in report actions and we haven't called OpenReport yet
+        if (reportMetadata.isLoadingReportActions || _.isEmpty(reportActions) || (_.isEmpty(reportMetadata) && !_.isEmpty(reportActions) && !_.has(reportActions, sourceID))) {
             return;
         }
 
@@ -79,7 +82,7 @@ function AttachmentCarousel({report, reportMetadata, reportActions, source, onNa
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportActions, compareImage]);
+    }, [reportMetadata, reportActions, compareImage]);
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -161,10 +164,11 @@ function AttachmentCarousel({report, reportMetadata, reportActions, source, onNa
         [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
 
-    // Even an empty chat will have the 'created' report action, if its not there
-    // then we are coming from a deep link and actions are not yet loaded. We should
-    // wait until actions load.
-    if (reportMetadata.isLoadingReportActions || _.isEmpty(reportActions)) {
+    // Wait until attachment is loaded and return early if
+    // - Report actions are loading, i.e we called OpenReport
+    // - Report has no actions, i.e we just logged in
+    // - The current attachment doesn't exist in report actions and we haven't called OpenReport yet
+    if (reportMetadata.isLoadingReportActions || _.isEmpty(reportActions) || (_.isEmpty(reportMetadata) && !_.isEmpty(reportActions) && !_.has(reportActions, sourceID))) {
         return <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />;
     }
 
@@ -243,9 +247,6 @@ export default compose(
         },
         reportMetadata: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
-            initialValue: {
-                isLoadingReportActions: false,
-            },
         },
     }),
     withLocalize,
