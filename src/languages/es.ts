@@ -254,6 +254,7 @@ export default {
         recent: 'Reciente',
         all: 'Todo',
         tbd: 'Por determinar',
+        selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
     },
     location: {
@@ -328,10 +329,6 @@ export default {
         paidBy: 'Pagado por',
         splitWith: 'Dividir con',
         whatsItFor: '¿Para qué es?',
-    },
-    iOUCurrencySelection: {
-        selectCurrency: 'Selecciona una moneda',
-        allCurrencies: 'Todas las monedas',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
