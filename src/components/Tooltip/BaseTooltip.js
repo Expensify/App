@@ -52,7 +52,7 @@ function chooseBoundingBox(target, clientX, clientY) {
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal, shiftVertical}) {
+function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal, shiftVertical, tooltipRef}) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -78,7 +78,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
     const initialMousePosition = useRef({x: 0, y: 0});
 
     const updateTargetAndMousePosition = useCallback((e) => {
-        target.current = e.target;
+        target.current = e.currentTarget;
         initialMousePosition.current = {x: e.clientX, y: e.clientY};
     }, []);
 
@@ -197,6 +197,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
             <BoundsObserver
                 enabled={isVisible}
                 onBoundsChange={updateBounds}
+                ref={tooltipRef}
             >
                 <Hoverable
                     onMouseEnter={updateTargetAndMousePosition}

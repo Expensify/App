@@ -267,8 +267,8 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
         isMoneyRequestReport: false,
         isExpenseRequest: false,
         isWaitingOnBankAccount: false,
-        isLastMessageDeletedParentAction: false,
         isAllowedToComment: true,
+        chatType: null,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
@@ -306,6 +306,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference || null;
     result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
+    result.chatType = report.chatType;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -354,6 +355,34 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
             result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}`;
         } else if (lastAction && lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
             result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}`;
+        } else if (
+            lastAction &&
+            _.includes(
+                [
+                    CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM,
+                    CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM,
+                    CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM,
+                    CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM,
+                ],
+                lastAction.actionName,
+            )
+        ) {
+            const targetAccountIDs = lodashGet(lastAction, 'originalMessage.targetAccountIDs', []);
+            const verb =
+                lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                    ? 'invited'
+                    : 'removed';
+            const users = targetAccountIDs.length > 1 ? 'users' : 'user';
+            result.alternateText = `${verb} ${targetAccountIDs.length} ${users}`;
+
+            const roomName = lodashGet(lastAction, 'originalMessage.roomName', '');
+            if (roomName) {
+                const preposition =
+                    lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                        ? ' to'
+                        : ' from';
+                result.alternateText += `${preposition} ${roomName}`;
+            }
         } else if (lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
@@ -401,7 +430,6 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
-    result.isLastMessageDeletedParentAction = report.isLastMessageDeletedParentAction;
 
     if (status) {
         result.status = status;

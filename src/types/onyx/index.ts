@@ -37,7 +37,8 @@ import Policy from './Policy';
 import PolicyCategory from './PolicyCategory';
 import Report from './Report';
 import ReportMetadata from './ReportMetadata';
-import ReportAction from './ReportAction';
+import ReportAction, {ReportActions} from './ReportAction';
+import ReportActionsDrafts from './ReportActionsDrafts';
 import ReportActionReactions from './ReportActionReactions';
 import SecurityGroup from './SecurityGroup';
 import Transaction from './Transaction';
@@ -88,6 +89,8 @@ export type {
     Report,
     ReportMetadata,
     ReportAction,
+    ReportActions,
+    ReportActionsDrafts,
     ReportActionReactions,
     SecurityGroup,
     Transaction,

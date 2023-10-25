@@ -2,4 +2,4 @@
 self-hosted-runner:
   labels:
     - ubuntu-latest-xl
-    - macos-12-xl
+    - macos-13-xlarge
