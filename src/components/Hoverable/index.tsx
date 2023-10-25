@@ -207,6 +207,4 @@ function assignRef(ref: React.MutableRefObject<HTMLElement | null>, element: HTM
     });
 });
 
-Hoverable.displayName = 'Hoverable';
-
 export default Hoverable;
