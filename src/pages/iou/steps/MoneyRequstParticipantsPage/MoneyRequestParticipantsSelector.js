@@ -16,6 +16,7 @@ import CONST from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
 import refPropTypes from '../../../../components/refPropTypes';
+import * as IOU from '../../../../libs/actions/IOU';
 
 const propTypes = {
     /** Beta features list */
@@ -46,9 +47,6 @@ const propTypes = {
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-    /** Callback to request parent modal to go to next step, which should be split */
-    setSelectedParticipants: PropTypes.func.isRequired,
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -88,7 +86,6 @@ function MoneyRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
-    setSelectedParticipants,
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
@@ -163,6 +160,7 @@ function MoneyRequestParticipantsSelector({
         onAddParticipants([
             {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText},
         ]);
+        IOU.setMoneyRequestIsSplitRequest(false);
         navigateToRequest();
     };
 
@@ -202,11 +200,14 @@ function MoneyRequestParticipantsSelector({
                 ];
             }
 
-            setSelectedParticipants(newSelectedOptions);
-
+            if (newSelectedOptions.length === 0) {
+                IOU.setMoneyRequestIsSplitRequest(false);
+            } else {
+                IOU.setMoneyRequestIsSplitRequest(true);
+            }
             onAddParticipants(newSelectedOptions);
         },
-        [participants, onAddParticipants, setSelectedParticipants],
+        [participants, onAddParticipants],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(

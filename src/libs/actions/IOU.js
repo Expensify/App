@@ -2835,6 +2835,13 @@ function setMoneyRequestParticipants(participants) {
 }
 
 /**
+ * @param {Boolean} isSplitRequest
+ */
+function setMoneyRequestIsSplitRequest(isSplitRequest) {
+    Onyx.merge(ONYXKEYS.IOU, {isSplitRequest});
+}
+
+/**
  * @param {String} receiptPath
  * @param {String} receiptFilename
  */
@@ -2941,6 +2948,7 @@ export {
     resetMoneyRequestTag,
     setMoneyRequestBillable,
     setMoneyRequestParticipants,
+    setMoneyRequestIsSplitRequest,
     setMoneyRequestReceipt,
     setUpDistanceTransaction,
     navigateToNextPage,

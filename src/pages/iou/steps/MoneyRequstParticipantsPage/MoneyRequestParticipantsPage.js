@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
@@ -54,7 +53,6 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
-    const [selectedParticipants, setSelectedParticipants] = useState(iou.participants);
 
     useEffect(() => {
         if (isDistanceRequest) {
@@ -72,13 +70,10 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
             return;
         }
 
-        setHeaderTitle(_.isEmpty(selectedParticipants) ? translate('tabSelector.manual') : translate('iou.split'));
-    }, [selectedParticipants, isDistanceRequest, translate, isScanRequest, isSendRequest]);
+        setHeaderTitle(iou.isSplitRequest ? translate('iou.split') : translate('tabSelector.manual'));
+    }, [iou.isSplitRequest, isDistanceRequest, translate, isScanRequest, isSendRequest]);
 
     const navigateToConfirmationStep = (moneyRequestType) => {
-        if (moneyRequestType === iouType.current) {
-            setSelectedParticipants([]);
-        }
         IOU.setMoneyRequestId(moneyRequestType);
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID.current));
     };
@@ -127,7 +122,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                     />
                     <MoneyRequestParticipantsSelector
                         ref={(el) => (optionsSelectorRef.current = el)}
-                        participants={selectedParticipants}
+                        participants={iou.participants}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToConfirmationStep(iouType.current)}
                         navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
@@ -135,7 +130,6 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                         iouType={iouType.current}
                         isDistanceRequest={isDistanceRequest}
                         isScanRequest={isScanRequest}
-                        setSelectedParticipants={setSelectedParticipants}
                     />
                 </View>
             )}
