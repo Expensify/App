@@ -254,6 +254,7 @@ export default {
         recent: 'Reciente',
         all: 'Todo',
         tbd: 'Por determinar',
+        selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
     },
     location: {
@@ -328,10 +329,6 @@ export default {
         paidBy: 'Pagado por',
         splitWith: 'Dividir con',
         whatsItFor: '¿Para qué es?',
-    },
-    iOUCurrencySelection: {
-        selectCurrency: 'Selecciona una moneda',
-        allCurrencies: 'Todas las monedas',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
@@ -866,6 +863,7 @@ export default {
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del Espacio de Trabajo para gestionar los gastos de la empresa.',
         expensifyCard: 'Tarjeta Expensify',
         walletActivationPending: 'Estamos revisando su información, por favor vuelve en unos minutos.',
+        walletActivationFailed: 'Lamentablemente, no podemos activar tu billetera en este momento. Chatea con Concierge para obtener más ayuda.',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
