@@ -276,25 +276,6 @@ function ReportScreen({
         [route],
     );
 
-    useFocusEffect(
-        useCallback(() => {
-            const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
-                const isTopMostReportID = Navigation.getTopmostReportId() === getReportID(route);
-                // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
-                // we don't need to call openReport
-                if (!getIsReportFullyVisible(isTopMostReportID) || report.isOptimisticReport) {
-                    return;
-                }
-
-                Report.openReport(report.reportID);
-            });
-
-            return () => unsubscribeVisibilityListener();
-            // The effect should run only on the first focus to attach listener
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []),
-    );
-
     useEffect(() => {
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
