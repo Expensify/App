@@ -7,20 +7,12 @@ import DateUtils from '../libs/DateUtils';
 import * as NumberFormatUtils from '../libs/NumberFormatUtils';
 import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
 import CONST from '../CONST';
-import TIMEZONES from '../TIMEZONES';
 import compose from '../libs/compose';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
+import { PersonalDetails } from '../types/onyx';
 
-type SelectedTimezone = {
-    /** Value of the selected timezone */
-    selected: (typeof TIMEZONES)[number];
-};
-
-type CurrentUserPersonalDetails = {
-    /** Timezone of the current user */
-    timezone?: SelectedTimezone;
-};
+type CurrentUserPersonalDetails = Pick<PersonalDetails, 'timezone'>;
 
 type LocaleContextProviderOnyxProps = {
     /** The user's preferred locale e.g. 'en', 'es-ES' */
