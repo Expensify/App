@@ -10,4 +10,4 @@ import * as Setup from './src/setup';
 
 enableLegacyWebImplementation(true);
 Setup.blocking().then(() => AppRegistry.registerComponent(Config.APP_NAME, () => App));
-Setup.nonBlockingSetup();
+Setup.nonBlocking();
