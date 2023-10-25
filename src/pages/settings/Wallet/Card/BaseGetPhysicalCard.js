@@ -103,7 +103,7 @@ const defaultProps = {
     session: {},
     loginList: {},
     isConfirmation: false,
-    renderContent: (onSubmit, submitButtonText, children = () => {}, onValidate = () => {}) => (
+    renderContent: (onSubmit, submitButtonText, children = () => {}, onValidate = () => ({})) => (
         <Form
             formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
             submitButtonText={submitButtonText}
@@ -115,7 +115,7 @@ const defaultProps = {
             {children}
         </Form>
     ),
-    onValidate: () => {},
+    onValidate: () => ({}),
 };
 
 function BaseGetPhysicalCard({
