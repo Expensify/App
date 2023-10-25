@@ -225,7 +225,9 @@ function ReimbursementAccountPage({
 
     useEffect(() => {
         fetchData();
-    }, []); // The empty dependency array ensures this runs only once after the component mounts.
+    }, 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []); // The empty dependency array ensures this runs only once after the component mounts.
 
     useEffect(() => {
         // Check for network change from offline to online
