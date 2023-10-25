@@ -87,7 +87,7 @@ In your web account, go to **Settings > Domains > [Domain Name] > Domain Admins*
 Check the box next to the employee's name you want to remove, then click “Close Accounts”.
 
 ### Important notes about closing accounts through Domain settings:
-If a user has a [Secondary Login](link) linked to their Expensify account, they can still access their account after it's closed in the domain. This is helpful for accessing financial data, like tax-related receipts.
+If a user has a Secondary Login linked to their Expensify account, they can still access their account after it's closed in the domain. This is helpful for accessing financial data, like tax-related receipts.
 Closing an account through the domain permanently removes any unsubmitted receipts/reports. Make sure to approve or reimburse all employee reports before closing an account.
 If an employee doesn't have a Secondary Login, they'll be automatically removed from the group Workspace. If they have a Secondary Login, it will continue to be associated with the group Workspace.
 
