@@ -285,6 +285,7 @@ export default {
     },
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
+    REFFERAL_DETAILS_PAGE: '/refferal',
 
     IOU_REQUEST: 'request/new',
     IOU_SEND: 'send/new',

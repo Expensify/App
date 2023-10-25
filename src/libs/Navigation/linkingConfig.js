@@ -375,6 +375,7 @@ export default {
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                             IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
+                            Refferal_Details: ROUTES.REFFERAL_DETAILS_PAGE,
                         },
                     },
                     SplitDetails: {

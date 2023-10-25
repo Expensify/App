@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
+import Text from '../Text';
 import Button from '../Button';
 import FixedFooter from '../FixedFooter';
 import OptionsList from '../OptionsList';
@@ -18,6 +19,13 @@ import setSelection from '../../libs/setSelection';
 import compose from '../../libs/compose';
 import getPlatform from '../../libs/getPlatform';
 import FormHelpMessage from '../FormHelpMessage';
+import {PressableWithoutFeedback} from '../Pressable';
+import colors from '../../styles/colors';
+import {Info} from '../Icon/Expensicons';
+import Icon from '../Icon';
+import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** padding bottom style of safe area */
@@ -53,6 +61,7 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
+        this.handleRefferalModal = this.handleRefferalModal.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
@@ -65,6 +74,7 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
+            shouldShowRefferalModal: false,
             errorMessage: '',
         };
     }
@@ -176,6 +186,10 @@ class BaseOptionsSelector extends Component {
         });
 
         this.props.onChangeText(value);
+    }
+
+    handleRefferalModal() {
+        this.setState({shouldShowRefferalModal: !this.state.shouldShowRefferalModal});
     }
 
     subscribeToKeyboardShortcut() {
@@ -492,6 +506,29 @@ class BaseOptionsSelector extends Component {
                         </>
                     )}
                 </View>
+                {this.props.shouldShowCTA && (
+                    <View style={[styles.ph5, styles.pb5, styles.flexShrink0]}>
+                        <PressableWithoutFeedback
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.REFFERAL_DETAILS_PAGE);
+                                Navigation.setParams({data: this.props.refferalProgramText});
+                            }}
+                            style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
+                            accessibilityLabel="test"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        >
+                            <Text>
+                                {this.props.refferalProgramText.buttonText},<Text color={colors.green400}> get $250</Text>
+                            </Text>
+                            <Icon
+                                src={Info}
+                                height={24}
+                                width={24}
+                            />
+                        </PressableWithoutFeedback>
+                    </View>
+                )}
+
                 {shouldShowFooter && (
                     <FixedFooter>
                         {shouldShowDefaultConfirmButton && (
