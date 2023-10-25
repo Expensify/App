@@ -79,6 +79,7 @@ module.exports = {
                     },
                 ],
                 curly: 'error',
+                'react/display-name': 'error',
             },
         },
         {
