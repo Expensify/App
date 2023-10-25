@@ -874,22 +874,22 @@ function waitForUserSignIn(): Promise<boolean> {
  * @param {string} route
  */
 
-const canAccessRouteByAnonymousUser = (route) => {
+const canAccessRouteByAnonymousUser = (route: string) => {
     const reportID = ReportUtils.getReportIDFromLink(route);
     if (reportID) {
         return true;
     }
     const parsedReportRouteParams = ReportUtils.parseReportRouteParams(route);
     let routeRemovedReportId = route;
-    if (parsedReportRouteParams.reportID) {
-        routeRemovedReportId = route.replace(lodashGet(parsedReportRouteParams, 'reportID', ''), ':reportID');
+    if ((parsedReportRouteParams as {reportID: string})?.reportID) {
+        routeRemovedReportId = route.replace((parsedReportRouteParams as {reportID: string})?.reportID, ':reportID');
     }
     if (route.startsWith('/')) {
         routeRemovedReportId = routeRemovedReportId.slice(1);
     }
     const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route];
 
-    if (_.contains(routesCanAccessByAnonymousUser, routeRemovedReportId)) {
+    if ((routesCanAccessByAnonymousUser as string[]).includes(routeRemovedReportId)) {
         return true;
     }
     return false;
