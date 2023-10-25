@@ -144,6 +144,8 @@ const Provider = compose(
     }),
 )(LocaleContextProvider);
 
+Provider.displayName = 'withOnyx(LocaleContextProvider)';
+
 export {Provider as LocaleContextProvider, LocaleContext};
 
 export type {LocaleContextProps};
