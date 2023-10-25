@@ -12,8 +12,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Get merged pull request
         id: getMergedPullRequest
