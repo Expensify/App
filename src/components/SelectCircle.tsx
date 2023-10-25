@@ -10,7 +10,7 @@ type SelectCircleProps = {
     isChecked: boolean;
 
     /** Additional styles to pass to SelectCircle */
-    styles: StyleProp<ViewStyle>;
+    styles?: StyleProp<ViewStyle>;
 };
 
 function SelectCircle({isChecked = false, styles = []}: SelectCircleProps) {
