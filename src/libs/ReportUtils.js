@@ -1208,25 +1208,50 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
  * @returns {Array}
  */
 function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
-    return _.map(personalDetailsList, (user) => {
-        const accountID = Number(user.accountID);
-        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
-        const avatar = UserUtils.getDefaultAvatar(accountID);
+    return _.chain(personalDetailsList)
+        .map((user) => {
+            const accountID = Number(user.accountID);
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
+            const avatar = UserUtils.getDefaultAvatar(accountID);
 
-        let pronouns = user.pronouns;
-        if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
-            const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-            pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
-        }
+            let pronouns = user.pronouns;
+            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+                const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+            }
 
-        return {
-            displayName,
-            avatar,
-            login: user.login || '',
-            accountID,
-            pronouns,
-        };
-    });
+            return {
+                displayName,
+                avatar,
+                login: user.login || '',
+                accountID,
+                pronouns,
+            };
+        })
+        .sort((first, second) => {
+            // First sort by displayName/login
+            const displayNameLoginOrder = first.displayName.localeCompare(second.displayName);
+            if (displayNameLoginOrder !== 0) {
+                return displayNameLoginOrder;
+            }
+
+            // Then fallback on accountID as the final sorting criteria.
+            return first.accountID > second.accountID;
+        })
+        .value();
+}
+
+/**
+ * Gets a joined string of display names from the list of display name with tooltip objects.
+ *
+ * @param {Object} displayNamesWithTooltips
+ * @returns {String}
+ */
+function getDisplayNamesStringFromTooltips(displayNamesWithTooltips) {
+    return _.filter(
+        _.map(displayNamesWithTooltips, ({displayName}) => displayName),
+        (displayName) => !_.isEmpty(displayName),
+    ).join(', ');
 }
 
 /**
@@ -3270,6 +3295,11 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return true;
     }
 
+    // Hide only chat threads that haven't been commented on (other threads are actionable)
+    if (isChatThread(report) && canHideReport && isEmptyChat) {
+        return false;
+    }
+
     // Include reports that have errors from trying to add a workspace
     // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
     if (report.errorFields && report.errorFields.addWorkspaceRoom) {
@@ -4039,6 +4069,32 @@ function getIOUReportActionDisplayMessage(reportAction) {
 }
 
 /**
+ * Checks if a report is a group chat.
+ *
+ * A report is a group chat if it meets the following conditions:
+ * - Not a chat thread.
+ * - Not a task report.
+ * - Not a money request / IOU report.
+ * - Not an archived room.
+ * - Not a public / admin / announce chat room (chat type doesn't match any of the specified types).
+ * - More than 2 participants.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isGroupChat(report) {
+    return (
+        report &&
+        !isChatThread(report) &&
+        !isTaskReport(report) &&
+        !isMoneyRequestReport(report) &&
+        !isArchivedRoom(report) &&
+        !Object.values(CONST.REPORT.CHAT_TYPE).includes(getChatType(report)) &&
+        lodashGet(report, 'participantAccountIDs.length', 0) > 2
+    );
+}
+
+/**
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -4098,6 +4154,7 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
+    getDisplayNamesStringFromTooltips,
     getReportName,
     getReport,
     getReportIDFromLink,
@@ -4204,6 +4261,7 @@ export {
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
     isWaitingForTaskCompleteFromAssignee,
+    isGroupChat,
     isReportDraft,
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
