@@ -1,5 +1,5 @@
 import React, {useState, useRef, useEffect} from 'react';
-import {View, ViewStyle} from 'react-native';
+import {View, ViewStyle, StyleProp} from 'react-native';
 import delay from 'lodash/delay';
 import {OnLoadEvent} from 'react-native-fast-image';
 import Log from '../libs/Log';
@@ -14,7 +14,7 @@ type ImageWithSizeCalculationProps = {
     url: string;
 
     /** Any additional styles to apply */
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
 
     /** Callback fired when the image has been measured. */
     onMeasure: OnMeasure;
