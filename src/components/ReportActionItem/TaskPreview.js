@@ -22,14 +22,11 @@ import * as Task from '../../libs/actions/Task';
 import * as ReportUtils from '../../libs/ReportUtils';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import personalDetailsPropType from '../../pages/personalDetailsPropType';
 import * as Session from '../../libs/actions/Session';
 import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
+import {usePersonalDetails} from '../OnyxProvider';
 
 const propTypes = {
-    /** All personal details asssociated with user */
-    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
-
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
 
@@ -59,12 +56,12 @@ const propTypes = {
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
-    personalDetailsList: {},
     taskReport: {},
     isHovered: false,
 };
 
 function TaskPreview(props) {
+    const personalDetails = usePersonalDetails || CONST.EMPTY_OBJECT;
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
@@ -73,8 +70,8 @@ function TaskPreview(props) {
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
-    const assigneeLogin = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], '');
-    const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
+    const assigneeLogin = lodashGet(personalDetails, [taskAssigneeAccountID, 'login'], '');
+    const assigneeDisplayName = lodashGet(personalDetails, [taskAssigneeAccountID, 'displayName'], '');
     const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
     const htmlForTaskPreview =
         taskAssignee && taskAssigneeAccountID !== 0
@@ -130,10 +127,6 @@ export default compose(
     withOnyx({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
-            initialValue: {},
-        },
-        personalDetailsList: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             initialValue: {},
         },
     }),
