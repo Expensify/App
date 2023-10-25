@@ -58,7 +58,7 @@ function AttachmentCarousel({report, reportMetadata, reportActions, source, onNa
         // - Report actions are loading, i.e we called OpenReport
         // - Report has no actions, i.e we just logged in
         // - The current attachment doesn't exist in report actions and we haven't called OpenReport yet
-        if (reportMetadata.isLoadingReportActions || _.isEmpty(reportActions) || (_.isEmpty(reportMetadata) && !_.isEmpty(reportActions) && !_.has(reportActions, sourceID))) {
+        if (reportMetadata.isLoadingInitialReportActions || _.isEmpty(reportActions) || (_.isEmpty(reportMetadata) && !_.isEmpty(reportActions) && !_.has(reportActions, sourceID))) {
             return;
         }
 
@@ -168,7 +168,7 @@ function AttachmentCarousel({report, reportMetadata, reportActions, source, onNa
     // - Report actions are loading, i.e we called OpenReport
     // - Report has no actions, i.e we just logged in
     // - The current attachment doesn't exist in report actions and we haven't called OpenReport yet
-    if (reportMetadata.isLoadingReportActions || _.isEmpty(reportActions) || (_.isEmpty(reportMetadata) && !_.isEmpty(reportActions) && !_.has(reportActions, sourceID))) {
+    if (reportMetadata.isLoadingInitialReportActions || _.isEmpty(reportActions) || (_.isEmpty(reportMetadata) && !_.isEmpty(reportActions) && !_.has(reportActions, sourceID))) {
         return <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />;
     }
 

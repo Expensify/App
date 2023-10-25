@@ -68,7 +68,7 @@ function ReportAttachments(props) {
         // of a chat we haven't opened after login (from any page other than the chat itself), the
         // report actions are not loaded for that report
         const reportActions = ReportActionUtils.getAllReportActions(reportID);
-        if (props.reportMetadata.isLoadingReportActions || (!_.isEmpty(reportActions) && _.has(reportActions, sourceID))) {
+        if (props.reportMetadata.isLoadingInitialReportActions || (!_.isEmpty(reportActions) && _.has(reportActions, sourceID))) {
             reportActionsLoadedRef.current = true;
             return;
         }
