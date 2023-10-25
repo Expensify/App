@@ -46,6 +46,8 @@ function VerifyStep({account, session}) {
             Navigation.navigate(ROUTES.SETTINGS_2FA.ENABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
         }
 
+        formRef.current.focus();
+
         return () => {
             Session.clearAccountMessages();
         };
@@ -100,7 +102,6 @@ function VerifyStep({account, session}) {
                 total: 3,
             }}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA.CODES)}
-            onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
         >
             <ScrollView
                 keyboardShouldPersistTaps="handled"
