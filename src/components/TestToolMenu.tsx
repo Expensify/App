@@ -1,7 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import styles from '../styles/styles';
 import Switch from './Switch';
 import Text from './Text';
@@ -11,40 +9,31 @@ import * as Session from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from './Button';
 import TestToolRow from './TestToolRow';
-import networkPropTypes from './networkPropTypes';
 import compose from '../libs/compose';
 import {withNetwork} from './OnyxProvider';
 import * as ApiUtils from '../libs/ApiUtils';
 import CONFIG from '../CONFIG';
+import NetworkOnyx from '../types/onyx/Network';
+import UserOnyx from '../types/onyx/User';
 
-const propTypes = {
+type TestToolMenuOnyxProps = {
     /** User object in Onyx */
-    user: PropTypes.shape({
-        /** Whether we should use the staging version of the secure API server */
-        shouldUseStagingServer: PropTypes.bool,
-    }),
+    user: OnyxEntry<UserOnyx>;
+};
 
+type TestToolMenuProps = TestToolMenuOnyxProps & {
     /** Network object in Onyx */
-    network: networkPropTypes.isRequired,
+    network: OnyxEntry<NetworkOnyx>;
 };
 
-const defaultProps = {
-    user: {
-        // The default value is environment specific and can't be set with `defaultProps` (ENV is not resolved yet)
-        // When undefined (during render) STAGING defaults to `true`, other envs default to `false`
-        shouldUseStagingServer: undefined,
-    },
-};
+const USER_DEFAULT = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
 
-function TestToolMenu(props) {
+function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
+    const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
+
     return (
         <>
-            <Text
-                style={[styles.textLabelSupporting, styles.mb4]}
-                numberOfLines={1}
-            >
-                Test Preferences
-            </Text>
+            <Text style={[styles.textLabelSupporting, styles.mb4]}>Test Preferences</Text>
 
             {/* Option to switch between staging and default api endpoints.
         This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
@@ -53,8 +42,8 @@ function TestToolMenu(props) {
                 <TestToolRow title="Use Staging Server">
                     <Switch
                         accessibilityLabel="Use Staging Server"
-                        isOn={lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi())}
-                        onToggle={() => User.setShouldUseStagingServer(!lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi()))}
+                        isOn={shouldUseStagingServer}
+                        onToggle={() => User.setShouldUseStagingServer(!shouldUseStagingServer)}
                     />
                 </TestToolRow>
             )}
@@ -63,8 +52,8 @@ function TestToolMenu(props) {
             <TestToolRow title="Force offline">
                 <Switch
                     accessibilityLabel="Force offline"
-                    isOn={Boolean(props.network.shouldForceOffline)}
-                    onToggle={() => Network.setShouldForceOffline(!props.network.shouldForceOffline)}
+                    isOn={Boolean(network?.shouldForceOffline)}
+                    onToggle={() => Network.setShouldForceOffline(!network?.shouldForceOffline)}
                 />
             </TestToolRow>
 
@@ -72,8 +61,8 @@ function TestToolMenu(props) {
             <TestToolRow title="Simulate failing network requests">
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
-                    isOn={Boolean(props.network.shouldFailAllRequests)}
-                    onToggle={() => Network.setShouldFailAllRequests(!props.network.shouldFailAllRequests)}
+                    isOn={Boolean(network?.shouldFailAllRequests)}
+                    onToggle={() => Network.setShouldFailAllRequests(!network?.shouldFailAllRequests)}
                 />
             </TestToolRow>
 
@@ -98,15 +87,13 @@ function TestToolMenu(props) {
     );
 }
 
-TestToolMenu.propTypes = propTypes;
-TestToolMenu.defaultProps = defaultProps;
 TestToolMenu.displayName = 'TestToolMenu';
 
 export default compose(
-    withNetwork(),
-    withOnyx({
+    withOnyx<TestToolMenuProps, TestToolMenuOnyxProps>({
         user: {
             key: ONYXKEYS.USER,
         },
     }),
+    withNetwork(),
 )(TestToolMenu);
