@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import Encryptify from 'react-native-encryptify';
 import * as Report from './libs/actions/Report';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -31,13 +32,13 @@ import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as DemoActions from './libs/actions/DemoActions';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
+// import useEncryptify from './hooks/useEncryptify';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
 import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
 // eslint-disable-next-line no-unused-vars
 import subscribePushNotification from './libs/Notification/PushNotification/subscribePushNotification';
-import useEncryptify from './hooks/useEncryptify';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -188,11 +189,11 @@ function Expensify(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    const {Encryptify, isEncryptifyReady} = useEncryptify();
+    // const {Encryptify, isEncryptifyReady} = useEncryptify();
     useEffect(() => {
-        if (!isEncryptifyReady) {
-            return;
-        }
+        // if (!isEncryptifyReady) {
+        //     return;
+        // }
 
         const kemKeys = Encryptify.KEMGenKeys();
 
@@ -210,7 +211,7 @@ function Expensify(props) {
         const decryptedData = Encryptify.AESDecrypt('some iv value', decryptedSharedSecret, encryptedData);
 
         console.log({encryptedData, decryptedData});
-    }, [Encryptify, isEncryptifyReady]);
+    }, []);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
