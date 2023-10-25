@@ -185,16 +185,14 @@ SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 SignInPageLayout.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withSafeAreaInsets,
-    withLocalize,
-)(
-    forwardRef((props, ref) => (
-        <SignInPageLayout
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+const SignInPageLayoutWithRef = forwardRef((props, ref) => (
+    <SignInPageLayout
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+SignInPageLayoutWithRef.displayName = 'SignInPageLayoutWithRef';
+
+export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(SignInPageLayoutWithRef);
