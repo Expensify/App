@@ -38,11 +38,12 @@ function CodesStep({account = defaultAccount}) {
     }, [account.requiresTwoFactorAuth]);
 
     useEffect(() => {
-        if (account.recoveryCodes) {
+        if (account.requiresTwoFactorAuth || account.recoveryCodes) {
             return;
         }
         Session.toggleTwoFactorAuth(true);
-    }, [account.recoveryCodes]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
+    }, []);
 
     return (
         <StepWrapper

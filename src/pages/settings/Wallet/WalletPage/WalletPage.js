@@ -2,16 +2,19 @@ import React, {useCallback, useEffect, useState, useRef} from 'react';
 import {ActivityIndicator, View, InteractionManager, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Navigation, {navigationRef} from '../../../../libs/Navigation/Navigation';
+import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
 import compose from '../../../../libs/compose';
 import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 import Popover from '../../../../components/Popover';
 import MenuItem from '../../../../components/MenuItem';
+import Text from '../../../../components/Text';
+import Icon from '../../../../components/Icon';
 import * as PaymentMethods from '../../../../libs/actions/PaymentMethods';
 import getClickedTargetLocation from '../../../../libs/getClickedTargetLocation';
 import CurrentWalletBalance from '../../../../components/CurrentWalletBalance';
@@ -61,9 +64,13 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     const [showConfirmDeleteContent, setShowConfirmDeleteContent] = useState(false);
 
     const hasBankAccount = !_.isEmpty(bankAccountList) || !_.isEmpty(fundList);
-    const hasWallet = userWallet.walletLinkedAccountID > 0;
+    const hasWallet = !_.isEmpty(userWallet);
+    const hasActivatedWallet = _.contains([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM], userWallet.tierName);
     const hasAssignedCard = !_.isEmpty(cardList);
     const shouldShowEmptyState = !hasBankAccount && !hasWallet && !hasAssignedCard;
+
+    const isPendingOnfidoResult = lodashGet(userWallet, 'isPendingOnfidoResult', false);
+    const hasFailedOnfido = lodashGet(userWallet, 'hasFailedOnfido', false);
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change
@@ -241,8 +248,13 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
         }
     }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType]);
 
-    const navigateToTransferBalancePage = () => {
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
+    /**
+     * Navigate to the appropriate page after completing the KYC flow, depending on what initiated it
+     *
+     * @param {String} source
+     */
+    const navigateToWalletOrTransferBalancePage = (source) => {
+        Navigation.navigate(source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET ? ROUTES.SETTINGS_WALLET : ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
 
     useEffect(() => {
@@ -293,13 +305,6 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
         }
     }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, bankAccountList, fundList, shouldShowDefaultDeleteMenu]);
 
-    useEffect(() => {
-        if (!shouldShowEmptyState) {
-            return;
-        }
-        navigationRef.setParams({backgroundColor: themeColors.walletPageBG});
-    }, [shouldShowEmptyState]);
-
     const shouldShowMakeDefaultButton =
         !paymentMethod.isSelectedPaymentMethodDefault &&
         Permissions.canUseWallet(betas) &&
@@ -307,6 +312,8 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
+    const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
+    const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
 
     return (
         <>
@@ -330,7 +337,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                 {hasWallet && (
                                     <WalletSection
                                         icon={Illustrations.MoneyIntoWallet}
-                                        subtitle={translate('walletPage.sendAndReceiveMoney')}
+                                        subtitle={translate(`walletPage.${hasActivatedWallet ? 'sendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
                                         title={translate('walletPage.expensifyWallet')}
                                     >
                                         <>
@@ -351,28 +358,103 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                                     <CurrentWalletBalance balanceStyles={[styles.walletBalance]} />
                                                 </OfflineWithFeedback>
                                             )}
+
                                             <KYCWall
-                                                onSuccessfulKYC={navigateToTransferBalancePage}
+                                                onSuccessfulKYC={(_iouPaymentType, source) => navigateToWalletOrTransferBalancePage(source)}
+                                                onSelectPaymentMethod={(selectedPaymentMethod) => {
+                                                    if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+                                                        return;
+                                                    }
+                                                    // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
+                                                    BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
+                                                }}
                                                 enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
                                                 addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
                                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                                 popoverPlacement="bottom"
+                                                source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
+                                                shouldIncludeDebitCard={hasActivatedWallet}
                                             >
-                                                {(triggerKYCFlow, buttonRef) => (
-                                                    <MenuItem
-                                                        ref={buttonRef}
-                                                        title={translate('common.transferBalance')}
-                                                        icon={Expensicons.Transfer}
-                                                        onPress={triggerKYCFlow}
-                                                        shouldShowRightIcon
-                                                        disabled={network.isOffline}
-                                                        wrapperStyle={styles.transferBalance}
-                                                    />
-                                                )}
+                                                {(triggerKYCFlow, buttonRef) => {
+                                                    if (shouldShowLoadingSpinner) {
+                                                        return null;
+                                                    }
+
+                                                    if (hasActivatedWallet) {
+                                                        return (
+                                                            <MenuItem
+                                                                ref={buttonRef}
+                                                                title={translate('common.transferBalance')}
+                                                                icon={Expensicons.Transfer}
+                                                                onPress={triggerKYCFlow}
+                                                                shouldShowRightIcon
+                                                                disabled={network.isOffline}
+                                                                wrapperStyle={styles.transferBalance}
+                                                            />
+                                                        );
+                                                    }
+
+                                                    if (isPendingOnfidoResult) {
+                                                        return (
+                                                            <View style={alertViewStyle}>
+                                                                <Icon
+                                                                    src={Expensicons.Hourglass}
+                                                                    fill={themeColors.icon}
+                                                                />
+                                                                <Text style={alertTextStyle}>{translate('walletPage.walletActivationPending')}</Text>
+                                                            </View>
+                                                        );
+                                                    }
+
+                                                    if (hasFailedOnfido) {
+                                                        return (
+                                                            <View style={alertViewStyle}>
+                                                                <Icon
+                                                                    src={Expensicons.Exclamation}
+                                                                    fill={themeColors.icon}
+                                                                />
+                                                                <Text style={alertTextStyle}>{translate('walletPage.walletActivationFailed')}</Text>
+                                                            </View>
+                                                        );
+                                                    }
+
+                                                    return (
+                                                        <Button
+                                                            ref={buttonRef}
+                                                            text={translate('walletPage.enableWallet')}
+                                                            onPress={triggerKYCFlow}
+                                                            style={styles.mh5}
+                                                            isDisabled={network.isOffline}
+                                                            success
+                                                            large
+                                                        />
+                                                    );
+                                                }}
                                             </KYCWall>
                                         </>
                                     </WalletSection>
                                 )}
+                                {hasAssignedCard ? (
+                                    <WalletSection
+                                        icon={Illustrations.CreditCardsNew}
+                                        subtitle={translate('walletPage.assignedCardsDescription')}
+                                        title={translate('walletPage.assignedCards')}
+                                    >
+                                        <PaymentMethodList
+                                            shouldShowAddBankAccount={false}
+                                            shouldShowAddPaymentMethodButton={false}
+                                            shouldShowAssignedCards
+                                            shouldShowEmptyListMessage={false}
+                                            onPress={paymentMethodPressed}
+                                            style={styles.mt5}
+                                            isAddPaymentMenuActive={shouldShowAddPaymentMenu}
+                                            actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
+                                            activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
+                                            buttonRef={addPaymentMethodAnchorRef}
+                                            onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
+                                        />
+                                    </WalletSection>
+                                ) : null}
                                 <WalletSection
                                     icon={Illustrations.BankArrow}
                                     subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
