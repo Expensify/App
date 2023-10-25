@@ -10,7 +10,7 @@ type Message = {
     type: string;
 
     /** The html content of the fragment. */
-    html: string;
+    html?: string;
 
     /** The text content of the fragment. */
     text: string;

@@ -1,6 +1,7 @@
 import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 import * as OnyxCommon from './OnyxCommon';
+import PersonalDetails from './PersonalDetails';
 
 type Report = {
     /** The specific type of chat */
@@ -93,6 +94,9 @@ type Report = {
     chatReportID?: string;
     state?: ValueOf<typeof CONST.REPORT.STATE>;
     isHidden?: boolean;
+    isChatRoom?: boolean;
+    participantsList?: Array<Partial<PersonalDetails>>;
+    description?: string;
 };
 
 export default Report;
