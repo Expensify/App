@@ -50,9 +50,9 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, selectedTab);
-    const isSendRequest = iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+    const isSendRequest = iouType.current === CONST.IOU.TYPE.SEND;
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
-    const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
+    const isSplitRequest = iou.id === CONST.IOU.TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
 
     useEffect(() => {
@@ -80,7 +80,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (prevMoneyRequestId.current !== iou.id) {
+        if (prevMoneyRequestId.current !== iou.id && !_.isEmpty(reportID.current)) {
             // The ID is cleared on completing a request. In that case, we will do nothing
             if (iou.id && !isDistanceRequest && !isSplitRequest) {
                 navigateBack(true);
@@ -90,7 +90,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = iou.id !== moneyRequestId;
+        const shouldReset = !_.isEmpty(reportID.current) && iou.id !== moneyRequestId;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
@@ -121,7 +121,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                         participants={iou.participants}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToConfirmationStep(iouType.current)}
-                        navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
+                        navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.TYPE.SPLIT)}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         iouType={iouType.current}
                         isDistanceRequest={isDistanceRequest}

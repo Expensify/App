@@ -34,7 +34,7 @@ const propTypes = {
 const defaultProps = {
     numberOfLines: 1,
     tooltipEnabled: false,
-    titleStyles: [],
+    textStyles: [],
 };
 
 export {propTypes, defaultProps};
