@@ -83,6 +83,7 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
 RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
 RequestorOnfidoStep.propTypes = propTypes;
 RequestorOnfidoStep.defaultProps = defaultProps;
+RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
 
 export default withOnyx({
     onfidoToken: {
