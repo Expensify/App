@@ -14,7 +14,6 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
-import CollectionUtils from '../CollectionUtils';
 
 const allPolicies = {};
 Onyx.connect({
