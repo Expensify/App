@@ -1221,6 +1221,8 @@ export default {
         genericError: 'There was an error while processing this step. Please try again.',
         cameraPermissionsNotGranted: 'Camera permissions not granted',
         cameraRequestMessage: 'You have not granted us camera access. We need access to complete verification.',
+        microphonePermissionsNotGranted: 'Microphone permissions not granted',
+        microphoneRequestMessage: 'You have not granted us microphone access. We need access to complete verification.',
         originalDocumentNeeded: 'Please upload an original image of your ID rather than a screenshot or scanned image.',
         documentNeedsBetterQuality: 'Your ID appears to be damaged or has missing security features. Please upload an original image of an undamaged ID that is entirely visible.',
         imageNeedsBetterQuality: "There's an issue with the image quality of your ID. Please upload a new image where your entire ID can be seen clearly.",

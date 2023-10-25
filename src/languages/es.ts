@@ -1239,6 +1239,8 @@ export default {
         genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
         cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
         cameraRequestMessage: 'No has habilitado los permisos para acceder a la cámara. Necesitamos acceso para completar la verificaciôn.',
+        microphonePermissionsNotGranted: 'No has habilitado los permisos para acceder al micrófono',
+        microphoneRequestMessage: 'No has habilitado los permisos para acceder al micrófono. Necesitamos acceso para completar la verificaciôn.',
         originalDocumentNeeded: 'Por favor, sube una imagen original de tu identificación en lugar de una captura de pantalla o imagen escaneada.',
         documentNeedsBetterQuality:
             'Parece que tu identificación esta dañado o le faltan características de seguridad. Por favor, sube una imagen de tu documento sin daños y que se vea completamente.',
