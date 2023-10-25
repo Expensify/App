@@ -1,0 +1,21 @@
+name: imgbot Image Optimization
+
+on: pull_request
+
+permissions:
+  pull-requests: write
+
+jobs:
+  approveAndMerge:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'imgbot[bot]' }}
+    steps:
+      - name: Approve imgbot PR
+        run: gh pr review --approve "${{ github.event.pull_request.html_url }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge imgbot PR
+        run: gh pr merge --auto --merge "${{ github.event.pull_request.html_url }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
