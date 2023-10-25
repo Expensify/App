@@ -1938,7 +1938,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
                 navigateToConciergeChat(true);
                 return;
             }
-            Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
+            Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
         });
     });
 }
