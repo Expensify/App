@@ -67,7 +67,7 @@ jobs:
         uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -139,7 +139,7 @@ jobs:
     name: Build and deploy Desktop
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: macos-12-xl
+    runs-on: macos-13-xlarge
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -178,7 +178,7 @@ jobs:
     name: Build and deploy iOS
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: macos-12-xl
+    runs-on: macos-13-xlarge
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -190,7 +190,7 @@ jobs:
         uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
         with:
           ruby-version: '2.7'
           bundler-cache: true

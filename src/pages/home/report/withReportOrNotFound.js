@@ -99,13 +99,15 @@ export default function (shouldRequireReportID = true) {
         WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
         // eslint-disable-next-line rulesdir/no-negated-variables
-        const withReportOrNotFound = React.forwardRef((props, ref) => (
+        const WithReportOrNotFoundWithRef = React.forwardRef((props, ref) => (
             <WithReportOrNotFound
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 forwardedRef={ref}
             />
         ));
+
+        WithReportOrNotFoundWithRef.displayName = 'WithReportOrNotFoundWithRef';
 
         return withOnyx({
             report: {
@@ -120,6 +122,6 @@ export default function (shouldRequireReportID = true) {
             policies: {
                 key: ONYXKEYS.COLLECTION.POLICY,
             },
-        })(withReportOrNotFound);
+        })(WithReportOrNotFoundWithRef);
     };
 }

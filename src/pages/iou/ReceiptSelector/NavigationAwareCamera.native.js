@@ -3,6 +3,7 @@ import {Camera} from 'react-native-vision-camera';
 import {useTabAnimation} from '@react-navigation/material-top-tabs';
 import {useNavigation} from '@react-navigation/native';
 import PropTypes from 'prop-types';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /* The index of the tab that contains this camera */
@@ -10,13 +11,16 @@ const propTypes = {
 
     /* Whether we're in a tab navigator */
     isInTabNavigator: PropTypes.bool.isRequired,
+
+    /** Name of the selected receipt tab */
+    selectedTab: PropTypes.string.isRequired,
 };
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
-const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigator, ...props}, ref) => {
+const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigator, selectedTab, ...props}, ref) => {
     // Get navigation to get initial isFocused value (only needed once during init!)
     const navigation = useNavigation();
-    const [isCameraActive, setIsCameraActive] = useState(navigation.isFocused());
+    const [isCameraActive, setIsCameraActive] = useState(() => navigation.isFocused());
 
     // Retrieve the animation value from the tab navigator, which ranges from 0 to the total number of pages displayed.
     // Even a minimal scroll towards the camera page (e.g., a value of 0.001 at start) should activate the camera for immediate responsiveness.
@@ -31,6 +35,9 @@ const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigato
         }
 
         const listenerId = tabPositionAnimation.addListener(({value}) => {
+            if (selectedTab !== CONST.TAB.SCAN) {
+                return;
+            }
             // Activate camera as soon the index is animating towards the `cameraTabIndex`
             setIsCameraActive(value > cameraTabIndex - 1 && value < cameraTabIndex + 1);
         });
@@ -38,7 +45,7 @@ const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigato
         return () => {
             tabPositionAnimation.removeListener(listenerId);
         };
-    }, [cameraTabIndex, tabPositionAnimation, isInTabNavigator]);
+    }, [cameraTabIndex, tabPositionAnimation, isInTabNavigator, selectedTab]);
 
     // Note: The useEffect can be removed once VisionCamera V3 is used.
     // Its only needed for android, because there is a native cameraX android bug. With out this flow would break the camera:
@@ -73,4 +80,14 @@ const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigato
 NavigationAwareCamera.propTypes = propTypes;
 NavigationAwareCamera.displayName = 'NavigationAwareCamera';
 
-export default NavigationAwareCamera;
+const NavigationAwareCameraWithRef = React.forwardRef((props, ref) => (
+    <NavigationAwareCamera
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+NavigationAwareCameraWithRef.displayName = 'NavigationAwareCameraWithRef';
+
+export default NavigationAwareCameraWithRef;

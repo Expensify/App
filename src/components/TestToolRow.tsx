@@ -1,29 +1,27 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import styles from '../styles/styles';
 import Text from './Text';
 
-const propTypes = {
+type TestToolRowProps = {
     /** Title of control */
-    title: PropTypes.string.isRequired,
+    title: string;
 
     /** Control component jsx */
-    children: PropTypes.node.isRequired,
+    children: React.ReactNode;
 };
 
-function TestToolRow(props) {
+function TestToolRow({title, children}: TestToolRowProps) {
     return (
         <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween, styles.alignItemsCenter, styles.mnw120]}>
             <View style={styles.flex2}>
-                <Text>{props.title}</Text>
+                <Text>{title}</Text>
             </View>
-            <View style={[styles.flex1, styles.alignItemsEnd]}>{props.children}</View>
+            <View style={[styles.flex1, styles.alignItemsEnd]}>{children}</View>
         </View>
     );
 }
 
-TestToolRow.propTypes = propTypes;
 TestToolRow.displayName = 'TestToolRow';
 
 export default TestToolRow;

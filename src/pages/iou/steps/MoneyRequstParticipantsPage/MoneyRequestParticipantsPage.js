@@ -82,7 +82,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (prevMoneyRequestId.current !== iou.id) {
+        if (prevMoneyRequestId.current !== iou.id && !_.isEmpty(reportID.current)) {
             // The ID is cleared on completing a request. In that case, we will do nothing
             if (iou.id && !isDistanceRequest && !isSplitRequest) {
                 navigateBack(true);
@@ -92,7 +92,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType}${reportID}`;
-        const shouldReset = iou.id !== moneyRequestId;
+        const shouldReset = !_.isEmpty(reportID) && iou.id !== moneyRequestId;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
