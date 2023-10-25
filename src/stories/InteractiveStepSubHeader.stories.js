@@ -32,9 +32,7 @@ function BaseInteractiveStepSubHeader(props) {
                 ref={ref}
             />
             <Button
-                onPress={() => {
-                    ref.current.moveNext();
-                }}
+                onPress={ref.current.moveNext}
                 title="Next"
             />
         </View>
