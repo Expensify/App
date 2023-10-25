@@ -189,16 +189,10 @@ function Expensify(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    // const {Encryptify, isEncryptifyReady} = useEncryptify();
     useEffect(() => {
-        // if (!isEncryptifyReady) {
-        //     return;
-        // }
-
-        console.log('call Encryptify');
-
         const kemKeys = Encryptify.KEMGenKeys();
 
+        // eslint-disable-next-line no-console
         console.log({kemKeys});
 
         const data = 'Hello World! 123';
@@ -212,6 +206,7 @@ function Expensify(props) {
         const decryptedSharedSecret = Encryptify.KEMDecrypt(kemKeys.private, cipherText);
         const decryptedData = Encryptify.AESDecrypt('some iv value', decryptedSharedSecret, encryptedData);
 
+        // eslint-disable-next-line no-console
         console.log({encryptedData, decryptedData});
     }, []);
 
