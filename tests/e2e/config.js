@@ -9,6 +9,7 @@ const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 const TEST_NAMES = {
     AppStartTime: 'App start time',
     OpenSearchPage: 'Open search page TTI',
+    ReportTyping: 'Report typing',
 };
 
 /**
