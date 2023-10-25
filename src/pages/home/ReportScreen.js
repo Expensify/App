@@ -66,6 +66,9 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** Array of parent report actions for this report */
+    parentReportActions: PropTypes.shape(reportActionPropTypes),
+
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
 
@@ -117,6 +120,7 @@ const defaultProps = {
     userLeavingStatus: false,
     personalDetails: {},
     markReadyForHydration: null,
+    parentReportActions: {},
     ...withCurrentReportIDDefaultProps,
 };
 
