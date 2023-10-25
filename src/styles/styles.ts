@@ -36,6 +36,7 @@ import writingDirection from './utilities/writingDirection';
 import variables from './variables';
 import colors from './colors';
 import objectFit from './utilities/objectFit';
+import textDecorationLine from './utilities/textDecorationLine';
 
 type AnchorPosition = {
     horizontal: number;
@@ -227,6 +228,7 @@ const styles = (theme: ThemeDefault) =>
         ...userSelect,
         ...textUnderline,
         ...objectFit,
+        ...textDecorationLine,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
