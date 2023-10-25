@@ -244,7 +244,7 @@ const ONYXKEYS = {
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
-        // REPORT_METADATA is a perf optimization used to hold loading states (isLoadingReportActions, isLoadingMoreReportActions).
+        // REPORT_METADATA is a perf optimization used to hold loading states (isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions).
         // A lot of components are connected to the Report entity and do not care about the actions. Setting the loading state
         // directly on the report caused a lot of unnecessary re-renders
         REPORT_METADATA: 'reportMetadata_',

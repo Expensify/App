@@ -136,6 +136,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
 AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 AddPersonalBankAccountPage.propTypes = propTypes;
 AddPersonalBankAccountPage.defaultProps = defaultProps;
+AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default withOnyx({
     personalBankAccount: {
