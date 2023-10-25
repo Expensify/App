@@ -2666,6 +2666,52 @@ function submitReport(expenseReport) {
     );
 }
 
+function settleMoneyRequest(paymentType, chatReport, iouReport) {
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.MARK_AS_DONE) {
+
+    } else {
+        payMoneyRequest(paymentType, chatReport, iouReport);
+    }
+}
+
+function markAsDone(chatReport, iouReport) {
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                ...chatReport,
+                lastReadTime: DateUtils.getDBTime(),
+                hasOutstandingIOU: false,
+                iouReportID: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                ...iouReport,
+                hasOutstandingIOU: false,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+                stateNum: CONST.REPORT.STATE.SUBMITTED,
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                },
+            },
+        },
+    ];
+
+}
+
 /**
  * @param {String} paymentType
  * @param {Object} chatReport

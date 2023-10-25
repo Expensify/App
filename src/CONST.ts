@@ -1138,6 +1138,7 @@ const CONST = {
             DECLINE: 'decline',
             CANCEL: 'cancel',
             DELETE: 'delete',
+            CLOSE: 'close',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
