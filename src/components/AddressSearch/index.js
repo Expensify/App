@@ -144,6 +144,7 @@ function AddressSearch(props) {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
+    const [shouldSelectTextOnFocus, setShouldSelectTextOnFocus] = useState(false);
     const [searchValue, setSearchValue] = useState(props.value || props.defaultValue || '');
     const [locationErrorCode, setLocationErrorCode] = useState(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
@@ -400,6 +401,7 @@ function AddressSearch(props) {
                             url: props.network.isOffline ? null : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
                         }}
                         textInputProps={{
+                            selectTextOnFocus: shouldSelectTextOnFocus,
                             InputComp: TextInput,
                             ref: (node) => {
                                 if (!props.innerRef) {
@@ -433,6 +435,7 @@ function AddressSearch(props) {
                                     setDisplayListViewBorder(false);
                                     setIsFocused(false);
                                     setIsTyping(false);
+                                    setShouldSelectTextOnFocus(true);
                                 }
                                 props.onBlur();
                             },
