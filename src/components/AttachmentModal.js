@@ -123,7 +123,7 @@ function AttachmentModal(props) {
     const [source, setSource] = useState(props.source);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-    const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
+    const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [shouldShowDownloadButton, setShouldShowDownloadButton] = React.useState(true);
     const {windowWidth} = useWindowDimensions();
 
