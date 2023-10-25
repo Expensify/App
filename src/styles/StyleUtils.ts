@@ -575,8 +575,16 @@ function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
     };
 }
 
+/**
+ * Combine margin/padding with safe area inset
+ *
+ * @param modalContainerValue - margin or padding value
+ * @param safeAreaValue - safe area inset
+ * @param shouldAddSafeAreaValue - indicator whether safe area inset should be applied
+ */
 function getCombinedSpacing(modalContainerValue: DimensionValue | undefined, safeAreaValue: number, shouldAddSafeAreaValue: boolean): number | DimensionValue | undefined {
-    if (typeof modalContainerValue === 'number') {
+    // modalContainerValue can only be added to safe area inset if it's a number, otherwise it's returned as is
+    if (typeof modalContainerValue === 'number' || !modalContainerValue) {
         return (modalContainerValue ?? 0) + (shouldAddSafeAreaValue ? safeAreaValue : 0);
     }
 
