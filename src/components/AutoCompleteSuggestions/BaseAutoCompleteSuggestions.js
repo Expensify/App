@@ -110,10 +110,14 @@ function BaseAutoCompleteSuggestions(props) {
 BaseAutoCompleteSuggestions.propTypes = propTypes;
 BaseAutoCompleteSuggestions.displayName = 'BaseAutoCompleteSuggestions';
 
-export default React.forwardRef((props, ref) => (
+const BaseAutoCompleteSuggestionsWithRef = React.forwardRef((props, ref) => (
     <BaseAutoCompleteSuggestions
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+BaseAutoCompleteSuggestionsWithRef.displayName = 'BaseAutoCompleteSuggestionsWithRef';
+
+export default BaseAutoCompleteSuggestionsWithRef;

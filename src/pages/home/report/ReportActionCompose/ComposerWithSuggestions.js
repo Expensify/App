@@ -106,6 +106,7 @@ function ComposerWithSuggestions({
     forwardedRef,
     isNextModalWillOpenRef,
     editFocused,
+    parentReportAction,
 }) {
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
@@ -126,7 +127,7 @@ function ComposerWithSuggestions({
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
+    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -625,6 +626,16 @@ ComposerWithSuggestions.propTypes = propTypes;
 ComposerWithSuggestions.defaultProps = defaultProps;
 ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
+const ComposerWithSuggestionsWithRef = React.forwardRef((props, ref) => (
+    <ComposerWithSuggestions
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+ComposerWithSuggestionsWithRef.displayName = 'ComposerWithSuggestionsWithRef';
+
 export default compose(
     withKeyboardState,
     withOnyx({
@@ -645,14 +656,4 @@ export default compose(
             key: ONYXKEYS.INPUT_FOCUSED,
         },
     }),
-)(
-    memo(
-        React.forwardRef((props, ref) => (
-            <ComposerWithSuggestions
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                forwardedRef={ref}
-            />
-        )),
-    ),
-);
+)(memo(ComposerWithSuggestionsWithRef));

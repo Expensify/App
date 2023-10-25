@@ -20,6 +20,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Session from '../../../libs/actions/Session';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as Report from '../../../libs/actions/Report';
+import useReportScrollManager from '../../../hooks/useReportScrollManager';
 
 const propTypes = {
     /** Report object for the current report */
@@ -59,6 +60,7 @@ const defaultProps = {
 };
 
 function ReportFooter(props) {
+    const reportScrollManager = useReportScrollManager();
     const {isOffline} = useNetwork();
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
@@ -89,6 +91,13 @@ function ReportFooter(props) {
     const onSubmitComment = useCallback(
         (text) => {
             Report.addComment(props.reportID, text);
+
+            // We need to scroll to the bottom of the list after the comment is added
+            const refID = setTimeout(() => {
+                reportScrollManager.scrollToBottom();
+            }, 10);
+
+            return () => clearTimeout(refID);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],

@@ -32,6 +32,7 @@ import useLocalize from '../../../../hooks/useLocalize';
 import getModalState from '../../../../libs/getModalState';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
+import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -312,6 +313,7 @@ function ReportActionCompose({
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
     const isSendDisabled = isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
     const handleSendMessage = useCallback(() => {
         if (isSendDisabled || !isReportReadyForDisplay) {
@@ -377,6 +379,7 @@ function ReportActionCompose({
                                     reportID={reportID}
                                     parentReportID={report.parentReportID}
                                     includesChronos={ReportUtils.chatIncludesChronos(report)}
+                                    parentReportAction={parentReportAction}
                                     isEmptyChat={isEmptyChat}
                                     lastReportAction={lastReportAction}
                                     isMenuVisible={isMenuVisible}
