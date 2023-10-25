@@ -26,6 +26,7 @@ import overflow from './utilities/overflow';
 import positioning from './utilities/positioning';
 import sizing from './utilities/sizing';
 import spacing from './utilities/spacing';
+import borders from './utilities/borders';
 import textUnderline from './utilities/textUnderline';
 import userSelect from './utilities/userSelect';
 import visibility from './utilities/visibility';
@@ -213,6 +214,7 @@ const styles = (theme: ThemeDefault) =>
     ({
         // Add all of our utility and helper styles
         ...spacing,
+        ...borders,
         ...sizing,
         ...flex,
         ...display,
@@ -527,7 +529,7 @@ const styles = (theme: ThemeDefault) =>
             paddingTop: 8,
             paddingRight: 10,
             paddingBottom: 8,
-            paddingLeft: 18,
+            paddingLeft: 10,
             backgroundColor: theme.buttonDefaultBG,
         },
 
@@ -613,7 +615,7 @@ const styles = (theme: ThemeDefault) =>
 
         buttonCTAIcon: {
             marginRight: 22,
-
+            marginLeft: 8,
             // Align vertically with the Button text
             paddingBottom: 1,
             paddingTop: 1,
@@ -833,9 +835,9 @@ const styles = (theme: ThemeDefault) =>
         cameraView: {
             flex: 1,
             overflow: 'hidden',
-            borderRadius: 28,
+            borderRadius: variables.componentBorderRadiusXLarge,
             borderStyle: 'solid',
-            borderWidth: 8,
+            borderWidth: variables.componentBorderWidth,
             backgroundColor: theme.highlightBG,
             borderColor: theme.appBG,
             display: 'flex',
@@ -1641,6 +1643,10 @@ const styles = (theme: ThemeDefault) =>
             width: 18,
         },
 
+        chatContentScrollViewWithHeaderLoader: {
+            paddingTop: CONST.CHAT_HEADER_LOADER_HEIGHT,
+        },
+
         chatContentScrollView: {
             flexGrow: 1,
             justifyContent: 'flex-start',
@@ -2159,7 +2165,6 @@ const styles = (theme: ThemeDefault) =>
             // It's being used on Web/Desktop only to vertically center short PDFs,
             // while preventing the overflow of the top of long PDF files.
             ...display.dGrid,
-            backgroundColor: theme.modalBackground,
             width: '100%',
             height: '100%',
             justifyContent: 'center',
@@ -3669,6 +3674,7 @@ const styles = (theme: ThemeDefault) =>
             paddingRight: 4,
             marginBottom: 32,
             alignSelf: 'flex-start',
+            ...userSelect.userSelectNone,
         },
 
         emojiPickerButtonDropdownIcon: {
@@ -3703,8 +3709,7 @@ const styles = (theme: ThemeDefault) =>
 
         reportActionItemImages: {
             flexDirection: 'row',
-            borderWidth: 4,
-            borderColor: theme.transparent,
+            margin: 4,
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
             overflow: 'hidden',
@@ -3769,6 +3774,22 @@ const styles = (theme: ThemeDefault) =>
             borderBottomColor: theme.border,
         },
 
+        assignedCardsIconContainer: {
+            height: variables.bankCardHeight,
+            width: variables.bankCardWidth,
+            borderRadius: 4,
+            overflow: 'hidden',
+            alignSelf: 'center',
+        },
+
+        bankIconContainer: {
+            height: variables.bankCardWidth,
+            width: variables.bankCardWidth,
+            borderRadius: 8,
+            overflow: 'hidden',
+            alignSelf: 'center',
+        },
+
         moneyRequestHeaderStatusBarBadge: {
             paddingHorizontal: 8,
             borderRadius: variables.componentBorderRadiusSmall,
@@ -3827,15 +3848,20 @@ const styles = (theme: ThemeDefault) =>
 
         mapViewContainer: {
             ...flex.flex1,
-            ...spacing.p4,
             minHeight: 300,
             maxHeight: 500,
         },
 
         mapView: {
-            flex: 1,
-            borderRadius: 16,
+            ...flex.flex1,
             overflow: 'hidden',
+            backgroundColor: theme.highlightBG,
+        },
+
+        mapEditView: {
+            borderRadius: variables.componentBorderRadiusXLarge,
+            borderWidth: variables.componentBorderWidth,
+            borderColor: theme.appBG,
         },
 
         mapViewOverlay: {
@@ -3881,11 +3907,27 @@ const styles = (theme: ThemeDefault) =>
             width: '100%',
         },
 
+        chatBottomLoader: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: CONST.CHAT_HEADER_LOADER_HEIGHT,
+        },
+
         videoContainer: {
             ...flex.flex1,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...objectFit.oFCover,
+        },
+
+        singleOptionSelectorRow: {
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            gap: 12,
+            marginBottom: 16,
         },
 
         globalNavigation: {
@@ -3924,8 +3966,11 @@ const styles = (theme: ThemeDefault) =>
         },
 
         walletCardMenuItem: {
+            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontWeight: fontWeightBold,
             color: theme.text,
             fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         walletCardHolder: {
@@ -3945,6 +3990,33 @@ const styles = (theme: ThemeDefault) =>
             paddingBottom: 0,
         },
 
+        walletDangerSection: {
+            backgroundColor: theme.dangerSection,
+            color: theme.dangerSection,
+            borderRadius: variables.componentBorderRadiusCard,
+            width: 'auto',
+            marginHorizontal: 20,
+            marginBottom: 6,
+        },
+
+        walletDangerSectionTitle: {
+            fontSize: variables.fontSizeNormal,
+            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontWeight: fontWeightBold,
+            lineHeight: variables.lineHeightXLarge,
+        },
+
+        walletDangerSectionText: {
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
+
+        walletLockedMessage: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+        },
+
         aspectRatioLottie: (source) => {
             if (!source.uri && typeof source === 'object' && source.w && source.h) {
                 return {aspectRatio: source.w / source.h};
@@ -3958,6 +4030,10 @@ const styles = (theme: ThemeDefault) =>
 
         checkboxWithLabelCheckboxStyle: {
             marginLeft: -2,
+        },
+
+        singleOptionSelectorCircle: {
+            borderColor: theme.icon,
         },
     } satisfies Styles);
 
