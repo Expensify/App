@@ -1,6 +1,9 @@
 import E2ELogin from '../actions/e2eLogin';
 import Performance from '../../Performance';
 import E2EClient from '../client';
+import Navigation from '../../Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import CONST from '../../../CONST';
 
 const test = () => {
     // check for login (if already logged in the action will simply resolve)
@@ -17,7 +20,7 @@ const test = () => {
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
                 console.debug(`[E2E] Sidebar loaded, navigating to a report…`);
-                Navigation.navigate(ROUTES.SEARCH);
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute('98345625'));
             }
         });
     });
