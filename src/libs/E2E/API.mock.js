@@ -9,6 +9,7 @@ import mockSigninUser from './apiMocks/signinUser';
 import mockAuthenticatePusher from './apiMocks/authenticatePusher';
 import mockOpenApp from './apiMocks/openApp';
 import mockOpenReport from './apiMocks/openReport';
+import mockReadNewestAction from './apiMocks/readNewestAction';
 
 /**
  * A dictionary which has the name of a API command as key, and a function which
@@ -22,6 +23,7 @@ const mocks = {
     ReconnectApp: mockOpenApp,
     OpenReport: mockOpenReport,
     AuthenticatePusher: mockAuthenticatePusher,
+    ReadNewestAction: mockReadNewestAction,
 };
 
 function mockCall(command, apiCommandParameters, tag) {
