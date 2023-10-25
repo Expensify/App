@@ -7,7 +7,7 @@ import Animated, {AnimateProps} from 'react-native-reanimated';
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function RNTextInput(props: TextInputProps, ref: ForwardedRef<React.Component<AnimateProps<TextInputProps>>>) {
+function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<React.Component<AnimateProps<TextInputProps>>>) {
     return (
         <AnimatedTextInput
             allowFontScaling={false}
@@ -24,6 +24,6 @@ function RNTextInput(props: TextInputProps, ref: ForwardedRef<React.Component<An
     );
 }
 
-RNTextInput.displayName = 'RNTextInput';
+RNTextInputWithRef.displayName = 'RNTextInputWithRef';
 
-export default React.forwardRef(RNTextInput);
+export default React.forwardRef(RNTextInputWithRef);
