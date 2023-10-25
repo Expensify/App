@@ -93,10 +93,14 @@ ValuePicker.propTypes = propTypes;
 ValuePicker.defaultProps = defaultProps;
 ValuePicker.displayName = 'ValuePicker';
 
-export default React.forwardRef((props, ref) => (
+const ValuePickerWithRef = React.forwardRef((props, ref) => (
     <ValuePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+ValuePickerWithRef.displayName = 'ValuePickerWithRef';
+
+export default ValuePickerWithRef;

@@ -1,26 +1,25 @@
-import _ from 'underscore';
 import {isAfter} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import {AppState} from 'react-native';
-import lodashGet from 'lodash/get';
+import {AppState, NativeEventSubscription} from 'react-native';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 import * as ActiveClientManager from '../ActiveClientManager';
+import {MapboxAccessToken, Network} from '../../types/onyx';
 
-let authToken;
+let authToken: string | null;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        authToken = lodashGet(val, 'authToken', null);
+    callback: (value) => {
+        authToken = value?.authToken ?? null;
     },
 });
 
-let connectionIDForToken;
-let connectionIDForNetwork;
-let appStateSubscription;
-let currentToken;
-let refreshTimeoutID;
+let connectionIDForToken: number | null;
+let connectionIDForNetwork: number | null;
+let appStateSubscription: NativeEventSubscription | null;
+let currentToken: MapboxAccessToken | null;
+let refreshTimeoutID: NodeJS.Timeout | undefined;
 let isCurrentlyFetchingToken = false;
 const REFRESH_INTERVAL = 1000 * 60 * 25;
 
@@ -38,11 +37,11 @@ const setExpirationTimer = () => {
             return;
         }
         console.debug(`[MapboxToken] Fetching a new token after waiting ${REFRESH_INTERVAL / 1000 / 60} minutes`);
-        API.read('GetMapboxAccessToken');
+        API.read('GetMapboxAccessToken', {}, {});
     }, REFRESH_INTERVAL);
 };
 
-const hasTokenExpired = () => isAfter(new Date(), new Date(currentToken.expiration));
+const hasTokenExpired = () => isAfter(new Date(), new Date(currentToken?.expiration ?? ''));
 
 const clearToken = () => {
     console.debug('[MapboxToken] Deleting the token stored in Onyx');
@@ -51,7 +50,7 @@ const clearToken = () => {
 };
 
 const fetchToken = () => {
-    API.read('GetMapboxAccessToken');
+    API.read('GetMapboxAccessToken', {}, {});
     isCurrentlyFetchingToken = true;
 };
 
@@ -64,12 +63,6 @@ const init = () => {
     // When the token changes in Onyx, the expiration needs to be checked so a new token can be retrieved.
     connectionIDForToken = Onyx.connect({
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-        /**
-         * @param {Object} token
-         * @param {String} token.token
-         * @param {String} token.expiration
-         * @param {String[]} [token.errors]
-         */
         callback: (token) => {
             // Only the leader should be in charge of the mapbox token, or else when you have multiple tabs open, the Onyx connection fires multiple times
             // and it sets up duplicate refresh timers. This would be a big waste of tokens.
@@ -86,7 +79,7 @@ const init = () => {
 
             // If the token is falsy or an empty object, the token needs to be retrieved from the API.
             // The API sets a token in Onyx with a 30 minute expiration.
-            if (_.isEmpty(token)) {
+            if (Object.keys(token ?? {}).length === 0) {
                 fetchToken();
                 return;
             }
@@ -122,21 +115,21 @@ const init = () => {
     }
 
     if (!connectionIDForNetwork) {
-        let network;
+        let network: Network | null;
         connectionIDForNetwork = Onyx.connect({
             key: ONYXKEYS.NETWORK,
-            callback: (val) => {
+            callback: (value) => {
                 // When the network reconnects, check if the token has expired. If it has, then clearing the token will
                 // trigger the fetch of a new one
-                if (network && network.isOffline && val && !val.isOffline) {
-                    if (_.isEmpty(currentToken)) {
+                if (network && network.isOffline && value && !value.isOffline) {
+                    if (Object.keys(currentToken ?? {}).length === 0) {
                         fetchToken();
                     } else if (!isCurrentlyFetchingToken && hasTokenExpired()) {
                         console.debug('[MapboxToken] Token is expired after network came online');
                         clearToken();
                     }
                 }
-                network = val;
+                network = value;
             },
         });
     }

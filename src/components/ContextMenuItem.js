@@ -109,10 +109,14 @@ ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
 ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default forwardRef((props, ref) => (
+const ContextMenuItemWithRef = forwardRef((props, ref) => (
     <ContextMenuItem
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+ContextMenuItemWithRef.displayName = 'ContextMenuItemWithRef';
+
+export default ContextMenuItemWithRef;

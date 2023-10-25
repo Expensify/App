@@ -154,6 +154,9 @@ const propTypes = {
     /** Should render component on the right */
     shouldShowRightComponent: PropTypes.bool,
 
+    /** Array of objects that map display names to their corresponding tooltip */
+    titleWithTooltips: PropTypes.arrayOf(PropTypes.object),
+
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress: PropTypes.bool,
 };
