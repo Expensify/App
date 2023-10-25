@@ -3324,7 +3324,6 @@ const styles = (theme: ThemeDefault) =>
         eReceiptAmount: {
             ...headlineFont,
             fontSize: variables.fontSizeXXXLarge,
-            lineHeight: variables.lineHeightXXXLarge,
             color: colors.green400,
         },
 
