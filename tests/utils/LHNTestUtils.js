@@ -190,7 +190,7 @@ function getFakeReportWithPolicy(participantAccountIDs = [1, 2], millisecondsInT
 
 /**
  * @param {Number} [id]
- * @param {String} [name] the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
+ * @param {String} [name]
  * @returns {Object}
  */
 function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
