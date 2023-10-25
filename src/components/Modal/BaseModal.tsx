@@ -200,6 +200,6 @@ function BaseModal(
     );
 }
 
-BaseModal.displayName = 'BaseModal';
+BaseModal.displayName = 'BaseModalWithRef';
 
 export default forwardRef(BaseModal);
