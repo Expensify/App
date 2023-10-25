@@ -30,7 +30,7 @@ function AttachmentViewPdf(props) {
             offsetY.value = evt.allTouches[0].absoluteY;
         });
 
-    const updateScaleRef = useCallback(
+    const updateScale = useCallback(
         (scale) => {
             scaleRef.value = scale;
         },
@@ -50,7 +50,7 @@ function AttachmentViewPdf(props) {
                     <BaseAttachmentViewPdf
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
-                        updateScaleRef={updateScaleRef}
+                        updateScale={updateScale}
                     />
                 </Animated.View>
             </GestureDetector>

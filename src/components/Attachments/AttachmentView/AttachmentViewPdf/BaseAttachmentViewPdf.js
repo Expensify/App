@@ -5,13 +5,13 @@ import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propT
 
 const propTypes = {
     /** Updates the scale value of the pdf */
-    updateScaleRef: PropTypes.func,
+    updateScale: PropTypes.func,
 
     ...attachmentViewPdfPropTypes,
 };
 
 const defaultProps = {
-    updateScaleRef: () => {},
+    updateScale: () => {},
     ...attachmentViewPdfDefaultProps,
 };
 
@@ -26,7 +26,7 @@ function BaseAttachmentViewPdf({
     onLoadComplete,
     errorLabelStyles,
     style,
-    updateScaleRef,
+    updateScale,
 }) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
@@ -40,7 +40,7 @@ function BaseAttachmentViewPdf({
 
     const onScaleChanged = useCallback(
         (scale) => {
-            updateScaleRef(scale);
+            updateScale(scale);
             onScaleChangedProp();
 
             // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
@@ -56,7 +56,7 @@ function BaseAttachmentViewPdf({
                 attachmentCarouselPagerContext.shouldPagerScroll.value = shouldPagerScroll;
             }
         },
-        [attachmentCarouselPagerContext, isUsedInCarousel, onScaleChangedProp, updateScaleRef],
+        [attachmentCarouselPagerContext, isUsedInCarousel, onScaleChangedProp, updateScale],
     );
 
     return (
