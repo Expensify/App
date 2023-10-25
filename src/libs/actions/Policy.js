@@ -14,6 +14,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
+import CollectionUtils from '../CollectionUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -41,6 +42,18 @@ Onyx.connect({
         }
 
         allPolicies[key] = val;
+    },
+});
+
+const allPolicyMembers = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+    callback: (val, key) => {
+        if (!val || !key) {
+            return;
+        }
+        const policyID = CollectionUtils.extractCollectionItemID(key);
+        allPolicyMembers[policyID] = val;
     },
 });
 
@@ -241,6 +254,27 @@ function removeMembers(accountIDs, policyID) {
             value: {[reportAction.reportActionID]: reportAction},
         })),
     ];
+
+    // If the policy has primaryLoginsInvited, then it displays informative messages on the members page about which primary logins were added by secondary logins.
+    // If we delete all these logins then we should clear the informative messages since they are no longer relevant.
+    if (!_.isEmpty(policy.primaryLoginsInvited)) {
+        // Take the current policy members and remove them optimistically
+        const policyMemberAccountIDs = _.keys(allPolicyMembers[policyID]);
+        const remainingMemberAccountIDs = _.difference(policyMemberAccountIDs, accountIDs);
+        const remainingLogins = PersonalDetailsUtils.getLoginsByAccountIDs(remainingMemberAccountIDs);
+        const invitedPrimaryToSecondaryLogins = _.invert(policy.primaryLoginsInvited);
+
+        // Then, if no remaining members exist in primaryLoginsInvited, delete it
+        if (!_.some(remainingLogins, (remainingLogin) => Boolean(invitedPrimaryToSecondaryLogins[remainingLogin]))) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    primaryLoginsInvited: null,
+                },
+            });
+        }
+    }
 
     const successData = [
         {
