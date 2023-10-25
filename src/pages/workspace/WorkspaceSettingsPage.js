@@ -26,6 +26,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 import Text from '../../components/Text';
 import useLocalize from '../../hooks/useLocalize';
+import FormProvider from "../../components/Form/FormProvider";
+import InputWrapper from "../../components/Form/InputWrapper";
 
 const propTypes = {
     /** Constant, list of available currencies */
@@ -98,7 +100,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
         >
             {(hasVBA) => (
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                     submitButtonText={translate('workspace.editor.save')}
                     style={styles.flexGrow1}
@@ -140,7 +142,8 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                         originalFileName={policy.originalFileName}
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             inputID="name"
                             label={translate('workspace.editor.nameInputLabel')}
@@ -163,7 +166,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                             </Text>
                         </View>
                     </OfflineWithFeedback>
-                </Form>
+                </FormProvider>
             )}
         </WorkspacePageWithSections>
     );
