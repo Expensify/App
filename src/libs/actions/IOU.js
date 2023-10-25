@@ -2832,8 +2832,7 @@ function setMoneyRequestBillable(billable) {
  * @param {Boolean} isSplitRequest
  */
 function setMoneyRequestParticipants(participants, isSplitRequest) {
-    Onyx.merge(ONYXKEYS.IOU, {participants});
-    Onyx.merge(ONYXKEYS.IOU, {isSplitRequest});
+    Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
 /**
