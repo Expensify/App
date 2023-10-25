@@ -129,7 +129,7 @@ function DebitCardPage(props) {
                     label={translate('addDebitCardPage.nameOnCard')}
                     accessibilityLabel={translate('addDebitCardPage.nameOnCard')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    ref={(ref) => (nameOnCardRef.current = ref)}
+                    ref={nameOnCardRef}
                     spellCheck={false}
                 />
                 <InputWrapper
