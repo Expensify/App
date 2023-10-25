@@ -346,7 +346,7 @@ function ReportActionCompose({
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
-            <View>
+            <View style={isComposerFullSize ? styles.flex1 : {}}>
                 <PortalHost name="suggestions" />
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
