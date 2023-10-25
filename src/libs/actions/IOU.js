@@ -2829,15 +2829,10 @@ function setMoneyRequestBillable(billable) {
 
 /**
  * @param {Object[]} participants
- */
-function setMoneyRequestParticipants(participants) {
-    Onyx.merge(ONYXKEYS.IOU, {participants});
-}
-
-/**
  * @param {Boolean} isSplitRequest
  */
-function setMoneyRequestIsSplitRequest(isSplitRequest) {
+function setMoneyRequestParticipants(participants, isSplitRequest) {
+    Onyx.merge(ONYXKEYS.IOU, {participants});
     Onyx.merge(ONYXKEYS.IOU, {isSplitRequest});
 }
 
@@ -2948,7 +2943,6 @@ export {
     resetMoneyRequestTag,
     setMoneyRequestBillable,
     setMoneyRequestParticipants,
-    setMoneyRequestIsSplitRequest,
     setMoneyRequestReceipt,
     setUpDistanceTransaction,
     navigateToNextPage,

@@ -16,7 +16,6 @@ import CONST from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
 import refPropTypes from '../../../../components/refPropTypes';
-import * as IOU from '../../../../libs/actions/IOU';
 
 const propTypes = {
     /** Beta features list */
@@ -157,10 +156,10 @@ function MoneyRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = (option) => {
-        onAddParticipants([
-            {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText},
-        ]);
-        IOU.setMoneyRequestIsSplitRequest(false);
+        onAddParticipants(
+            [{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText}],
+            false,
+        );
         navigateToRequest();
     };
 
@@ -199,13 +198,7 @@ function MoneyRequestParticipantsSelector({
                     },
                 ];
             }
-
-            if (newSelectedOptions.length === 0) {
-                IOU.setMoneyRequestIsSplitRequest(false);
-            } else {
-                IOU.setMoneyRequestIsSplitRequest(true);
-            }
-            onAddParticipants(newSelectedOptions);
+            onAddParticipants(newSelectedOptions, newSelectedOptions.length !== 0);
         },
         [participants, onAddParticipants],
     );
