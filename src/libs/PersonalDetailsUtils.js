@@ -36,21 +36,21 @@ function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defau
  * @returns {Array} - Array of personal detail objects
  */
 function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeUserDisplayName = false) {
-    const result = [];
-    _.each(
-        _.filter(personalDetails, (detail) => accountIDs.includes(detail.accountID)),
-        (detail) => {
+    return _.chain(accountIDs)
+        .filter((accountID) => !!allPersonalDetails[accountID])
+        .map((accountID) => {
+            const detail = allPersonalDetails[accountID];
+
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
-                result.push({
+                return {
                     ...detail,
                     displayName: Localize.translateLocal('common.you'),
-                });
-            } else {
-                result.push(detail);
+                };
             }
-        },
-    );
-    return result;
+
+            return detail;
+        })
+        .value();
 }
 
 /**

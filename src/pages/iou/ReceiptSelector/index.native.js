@@ -25,7 +25,6 @@ import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
-import TabNavigationAwareCamera from './TabNavigationAwareCamera';
 
 const propTypes = {
     /** React Navigation route */
@@ -54,6 +53,9 @@ const propTypes = {
 
     /** Whether or not the receipt selector is in a tab navigator for tab animations */
     isInTabNavigator: PropTypes.bool,
+
+    /** Name of the selected receipt tab */
+    selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
@@ -61,9 +63,10 @@ const defaultProps = {
     iou: iouDefaultProps,
     transactionID: '',
     isInTabNavigator: true,
+    selectedTab: '',
 };
 
-function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) {
+function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, selectedTab}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -75,8 +78,6 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
     const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
-
-    const CameraComponent = isInTabNavigator ? TabNavigationAwareCamera : NavigationAwareCamera;
 
     useEffect(() => {
         const refreshCameraPermissionStatus = () => {
@@ -162,7 +163,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
     return (
         <View style={styles.flex1}>
             {cameraPermissionStatus !== RESULTS.GRANTED && (
-                <View style={[styles.cameraView, styles.permissionView]}>
+                <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                     <Hand
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
                         height={CONST.RECEIPT.HAND_ICON_HEIGHT}
@@ -190,13 +191,15 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                 </View>
             )}
             {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                <CameraComponent
+                <NavigationAwareCamera
                     ref={camera}
                     device={device}
                     style={[styles.cameraView]}
                     zoom={device.neutralZoom}
                     photo
                     cameraTabIndex={pageIndex}
+                    isInTabNavigator={isInTabNavigator}
+                    selectedTab={selectedTab}
                 />
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
