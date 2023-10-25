@@ -1643,6 +1643,10 @@ const styles = (theme: ThemeDefault) =>
             width: 18,
         },
 
+        chatContentScrollViewWithHeaderLoader: {
+            paddingTop: CONST.CHAT_HEADER_LOADER_HEIGHT,
+        },
+
         chatContentScrollView: {
             flexGrow: 1,
             justifyContent: 'flex-start',
@@ -2161,7 +2165,6 @@ const styles = (theme: ThemeDefault) =>
             // It's being used on Web/Desktop only to vertically center short PDFs,
             // while preventing the overflow of the top of long PDF files.
             ...display.dGrid,
-            backgroundColor: theme.modalBackground,
             width: '100%',
             height: '100%',
             justifyContent: 'center',
@@ -2893,16 +2896,6 @@ const styles = (theme: ThemeDefault) =>
 
         sidebarPopover: {
             width: variables.sideBarWidth - 68,
-        },
-
-        cardOverlay: {
-            backgroundColor: theme.overlay,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            opacity: variables.overlayOpacity,
         },
 
         shortTermsBorder: {
@@ -3902,6 +3895,15 @@ const styles = (theme: ThemeDefault) =>
         draggableTopBar: {
             height: 30,
             width: '100%',
+        },
+
+        chatBottomLoader: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: CONST.CHAT_HEADER_LOADER_HEIGHT,
         },
 
         videoContainer: {

@@ -154,7 +154,7 @@ function IOUCurrencySelection(props) {
             testID={IOUCurrencySelection.displayName}
         >
             <HeaderWithBackButton
-                title={translate('iOUCurrencySelection.selectCurrency')}
+                title={translate('common.selectCurrency')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
             />
             <SelectionList

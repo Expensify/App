@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import PushNotification from '.';
+import PushNotification from './index';
 import ROUTES from '../../../ROUTES';
 import Log from '../../Log';
 import Navigation from '../../Navigation/Navigation';

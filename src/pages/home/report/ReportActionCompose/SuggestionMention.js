@@ -300,10 +300,14 @@ SuggestionMention.propTypes = propTypes;
 SuggestionMention.defaultProps = defaultProps;
 SuggestionMention.displayName = 'SuggestionMention';
 
-export default React.forwardRef((props, ref) => (
+const SuggestionMentionWithRef = React.forwardRef((props, ref) => (
     <SuggestionMention
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+SuggestionMentionWithRef.displayName = 'SuggestionMentionWithRef';
+
+export default SuggestionMentionWithRef;

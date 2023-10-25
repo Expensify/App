@@ -122,5 +122,6 @@ class ShareCodePage extends React.Component {
 
 ShareCodePage.propTypes = propTypes;
 ShareCodePage.defaultProps = defaultProps;
+ShareCodePage.displayName = 'ShareCodePage';
 
 export default compose(withEnvironment, withLocalize, withCurrentUserPersonalDetails)(ShareCodePage);

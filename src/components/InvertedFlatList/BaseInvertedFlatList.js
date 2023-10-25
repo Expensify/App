@@ -133,6 +133,9 @@ function BaseInvertedFlatList(props) {
             // Web requires that items be measured or else crazy things happen when scrolling.
             getItemLayout={shouldMeasureItems ? getItemLayout : undefined}
             windowSize={15}
+            maintainVisibleContentPosition={{
+                minIndexForVisible: 0,
+            }}
             inverted
         />
     );
@@ -142,10 +145,14 @@ BaseInvertedFlatList.propTypes = propTypes;
 BaseInvertedFlatList.defaultProps = defaultProps;
 BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
 
-export default forwardRef((props, ref) => (
+const BaseInvertedFlatListWithRef = forwardRef((props, ref) => (
     <BaseInvertedFlatList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+BaseInvertedFlatListWithRef.displayName = 'BaseInvertedFlatListWithRef';
+
+export default BaseInvertedFlatListWithRef;
