@@ -6,7 +6,7 @@ import './fonts.css';
 import ComposeProviders from '../src/components/ComposeProviders';
 import HTMLEngineProvider from '../src/components/HTMLEngineProvider';
 import OnyxProvider from '../src/components/OnyxProvider';
-import {LocaleContextProvider} from '../src/components/withLocalize';
+import {LocaleContextProvider} from '../src/components/LocaleContextProvider';
 import {KeyboardStateProvider} from '../src/components/withKeyboardState';
 import {EnvironmentProvider} from '../src/components/withEnvironment';
 import {WindowDimensionsProvider} from '../src/components/withWindowDimensions';

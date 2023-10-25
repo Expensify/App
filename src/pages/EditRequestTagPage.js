@@ -3,7 +3,9 @@ import PropTypes from 'prop-types';
 import Navigation from '../libs/Navigation/Navigation';
 import useLocalize from '../hooks/useLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
+import Text from '../components/Text';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
+import styles from '../styles/styles';
 import TagPicker from '../components/TagPicker';
 
 const propTypes = {
@@ -31,12 +33,13 @@ function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={EditRequestTagPage.displayName}
         >
             <HeaderWithBackButton
                 title={tagName || translate('common.tag')}
                 onBackButtonPress={Navigation.goBack}
             />
-
+            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: tagName || translate('common.tag')})}</Text>
             <TagPicker
                 selectedTag={defaultTag}
                 tag={tagName}

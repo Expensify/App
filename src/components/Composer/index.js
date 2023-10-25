@@ -358,7 +358,7 @@ function Composer({
         const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
         setTextInputWidth(computedStyle.width);
 
-        const computedNumberOfLines = ComposerUtils.getNumberOfLines(maxLines, lineHeight, paddingTopAndBottom, textInput.current.scrollHeight);
+        const computedNumberOfLines = ComposerUtils.getNumberOfLines(lineHeight, paddingTopAndBottom, textInput.current.scrollHeight, maxLines);
         const generalNumberOfLines = computedNumberOfLines === 0 ? numberOfLinesProp : computedNumberOfLines;
 
         onNumberOfLinesChange(generalNumberOfLines);
@@ -444,9 +444,9 @@ function Composer({
             numberOfLines < maxLines ? styles.overflowHidden : {},
 
             StyleSheet.flatten([style, {outline: 'none'}]),
-            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp, isComposerFullSize),
+            StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
         ],
-        [style, maxLines, numberOfLinesProp, numberOfLines, isComposerFullSize],
+        [style, maxLines, numberOfLines, isComposerFullSize],
     );
 
     return (
@@ -489,16 +489,14 @@ function Composer({
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withNavigation,
-)(
-    React.forwardRef((props, ref) => (
-        <Composer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+const ComposerWithRef = React.forwardRef((props, ref) => (
+    <Composer
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+ComposerWithRef.displayName = 'ComposerWithRef';
+
+export default compose(withLocalize, withWindowDimensions, withNavigation)(ComposerWithRef);

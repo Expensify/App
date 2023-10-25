@@ -60,10 +60,10 @@ const defaultProps = {
     isLoadingReportData: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
-    policies: [],
+    policies: {},
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
+function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef(null);
@@ -105,14 +105,13 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         >
             <SidebarLinks
                 // Forwarded props:
-                onLinkClick={onLinkClick}
                 insets={insets}
-                isSmallScreenWidth={isSmallScreenWidth}
                 priorityMode={priorityMode}
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
                 optionListItems={optionListItemsWithCurrentReport}
+                onLinkClick={onLinkClick}
             />
         </View>
     );
@@ -131,7 +130,6 @@ SidebarLinksData.displayName = 'SidebarLinksData';
 const chatReportSelector = (report) =>
     report && {
         reportID: report.reportID,
-        participants: report.participants,
         participantAccountIDs: report.participantAccountIDs,
         hasDraft: report.hasDraft,
         isPinned: report.isPinned,
@@ -143,6 +141,7 @@ const chatReportSelector = (report) =>
         lastVisibleActionCreated: report.lastVisibleActionCreated,
         iouReportID: report.iouReportID,
         total: report.total,
+        nonReimbursableTotal: report.nonReimbursableTotal,
         hasOutstandingIOU: report.hasOutstandingIOU,
         isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         statusNum: report.statusNum,

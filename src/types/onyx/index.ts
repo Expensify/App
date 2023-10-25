@@ -36,7 +36,9 @@ import PolicyMember from './PolicyMember';
 import Policy from './Policy';
 import PolicyCategory from './PolicyCategory';
 import Report from './Report';
-import ReportAction from './ReportAction';
+import ReportMetadata from './ReportMetadata';
+import ReportAction, {ReportActions} from './ReportAction';
+import ReportActionsDrafts from './ReportActionsDrafts';
 import ReportActionReactions from './ReportActionReactions';
 import SecurityGroup from './SecurityGroup';
 import Transaction from './Transaction';
@@ -45,6 +47,7 @@ import RecentWaypoint from './RecentWaypoint';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
 import RecentlyUsedTags from './RecentlyUsedTags';
 import PolicyTag from './PolicyTag';
+import AccountData from './AccountData';
 
 export type {
     Account,
@@ -84,7 +87,10 @@ export type {
     Policy,
     PolicyCategory,
     Report,
+    ReportMetadata,
     ReportAction,
+    ReportActions,
+    ReportActionsDrafts,
     ReportActionReactions,
     SecurityGroup,
     Transaction,
@@ -96,4 +102,5 @@ export type {
     RecentlyUsedCategories,
     RecentlyUsedTags,
     PolicyTag,
+    AccountData,
 };

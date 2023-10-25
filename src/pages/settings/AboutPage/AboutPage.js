@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useRef, useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -13,7 +13,6 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import MenuItem from '../../../components/MenuItem';
 import Logo from '../../../../assets/images/new-expensify.svg';
 import pkg from '../../../../package.json';
 import * as Report from '../../../libs/actions/Report';
@@ -21,8 +20,9 @@ import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
-import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
 import * as Environment from '../../../libs/Environment/Environment';
+import MenuItemList from '../../../components/MenuItemList';
+import useWaitForNavigation from '../../../hooks/useWaitForNavigation';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -41,44 +41,57 @@ function getFlavor() {
 }
 
 function AboutPage(props) {
-    let popoverAnchor;
-    const menuItems = [
-        {
-            translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
-            icon: Expensicons.Link,
-            action: () => {
-                Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
+    const {translate} = props;
+    const popoverAnchor = useRef(null);
+    const waitForNavigate = useWaitForNavigation();
+
+    const menuItems = useMemo(() => {
+        const baseMenuItems = [
+            {
+                translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
+                icon: Expensicons.Link,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
             },
-        },
-        {
-            translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
-            icon: Expensicons.Keyboard,
-            action: KeyboardShortcuts.showKeyboardShortcutModal,
-        },
-        {
-            translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
-            icon: Expensicons.Eye,
-            iconRight: Expensicons.NewWindow,
-            action: () => {
-                Link.openExternalLink(CONST.GITHUB_URL);
+            {
+                translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
+                icon: Expensicons.Keyboard,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS)),
             },
-            link: CONST.GITHUB_URL,
-        },
-        {
-            translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
-            icon: Expensicons.MoneyBag,
-            iconRight: Expensicons.NewWindow,
-            action: () => {
-                Link.openExternalLink(CONST.UPWORK_URL);
+            {
+                translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
+                icon: Expensicons.Eye,
+                iconRight: Expensicons.NewWindow,
+                action: () => {
+                    Link.openExternalLink(CONST.GITHUB_URL);
+                },
             },
-            link: CONST.UPWORK_URL,
-        },
-        {
-            translationKey: 'initialSettingsPage.aboutPage.reportABug',
-            icon: Expensicons.Bug,
-            action: Report.navigateToConciergeChat,
-        },
-    ];
+            {
+                translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
+                icon: Expensicons.MoneyBag,
+                iconRight: Expensicons.NewWindow,
+                action: () => {
+                    Link.openExternalLink(CONST.UPWORK_URL);
+                },
+                link: CONST.UPWORK_URL,
+            },
+            {
+                translationKey: 'initialSettingsPage.aboutPage.reportABug',
+                icon: Expensicons.Bug,
+                action: waitForNavigate(Report.navigateToConciergeChat),
+            },
+        ];
+        return _.map(baseMenuItems, (item) => ({
+            key: item.translationKey,
+            title: translate(item.translationKey),
+            icon: item.icon,
+            iconRight: item.iconRight,
+            onPress: item.action,
+            shouldShowRightIcon: true,
+            onSecondaryInteraction: !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined,
+            ref: popoverAnchor,
+            shouldBlockSelection: Boolean(item.link),
+        }));
+    }, [translate, waitForNavigate]);
 
     return (
         <ScreenWrapper
@@ -108,21 +121,10 @@ function AboutPage(props) {
                                     <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
                                 </View>
                             </View>
-                            {_.map(menuItems, (item) => (
-                                <MenuItem
-                                    key={item.translationKey}
-                                    title={props.translate(item.translationKey)}
-                                    icon={item.icon}
-                                    iconRight={item.iconRight}
-                                    onPress={() => item.action()}
-                                    shouldBlockSelection={Boolean(item.link)}
-                                    onSecondaryInteraction={
-                                        !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined
-                                    }
-                                    ref={(el) => (popoverAnchor = el)}
-                                    shouldShowRightIcon
-                                />
-                            ))}
+                            <MenuItemList
+                                menuItems={menuItems}
+                                shouldUseSingleExecution
+                            />
                         </View>
                         <View style={[styles.sidebarFooter]}>
                             <Text

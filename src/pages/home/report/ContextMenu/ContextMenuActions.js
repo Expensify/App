@@ -125,10 +125,12 @@ export default [
             if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
             }
-            const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
             const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
             const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
-            return isCommentAction || isReportPreviewAction || isIOUAction;
+            const isModifiedExpenseAction = ReportActionsUtils.isModifiedExpenseAction(reportAction);
+            const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
+            return (isCommentAction || isReportPreviewAction || isIOUAction || isModifiedExpenseAction || isTaskAction) && !ReportUtils.isThreadFirstChat(reportAction, reportID);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             if (closePopover) {
@@ -144,7 +146,7 @@ export default [
         getDescription: () => {},
     },
     {
-        isAnonymousAction: false,
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -157,7 +159,7 @@ export default [
         getDescription: (selection) => selection,
     },
     {
-        isAnonymousAction: false,
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -221,7 +223,7 @@ export default [
     },
 
     {
-        isAnonymousAction: false,
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
         successIcon: Expensicons.Checkmark,
@@ -373,6 +375,7 @@ export default [
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 hideContextMenu(false, () => Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction.reportActionID)));
+                return;
             }
 
             Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction.reportActionID));

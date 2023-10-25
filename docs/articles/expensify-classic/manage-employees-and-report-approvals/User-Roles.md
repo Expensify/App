@@ -9,34 +9,34 @@ This guide is for those who are part of a **Group Workspace**.
 
 Each member has a role that defines what they can see and do in the workspace. Most members will have the role of "Employee."
 
-# How to Manage User Roles
+# How to manage user roles
 
-To find and edit the roles of group workspace members, go to **Settings > Workspaces > Group > [Your Specific Workspace Name] > Members > Workspace Members**
+To find and edit the roles of group workspace members, go to **Settings > Workspaces > Group > _[Workspace Name]_ > Members > Workspace Members**
 
 Here you'll see the list of members in your group workspace. To change their roles, click **Settings** next to the member’s name and choose the role that the member needs.
 
 Next, let’s go over the various user roles that are available on a group workspace.
 
-## The Employee Role
+### The Employee Role
 
 - **What can they do:** Employees can only see their own expense reports or reports that have been submitted to or shared with them. They can't change settings or invite new users.
 - **Who is it for:** Regular employees who only need to manage their own expenses, or managers who are reviewing expense reports for a few users but don’t need global visibility. 
 - **Approvers:** Members who approve expenses can either be Employees, Admins, or Workspace Auditors, depending on how much control they need.
 - **Billable:** Employees are billable actors if they take actions on a report on your Group Workspace (including **SmartScanning** a receipt).
 
-## Workspace Admin Role
+### Workspace Admin Role
 
 - **What can they do:** Admins have full control. They can change settings, invite members, and view all reports. They can also process reimbursements if they have access to the company’s account.
 - **Billing Owners:** Billing owners are Admins by default. **Workspace Admins** are assigned by the owner or another admin.
 - **Billable:** Yes, if they perform actions like changing settings or inviting users. Just viewing reports is not billable.
 
-## Workspace Auditor Role
+### Workspace Auditor Role
 
 - **What can they do:** Workspace Auditors can see all reports, make comments, and export them. They can also mark reports as reimbursed if they're the final approver.
 - **Who is it for:** Accountants, bookkeepers, and internal or external audit agents who need to view but not edit workspace settings.
 - **Billable:** Yes, if they perform any actions like commenting or exporting a report. Viewing alone doesn't incur a charge.
 
-## Technical Contact
+### Technical Contact
 
 - **What can they do:** In case of connection issues, alerts go to the billing owner by default. You can set a technical contact if you want alerts to go to an IT administrator instead.
 - **How to set one:** Go to **Settings > Workspaces > Group > [Workspace Name] > Connections > Technical Contact**.

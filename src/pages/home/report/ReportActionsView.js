@@ -19,7 +19,7 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportPropTypes from '../../reportPropTypes';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
-import ReportScreenContext from '../ReportScreenContext';
+import {ReactionListContext} from '../ReportScreenContext';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -27,6 +27,15 @@ const propTypes = {
 
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The report metadata loading states */
+    isLoadingInitialReportActions: PropTypes.bool,
+
+    /** The report actions are loading more data */
+    isLoadingOlderReportActions: PropTypes.bool,
+
+    /** The report actions are loading newer data */
+    isLoadingNewerReportActions: PropTypes.bool,
 
     /** Whether the composer is full size */
     /* eslint-disable-next-line react/no-unused-prop-types */
@@ -51,15 +60,17 @@ const propTypes = {
 const defaultProps = {
     reportActions: [],
     policy: null,
+    isLoadingInitialReportActions: false,
+    isLoadingOlderReportActions: false,
+    isLoadingNewerReportActions: false,
 };
 
 function ReportActionsView(props) {
-    const context = useContext(ReportScreenContext);
-
     useCopySelectionHelper();
-
+    const reactionListRef = useContext(ReactionListContext);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
+    const isFirstRender = useRef(true);
     const hasCachedActions = useRef(_.size(props.reportActions) > 0);
 
     const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
@@ -136,9 +147,9 @@ function ReportActionsView(props) {
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadMoreChats = () => {
+    const loadOlderChats = () => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.report.isLoadingMoreReportActions) {
+        if (props.isLoadingOlderReportActions) {
             return;
         }
 
@@ -148,10 +159,41 @@ function ReportActionsView(props) {
         if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
-
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.readOldestAction(reportID, oldestReportAction.reportActionID);
+        Report.getOlderActions(reportID, oldestReportAction.reportActionID);
     };
+
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
+     * displaying.
+     */
+    const loadNewerChats = useMemo(
+        () =>
+            _.throttle(({distanceFromStart}) => {
+                if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions) {
+                    return;
+                }
+
+                // Ideally, we wouldn't need to use the 'distanceFromStart' variable. However, due to the low value set for 'maxToRenderPerBatch',
+                // the component undergoes frequent re-renders. This frequent re-rendering triggers the 'onStartReached' callback multiple times.
+                //
+                // To mitigate this issue, we use 'CONST.CHAT_HEADER_LOADER_HEIGHT' as a threshold. This ensures that 'onStartReached' is not
+                // triggered unnecessarily when the chat is initially opened or when the user has reached the end of the list but hasn't scrolled further.
+                //
+                // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
+                // This should be removed once the issue of frequent re-renders is resolved.
+                //
+                // onStartReached is triggered during the first render. Since we use OpenReport on the first render and are confident about the message ordering, we can safely skip this call
+                if (isFirstRender.current || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
+                    isFirstRender.current = false;
+                    return;
+                }
+
+                const newestReportAction = _.first(props.reportActions);
+                Report.getNewerActions(reportID, newestReportAction.reportActionID);
+            }, 500),
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID],
+    );
 
     /**
      * Runs when the FlatList finishes laying out
@@ -185,11 +227,14 @@ function ReportActionsView(props) {
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}
-                isLoadingMoreReportActions={props.report.isLoadingMoreReportActions}
-                loadMoreChats={loadMoreChats}
+                loadOlderChats={loadOlderChats}
+                loadNewerChats={loadNewerChats}
+                isLoadingInitialReportActions={props.isLoadingInitialReportActions}
+                isLoadingOlderReportActions={props.isLoadingOlderReportActions}
+                isLoadingNewerReportActions={props.isLoadingNewerReportActions}
                 policy={props.policy}
             />
-            <PopoverReactionList ref={context.reactionListRef} />
+            <PopoverReactionList ref={reactionListRef} />
         </>
     );
 }
@@ -215,11 +260,15 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (oldProps.report.isLoadingMoreReportActions !== newProps.report.isLoadingMoreReportActions) {
+    if (oldProps.isLoadingInitialReportActions !== newProps.isLoadingInitialReportActions) {
         return false;
     }
 
-    if (oldProps.report.isLoadingReportActions !== newProps.report.isLoadingReportActions) {
+    if (oldProps.isLoadingOlderReportActions !== newProps.isLoadingOlderReportActions) {
+        return false;
+    }
+
+    if (oldProps.isLoadingNewerReportActions !== newProps.isLoadingNewerReportActions) {
         return false;
     }
 
@@ -268,6 +317,10 @@ function arePropsEqual(oldProps, newProps) {
     }
 
     if (lodashGet(newProps, 'report.total') !== lodashGet(oldProps, 'report.total')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.nonReimbursableTotal') !== lodashGet(oldProps, 'report.nonReimbursableTotal')) {
         return false;
     }
 

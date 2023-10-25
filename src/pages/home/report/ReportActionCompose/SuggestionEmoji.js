@@ -39,9 +39,6 @@ const propTypes = {
     /** Function to clear the input */
     resetKeyboardInput: PropTypes.func.isRequired,
 
-    /** Callback when a emoji was inserted */
-    onInsertedEmoji: PropTypes.func.isRequired,
-
     ...SuggestionProps.baseProps,
 };
 
@@ -61,7 +58,6 @@ function SuggestionEmoji({
     isAutoSuggestionPickerLarge,
     forwardedRef,
     resetKeyboardInput,
-    onInsertedEmoji,
     measureParentContainer,
 }) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
@@ -102,10 +98,8 @@ function SuggestionEmoji({
                 end: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
             });
             setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
-
-            onInsertedEmoji(emojiObject);
         },
-        [onInsertedEmoji, preferredSkinTone, resetKeyboardInput, selection.end, setSelection, suggestionValues.colonIndex, suggestionValues.suggestedEmojis, updateComment, value],
+        [preferredSkinTone, resetKeyboardInput, selection.end, setSelection, suggestionValues.colonIndex, suggestionValues.suggestedEmojis, updateComment, value],
     );
 
     /**
@@ -205,6 +199,8 @@ function SuggestionEmoji({
         [shouldBlockCalc],
     );
 
+    const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
+
     useImperativeHandle(
         forwardedRef,
         () => ({
@@ -213,8 +209,9 @@ function SuggestionEmoji({
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
+            getSuggestions,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {
@@ -250,6 +247,8 @@ const SuggestionEmojiWithRef = React.forwardRef((props, ref) => (
         forwardedRef={ref}
     />
 ));
+
+SuggestionEmojiWithRef.displayName = 'SuggestionEmojiWithRef';
 
 export default withOnyx({
     preferredSkinTone: {
