@@ -152,6 +152,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
     }
 
     useEffect(() => {
+        const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
         const shouldGetAllData = isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
@@ -206,6 +207,22 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
+        // Listen to keyboard shortcuts for opening certain pages
+        const unsubscribeShortcutsOverviewShortcut = KeyboardShortcut.subscribe(
+            shortcutsOverviewShortcutConfig.shortcutKey,
+            () => {
+                Modal.close(() => {
+                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
+                        return;
+                    }
+                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+                });
+            },
+            shortcutsOverviewShortcutConfig.descriptionKey,
+            shortcutsOverviewShortcutConfig.modifiers,
+            true,
+        );
+
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
@@ -213,10 +230,10 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
             searchShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
+                    if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
                         return;
                     }
-                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+                    return Navigation.navigate(ROUTES.SEARCH);
                 });
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
@@ -243,6 +260,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
         );
 
         return () => {
+            unsubscribeShortcutsOverviewShortcut();
             unsubscribeSearchShortcut();
             unsubscribeChatShortcut();
             Session.cleanupSession();
