@@ -130,13 +130,15 @@ export default function (WrappedComponent) {
     WithReportAndReportActionOrNotFound.displayName = `withReportAndReportActionOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const withReportAndReportActionOrNotFound = React.forwardRef((props, ref) => (
+    const WithReportAndReportActionOrNotFoundWithRef = React.forwardRef((props, ref) => (
         <WithReportAndReportActionOrNotFound
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithReportAndReportActionOrNotFoundWithRef.displayName = 'WithReportAndReportActionOrNotFoundWithRef';
 
     return compose(
         withWindowDimensions,
@@ -161,5 +163,5 @@ export default function (WrappedComponent) {
                 canEvict: false,
             },
         }),
-    )(withReportAndReportActionOrNotFound);
+    )(WithReportAndReportActionOrNotFoundWithRef);
 }

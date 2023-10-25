@@ -35,13 +35,18 @@ export default function (WrappedComponent) {
         forwardedRef: undefined,
         isVisible: false,
     };
-    return React.forwardRef((props, ref) => (
+
+    const WithToggleVisibilityViewWithRef = React.forwardRef((props, ref) => (
         <WithToggleVisibilityView
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithToggleVisibilityViewWithRef.displayName = `WithToggleVisibilityViewWithRef`;
+
+    return WithToggleVisibilityViewWithRef;
 }
 
 export {toggleVisibilityViewPropTypes};
