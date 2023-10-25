@@ -1,7 +1,7 @@
 import React, {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Text as RNText} from 'react-native';
-import type {TextStyle} from 'react-native';
+import {Text as RNText, StyleSheet} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import fontFamily from '../styles/fontFamily';
 import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
@@ -23,29 +23,19 @@ type TextProps = {
     family?: keyof typeof fontFamily;
 
     /** Any additional styles to apply */
-    style?: TextStyle | TextStyle[];
+    style?: StyleProp<TextStyle>;
 };
 
 function Text(
     {color = themeColors.text, fontSize = variables.fontSizeNormal, textAlign = 'left', children = null, family = 'EXP_NEUE', style = {}, ...props}: TextProps,
     ref: ForwardedRef<RNText>,
 ) {
-    // If the style prop is an array of styles, we need to mix them all together
-    const mergedStyles = !Array.isArray(style)
-        ? style
-        : style.reduce(
-              (finalStyles, s) => ({
-                  ...finalStyles,
-                  ...s,
-              }),
-              {},
-          );
     const componentStyle: TextStyle = {
         color,
         fontSize,
         textAlign,
         fontFamily: fontFamily[family],
-        ...mergedStyles,
+        ...StyleSheet.flatten(style),
     };
 
     if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal) {
@@ -56,7 +46,7 @@ function Text(
         <RNText
             allowFontScaling={false}
             ref={ref}
-            style={[componentStyle]}
+            style={componentStyle}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
