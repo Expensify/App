@@ -75,7 +75,7 @@ function MoneyRequestConfirmPage(props) {
                     const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
                 })
-                .filter((participant) => !!participant.login)
+                .filter((participant) => !!participant.login || !!participant.text)
                 .value(),
         [props.iou.participants, props.personalDetails],
     );
