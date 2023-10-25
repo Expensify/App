@@ -229,26 +229,13 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
-                        return;
-                    }
-                    return Navigation.navigate(ROUTES.SEARCH);
-                });
+                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH)));
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
             shortcutsOverviewShortcutConfig.modifiers,
             true,
         );
-        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
-            searchShortcutConfig.shortcutKey,
-            () => {
-                Modal.close(() => Navigation.navigate(ROUTES.SEARCH));
-            },
-            searchShortcutConfig.descriptionKey,
-            searchShortcutConfig.modifiers,
-            true,
-        );
+
         const unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
