@@ -8,7 +8,7 @@ const propTypes = {
     /** Styles to apply to the HeaderGap */
     styles: stylePropTypes,
 
-    /** If the HeaderGap is placed in the LHP */
+    /** If the HeaderGap is placed in the LHN */
     isSidebar: PropTypes.bool,
 };
 
