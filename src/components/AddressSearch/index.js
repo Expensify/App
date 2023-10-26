@@ -415,6 +415,16 @@ function AddressSearch({
                         listEmptyComponent={listEmptyComponent}
                         listLoaderComponent={listLoader}
                         renderHeaderComponent={renderHeaderComponent}
+                        renderRow={(data) => {
+                            const title = data.isPredefinedPlace ? data.name : data.structured_formatting.main_text;
+                            const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
+                            return (
+                              <View>
+                                  {title && <Text style={[styles.googleSearchText]}>{title}</Text>}
+                                  <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
+                              </View>
+                            );
+                        }}
                         onPress={(data, details) => {
                             saveLocationDetails(data, details);
                             setIsTyping(false);
