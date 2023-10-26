@@ -28,7 +28,7 @@ const propTypes = {
 };
 
 function ACHContractStep(props) {
-    const [beneficialOwners, setBeneficialOwners] = useState(
+    const [beneficialOwners, setBeneficialOwners] = useState(() =>
         lodashGet(props.reimbursementAccountDraft, 'beneficialOwners', lodashGet(props.reimbursementAccount, 'achData.beneficialOwners', [])),
     );
 
@@ -145,7 +145,10 @@ function ACHContractStep(props) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ACHContractStep.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('beneficialOwnersStep.additionalInformation')}
                 stepCounter={{step: 4, total: 5}}

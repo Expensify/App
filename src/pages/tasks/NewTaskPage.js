@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -16,6 +16,7 @@ import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 import MenuItem from '../../components/MenuItem';
 import reportPropTypes from '../reportPropTypes';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as Task from '../../libs/actions/Task';
 import * as ReportUtils from '../../libs/ReportUtils';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
@@ -64,6 +65,7 @@ const defaultProps = {
 
 function NewTaskPage(props) {
     const [assignee, setAssignee] = useState({});
+    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([props.task.assigneeAccountID], props.personalDetails), false);
     const [shareDestination, setShareDestination] = useState({});
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -143,7 +145,10 @@ function NewTaskPage(props) {
     }
 
     return (
-        <ScreenWrapper shouldEnableKeyboardAvoidingView={false}>
+        <ScreenWrapper
+            shouldEnableKeyboardAvoidingView={false}
+            testID={NewTaskPage.displayName}
+        >
             <FullPageNotFoundView
                 shouldShow={!isAllowedToCreateTask}
                 onBackButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
@@ -157,50 +162,56 @@ function NewTaskPage(props) {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS);
                     }}
                 />
-                <View style={[styles.containerWithSpaceBetween]}>
-                    <View style={styles.mb5}>
-                        <MenuItemWithTopDescription
-                            description={props.translate('task.title')}
-                            title={title}
-                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)}
-                            shouldShowRightIcon
-                        />
-                        <MenuItemWithTopDescription
-                            description={props.translate('task.description')}
-                            title={description}
-                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
-                            shouldShowRightIcon
-                            shouldParseTitle
-                            numberOfLinesTitle={2}
-                            titleStyle={styles.flex1}
-                        />
-                        <MenuItem
-                            label={assignee.displayName ? props.translate('task.assignee') : ''}
-                            title={assignee.displayName || ''}
-                            description={assignee.displayName ? LocalePhoneNumber.formatPhoneNumber(assignee.subtitle) : props.translate('task.assignee')}
-                            icon={assignee.icons}
-                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
-                            shouldShowRightIcon
-                        />
-                        <MenuItem
-                            label={shareDestination.displayName ? props.translate('newTaskPage.shareSomewhere') : ''}
-                            title={shareDestination.displayName || ''}
-                            description={shareDestination.displayName ? shareDestination.subtitle : props.translate('newTaskPage.shareSomewhere')}
-                            icon={shareDestination.icons}
-                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
-                            interactive={!props.task.parentReportID}
-                            shouldShowRightIcon={!props.task.parentReportID}
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    <View style={[styles.flex1]}>
+                        <View style={styles.mb5}>
+                            <MenuItemWithTopDescription
+                                description={props.translate('task.title')}
+                                title={title}
+                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)}
+                                shouldShowRightIcon
+                            />
+                            <MenuItemWithTopDescription
+                                description={props.translate('task.description')}
+                                title={description}
+                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
+                                shouldShowRightIcon
+                                shouldParseTitle
+                                numberOfLinesTitle={2}
+                                titleStyle={styles.flex1}
+                            />
+                            <MenuItem
+                                label={assignee.displayName ? props.translate('task.assignee') : ''}
+                                title={assignee.displayName || ''}
+                                description={assignee.displayName ? LocalePhoneNumber.formatPhoneNumber(assignee.subtitle) : props.translate('task.assignee')}
+                                icon={assignee.icons}
+                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
+                                shouldShowRightIcon
+                                titleWithTooltips={assigneeTooltipDetails}
+                            />
+                            <MenuItem
+                                label={shareDestination.displayName ? props.translate('newTaskPage.shareSomewhere') : ''}
+                                title={shareDestination.displayName || ''}
+                                description={shareDestination.displayName ? shareDestination.subtitle : props.translate('newTaskPage.shareSomewhere')}
+                                icon={shareDestination.icons}
+                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
+                                interactive={!props.task.parentReportID}
+                                shouldShowRightIcon={!props.task.parentReportID}
+                                titleWithTooltips={!shareDestination.shouldUseFullTitleToDisplay && shareDestination.displayNamesWithTooltips}
+                            />
+                        </View>
+                    </View>
+                    <View style={[styles.flexShrink0]}>
+                        <FormAlertWithSubmitButton
+                            isAlertVisible={!_.isEmpty(errorMessage)}
+                            message={errorMessage}
+                            onSubmit={() => onSubmit()}
+                            enabledWhenOffline
+                            buttonText={props.translate('newTaskPage.confirmTask')}
+                            containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5]}
                         />
                     </View>
-                    <FormAlertWithSubmitButton
-                        isAlertVisible={!_.isEmpty(errorMessage)}
-                        message={errorMessage}
-                        onSubmit={() => onSubmit()}
-                        enabledWhenOffline
-                        buttonText={props.translate('newTaskPage.confirmTask')}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5]}
-                    />
-                </View>
+                </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

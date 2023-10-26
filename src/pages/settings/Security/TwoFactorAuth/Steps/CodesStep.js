@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {ActivityIndicator, View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
+import {ActivityIndicator, View, ScrollView} from 'react-native';
 import _ from 'underscore';
 import * as Expensicons from '../../../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../../../components/Icon/Illustrations';
@@ -33,11 +32,12 @@ function CodesStep({account = defaultAccount}) {
     const {setStep} = useTwoFactorAuthContext();
 
     useEffect(() => {
-        if (account.recoveryCodes) {
+        if (account.requiresTwoFactorAuth || account.recoveryCodes) {
             return;
         }
         Session.toggleTwoFactorAuth(true);
-    }, [account.recoveryCodes]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
+    }, []);
 
     return (
         <StepWrapper
@@ -49,7 +49,7 @@ function CodesStep({account = defaultAccount}) {
                 total: 3,
             }}
         >
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Section
                     title={translate('twoFactorAuth.keepCodesSafe')}
                     icon={Illustrations.ShieldYellow}
@@ -108,27 +108,27 @@ function CodesStep({account = defaultAccount}) {
                         )}
                     </View>
                 </Section>
-            </ScrollView>
-            <FixedFooter style={[styles.mtAuto, styles.pt2]}>
-                {!_.isEmpty(error) && (
-                    <FormHelpMessage
-                        isError
-                        message={translate(error)}
-                        style={[styles.mb3]}
+                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                    {!_.isEmpty(error) && (
+                        <FormHelpMessage
+                            isError
+                            message={translate(error)}
+                            style={[styles.mb3]}
+                        />
+                    )}
+                    <Button
+                        success
+                        text={translate('common.next')}
+                        onPress={() => {
+                            if (!account.codesAreCopied) {
+                                setError('twoFactorAuth.errorStepCodes');
+                                return;
+                            }
+                            setStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY);
+                        }}
                     />
-                )}
-                <Button
-                    success
-                    text={translate('common.next')}
-                    onPress={() => {
-                        if (!account.codesAreCopied) {
-                            setError('twoFactorAuth.errorStepCodes');
-                            return;
-                        }
-                        setStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY);
-                    }}
-                />
-            </FixedFooter>
+                </FixedFooter>
+            </ScrollView>
         </StepWrapper>
     );
 }

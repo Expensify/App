@@ -52,6 +52,7 @@ function PressableAvatarWithIndicator({isCreateMenuOpen, currentUserPersonalDeta
                 <AvatarWithIndicator
                     source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
                     tooltipText={translate('common.settings')}
+                    fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                 />
             </OfflineWithFeedback>
         </PressableWithoutFeedback>

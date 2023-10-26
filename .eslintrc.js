@@ -24,7 +24,7 @@ const restrictedImportPatterns = [
 ];
 
 module.exports = {
-    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'prettier', 'plugin:react-native-a11y/basic'],
+    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'plugin:react-native-a11y/basic', 'prettier'],
     plugins: ['react-hooks', 'react-native-a11y'],
     parser: 'babel-eslint',
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', 'node_modules/.cache/**', '.git/**'],
@@ -37,16 +37,18 @@ module.exports = {
     overrides: [
         {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
+            plugins: ['react'],
             rules: {
+                'rulesdir/no-multiple-onyx-in-file': 'off',
                 'rulesdir/onyx-props-must-have-default': 'off',
                 'react-native-a11y/has-accessibility-hint': ['off'],
+                'react/jsx-no-constructed-context-values': 'error',
                 'react-native-a11y/has-valid-accessibility-descriptors': [
                     'error',
                     {
                         touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
                     },
                 ],
-                curly: 'error',
             },
         },
         {
@@ -76,6 +78,8 @@ module.exports = {
                         patterns: restrictedImportPatterns,
                     },
                 ],
+                curly: 'error',
+                'react/display-name': 'error',
             },
         },
         {
@@ -115,7 +119,7 @@ module.exports = {
                     },
                     {
                         selector: ['parameter', 'method'],
-                        format: ['camelCase'],
+                        format: ['camelCase', 'PascalCase'],
                     },
                 ],
                 '@typescript-eslint/ban-types': [
@@ -162,6 +166,8 @@ module.exports = {
                         patterns: restrictedImportPatterns,
                     },
                 ],
+                curly: 'error',
+                'you-dont-need-lodash-underscore/throttle': 'off',
             },
         },
         {

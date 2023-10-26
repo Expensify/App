@@ -33,3 +33,7 @@ jobs:
             echo 'Error: Prettier diff detected! Please run `npm run prettier` and commit the changes.'
             exit 1
           fi
+
+      - name: Run unused style searcher
+        shell: bash
+        run: ./.github/scripts/findUnusedKeys.sh

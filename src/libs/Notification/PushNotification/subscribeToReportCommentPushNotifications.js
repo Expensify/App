@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import PushNotification from '.';
+import PushNotification from './index';
 import ROUTES from '../../../ROUTES';
 import Log from '../../Log';
 import Navigation from '../../Navigation/Navigation';
@@ -31,7 +31,7 @@ export default function subscribeToReportCommentPushNotifications() {
                 }
 
                 Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                Navigation.navigate(ROUTES.getReportRoute(reportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             } catch (error) {
                 Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: error.message});
             }

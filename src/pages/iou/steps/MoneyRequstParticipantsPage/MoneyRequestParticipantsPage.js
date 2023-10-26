@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -17,6 +17,7 @@ import * as IOU from '../../../../libs/actions/IOU';
 import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 import useLocalize from '../../../../hooks/useLocalize';
+import useInitialValue from '../../../../hooks/useInitialValue';
 
 const propTypes = {
     /** React Navigation route */
@@ -35,23 +36,24 @@ const propTypes = {
     iou: iouPropTypes,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
     iou: iouDefaultProps,
+    selectedTab: undefined,
 };
 
 function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
-    const isNewReportIDSelectedLocally = useRef(false);
     const optionsSelectorRef = useRef();
-    const iouType = useRef(lodashGet(route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(route, 'params.reportID', ''));
-    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, selectedTab);
+    const iouType = useInitialValue(() => lodashGet(route, 'params.iouType', ''));
+    const reportID = useInitialValue(() => lodashGet(route, 'params.reportID', ''));
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
+    const isSendRequest = iouType === CONST.IOU.TYPE.SEND;
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
-    const isSplitRequest = iou.id === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT;
+    const isSplitRequest = iou.id === CONST.IOU.TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
 
     useEffect(() => {
@@ -60,31 +62,37 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
             return;
         }
 
+        if (isSendRequest) {
+            setHeaderTitle(translate('common.send'));
+            return;
+        }
+
         setHeaderTitle(_.isEmpty(iou.participants) ? translate('tabSelector.manual') : translate('iou.split'));
-    }, [iou.participants, isDistanceRequest, translate]);
+    }, [iou.participants, isDistanceRequest, isSendRequest, translate]);
 
-    const navigateToNextStep = (moneyRequestType) => {
+    const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(moneyRequestType, reportID.current));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID));
     };
 
-    const navigateBack = (forceFallback = false) => {
-        Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), forceFallback);
-    };
+    const navigateBack = useCallback((forceFallback = false) => {
+        Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), forceFallback);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- no deps as we use only initial values
+    }, []);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing
-            if (iou.id && !isDistanceRequest && !isSplitRequest && !isNewReportIDSelectedLocally.current) {
+            if (iou.id && !isDistanceRequest && !isSplitRequest) {
                 navigateBack(true);
             }
             return;
         }
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
-        const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = iou.id !== moneyRequestId && !isNewReportIDSelectedLocally.current;
+        const moneyRequestId = `${iouType}${reportID}`;
+        const shouldReset = iou.id !== moneyRequestId;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
@@ -95,13 +103,14 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
         return () => {
             prevMoneyRequestId.current = iou.id;
         };
-    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest]);
+    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, iouType, reportID, navigateBack]);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
+            testID={MoneyRequestParticipantsPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
@@ -113,10 +122,10 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                         ref={(el) => (optionsSelectorRef.current = el)}
                         participants={iou.participants}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
-                        navigateToRequest={() => navigateToNextStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)}
-                        navigateToSplit={() => navigateToNextStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
+                        navigateToRequest={() => navigateToConfirmationStep(iouType)}
+                        navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.TYPE.SPLIT)}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                        iouType={iouType.current}
+                        iouType={iouType}
                         isDistanceRequest={isDistanceRequest}
                         isScanRequest={isScanRequest}
                     />
@@ -126,7 +135,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     );
 }
 
-MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
+MoneyRequestParticipantsPage.displayName = 'MoneyRequestParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 

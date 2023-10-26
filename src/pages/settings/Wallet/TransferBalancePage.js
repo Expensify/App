@@ -137,7 +137,7 @@ function TransferBalancePage(props) {
 
     if (props.walletTransfer.shouldShowSuccess && !props.walletTransfer.loading) {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper testID={TransferBalancePage.displayName}>
                 <HeaderWithBackButton
                     title={props.translate('common.transferBalance')}
                     onBackButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
@@ -167,10 +167,12 @@ function TransferBalancePage(props) {
     const isButtonDisabled = !isTransferable || !selectedAccount;
     const errorMessage = !_.isEmpty(props.walletTransfer.errors) ? _.chain(props.walletTransfer.errors).values().first().value() : '';
 
-    const shouldShowTransferView = PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, props.bankAccountList) && props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
+    const shouldShowTransferView =
+        PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, props.bankAccountList) &&
+        _.contains([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM], props.userWallet.tierName);
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={TransferBalancePage.displayName}>
             <FullPageNotFoundView
                 shouldShow={!shouldShowTransferView}
                 titleKey="notFound.pageNotFound"

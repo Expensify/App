@@ -19,6 +19,7 @@ import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileCom
 import CONST from '../../CONST';
 import withNavigation from '../withNavigation';
 import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -139,6 +140,8 @@ const getNextChars = (str, cursorPos) => {
     // If there is a space or new line, return the substring up to the space or new line
     return substr.substring(0, spaceIndex);
 };
+
+const supportsPassive = DeviceCapabilities.hasPassiveEventListenerSupport();
 
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -339,7 +342,6 @@ function Composer({
         }
 
         textInput.current.scrollTop += event.deltaY;
-        event.preventDefault();
         event.stopPropagation();
     }, []);
 
@@ -358,7 +360,7 @@ function Composer({
         const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
         setTextInputWidth(computedStyle.width);
 
-        const computedNumberOfLines = ComposerUtils.getNumberOfLines(maxLines, lineHeight, paddingTopAndBottom, textInput.current.scrollHeight);
+        const computedNumberOfLines = ComposerUtils.getNumberOfLines(lineHeight, paddingTopAndBottom, textInput.current.scrollHeight, maxLines);
         const generalNumberOfLines = computedNumberOfLines === 0 ? numberOfLinesProp : computedNumberOfLines;
 
         onNumberOfLinesChange(generalNumberOfLines);
@@ -384,7 +386,7 @@ function Composer({
 
         if (textInput.current) {
             document.addEventListener('paste', handlePaste);
-            textInput.current.addEventListener('wheel', handleWheel);
+            textInput.current.addEventListener('wheel', handleWheel, supportsPassive ? {passive: true} : false);
         }
 
         return () => {
@@ -444,9 +446,9 @@ function Composer({
             numberOfLines < maxLines ? styles.overflowHidden : {},
 
             StyleSheet.flatten([style, {outline: 'none'}]),
-            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp, isComposerFullSize),
+            StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
         ],
-        [style, maxLines, numberOfLinesProp, numberOfLines, isComposerFullSize],
+        [style, maxLines, numberOfLines, isComposerFullSize],
     );
 
     return (
@@ -489,16 +491,14 @@ function Composer({
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withNavigation,
-)(
-    React.forwardRef((props, ref) => (
-        <Composer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+const ComposerWithRef = React.forwardRef((props, ref) => (
+    <Composer
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+ComposerWithRef.displayName = 'ComposerWithRef';
+
+export default compose(withLocalize, withWindowDimensions, withNavigation)(ComposerWithRef);

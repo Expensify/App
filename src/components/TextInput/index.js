@@ -73,10 +73,14 @@ TextInput.displayName = 'TextInput';
 TextInput.propTypes = baseTextInputPropTypes.propTypes;
 TextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const TextInputWithRef = React.forwardRef((props, ref) => (
     <TextInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+TextInputWithRef.displayName = 'TextInputWithRef';
+
+export default TextInputWithRef;

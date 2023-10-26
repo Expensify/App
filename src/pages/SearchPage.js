@@ -18,6 +18,8 @@ import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import Performance from '../libs/Performance';
 import useLocalize from '../hooks/useLocalize';
+import networkPropTypes from '../components/networkPropTypes';
+import {withNetwork} from '../components/OnyxProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -30,12 +32,20 @@ const propTypes = {
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
+
+    /** Network info */
+    network: networkPropTypes,
+
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    network: {},
+    isSearchingForReports: false,
 };
 
 function SearchPage({betas, personalDetails, reports}) {
@@ -174,8 +184,13 @@ function SearchPage({betas, personalDetails, reports}) {
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputAlert={
+                                props.network.isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''
+                            }
                             onLayout={searchRendered}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            autoFocus
+                            isLoadingNewOptions={props.isSearchingForReports}
                         />
                     </View>
                 </>
@@ -187,7 +202,9 @@ function SearchPage({betas, personalDetails, reports}) {
 SearchPage.propTypes = propTypes;
 SearchPage.defaultProps = defaultProps;
 SearchPage.displayName = 'SearchPage';
-export default withOnyx({
+export default compose(
+    withNetwork(),
+    withOnyx({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
@@ -197,4 +214,9 @@ export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
     },
-})(SearchPage);
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
+    },
+}),
+)(SearchPage);

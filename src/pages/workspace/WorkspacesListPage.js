@@ -24,7 +24,6 @@ import * as App from '../../libs/actions/App';
 import useLocalize from '../../hooks/useLocalize';
 import useNetwork from '../../hooks/useNetwork';
 import usePermissions from '../../hooks/usePermissions';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
 import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
 import SCREENS from '../../SCREENS';
 import * as LottieAnimations from '../../components/LottieAnimations';
@@ -112,7 +111,6 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {canUseWallet} = usePermissions();
-    const {isSmallScreenWidth} = useWindowDimensions();
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
@@ -170,7 +168,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                 title: policy.name,
                 icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
+                action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
                 iconFill: themeColors.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                 brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
@@ -194,7 +192,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                     accessibilityLabel={translate('workspace.new.newWorkspace')}
                     success
                     text={translate('workspace.new.newWorkspace')}
-                    onPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, !isSmallScreenWidth)}
+                    onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                 />
             }
         >
