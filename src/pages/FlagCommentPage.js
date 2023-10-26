@@ -11,7 +11,6 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
-import * as Browser from '../libs/Browser';
 import Text from '../components/Text';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
