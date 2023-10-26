@@ -307,11 +307,6 @@ function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP>) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
 }
 
-type AnswerQuestionsForWallet = {
-    idologyAnswers: string;
-    idNumber: string;
-};
-
 function answerQuestionsForWallet(answers: unknown[], idNumber: string) {
     const idologyAnswers = JSON.stringify(answers);
 
@@ -344,6 +339,11 @@ function answerQuestionsForWallet(answers: unknown[], idNumber: string) {
             },
         },
     ];
+
+    type AnswerQuestionsForWallet = {
+        idologyAnswers: string;
+        idNumber: string;
+    };
 
     const parameters: AnswerQuestionsForWallet = {
         idologyAnswers,
