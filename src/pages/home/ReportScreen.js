@@ -106,9 +106,8 @@ const defaultProps = {
         hasOutstandingIOU: false,
     },
     reportMetadata: {
-        isLoadingInitialReportActions: true,
-        isLoadingOlderReportActions: false,
-        isLoadingNewerReportActions: false,
+        isLoadingReportActions: true,
+        isLoadingMoreReportActions: false,
     },
     isComposerFullSize: false,
     betas: [],
@@ -166,7 +165,7 @@ function ReportScreen({
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingReportActions;
 
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
 
@@ -261,13 +260,6 @@ function ReportScreen({
     const onSubmitComment = useCallback(
         (text) => {
             Report.addComment(getReportID(route), text);
-
-            // We need to scroll to the bottom of the list after the comment is added
-            const refID = setTimeout(() => {
-                flatListRef.current.scrollToOffset({animated: false, offset: 0});
-            }, 10);
-
-            return () => clearTimeout(refID);
         },
         [route],
     );
@@ -380,7 +372,7 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () => (!firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingInitialReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
+        () => (!firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
         [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
 
@@ -436,9 +428,8 @@ function ReportScreen({
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
-                                        isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
-                                        isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
-                                        isLoadingOlderReportActions={reportMetadata.isLoadingOlderReportActions}
+                                        isLoadingReportActions={reportMetadata.isLoadingReportActions}
+                                        isLoadingMoreReportActions={reportMetadata.isLoadingMoreReportActions}
                                         isComposerFullSize={isComposerFullSize}
                                         policy={policy}
                                     />
@@ -497,9 +488,8 @@ export default compose(
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
                 initialValue: {
-                    isLoadingInitialReportActions: true,
-                    isLoadingOlderReportActions: false,
-                    isLoadingNewerReportActions: false,
+                    isLoadingReportActions: true,
+                    isLoadingMoreReportActions: false,
                 },
             },
             isComposerFullSize: {

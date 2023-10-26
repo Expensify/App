@@ -477,9 +477,8 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isLoadingInitialReportActions: true,
-                isLoadingOlderReportActions: false,
-                isLoadingNewerReportActions: false,
+                isLoadingReportActions: true,
+                isLoadingMoreReportActions: false,
             },
         },
     ];
@@ -502,7 +501,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isLoadingInitialReportActions: false,
+                isLoadingReportActions: false,
             },
         },
     ];
@@ -512,7 +511,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isLoadingInitialReportActions: false,
+                isLoadingReportActions: false,
             },
         },
     ];
@@ -738,9 +737,8 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingInitialReportActions: true,
-                        isLoadingNewerReportActions: false,
-                        isLoadingOlderReportActions: false,
+                        isLoadingReportActions: true,
+                        isLoadingMoreReportActions: false,
                     },
                 },
             ],
@@ -749,7 +747,7 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingInitialReportActions: false,
+                        isLoadingReportActions: false,
                     },
                 },
             ],
@@ -758,7 +756,7 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingInitialReportActions: false,
+                        isLoadingReportActions: false,
                     },
                 },
             ],
@@ -773,9 +771,9 @@ function reconnect(reportID) {
  * @param {String} reportID
  * @param {String} reportActionID
  */
-function getOlderActions(reportID, reportActionID) {
+function readOldestAction(reportID, reportActionID) {
     API.read(
-        'GetOlderActions',
+        'ReadOldestAction',
         {
             reportID,
             reportActionID,
@@ -786,7 +784,7 @@ function getOlderActions(reportID, reportActionID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingOlderReportActions: true,
+                        isLoadingMoreReportActions: true,
                     },
                 },
             ],
@@ -795,7 +793,7 @@ function getOlderActions(reportID, reportActionID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingOlderReportActions: false,
+                        isLoadingMoreReportActions: false,
                     },
                 },
             ],
@@ -804,53 +802,7 @@ function getOlderActions(reportID, reportActionID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingOlderReportActions: false,
-                    },
-                },
-            ],
-        },
-    );
-}
-
-/**
- * Gets the newer actions that have not been read yet.
- * Normally happens when you are not located at the bottom of the list and scroll down on a chat.
- *
- * @param {String} reportID
- * @param {String} reportActionID
- */
-function getNewerActions(reportID, reportActionID) {
-    API.read(
-        'GetNewerActions',
-        {
-            reportID,
-            reportActionID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                    value: {
-                        isLoadingNewerReportActions: true,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                    value: {
-                        isLoadingNewerReportActions: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                    value: {
-                        isLoadingNewerReportActions: false,
+                        isLoadingMoreReportActions: false,
                     },
                 },
             ],
@@ -2459,6 +2411,7 @@ export {
     expandURLPreview,
     markCommentAsUnread,
     readNewestAction,
+    readOldestAction,
     openReport,
     openReportFromDeepLink,
     navigateToAndOpenReport,
@@ -2483,8 +2436,6 @@ export {
     getReportPrivateNote,
     clearPrivateNotesError,
     hasErrorInPrivateNotes,
-    getOlderActions,
-    getNewerActions,
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,

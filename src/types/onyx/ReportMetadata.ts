@@ -1,12 +1,9 @@
 type ReportMetadata = {
-    /** Are we loading newer report actions? */
-    isLoadingNewerReportActions?: boolean;
-
-    /** Are we loading older report actions? */
-    isLoadingOlderReportActions?: boolean;
+    /** Are we loading more report actions? */
+    isLoadingMoreReportActions?: boolean;
 
     /** Flag to check if the report actions data are loading */
-    isLoadingInitialReportActions?: boolean;
+    isLoadingReportActions?: boolean;
 };
 
 export default ReportMetadata;
