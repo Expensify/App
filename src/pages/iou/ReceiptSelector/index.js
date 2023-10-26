@@ -1,5 +1,5 @@
 import {View, Text, PixelRatio, ActivityIndicator, PanResponder} from 'react-native';
-import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -84,6 +84,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(true);
     const cameraRef = useRef(null);
+    const normalCameraDeviceIdRef = useRef(null);
 
     const hideReciptModal = () => {
         setIsAttachmentInvalid(false);
@@ -169,6 +170,24 @@ function ReceiptSelector({route, transactionID, iou, report}) {
         }),
     ).current;
 
+    /**
+     * On phones that have ultra-wide lens, default camera is ultra-wide.
+     * The last deviceId is of regular len camera.
+     */
+    useEffect(() => {
+        if (!navigator || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+            return;
+        }
+
+        navigator.mediaDevices.enumerateDevices().then((devices) => {
+            normalCameraDeviceIdRef.current = _.chain(devices)
+                .filter((device) => device.kind === 'videoinput')
+                .last()
+                .get('deviceId', '')
+                .value();
+        });
+    }, []);
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
@@ -197,7 +216,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
                     ref={cameraRef}
                     screenshotFormat="image/png"
-                    videoConstraints={{facingMode: {exact: 'environment'}}}
+                    videoConstraints={{facingMode: {exact: 'environment'}, deviceId: normalCameraDeviceIdRef.current}}
                     torchOn={isFlashLightOn}
                     onTorchAvailability={setIsTorchAvailable}
                     forceScreenshotSourceSize
