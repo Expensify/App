@@ -36,7 +36,7 @@ export default function (
             const isReportIdInRoute = props.route.params.reportID?.length;
 
             if (shouldRequireReportID || isReportIdInRoute) {
-                const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
+                const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
 
                 const shouldShowNotFoundPage =
                     !Object.entries(props.report ?? {}).length || !props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {});

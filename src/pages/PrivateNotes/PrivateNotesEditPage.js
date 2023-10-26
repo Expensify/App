@@ -25,7 +25,6 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
 import ROUTES from '../../ROUTES';
 import withReportAndPrivateNotesOrNotFound from '../home/report/withReportAndPrivateNotesOrNotFound';
-import * as ReportUtils from '../../libs/ReportUtils';
 import InputWrapper from '../../components/Form/InputWrapper';
 import FormProvider from '../../components/Form/FormProvider';
 
@@ -135,6 +134,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
                     }}
                     onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
                     style={[styles.mb3]}
+                >
                     <InputWrapper
                         InputComponent={TextInput}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}

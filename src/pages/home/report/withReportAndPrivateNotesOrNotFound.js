@@ -55,7 +55,7 @@ export default function (WrappedComponent) {
     function WithReportAndPrivateNotesOrNotFound({forwardedRef, ...props}) {
         const {route, report, network, session} = props;
         const accountID = route.params.accountID;
-        const isLoadingPrivateNotes = report.isLoadingPrivateNotes ?? true;
+        const isLoadingPrivateNotes = report.isLoadingPrivateNotes !== false;
 
         useEffect(() => {
             if (network.isOffline && isLoadingPrivateNotes) {
@@ -85,12 +85,12 @@ export default function (WrappedComponent) {
             return network.isOffline;
         }, [report, network.isOffline, accountID, session.accountID, isPrivateNotesEmpty, isLoadingPrivateNotes]);
 
-        if (shouldShowNotFoundPage) {
-            return <NotFoundPage />;
-        }
-
         if (shouldShowFullScreenLoadingIndicator) {
             return <FullScreenLoadingIndicator />;
+        }
+
+        if (shouldShowNotFoundPage) {
+            return <NotFoundPage />;
         }
 
         return (
