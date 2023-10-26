@@ -8,6 +8,7 @@ import ProgressBar from './ProgressBar';
 import convertMillisecondsToTime from './utils';
 import VolumeButton from '../VolumeButton';
 import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
+import {useVideoPopoverMenuContext} from '../VideoPlayerContexts/VideoPopoverMenuContext';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
@@ -15,15 +16,14 @@ const propTypes = {
 
     position: PropTypes.number.isRequired,
 
-    toggleCreateMenu: PropTypes.func.isRequired,
-
     url: PropTypes.string.isRequired,
 };
 
 const defaultProps = {};
 
-function VideoPlayerControls({duration, position, toggleCreateMenu, url}) {
+function VideoPlayerControls({duration, position, url}) {
     const {togglePlay, isPlaying, seekPosition, enterFullScreenMode, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {showPopover} = useVideoPopoverMenuContext();
     const [durationFormatted, setDurationFormatted] = React.useState('0:00');
 
     const isCurrentlySet = currentlyPlayingURL === url;
@@ -81,7 +81,7 @@ function VideoPlayerControls({duration, position, toggleCreateMenu, url}) {
                         src={Expensicons.ThreeDots}
                         fill="white"
                         accessibilityLabel="More options"
-                        onPress={(e) => toggleCreateMenu(e)}
+                        onPress={(e) => showPopover(e.nativeEvent.pageY - 30, e.nativeEvent.pageX)}
                     />
                 </View>
             </View>

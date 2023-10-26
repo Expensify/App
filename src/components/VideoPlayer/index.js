@@ -45,20 +45,11 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         usePlaybackContext();
 
     const [isVideoLoading, setIsVideoLoading] = React.useState(true);
-    const [isMenuActive, setIsMenuActive] = React.useState(false);
 
     const ref = useRef(null);
     const videoPlayerParentRef = useRef(null);
     const videoPlayerRef = useRef(null);
     const sharedVideoPlayerParentRef = useRef(null);
-
-    const toggleCreateMenu = (e) => {
-        if (isMenuActive) {
-            setIsMenuActive(false);
-        } else {
-            setIsMenuActive(true);
-        }
-    };
 
     useEffect(() => {
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
@@ -149,11 +140,8 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
             <VideoPlayerControls
                 duration={duration}
                 position={position}
-                toggleCreateMenu={toggleCreateMenu}
                 url={url}
             />
-
-            <VideoPopoverMenu isActive={isMenuActive} />
         </View>
     );
 }

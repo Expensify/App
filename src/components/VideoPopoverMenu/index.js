@@ -1,34 +1,19 @@
-import React, {useEffect, useState} from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
 import _ from 'underscore';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import * as Expensicons from '../Icon/Expensicons';
 import PopoverMenu from '../PopoverMenu';
 import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
+import {useVideoPopoverMenuContext} from '../VideoPlayerContexts/VideoPopoverMenuContext';
 
-const propTypes = {
-    isActive: PropTypes.bool.isRequired,
-};
+const propTypes = {};
 
 const defaultProps = {};
 
-function VideoPopoverMenu({isActive}) {
+function VideoPopoverMenu() {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {playbackSpeeds, currentPlaybackSpeed, updatePlaybackSpeed} = usePlaybackContext();
-    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({vertical: 0, horizontal: 0});
-    const [isCreateMenuActive, setIsCreateMenuActive] = useState(isActive);
-
-    const showCreateMenu = () => {
-        setIsCreateMenuActive(true);
-    };
-
-    const hideCreateMenu = () => {
-        setIsCreateMenuActive(false);
-    };
-
-    useEffect(() => {
-        setIsCreateMenuActive(isActive);
-    }, [isActive]);
+    const {isPopoverVisible, hidePopover, anchorPosition} = useVideoPopoverMenuContext();
 
     const playbackSpeedSubMenuItems = _.map(playbackSpeeds, (speed) => ({
         icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
@@ -60,10 +45,10 @@ function VideoPopoverMenu({isActive}) {
 
     return (
         <PopoverMenu
-            onClose={hideCreateMenu}
-            onItemSelected={hideCreateMenu}
-            isVisible={isCreateMenuActive}
-            anchorPosition={popoverAnchorPosition}
+            onClose={hidePopover}
+            onItemSelected={hidePopover}
+            isVisible={isPopoverVisible}
+            anchorPosition={anchorPosition}
             fromSidebarMediumScreen={!isSmallScreenWidth}
             menuItems={menuItems}
             withoutOverlay

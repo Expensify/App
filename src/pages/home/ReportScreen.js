@@ -40,6 +40,8 @@ import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
 import reportWithoutHasDraftSelector from '../../libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import VideoPopoverMenu from '../../components/VideoPopoverMenu';
+import {VideoPopoverMenuContextProvider} from '../../components/VideoPlayerContexts/VideoPopoverMenuContext';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -387,86 +389,90 @@ function ReportScreen({
     return (
         <ActionListContext.Provider value={flatListRef}>
             <ReactionListContext.Provider value={reactionListRef}>
-                <ScreenWrapper
-                    style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={isTopMostReportId}
-                    testID={ReportScreen.displayName}
-                >
-                    <FullPageNotFoundView
-                        shouldShow={shouldShowNotFoundPage}
-                        subtitleKey="notFound.noAccess"
-                        shouldShowCloseButton={false}
-                        shouldShowBackButton={isSmallScreenWidth}
-                        onBackButtonPress={Navigation.goBack}
-                        shouldShowLink={false}
+                <VideoPopoverMenuContextProvider>
+                    <ScreenWrapper
+                        style={screenWrapperStyle}
+                        shouldEnableKeyboardAvoidingView={isTopMostReportId}
+                        testID={ReportScreen.displayName}
                     >
-                        <OfflineWithFeedback
-                            pendingAction={addWorkspaceRoomOrChatPendingAction}
-                            errors={addWorkspaceRoomOrChatErrors}
-                            shouldShowErrorMessages={false}
-                            needsOffscreenAlphaCompositing
+                        <FullPageNotFoundView
+                            shouldShow={shouldShowNotFoundPage}
+                            subtitleKey="notFound.noAccess"
+                            shouldShowCloseButton={false}
+                            shouldShowBackButton={isSmallScreenWidth}
+                            onBackButtonPress={Navigation.goBack}
+                            shouldShowLink={false}
                         >
-                            {headerView}
-                            {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
-                                <View style={[styles.borderBottom]}>
-                                    <View style={[styles.appBG, styles.pl0]}>
-                                        <View style={[styles.ph5, styles.pb3]}>
-                                            <TaskHeaderActionButton report={report} />
+                            <OfflineWithFeedback
+                                pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                errors={addWorkspaceRoomOrChatErrors}
+                                shouldShowErrorMessages={false}
+                                needsOffscreenAlphaCompositing
+                            >
+                                {headerView}
+                                {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                                    <View style={[styles.borderBottom]}>
+                                        <View style={[styles.appBG, styles.pl0]}>
+                                            <View style={[styles.ph5, styles.pb3]}>
+                                                <TaskHeaderActionButton report={report} />
+                                            </View>
                                         </View>
                                     </View>
-                                </View>
-                            )}
-                        </OfflineWithFeedback>
-                        {!!accountManagerReportID && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
-                            <Banner
-                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
-                                textStyles={[styles.colorReversed]}
-                                text={translate('reportActionsView.chatWithAccountManager')}
-                                onClose={dismissBanner}
-                                onPress={chatWithAccountManager}
-                                shouldShowCloseButton
-                            />
-                        )}
-                        <DragAndDropProvider isDisabled={!isReportReadyForDisplay}>
-                            <View
-                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                onLayout={onListLayout}
-                            >
-                                {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
-                                    <ReportActionsView
-                                        reportActions={reportActions}
-                                        report={report}
-                                        isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
-                                        isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
-                                        isLoadingOlderReportActions={reportMetadata.isLoadingOlderReportActions}
-                                        isComposerFullSize={isComposerFullSize}
-                                        policy={policy}
-                                    />
                                 )}
+                            </OfflineWithFeedback>
+                            {!!accountManagerReportID && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
+                                <Banner
+                                    containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                                    textStyles={[styles.colorReversed]}
+                                    text={translate('reportActionsView.chatWithAccountManager')}
+                                    onClose={dismissBanner}
+                                    onPress={chatWithAccountManager}
+                                    shouldShowCloseButton
+                                />
+                            )}
+                            <DragAndDropProvider isDisabled={!isReportReadyForDisplay}>
+                                <View
+                                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                    onLayout={onListLayout}
+                                >
+                                    {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
+                                        <ReportActionsView
+                                            reportActions={reportActions}
+                                            report={report}
+                                            isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
+                                            isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
+                                            isLoadingOlderReportActions={reportMetadata.isLoadingOlderReportActions}
+                                            isComposerFullSize={isComposerFullSize}
+                                            policy={policy}
+                                        />
+                                    )}
 
-                                {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
+                                    {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
                                     If we prevent rendering the report while they are loading then
                                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
+                                    {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
-                                {isReportReadyForDisplay ? (
-                                    <ReportFooter
-                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        reportActions={reportActions}
-                                        report={report}
-                                        isComposerFullSize={isComposerFullSize}
-                                        onSubmitComment={onSubmitComment}
-                                        policies={policies}
-                                        listHeight={listHeight}
-                                        personalDetails={personalDetails}
-                                    />
-                                ) : (
-                                    <ReportFooter isReportReadyForDisplay={false} />
-                                )}
-                            </View>
-                        </DragAndDropProvider>
-                    </FullPageNotFoundView>
-                </ScreenWrapper>
+                                    {isReportReadyForDisplay ? (
+                                        <ReportFooter
+                                            pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                            reportActions={reportActions}
+                                            report={report}
+                                            isComposerFullSize={isComposerFullSize}
+                                            onSubmitComment={onSubmitComment}
+                                            policies={policies}
+                                            listHeight={listHeight}
+                                            personalDetails={personalDetails}
+                                        />
+                                    ) : (
+                                        <ReportFooter isReportReadyForDisplay={false} />
+                                    )}
+                                </View>
+                            </DragAndDropProvider>
+                        </FullPageNotFoundView>
+
+                        <VideoPopoverMenu />
+                    </ScreenWrapper>
+                </VideoPopoverMenuContextProvider>
             </ReactionListContext.Provider>
         </ActionListContext.Provider>
     );
