@@ -154,6 +154,10 @@ function OptionRowLHN(props) {
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
     const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(optionItem);
 
+    const isGroupChat =
+        optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
+    const fullTitle = isGroupChat ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips) : optionItem.text;
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -186,7 +190,9 @@ function OptionRowLHN(props) {
                         onSecondaryInteraction={(e) => {
                             showPopover(e);
                             // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
-                            DomUtils.getActiveElement().blur();
+                            if (DomUtils.getActiveElement()) {
+                                DomUtils.getActiveElement().blur();
+                            }
                         }}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
@@ -231,7 +237,7 @@ function OptionRowLHN(props) {
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
                                             accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={optionItem.text}
+                                            fullTitle={fullTitle}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
@@ -255,7 +261,7 @@ function OptionRowLHN(props) {
                                             numberOfLines={1}
                                             accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.isLastMessageDeletedParentAction ? translate('parentReportAction.deletedMessage') : optionItem.alternateText}
+                                            {optionItem.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>

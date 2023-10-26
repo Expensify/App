@@ -30,9 +30,11 @@ import * as Link from '../../libs/actions/Link';
 import * as Report from '../../libs/actions/Report';
 import * as Task from '../../libs/actions/Task';
 import compose from '../../libs/compose';
+import * as Session from '../../libs/actions/Session';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../reportPropTypes';
+import reportWithoutHasDraftSelector from '../../libs/OnyxSelectors/reportWithoutHasDraftSelector';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -79,7 +81,8 @@ function HeaderView(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
-    const title = ReportUtils.getReportName(reportHeaderData);
+    // Use sorted display names for the title for group chats on native small screen widths
+    const title = ReportUtils.isGroupChat(props.report) ? ReportUtils.getDisplayNamesStringFromTooltips(displayNamesWithTooltips) : ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
@@ -101,7 +104,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('task.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report),
+                onSelected: Session.checkIfActionIsAllowed(() => Task.reopenTask(props.report)),
             });
         }
 
@@ -110,7 +113,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-                onSelected: () => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
+                onSelected: Session.checkIfActionIsAllowed(() => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
             });
         }
     }
@@ -120,13 +123,15 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
                 text: props.translate('common.joinThread'),
-                onSelected: () => Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
+                onSelected: Session.checkIfActionIsAllowed(() =>
+                    Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
+                ),
             });
         } else if (props.report.notificationPreference.length) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
                 text: props.translate('common.leaveThread'),
-                onSelected: () => Report.leaveRoom(props.report.reportID),
+                onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.report.reportID)),
             });
         }
     }
@@ -137,24 +142,24 @@ function HeaderView(props) {
         threeDotMenuItems.push({
             icon: Expensicons.Phone,
             text: props.translate('videoChatButtonAndMenu.tooltip'),
-            onSelected: () => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(props.guideCalendarLink);
-            },
+            }),
         });
     } else if (!isAutomatedExpensifyAccount && !isTaskReport && !isArchivedRoom) {
         threeDotMenuItems.push({
             icon: ZoomIcon,
             text: props.translate('videoChatButtonAndMenu.zoom'),
-            onSelected: () => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
-            },
+            }),
         });
         threeDotMenuItems.push({
             icon: GoogleMeetIcon,
             text: props.translate('videoChatButtonAndMenu.googleMeet'),
-            onSelected: () => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_GOOGLE_MEET_MEETING_URL);
-            },
+            }),
         });
     }
 
@@ -252,6 +257,7 @@ function HeaderView(props) {
                                 <ThreeDotsMenu
                                     anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                                     menuItems={threeDotMenuItems}
+                                    shouldSetModalVisibility={false}
                                 />
                             )}
                         </View>
@@ -276,6 +282,7 @@ export default compose(
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
+            selector: reportWithoutHasDraftSelector,
         },
         session: {
             key: ONYXKEYS.SESSION,

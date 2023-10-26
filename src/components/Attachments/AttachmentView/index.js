@@ -1,5 +1,5 @@
 import React, {memo, useState} from 'react';
-import {View, ActivityIndicator} from 'react-native';
+import {View, ScrollView, ActivityIndicator} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -22,6 +22,8 @@ import * as TransactionUtils from '../../../libs/TransactionUtils';
 import DistanceEReceipt from '../../DistanceEReceipt';
 import useNetwork from '../../../hooks/useNetwork';
 import ONYXKEYS from '../../../ONYXKEYS';
+import EReceipt from '../../EReceipt';
+import cursor from '../../../styles/utilities/cursor';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -74,6 +76,7 @@ function AttachmentView({
     isWorkspaceAvatar,
     fallbackSource,
     transaction,
+    isUsedInAttachmentModal,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
     const [imageError, setImageError] = useState(false);
@@ -101,6 +104,19 @@ function AttachmentView({
         );
     }
 
+    if (TransactionUtils.hasEReceipt(transaction)) {
+        return (
+            <View style={[styles.flex1, styles.alignItemsCenter]}>
+                <ScrollView
+                    style={styles.w100}
+                    contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
+                >
+                    <EReceipt transactionID={transaction.transactionID} />
+                </ScrollView>
+            </View>
+        );
+    }
+
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
     if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
@@ -118,6 +134,8 @@ function AttachmentView({
                 onScaleChanged={onScaleChanged}
                 onToggleKeyboard={onToggleKeyboard}
                 onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+                errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [cursor.cursorAuto]}
+                style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
             />
         );
     }

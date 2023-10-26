@@ -33,6 +33,7 @@ Onyx.connect({
             _.each(policyReports, ({reportID}) => {
                 cleanUpMergeQueries[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {hasDraft: false};
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
             Onyx.multiSet(cleanUpSetQueries);
@@ -73,6 +74,13 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCategories = val),
 });
 
+let networkStatus = {};
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    waitForCollectionCallback: true,
+    callback: (val) => (networkStatus = val),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
@@ -107,6 +115,12 @@ function deleteWorkspace(policyID, reports, policyName) {
                 hasDraft: false,
                 oldPolicyName: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].name,
             },
+        })),
+
+        ..._.map(reports, ({reportID}) => ({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`,
+            value: null,
         })),
 
         // Add closed actions to all chat reports linked to this policy
@@ -358,7 +372,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReport.reportID}`,
             value: {
-                isLoadingReportActions: false,
+                isLoadingInitialReportActions: false,
             },
         });
     });
@@ -576,6 +590,9 @@ function clearAvatarErrors(policyID) {
  * @param {String} currency
  */
 function updateGeneralSettings(policyID, name, currency) {
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const distanceUnit = _.find(_.values(policy.customUnits), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceRate = _.find(_.values(distanceUnit ? distanceUnit.rates : {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
     const optimisticData = [
         {
             // We use SET because it's faster than merge and avoids a race condition when setting the currency and navigating the user to the Bank account page in confirmCurrencyChangeAndHideModal
@@ -594,6 +611,21 @@ function updateGeneralSettings(policyID, name, currency) {
                 },
                 name,
                 outputCurrency: currency,
+                ...(distanceUnit
+                    ? {
+                          customUnits: {
+                              [distanceUnit.customUnitID]: {
+                                  ...distanceUnit,
+                                  rates: {
+                                      [distanceRate.customUnitRateID]: {
+                                          ...distanceRate,
+                                          currency,
+                                      },
+                                  },
+                              },
+                          },
+                      }
+                    : {}),
             },
         },
     ];
@@ -619,6 +651,13 @@ function updateGeneralSettings(policyID, name, currency) {
                 errorFields: {
                     generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
+                ...(distanceUnit
+                    ? {
+                          customUnits: {
+                              [distanceUnit.customUnitID]: distanceUnit,
+                          },
+                      }
+                    : {}),
             },
         },
     ];
@@ -766,7 +805,7 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            lastModified,
+            ...(!networkStatus.isOffline && {lastModified}),
             customUnit: JSON.stringify(newCustomUnitParam),
             customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },
