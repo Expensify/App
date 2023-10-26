@@ -19,11 +19,11 @@ type OpacityViewProps = {
      * Array of style objects
      * @default []
      */
-    style: StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>;
+    style: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /**
      * The value to use for the opacity when the view is dimmed
-     * @default 0.5
+     * @default variables.hoverDimValue
      */
     dimmingValue?: number;
 
