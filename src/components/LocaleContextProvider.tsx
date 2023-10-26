@@ -8,25 +8,20 @@ import * as NumberFormatUtils from '../libs/NumberFormatUtils';
 import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
 import CONST from '../CONST';
 import compose from '../libs/compose';
-import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersonalDetails';
 import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
-import {PersonalDetails} from '../types/onyx';
 import {TranslationPaths, TranslationFlatObject} from '../languages/types';
-
-type CurrentUserPersonalDetails = Pick<PersonalDetails, 'timezone'>;
 
 type LocaleContextProviderOnyxProps = {
     /** The user's preferred locale e.g. 'en', 'es-ES' */
     preferredLocale: ValueOf<typeof CONST.LOCALES>;
 };
 
-type LocaleContextProviderProps = LocaleContextProviderOnyxProps & {
-    /** The current user's personalDetails */
-    currentUserPersonalDetails: CurrentUserPersonalDetails;
-
-    /** Actual content wrapped by this component */
-    children: React.ReactNode;
-};
+type LocaleContextProviderProps = LocaleContextProviderOnyxProps &
+    WithCurrentUserPersonalDetailsProps & {
+        /** Actual content wrapped by this component */
+        children: React.ReactNode;
+    };
 
 type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
 
@@ -131,14 +126,15 @@ function LocaleContextProvider({preferredLocale = CONST.LOCALES.DEFAULT, current
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
+
 const Provider = compose(
-    withCurrentUserPersonalDetails,
     withOnyx<LocaleContextProviderProps, LocaleContextProviderOnyxProps>({
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             selector: (preferredLocale) => preferredLocale ?? CONST.LOCALES.DEFAULT,
         },
     }),
+    withCurrentUserPersonalDetails,
 )(LocaleContextProvider);
 
 Provider.displayName = 'withOnyx(LocaleContextProvider)';
