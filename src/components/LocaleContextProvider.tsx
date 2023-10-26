@@ -11,7 +11,7 @@ import compose from '../libs/compose';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 import {PersonalDetails} from '../types/onyx';
-import {EnglishTranslation, TranslationPaths, TranslateType, TranslationFlatObject} from '../languages/types';
+import {TranslationPaths, TranslationFlatObject} from '../languages/types';
 
 type CurrentUserPersonalDetails = Pick<PersonalDetails, 'timezone'>;
 
@@ -32,10 +32,7 @@ type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
 
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
-type Translate = <TKey extends TranslationPaths>(
-    phrase: TKey,
-    variables?: PhraseParameters<Phrase<TKey>>
-) => string;
+type Translate = <TKey extends TranslationPaths>(phrase: TKey, variables?: PhraseParameters<Phrase<TKey>>) => string;
 
 type NumberFormat = (number: number, options: Intl.NumberFormatOptions) => string;
 
