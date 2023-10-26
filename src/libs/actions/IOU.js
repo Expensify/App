@@ -2685,12 +2685,12 @@ function markAsDone(chatReport, iouReport) {
                 ...iouReport,
                 hasOutstandingIOU: false,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             },
         },
     ];
 
-    API.write('MarkAsDone', {iouReport}, {optimisticData});
+    API.write('MarkAsDone', {iouReportID: iouReport.reportID}, {optimisticData});
 }
 
 function settleMoneyRequest(paymentType, chatReport, iouReport) {
