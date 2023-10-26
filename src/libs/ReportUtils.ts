@@ -3251,6 +3251,7 @@ function shouldReportBeInOptionList(
     if (
         !report?.reportID ||
         !report.type ||
+        report.reportName === undefined ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         report.isHidden ||
         (report.participantAccountIDs &&
