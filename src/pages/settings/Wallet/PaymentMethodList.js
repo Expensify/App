@@ -223,6 +223,7 @@ function PaymentMethodList({
                     interactive: isExpensifyCard,
                     canDismissError: isExpensifyCard,
                     errors: card.errors,
+                    brickRoadIndicator: card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL ? 'error' : null,
                     ...icon,
                 };
             });
@@ -308,6 +309,7 @@ function PaymentMethodList({
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID === item.methodID}
                     interactive={item.interactive}
+                    brickRoadIndicator={item.brickRoadIndicator}
                 />
             </OfflineWithFeedback>
         ),

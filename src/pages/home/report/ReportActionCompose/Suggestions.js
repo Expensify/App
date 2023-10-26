@@ -128,10 +128,14 @@ Suggestions.propTypes = propTypes;
 Suggestions.defaultProps = defaultProps;
 Suggestions.displayName = 'Suggestions';
 
-export default React.forwardRef((props, ref) => (
+const SuggestionsWithRef = React.forwardRef((props, ref) => (
     <Suggestions
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+SuggestionsWithRef.displayName = 'SuggestionsWithRef';
+
+export default SuggestionsWithRef;
