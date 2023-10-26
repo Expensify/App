@@ -307,6 +307,11 @@ function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP>) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
 }
 
+type AnswerQuestionsForWallet = {
+    idologyAnswers: string;
+    idNumber: string;
+};
+
 function answerQuestionsForWallet(answers: unknown[], idNumber: string) {
     const idologyAnswers = JSON.stringify(answers);
 
@@ -340,18 +345,16 @@ function answerQuestionsForWallet(answers: unknown[], idNumber: string) {
         },
     ];
 
-    API.write(
-        'AnswerQuestionsForWallet',
-        {
-            idologyAnswers,
-            idNumber,
-        },
-        {
-            optimisticData,
-            successData,
-            failureData,
-        },
-    );
+    const parameters: AnswerQuestionsForWallet = {
+        idologyAnswers,
+        idNumber,
+    };
+
+    API.write('AnswerQuestionsForWallet', parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 export {
