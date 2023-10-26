@@ -132,7 +132,7 @@ function ReportPreview(props) {
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
     const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => lodashGet(transaction, 'pendingFields.waypoints', null));
     if (hasPendingWaypoints) {
-        formattedMerchant = formattedMerchant.replace(/.+?(?=\s)/, props.translate('common.tbd'));
+        formattedMerchant = formattedMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd'));
     }
     const previewSubtitle =
         formattedMerchant ||
