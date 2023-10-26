@@ -16,7 +16,6 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import Form from '../../components/Form';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as UserUtils from '../../libs/UserUtils';
 import Avatar from '../../components/Avatar';
@@ -26,8 +25,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 import Text from '../../components/Text';
 import useLocalize from '../../hooks/useLocalize';
-import FormProvider from "../../components/Form/FormProvider";
-import InputWrapper from "../../components/Form/InputWrapper";
+import FormProvider from '../../components/Form/FormProvider';
+import InputWrapper from '../../components/Form/InputWrapper';
 
 const propTypes = {
     /** Constant, list of available currencies */
