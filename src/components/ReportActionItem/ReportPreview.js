@@ -115,6 +115,7 @@ function ReportPreview(props) {
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
+    const iouDone = props.iouReport.statusNum === CONST.REPORT.STATUS.CLOSED && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
@@ -170,17 +171,17 @@ function ReportPreview(props) {
             return props.translate('iou.managerApproved', {manager: ReportUtils.getDisplayNameForParticipant(managerID, true)});
         }
         const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
-        let paymentVerb = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
+        let paymentVerb = hasNonReimbursableTransactions || iouDone ? 'iou.payerSpent' : 'iou.payerOwes';
         if (iouSettled || props.iouReport.isWaitingOnBankAccount) {
             paymentVerb = 'iou.payerPaid';
         }
-        return props.translate(paymentVerb, {payer: managerName});
+        return props.translate(paymentVerb, {payer: iouDone ? ReportUtils.getDisplayNameForParticipant(props.iouReport.ownerAccountID, true) : managerName});
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
         ? props.policy.role === CONST.POLICY.ROLE.ADMIN && ReportUtils.isReportApproved(props.iouReport) && !iouSettled && !iouCanceled
-        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
+        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !iouDone && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
 
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
@@ -219,7 +220,7 @@ function ReportPreview(props) {
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
-                                {ReportUtils.isSettled(props.iouReportID) && (
+                                {(iouDone || ReportUtils.isSettled(props.iouReportID)) && (
                                     <View style={styles.defaultCheckmarkWrapper}>
                                         <Icon
                                             src={Expensicons.Checkmark}
