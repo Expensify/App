@@ -166,6 +166,7 @@ function MoneyRequestPreview(props) {
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
     const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
+    const isDeleted = lodashGet(props.action, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant =
@@ -232,6 +233,16 @@ function MoneyRequestPreview(props) {
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
     };
 
+    const getDisplayDeleteAmountText = () => {
+        const {amount, currency} = ReportUtils.getTransactionDetails(props.action.originalMessage);
+
+        if (isDistanceRequest) {
+            return CurrencyUtils.convertToDisplayString(TransactionUtils.getAmount(props.action.originalMessage), currency);
+        }
+
+        return CurrencyUtils.convertToDisplayString(amount, currency);
+    };
+
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -277,10 +288,11 @@ function MoneyRequestPreview(props) {
                                         style={[
                                             styles.moneyRequestPreviewAmount,
                                             StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth),
+                                            isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}
                                     >
-                                        {getDisplayAmountText()}
+                                        {isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText()}
                                     </Text>
                                     {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
                                         <View style={styles.defaultCheckmarkWrapper}>
