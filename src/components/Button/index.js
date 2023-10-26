@@ -208,7 +208,7 @@ function Button({
 }) {
     useEffect(() => {
         if (!pressOnEnter) {
-            return () => {};
+            return;
         }
 
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
@@ -216,8 +216,8 @@ function Button({
         // Setup and attach keypress handler for pressing the button with Enter key
         return KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
-            (e) => {
-                if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, e)) {
+            (event) => {
+                if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, event)) {
                     return;
                 }
                 onPress();
@@ -295,21 +295,21 @@ function Button({
     return (
         <PressableWithFeedback
             ref={forwardedRef}
-            onPress={(e) => {
-                if (e && e.type === 'click') {
-                    e.currentTarget.blur();
+            onPress={(event) => {
+                if (event && event.type === 'click') {
+                    event.currentTarget.blur();
                 }
 
                 if (shouldEnableHapticFeedback) {
                     HapticFeedback.press();
                 }
-                return onPress(e);
+                return onPress(event);
             }}
-            onLongPress={(e) => {
+            onLongPress={(event) => {
                 if (shouldEnableHapticFeedback) {
                     HapticFeedback.longPress();
                 }
-                onLongPress(e);
+                onLongPress(event);
             }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
