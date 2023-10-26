@@ -137,6 +137,7 @@ function resetMoneyRequestInfo(id = '') {
         receiptFilename: '',
         transactionID: '',
         billable: null,
+        isSplitRequest: false,
     });
 }
 
