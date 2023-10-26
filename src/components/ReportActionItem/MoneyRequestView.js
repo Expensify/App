@@ -207,7 +207,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
                         <MenuItemWithTopDescription
                             description={translate('common.distance')}
-                            title={hasPendingWaypoints ? transactionMerchant.replace(/.+?(?=\s)/, translate('common.tbd')) : transactionMerchant}
+                            title={hasPendingWaypoints ? transactionMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : transactionMerchant}
                             interactive={canEdit && !isSettled}
                             shouldShowRightIcon={canEdit && !isSettled}
                             titleStyle={styles.flex1}
