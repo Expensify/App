@@ -169,7 +169,7 @@ const propTypes = {
     showConfirmButton: PropTypes.bool,
 
     /** Whether to stop automatic form submission on pressing enter key or not */
-    shouldStopPropagation : PropTypes.bool,
+    shouldStopPropagation: PropTypes.bool,
 
     /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
     shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,

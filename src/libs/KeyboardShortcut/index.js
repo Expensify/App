@@ -119,7 +119,18 @@ function getPlatformEquivalentForKeys(keys) {
  * @param {Boolean} [shouldStopPropagation] Should call event.stopPropagation after callback?
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true, excludedNodes = [], shouldStopPropagation = false) {
+function subscribe(
+    key,
+    callback,
+    descriptionKey,
+    modifiers = 'shift',
+    captureOnInputs = false,
+    shouldBubble = false,
+    priority = 0,
+    shouldPreventDefault = true,
+    excludedNodes = [],
+    shouldStopPropagation = false,
+) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
     if (!_.has(eventHandlers, displayName)) {

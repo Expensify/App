@@ -21,7 +21,7 @@ export default function useKeyboardShortcut(shortcut, callback, config = {}) {
         // Hence the use of CONST.EMPTY_ARRAY.
         excludedNodes = CONST.EMPTY_ARRAY,
         isActive = true,
-        shouldStopPropagation =false
+        shouldStopPropagation = false,
     } = config;
 
     useEffect(() => {
@@ -40,5 +40,17 @@ export default function useKeyboardShortcut(shortcut, callback, config = {}) {
             );
         }
         return () => {};
-    }, [isActive, callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers, shortcut.shortcutKey, shouldBubble, shouldPreventDefault, shouldStopPropagation]);
+    }, [
+        isActive,
+        callback,
+        captureOnInputs,
+        excludedNodes,
+        priority,
+        shortcut.descriptionKey,
+        shortcut.modifiers,
+        shortcut.shortcutKey,
+        shouldBubble,
+        shouldPreventDefault,
+        shouldStopPropagation,
+    ]);
 }
