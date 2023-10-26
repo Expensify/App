@@ -10,6 +10,8 @@ import getPlatform from '../../../libs/getPlatform';
 import FullPageOfflineBlockingView from '../../../components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     /** The credentials of the logged in person */
