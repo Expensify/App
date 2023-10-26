@@ -11,6 +11,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
+import * as Browser from '../libs/Browser';
 import Text from '../components/Text';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
@@ -163,7 +164,7 @@ function FlagCommentPage(props) {
                 <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
                     <HeaderWithBackButton
                         title={props.translate('reportActionContextMenu.flagAsOffensive')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(props.report.reportID))}
+                        onBackButtonPress={Browser.isMobile() ? () => Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(props.report.reportID)) : undefined}
                     />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
