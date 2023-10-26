@@ -70,11 +70,17 @@ function getDisplayNameForTypingIndicator(userAccountIDOrLogin: string, defaultD
     // so Number(string) is NaN. Search for personalDetails by login to get the display name.
     if (Number.isNaN(accountID)) {
         const detailsByLogin = Object.entries(allPersonalDetails ?? {}).find(([, value]) => value?.login === userAccountIDOrLogin)?.[1];
-        return detailsByLogin?.displayName ?? userAccountIDOrLogin;
+
+        // It's possible for displayName to be empty string, so we must fallback to userAccountIDOrLogin.
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return detailsByLogin?.displayName || userAccountIDOrLogin;
     }
 
     const detailsByAccountID = allPersonalDetails?.[accountID];
-    return detailsByAccountID?.displayName ?? detailsByAccountID?.login ?? defaultDisplayName;
+
+    // It's possible for displayName to be empty string, so we must fallback to login or defaultDisplayName.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return detailsByAccountID?.displayName || detailsByAccountID?.login || defaultDisplayName;
 }
 
 /**
@@ -83,7 +89,9 @@ function getDisplayNameForTypingIndicator(userAccountIDOrLogin: string, defaultD
  * so we return empty strings instead.
  */
 function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
-    if (firstName ?? lastName) {
+    // It's possible for firstName to be empty string, so we must consider lastName instead.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (firstName || lastName) {
         return {firstName: firstName ?? '', lastName: lastName ?? ''};
     }
     if (login && Str.removeSMSDomain(login) === displayName) {
