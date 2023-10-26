@@ -213,7 +213,7 @@ function PaymentMethodList({
     style,
 }) {
     const {translate} = useLocalize();
-    const {isOffline: isNetworkOffline} = useNetwork();
+    const {isOffline} = useNetwork();
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -256,7 +256,7 @@ function PaymentMethodList({
             combinedPaymentMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === filterType);
         }
 
-        if (!isNetworkOffline) {
+        if (!isOffline) {
             combinedPaymentMethods = _.filter(
                 combinedPaymentMethods,
                 (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(paymentMethod.errors),
@@ -276,7 +276,7 @@ function PaymentMethodList({
         });
 
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, fundList, bankAccountList, filterType, isNetworkOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, onPress]);
+    }, [shouldShowAssignedCards, fundList, bankAccountList, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, onPress]);
 
     /**
      * Render placeholder when there are no payments methods
@@ -354,12 +354,12 @@ function PaymentMethodList({
             </View>
             {shouldShowAddPaymentMethodButton && (
                 <FormAlertWrapper>
-                    {(isOffline) => (
+                    {(isFormOffline) => (
                         <Button
                             text={translate('paymentMethodList.addPaymentMethod')}
                             icon={Expensicons.CreditCard}
                             onPress={onPress}
-                            isDisabled={isLoadingPaymentMethods || isOffline}
+                            isDisabled={isLoadingPaymentMethods || isFormOffline}
                             style={[styles.mh4, styles.buttonCTA]}
                             iconStyles={[styles.buttonCTAIcon]}
                             key="addPaymentMethodButton"
