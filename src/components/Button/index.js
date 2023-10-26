@@ -217,7 +217,6 @@ function Button({
         return KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             (e) => {
-                console.log('OPA')
                 if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, e)) {
                     return;
                 }
