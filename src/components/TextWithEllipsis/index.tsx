@@ -20,7 +20,7 @@ type TextWithEllipsisProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function TextWithEllipsis({leadingText, trailingText, textStyle = {}, leadingTextParentStyle = {}, wrapperStyle = {}}: TextWithEllipsisProps) {
+function TextWithEllipsis({leadingText, trailingText, textStyle, leadingTextParentStyle, wrapperStyle}: TextWithEllipsisProps) {
     return (
         <View style={[styles.flexRow, wrapperStyle]}>
             <View style={[styles.flexShrink1, leadingTextParentStyle]}>
