@@ -99,7 +99,7 @@ function NewTaskTitlePage(props) {
                         InputComponent={TextInput}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={props.task.title}
-                        ref={(el) => (inputRef.current = el)}
+                        ref={inputRef}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
