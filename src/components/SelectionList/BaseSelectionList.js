@@ -336,7 +336,7 @@ function BaseSelectionList({
     );
 
     useEffect(() => {
-        //do not change focus on the first render, as it should focus on the selected item
+        // do not change focus on the first render, as it should focus on the selected item
         if (firstLayoutRef.current) {
             return;
         }
@@ -345,6 +345,7 @@ function BaseSelectionList({
         if (sections.length > 0) {
             updateAndScrollToFocusedIndex(0);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sections]);
 
     /** Selects row when pressing Enter */
