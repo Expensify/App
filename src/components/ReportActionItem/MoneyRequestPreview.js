@@ -166,16 +166,17 @@ function MoneyRequestPreview(props) {
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
     const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
+    const isDeleted = lodashGet(props.action, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant =
         !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
 
-    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || '')] : [];
+    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
     const getSettledMessage = () => {
-        if (isExpensifyCardTransaction || isDistanceRequest) {
+        if (isExpensifyCardTransaction) {
             return props.translate('common.done');
         }
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -232,6 +233,16 @@ function MoneyRequestPreview(props) {
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
     };
 
+    const getDisplayDeleteAmountText = () => {
+        const {amount, currency} = ReportUtils.getTransactionDetails(props.action.originalMessage);
+
+        if (isDistanceRequest) {
+            return CurrencyUtils.convertToDisplayString(TransactionUtils.getAmount(props.action.originalMessage), currency);
+        }
+
+        return CurrencyUtils.convertToDisplayString(amount, currency);
+    };
+
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -263,20 +274,7 @@ function MoneyRequestPreview(props) {
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewHeaderText()}</Text>
-                                    {isSettled && (
-                                        <>
-                                            <Icon
-                                                src={Expensicons.DotIndicator}
-                                                width={4}
-                                                height={4}
-                                                additionalStyles={[styles.mr1, styles.ml1]}
-                                            />
-                                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getSettledMessage()}</Text>
-                                        </>
-                                    )}
-                                </View>
+                                <Text style={[styles.textLabelSupporting, styles.lh20, styles.mb1]}>{getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}</Text>
                                 {hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
@@ -290,10 +288,11 @@ function MoneyRequestPreview(props) {
                                         style={[
                                             styles.moneyRequestPreviewAmount,
                                             StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth),
+                                            isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}
                                     >
-                                        {getDisplayAmountText()}
+                                        {isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText()}
                                     </Text>
                                     {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
                                         <View style={styles.defaultCheckmarkWrapper}>

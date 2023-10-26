@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useRef, useState, useImperativeHandle} from 'react';
+import React, {useRef, useState, useImperativeHandle, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {GestureHandlerRootView, createNativeWrapper} from 'react-native-gesture-handler';
@@ -126,22 +126,25 @@ function AttachmentCarouselPager({
         scrollEnabled: shouldPagerScroll.value,
     }));
 
+    const contextValue = useMemo(
+        () => ({
+            canvasWidth: containerWidth,
+            canvasHeight: containerHeight,
+            isScrolling,
+            pagerRef,
+            shouldPagerScroll,
+            onPinchGestureChange,
+            onTap,
+            onSwipe,
+            onSwipeSuccess,
+            onSwipeDown,
+        }),
+        [containerWidth, containerHeight, isScrolling, pagerRef, shouldPagerScroll, onPinchGestureChange, onTap, onSwipe, onSwipeSuccess, onSwipeDown],
+    );
+
     return (
         <GestureHandlerRootView style={styles.flex1}>
-            <AttachmentCarouselPagerContext.Provider
-                value={{
-                    canvasWidth: containerWidth,
-                    canvasHeight: containerHeight,
-                    isScrolling,
-                    pagerRef,
-                    shouldPagerScroll,
-                    onPinchGestureChange,
-                    onTap,
-                    onSwipe,
-                    onSwipeSuccess,
-                    onSwipeDown,
-                }}
-            >
+            <AttachmentCarouselPagerContext.Provider value={contextValue}>
                 <AnimatedPagerView
                     pageMargin={40}
                     offscreenPageLimit={1}
@@ -168,10 +171,14 @@ function AttachmentCarouselPager({
 AttachmentCarouselPager.propTypes = pagerPropTypes;
 AttachmentCarouselPager.defaultProps = pagerDefaultProps;
 
-export default React.forwardRef((props, ref) => (
+const AttachmentCarouselPagerWithRef = React.forwardRef((props, ref) => (
     <AttachmentCarouselPager
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+AttachmentCarouselPagerWithRef.displayName = 'AttachmentCarouselPagerWithRef';
+
+export default AttachmentCarouselPagerWithRef;

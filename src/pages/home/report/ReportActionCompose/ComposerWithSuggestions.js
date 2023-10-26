@@ -34,6 +34,8 @@ import withKeyboardState from '../../../../components/withKeyboardState';
 import {propTypes, defaultProps} from './composerWithSuggestionsProps';
 import focusWithDelay from '../../../../libs/focusWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
+import updateMultilineInputRange from '../../../../libs/UpdateMultilineInputRange';
+import * as InputFocus from '../../../../libs/actions/InputFocus';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -100,6 +102,7 @@ function ComposerWithSuggestions({
     animatedRef,
     forwardedRef,
     isNextModalWillOpenRef,
+    editFocused,
 }) {
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
@@ -118,7 +121,8 @@ function ComposerWithSuggestions({
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
+    const parentAction = ReportActionsUtils.getParentReportAction(report);
+    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -213,6 +217,10 @@ function ComposerWithSuggestions({
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
+                    // Ensure emoji suggestions are hidden after inserting emoji even when the selection is not changed
+                    if (suggestionsRef.current) {
+                        suggestionsRef.current.resetSuggestions();
+                    }
                     insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
@@ -221,11 +229,6 @@ function ComposerWithSuggestions({
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
-                // Ensure emoji suggestions are hidden even when the selection is not changed (so calculateEmojiSuggestion would not be called).
-                if (suggestionsRef.current) {
-                    suggestionsRef.current.resetSuggestions();
-                }
-
                 const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
                 setSelection({
                     start: newComment.length - remainder,
@@ -380,6 +383,7 @@ function ComposerWithSuggestions({
         if (!suggestionsRef.current) {
             return false;
         }
+        InputFocus.inputFocusChange(false);
         return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
 
@@ -486,13 +490,20 @@ function ComposerWithSuggestions({
             return;
         }
 
+        if (editFocused) {
+            InputFocus.inputFocusChange(false);
+            return;
+        }
         focus();
-    }, [focus, prevIsFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
-
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
     useEffect(() => {
+        // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
+        updateMultilineInputRange(textInputRef.current, shouldAutoFocus);
+
         if (value.length === 0) {
             return;
         }
+
         Report.setReportWithDraft(reportID, true);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -556,6 +567,7 @@ function ComposerWithSuggestions({
             <Suggestions
                 ref={suggestionsRef}
                 isComposerFullSize={isComposerFullSize}
+                isComposerFocused={textInputRef.current && textInputRef.current.isFocused()}
                 updateComment={updateComment}
                 composerHeight={composerHeight}
                 measureParentContainer={measureParentContainer}
@@ -583,6 +595,16 @@ ComposerWithSuggestions.propTypes = propTypes;
 ComposerWithSuggestions.defaultProps = defaultProps;
 ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
+const ComposerWithSuggestionsWithRef = React.forwardRef((props, ref) => (
+    <ComposerWithSuggestions
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+ComposerWithSuggestionsWithRef.displayName = 'ComposerWithSuggestionsWithRef';
+
 export default compose(
     withKeyboardState,
     withOnyx({
@@ -599,18 +621,13 @@ export default compose(
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             selector: EmojiUtils.getPreferredSkinToneIndex,
         },
+        editFocused: {
+            key: ONYXKEYS.INPUT_FOCUSED,
+        },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
             canEvict: false,
             initWithStoredValues: false,
         },
     }),
-)(
-    React.forwardRef((props, ref) => (
-        <ComposerWithSuggestions
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(ComposerWithSuggestionsWithRef);

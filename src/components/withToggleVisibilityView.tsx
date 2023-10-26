@@ -25,6 +25,6 @@ export default function withToggleVisibilityView<TProps extends ToggleVisibility
         );
     }
 
-    WithToggleVisibilityView.displayName = `WithToggleVisibilityView(${getComponentDisplayName(WrappedComponent)})`;
+    WithToggleVisibilityView.displayName = `WithToggleVisibilityViewWithRef(${getComponentDisplayName(WrappedComponent)})`;
     return React.forwardRef(WithToggleVisibilityView);
 }
