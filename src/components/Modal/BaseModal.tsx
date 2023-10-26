@@ -57,7 +57,7 @@ function BaseModal(
                 Modal.setModalVisibility(false);
             }
             if (callHideCallback) {
-                onModalHide?.();
+                onModalHide();
             }
             Modal.onModalDidClose();
             if (!fullscreen) {
@@ -98,7 +98,7 @@ function BaseModal(
         if (shouldSetModalVisibility) {
             Modal.setModalVisibility(true);
         }
-        onModalShow?.();
+        onModalShow();
     };
 
     const handleBackdropPress = () => {
