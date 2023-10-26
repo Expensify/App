@@ -196,25 +196,37 @@ function ComposerWithSuggestions({
         RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
     }, [textInputRef]);
 
+    /**
+     * Find diff between text changes in composer
+     */
     const findNewlyAddedChars = useCallback(
         (prevText, newText) => {
-            const isTextReplace = selection.end - selection.start > 0;
-            const commonSuffixLength = ComposerUtils.getCommonSuffixLength(prevText, newText);
             let startIndex = -1;
             let endIndex = -1;
-            let i = 0;
+            let currentIndex = 0;
 
-            while (i < newText.length && prevText.charAt(i) === newText.charAt(i) && selection.start > i) {
-                i++;
+            // Find the first character mismatch with newText
+            while (currentIndex < newText.length && prevText.charAt(currentIndex) === newText.charAt(currentIndex) && selection.start > currentIndex) {
+                currentIndex++;
             }
 
-            if (i < newText.length) {
-                startIndex = i;
+            if (currentIndex < newText.length) {
+                startIndex = currentIndex;
+
                 // if text is getting pasted over find length of common suffix and subtract it from new text length
-                endIndex = isTextReplace ? newText.length - commonSuffixLength : i + (newText.length - prevText.length);
+                if (selection.end - selection.start > 0) {
+                    const commonSuffixLength = ComposerUtils.getCommonSuffixLength(prevText, newText);
+                    endIndex = newText.length - commonSuffixLength;
+                } else {
+                    endIndex = currentIndex + (newText.length - prevText.length);
+                }
             }
 
-            return {startIndex, endIndex, diff: newText.substring(startIndex, endIndex)};
+            return {
+                startIndex,
+                endIndex,
+                diff: newText.substring(startIndex, endIndex),
+            };
         },
         [selection.end, selection.start],
     );
