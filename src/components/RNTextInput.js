@@ -21,6 +21,7 @@ function RNTextInput(props) {
     return (
         <AnimatedTextInput
             allowFontScaling={false}
+            textBreakStrategy="simple"
             ref={(ref) => {
                 if (!_.isFunction(props.forwardedRef)) {
                     return;
@@ -37,10 +38,14 @@ RNTextInput.propTypes = propTypes;
 RNTextInput.defaultProps = defaultProps;
 RNTextInput.displayName = 'RNTextInput';
 
-export default React.forwardRef((props, ref) => (
+const RNTextInputWithRef = React.forwardRef((props, ref) => (
     <RNTextInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+RNTextInputWithRef.displayName = 'RNTextInputWithRef';
+
+export default RNTextInputWithRef;

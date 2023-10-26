@@ -114,7 +114,6 @@ function InvertedFlatList(props) {
         <BaseInvertedFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            inverted
             ref={listRef}
             shouldMeasureItems
             contentContainerStyle={StyleSheet.compose(contentContainerStyle, styles.justifyContentEnd)}
@@ -132,10 +131,14 @@ InvertedFlatList.defaultProps = {
     onScroll: () => {},
 };
 
-export default forwardRef((props, ref) => (
+const InvertedFlatListWithRef = forwardRef((props, ref) => (
     <InvertedFlatList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+InvertedFlatListWithRef.displayName = 'InvertedFlatListWithRef';
+
+export default InvertedFlatListWithRef;

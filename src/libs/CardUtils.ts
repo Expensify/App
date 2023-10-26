@@ -1,10 +1,10 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
-import {Card} from '../types/onyx';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as OnyxTypes from '../types/onyx';
 import ONYXKEYS, {OnyxValues} from '../ONYXKEYS';
+import {Card} from '../types/onyx';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -47,7 +47,7 @@ function getCardDescription(cardID: number) {
         return '';
     }
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? Localize.translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
-    return `${card.bank} - ${cardDescriptor}`;
+    return cardDescriptor ? `${card.bank} - ${cardDescriptor}` : `${card.bank}`;
 }
 
 /**
@@ -60,21 +60,15 @@ function getYearFromExpirationDateString(expirationDateString: string) {
     return cardYear.length === 2 ? `20${cardYear}` : cardYear;
 }
 
-function getCompanyCards(cardList: {string: Card}) {
-    if (!cardList) {
-        return [];
-    }
-    return Object.values(cardList).filter((card) => card.bank !== CONST.EXPENSIFY_CARD.BANK);
-}
-
 /**
  * @param cardList - collection of assigned cards
  * @returns collection of assigned cards grouped by domain
  */
 function getDomainCards(cardList: Record<string, OnyxTypes.Card>) {
+    // Check for domainName to filter out personal credit cards.
     // eslint-disable-next-line you-dont-need-lodash-underscore/filter
-    const activeCards = lodash.filter(cardList, (card) => [2, 3, 4, 7].includes(card.state));
-    return lodash.groupBy(activeCards, (card) => card.domainName.toLowerCase());
+    const activeCards = lodash.filter(cardList, (card) => !!card.domainName && (CONST.EXPENSIFY_CARD.ACTIVE_STATES as ReadonlyArray<OnyxTypes.Card['state']>).includes(card.state));
+    return lodash.groupBy(activeCards, (card) => card.domainName);
 }
 
 /**
@@ -96,4 +90,13 @@ function maskCard(lastFour = ''): string {
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
-export {isExpensifyCard, getDomainCards, getCompanyCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription};
+/**
+ * Finds physical card in a list of cards
+ *
+ * @returns a physical card object (or undefined if none is found)
+ */
+function findPhysicalCard(cards: Card[]) {
+    return cards.find((card) => !card.isVirtual);
+}
+
+export {isExpensifyCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription, findPhysicalCard};

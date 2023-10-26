@@ -4,6 +4,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import Log from '../../src/libs/Log';
 import PersonalDetailsByAccountID from '../../src/libs/migrations/PersonalDetailsByAccountID';
 import CheckForPreviousReportActionID from '../../src/libs/migrations/CheckForPreviousReportActionID';
+import KeyReportActionsDraftByReportActionID from '../../src/libs/migrations/KeyReportActionsDraftByReportActionID';
 import ONYXKEYS from '../../src/ONYXKEYS';
 
 jest.mock('../../src/libs/getPlatform');
@@ -37,18 +38,12 @@ describe('Migrations', () => {
             })
                 .then(PersonalDetailsByAccountID)
                 .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith(
-                        `[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for ${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1 because there were no reportActions`,
-                    );
-                    expect(LogSpy).toHaveBeenCalledWith(
-                        `[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for ${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2 because there were no reportActions`,
-                    );
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
                             Onyx.disconnect(connectionID);
-                            _.each(allReportActions, (reportActionsForReport) => expect(reportActionsForReport).toBeNull());
+                            _.each(allReportActions, (reportActionsForReport) => expect(reportActionsForReport).toBeUndefined());
                         },
                     });
                 }));
@@ -377,8 +372,8 @@ describe('Migrations', () => {
                         waitForCollectionCallback: true,
                         callback: (allPolicyMemberLists) => {
                             Onyx.disconnect(connectionID);
-                            expect(allPolicyMemberLists[`${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}1`]).toBeNull();
-                            expect(allPolicyMemberLists[`${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}2`]).toBeNull();
+
+                            expect(allPolicyMemberLists).toBeFalsy();
                         },
                     });
                 }));
@@ -554,8 +549,8 @@ describe('Migrations', () => {
                             Onyx.disconnect(connectionID);
                             const expectedReportAction = {};
                             expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toMatchObject(expectedReportAction);
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toMatchObject(expectedReportAction);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toBeUndefined();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toBeUndefined();
                             expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toMatchObject(expectedReportAction);
                         },
                     });
@@ -597,8 +592,8 @@ describe('Migrations', () => {
                                 },
                             };
                             expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction1);
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toBeNull();
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toBeNull();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toBeUndefined();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toBeUndefined();
                             expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toMatchObject(expectedReportAction4);
                         },
                     });
@@ -620,10 +615,89 @@ describe('Migrations', () => {
                         callback: (allReportActions) => {
                             Onyx.disconnect(connectionID);
                             const expectedReportAction = {};
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toBeNull();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toBeUndefined();
                             expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toMatchObject(expectedReportAction);
                             expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toMatchObject(expectedReportAction);
-                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toBeNull();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toBeUndefined();
+                        },
+                    });
+                }));
+    });
+
+    describe('KeyReportActionsDraftByReportActionID', () => {
+        it("Should work even if there's no reportActionsDrafts data in Onyx", () =>
+            KeyReportActionsDraftByReportActionID().then(() =>
+                expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsDraftByReportActionID because there were no reportActionsDrafts'),
+            ));
+
+        it('Should move individual draft to a draft collection of report', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]: 'a',
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`]: 'b',
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2`]: {3: 'c'},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`]: 'd',
+            })
+                .then(KeyReportActionsDraftByReportActionID)
+                .then(() => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActionsDrafts) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReportActionDraft1 = {
+                                1: 'a',
+                                2: 'b',
+                            };
+                            const expectedReportActionDraft2 = {
+                                3: 'c',
+                                4: 'd',
+                            };
+                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
+                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`]).toBeUndefined();
+                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`]).toBeUndefined();
+                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1`]).toMatchObject(expectedReportActionDraft1);
+                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2`]).toMatchObject(expectedReportActionDraft2);
+                        },
+                    });
+                }));
+
+        it('Should skip if nothing to migrate', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2`]: {},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`]: null,
+            })
+                .then(KeyReportActionsDraftByReportActionID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsDraftByReportActionID because there are no actions drafts to migrate');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReportActionDraft = {};
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`]).toBeUndefined();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`]).toBeUndefined();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2`]).toMatchObject(expectedReportActionDraft);
+                        },
+                    });
+                }));
+
+        it("Shouldn't move empty individual draft to a draft collection of report", () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]: '',
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1`]: {},
+            })
+                .then(KeyReportActionsDraftByReportActionID)
+                .then(() => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActionsDrafts) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allReportActionsDrafts[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
                         },
                     });
                 }));
