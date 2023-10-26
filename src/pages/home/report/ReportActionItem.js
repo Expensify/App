@@ -725,8 +725,8 @@ export default compose(
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
             const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${props.action.reportActionID}`;
-            return lodashGet(drafts, draftKey, '');
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`;
+            return lodashGet(drafts, [draftKey, props.action.reportActionID], '');
         },
     }),
     withOnyx({
