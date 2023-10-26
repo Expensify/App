@@ -25,7 +25,7 @@ const defaultProps = {
 const MIN_AMOUNT_FOR_EXPANDING = 3;
 const MIN_AMOUNT_OF_STEPS = 2;
 
-function InteractiveStepSubHeader({stepNames, startStep, onStepSelected}, ref) {
+const InteractiveStepSubHeader = forwardRef(({stepNames, startStep, onStepSelected}, ref) => {
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
         throw new Error(`stepNames list must have at least ${MIN_AMOUNT_OF_STEPS} elements.`);
     }
@@ -90,10 +90,10 @@ function InteractiveStepSubHeader({stepNames, startStep, onStepSelected}, ref) {
             })}
         </View>
     );
-}
+});
 
 InteractiveStepSubHeader.propTypes = propTypes;
 InteractiveStepSubHeader.defaultProps = defaultProps;
 InteractiveStepSubHeader.displayName = 'InteractiveStepSubHeader';
 
-export default forwardRef(InteractiveStepSubHeader);
+export default InteractiveStepSubHeader;

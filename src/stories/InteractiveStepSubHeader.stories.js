@@ -32,7 +32,7 @@ function BaseInteractiveStepSubHeader(props) {
                 ref={ref}
             />
             <Button
-                onPress={ref.current.moveNext}
+                onPress={() => ref.current.moveNext()}
                 title="Next"
             />
         </View>
@@ -42,10 +42,12 @@ function BaseInteractiveStepSubHeader(props) {
 Default.args = {
     stepNames: ['Initial', 'Step 1', 'Step 2', 'Step 3'],
     startStep: 1,
+    onStepSelected: () => {},
 };
 BaseInteractiveStepSubHeader.args = {
     stepNames: ['Initial', 'Step 1', 'Step 2', 'Step 3', 'Confirmation'],
     startStep: 0,
+    onStepSelected: () => {},
 };
 
 export default story;
