@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import optionPropTypes from '../optionPropTypes';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
+import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
     /** Callback to fire when a row is tapped */
@@ -109,8 +110,7 @@ const propTypes = {
     optionHoveredStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Style for section headers */
-    // eslint-disable-next-line react/forbid-prop-types
-    sectionHeaderStyle: PropTypes.object,
+    sectionHeaderStyle: stylePropTypes,
 
     /** Whether to show options list */
     shouldShowOptions: PropTypes.bool,
