@@ -194,7 +194,7 @@ function WorkspaceNewRoomPage(props) {
                         >
                             <View style={styles.mb5}>
                                 <RoomNameInput
-                                    ref={(el) => (roomNameInputRef.current = el)}
+                                    ref={roomNameInputRef}
                                     inputID="roomName"
                                     isFocused={props.isFocused}
                                     shouldDelayFocus

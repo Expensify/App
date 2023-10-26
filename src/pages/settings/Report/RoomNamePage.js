@@ -100,7 +100,7 @@ function RoomNamePage(props) {
                 >
                     <View style={styles.mb4}>
                         <RoomNameInput
-                            ref={ref}
+                            ref={roomNameInputRef}
                             inputID="roomName"
                             defaultValue={report.reportName}
                             isFocused={isFocused}
