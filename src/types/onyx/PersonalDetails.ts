@@ -45,7 +45,7 @@ type PersonalDetails = {
     /** Timezone of the current user from their personal details */
     timezone?: Timezone;
 
-    /** If trying to get PersonalDetails from the server and user is offling */
+    /** Flag for checking if data is from optimistic data */
     isOptimisticPersonalDetail?: boolean;
 
     fallbackIcon?: string;
