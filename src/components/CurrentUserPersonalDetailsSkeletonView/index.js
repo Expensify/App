@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import SkeletonViewContentLoader from 'react-content-loader/native';
 import {Circle, Rect} from 'react-native-svg';
 import {View} from 'react-native';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -9,6 +8,7 @@ import CONST from '../../CONST';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
+import SkeletonViewContentLoader from '../SkeletonViewContentLoader';
 
 const propTypes = {
     /** Whether to animate the skeleton view */

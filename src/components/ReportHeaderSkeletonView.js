@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import {Rect, Circle} from 'react-native-svg';
-import SkeletonViewContentLoader from 'react-content-loader/native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Icon from './Icon';
@@ -13,6 +12,7 @@ import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import CONST from '../CONST';
+import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
