@@ -8,7 +8,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import reportPropTypes from '../pages/reportPropTypes';
 import styles from '../styles/styles';
 import * as Session from '../libs/actions/Session';
-import participantPropTypes from './participantPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */

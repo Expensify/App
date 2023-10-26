@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
-import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import styles from '../../../styles/styles';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';

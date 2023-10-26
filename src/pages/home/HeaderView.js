@@ -19,7 +19,6 @@ import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import Text from '../../components/Text';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import Tooltip from '../../components/Tooltip';
-import participantPropTypes from '../../components/participantPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';

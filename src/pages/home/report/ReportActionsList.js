@@ -13,7 +13,6 @@ import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import DateUtils from '../../../libs/DateUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Report from '../../../libs/actions/Report';
-import compose from '../../../libs/compose';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import reportPropTypes from '../../reportPropTypes';
@@ -72,6 +71,7 @@ const defaultProps = {
     isLoadingInitialReportActions: false,
     isLoadingOlderReportActions: false,
     isLoadingNewerReportActions: false,
+    policy: {}
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
@@ -428,4 +428,4 @@ ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default compose(withWindowDimensions)(ReportActionsList);
+export default withWindowDimensions(ReportActionsList);

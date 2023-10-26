@@ -28,7 +28,6 @@ import reportMetadataPropTypes from '../reportMetadataPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withViewportOffsetTop from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import personalDetailsPropType from '../personalDetailsPropType';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import MoneyReportHeader from '../../components/MoneyReportHeader';
@@ -40,7 +39,7 @@ import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
 import reportWithoutHasDraftSelector from '../../libs/OnyxSelectors/reportWithoutHasDraftSelector';
-import { isPersonalDetailsEmpty } from '../../libs/PersonalDetailsUtils';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -169,7 +168,7 @@ function ReportScreen({
 
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
-    const isLoading = !reportID || !isSidebarLoaded || isPersonalDetailsEmpty();
+    const isLoading = !reportID || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const lastReportAction = useMemo(

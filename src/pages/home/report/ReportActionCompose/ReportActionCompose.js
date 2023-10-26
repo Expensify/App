@@ -32,7 +32,7 @@ import getModalState from '../../../../libs/getModalState';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
 import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
-import {getPersonalDetailsByAccountID} from '../../../../libs/PersonalDetailsUtils';
+import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -299,7 +299,7 @@ function ReportActionCompose({
     );
 
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
-    const reportRecipient = getPersonalDetailsByAccountID(reportRecipientAcountIDs[0]);
+    const reportRecipient = PersonalDetailsUtils.getPersonalDetailsByAccountID(reportRecipientAcountIDs[0]);
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
 
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);

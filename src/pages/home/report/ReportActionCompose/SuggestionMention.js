@@ -11,7 +11,6 @@ import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 import useLocalize from '../../../../hooks/useLocalize';
 import usePrevious from '../../../../hooks/usePrevious';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import personalDetailsPropType from '../../../personalDetailsPropType';
 import * as SuggestionProps from './suggestionProps';
 
 /**
@@ -45,6 +44,7 @@ const defaultProps = {
  * hence we don't have to use it with `withOnyx`.
  */
 let allPersonalDetails = {};
+// eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {

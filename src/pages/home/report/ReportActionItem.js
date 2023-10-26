@@ -28,7 +28,7 @@ import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMe
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
-import {usePersonalDetails, withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
@@ -302,7 +302,6 @@ function ReportActionItem(props) {
      */
     const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false) => {
         let children;
-        const _submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(null, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
 
         // Show the MoneyRequestPreview for when request was created, bill was split or money was sent
         if (

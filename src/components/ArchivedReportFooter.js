@@ -7,7 +7,6 @@ import CONST from '../CONST';
 import Banner from './Banner';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import personalDetailsPropType from '../pages/personalDetailsPropType';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from '../libs/ReportUtils';
 import reportPropTypes from '../pages/reportPropTypes';

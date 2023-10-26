@@ -13,7 +13,6 @@ import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import {usePersonalDetails} from '../../../components/OnyxProvider';
 import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -31,7 +30,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import DateUtils from '../../../libs/DateUtils';
-import { getPersonalDetailsByAccountID } from '../../../libs/PersonalDetailsUtils';
+import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -85,22 +84,22 @@ const showWorkspaceDetails = (reportID) => {
 
 function ReportActionItemSingle(props) {
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
-    const personalDetails = getPersonalDetailsByAccountID(actorAccountID);
-    let {displayName} = personalDetails[actorAccountID] || {};
-    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] || {};
+    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByAccountID(actorAccountID);
+    let {displayName} = personalDetails || {};
+    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && (!actorAccountID || displayAllActors);
     let avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
+    const delegateDetails = PersonalDetailsUtils.getPersonalDetailsByAccountID(props.action.delegateAccountID);
 
     if (isWorkspaceActor) {
         displayName = ReportUtils.getPolicyName(props.report);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceAvatar(props.report);
-    } else if (props.action.delegateAccountID && personalDetails[props.action.delegateAccountID]) {
+    } else if (props.action.delegateAccountID && delegateDetails) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
-        const delegateDetails = personalDetails[props.action.delegateAccountID];
         const delegateDisplayName = delegateDetails.displayName;
         actorHint = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
         displayName = actorHint;
@@ -113,7 +112,7 @@ function ReportActionItemSingle(props) {
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
-        const secondaryUserDetails = personalDetails[secondaryAccountId] || {};
+        const secondaryUserDetails = PersonalDetailsUtils.getPersonalDetailsByAccountID(secondaryAccountId);
         const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {

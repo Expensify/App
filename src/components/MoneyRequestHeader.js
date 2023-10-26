@@ -8,7 +8,6 @@ import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
 import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
-import participantPropTypes from './participantPropTypes';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';

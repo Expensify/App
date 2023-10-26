@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 import reportPropTypes from '../pages/reportPropTypes';
-import participantPropTypes from './participantPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';

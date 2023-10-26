@@ -18,7 +18,6 @@ import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Session from '../../../libs/actions/Session';
-import participantPropTypes from '../../../components/participantPropTypes';
 import * as Report from '../../../libs/actions/Report';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 
