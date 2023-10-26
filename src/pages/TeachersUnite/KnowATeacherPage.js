@@ -7,7 +7,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as LoginUtils from '../../libs/LoginUtils';
@@ -20,6 +19,8 @@ import Navigation from '../../libs/Navigation/Navigation';
 import TeachersUnite from '../../libs/actions/TeachersUnite';
 import useLocalize from '../../hooks/useLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import FormProvider from '../../components/Form/FormProvider';
+import InputWrapper from '../../components/Form/InputWrapper';
 
 const propTypes = {
     /** Login list for the user that is signed in */
@@ -99,7 +100,7 @@ function KnowATeacherPage(props) {
                 title={translate('teachersUnitePage.iKnowATeacher')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
             />
-            <Form
+            <FormProvider
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM}
@@ -109,7 +110,8 @@ function KnowATeacherPage(props) {
             >
                 <Text style={[styles.mb6]}>{translate('teachersUnitePage.getInTouch')}</Text>
                 <View>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="firstName"
                         name="fname"
                         label={translate('common.firstName')}
@@ -120,7 +122,8 @@ function KnowATeacherPage(props) {
                     />
                 </View>
                 <View style={styles.mv4}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="lastName"
                         name="lname"
                         label={translate('common.lastName')}
@@ -131,7 +134,8 @@ function KnowATeacherPage(props) {
                     />
                 </View>
                 <View>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="partnerUserID"
                         name="partnerUserID"
                         label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
@@ -141,7 +145,7 @@ function KnowATeacherPage(props) {
                         autoCapitalize="none"
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
