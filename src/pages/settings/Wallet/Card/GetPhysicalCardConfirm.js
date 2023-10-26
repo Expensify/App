@@ -1,17 +1,17 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import useLocalize from '../../../../hooks/useLocalize';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import FormUtils from '@libs/FormUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import styles from '@styles/styles';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
-import styles from '../../../../styles/styles';
-import Text from '../../../../components/Text';
-import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import FormUtils from '../../../../libs/FormUtils';
-import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 
 const goToGetPhysicalCardName = (domain) => {
     Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain));

@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import FormUtils from '../FormUtils';
+import FormUtils from '@libs/FormUtils';
 
 /**
  * @param {String} formID

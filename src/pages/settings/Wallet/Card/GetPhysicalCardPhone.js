@@ -4,13 +4,13 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import CONST from '../../../../CONST';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import TextInput from '../../../../components/TextInput';
-import useLocalize from '../../../../hooks/useLocalize';
-import styles from '../../../../styles/styles';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import FormUtils from '@libs/FormUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
-import FormUtils from '../../../../libs/FormUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -32,7 +32,7 @@ function GetPhysicalCardPhone({draftValues: {phoneNumber}}) {
     const onValidate = (values) => {
         const errors = {};
 
-        if (!parsePhoneNumber(values.phoneNumber).possible && !Str.isValidPhone(values.phoneNumber)) {
+        if (!(parsePhoneNumber(values.phoneNumber).possible && Str.isValidPhone(values.phoneNumber))) {
             errors.phoneNumber = 'common.error.phoneNumber';
         } else if (_.isEmpty(values.phoneNumber)) {
             errors.phoneNumber = 'common.error.fieldRequired';

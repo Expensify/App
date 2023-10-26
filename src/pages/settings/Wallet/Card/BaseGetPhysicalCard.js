@@ -3,19 +3,19 @@ import React from 'react';
 import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import Form from '../../../../components/Form';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import * as Wallet from '../../../../libs/actions/Wallet';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import styles from '../../../../styles/styles';
-import * as FormActions from '../../../../libs/actions/FormActions';
-import * as CardUtils from '../../../../libs/CardUtils';
-import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
-import assignedCardPropTypes from '../assignedCardPropTypes';
-import FormUtils from '../../../../libs/FormUtils';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import * as FormActions from '@libs/actions/FormActions';
+import * as Wallet from '@libs/actions/Wallet';
+import * as CardUtils from '@libs/CardUtils';
+import FormUtils from '@libs/FormUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import assignedCardPropTypes from '@pages/settings/Wallet/assignedCardPropTypes';
+import styles from '@styles/styles';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */

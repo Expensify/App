@@ -1,12 +1,12 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import AddressForm from '../../../../components/AddressForm';
-import useLocalize from '../../../../hooks/useLocalize';
-import ONYXKEYS from '../../../../ONYXKEYS';
+import AddressForm from '@components/AddressForm';
+import useLocalize from '@hooks/useLocalize';
+import * as FormActions from '@libs/actions/FormActions';
+import FormUtils from '@libs/FormUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
-import * as FormActions from '../../../../libs/actions/FormActions';
-import FormUtils from '../../../../libs/FormUtils';
 
 const propTypes = {
     /* Onyx Props */

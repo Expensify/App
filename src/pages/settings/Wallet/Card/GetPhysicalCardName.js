@@ -2,14 +2,14 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import CONST from '../../../../CONST';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import TextInput from '../../../../components/TextInput';
-import useLocalize from '../../../../hooks/useLocalize';
-import styles from '../../../../styles/styles';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import FormUtils from '@libs/FormUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import FormUtils from '../../../../libs/FormUtils';
 
 const propTypes = {
     /* Onyx Props */
