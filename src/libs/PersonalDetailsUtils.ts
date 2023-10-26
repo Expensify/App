@@ -4,11 +4,10 @@ import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as OnyxTypes from '../types/onyx';
+import {PersonalDetailsList} from '../types/onyx';
 
-type PersonalDetailsList = Record<string, OnyxEntry<OnyxTypes.PersonalDetails>>;
-
-let personalDetails: OnyxTypes.PersonalDetails[] = [];
-let allPersonalDetails: OnyxEntry<Record<string, OnyxTypes.PersonalDetails>> = {};
+let personalDetails: Array<OnyxTypes.PersonalDetails | null> = [];
+let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
@@ -58,7 +57,7 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
  */
 function getAccountIDsByLogins(logins: string[]): number[] {
     return logins.reduce<number[]>((foundAccountIDs, login) => {
-        const currentDetail = personalDetails.find((detail) => detail.login === login);
+        const currentDetail = personalDetails.find((detail) => detail?.login === login);
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
             foundAccountIDs.push(UserUtils.generateAccountID(login));
@@ -77,7 +76,7 @@ function getAccountIDsByLogins(logins: string[]): number[] {
  */
 function getLoginsByAccountIDs(accountIDs: number[]): string[] {
     return accountIDs.reduce((foundLogins: string[], accountID) => {
-        const currentDetail: Partial<OnyxTypes.PersonalDetails> = personalDetails.find((detail) => Number(detail.accountID) === Number(accountID)) ?? {};
+        const currentDetail: Partial<OnyxTypes.PersonalDetails> = personalDetails.find((detail) => Number(detail?.accountID) === Number(accountID)) ?? {};
         if (currentDetail.login) {
             foundLogins.push(currentDetail.login);
         }
@@ -100,7 +99,7 @@ function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]) {
     logins.forEach((login, index) => {
         const accountID = accountIDs[index];
 
-        if (allPersonalDetails && Object.keys(allPersonalDetails[accountID]).length === 0) {
+        if (allPersonalDetails && Object.keys(allPersonalDetails?.[accountID] ?? {}).length === 0) {
             optimisticData[accountID] = {
                 login,
                 accountID,

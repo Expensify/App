@@ -5,7 +5,7 @@ import IOU from './IOU';
 import Modal from './Modal';
 import Network from './Network';
 import CustomStatusDraft from './CustomStatusDraft';
-import PersonalDetails from './PersonalDetails';
+import PersonalDetails, {PersonalDetailsList} from './PersonalDetails';
 import PrivatePersonalDetails from './PrivatePersonalDetails';
 import Task from './Task';
 import Currency from './Currency';
@@ -90,6 +90,7 @@ export type {
     ReportAction,
     ReportActions,
     ReportActionReactions,
+    PersonalDetailsList,
     SecurityGroup,
     Transaction,
     Form,

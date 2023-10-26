@@ -44,6 +44,8 @@ type PersonalDetails = {
     timezone?: Timezone;
 };
 
-export type {Timezone};
+type PersonalDetailsList = Record<string, PersonalDetails | null>;
+
+export type {Timezone, PersonalDetailsList};
 
 export default PersonalDetails;
