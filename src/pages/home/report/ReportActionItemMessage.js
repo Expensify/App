@@ -77,9 +77,8 @@ function ReportActionItemMessage(props) {
     return (
         <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
             {isApprovedOrSubmittedReportActionType ? (
-                // Wrapping 'ReportActionItemFragment' inside '<Text>' so that text isn't broken up into separate lines when
-                // there are multiple messages of type 'TEXT', as seen when a report is submitted/approved from a
-                // policy on Old Dot and then viewed on New Dot.
+                // Approving or submitting reports in oldDot results in system messages made up of multiple fragments of `TEXT` type
+                // which we need to wrap in `<Text>` to prevent them rendering on separate lines.
 
                 <Text>{!props.isHidden ? _.map(messages, (fragment, index) => renderReportActionItemFragment(fragment, index)) : flaggedContentText}</Text>
             ) : (
