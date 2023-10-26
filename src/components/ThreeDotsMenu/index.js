@@ -6,7 +6,7 @@ import Icon from '../Icon';
 import PopoverMenu from '../PopoverMenu';
 import styles from '../../styles/styles';
 import useLocalize from '../../hooks/useLocalize';
-import Tooltip from '../Tooltip';
+import Tooltip from '../Tooltip/PopoverAnchorTooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 import CONST from '../../CONST';
@@ -50,12 +50,16 @@ const propTypes = {
     /** Whether the popover menu should overlay the current view */
     shouldOverlay: PropTypes.bool,
 
+    /** Whether the menu is disabled */
+    disabled: PropTypes.bool,
+
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility: PropTypes.bool,
 };
 
 const defaultProps = {
     iconTooltip: 'common.more',
+    disabled: false,
     iconFill: undefined,
     iconStyles: [],
     icon: Expensicons.ThreeDots,
@@ -68,7 +72,7 @@ const defaultProps = {
     shouldSetModalVisibility: true,
 };
 
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility, disabled}) {
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();
@@ -96,6 +100,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                                 onIconPress();
                             }
                         }}
+                        disabled={disabled}
                         onMouseDown={(e) => {
                             /* Keep the focus state on mWeb like we did on the native apps. */
                             if (!Browser.isMobile()) {
