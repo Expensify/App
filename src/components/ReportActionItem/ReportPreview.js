@@ -144,7 +144,7 @@ function ReportPreview(props) {
     const shouldShowSubmitButton = isReportDraft && reimbursableSpend !== 0;
 
     const getDisplayAmount = () => {
-        if (hasPendingWaypoints || hasOnlyDistanceRequests) {
+        if (hasPendingWaypoints) {
             return props.translate('common.tbd');
         }
         if (totalDisplaySpend) {
