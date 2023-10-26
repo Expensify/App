@@ -41,8 +41,6 @@ function BaseTextInput(props) {
     const input = useRef(null);
     const isLabelActive = useRef(initialActiveLabel);
 
-    const operatingSystem = getOperatingSystem();
-
     // AutoFocus which only works on mount:
     useEffect(() => {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
@@ -214,6 +212,11 @@ function BaseTextInput(props) {
         }
     };
 
+    const isNativeOS = () => {
+        const operatingSystem = getOperatingSystem();
+        return ['Android', 'iOS'].includes(operatingSystem);
+    }
+
     // eslint-disable-next-line react/forbid-foreign-prop-types
     const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));
     const hasLabel = Boolean(props.label.length);
@@ -367,11 +370,11 @@ function BaseTextInput(props) {
                                 // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
                                 dataSet={{submitOnEnter: isMultiline && props.submitOnEnter}}
                             />
-
+    
                             <ActivityIndicator
                                 size="small"
                                 color={themeColors.iconSuccessFill}
-                                style={[styles.mt4, styles.ml1, ['Android', 'iOS'].includes(operatingSystem) && !props.isLoading ? styles.dNone : {}]}
+                                style={[styles.mt4, styles.ml1, isNativeOS && !props.isLoading ? styles.dNone : {}]}
                                 animating={props.isLoading}
                             />
 
