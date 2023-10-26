@@ -92,6 +92,8 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
         }
 
         debouncedUpdateOptions();
+        // Ignoring the rule intentionally, we want to run the code only when search Value changes to prevent additional runs.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchValue]);
 
     /**
