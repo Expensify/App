@@ -149,7 +149,8 @@ test('should render ReportScreen with composer interactions', () => {
         const hintHeaderText = Localize.translateLocal('common.back');
 
         // Query for the header
-        await screen.findByLabelText(hintHeaderText);
+        const header = await screen.findByLabelText(hintHeaderText);
+        expect(header).toBeDefined();
     };
 
     const policy = {
