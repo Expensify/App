@@ -221,7 +221,7 @@ describe('Unread Indicators', () => {
                 // And that the text is bold
                 const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
-                expect(lodashGet(displayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(displayNameText, ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
 
                 return navigateToSidebarOption(0);
             })
@@ -360,11 +360,11 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts[0];
-                expect(lodashGet(firstReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(firstReportOption, ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
                 expect(lodashGet(firstReportOption, ['props', 'children'])).toBe('C User');
 
                 const secondReportOption = displayNameTexts[1];
-                expect(lodashGet(secondReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(secondReportOption, ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
                 expect(lodashGet(secondReportOption, ['props', 'children'])).toBe('B User');
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
@@ -376,9 +376,9 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
+                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(undefined);
                 expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('C User');
-                expect(lodashGet(displayNameTexts[1], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(displayNameTexts[1], ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
                 expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
             }));
 
@@ -412,7 +412,7 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
                 expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
 
                 // Navigate to the report again and back to the sidebar
@@ -424,7 +424,7 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
+                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(undefined);
                 expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
 
                 // Navigate to the report again and verify the new line indicator is missing
