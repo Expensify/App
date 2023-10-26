@@ -55,7 +55,7 @@ function ReportActionItemMessage(props) {
             {!props.isHidden ? (
                 // Approving or submitting reports in oldDot results in system messages made up of multiple fragments of `TEXT` type
                 // which we need to wrap in `<Text>` to prevent them rendering on separate lines.
-                
+
                 <Text>
                     {_.map(messages, (fragment, index) => (
                         <ReportActionItemFragment
