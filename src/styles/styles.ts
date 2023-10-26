@@ -865,6 +865,7 @@ const styles = (theme: ThemeDefault) =>
 
         headerGap: {
             height: CONST.DESKTOP_HEADER_PADDING,
+            backgroundColor: theme.highlightBG,
         },
 
         headerGapLhpRight: {
