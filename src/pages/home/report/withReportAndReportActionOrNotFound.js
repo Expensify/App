@@ -67,8 +67,9 @@ export default function (WrappedComponent) {
         reportActions: {},
         report: {},
         reportMetadata: {
-            isLoadingReportActions: false,
-            isLoadingMoreReportActions: false,
+            isLoadingInitialReportActions: false,
+            isLoadingOlderReportActions: false,
+            isLoadingNewerReportActions: false,
         },
         policies: {},
         betas: [],
@@ -102,7 +103,7 @@ export default function (WrappedComponent) {
 
         // Perform all the loading checks
         const isLoadingReport = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
-        const isLoadingReportAction = _.isEmpty(props.reportActions) || (props.reportMetadata.isLoadingReportActions && _.isEmpty(getReportAction()));
+        const isLoadingReportAction = _.isEmpty(props.reportActions) || (props.reportMetadata.isLoadingInitialReportActions && _.isEmpty(getReportAction()));
         const shouldHideReport = !isLoadingReport && (_.isEmpty(props.report) || !props.report.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas));
 
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
@@ -129,13 +130,15 @@ export default function (WrappedComponent) {
     WithReportAndReportActionOrNotFound.displayName = `withReportAndReportActionOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const withReportAndReportActionOrNotFound = React.forwardRef((props, ref) => (
+    const WithReportAndReportActionOrNotFoundWithRef = React.forwardRef((props, ref) => (
         <WithReportAndReportActionOrNotFound
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithReportAndReportActionOrNotFoundWithRef.displayName = 'WithReportAndReportActionOrNotFoundWithRef';
 
     return compose(
         withWindowDimensions,
@@ -160,5 +163,5 @@ export default function (WrappedComponent) {
                 canEvict: false,
             },
         }),
-    )(withReportAndReportActionOrNotFound);
+    )(WithReportAndReportActionOrNotFoundWithRef);
 }

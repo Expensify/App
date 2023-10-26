@@ -57,6 +57,7 @@ type Report = {
     /** The report type */
     type?: string;
 
+    lastMessageTranslationKey?: string;
     parentReportID?: string;
     parentReportActionID?: string;
     isOptimisticReport?: boolean;
@@ -72,6 +73,8 @@ type Report = {
     total?: number;
     currency?: string;
     preexistingReportID?: string;
+    /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
+    nonReimbursableTotal?: number;
 };
 
 export default Report;

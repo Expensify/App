@@ -92,9 +92,11 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup Git for OSBotify
-        uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
       - name: Update staging branch from main
         run: |
@@ -138,7 +140,7 @@ jobs:
   newContributorWelcomeMessage:
     runs-on: ubuntu-latest
     needs: isExpensifyEmployee
-    if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) }}
+    if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) && github.actor != 'imgbot[bot]' }}
     steps:
       # Version: 2.3.4
       - name: Checkout

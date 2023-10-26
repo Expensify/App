@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {ActivityIndicator, View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
+import {ActivityIndicator, View, ScrollView} from 'react-native';
 import _ from 'underscore';
 import * as Expensicons from '../../../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../../../components/Icon/Illustrations';
@@ -33,11 +32,12 @@ function CodesStep({account = defaultAccount}) {
     const {setStep} = useTwoFactorAuthContext();
 
     useEffect(() => {
-        if (account.recoveryCodes) {
+        if (account.requiresTwoFactorAuth || account.recoveryCodes) {
             return;
         }
         Session.toggleTwoFactorAuth(true);
-    }, [account.recoveryCodes]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
+    }, []);
 
     return (
         <StepWrapper

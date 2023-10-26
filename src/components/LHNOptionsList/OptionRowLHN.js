@@ -26,7 +26,9 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
 import Permissions from '../../libs/Permissions';
 import Tooltip from '../Tooltip';
+import DomUtils from '../../libs/DomUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** Style for hovered state */
@@ -56,7 +58,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    hoverStyle: styles.sidebarLinkHover,
+    hoverStyle: styles.sidebarLinkHoverLHN,
     viewMode: 'default',
     onSelectRow: () => {},
     style: null,
@@ -110,7 +112,7 @@ function OptionRowLHN(props) {
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
     const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : themeColors.sidebar;
-    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const focusedBackgroundColor = styles.sidebarLinkActiveLHN.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
@@ -152,6 +154,10 @@ function OptionRowLHN(props) {
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
     const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(optionItem);
 
+    const isGroupChat =
+        optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
+    const fullTitle = isGroupChat ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips) : optionItem.text;
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -167,26 +173,35 @@ function OptionRowLHN(props) {
                             if (e) {
                                 e.preventDefault();
                             }
-
+                            // Enable Composer to focus on clicking the same chat after opening the context menu.
+                            ReportActionComposeFocusManager.focus();
                             props.onSelectRow(optionItem, popoverAnchor);
                         }}
                         onMouseDown={(e) => {
+                            // Allow composer blur on right click
                             if (!e) {
                                 return;
                             }
 
-                            // Prevent losing Composer focus
+                            // Prevent composer blur on left click
                             e.preventDefault();
                         }}
-                        onSecondaryInteraction={(e) => showPopover(e)}
+                        testID={optionItem.reportID}
+                        onSecondaryInteraction={(e) => {
+                            showPopover(e);
+                            // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
+                            if (DomUtils.getActiveElement()) {
+                                DomUtils.getActiveElement().blur();
+                            }
+                        }}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
                         style={[
                             styles.flexRow,
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
-                            styles.sidebarLink,
-                            styles.sidebarLinkInner,
+                            styles.sidebarLinkLHN,
+                            styles.sidebarLinkInnerLHN,
                             StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
                             (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
@@ -222,7 +237,7 @@ function OptionRowLHN(props) {
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
                                             accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={optionItem.text}
+                                            fullTitle={fullTitle}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
@@ -246,7 +261,7 @@ function OptionRowLHN(props) {
                                             numberOfLines={1}
                                             accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.isLastMessageDeletedParentAction ? translate('parentReportAction.deletedMessage') : optionItem.alternateText}
+                                            {optionItem.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>
