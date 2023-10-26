@@ -308,7 +308,7 @@ function MoneyRequestPreview(props) {
                             {shouldShowMerchant && (
                                 <View style={[styles.flexRow]}>
                                     <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>
-                                        {hasPendingWaypoints ? requestMerchant.replace(/.+?(?=\s)/, props.translate('common.tbd')) : requestMerchant}
+                                        {hasPendingWaypoints ? requestMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd')) : requestMerchant}
                                     </Text>
                                 </View>
                             )}
