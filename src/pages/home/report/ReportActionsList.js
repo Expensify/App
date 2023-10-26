@@ -433,7 +433,6 @@ function ReportActionsList({
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     extraData={extraData}
-                    testID="report-actions-list"
                 />
             </Animated.View>
         </>

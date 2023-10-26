@@ -1,73 +1,50 @@
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
 import React from 'react';
-import {screen} from '@testing-library/react-native';
+import {fireEvent, screen} from '@testing-library/react-native';
 import ReportScreen from '../../src/pages/home/ReportScreen';
+import ComposeProviders from '../../src/components/ComposeProviders';
+import OnyxProvider from '../../src/components/OnyxProvider';
+import {KeyboardStateProvider} from '../../src/components/withKeyboardState';
+import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
+import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
+import {CurrentReportIDContextProvider} from '../../src/components/withCurrentReportID';
+import DragAndDropProvider from '../../src/components/DragAndDrop/Provider';
+import {ReportAttachmentsProvider} from '../../src/pages/home/report/ReportAttachmentsContext';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
+import CONST from '../../src/CONST';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+import PusherHelper from '../utils/PusherHelper';
+import * as TestHelper from '../utils/TestHelper';
+import * as ReportTestUtils from '../utils/ReportTestUtils';
+import * as Localize from '../../src/libs/Localize';
 
-const ONYXKEYS = {
-    PERSONAL_DETAILS: 'personalDetails',
-    NVP_PRIORITY_MODE: 'nvp_priorityMode',
-    SESSION: 'session',
-    BETAS: 'betas',
-    COLLECTION: {
-        REPORT: 'report_',
-        REPORT_ACTIONS: 'reportActions_',
-    },
-    NETWORK: 'network',
-};
+jest.setTimeout(60000);
 
-jest.mock('../../src/hooks/useLocalize', () =>
-    jest.fn(() => ({
-        translate: (text) => text,
-    })),
-);
-jest.mock('../../src/hooks/useNetwork', () =>
-    jest.fn(() => ({
-        isOffline: false,
-    })),
-);
+jest.mock('react-native-reanimated', () => ({
+    ...jest.requireActual('react-native-reanimated/mock'),
+    useSharedValue: jest.fn,
+    useAnimatedStyle: jest.fn,
+    useAnimatedRef: jest.fn,
+}));
 
-jest.mock('../../src/hooks/useKeyboardState', () =>
-    jest.fn(() => ({
-        isKeyboardShown: false,
-    })),
-);
+jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
+    function WithNavigationFocus(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                isFocused={false}
+            />
+        );
+    }
 
-jest.mock('../../src/hooks/useWindowDimensions', () =>
-    jest.fn(() => ({
-        windowHeight: 1000,
-        isSmallScreenWidth: false,
-        isMediumScreenWidth: false,
-        isLargeScreenWidth: false,
-    })),
-);
+    WithNavigationFocus.displayName = 'WithNavigationFocus';
 
-jest.mock('../../src/components/withLocalize', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        translate={(text) => text}
-    />
-));
-
-jest.mock('../../src/components/withWindowDimensions', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        windowHeight={1000}
-        isSmallScreenWidth={false}
-        isMediumScreenWidth={false}
-        isLargeScreenWidth={false}
-    />
-));
-
-jest.mock('../../src/components/withKeyboardState', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        isKeyboardShown={false}
-    />
-));
+    return WithNavigationFocus;
+});
 
 jest.mock('../../src/hooks/useEnvironment', () =>
     jest.fn(() => ({
@@ -80,10 +57,10 @@ jest.mock('../../src/hooks/useEnvironment', () =>
 
 jest.mock('../../src/libs/Permissions', () => ({
     canUseTasks: jest.fn(() => true),
+    canUseLinkPreviews: jest.fn(() => true),
 }));
 
 jest.mock('../../src/libs/Navigation/Navigation');
-jest.mock('../../src/components/Icon/Expensicons');
 
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -94,9 +71,10 @@ jest.mock('@react-navigation/native', () => {
         useIsFocused: () => ({
             navigate: mockedNavigate,
         }),
+        useRoute: () => jest.fn(),
         useNavigation: () => ({
             navigate: jest.fn(),
-            addListener: jest.fn(),
+            addListener: () => jest.fn(),
         }),
         createNavigationContainerRef: jest.fn(),
     };
@@ -109,23 +87,138 @@ beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        registerStorageEventListener: () => {
-        },
+        registerStorageEventListener: () => {},
     }),
 );
 
 // Initialize the network key for OfflineWithFeedback
-beforeEach(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
-
-// Clear out Onyx after each test so that each test starts with a clean slate
-afterEach(() => {
-    Onyx.clear();
+beforeEach(() => {
+    global.fetch = TestHelper.getGlobalFetchMock();
+    wrapOnyxWithWaitForBatchedUpdates(Onyx);
+    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
 });
 
-test('should render report screen', () => {
+// Clear out Onyx after each test so that each test starts with a clean state
+afterEach(() => {
+    Onyx.clear();
+    PusherHelper.teardown();
+});
+
+function ReportScreenWrapper(args) {
+    return (
+        <ComposeProviders
+            components={[
+                OnyxProvider,
+                CurrentReportIDContextProvider,
+                KeyboardStateProvider,
+                WindowDimensionsProvider,
+                LocaleContextProvider,
+                DragAndDropProvider,
+                ReportAttachmentsProvider,
+            ]}
+        >
+            <ReportScreen
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...args}
+            />
+        </ComposeProviders>
+    );
+}
+
+test('should render ReportScreen with composer interactions', () => {
     const scenario = async () => {
+        // Query for the report list
         await screen.findByTestId('report-actions-list');
-        await screen.findByTestId('composer');
+
+        // Query for the composer
+        const composer = await screen.findByTestId('composer');
+        expect(composer).toBeDefined();
+
+        // Type in the composer
+        fireEvent.changeText(composer, 'Test message');
+
+        const hintSendButtonText = Localize.translateLocal('common.send');
+
+        // Query for the send button
+        const sendButton = await screen.findByLabelText(hintSendButtonText);
+        expect(sendButton).toBeDefined();
+
+        // Click on the send button
+        fireEvent.press(sendButton);
+
+        const hintHeaderText = Localize.translateLocal('common.back');
+
+        // Query for the header
+        await screen.findByLabelText(hintHeaderText);
     };
-    measurePerformance(<ReportScreen/>, {scenario});
+
+    const policy = {
+        policyID: 1,
+        name: 'Testing Policy',
+    };
+
+    const report = LHNTestUtils.getFakeReport();
+    const reportActions = ReportTestUtils.getMockedReportsMap(1000);
+    const mockRoute = {params: {reportID: '1'}};
+
+    return waitForBatchedUpdates()
+        .then(() =>
+            Onyx.multiSet({
+                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS],
+                [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
+                    isLoadingReportActions: false,
+                },
+            }),
+        )
+        .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario}));
+});
+
+test('should press of the report item', () => {
+    const scenario = async () => {
+        // Query for the report list
+        await screen.findByTestId('report-actions-list');
+
+        // Query for the composer
+        await screen.findByTestId('composer');
+
+        const hintReportPreviewText = Localize.translateLocal('iou.viewDetails');
+
+        // Query for report preview buttons
+        const reportPreviewButtons = await screen.findAllByLabelText(hintReportPreviewText);
+
+        expect(reportPreviewButtons.length).toBeDefined();
+
+        // click on the report preview button
+        fireEvent.press(reportPreviewButtons[0]);
+    };
+
+    const policy = {
+        policyID: 123,
+        name: 'Testing Policy',
+    };
+
+    const report = LHNTestUtils.getFakeReport();
+    const reportActions = ReportTestUtils.getMockedReportsMap(1000);
+    const mockRoute = {params: {reportID: '2'}};
+
+    return waitForBatchedUpdates()
+        .then(() =>
+            Onyx.multiSet({
+                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS],
+                [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
+                    isLoadingReportActions: false,
+                },
+            }),
+        )
+        .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario}));
 });
