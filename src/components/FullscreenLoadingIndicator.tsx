@@ -7,7 +7,7 @@ type FullScreenLoadingIndicatorProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function FullScreenLoadingIndicator({style = []}: FullScreenLoadingIndicatorProps) {
+function FullScreenLoadingIndicator({style}: FullScreenLoadingIndicatorProps) {
     return (
         <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, style]}>
             <ActivityIndicator
