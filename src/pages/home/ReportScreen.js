@@ -182,10 +182,14 @@ function ReportScreen({
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
 
+    const goBack = useCallback(() => {
+        Navigation.goBack(ROUTES.HOME, false, true);
+    }, []);
+
     let headerView = (
         <HeaderView
             reportID={reportID}
-            onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME, false, true)}
+            onNavigationMenuButtonClicked={goBack}
             personalDetails={personalDetails}
             report={report}
         />
