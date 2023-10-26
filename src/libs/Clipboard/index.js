@@ -64,7 +64,7 @@ function setHTMLSync(html, text) {
         firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
     } else if (originalSelection.anchorNode && originalSelection.focusNode) {
         selection.setBaseAndExtent(originalSelection.anchorNode, originalSelection.anchorOffset, originalSelection.focusNode, originalSelection.focusOffset);
-    }
+    } 
 
     document.body.removeChild(node);
 }
