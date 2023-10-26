@@ -27,7 +27,7 @@ type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
 
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
-type Translate = <TKey extends TranslationPaths>(phrase: TKey, variables?: PhraseParameters<Phrase<TKey>>) => string;
+type Translate = <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string;
 
 type NumberFormat = (number: number, options: Intl.NumberFormatOptions) => string;
 
@@ -88,7 +88,12 @@ const LocaleContext = createContext<LocaleContextProps>({
 function LocaleContextProvider({preferredLocale = CONST.LOCALES.DEFAULT, currentUserPersonalDetails = {}, children}: LocaleContextProviderProps) {
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
 
-    const translate = useMemo<Translate>(() => (phrase, variables) => Localize.translate(preferredLocale, phrase, variables), [preferredLocale]);
+    const translate = useMemo<Translate>(
+        () =>
+            (phraseKey, ...phraseParameters) =>
+                Localize.translate(preferredLocale, phraseKey, ...phraseParameters),
+        [preferredLocale],
+    );
 
     const numberFormat = useMemo<NumberFormat>(() => (number, options) => NumberFormatUtils.format(preferredLocale, number, options), [preferredLocale]);
 
