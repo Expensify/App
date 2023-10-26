@@ -220,7 +220,6 @@ function WorkspaceNewRoomPage(props) {
                                     InputComponent={ValuePicker}
                                     inputID="policyID"
                                     label={translate('workspace.common.workspace')}
-                                    placeholder={translate('newRoomPage.selectAWorkspace')}
                                     items={workspaceOptions}
                                     onValueChange={setPolicyID}
                                 />
