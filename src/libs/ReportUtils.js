@@ -3203,8 +3203,8 @@ function canSeeDefaultRoom(report, policies, betas) {
 
 /**
  * @param {Object} report
- * @param {Array<Object>} policies
- * @param {Array<String>} betas
+ * @param {Object | null} policies
+ * @param {Array<String> | null} betas
  * @param {Object} allReportActions
  * @returns {Boolean}
  */
@@ -3259,6 +3259,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         !report ||
         !report.reportID ||
         !report.type ||
+        report.reportName === undefined ||
         report.isHidden ||
         (report.participantAccountIDs &&
             report.participantAccountIDs.length === 0 &&
