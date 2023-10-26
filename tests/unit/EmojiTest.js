@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import {getUnixTime} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import Emoji from '../../assets/emojis';
 import * as EmojiUtils from '../../src/libs/EmojiUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
