@@ -50,39 +50,31 @@ function ReportActionItemMessage(props) {
 
     const isApprovedOrSubmittedReportActionType = _.contains([CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED], props.action.actionName);
 
-    const flaggedContentText = <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>;
-
-    /**
-     * Get a ReportActionItemFragment
-     * @param {Object} fragment the current message fragment
-     * @param {Number} index the current message fragment's index
-     * @returns {Object} report action item fragment
-     */
-    const renderReportActionItemFragment = (fragment, index) => (
-        <ReportActionItemFragment
-            key={`actionFragment-${props.action.reportActionID}-${index}`}
-            fragment={fragment}
-            iouMessage={iouMessage}
-            isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
-            attachmentInfo={props.action.attachmentInfo}
-            pendingAction={props.action.pendingAction}
-            source={lodashGet(props.action, 'originalMessage.source')}
-            accountID={props.action.actorAccountID}
-            style={props.style}
-            displayAsGroup={props.displayAsGroup}
-            isApprovedOrSubmittedReportActionType={isApprovedOrSubmittedReportActionType}
-        />
-    );
-
     return (
         <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
-            {isApprovedOrSubmittedReportActionType ? (
+            {!props.isHidden ? (
                 // Approving or submitting reports in oldDot results in system messages made up of multiple fragments of `TEXT` type
                 // which we need to wrap in `<Text>` to prevent them rendering on separate lines.
-
-                <Text>{!props.isHidden ? _.map(messages, (fragment, index) => renderReportActionItemFragment(fragment, index)) : flaggedContentText}</Text>
+                
+                <Text>
+                    {_.map(messages, (fragment, index) => (
+                        <ReportActionItemFragment
+                            key={`actionFragment-${props.action.reportActionID}-${index}`}
+                            fragment={fragment}
+                            iouMessage={iouMessage}
+                            isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
+                            attachmentInfo={props.action.attachmentInfo}
+                            pendingAction={props.action.pendingAction}
+                            source={lodashGet(props.action, 'originalMessage.source')}
+                            accountID={props.action.actorAccountID}
+                            style={props.style}
+                            displayAsGroup={props.displayAsGroup}
+                            isApprovedOrSubmittedReportActionType={isApprovedOrSubmittedReportActionType}
+                        />
+                    ))}
+                </Text>
             ) : (
-                <>{!props.isHidden ? _.map(messages, (fragment, index) => renderReportActionItemFragment(fragment, index)) : flaggedContentText}</>
+                <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>
             )}
         </View>
     );
