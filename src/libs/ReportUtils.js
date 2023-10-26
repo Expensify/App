@@ -1499,6 +1499,8 @@ function getMoneyRequestReportName(report, policy = undefined) {
     const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report.currency, hasOnlyDistanceRequestTransactions(report.reportID));
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
+    const ownerName = getDisplayNameForParticipant(report.ownerAccountID);
+    const isDone = isExpenseReport(report) && report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerName,
         amount: formattedAmount,
@@ -1509,7 +1511,7 @@ function getMoneyRequestReportName(report, policy = undefined) {
     }
 
     if (hasNonReimbursableTransactions(report.reportID)) {
-        return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
+        return Localize.translateLocal('iou.payerSpentAmount', {payer: isDone ? ownerName : payerName, amount: formattedAmount});
     }
 
     if (report.hasOutstandingIOU || moneyRequestTotal === 0) {
