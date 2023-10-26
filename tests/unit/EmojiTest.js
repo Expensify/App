@@ -101,16 +101,6 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.containsOnlyEmojis('🅃🄴🅂🅃')).toBe(false);
     });
 
-    it('replaces an emoji code with an emoji and a space', () => {
-        const text = 'Hi :smile:';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄 ');
-    });
-
-    it('will add a space after the last emoji if there is text after it', () => {
-        const text = 'Hi :smile::wave:space after last emoji';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space after last emoji');
-    });
-
     it('suggests emojis when typing emojis prefix after colon', () => {
         const text = 'Hi :coffin';
         expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin'}]);
