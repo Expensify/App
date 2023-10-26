@@ -69,7 +69,7 @@ function ReportFooter(props) {
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const isAnonymousUser = Session.isAnonymousUser();
 
-    const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.lhpWidth) < variables.anonymousReportFooterBreakpoint;
+    const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.lhnWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = ReportUtils.shouldDisableWriteActions(props.report);
 
     return (

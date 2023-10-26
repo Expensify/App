@@ -20,7 +20,7 @@ class HeaderGap extends PureComponent {
         return (
             <View style={[styles.headerGap, styles.globalAndSubNavigationContainer, styles.flexRow]}>
                 <View style={styles.globalNavigation} />
-                <View style={styles.headerGapLhpRight} />
+                <View style={styles.headerGapLhnRight} />
             </View>
         );
     }

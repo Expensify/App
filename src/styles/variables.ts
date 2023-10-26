@@ -85,7 +85,7 @@ export default {
     safeInsertPercentage: 0.7,
     globalNavigationWidth: 72,
     sideBarWidth: 303 + 72,
-    lhpWidth: 353 + 72,
+    lhnWidth: 353 + 72,
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
     gutterWidth: 12,

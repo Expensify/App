@@ -14,7 +14,7 @@ function AnimatedEmptyStateBackground() {
     const IMAGE_OFFSET_X = windowWidth / 2;
 
     // If window width is greater than the max background width, repeat the background image
-    const maxBackgroundWidth = variables.lhpWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
+    const maxBackgroundWidth = variables.lhnWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
 
     // Get data from phone rotation sensor and prep other variables for animation
     const animatedSensor = useAnimatedSensor(SensorType.GYROSCOPE);

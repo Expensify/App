@@ -868,7 +868,7 @@ const styles = (theme: ThemeDefault) =>
             backgroundColor: theme.highlightBG,
         },
 
-        headerGapLhpRight: {
+        headerGapLhnRight: {
             backgroundColor: theme.sidebar,
             borderTopLeftRadius: variables.componentBorderRadiusRounded,
             flex: 1,
@@ -1420,7 +1420,7 @@ const styles = (theme: ThemeDefault) =>
 
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
-                horizontal: 18 + variables.lhpWidth,
+                horizontal: 18 + variables.lhnWidth,
                 vertical: windowHeight - 83,
             } satisfies AnchorPosition),
 
@@ -2394,7 +2394,7 @@ const styles = (theme: ThemeDefault) =>
             borderRadius: 88,
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.lhpWidth, flex: 1} satisfies ViewStyle),
+        rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.lhnWidth, flex: 1} satisfies ViewStyle),
 
         avatarInnerTextChat: {
             color: theme.textLight,
