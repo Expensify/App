@@ -4,7 +4,12 @@ import {ModalProps} from 'react-native-modal';
 import {WindowDimensionsProps} from '../withWindowDimensions/types';
 import CONST from '../../CONST';
 
-type ModalVariant = ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+type PopoverAnchorPosition = {
+    top?: number;
+    right?: number;
+    bottom?: number;
+    left?: number;
+};
 
 type BaseModalProps = WindowDimensionsProps &
     ModalProps & {
@@ -33,15 +38,10 @@ type BaseModalProps = WindowDimensionsProps &
         onModalShow?: () => void;
 
         /** Style of modal to display */
-        type?: ModalVariant;
+        type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
 
         /** The anchor position of a popover modal. Has no effect on other modal types. */
-        popoverAnchorPosition?: {
-            top?: number;
-            right?: number;
-            bottom?: number;
-            left?: number;
-        };
+        popoverAnchorPosition?: PopoverAnchorPosition;
 
         outerStyle?: ViewStyle;
 
