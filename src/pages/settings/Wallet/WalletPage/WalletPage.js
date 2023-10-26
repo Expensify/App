@@ -70,6 +70,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     const shouldShowEmptyState = !hasBankAccount && !hasWallet && !hasAssignedCard;
 
     const isPendingOnfidoResult = lodashGet(userWallet, 'isPendingOnfidoResult', false);
+    const hasFailedOnfido = lodashGet(userWallet, 'hasFailedOnfido', false);
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change
@@ -311,6 +312,8 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
+    const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
+    const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
 
     return (
         <>
@@ -393,12 +396,24 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
 
                                                     if (isPendingOnfidoResult) {
                                                         return (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5]}>
+                                                            <View style={alertViewStyle}>
                                                                 <Icon
                                                                     src={Expensicons.Hourglass}
                                                                     fill={themeColors.icon}
                                                                 />
-                                                                <Text style={[styles.inlineSystemMessage, styles.flexShrink1]}>{translate('walletPage.walletActivationPending')}</Text>
+                                                                <Text style={alertTextStyle}>{translate('walletPage.walletActivationPending')}</Text>
+                                                            </View>
+                                                        );
+                                                    }
+
+                                                    if (hasFailedOnfido) {
+                                                        return (
+                                                            <View style={alertViewStyle}>
+                                                                <Icon
+                                                                    src={Expensicons.Exclamation}
+                                                                    fill={themeColors.icon}
+                                                                />
+                                                                <Text style={alertTextStyle}>{translate('walletPage.walletActivationFailed')}</Text>
                                                             </View>
                                                         );
                                                     }

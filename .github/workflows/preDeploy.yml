@@ -140,7 +140,7 @@ jobs:
   newContributorWelcomeMessage:
     runs-on: ubuntu-latest
     needs: isExpensifyEmployee
-    if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) }}
+    if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) && github.actor != 'imgbot[bot]' }}
     steps:
       # Version: 2.3.4
       - name: Checkout
