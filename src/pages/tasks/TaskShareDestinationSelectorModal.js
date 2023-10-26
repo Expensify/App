@@ -19,6 +19,7 @@ import reportPropTypes from '../reportPropTypes';
 import * as Task from '../../libs/actions/Task';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
+import * as Report from '../../libs/actions/Report';
 
 const propTypes = {
     /* Onyx Props */
@@ -32,6 +33,9 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -39,13 +43,14 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    isSearchingForReports: false,
 };
 
 function TaskShareDestinationSelectorModal(props) {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
-
+    const {isSearchingForReports} = props;
     const optionRef = useRef();
 
     const filteredReports = useMemo(() => {
@@ -78,10 +83,6 @@ function TaskShareDestinationSelectorModal(props) {
         };
     }, [updateOptions]);
 
-    const onChangeText = (newSearchTerm = '') => {
-        setSearchValue(newSearchTerm);
-    };
-
     const getSections = () => {
         const sections = [];
         let indexOffset = 0;
@@ -111,7 +112,16 @@ function TaskShareDestinationSelectorModal(props) {
         }
     };
 
+    // When search term updates we will fetch any reports
+    const setSearchTermAndSearchInServer = useCallback((text = '') => {
+        if (text.length) {
+            Report.searchInServer(text);
+        }
+        setSearchValue(text);
+    }, []);
+
     const sections = getSections();
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -129,7 +139,7 @@ function TaskShareDestinationSelectorModal(props) {
                             sections={sections}
                             value={searchValue}
                             onSelectRow={selectReport}
-                            onChangeText={onChangeText}
+                            onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             hideSection
                             Headers
@@ -139,6 +149,7 @@ function TaskShareDestinationSelectorModal(props) {
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
                             ref={optionRef}
+                            isLoadingNewOptions={isSearchingForReports}
                         />
                     </View>
                 </>
@@ -162,6 +173,10 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isSearchingForReports: {
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            initWithStoredValues: false,
         },
     }),
 )(TaskShareDestinationSelectorModal);
