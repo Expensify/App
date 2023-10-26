@@ -72,14 +72,15 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isDone = moneyRequestReport.statusNum === CONST.REPORT.STATUS.CLOSED && moneyRequestReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
     const policyType = lodashGet(policy, 'type');
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
     const isPayer = policyType === CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isReportDraft(moneyRequestReport);
     const shouldShowSettlementButton = useMemo(
-        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
-        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
+        () => isPayer && !isDraft && !isSettled && !isDone && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
+        [isPayer, isDraft, isSettled, isDone, moneyRequestReport, reimbursableTotal, chatReport],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (policyType !== CONST.POLICY.TYPE.CORPORATE) {
