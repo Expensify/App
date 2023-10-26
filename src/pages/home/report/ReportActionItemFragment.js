@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
