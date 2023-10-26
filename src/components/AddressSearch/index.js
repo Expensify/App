@@ -419,10 +419,10 @@ function AddressSearch({
                             const title = data.isPredefinedPlace ? data.name : data.structured_formatting.main_text;
                             const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
                             return (
-                              <View>
-                                  {title && <Text style={[styles.googleSearchText]}>{title}</Text>}
-                                  <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
-                              </View>
+                                <View>
+                                    {title && <Text style={[styles.googleSearchText]}>{title}</Text>}
+                                    <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
+                                </View>
                             );
                         }}
                         onPress={(data, details) => {

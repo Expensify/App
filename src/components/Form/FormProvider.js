@@ -244,14 +244,16 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 onTouched: (event) => {
                     setTimeout(() => {
                         setTouchedInput(inputID);
-                    }, VALIDATE_DELAY);                    if (_.isFunction(propsToParse.onTouched)) {
+                    }, VALIDATE_DELAY);
+                    if (_.isFunction(propsToParse.onTouched)) {
                         propsToParse.onTouched(event);
                     }
                 },
                 onPress: (event) => {
                     setTimeout(() => {
                         setTouchedInput(inputID);
-                    }, VALIDATE_DELAY);                    if (_.isFunction(propsToParse.onPress)) {
+                    }, VALIDATE_DELAY);
+                    if (_.isFunction(propsToParse.onPress)) {
                         propsToParse.onPress(event);
                     }
                 },
@@ -260,7 +262,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                     // onValidate and to do so, we need to delays setTouchedInput of the same amount of time
                     // as the onValidate is delayed
                     setTimeout(() => {
-                          setTouchedInput(inputID);
+                        setTouchedInput(inputID);
                     }, VALIDATE_DELAY);
                     if (_.isFunction(propsToParse.onPressIn)) {
                         propsToParse.onPressIn(event);

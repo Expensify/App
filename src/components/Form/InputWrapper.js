@@ -1,7 +1,7 @@
 import React, {forwardRef, useContext} from 'react';
 import PropTypes from 'prop-types';
 import FormContext from './FormContext';
-import refPropTypes from "../refPropTypes";
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     InputComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.elementType]).isRequired,
