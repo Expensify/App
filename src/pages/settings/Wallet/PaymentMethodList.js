@@ -6,6 +6,7 @@ import {FlashList} from '@shopify/flash-list';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
+import variables from '../../../styles/variables';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import MenuItem from '../../../components/MenuItem';
 import Button from '../../../components/Button';
@@ -184,13 +185,6 @@ function keyExtractor(item) {
     return item.key;
 }
 
-/**
- * This is a part of the FlashList configuration. It is used to estimate the size of each item in the list.
- * https://shopify.github.io/flash-list/docs/usage/#estimateditemsize
- * Measured using Element Inspector: 64.
- */
-const ESTIMATED_ITEM_SIZE = 64;
-
 function PaymentMethodList({
     actionPaymentMethodType,
     activePaymentMethodID,
@@ -339,9 +333,9 @@ function PaymentMethodList({
 
     return (
         <>
-            <View style={[style, {minHeight: ESTIMATED_ITEM_SIZE}]}>
+            <View style={[style, {minHeight: variables.paymentMethodHeight}]}>
                 <FlashList
-                    estimatedItemSize={ESTIMATED_ITEM_SIZE}
+                    estimatedItemSize={variables.paymentMethodHeight}
                     data={filteredPaymentMethods}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
