@@ -64,8 +64,8 @@ const propTypes = {
     /** Whether the comment is a thread parent message/the first message in a thread */
     isThreadParentMessage: PropTypes.bool,
 
-    /** The report's action name/type e.g. APPROVED, SUBMITTED, etc. */
-    actionName: PropTypes.string,
+    /** Whether the report action type is 'APPROVED' or 'SUBMITTED'. Used to style system messages from Old Dot */
+    isApprovedOrSubmittedReportActionType: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 
@@ -90,7 +90,7 @@ const defaultProps = {
     delegateAccountID: 0,
     actorIcon: {},
     isThreadParentMessage: false,
-    actionName: '',
+    isApprovedOrSubmittedReportActionType: false,
     displayAsGroup: false,
 };
 
@@ -169,7 +169,7 @@ function ReportActionItemFragment(props) {
                         style={[
                             styles.chatItemMessageHeaderSender,
                             props.isSingleLine ? styles.pre : styles.preWrap,
-                            _.contains([CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED], props.actionName) && {color: styles.colorMuted.color, fontWeight: 'normal'},
+                            props.isApprovedOrSubmittedReportActionType && {color: styles.colorMuted.color, fontWeight: 'normal'},
                         ]}
                     >
                         {props.fragment.text}

@@ -70,7 +70,7 @@ function ReportActionItemMessage(props) {
             accountID={props.action.actorAccountID}
             style={props.style}
             displayAsGroup={props.displayAsGroup}
-            actionName={props.action.actionName}
+            isApprovedOrSubmittedReportActionType={isApprovedOrSubmittedReportActionType}
         />
     );
 
