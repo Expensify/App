@@ -166,6 +166,7 @@ function MoneyRequestPreview(props) {
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
     const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
+    const isDone = props.iouReport.statusNum === CONST.REPORT.STATUS.CLOSED && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant =
@@ -175,7 +176,7 @@ function MoneyRequestPreview(props) {
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
     const getSettledMessage = () => {
-        if (isExpensifyCardTransaction) {
+        if (isExpensifyCardTransaction || isDone) {
             return props.translate('common.done');
         }
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -263,7 +264,7 @@ function MoneyRequestPreview(props) {
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.lh20, styles.mb1]}>{getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.lh20, styles.mb1]}>{getPreviewHeaderText() + (isSettled || isDone ? ` • ${getSettledMessage()}` : '')}</Text>
                                 {hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
@@ -282,7 +283,7 @@ function MoneyRequestPreview(props) {
                                     >
                                         {getDisplayAmountText()}
                                     </Text>
-                                    {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
+                                    {(isDone || (ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit)) && (
                                         <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
                                                 src={Expensicons.Checkmark}
