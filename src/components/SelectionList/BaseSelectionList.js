@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -334,6 +334,18 @@ function BaseSelectionList({
             };
         }, [shouldShowTextInput]),
     );
+
+    useEffect(() => {
+        //do not change focus on the first render, as it should focus on the selected item
+        if (firstLayoutRef.current) {
+            return;
+        }
+
+        // set the focus on the first item when the sections list is changed
+        if (sections.length > 0) {
+            updateAndScrollToFocusedIndex(0);
+        }
+    }, [sections]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
