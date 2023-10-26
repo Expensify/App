@@ -11,13 +11,13 @@ type TextWithEllipsisProps = {
     trailingText: string;
 
     /** Styles for leading and trailing text */
-    textStyle: TextStyle;
+    textStyle?: TextStyle;
 
     /** Styles for leading text View */
-    leadingTextParentStyle: StyleProp<ViewStyle>;
+    leadingTextParentStyle?: StyleProp<ViewStyle>;
 
     /** Styles for parent View */
-    wrapperStyle: StyleProp<ViewStyle>;
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 function TextWithEllipsis({leadingText, trailingText, textStyle = {}, leadingTextParentStyle = {}, wrapperStyle = {}}: TextWithEllipsisProps) {
