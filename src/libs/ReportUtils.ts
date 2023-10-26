@@ -3797,10 +3797,7 @@ type OnyxDataTaskAssigneeChat = {
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
     optimisticAssigneeAddComment?: OptimisticReportAction;
-    optimisticChatCreatedReportAction?: Pick<
-        ReportAction,
-        'reportActionID' | 'actionName' | 'pendingAction' | 'actorAccountID' | 'message' | 'person' | 'automatic' | 'avatar' | 'created' | 'shouldShow'
-    >;
+    optimisticChatCreatedReportAction?: OptimisticCreatedReportAction;
 };
 
 /**
@@ -3843,7 +3840,7 @@ function getTaskAssigneeChatOnyxData(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                value: {[optimisticChatCreatedReportAction.reportActionID]: optimisticChatCreatedReportAction},
+                value: {[optimisticChatCreatedReportAction.reportActionID ?? '']: optimisticChatCreatedReportAction as Partial<ReportAction>},
             },
         );
 
@@ -3867,7 +3864,7 @@ function getTaskAssigneeChatOnyxData(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                value: {[optimisticChatCreatedReportAction.reportActionID]: {pendingAction: null}},
+                value: {[optimisticChatCreatedReportAction.reportActionID ?? '']: {pendingAction: null}},
             },
             // If we failed, we want to remove the optimistic personal details as it was likely due to an invalid login
             {
