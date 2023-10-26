@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {Video, ResizeMode} from 'expo-av';
@@ -7,9 +7,7 @@ import styles from '../../styles/styles';
 import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import VideoPlayerControls from './VideoPlayerControls';
-import PopoverMenu from '../PopoverMenu';
-import * as Expensicons from '../Icon/Expensicons';
-import fileDownload from '../../libs/fileDownload';
+import VideoPopoverMenu from '../VideoPopoverMenu';
 
 const propTypes = {
     url: PropTypes.string.isRequired,
@@ -47,52 +45,20 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         usePlaybackContext();
 
     const [isVideoLoading, setIsVideoLoading] = React.useState(true);
+    const [isMenuActive, setIsMenuActive] = React.useState(false);
 
-    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({vertical: 0, horizontal: 0});
-
-    const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const ref = useRef(null);
-
     const videoPlayerParentRef = useRef(null);
     const videoPlayerRef = useRef(null);
-    const testRef = useRef(null);
+    const sharedVideoPlayerParentRef = useRef(null);
 
-    const showCreateMenu = () => {
-        setIsCreateMenuActive(true);
-    };
-    const hideCreateMenu = () => {
-        setIsCreateMenuActive(false);
-    };
     const toggleCreateMenu = (e) => {
-        if (isCreateMenuActive) {
-            hideCreateMenu();
+        if (isMenuActive) {
+            setIsMenuActive(false);
         } else {
-            setPopoverAnchorPosition({vertical: e.nativeEvent.pageY, horizontal: e.nativeEvent.pageX});
-            showCreateMenu();
+            setIsMenuActive(true);
         }
     };
-
-    console.log('XXX');
-
-    const menuItems = [
-        {
-            icon: Expensicons.Download,
-            text: 'Download',
-            onSelected: () => {
-                console.log('Download');
-                fileDownload(url);
-                hideCreateMenu();
-            },
-        },
-        {
-            icon: Expensicons.Meter,
-            text: 'Playback speed',
-            onSelected: () => {
-                console.log('Playback speed');
-            },
-            shouldShowRightIcon: true,
-        },
-    ];
 
     useEffect(() => {
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
@@ -106,12 +72,12 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         if (!shouldUseSharedVideoElement) {
             return;
         }
-        const reff = testRef.current;
+        const newParentRef = sharedVideoPlayerParentRef.current;
         if (currentlyPlayingURL === url) {
-            reff.appendChild(sharedElement);
+            newParentRef.appendChild(sharedElement);
         }
         return () => {
-            if (!reff.childNodes[0]) {
+            if (!newParentRef.childNodes[0]) {
                 return;
             }
             originalParent.appendChild(sharedElement);
@@ -129,7 +95,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         <View style={[styles.w100, styles.h100]}>
             {shouldUseSharedVideoElement ? (
                 <View
-                    ref={testRef}
+                    ref={sharedVideoPlayerParentRef}
                     style={[styles.flex1]}
                 />
             ) : (
@@ -187,15 +153,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                 url={url}
             />
 
-            <PopoverMenu
-                onClose={hideCreateMenu}
-                onItemSelected={hideCreateMenu}
-                isVisible={isCreateMenuActive}
-                anchorPosition={popoverAnchorPosition}
-                fromSidebarMediumScreen={!isSmallScreenWidth}
-                menuItems={menuItems}
-                withoutOverlay
-            />
+            <VideoPopoverMenu isActive={isMenuActive} />
         </View>
     );
 }

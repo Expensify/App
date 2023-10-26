@@ -9,9 +9,11 @@ function PlaybackContextProvider({children}) {
     const [originalParent, setOriginalParent] = useState(null);
 
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isSeeking, setIsSeeking] = useState(false);
     const [duration, setDuration] = useState(0);
     const [position, setPosition] = useState(0);
+
+    const playbackSpeeds = useMemo(() => [0.25, 0.5, 1, 1.5, 2], []);
+    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(playbackSpeeds[2]);
 
     const currentVideoPlayerRef = useRef(null);
 
@@ -72,8 +74,9 @@ function PlaybackContextProvider({children}) {
         setDuration(newDuration);
     }, []);
 
-    const updateIsSeeking = useCallback((isCurrentlySeeking) => {
-        setIsSeeking(isCurrentlySeeking);
+    const updatePlaybackSpeed = useCallback((newPlaybackSpeed) => {
+        currentVideoPlayerRef.current.setStatusAsync({rate: newPlaybackSpeed});
+        setCurrentPlaybackSpeed(newPlaybackSpeed);
     }, []);
 
     const contextValue = useMemo(
@@ -93,9 +96,11 @@ function PlaybackContextProvider({children}) {
             seekPosition,
             duration,
             updateDuration,
-            updateIsSeeking,
             playVideo,
             pauseVideo,
+            playbackSpeeds,
+            updatePlaybackSpeed,
+            currentPlaybackSpeed,
         }),
         [
             currentlyPlayingURL,
@@ -105,6 +110,7 @@ function PlaybackContextProvider({children}) {
             originalParent,
             pauseVideo,
             playVideo,
+            playbackSpeeds,
             position,
             seekPosition,
             sharedElement,
@@ -112,8 +118,9 @@ function PlaybackContextProvider({children}) {
             updateCurrentVideoPlayerRef,
             updateCurrentlyPlayingURL,
             updateDuration,
-            updateIsSeeking,
+            updatePlaybackSpeed,
             updatePosition,
+            currentPlaybackSpeed,
         ],
     );
     return <PlaybackContext.Provider value={contextValue}>{children}</PlaybackContext.Provider>;

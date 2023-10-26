@@ -16,7 +16,7 @@ const propTypes = {
 const defaultProps = {};
 
 function ProgressBar({duration, position, seekPosition}) {
-    const {updateIsSeeking, pauseVideo, playVideo} = usePlaybackContext();
+    const {pauseVideo, playVideo} = usePlaybackContext();
     const [sliderWidth, setSliderWidth] = useState(1);
     const progressWidth = useSharedValue(0);
 

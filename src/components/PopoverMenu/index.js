@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
@@ -13,6 +13,7 @@ import CONST from '../../CONST';
 import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import * as Expensicons from '../Icon/Expensicons';
 
 const propTypes = {
     ...createMenuPropTypes,
@@ -52,13 +53,50 @@ const defaultProps = {
 
 function PopoverMenu(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
+
+    const [menuItems, setMenuItems] = useState(props.menuItems);
+    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState([]);
+
     const selectedItemIndex = useRef(null);
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1, isActive: props.isVisible});
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItems.length - 1, isActive: props.isVisible});
 
     const selectItem = (index) => {
-        const selectedItem = props.menuItems[index];
-        props.onItemSelected(selectedItem, index);
-        selectedItemIndex.current = index;
+        const selectedItem = menuItems[index];
+        if (selectedItem.subMenuItems) {
+            setMenuItems([...selectedItem.subMenuItems]);
+            setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
+        } else {
+            props.onItemSelected(selectedItem, index);
+            selectedItemIndex.current = index;
+        }
+    };
+
+    const getPreviousSubMenu = () => {
+        let currentMenuItems = props.menuItems;
+        for (let i = 0; i < enteredSubMenuIndexes.length - 1; i++) {
+            currentMenuItems = currentMenuItems[enteredSubMenuIndexes[i]].subMenuItems;
+        }
+        return currentMenuItems;
+    };
+
+    const renderBackButtonItem = () => {
+        const previousMenuItems = getPreviousSubMenu();
+        const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
+
+        return (
+            <MenuItem
+                key={previouslySelectedItem.text}
+                icon={Expensicons.BackArrow}
+                iconFill="gray"
+                title={previouslySelectedItem.text}
+                shouldCheckActionAllowedOnPress={false}
+                description={previouslySelectedItem.description}
+                onPress={() => {
+                    setMenuItems(previousMenuItems);
+                    enteredSubMenuIndexes.splice(-1);
+                }}
+            />
+        );
     };
 
     useKeyboardShortcut(
@@ -73,17 +111,28 @@ function PopoverMenu(props) {
         {isActive: props.isVisible},
     );
 
+    useEffect(() => {
+        if (menuItems.length === 0) {
+            setMenuItems(props.menuItems);
+        }
+        return () => {};
+    }, [menuItems, props.menuItems]);
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={props.anchorPosition}
             anchorRef={props.anchorRef}
             anchorAlignment={props.anchorAlignment}
-            onClose={props.onClose}
+            onClose={() => {
+                setMenuItems([]);
+                setEnteredSubMenuIndexes([]);
+                props.onClose();
+            }}
             isVisible={props.isVisible}
             onModalHide={() => {
                 setFocusedIndex(-1);
                 if (selectedItemIndex.current !== null) {
-                    props.menuItems[selectedItemIndex.current].onSelected();
+                    menuItems[selectedItemIndex.current].onSelected();
                     selectedItemIndex.current = null;
                 }
             }}
@@ -97,9 +146,10 @@ function PopoverMenu(props) {
         >
             <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                 {!_.isEmpty(props.headerText) && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{props.headerText}</Text>}
-                {_.map(props.menuItems, (item, menuIndex) => (
+                {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
+                {_.map(menuItems, (item, menuIndex) => (
                     <MenuItem
-                        key={item.text}
+                        key={item.text + menuIndex}
                         icon={item.icon}
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
@@ -110,6 +160,7 @@ function PopoverMenu(props) {
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}
                         shouldShowRightIcon={item.shouldShowRightIcon}
+                        putLeftPaddingWhenNoIcon={item.putLeftPaddingWhenNoIcon}
                     />
                 ))}
             </View>

@@ -159,6 +159,8 @@ const propTypes = {
 
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress: PropTypes.bool,
+
+    putLeftPaddingWhenNoIcon: PropTypes.bool,
 };
 
 export default propTypes;
