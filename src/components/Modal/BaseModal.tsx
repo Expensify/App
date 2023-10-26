@@ -13,6 +13,7 @@ import ComposerFocusManager from '../../libs/ComposerFocusManager';
 import useNativeDriver from '../../libs/useNativeDriver';
 import usePrevious from '../../hooks/usePrevious';
 import BaseModalProps from './types';
+import CONST from '../../CONST';
 
 function BaseModal(
     {
@@ -101,7 +102,11 @@ function BaseModal(
         onModalShow();
     };
 
-    const handleBackdropPress = () => {
+    const handleBackdropPress = (e?: KeyboardEvent) => {
+        if (e?.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+            return;
+        }
+
         onClose();
     };
 
