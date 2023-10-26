@@ -49,7 +49,7 @@ function BaseModal(
 
     /**
      * Hides modal
-     * @param {Boolean} [callHideCallback=true] Should we call the onModalHide callback
+     * @param callHideCallback - Should we call the onModalHide callback
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
