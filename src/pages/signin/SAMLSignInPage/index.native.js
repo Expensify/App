@@ -51,7 +51,10 @@ function SAMLSignInPage({credentials}) {
         >
             <HeaderWithBackButton
                 title=""
-                onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
+                onBackButtonPress={() => {
+                    Session.clearSignInData();
+                    Navigation.navigate(ROUTES.HOME);
+                }}
             />
             <FullPageOfflineBlockingView>
                 <WebView

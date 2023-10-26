@@ -205,7 +205,6 @@ function BaseValidateCodeForm(props) {
      * Clears local and Onyx sign in states
      */
     const clearSignInData = () => {
-        // Reset the user's preference for signing in with SAML versus magic codes
         clearLocalSignInData();
         Session.clearSignInData();
     };
