@@ -306,7 +306,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 return;
             }
 
-            const currentStepRouteParam = getStepToOpenFromRouteParams();
+            const currentStepRouteParam = getStepToOpenFromRouteParams(route);
             if (currentStepRouteParam === currentStep) {
                 // The route is showing the correct step, no need to update the route param or clear errors.
                 return;
