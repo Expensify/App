@@ -5,6 +5,7 @@ type OnyxData = {
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
     optimisticData?: OnyxUpdate[];
+    idempotencyKey?: string;
 };
 
 type RequestData = {

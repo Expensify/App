@@ -1,5 +1,5 @@
+import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import isEqual from 'lodash/isEqual';
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Request} from '@src/types/onyx';
 
@@ -17,10 +17,49 @@ function clear() {
     return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 
+function mergeOnyxUpdateData(oldData: OnyxUpdate[] = [], newData: OnyxUpdate[] = []): OnyxUpdate[] {
+    const mergedData = [...newData];
+
+    oldData.forEach((oldUpdate) => {
+        const hasSameKey = newData.some((newUpdate) => newUpdate.key === oldUpdate.key);
+
+        if (!hasSameKey) {
+            mergedData.push(oldUpdate);
+        }
+    });
+
+    return mergedData;
+}
+
+function createUpdatedRequest(oldRequest: Request, newRequest: Request): Request {
+    const updatedRequest = {
+        failureData: mergeOnyxUpdateData(oldRequest.failureData, newRequest.failureData),
+        successData: mergeOnyxUpdateData(oldRequest.successData, newRequest.successData),
+        ...newRequest,
+    };
+
+    const updatedOptimisticData = mergeOnyxUpdateData(oldRequest.optimisticData, newRequest.optimisticData);
+
+    if (updatedOptimisticData.length > 0) {
+        updatedRequest.optimisticData = updatedOptimisticData;
+    }
+
+    return updatedRequest;
+}
+
 function save(requestsToPersist: Request[]) {
     let requests: Request[] = [];
+
     if (persistedRequests.length) {
-        requests = persistedRequests.concat(requestsToPersist);
+        requests = [...persistedRequests];
+        requestsToPersist.forEach((requestToPersist) => {
+            const index = persistedRequests.findIndex((persistedRequest) => !!requestToPersist.idempotencyKey && requestToPersist.idempotencyKey === persistedRequest.idempotencyKey);
+            if (index > -1) {
+                requests[index] = createUpdatedRequest(requests[index], requestToPersist);
+            } else {
+                requests.push(requestToPersist);
+            }
+        });
     } else {
         requests = requestsToPersist;
     }
