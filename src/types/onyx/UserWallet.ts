@@ -16,6 +16,9 @@ type UserWallet = {
     /** What step in the activation flow are we on? */
     currentStep: ValueOf<typeof CONST.WALLET.STEP>;
 
+    /** If the user failed the Onfido verification check */
+    hasFailedOnfido?: boolean;
+
     /** If we should show the FailedKYC view after the user submitted their info with a non fixable error */
     shouldShowFailedKYC?: boolean;
 

@@ -90,10 +90,14 @@ BaseMiniContextMenuItem.propTypes = propTypes;
 BaseMiniContextMenuItem.defaultProps = defaultProps;
 BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
 
-export default React.forwardRef((props, ref) => (
+const BaseMiniContextMenuItemWithRef = React.forwardRef((props, ref) => (
     <BaseMiniContextMenuItem
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+BaseMiniContextMenuItemWithRef.displayName = 'BaseMiniContextMenuItemWithRef';
+
+export default BaseMiniContextMenuItemWithRef;

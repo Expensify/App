@@ -27,6 +27,7 @@ const propTypes = {
             lat: PropTypes.number,
             lng: PropTypes.number,
             address: PropTypes.string,
+            name: PropTypes.string,
         }),
     ),
 

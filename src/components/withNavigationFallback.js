@@ -33,11 +33,15 @@ export default function (WrappedComponent) {
         forwardedRef: undefined,
     };
 
-    return forwardRef((props, ref) => (
+    const WithNavigationFallbackWithRef = forwardRef((props, ref) => (
         <WithNavigationFallback
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithNavigationFallbackWithRef.displayName = `WithNavigationFallbackWithRef`;
+
+    return WithNavigationFallbackWithRef;
 }
