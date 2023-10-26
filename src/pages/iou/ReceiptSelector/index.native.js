@@ -53,6 +53,9 @@ const propTypes = {
 
     /** Whether or not the receipt selector is in a tab navigator for tab animations */
     isInTabNavigator: PropTypes.bool,
+
+    /** Name of the selected receipt tab */
+    selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
@@ -60,9 +63,10 @@ const defaultProps = {
     iou: iouDefaultProps,
     transactionID: '',
     isInTabNavigator: true,
+    selectedTab: '',
 };
 
-function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) {
+function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, selectedTab}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -159,7 +163,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
     return (
         <View style={styles.flex1}>
             {cameraPermissionStatus !== RESULTS.GRANTED && (
-                <View style={[styles.cameraView, styles.permissionView]}>
+                <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                     <Hand
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
                         height={CONST.RECEIPT.HAND_ICON_HEIGHT}
@@ -195,6 +199,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     photo
                     cameraTabIndex={pageIndex}
                     isInTabNavigator={isInTabNavigator}
+                    selectedTab={selectedTab}
                 />
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>

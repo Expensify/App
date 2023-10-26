@@ -85,7 +85,7 @@ const defaultProps = {
 function CheckboxWithLabel(props) {
     // We need to pick the first value that is strictly a boolean
     // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
-    const [isChecked, setIsChecked] = useState(_.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value)));
+    const [isChecked, setIsChecked] = useState(() => _.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value)));
 
     const toggleCheckbox = () => {
         const newState = !isChecked;
@@ -130,10 +130,14 @@ CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;
 CheckboxWithLabel.displayName = 'CheckboxWithLabel';
 
-export default React.forwardRef((props, ref) => (
+const CheckboxWithLabelWithRef = React.forwardRef((props, ref) => (
     <CheckboxWithLabel
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+CheckboxWithLabelWithRef.displayName = 'CheckboxWithLabelWithRef';
+
+export default CheckboxWithLabelWithRef;

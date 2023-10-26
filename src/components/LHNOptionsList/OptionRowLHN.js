@@ -26,7 +26,9 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
 import Permissions from '../../libs/Permissions';
 import Tooltip from '../Tooltip';
+import DomUtils from '../../libs/DomUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** Style for hovered state */
@@ -152,6 +154,10 @@ function OptionRowLHN(props) {
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
     const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(optionItem);
 
+    const isGroupChat =
+        optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
+    const fullTitle = isGroupChat ? ReportUtils.getDisplayNamesStringFromTooltips(optionItem.displayNamesWithTooltips) : optionItem.text;
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -167,12 +173,13 @@ function OptionRowLHN(props) {
                             if (e) {
                                 e.preventDefault();
                             }
-
+                            // Enable Composer to focus on clicking the same chat after opening the context menu.
+                            ReportActionComposeFocusManager.focus();
                             props.onSelectRow(optionItem, popoverAnchor);
                         }}
                         onMouseDown={(e) => {
                             // Allow composer blur on right click
-                            if (!e || e.button === 2) {
+                            if (!e) {
                                 return;
                             }
 
@@ -180,7 +187,13 @@ function OptionRowLHN(props) {
                             e.preventDefault();
                         }}
                         testID={optionItem.reportID}
-                        onSecondaryInteraction={(e) => showPopover(e)}
+                        onSecondaryInteraction={(e) => {
+                            showPopover(e);
+                            // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
+                            if (DomUtils.getActiveElement()) {
+                                DomUtils.getActiveElement().blur();
+                            }
+                        }}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
                         style={[
@@ -224,7 +237,7 @@ function OptionRowLHN(props) {
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
                                             accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={optionItem.text}
+                                            fullTitle={fullTitle}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
@@ -248,7 +261,7 @@ function OptionRowLHN(props) {
                                             numberOfLines={1}
                                             accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.isLastMessageDeletedParentAction ? translate('parentReportAction.deletedMessage') : optionItem.alternateText}
+                                            {optionItem.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>

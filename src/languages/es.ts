@@ -57,7 +57,7 @@ import type {
     ConfirmThatParams,
     UntilTimeParams,
     StepCounterParams,
-    UserIsAlreadyMemberOfWorkspaceParams,
+    UserIsAlreadyMemberParams,
     GoToRoomParams,
     WelcomeNoteParams,
     RoomNameReservedErrorParams,
@@ -254,6 +254,7 @@ export default {
         recent: 'Reciente',
         all: 'Todo',
         tbd: 'Por determinar',
+        selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
     },
     location: {
@@ -329,10 +330,6 @@ export default {
         splitWith: 'Dividir con',
         whatsItFor: '¿Para qué es?',
     },
-    iOUCurrencySelection: {
-        selectCurrency: 'Selecciona una moneda',
-        allCurrencies: 'Todas las monedas',
-    },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
         findMember: 'Encuentra un miembro',
@@ -371,6 +368,14 @@ export default {
         signInAgreementMessage: 'Al iniciar sesión, aceptas las',
         termsOfService: 'Términos de servicio',
         privacy: 'Privacidad',
+    },
+    samlSignIn: {
+        welcomeSAMLEnabled: 'Continua iniciando sesión con el inicio de sesión único:',
+        orContinueWithMagicCode: 'O, opcionalmente, tu empresa te permite iniciar sesión con un código mágico',
+        useSingleSignOn: 'Usar el inicio de sesión único',
+        useMagicCode: 'Usar código mágico',
+        launching: 'Cargando...',
+        oneMoment: 'Un momento mientras te redirigimos al portal de inicio de sesión único de tu empresa.',
     },
     reportActionCompose: {
         addAction: 'Acción',
@@ -534,8 +539,9 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
-        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount} con Expensify`,
+        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
         payElsewhere: 'Pagar de otra forma',
+        nextSteps: 'Pasos Siguientes',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -569,6 +575,7 @@ export default {
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero`,
+        categorySelection: 'Seleccione una categoría para organizar mejor tu dinero',
         error: {
             invalidAmount: 'Por favor ingresa un monto válido antes de continuar.',
             invalidSplit: 'La suma de las partes no equivale al monto total',
@@ -580,6 +587,8 @@ export default {
             duplicateWaypointsErrorMessage: 'Por favor elimina los puntos de ruta duplicados',
             emptyWaypointsErrorMessage: 'Por favor introduce al menos dos puntos de ruta',
         },
+        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
+        enableWallet: 'Habilitar Billetera',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -800,7 +809,7 @@ export default {
         sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
         notesUnavailable: 'No se han encontrado notas para el usuario',
         composerLabel: 'Notas',
-        myNote: 'Mi notas',
+        myNote: 'Mi nota',
     },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',
@@ -845,12 +854,16 @@ export default {
         receiveMoney: 'Recibe dinero en tu moneda local',
         expensifyWallet: 'Billetera Expensify',
         sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
+        enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos',
+        enableWallet: 'Habilitar Billetera',
         bankAccounts: 'Cuentas bancarias',
         addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
         addBankAccount: 'Agregar cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del Espacio de Trabajo para gestionar los gastos de la empresa.',
         expensifyCard: 'Tarjeta Expensify',
+        walletActivationPending: 'Estamos revisando su información, por favor vuelve en unos minutos.',
+        walletActivationFailed: 'Lamentablemente, no podemos activar tu billetera en este momento. Chatea con Concierge para obtener más ayuda.',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -858,6 +871,10 @@ export default {
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
         reportFraud: 'Reportar fraude con la tarjeta virtual',
+        reviewTransaction: 'Revisar transacción',
+        suspiciousBannerTitle: 'Transacción sospechosa',
+        suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haga click abajo para revisarla.',
+        cardLocked: 'La tarjeta está temporalmente bloqueada mientras nuestro equipo revisa la cuenta de tu empresa.',
         cardDetails: {
             cardNumber: 'Número de tarjeta virtual',
             expiration: 'Expiración',
@@ -865,6 +882,7 @@ export default {
             address: 'Dirección',
             revealDetails: 'Revelar detalles',
             copyCardNumber: 'Copiar número de la tarjeta',
+            updateAddress: 'Actualizar dirección',
         },
     },
     reportFraudPage: {
@@ -1033,7 +1051,7 @@ export default {
         legalName: 'Nombre completo',
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
-        homeAddress: 'Domicilio',
+        address: 'Dirección',
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
@@ -1209,7 +1227,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email inválido',
-        userIsAlreadyMemberOfWorkspace: ({login, workspace}: UserIsAlreadyMemberOfWorkspaceParams) => `${login} ya es miembro de ${workspace}`,
+        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} ya es miembro de ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -1229,7 +1247,7 @@ export default {
     },
     additionalDetailsStep: {
         headerTitle: 'Detalles adicionales',
-        helpText: 'Necesitamos confirmar la siguiente información antes de que podamos procesar el pago.',
+        helpText: 'Necesitamos confirmar la siguiente información antes de que puedas enviar y recibir dinero desde tu Billetera.',
         helpTextIdologyQuestions: 'Tenemos que preguntarte unas preguntas más para terminar de verificar tu identidad',
         helpLink: 'Obtén más información sobre por qué necesitamos esto.',
         legalFirstNameLabel: 'Primer nombre legal',
@@ -1605,12 +1623,17 @@ export default {
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
         growlMessageOnRenameError: 'No se ha podido cambiar el nombre del espacio de trabajo, por favor, comprueba tu conexión e inténtalo de nuevo.',
         visibilityOptions: {
-            restricted: 'Restringida',
+            restricted: 'Espacio de trabajo', // the translation for "restricted" visibility is actually workspace. This is so we can display restricted visibility rooms as "workspace" without having to change what's stored.
             private: 'Privada',
             public: 'Público',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             public_announce: 'Anuncio Público',
         },
+    },
+    roomMembersPage: {
+        memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón Invitar que está más arriba.',
+        notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte a la sala de chat? Comunícate con el propietario de esta sala de chat para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
+        removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
@@ -2328,7 +2351,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'No activado',
-        outOfPocketSpend: 'Gastos por cuenta propia',
+        outOfPocket: 'Por cuenta propia',
         companySpend: 'Gastos de empresa',
     },
     distance: {
@@ -2350,11 +2373,25 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
     },
+    reportCardLostOrDamaged: {
+        report: 'Notificar la pérdida / daño de la tarjeta física',
+        screenTitle: 'Notificar la pérdida o deterioro de la tarjeta',
+        nextButtonLabel: 'Siguiente',
+        reasonTitle: '¿Por qué necesitas una tarjeta nueva?',
+        cardDamaged: 'Mi tarjeta está dañada',
+        cardLostOrStolen: 'He perdido o me han robado la tarjeta',
+        confirmAddressTitle: 'Confirma que la dirección que aparece a continuación es a la que deseas que te enviemos tu nueva tarjeta.',
+        currentCardInfo: 'La tarjeta actual se desactivará permanentemente en cuanto se realice el pedido. La mayoría de las tarjetas llegan en unos pocos días laborables.',
+        address: 'Dirección',
+        deactivateCardButton: 'Desactivar tarjeta',
+        addressError: 'La dirección es obligatoria',
+        reasonError: 'Se requiere justificación',
+    },
     eReceipt: {
         guaranteed: 'eRecibo garantizado',
         transactionDate: 'Fecha de transacción',
     },
     globalNavigationOptions: {
-        chats: 'Chats',
+        chats: 'Chats', // "Chats" is the accepted term colloqially in Spanish, this is not a bug!!
     },
 } satisfies EnglishTranslation;
