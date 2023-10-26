@@ -2667,6 +2667,7 @@ function submitReport(expenseReport) {
 }
 
 function markAsDone(chatReport, iouReport) {
+    const optimisticReportAction = ReportUtils.buildOptimisticClosedReportAction(iouReport.total, iouReport.currency, iouReport.reportID);
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2676,6 +2677,16 @@ function markAsDone(chatReport, iouReport) {
                 lastReadTime: DateUtils.getDBTime(),
                 hasOutstandingIOU: false,
                 iouReportID: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticReportAction.reportActionID]: {
+                    ...optimisticReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
             },
         },
         {
@@ -2690,7 +2701,39 @@ function markAsDone(chatReport, iouReport) {
         },
     ];
 
-    API.write('MarkAsDone', {iouReportID: iouReport.reportID}, {optimisticData});
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [optimisticReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [iouReport.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                statusNum: CONST.REPORT.STATUS.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            },
+        },
+    ];
+
+    API.write('MarkAsDone', {iouReportID: iouReport.reportID}, {optimisticData, successData, failureData});
 }
 
 function settleMoneyRequest(paymentType, chatReport, iouReport) {

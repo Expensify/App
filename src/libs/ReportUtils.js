@@ -2450,6 +2450,9 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
         case CONST.IOU.REPORT_ACTION_TYPE.DELETE:
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
+        case CONST.IOU.REPORT_ACTION_TYPE.CLOSE:
+            iouMessage = `closed the ${amount} request${comment && ` for ${comment}`}`;
+            break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
@@ -2621,6 +2624,44 @@ function buildOptimisticSubmittedReportAction(amount, currency, expenseReportID)
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency),
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic CLOSED report action with a randomly generated reportActionID for an expense report marked as DONE.
+ *
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {Number} expenseReportID
+ *
+ * @returns {Object}
+ */
+function buildOptimisticDoneReportAction(amount, currency, expenseReportID) {
+    const originalMessage = {
+        amount,
+        currency,
+        expenseReportID,
+    };
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        isAttachment: false,
+        originalMessage,
+        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.CLOSED, Math.abs(amount), '', currency),
         person: [
             {
                 style: 'strong',
@@ -4276,4 +4317,5 @@ export {
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
+    buildOptimisticDoneReportAction,
 };
