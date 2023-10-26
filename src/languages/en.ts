@@ -264,6 +264,7 @@ export default {
         recent: 'Recent',
         all: 'All',
         tbd: 'TBD',
+        selectCurrency: 'Select a currency',
         card: 'Card',
     },
     location: {
@@ -337,10 +338,6 @@ export default {
         paidBy: 'Paid by',
         splitWith: 'Split with',
         whatsItFor: "What's it for?",
-    },
-    iOUCurrencySelection: {
-        selectCurrency: 'Select a currency',
-        allCurrencies: 'All currencies',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
@@ -550,8 +547,9 @@ export default {
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
-        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount} with Expensify`,
+        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         payElsewhere: 'Pay elsewhere',
+        nextSteps: 'Next Steps',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
@@ -583,6 +581,7 @@ export default {
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money`,
+        categorySelection: 'Select a category to add additional organization to your money',
         error: {
             invalidAmount: 'Please enter a valid amount before continuing.',
             invalidSplit: 'Split amounts do not equal total amount',
@@ -594,6 +593,8 @@ export default {
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
         },
+        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
+        enableWallet: 'Enable Wallet',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -857,12 +858,16 @@ export default {
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
         sendAndReceiveMoney: 'Send and receive money from your Expensify Wallet.',
+        enableWalletToSendAndReceiveMoney: 'Enable your Expensify Wallet to start sending and receiving money with friends!',
+        enableWallet: 'Enable wallet',
         bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
         addBankAccount: 'Add bank account',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a Workspace admin to manage company spend.',
         expensifyCard: 'Expensify Card',
+        walletActivationPending: "We're reviewing your information, please check back in a few minutes!",
+        walletActivationFailed: 'Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -870,6 +875,10 @@ export default {
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
         reportFraud: 'Report virtual card fraud',
+        reviewTransaction: 'Review transaction',
+        suspiciousBannerTitle: 'Suspicious transaction',
+        suspiciousBannerDescription: 'We noticed suspicious transaction on your card. Tap below to review.',
+        cardLocked: "Your card is temporarily locked while our team reviews your company's account.",
         cardDetails: {
             cardNumber: 'Virtual card number',
             expiration: 'Expiration',
@@ -1219,7 +1228,7 @@ export default {
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
-        helpText: 'We need to confirm the following information before we can process this payment.',
+        helpText: 'We need to confirm the following information before you can send and receive money from your Wallet.',
         helpTextIdologyQuestions: 'We need to ask you just a few more questions to finish validating your identity.',
         helpLink: 'Learn more about why we need this.',
         legalFirstNameLabel: 'Legal first name',

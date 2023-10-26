@@ -23,6 +23,7 @@ import DistanceEReceipt from '../../DistanceEReceipt';
 import useNetwork from '../../../hooks/useNetwork';
 import ONYXKEYS from '../../../ONYXKEYS';
 import EReceipt from '../../EReceipt';
+import cursor from '../../../styles/utilities/cursor';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -75,6 +76,7 @@ function AttachmentView({
     isWorkspaceAvatar,
     fallbackSource,
     transaction,
+    isUsedInAttachmentModal,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
     const [imageError, setImageError] = useState(false);
@@ -132,6 +134,8 @@ function AttachmentView({
                 onScaleChanged={onScaleChanged}
                 onToggleKeyboard={onToggleKeyboard}
                 onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+                errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [cursor.cursorAuto]}
+                style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
             />
         );
     }

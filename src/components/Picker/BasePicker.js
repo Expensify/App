@@ -283,7 +283,7 @@ BasePicker.propTypes = propTypes;
 BasePicker.defaultProps = defaultProps;
 BasePicker.displayName = 'BasePicker';
 
-export default React.forwardRef((props, ref) => (
+const BasePickerWithRef = React.forwardRef((props, ref) => (
     <BasePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
@@ -293,3 +293,7 @@ export default React.forwardRef((props, ref) => (
         key={props.inputID}
     />
 ));
+
+BasePickerWithRef.displayName = 'BasePickerWithRef';
+
+export default BasePickerWithRef;

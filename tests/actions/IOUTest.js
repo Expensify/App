@@ -8,10 +8,10 @@ import * as TestHelper from '../utils/TestHelper';
 import DateUtils from '../../src/libs/DateUtils';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as ReportActions from '../../src/libs/actions/ReportActions';
+import * as ReportUtils from '../../src/libs/ReportUtils';
 import * as Report from '../../src/libs/actions/Report';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
-import * as ReportUtils from '../../src/libs/ReportUtils';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import * as PolicyActions from '../../src/libs/actions/Policy';
 import * as PersonalDetailsUtils from '../../src/libs/PersonalDetailsUtils';
@@ -1383,6 +1383,469 @@ describe('actions/IOU', () => {
                                     expect(payIOUAction).toBeTruthy();
                                     expect(payIOUAction.pendingAction).toBeFalsy();
 
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
+    });
+
+    describe('edit money request', () => {
+        const amount = 10000;
+        const comment = '💸💸💸💸';
+        const merchant = 'NASDAQ';
+
+        afterEach(() => {
+            fetch.resume();
+        });
+
+        it('updates the IOU request and IOU report when offline', () => {
+            let thread = {};
+            let iouReport = {};
+            let iouAction = {};
+            let transaction = {};
+
+            fetch.pause();
+            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
+            return waitForBatchedUpdates()
+                .then(() => {
+                    Onyx.set(ONYXKEYS.SESSION, {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID});
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                                waitForCollectionCallback: true,
+                                callback: (reportActionsForIOUReport) => {
+                                    Onyx.disconnect(connectionID);
+
+                                    [iouAction] = _.filter(reportActionsForIOUReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                                waitForCollectionCallback: true,
+                                callback: (allTransactions) => {
+                                    Onyx.disconnect(connectionID);
+
+                                    transaction = _.find(allTransactions, (t) => !_.isEmpty(t));
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    thread = ReportUtils.buildTransactionThread(iouAction, iouReport.reportID);
+                    Onyx.set(`report_${thread.reportID}`, thread);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    IOU.editMoneyRequest(transaction.transactionID, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                                waitForCollectionCallback: true,
+                                callback: (allTransactions) => {
+                                    Onyx.disconnect(connectionID);
+
+                                    const updatedTransaction = _.find(allTransactions, (t) => !_.isEmpty(t));
+                                    expect(updatedTransaction.modifiedAmount).toBe(20000);
+                                    expect(updatedTransaction.comment).toMatchObject({comment: 'Double the amount!'});
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
+                                waitForCollectionCallback: true,
+                                callback: (allActions) => {
+                                    Onyx.disconnect(connectionID);
+                                    const updatedAction = _.find(allActions, (reportAction) => !_.isEmpty(reportAction));
+                                    expect(updatedAction.actionName).toEqual('MODIFIEDEXPENSE');
+                                    expect(updatedAction.originalMessage).toEqual(
+                                        expect.objectContaining({amount: 20000, newComment: 'Double the amount!', oldAmount: amount, oldComment: comment}),
+                                    );
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    const updatedIOUReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    const updatedChatReport = _.find(allReports, (report) => report.reportID === iouReport.chatReportID);
+                                    expect(updatedIOUReport).toEqual(
+                                        expect.objectContaining({
+                                            total: 20000,
+                                            cachedTotal: '$200.00',
+                                            lastMessageHtml: 'requested $200.00',
+                                            lastMessageText: 'requested $200.00',
+                                        }),
+                                    );
+                                    expect(updatedChatReport).toEqual(
+                                        expect.objectContaining({
+                                            lastMessageHtml: 'undefined owes $200.00',
+                                            lastMessageText: 'undefined owes $200.00',
+                                        }),
+                                    );
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    fetch.resume();
+                });
+        });
+
+        it('resets the IOU request and IOU report when api returns an error', () => {
+            let thread = {};
+            let iouReport = {};
+            let iouAction = {};
+            let transaction = {};
+
+            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
+            return waitForBatchedUpdates()
+                .then(() => {
+                    Onyx.set(ONYXKEYS.SESSION, {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID});
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    [iouReport] = _.filter(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                                waitForCollectionCallback: true,
+                                callback: (reportActionsForIOUReport) => {
+                                    Onyx.disconnect(connectionID);
+
+                                    [iouAction] = _.filter(reportActionsForIOUReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                                waitForCollectionCallback: true,
+                                callback: (allTransactions) => {
+                                    Onyx.disconnect(connectionID);
+
+                                    transaction = _.find(allTransactions, (t) => !_.isEmpty(t));
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    thread = ReportUtils.buildTransactionThread(iouAction, iouReport.reportID);
+                    Onyx.set(`report_${thread.reportID}`, thread);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    fetch.fail();
+                    IOU.editMoneyRequest(transaction.transactionID, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                                waitForCollectionCallback: true,
+                                callback: (allTransactions) => {
+                                    Onyx.disconnect(connectionID);
+
+                                    const updatedTransaction = _.find(allTransactions, (t) => !_.isEmpty(t));
+                                    expect(updatedTransaction.modifiedAmount).toBe(undefined);
+                                    expect(updatedTransaction.amount).toBe(10000);
+                                    expect(updatedTransaction.comment).toMatchObject({comment});
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
+                                waitForCollectionCallback: true,
+                                callback: (allActions) => {
+                                    Onyx.disconnect(connectionID);
+                                    const updatedAction = _.find(allActions, (reportAction) => !_.isEmpty(reportAction));
+                                    expect(updatedAction.actionName).toEqual('MODIFIEDEXPENSE');
+                                    expect(_.values(updatedAction.errors)).toEqual(expect.arrayContaining(['iou.error.genericEditFailureMessage']));
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    const updatedIOUReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    const updatedChatReport = _.find(allReports, (report) => report.reportID === iouReport.chatReportID);
+                                    expect(updatedIOUReport).toEqual(
+                                        expect.objectContaining({
+                                            total: 10000,
+                                            cachedTotal: '$100.00',
+                                            lastMessageHtml: `requested $${amount / 100}.00 for ${comment}`,
+                                            lastMessageText: `requested $${amount / 100}.00 for ${comment}`,
+                                        }),
+                                    );
+                                    expect(updatedChatReport).toEqual(
+                                        expect.objectContaining({
+                                            lastMessageHtml: '',
+                                        }),
+                                    );
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
+    });
+
+    describe('pay expense report via ACH', () => {
+        const amount = 10000;
+        const comment = '💸💸💸💸';
+        const merchant = 'NASDAQ';
+
+        afterEach(() => {
+            fetch.resume();
+        });
+
+        it('updates the expense request and expense report when paid while offline', () => {
+            let expenseReport = {};
+            let chatReport = {};
+
+            fetch.pause();
+            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            return waitForBatchedUpdates()
+                .then(() => {
+                    PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    chatReport = _.find(allReports, (report) => report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+                                waitForCollectionCallback: true,
+                                callback: (allActions) => {
+                                    Onyx.disconnect(connectionID);
+                                    expect(_.values(allActions)).toEqual(
+                                        expect.arrayContaining([
+                                            expect.objectContaining({
+                                                message: expect.arrayContaining([
+                                                    expect.objectContaining({
+                                                        html: `paid $${amount / 100}.00 with Expensify`,
+                                                        text: `paid $${amount / 100}.00 with Expensify`,
+                                                    }),
+                                                ]),
+                                                originalMessage: expect.objectContaining({
+                                                    amount,
+                                                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                                                    type: 'pay',
+                                                }),
+                                            }),
+                                        ]),
+                                    );
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    const updatedIOUReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    const updatedChatReport = _.find(allReports, (report) => report.reportID === expenseReport.chatReportID);
+                                    expect(updatedIOUReport).toEqual(
+                                        expect.objectContaining({
+                                            lastMessageHtml: `paid $${amount / 100}.00 with Expensify`,
+                                            lastMessageText: `paid $${amount / 100}.00 with Expensify`,
+                                            state: CONST.REPORT.STATE.SUBMITTED,
+                                            statusNum: CONST.REPORT.STATUS.REIMBURSED,
+                                            stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
+                                        }),
+                                    );
+                                    expect(updatedChatReport).toEqual(
+                                        expect.objectContaining({
+                                            lastMessageHtml: `paid $${amount / 100}.00 with Expensify`,
+                                            lastMessageText: `paid $${amount / 100}.00 with Expensify`,
+                                        }),
+                                    );
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
+
+        it('shows an error when paying results in an error', () => {
+            let expenseReport = {};
+            let chatReport = {};
+
+            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            return waitForBatchedUpdates()
+                .then(() => {
+                    PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    chatReport = _.find(allReports, (report) => report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    fetch.fail();
+                    IOU.payMoneyRequest('ACH', chatReport, expenseReport);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+                                waitForCollectionCallback: true,
+                                callback: (allActions) => {
+                                    Onyx.disconnect(connectionID);
+                                    const erroredAction = _.find(_.values(allActions), (action) => !_.isEmpty(action.errors));
+                                    expect(_.values(erroredAction.errors)).toEqual(expect.arrayContaining(['iou.error.other']));
                                     resolve();
                                 },
                             });
