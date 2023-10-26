@@ -306,16 +306,18 @@ SuggestionMention.propTypes = propTypes;
 SuggestionMention.defaultProps = defaultProps;
 SuggestionMention.displayName = 'SuggestionMention';
 
+const SuggestionMentionWithRef = React.forwardRef((props, ref) => (
+    <SuggestionMention
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+SuggestionMentionWithRef.displayName = 'SuggestionMentionWithRef';
+
 export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
-})(
-    React.forwardRef((props, ref) => (
-        <SuggestionMention
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+})(SuggestionMentionWithRef);
