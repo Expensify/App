@@ -104,19 +104,17 @@ function MoneyRequestParticipantsSelector({
         const newSections = [];
         let indexOffset = 0;
 
-        // Only show the selected participants if the search is empty
-        if (searchTerm === '') {
-            newSections.push({
-                title: undefined,
-                data: _.map(participants, (participant) => {
-                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
-                }),
-                shouldShow: true,
-                indexOffset,
-            });
-            indexOffset += participants.length;
-        }
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
+            searchTerm,
+            participants,
+            newChatOptions.recentReports,
+            newChatOptions.personalDetails,
+            personalDetails,
+            true,
+            indexOffset,
+        );
+        newSections.push(formatResults.section);
+        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return newSections;
@@ -285,6 +283,16 @@ MoneyRequestParticipantsSelector.propTypes = propTypes;
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
+const MoneyRequestParticipantsSelectorWithRef = React.forwardRef((props, ref) => (
+    <MoneyRequestParticipantsSelector
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+MoneyRequestParticipantsSelectorWithRef.displayName = 'MoneyRequestParticipantsSelectorWithRef';
+
 export default compose(
     withLocalize,
     withOnyx({
@@ -298,12 +306,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(
-    React.forwardRef((props, ref) => (
-        <MoneyRequestParticipantsSelector
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(MoneyRequestParticipantsSelectorWithRef);
