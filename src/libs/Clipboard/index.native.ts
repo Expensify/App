@@ -1,8 +1,8 @@
-import Clipboard from '@react-native-community/clipboard';
+import Clipboard from '@react-native-clipboard/clipboard';
 import {SetString, CanSetHtml, SetHtml} from './types';
 
 /**
- * Sets a string on the Clipboard object via @react-native-community/clipboard
+ * Sets a string on the Clipboard object via @react-native-clipboard/clipboard
  */
 const setString: SetString = (text) => {
     Clipboard.setString(text);
