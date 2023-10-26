@@ -143,8 +143,6 @@ function BaseInvertedFlatList(props) {
     );
 }
 
-// Note: this is a test change to a JS file
-
 BaseInvertedFlatList.propTypes = propTypes;
 BaseInvertedFlatList.defaultProps = defaultProps;
 BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
