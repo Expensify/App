@@ -2125,7 +2125,7 @@ function getParentNavigationSubtitle(report) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isDM(report) && participantAccountIDs.length === 1) {
+    if (isOneOnOneChat(report)) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
         return;
     }
