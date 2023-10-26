@@ -350,7 +350,7 @@ button {
         img {
             display: block;
             margin: 20px auto;
-            border-radius: 10px;
+            border-radius: 16px;
 
             @include maxBreakpoint($breakpoint-tablet) {
                 width: 100%;
@@ -546,7 +546,7 @@ button {
         align-items: center;
 
         img {
-            border-radius: 12px;
+            border-radius: 16px;
             width: 100%;
         }
     }
