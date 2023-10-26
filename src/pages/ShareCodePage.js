@@ -97,6 +97,15 @@ class ShareCodePage extends React.Component {
                     </View>
 
                     <View style={{marginTop: 36}}>
+                        <MenuItem
+                            isAnonymousAction
+                            // TODO: Use translation with a const
+                            title="Get 250$"
+                            icon={Expensicons.Cash}
+                            // TODO: Navigate to the Referral Details Page
+                            // onPress={() => Navigation.navigate()}
+                        />
+
                         <ContextMenuItem
                             isAnonymousAction
                             text={this.props.translate('qrCodes.copyUrlToClipboard')}
