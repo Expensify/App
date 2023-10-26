@@ -155,6 +155,12 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
         }
         App.setLocale(Localize.getDevicePreferredLocale());
     }, [preferredLocale]);
+    useEffect(() => {
+        // If we don't have a login set, reset the user's login preference (SSO or magic code)
+        if (!credentials.login && isUsingMagicCode) {
+            setIsUsingMagicCode(false);
+        }
+    }, [credentials.login, isUsingMagicCode, setIsUsingMagicCode])
 
     const {
         shouldShowLoginForm,
@@ -249,7 +255,6 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
                             <ValidateCodeForm
                                 isUsingRecoveryCode={isUsingRecoveryCode}
                                 setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                                setIsUsingMagicCode={setIsUsingMagicCode}
                             />
                         )}
                         {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
