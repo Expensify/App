@@ -20,6 +20,7 @@ import reportPropTypes from '../../reportPropTypes';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 import {ReactionListContext} from '../ReportScreenContext';
+import useInitialValue from '../../../hooks/useInitialValue';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -71,9 +72,9 @@ function ReportActionsView(props) {
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const isFirstRender = useRef(true);
-    const hasCachedActions = useRef(_.size(props.reportActions) > 0);
+    const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
+    const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
 
-    const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
     const prevNetworkRef = useRef(props.network);
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
@@ -204,7 +205,7 @@ function ReportActionsView(props) {
         }
 
         didLayout.current = true;
-        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions.current ? CONST.TIMING.WARM : CONST.TIMING.COLD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions ? CONST.TIMING.WARM : CONST.TIMING.COLD);
 
         // Capture the init measurement only once not per each chat switch as the value gets overwritten
         if (!ReportActionsView.initMeasured) {
@@ -226,7 +227,7 @@ function ReportActionsView(props) {
                 report={props.report}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}
+                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 isLoadingInitialReportActions={props.isLoadingInitialReportActions}
