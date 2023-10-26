@@ -28,7 +28,7 @@ import * as UserUtils from './UserUtils';
 import {Beta, Login, PersonalDetails, Policy, Report, ReportAction, Transaction} from '../types/onyx';
 import {Receipt, WaypointCollection} from '../types/onyx/Transaction';
 import DeepValueOf from '../types/utils/DeepValueOf';
-import {IOUMessage} from '../types/onyx/OriginalMessage';
+import {IOUMessage, OriginalMessageActionName} from '../types/onyx/OriginalMessage';
 import {Message, ReportActions} from '../types/onyx/ReportAction';
 import {PendingAction} from '../types/onyx/OnyxCommon';
 
@@ -220,6 +220,23 @@ type OptimisticChatReport = Pick<
     | 'writeCapability'
 >;
 
+type OptimisticTaskReportAction = Pick<
+    ReportAction,
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'created'
+    | 'isAttachment'
+    | 'message'
+    | 'originalMessage'
+    | 'person'
+    | 'pendingAction'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'isFirstItem'
+>;
+
 type OptimisticWorkspaceChats = {
     announceChatReportID: string;
     announceChatData: OptimisticChatReport;
@@ -234,6 +251,65 @@ type OptimisticWorkspaceChats = {
     expenseReportActionData: Record<string, OptimisticCreatedReportAction>;
     expenseCreatedReportActionID: string;
 };
+
+type OptimisticModifiedExpenseReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'isAttachment' | 'message' | 'originalMessage' | 'person' | 'pendingAction' | 'reportActionID' | 'shouldShow'
+> & {reportID?: string};
+
+type OptimisticTaskReport = Pick<
+    Report,
+    | 'reportID'
+    | 'reportName'
+    | 'description'
+    | 'ownerAccountID'
+    | 'participantAccountIDs'
+    | 'managerID'
+    | 'type'
+    | 'parentReportID'
+    | 'policyID'
+    | 'stateNum'
+    | 'statusNum'
+    | 'notificationPreference'
+>;
+
+type TransactionDetails =
+    | {
+          created: string;
+          amount: number;
+          currency: string;
+          merchant: string;
+          waypoints?: WaypointCollection;
+          comment: string;
+          category: string;
+          billable: boolean;
+          tag: string;
+          mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+          cardID: number;
+          originalAmount: number;
+          originalCurrency: string;
+      }
+    | undefined;
+
+type OptimisticIOUReport = Pick<
+    Report,
+    | 'cachedTotal'
+    | 'hasOutstandingIOU'
+    | 'type'
+    | 'chatReportID'
+    | 'currency'
+    | 'managerID'
+    | 'ownerAccountID'
+    | 'participantAccountIDs'
+    | 'reportID'
+    | 'state'
+    | 'stateNum'
+    | 'total'
+    | 'reportName'
+    | 'notificationPreference'
+    | 'parentReportID'
+    | 'statusNum'
+>;
 
 function checkIfCorrectType<T>(arg: T | Record<string, never>): arg is T {
     // TODO: change it to correct type guard
@@ -279,7 +355,7 @@ let doesDomainHaveApprovedAccountant = false;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     // Check if I remove that will cause regressions
-    waitForCollectionCallback: true,
+    // waitForCollectionCallback: true,
     callback: (value) => (doesDomainHaveApprovedAccountant = value?.doesDomainHaveApprovedAccountant ?? false),
 });
 
@@ -430,6 +506,7 @@ function sortReportsByLastRead(reports: OnyxCollection<Report>): Array<OnyxEntry
         .sort((a, b) => {
             const aTime = new Date(a?.lastReadTime ?? '');
             const bTime = new Date(b?.lastReadTime ?? '');
+            // @ts-expect-error It's ok to subtract dates
             return aTime - bTime;
         });
 }
@@ -777,7 +854,7 @@ function isChildReport(report: OnyxEntry<Report>): boolean {
  * An Expense Request is a thread where the parent report is an Expense Report and
  * the parentReportAction is a transaction.
  */
-function isExpenseRequest(report?: OnyxEntry<Report>): boolean {
+function isExpenseRequest(report: OnyxEntry<Report>): boolean {
     if (report && isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
@@ -790,7 +867,7 @@ function isExpenseRequest(report?: OnyxEntry<Report>): boolean {
  * An IOU Request is a thread where the parent report is an IOU Report and
  * the parentReportAction is a transaction.
  */
-function isIOURequest(report?: OnyxEntry<Report>): boolean {
+function isIOURequest(report: OnyxEntry<Report>): boolean {
     if (report && isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
@@ -803,14 +880,14 @@ function isIOURequest(report?: OnyxEntry<Report>): boolean {
  * Checks if a report is an IOU or expense request.
  */
 function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
-    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
+    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return isIOURequest(report) || isExpenseRequest(report);
 }
 
 /**
  * Checks if a report is an IOU or expense report.
  */
-function isMoneyRequestReport(reportOrID?: OnyxEntry<Report> | string): boolean {
+function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | string): boolean {
     const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
     return isIOUReport(report) || isExpenseReport(report);
 }
@@ -1355,6 +1432,7 @@ function isWaitingForIOUActionFromCurrentUser(report: OnyxEntry<Report>): boolea
  *
  * @param  parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  */
+// TODO: TEST IT CAREFULLY
 function isWaitingForTaskCompleteFromAssignee(report: OnyxEntry<Report>, parentReportAction?: OnyxEntry<ReportAction>): boolean {
     return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
 }
@@ -1368,7 +1446,7 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
     return allTransactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
-function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report> | undefined, allReportsDict?: OnyxCollection<Report>): number {
+function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsDict?: OnyxCollection<Report>): number {
     const allAvailableReports = allReportsDict ?? allReports;
     let moneyRequestReport;
     if (isMoneyRequestReport(report)) {
@@ -1480,23 +1558,6 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
     return payerPaidAmountMessage;
 }
 
-type TransactionDetails =
-    | {
-          created: string;
-          amount: number;
-          currency: string;
-          merchant: string;
-          waypoints?: WaypointCollection;
-          comment: string;
-          category: string;
-          billable: boolean;
-          tag: string;
-          mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-          cardID: number;
-          originalAmount: number;
-          originalCurrency: string;
-      }
-    | undefined;
 /**
  * Gets transaction created, amount, currency, comment, and waypoints (for distance request)
  * into a flat object. Used for displaying transactions and sending them in API commands
@@ -1776,7 +1837,7 @@ function getProperSchemaForModifiedExpenseMessage(newValue: string, oldValue: st
 /**
  * Get the proper message schema for modified distance message.
  */
-function getProperSchemaForModifiedDistanceMessage(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string) {
+function getProperSchemaForModifiedDistanceMessage(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string): string {
     if (!oldDistance) {
         return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
     }
@@ -1939,7 +2000,7 @@ function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | Record<
  * Returns the root parentReport if the given report is nested.
  * Uses recursion to iterate any depth of nested reports.
  */
-function getRootParentReport(report?: OnyxEntry<Report>): OnyxEntry<Report> | Record<string, never> {
+function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | Record<string, never> {
     if (!report) {
         return {};
     }
@@ -2019,7 +2080,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
  * Recursively navigates through thread parents to get the root report and workspace name.
  * The recursion stops when we find a non thread or money request report, whichever comes first.
  */
-function getRootReportAndWorkspaceName(report: OnyxEntry<Report> | undefined): ReportAndWorkspaceName {
+function getRootReportAndWorkspaceName(report: OnyxEntry<Report>): ReportAndWorkspaceName {
     if (!report) {
         return {
             rootReportName: '',
@@ -2027,7 +2088,7 @@ function getRootReportAndWorkspaceName(report: OnyxEntry<Report> | undefined): R
         };
     }
     if (isChildReport(report) && !isMoneyRequestReport(report) && !isTaskReport(report)) {
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
         return getRootReportAndWorkspaceName(parentReport);
     }
 
@@ -2078,7 +2139,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
  */
 function getReportAndWorkspaceName(report: OnyxEntry<Report>): ReportAndWorkspaceName | Record<string, never> {
     if (isThread(report)) {
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
         const {rootReportName, workspaceName} = getRootReportAndWorkspaceName(parentReport);
         if (!rootReportName) {
             return {};
@@ -2094,7 +2155,7 @@ function getReportAndWorkspaceName(report: OnyxEntry<Report>): ReportAndWorkspac
  */
 function getParentNavigationSubtitle(report: OnyxEntry<Report>) {
     if (isThread(report)) {
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
         const {rootReportName, workspaceName} = getRootReportAndWorkspaceName(parentReport);
         if (!rootReportName) {
             return {};
@@ -2312,25 +2373,6 @@ function buildOptimisticTaskCommentReportAction(
  * @param  isSendingMoney - If we send money the IOU should be created as settled
  */
 
-type OptimisticIOUReport = Pick<
-    Report,
-    | 'cachedTotal'
-    | 'hasOutstandingIOU'
-    | 'type'
-    | 'chatReportID'
-    | 'currency'
-    | 'managerID'
-    | 'ownerAccountID'
-    | 'participantAccountIDs'
-    | 'reportID'
-    | 'state'
-    | 'stateNum'
-    | 'total'
-    | 'reportName'
-    | 'notificationPreference'
-    | 'parentReportID'
-    | 'statusNum'
->;
 function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number, total: number, chatReportID: string, currency: string, isSendingMoney = false): OptimisticIOUReport {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
@@ -2664,7 +2706,7 @@ function buildOptimisticModifiedExpenseReportAction(
     oldTransaction: OnyxEntry<Transaction>,
     transactionChanges: ExpenseOriginalMessage,
     isFromExpenseReport: boolean,
-) {
+): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport);
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
@@ -2685,7 +2727,7 @@ function buildOptimisticModifiedExpenseReportAction(
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserAccountID,
+                text: currentUserPersonalDetails?.displayName ?? String(currentUserAccountID),
                 type: 'TEXT',
             },
         ],
@@ -2753,13 +2795,12 @@ function updateReportPreview(
     };
 }
 
-function buildOptimisticTaskReportAction(taskReportID: string, actionName: DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>, message = '') {
+function buildOptimisticTaskReportAction(taskReportID: string, actionName: OriginalMessageActionName, message = ''): OptimisticTaskReportAction {
     const originalMessage = {
         taskReportID,
         type: actionName,
         text: message,
     };
-
     return {
         actionName,
         actorAccountID: currentUserAccountID,
@@ -2777,7 +2818,7 @@ function buildOptimisticTaskReportAction(taskReportID: string, actionName: DeepV
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserAccountID,
+                text: currentUserPersonalDetails?.displayName ?? String(currentUserAccountID),
                 type: 'TEXT',
             },
         ],
@@ -3009,22 +3050,6 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string): Op
     };
 }
 
-type OptimisticTaskReport = Pick<
-    Report,
-    | 'reportID'
-    | 'reportName'
-    | 'description'
-    | 'ownerAccountID'
-    | 'participantAccountIDs'
-    | 'managerID'
-    | 'type'
-    | 'parentReportID'
-    | 'policyID'
-    | 'stateNum'
-    | 'statusNum'
-    | 'notificationPreference'
->;
-
 /**
  * Builds an optimistic Task Report with a randomly generated reportID
  *
@@ -3067,12 +3092,12 @@ function buildOptimisticTaskReport(
  *
  * @param moneyRequestReportID - the reportID which the report action belong to
  */
-function buildTransactionThread(reportAction: OnyxEntry<ReportAction>, moneyRequestReportID: string) {
+function buildTransactionThread(reportAction: OnyxEntry<ReportAction>, moneyRequestReportID: string): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
     return buildOptimisticChatReport(
         participantAccountIDs,
         getTransactionReportName(reportAction),
-        '',
+        undefined,
         getReport(moneyRequestReportID)?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
         CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
@@ -3770,8 +3795,8 @@ type OnyxDataTaskAssigneeChat = {
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
-    optimisticAssigneeAddComment: OptimisticReportAction;
-    optimisticChatCreatedReportAction: Pick<
+    optimisticAssigneeAddComment?: OptimisticReportAction;
+    optimisticChatCreatedReportAction?: Pick<
         ReportAction,
         'reportActionID' | 'actionName' | 'pendingAction' | 'actorAccountID' | 'message' | 'person' | 'automatic' | 'avatar' | 'created' | 'shouldShow'
     >;
@@ -3789,15 +3814,15 @@ function getTaskAssigneeChatOnyxData(
     parentReportID: string,
     title: string,
     assigneeChatReport: OnyxEntry<Report>,
-) {
+): OnyxDataTaskAssigneeChat {
     // Set if we need to add a comment to the assignee chat notifying them that they have been assigned a task
     let optimisticAssigneeAddComment;
     // Set if this is a new chat that needs to be created for the assignee
     let optimisticChatCreatedReportAction;
     const currentTime = DateUtils.getDBTime();
-    const optimisticData = [];
-    const successData = [];
-    const failureData = [];
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
 
     // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
     // Only add the assignee chat report to onyx if we haven't already set it optimistically

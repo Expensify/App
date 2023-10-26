@@ -3,7 +3,23 @@ import CONST from '../../CONST';
 import DeepValueOf from '../utils/DeepValueOf';
 
 type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
-
+type OriginalMessageActionName =
+    | 'ADDCOMMENT'
+    | 'APPROVED'
+    | 'CHRONOSOOOLIST'
+    | 'CLOSED'
+    | 'CREATED'
+    | 'IOU'
+    | 'MODIFIEDEXPENSE'
+    | 'REIMBURSEMENTQUEUED'
+    | 'RENAMED'
+    | 'REPORTPREVIEW'
+    | 'SUBMITTED'
+    | 'TASKCANCELLED'
+    | 'TASKCOMPLETED'
+    | 'TASKEDITED'
+    | 'TASKREOPENED'
+    | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
     originalMessage: unknown;
@@ -184,4 +200,4 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName};
