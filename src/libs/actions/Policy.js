@@ -33,6 +33,7 @@ Onyx.connect({
             _.each(policyReports, ({reportID}) => {
                 cleanUpMergeQueries[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {hasDraft: false};
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
             Onyx.multiSet(cleanUpSetQueries);
@@ -114,6 +115,12 @@ function deleteWorkspace(policyID, reports, policyName) {
                 hasDraft: false,
                 oldPolicyName: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].name,
             },
+        })),
+
+        ..._.map(reports, ({reportID}) => ({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`,
+            value: null,
         })),
 
         // Add closed actions to all chat reports linked to this policy
