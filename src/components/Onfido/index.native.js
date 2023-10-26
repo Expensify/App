@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {useEffect} from 'react';
-import {Alert, Linking, Platform} from 'react-native';
+import {Alert, Linking} from 'react-native';
 import {RESULTS, PERMISSIONS, checkMultiple} from 'react-native-permissions';
 import {Onfido as OnfidoSDK, OnfidoCaptureType, OnfidoDocumentType, OnfidoCountryCode} from '@onfido/react-native-sdk';
 import onfidoPropTypes from './onfidoPropTypes';
@@ -9,6 +9,7 @@ import CONST from '../../CONST';
 import Log from '../../libs/Log';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import useLocalize from '../../hooks/useLocalize';
+import getPlatform from '../../libs/getPlatform';
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
     const {translate} = useLocalize();
@@ -41,14 +42,10 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
                 }
 
                 if (!_.isEmpty(errorMessage)) {
-                    const micPermission = Platform.select({
-                        android: PERMISSIONS.ANDROID.RECORD_AUDIO,
-                        ios: PERMISSIONS.IOS.MICROPHONE,
-                    });
-                    const cameraPermission = Platform.select({
-                        android: PERMISSIONS.ANDROID.CAMERA,
-                        ios: PERMISSIONS.IOS.CAMERA,
-                    });
+                    const os = getPlatform();
+                    const micPermission = os === CONST.PLATFORM.IOS ? PERMISSIONS.IOS.MICROPHONE : PERMISSIONS.ANDROID.RECORD_AUDIO;
+                    const cameraPermission = os === CONST.PLATFORM.IOS ? PERMISSIONS.IOS.CAMERA : PERMISSIONS.ANDROID.CAMERA;
+
                     checkMultiple([micPermission, cameraPermission]).then((statuses) => {
                         const isMicAllowed = statuses[micPermission] === RESULTS.GRANTED;
                         const isCameraAllowed = statuses[cameraPermission] === RESULTS.GRANTED;
