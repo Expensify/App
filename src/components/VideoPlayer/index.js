@@ -108,7 +108,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             style={style}
                             videoStyle={videoStyle}
                             source={{
-                                uri: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
+                                uri: url || 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
                             }}
                             shouldPlay={shouldPlay}
                             useNativeControls={false}

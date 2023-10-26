@@ -29,6 +29,7 @@ import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {SidebarNavigationContextProvider} from './pages/home/sidebar/SidebarNavigationContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
+import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -70,6 +71,7 @@ function App() {
                     PlaybackContextProvider,
                     SidebarNavigationContextProvider,
                     VolumeContextProvider,
+                    VideoPopoverMenuContextProvider,
                 ]}
             >
                 <CustomStatusBar />

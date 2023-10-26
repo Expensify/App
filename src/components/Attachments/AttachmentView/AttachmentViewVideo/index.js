@@ -10,10 +10,8 @@ const propTypes = {
 };
 
 function AttachmentViewVideo({source}) {
-    const {currentlyPlayingURL} = usePlaybackContext();
     const {isSmallScreenWidth} = useWindowDimensions();
-
-    const shouldUseSharedElementTransition = !isSmallScreenWidth && currentlyPlayingURL === source;
+    const shouldUseSharedElementTransition = !isSmallScreenWidth;
 
     return (
         <VideoPlayer
