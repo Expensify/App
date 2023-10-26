@@ -92,7 +92,7 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
-function translateLocal<TKey extends TranslationPaths>(phrase: TKey, variables: PhraseParameters<Phrase<TKey>>) {
+function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variables: PhraseParameters<Phrase<TKey>>) {
     return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
 }
 
@@ -114,7 +114,7 @@ function translateIfPhraseKey<TKey extends TranslationPaths>(message: TKey | [TK
             return phrase as string;
         }
 
-        return translateLocal(phrase, variables as PhraseParameters<Phrase<TKey>>);
+        return translateLocal(phrase, ...variables);
     } catch (error) {
         const result: string = Array.isArray(message) ? message[0] : message;
         return result;
