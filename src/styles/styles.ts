@@ -36,6 +36,7 @@ import writingDirection from './utilities/writingDirection';
 import variables from './variables';
 import colors from './colors';
 import objectFit from './utilities/objectFit';
+import textDecorationLine from './utilities/textDecorationLine';
 
 type AnchorPosition = {
     horizontal: number;
@@ -227,6 +228,7 @@ const styles = (theme: ThemeDefault) =>
         ...userSelect,
         ...textUnderline,
         ...objectFit,
+        ...textDecorationLine,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
@@ -480,7 +482,9 @@ const styles = (theme: ThemeDefault) =>
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
             justifyContent: 'center',
+            alignItems: 'center',
             ...spacing.ph3,
+            ...spacing.pv0,
         },
 
         buttonContainer: {
@@ -507,18 +511,14 @@ const styles = (theme: ThemeDefault) =>
         buttonSmall: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeSmall,
-            paddingTop: 4,
             paddingHorizontal: 14,
-            paddingBottom: 4,
             backgroundColor: theme.buttonDefaultBG,
         },
 
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
-            paddingTop: 12,
             paddingRight: 16,
-            paddingBottom: 12,
             paddingLeft: 16,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -526,9 +526,7 @@ const styles = (theme: ThemeDefault) =>
         buttonLarge: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
-            paddingTop: 8,
             paddingRight: 10,
-            paddingBottom: 8,
             paddingLeft: 10,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -609,7 +607,6 @@ const styles = (theme: ThemeDefault) =>
         },
 
         buttonCTA: {
-            paddingVertical: 6,
             ...spacing.mh4,
         },
 
@@ -1641,6 +1638,10 @@ const styles = (theme: ThemeDefault) =>
         LHNToggleIcon: {
             height: 15,
             width: 18,
+        },
+
+        chatContentScrollViewWithHeaderLoader: {
+            paddingTop: CONST.CHAT_HEADER_LOADER_HEIGHT,
         },
 
         chatContentScrollView: {
@@ -2894,16 +2895,6 @@ const styles = (theme: ThemeDefault) =>
             width: variables.sideBarWidth - 68,
         },
 
-        cardOverlay: {
-            backgroundColor: theme.overlay,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            opacity: variables.overlayOpacity,
-        },
-
         shortTermsBorder: {
             borderWidth: 1,
             borderColor: theme.border,
@@ -3901,6 +3892,15 @@ const styles = (theme: ThemeDefault) =>
         draggableTopBar: {
             height: 30,
             width: '100%',
+        },
+
+        chatBottomLoader: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: CONST.CHAT_HEADER_LOADER_HEIGHT,
         },
 
         videoContainer: {

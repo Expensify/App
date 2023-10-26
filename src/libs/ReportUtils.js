@@ -3203,8 +3203,8 @@ function canSeeDefaultRoom(report, policies, betas) {
 
 /**
  * @param {Object} report
- * @param {Array<Object>} policies
- * @param {Array<String>} betas
+ * @param {Object | null} policies
+ * @param {Array<String> | null} betas
  * @param {Object} allReportActions
  * @returns {Boolean}
  */
@@ -3259,6 +3259,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         !report ||
         !report.reportID ||
         !report.type ||
+        report.reportName === undefined ||
         report.isHidden ||
         (report.participantAccountIDs &&
             report.participantAccountIDs.length === 0 &&
@@ -3293,6 +3294,11 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     // Include reports if they are pinned
     if (report.isPinned) {
         return true;
+    }
+
+    // Hide only chat threads that haven't been commented on (other threads are actionable)
+    if (isChatThread(report) && canHideReport && isEmptyChat) {
+        return false;
     }
 
     // Include reports that have errors from trying to add a workspace

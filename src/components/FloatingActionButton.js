@@ -118,10 +118,14 @@ FloatingActionButton.defaultProps = defaultProps;
 
 const FloatingActionButtonWithLocalize = withLocalize(FloatingActionButton);
 
-export default React.forwardRef((props, ref) => (
+const FloatingActionButtonWithLocalizeWithRef = React.forwardRef((props, ref) => (
     <FloatingActionButtonWithLocalize
         // eslint-disable-next-line
         {...props}
         buttonRef={ref}
     />
 ));
+
+FloatingActionButtonWithLocalizeWithRef.displayName = 'FloatingActionButtonWithLocalizeWithRef';
+
+export default FloatingActionButtonWithLocalizeWithRef;
