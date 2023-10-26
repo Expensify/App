@@ -1,11 +1,11 @@
 import React, {createContext, useState, useEffect, useMemo, ComponentType, RefAttributes, ForwardedRef} from 'react';
 import PropTypes from 'prop-types';
-import {Dimensions, ScaledSize} from 'react-native';
+import {Dimensions} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import variables from '../../styles/variables';
 import getWindowHeightAdjustment from '../../libs/getWindowHeightAdjustment';
-import {WindowDimensionsContextData, WindowDimensionsProps} from './types';
+import {NewDimensions, WindowDimensionsContextData, WindowDimensionsProps} from './types';
 import ChildrenProps from '../../types/utils/ChildrenProps';
 
 const WindowDimensionsContext = createContext<WindowDimensionsContextData | null>(null);
@@ -39,7 +39,7 @@ function WindowDimensionsProvider(props: ChildrenProps) {
     });
 
     useEffect(() => {
-        const onDimensionChange = (newDimensions: {window: ScaledSize}) => {
+        const onDimensionChange = (newDimensions: NewDimensions) => {
             const {window} = newDimensions;
             setWindowDimension({
                 windowHeight: window.height,

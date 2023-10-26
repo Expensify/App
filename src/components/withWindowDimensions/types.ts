@@ -1,3 +1,5 @@
+import {ScaledSize} from 'react-native';
+
 type WindowDimensionsContextData = {
     windowHeight: number;
     windowWidth: number;
@@ -27,4 +29,6 @@ type WindowDimensionsProps = WindowDimensionsContextData & {
     isLargeScreenWidth: boolean;
 };
 
-export type {WindowDimensionsContextData, WindowDimensionsProps};
+type NewDimensions = {window: ScaledSize};
+
+export type {WindowDimensionsContextData, WindowDimensionsProps, NewDimensions};
