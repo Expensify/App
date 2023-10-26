@@ -55,19 +55,19 @@ export default function (WrappedComponent) {
     function WithReportAndPrivateNotesOrNotFound({forwardedRef, ...props}) {
         const {route, report, network, session} = props;
         const accountID = route.params.accountID;
-        const isLoadingPrivateNotes = report.isLoadingPrivateNotes !== false;
 
         useEffect(() => {
-            if (network.isOffline && isLoadingPrivateNotes) {
+            // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
+            if (!_.isUndefined(report.isLoadingPrivateNotes) || network.isOffline) {
                 return;
             }
 
             Report.getReportPrivateNote(report.reportID);
-            // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add isLoadingPrivateNotes to dependencies
+            // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add report.isLoadingPrivateNotes to dependencies
         }, [report.reportID, network.isOffline]);
 
         const isPrivateNotesEmpty = accountID ? _.isEmpty(lodashGet(report, ['privateNotes', accountID, 'note'], '')) : _.isEmpty(report.privateNotes);
-        const shouldShowFullScreenLoadingIndicator = isLoadingPrivateNotes && isPrivateNotesEmpty;
+        const shouldShowFullScreenLoadingIndicator = _.isUndefined(report.isLoadingPrivateNotes) || (isPrivateNotesEmpty && report.isLoadingPrivateNotes);
 
         // eslint-disable-next-line rulesdir/no-negated-variables
         const shouldShowNotFoundPage = useMemo(() => {
@@ -77,13 +77,13 @@ export default function (WrappedComponent) {
             }
 
             // Don't show not found view if the notes are still loading, or if the notes are non-empty.
-            if (isLoadingPrivateNotes || !isPrivateNotesEmpty) {
+            if (shouldShowFullScreenLoadingIndicator || !isPrivateNotesEmpty) {
                 return false;
             }
 
             // As notes being empty and not loading is a valid case, show not found view only in offline mode.
             return network.isOffline;
-        }, [report, network.isOffline, accountID, session.accountID, isPrivateNotesEmpty, isLoadingPrivateNotes]);
+        }, [report, network.isOffline, accountID, session.accountID, isPrivateNotesEmpty, shouldShowFullScreenLoadingIndicator]);
 
         if (shouldShowFullScreenLoadingIndicator) {
             return <FullScreenLoadingIndicator />;
