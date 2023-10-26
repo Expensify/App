@@ -99,6 +99,9 @@ function signOutAndRedirectToSignIn() {
         signOut();
         redirectToSignIn();
     } else {
+        if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
+            return;
+        }
         Navigation.navigate(ROUTES.SIGN_IN_MODAL);
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);

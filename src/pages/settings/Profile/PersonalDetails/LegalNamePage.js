@@ -7,7 +7,6 @@ import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
@@ -20,6 +19,8 @@ import ROUTES from '../../../../ROUTES';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
+import FormProvider from '../../../../components/Form/FormProvider';
+import InputWrapper from '../../../../components/Form/InputWrapper';
 
 const propTypes = {
     /* Onyx Props */
@@ -87,7 +88,7 @@ function LegalNamePage(props) {
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                     validate={validate}
@@ -96,7 +97,8 @@ function LegalNamePage(props) {
                     enabledWhenOffline
                 >
                     <View style={[styles.mb4]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="legalFirstName"
                             name="lfname"
                             label={props.translate('privatePersonalDetails.legalFirstName')}
@@ -108,7 +110,8 @@ function LegalNamePage(props) {
                         />
                     </View>
                     <View>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="legalLastName"
                             name="llname"
                             label={props.translate('privatePersonalDetails.legalLastName')}
@@ -119,7 +122,7 @@ function LegalNamePage(props) {
                             spellCheck={false}
                         />
                     </View>
-                </Form>
+                </FormProvider>
             )}
         </ScreenWrapper>
     );
