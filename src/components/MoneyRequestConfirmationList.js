@@ -564,7 +564,7 @@ function MoneyRequestConfirmationList(props) {
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-            footerContent={!isEmpty(props.iou.id) && footerContent}
+            footerContent={(!isEmpty(props.iou.id) || props.isEditingSplitBill) && footerContent}
             listStyles={props.listStyles}
             shouldAllowScrollingChildren
         >

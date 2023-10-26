@@ -17,13 +17,11 @@ import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import useLocalize from '../../hooks/useLocalize';
 import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
-import ReimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
     onBackButtonPress: PropTypes.func.isRequired,
     getDefaultStateForField: PropTypes.func.isRequired,
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
-    reimbursementAccountDraft: ReimbursementAccountDraftPropTypes.isRequired,
 
     /** If we should show Onfido flow */
     shouldShowOnfido: PropTypes.bool.isRequired,
@@ -72,7 +70,7 @@ const validate = (values) => {
     return errors;
 };
 
-function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField}) {
+function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPress, getDefaultStateForField}) {
     const {translate} = useLocalize();
 
     const defaultValues = useMemo(
@@ -111,9 +109,7 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, reimbursementAcc
         return (
             <RequestorOnfidoStep
                 reimbursementAccount={reimbursementAccount}
-                reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={onBackButtonPress}
-                getDefaultStateForField={getDefaultStateForField}
             />
         );
     }
