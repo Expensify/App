@@ -31,6 +31,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import DateUtils from '../../../libs/DateUtils';
+import { getPersonalDetailsByAccountID } from '../../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -83,8 +84,8 @@ const showWorkspaceDetails = (reportID) => {
 };
 
 function ReportActionItemSingle(props) {
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
+    const personalDetails = getPersonalDetailsByAccountID(actorAccountID);
     let {displayName} = personalDetails[actorAccountID] || {};
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
@@ -122,7 +123,7 @@ function ReportActionItemSingle(props) {
             id: secondaryAccountId,
         };
     } else if (!isWorkspaceActor) {
-        secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1];
+        secondaryAvatar = ReportUtils.getIcons(props.report)[props.report.isOwnPolicyExpenseChat ? 0 : 1];
     }
     const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: primaryDisplayName, id: isWorkspaceActor ? '' : actorAccountID};
 

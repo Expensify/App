@@ -23,8 +23,7 @@ Onyx.connect({
  * @returns {String}
  */
 function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
-    const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
-
+    const displayName = lodashGet(passedPersonalDetails || allPersonalDetails, pathToDisplayName);
     return displayName || defaultValue || Localize.translateLocal('common.hidden');
 }
 
@@ -177,4 +176,26 @@ function getFormattedAddress(privatePersonalDetails) {
     return formattedAddress.trim().replace(/,$/, '');
 }
 
-export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData, getFormattedAddress};
+function getPersonalDetailsByAccountID(accountID) {
+    return allPersonalDetails[accountID];
+}
+
+function getWhisperedToPersonalDetails(whisperedToAccountIDs) {
+    return _.filter(allPersonalDetails, (details) => _.includes(whisperedToAccountIDs, details.accountID));
+}
+
+function isPersonalDetailsEmpty() {
+    return !personalDetails.length;
+}
+
+export {
+    getDisplayNameOrDefault,
+    getPersonalDetailsByIDs,
+    getAccountIDsByLogins,
+    getLoginsByAccountIDs,
+    getNewPersonalDetailsOnyxData,
+    getFormattedAddress,
+    getPersonalDetailsByAccountID,
+    getWhisperedToPersonalDetails,
+    isPersonalDetailsEmpty,
+};

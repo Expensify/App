@@ -16,7 +16,6 @@ import willBlurTextInputOnTapOutsideFunc from '../../../../libs/willBlurTextInpu
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../../CONST';
 import * as ReportUtils from '../../../../libs/ReportUtils';
-import participantPropTypes from '../../../../components/participantPropTypes';
 import ParticipantLocalTime from '../ParticipantLocalTime';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import {withNetwork} from '../../../../components/OnyxProvider';
@@ -33,6 +32,7 @@ import getModalState from '../../../../libs/getModalState';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
 import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
+import {getPersonalDetailsByAccountID} from '../../../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -40,9 +40,6 @@ const propTypes = {
 
     /** The ID of the report actions will be created for */
     reportID: PropTypes.string.isRequired,
-
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
     report: reportPropTypes,
@@ -76,7 +73,6 @@ const propTypes = {
 const defaultProps = {
     report: {},
     blockedFromConcierge: {},
-    personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     isComposerFullSize: false,
     pendingAction: null,
@@ -100,7 +96,6 @@ function ReportActionCompose({
     network,
     onSubmit,
     pendingAction,
-    personalDetails,
     report,
     reportID,
     isEmptyChat,
@@ -147,10 +142,7 @@ function ReportActionCompose({
         [currentUserPersonalDetails.accountID, report],
     );
 
-    const shouldShowReportRecipientLocalTime = useMemo(
-        () => ReportUtils.canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
-        [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
-    );
+    const shouldShowReportRecipientLocalTime = useMemo(() => ReportUtils.canShowReportRecipientLocalTime(report) && !isComposerFullSize, [report, isComposerFullSize]);
 
     const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participantAccountIDs: report.participantAccountIDs}), [report.participantAccountIDs]);
     const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
@@ -307,7 +299,7 @@ function ReportActionCompose({
     );
 
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
-    const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
+    const reportRecipient = getPersonalDetailsByAccountID(reportRecipientAcountIDs[0]);
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
 
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
@@ -442,9 +434,6 @@ export default compose(
     withOnyx({
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,

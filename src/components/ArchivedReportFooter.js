@@ -34,9 +34,6 @@ const propTypes = {
     /** The archived report */
     report: reportPropTypes.isRequired,
 
-    /** Personal details of all users */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     ...withLocalizePropTypes,
 };
 
@@ -46,19 +43,18 @@ const defaultProps = {
             reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
         },
     },
-    personalDetails: {},
 };
 
 function ArchivedReportFooter(props) {
     const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
-    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [props.report.ownerAccountID, 'displayName']);
+    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(null, [props.report.ownerAccountID, 'displayName']);
 
     let oldDisplayName;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newAccountID = props.reportClosedAction.originalMessage.newAccountID;
         const oldAccountID = props.reportClosedAction.originalMessage.oldAccountID;
-        displayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [newAccountID, 'displayName']);
-        oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [oldAccountID, 'displayName']);
+        displayName = PersonalDetailsUtils.getDisplayNameOrDefault(null, [newAccountID, 'displayName']);
+        oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(null, [oldAccountID, 'displayName']);
     }
 
     const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -92,9 +88,6 @@ ArchivedReportFooter.displayName = 'ArchivedReportFooter';
 export default compose(
     withLocalize,
     withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
         reportClosedAction: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             canEvict: false,

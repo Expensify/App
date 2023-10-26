@@ -40,6 +40,7 @@ import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
 import reportWithoutHasDraftSelector from '../../libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import { isPersonalDetailsEmpty } from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -86,9 +87,6 @@ const propTypes = {
     /** The account manager report ID */
     accountManagerReportID: PropTypes.string,
 
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** Onyx function that marks the component ready for hydration */
     markReadyForHydration: PropTypes.func,
 
@@ -115,7 +113,6 @@ const defaultProps = {
     policies: {},
     accountManagerReportID: null,
     userLeavingStatus: false,
-    personalDetails: {},
     markReadyForHydration: null,
     ...withCurrentReportIDDefaultProps,
 };
@@ -140,7 +137,6 @@ function ReportScreen({
     reportMetadata,
     reportActions,
     accountManagerReportID,
-    personalDetails,
     markReadyForHydration,
     policies,
     isSidebarLoaded,
@@ -173,7 +169,7 @@ function ReportScreen({
 
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
-    const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
+    const isLoading = !reportID || !isSidebarLoaded || isPersonalDetailsEmpty();
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const lastReportAction = useMemo(
@@ -191,7 +187,6 @@ function ReportScreen({
         <HeaderView
             reportID={reportID}
             onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME, false, true)}
-            personalDetails={personalDetails}
             report={report}
         />
     );
@@ -201,7 +196,6 @@ function ReportScreen({
             <MoneyRequestHeader
                 report={report}
                 policy={policy}
-                personalDetails={personalDetails}
                 isSingleTransactionView={isSingleTransactionView}
                 parentReportAction={parentReportAction}
             />
@@ -213,7 +207,6 @@ function ReportScreen({
             <MoneyReportHeader
                 report={report}
                 policy={policy}
-                personalDetails={personalDetails}
                 isSingleTransactionView={isSingleTransactionView}
                 parentReportAction={parentReportAction}
             />
@@ -445,7 +438,6 @@ function ReportScreen({
                                         isComposerFullSize={isComposerFullSize}
                                         policies={policies}
                                         listHeight={listHeight}
-                                        personalDetails={personalDetails}
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                     />
@@ -505,9 +497,6 @@ export default compose(
             accountManagerReportID: {
                 key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
                 initialValue: null,
-            },
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             },
             userLeavingStatus: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,

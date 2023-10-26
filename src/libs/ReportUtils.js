@@ -913,15 +913,13 @@ function getReportRecipientAccountIDs(report, currentLoginAccountID) {
 
 /**
  * Whether the time row should be shown for a report.
- * @param {Array<Object>} personalDetails
  * @param {Object} report
- * @param {Number} accountID
  * @return {Boolean}
  */
-function canShowReportRecipientLocalTime(personalDetails, report, accountID) {
-    const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, accountID);
+function canShowReportRecipientLocalTime(report) {
+    const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, currentUserAccountID);
     const hasMultipleParticipants = reportRecipientAccountIDs.length > 1;
-    const reportRecipient = personalDetails[reportRecipientAccountIDs[0]];
+    const reportRecipient = allPersonalDetails[reportRecipientAccountIDs[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
     return Boolean(
@@ -977,13 +975,13 @@ function getWorkspaceAvatar(report) {
  * The Avatar sources can be URLs or Icon components according to the chat type.
  *
  * @param {Array} participants
- * @param {Object} personalDetails
+ * @param {Object} passedPersonalDetails
  * @returns {Array<*>}
  */
-function getIconsForParticipants(participants, personalDetails) {
+function getIconsForParticipants(participants, passedPersonalDetails) {
     const participantDetails = [];
     const participantsList = participants || [];
-
+    const personalDetails = passedPersonalDetails || allPersonalDetails;
     for (let i = 0; i < participantsList.length; i++) {
         const accountID = participantsList[i];
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
@@ -1046,14 +1044,15 @@ function getWorkspaceIcon(report, policy = undefined) {
  * The Avatar sources can be URLs or Icon components according to the chat type.
  *
  * @param {Object} report
- * @param {Object} personalDetails
+ * @param {Object} passedPersonalDetails
  * @param {*} [defaultIcon]
  * @param {String} [defaultName]
  * @param {Number} [defaultAccountID]
  * @param {Object} [policy]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, defaultIcon = null, defaultName = '', defaultAccountID = -1, policy = undefined) {
+function getIcons(report, passedPersonalDetails, defaultIcon = null, defaultName = '', defaultAccountID = -1, policy = undefined) {
+    const personalDetails = passedPersonalDetails || allPersonalDetails;
     if (_.isEmpty(report)) {
         const fallbackIcon = {
             source: defaultIcon || Expensicons.FallbackAvatar,

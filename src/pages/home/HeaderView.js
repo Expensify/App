@@ -43,9 +43,6 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
-
     /** Onyx Props */
     parentReport: reportPropTypes,
 
@@ -62,7 +59,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
     report: null,
     guideCalendarLink: null,
     parentReport: {},
@@ -73,7 +69,7 @@ const defaultProps = {
 
 function HeaderView(props) {
     const participants = lodashGet(props.report, 'participantAccountIDs', []);
-    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
     const isChatThread = ReportUtils.isChatThread(props.report);
@@ -167,7 +163,7 @@ function HeaderView(props) {
 
     const shouldShowSubscript = ReportUtils.shouldReportShowSubscript(props.report);
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(props.report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
-    const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
+    const icons = ReportUtils.getIcons(reportHeaderData);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldShowBorderBottom = !isTaskReport || !props.isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);

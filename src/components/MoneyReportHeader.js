@@ -46,9 +46,6 @@ const propTypes = {
     /** The next step for the report */
     nextStep: nextStepPropTypes,
 
-    /** Personal details so we can get the ones for the report participants */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
-
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
@@ -67,7 +64,7 @@ const defaultProps = {
     policy: {},
 };
 
-function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
+function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
     const {translate} = useLocalize();
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
@@ -102,7 +99,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
-                personalDetails={personalDetails}
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 // Shows border if no buttons or next steps are showing below the header

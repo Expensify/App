@@ -152,11 +152,12 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
  * Returns the personal details for an array of accountIDs
  *
  * @param {Array} accountIDs
- * @param {Object} personalDetails
+ * @param {Object} passedPersonalDetails
  * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
+function getPersonalDetailsForAccountIDs(accountIDs, passedPersonalDetails) {
     const personalDetailsForAccountIDs = {};
+    const personalDetails = passedPersonalDetails || allPersonalDetails;
     if (!personalDetails) {
         return personalDetailsForAccountIDs;
     }

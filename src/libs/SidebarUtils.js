@@ -55,6 +55,12 @@ Onyx.connect({
     },
 });
 
+let allPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => (allPersonalDetails = val),
+});
+
 let resolveSidebarIsReadyPromise;
 
 let sidebarIsReadyPromise = new Promise((resolve) => {
@@ -218,16 +224,16 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
  *
  * @param {Object} report
  * @param {Object} reportActions
- * @param {Object} personalDetails
  * @param {String} preferredLocale
  * @param {Object} [policy]
  * @param {Object} parentReportAction
  * @returns {Object}
  */
-function getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction) {
+function getOptionData(report, reportActions, preferredLocale, policy, parentReportAction) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
+    const personalDetails = allPersonalDetails;
     if (!report || !personalDetails) {
         return;
     }

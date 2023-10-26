@@ -16,16 +16,12 @@ const propTypes = {
 
     isSmallSizeLayout: PropTypes.bool,
 
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
     isSmallSizeLayout: false,
-    personalDetails: {},
 };
 
 function AnonymousReportFooter(props) {
@@ -34,7 +30,6 @@ function AnonymousReportFooter(props) {
             <View style={[styles.flexRow, styles.flexShrink1]}>
                 <AvatarWithDisplayName
                     report={props.report}
-                    personalDetails={props.personalDetails}
                     isAnonymous
                     shouldEnableDetailPageNavigation
                 />

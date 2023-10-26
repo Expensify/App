@@ -37,9 +37,6 @@ const propTypes = {
     /** The size of the avatar */
     size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
-
     /** Whether if it's an unauthenticated user */
     isAnonymous: PropTypes.bool,
 
@@ -50,7 +47,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
     policy: {},
     report: {},
     isAnonymous: false,
@@ -93,8 +89,8 @@ function AvatarWithDisplayName(props) {
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
     const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(props.report) || ReportUtils.isMoneyRequest(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policy);
-    const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
+    const icons = ReportUtils.getIcons(props.report, null, props.policy);
+    const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID]);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(props.report);

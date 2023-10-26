@@ -9,20 +9,15 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
 import * as Report from '../../libs/actions/Report';
-import * as UserUtils from '../../libs/UserUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 
-import participantPropTypes from '../participantPropTypes';
 import CONST from '../../CONST';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 
 const propTypes = {
     /** Whether row should be focused */
     isFocused: PropTypes.bool,
-
-    /** List of users' personal details */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The preferred language for the app */
     preferredLocale: PropTypes.string,
@@ -54,7 +49,6 @@ const propTypes = {
 
 const defaultProps = {
     isFocused: false,
-    personalDetails: {},
     fullReport: {},
     policy: {},
     parentReportActions: {},
@@ -73,7 +67,6 @@ function OptionRowLHNData({
     isFocused,
     fullReport,
     reportActions,
-    personalDetails,
     preferredLocale,
     comment,
     policy,
@@ -97,7 +90,7 @@ function OptionRowLHNData({
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction);
+        const item = SidebarUtils.getOptionData(fullReport, reportActions, preferredLocale, policy, parentReportAction);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
@@ -106,7 +99,7 @@ function OptionRowLHNData({
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
+    }, [fullReport, linkedTransaction, reportActions, preferredLocale, policy, parentReportAction, transaction]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
@@ -131,30 +124,6 @@ OptionRowLHNData.defaultProps = defaultProps;
 OptionRowLHNData.displayName = 'OptionRowLHNData';
 
 /**
- * @param {Object} [personalDetails]
- * @returns {Object|undefined}
- */
-const personalDetailsSelector = (personalDetails) =>
-    _.reduce(
-        personalDetails,
-        (finalPersonalDetails, personalData, accountID) => {
-            // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
-            // eslint-disable-next-line no-param-reassign
-            finalPersonalDetails[accountID] = {
-                accountID: Number(accountID),
-                login: personalData.login,
-                displayName: personalData.displayName,
-                firstName: personalData.firstName,
-                status: personalData.status,
-                avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
-                fallbackIcon: personalData.fallbackIcon,
-            };
-            return finalPersonalDetails;
-        },
-        {},
-    );
-
-/**
  * This component is rendered in a list.
  * On scroll we want to avoid that a item re-renders
  * just because the list has to re-render when adding more items.
@@ -173,10 +142,6 @@ export default React.memo(
             reportActions: {
                 key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 canEvict: false,
-            },
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                selector: personalDetailsSelector,
             },
             preferredLocale: {
                 key: ONYXKEYS.NVP_PREFERRED_LOCALE,

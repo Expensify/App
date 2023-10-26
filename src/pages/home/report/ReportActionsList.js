@@ -6,8 +6,6 @@ import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import CONST from '../../../CONST';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import useNetwork from '../../../hooks/useNetwork';
 import useLocalize from '../../../hooks/useLocalize';
@@ -66,17 +64,14 @@ const propTypes = {
     }),
 
     ...windowDimensionsPropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    personalDetails: {},
     onScroll: () => {},
     mostRecentIOUReportActionID: '',
     isLoadingInitialReportActions: false,
     isLoadingOlderReportActions: false,
     isLoadingNewerReportActions: false,
-    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
@@ -122,8 +117,6 @@ function ReportActionsList({
     onScroll,
     mostRecentIOUReportActionID,
     isSmallScreenWidth,
-    personalDetailsList,
-    currentUserPersonalDetails,
     hasOutstandingIOU,
     loadNewerChats,
     loadOlderChats,
@@ -350,7 +343,7 @@ function ReportActionsList({
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)];
     const hideComposer = ReportUtils.shouldDisableWriteActions(report);
-    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
+    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(report) && !isComposerFullSize;
 
     const contentContainerStyle = useMemo(
         () => [styles.chatContentScrollView, isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
@@ -435,4 +428,4 @@ ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default compose(withWindowDimensions, withPersonalDetails(), withCurrentUserPersonalDetails)(ReportActionsList);
+export default compose(withWindowDimensions)(ReportActionsList);

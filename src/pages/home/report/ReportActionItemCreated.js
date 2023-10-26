@@ -28,9 +28,6 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
-
     /** The policy object for the current route */
     policy: PropTypes.shape({
         /** The name of the policy */
@@ -44,7 +41,6 @@ const propTypes = {
 };
 const defaultProps = {
     report: {},
-    personalDetails: {},
     policy: {},
 };
 
@@ -53,7 +49,7 @@ function ReportActionItemCreated(props) {
         return null;
     }
 
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
+    const icons = ReportUtils.getIcons(props.report);
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
     return (
@@ -108,9 +104,6 @@ export default compose(
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             selector: reportWithoutHasDraftSelector,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

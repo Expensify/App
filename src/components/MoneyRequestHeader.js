@@ -35,9 +35,6 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
-    /** Personal details so we can get the ones for the report participants */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
-
     /* Onyx Props */
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
@@ -65,7 +62,7 @@ const defaultProps = {
     policy: {},
 };
 
-function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}) {
+function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy}) {
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = parentReport;
@@ -125,7 +122,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         ownerEmail: lodashGet(parentReport, 'ownerEmail', null),
                     }}
                     policy={policy}
-                    personalDetails={personalDetails}
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 />

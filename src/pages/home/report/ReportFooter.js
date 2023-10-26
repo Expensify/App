@@ -33,9 +33,6 @@ const propTypes = {
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
 
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
-
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
 
@@ -51,7 +48,6 @@ const propTypes = {
 const defaultProps = {
     report: {reportID: '0'},
     pendingAction: null,
-    personalDetails: {},
     shouldDisableCompose: false,
     listHeight: 0,
     isReportReadyForDisplay: true,
@@ -111,7 +107,6 @@ function ReportFooter(props) {
                         <AnonymousReportFooter
                             report={props.report}
                             isSmallSizeLayout={isSmallSizeLayout}
-                            personalDetails={props.personalDetails}
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
@@ -151,7 +146,6 @@ export default withWindowDimensions(
         (prevProps, nextProps) =>
             isEqual(prevProps.report, nextProps.report) &&
             isEqual(prevProps.reportActions, nextProps.reportActions) &&
-            isEqual(prevProps.personalDetails, nextProps.personalDetails) &&
             prevProps.pendingAction === nextProps.pendingAction &&
             prevProps.shouldDisableCompose === nextProps.shouldDisableCompose &&
             prevProps.listHeight === nextProps.listHeight &&
