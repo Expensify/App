@@ -240,6 +240,7 @@ function ReportActionItemSingle(props) {
                                     delegateAccountID={props.action.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}
+                                    displayAsGroup={false}
                                 />
                             ))}
                         </PressableWithoutFeedback>
