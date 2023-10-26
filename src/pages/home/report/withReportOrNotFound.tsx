@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-negated-variables */
 import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
 import {RouteProp} from '@react-navigation/native';
 import getComponentDisplayName from '../../../libs/getComponentDisplayName';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
@@ -13,7 +13,7 @@ type OnyxProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
     /** The policies which the user has access to */
-    policies: OnyxEntry<OnyxTypes.Policy>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     /** Indicated whether the report data is loading */

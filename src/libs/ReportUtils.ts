@@ -355,7 +355,7 @@ let doesDomainHaveApprovedAccountant = false;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     // Check if I remove that will cause regressions
-    // waitForCollectionCallback: true,
+    waitForCollectionCallback: true,
     callback: (value) => (doesDomainHaveApprovedAccountant = value?.doesDomainHaveApprovedAccountant ?? false),
 });
 
@@ -2022,15 +2022,12 @@ function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | Rec
 function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): string {
     let formattedName;
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    if (!checkIfCorrectType(parentReportAction)) {
-        return '';
-    }
     if (isChatThread(report)) {
-        if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+        if (checkIfCorrectType(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return getTransactionReportName(parentReportAction);
         }
 
-        const isAttachment = ReportActionsUtils.isReportActionAttachment(parentReportAction);
+        const isAttachment = ReportActionsUtils.isReportActionAttachment(checkIfCorrectType(parentReportAction) ? parentReportAction : null);
         const parentReportActionMessage = (parentReportAction?.message?.[0].text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
@@ -2044,7 +2041,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
 
-    if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
+    if (isTaskReport(report) && checkIfCorrectType(parentReportAction) && isCanceledTaskReport(report, parentReportAction)) {
         return Localize.translateLocal('parentReportAction.deletedTask');
     }
 
@@ -3175,7 +3172,7 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
  * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
  * the various subsets of users we've allowed to use default rooms.
  */
-function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: Beta[]): boolean {
+function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
     // Include archived rooms
     if (isArchivedRoom(report)) {
         return true;
@@ -3205,7 +3202,7 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<P
     return Permissions.canUseDefaultRooms(betas);
 }
 
-function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: Beta[], allReportActions?: OnyxCollection<ReportActions>): boolean {
+function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>, allReportActions?: OnyxCollection<ReportActions>): boolean {
     if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report, allReportActions))) {
         return false;
     }

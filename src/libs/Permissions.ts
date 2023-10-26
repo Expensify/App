@@ -1,8 +1,9 @@
+import {OnyxEntry} from 'react-native-onyx';
 import CONST from '../CONST';
 import Beta from '../types/onyx/Beta';
 
-function canUseAllBetas(betas: Beta[]): boolean {
-    return betas?.includes(CONST.BETAS.ALL);
+function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
+    return Boolean(betas?.includes(CONST.BETAS.ALL));
 }
 
 function canUseChronos(betas: Beta[]): boolean {
@@ -13,8 +14,8 @@ function canUsePayWithExpensify(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.PAY_WITH_EXPENSIFY) || canUseAllBetas(betas);
 }
 
-function canUseDefaultRooms(betas: Beta[]): boolean {
-    return betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
+function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
+    return betas?.includes(CONST.BETAS.DEFAULT_ROOMS) ?? canUseAllBetas(betas);
 }
 
 function canUseWallet(betas: Beta[]): boolean {
