@@ -48,7 +48,7 @@ function ReportActionItemMessage(props) {
         }
     }
 
-    const isApprovedOrSubmittedReportActionType = _.contains([CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED], props.action.actionName);
+    const isApprovedOrSubmittedReportAction = _.contains([CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED], props.action.actionName);
 
     return (
         <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
@@ -69,7 +69,7 @@ function ReportActionItemMessage(props) {
                             accountID={props.action.actorAccountID}
                             style={props.style}
                             displayAsGroup={props.displayAsGroup}
-                            isApprovedOrSubmittedReportActionType={isApprovedOrSubmittedReportActionType}
+                            isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}
                         />
                     ))}
                 </Text>

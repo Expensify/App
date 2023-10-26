@@ -64,7 +64,7 @@ const propTypes = {
     isThreadParentMessage: PropTypes.bool,
 
     /** Whether the report action type is 'APPROVED' or 'SUBMITTED'. Used to style system messages from Old Dot */
-    isApprovedOrSubmittedReportActionType: PropTypes.bool,
+    isApprovedOrSubmittedReportAction: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 
@@ -89,7 +89,7 @@ const defaultProps = {
     delegateAccountID: 0,
     actorIcon: {},
     isThreadParentMessage: false,
-    isApprovedOrSubmittedReportActionType: false,
+    isApprovedOrSubmittedReportAction: false,
     displayAsGroup: false,
 };
 
@@ -168,7 +168,7 @@ function ReportActionItemFragment(props) {
                         style={[
                             styles.chatItemMessageHeaderSender,
                             props.isSingleLine ? styles.pre : styles.preWrap,
-                            styles.approvedOrSubmittedMessage(props.isApprovedOrSubmittedReportActionType),
+                            styles.approvedOrSubmittedMessage(props.isApprovedOrSubmittedReportAction),
                         ]}
                     >
                         {props.fragment.text}
