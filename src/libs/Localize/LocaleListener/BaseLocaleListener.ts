@@ -1,14 +1,14 @@
 import Onyx from 'react-native-onyx';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
-import BaseLocale from './types';
+import BaseLocale, {LocaleListenerConnect} from './types';
 
 let preferredLocale: BaseLocale = CONST.LOCALES.DEFAULT;
 
 /**
  * Adds event listener for changes to the locale. Callbacks are executed when the locale changes in Onyx.
  */
-const connect = (callbackAfterChange: (locale?: BaseLocale) => void = () => {}) => {
+const connect: LocaleListenerConnect = (callbackAfterChange = () => {}) => {
     Onyx.connect({
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         callback: (val) => {
@@ -22,7 +22,7 @@ const connect = (callbackAfterChange: (locale?: BaseLocale) => void = () => {}) 
     });
 };
 
-function getPreferredLocale() {
+function getPreferredLocale(): BaseLocale {
     return preferredLocale;
 }
 

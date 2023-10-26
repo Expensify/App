@@ -1,8 +1,8 @@
 import ELECTRON_EVENTS from '../../../../desktop/ELECTRON_EVENTS';
 import BaseLocaleListener from './BaseLocaleListener';
-import BaseLocale, {LocaleListenerConnect} from './types';
+import {LocaleListenerConnect} from './types';
 
-const localeListener: LocaleListenerConnect = (callbackAfterChange: (locale?: BaseLocale) => void = () => {}) =>
+const localeListener: LocaleListenerConnect = (callbackAfterChange = () => {}) =>
     BaseLocaleListener.connect((val) => {
         // Send the updated locale to the Electron main process
         window.electron.send(ELECTRON_EVENTS.LOCALE_UPDATED, val);

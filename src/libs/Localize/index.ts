@@ -109,15 +109,13 @@ function translateIfPhraseKey<TKey extends TranslationPaths>(message: TKey | [TK
         const [phrase, variables] = Array.isArray(message) ? message : [message];
 
         // This condition checks if the error is already translated. For example, if there are multiple errors per input, we handle translation in ErrorUtils.addErrorMessage due to the inability to concatenate error keys.
-
         if (variables?.isTranslated) {
             return phrase as string;
         }
 
-        return translateLocal(phrase, ...variables);
+        return translateLocal(phrase, ...(variables as PhraseParameters<Phrase<TKey>>));
     } catch (error) {
-        const result: string = Array.isArray(message) ? message[0] : message;
-        return result;
+        return Array.isArray(message) ? message[0] : message;
     }
 }
 

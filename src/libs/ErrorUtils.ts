@@ -3,7 +3,7 @@ import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import Response from '../types/onyx/Response';
 import {ErrorFields, Errors} from '../types/onyx/OnyxCommon';
-import {TranslationFlatObject} from '../languages/types';
+import {TranslationFlatObject, TranslationPaths} from '../languages/types';
 
 function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatObject {
     switch (response.jsonCode) {
@@ -93,7 +93,7 @@ type ErrorsList = Record<string, string | [string, {isTranslated: boolean}]>;
  * @param errorList - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
-function addErrorMessage(errors: ErrorsList, inputID?: string, message?: string) {
+function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inputID?: string, message?: TKey) {
     if (!message || !inputID) {
         return;
     }
