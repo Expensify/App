@@ -283,14 +283,9 @@ function ComposerWithSuggestions({
             }
         },
         [
-            debouncedUpdateFrequentlyUsedEmojis,
-            preferredLocale,
             preferredSkinTone,
             reportID,
-            setIsCommentEmpty,
             suggestionsRef,
-            raiseIsScrollLikelyLayoutTriggered,
-            debouncedSaveReportComment,
         ],
     );
 

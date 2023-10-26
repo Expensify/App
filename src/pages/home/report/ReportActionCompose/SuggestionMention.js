@@ -1,7 +1,7 @@
 import React, {useState, useCallback, useRef, useImperativeHandle, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import CONST from '../../../../CONST';
 import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
 import MentionSuggestions from '../../../../components/MentionSuggestions';
@@ -29,9 +29,6 @@ const defaultSuggestionsValues = {
 };
 
 const propTypes = {
-    /** Personal details of all users */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** A ref to this component */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 
@@ -39,9 +36,21 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
     forwardedRef: null,
 };
+
+/**
+ * We only need the personalDetails once because as long as the
+ * user is in the ReportScreen, these details won't be changing,
+ * hence we don't have to use it with `withOnyx`.
+ */
+let allPersonalDetails = {};
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => {
+        allPersonalDetails = val;
+    },
+});
 
 function SuggestionMention({
     value,
@@ -49,7 +58,6 @@ function SuggestionMention({
     selection,
     setSelection,
     isComposerFullSize,
-    personalDetails,
     updateComment,
     composerHeight,
     forwardedRef,
@@ -57,6 +65,7 @@ function SuggestionMention({
     measureParentContainer,
     isComposerFocused,
 }) {
+    const personalDetails = allPersonalDetails;
     const {translate} = useLocalize();
     const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
@@ -316,8 +325,4 @@ const SuggestionMentionWithRef = React.forwardRef((props, ref) => (
 
 SuggestionMentionWithRef.displayName = 'SuggestionMentionWithRef';
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(SuggestionMentionWithRef);
+export default SuggestionMentionWithRef;
