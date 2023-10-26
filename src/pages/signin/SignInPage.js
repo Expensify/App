@@ -271,7 +271,11 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
                             />
                         )}
                         {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                        {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
+                        {shouldShowChooseSSOOrMagicCode && (
+                            <ChooseSSOOrMagicCode
+                                setIsUsingMagicCode={setIsUsingMagicCode}
+                            />
+                        )}
                         {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
                     </>
                 )}

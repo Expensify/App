@@ -16,17 +16,10 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
-import Terms from './Terms';
+import ValidateCodeForm from './ValidateCodeForm';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** The credentials of the logged in person */
-    credentials: PropTypes.shape({
-        /** The email/phone the user logged in with */
-        login: PropTypes.string,
-    }),
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
@@ -48,11 +41,10 @@ const propTypes = {
 };
 
 const defaultProps = {
-    credentials: {},
     account: {},
 };
 
-function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
+function ChooseSSOOrMagicCode({account, setIsUsingMagicCode}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -79,21 +71,12 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
                     </Text>
                 </View>
 
-                <Button
-                    isDisabled={isOffline}
-                    style={[styles.mv3]}
-                    text={translate('samlSignIn.useMagicCode')}
-                    isLoading={account.isLoading && account.loadingForm === (account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
-                    onPress={() => {
-                        Session.resendValidateCode(credentials.login);
-                        setIsUsingMagicCode(true);
-                    }}
+                <ValidateCodeForm
+                    setIsUsingMagicCode={setIsUsingMagicCode}
+                    isUsingRecoveryCode={false}
+                    setIsUsingRecoveryCode={() => undefined}
                 />
                 {Boolean(account) && !_.isEmpty(account.errors) && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
-                <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
-            </View>
-            <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
-                <Terms />
             </View>
         </>
     );
