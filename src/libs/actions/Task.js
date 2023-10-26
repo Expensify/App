@@ -137,7 +137,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
             value: {
                 errorFields: {
-                    createTask: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
+                    createChat: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
                 },
             },
         },
@@ -915,6 +915,8 @@ function canModifyTask(taskReport, sessionAccountID) {
  */
 function clearTaskErrors(reportID) {
     const report = ReportUtils.getReport(reportID);
+
+    // Delete the task preview in the parent report
     if (lodashGet(report, 'pendingFields.createChat') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
             [report.parentReportActionID]: null,
