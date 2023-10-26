@@ -1,6 +1,5 @@
 import React, {ForwardedRef} from 'react';
 import {Text as RNText, StyleProp} from 'react-native';
-import lodashMerge from 'lodash/merge';
 import lodashFlattenDeep from 'lodash/flattenDeep';
 import type {TextStyle} from 'react-native';
 import fontFamily from '../styles/fontFamily';
@@ -39,7 +38,7 @@ function Text(
     ref: ForwardedRef<RNText>,
 ) {
     // If the style prop is an array of styles, we need to mix them all together
-    const mergedStyles = Array.isArray(style) ? lodashMerge({}, ...lodashFlattenDeep(style as TextStyle[])) : style;
+    const mergedStyles = Array.isArray(style) ? Object.assign({}, ...lodashFlattenDeep(style as TextStyle[])) : style;
     const componentStyle: TextStyle = {
         color,
         fontSize,
