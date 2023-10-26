@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
+import withNavigationFocus from '../../components/withNavigationFocus';
 import * as Report from '../../libs/actions/Report';
 import * as App from '../../libs/actions/App';
 import useLocalize from '../../hooks/useLocalize';
@@ -61,7 +61,8 @@ const propTypes = {
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
 
-    ...withNavigationFocusPropTypes,
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
 };
 const defaultProps = {
     betas: [],
