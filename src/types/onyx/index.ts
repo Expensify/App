@@ -32,7 +32,7 @@ import WalletTransfer from './WalletTransfer';
 import MapboxAccessToken from './MapboxAccessToken';
 import {OnyxUpdatesFromServer, OnyxUpdateEvent} from './OnyxUpdatesFromServer';
 import Download from './Download';
-import PolicyMember from './PolicyMember';
+import PolicyMember, {PolicyMembers} from './PolicyMember';
 import Policy from './Policy';
 import PolicyCategory from './PolicyCategory';
 import Report from './Report';
@@ -46,7 +46,7 @@ import Form, {AddDebitCardForm} from './Form';
 import RecentWaypoint from './RecentWaypoint';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
 import RecentlyUsedTags from './RecentlyUsedTags';
-import PolicyTag from './PolicyTag';
+import PolicyTag, {PolicyTags} from './PolicyTag';
 import AccountData from './AccountData';
 
 export type {
@@ -102,5 +102,7 @@ export type {
     RecentlyUsedCategories,
     RecentlyUsedTags,
     PolicyTag,
+    PolicyTags,
+    PolicyMembers,
     AccountData,
 };
