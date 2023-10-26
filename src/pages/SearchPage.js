@@ -20,6 +20,8 @@ import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import Performance from '../libs/Performance';
+import networkPropTypes from '../components/networkPropTypes';
+import {withNetwork} from '../components/OnyxProvider';
 
 const propTypes = {
     /* Onyx Props */
@@ -37,12 +39,20 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+
+    /** Network info */
+    network: networkPropTypes,
+
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    network: {},
+    isSearchingForReports: false,
 };
 
 class SearchPage extends Component {
@@ -75,6 +85,10 @@ class SearchPage extends Component {
     }
 
     onChangeText(searchValue = '') {
+        if (searchValue.length) {
+            Report.searchInServer(searchValue);
+        }
+
         this.setState({searchValue}, this.debouncedUpdateOptions);
     }
 
@@ -187,9 +201,13 @@ class SearchPage extends Component {
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                textInputAlert={
+                                    this.props.network.isOffline ? `${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('search.resultsAreLimited')}` : ''
+                                }
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                 autoFocus
+                                isLoadingNewOptions={this.props.isSearchingForReports}
                             />
                         </View>
                     </>
@@ -201,10 +219,12 @@ class SearchPage extends Component {
 
 SearchPage.propTypes = propTypes;
 SearchPage.defaultProps = defaultProps;
+SearchPage.displayName = 'SearchPage';
 
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withNetwork(),
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -214,6 +234,10 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isSearchingForReports: {
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            initWithStoredValues: false,
         },
     }),
 )(SearchPage);

@@ -1,7 +1,7 @@
 import React, {useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Tooltip from '../Tooltip';
+import Tooltip from '../Tooltip/PopoverAnchorTooltip';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import Icon from '../Icon';
@@ -88,8 +88,15 @@ function AddReactionBubble(props) {
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
                 onPress={Session.checkIfActionIsAllowed(onPress)}
-                // Prevent text input blur when Add reaction is clicked
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => {
+                    // Allow text input blur when Add reaction is right clicked
+                    if (!e || e.button === 2) {
+                        return;
+                    }
+
+                    // Prevent text input blur when Add reaction is left clicked
+                    e.preventDefault();
+                }}
                 accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 // disable dimming

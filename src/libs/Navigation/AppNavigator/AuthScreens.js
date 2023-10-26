@@ -1,12 +1,10 @@
-import React from 'react';
+import React, {memo, useEffect, useRef} from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
-import compose from '../../compose';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
@@ -35,6 +33,14 @@ import * as SessionUtils from '../../SessionUtils';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import DemoSetupPage from '../../../pages/DemoSetupPage';
+import getCurrentUrl from '../currentUrl';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
+
+const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default;
+const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default;
+const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default;
+const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default;
+const loadConciergePage = () => require('../../../pages/ConciergePage').default;
 
 let timezone;
 let currentAccountID;
@@ -88,11 +94,11 @@ Onyx.connect({
 });
 
 const RootStack = createCustomStackNavigator();
-
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
 // When modal screen is focused, update modal visibility in Onyx
 // https://reactnavigation.org/docs/navigation-events/
+
 const modalScreenListeners = {
     focus: () => {
         Modal.setModalVisibility(true);
@@ -117,7 +123,12 @@ const propTypes = {
     /** The last Onyx update ID was applied to the client */
     lastUpdateIDAppliedToClient: PropTypes.number,
 
-    ...windowDimensionsPropTypes,
+    /** Information about any currently running demos */
+    demoInfo: PropTypes.shape({
+        money2020: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+    }),
 };
 
 const defaultProps = {
@@ -127,22 +138,39 @@ const defaultProps = {
     },
     lastOpenedPublicRoomID: null,
     lastUpdateIDAppliedToClient: null,
+    demoInfo: {},
 };
 
-class AuthScreens extends React.Component {
-    constructor(props) {
-        super(props);
+function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo}) {
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
+    const isInitialRender = useRef(true);
 
+    if (isInitialRender.current) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
+        isInitialRender.current = false;
     }
 
-    componentDidMount() {
+    useEffect(() => {
+        const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
+        const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
+        const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
+        const shouldGetAllData = isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
+        const currentUrl = getCurrentUrl();
+        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+        // Sign out the current user if we're transitioning with a different user
+        const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+        if (isLoggingInAsNewUser && isTransitioning) {
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
+
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(() => {
             if (isLoadingApp) {
                 App.openApp();
             } else {
-                App.reconnectApp(this.props.lastUpdateIDAppliedToClient);
+                App.reconnectApp(lastUpdateIDAppliedToClient);
             }
         });
         PusherConnectionManager.init();
@@ -159,190 +187,181 @@ class AuthScreens extends React.Component {
         // Note: If a Guide has enabled the memory only key mode then we do want to run OpenApp as their app will not be rehydrated with
         // the correct state on refresh. They are explicitly opting out of storing data they would need (i.e. reports_) to take advantage of
         // the optimizations performed during ReconnectApp.
-        const shouldGetAllData = this.props.isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
         if (shouldGetAllData) {
             App.openApp();
         } else {
-            App.reconnectApp(this.props.lastUpdateIDAppliedToClient);
+            App.reconnectApp(lastUpdateIDAppliedToClient);
         }
-
-        App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);
+        App.setUpPoliciesAndNavigate(session, !isSmallScreenWidth);
         App.redirectThirdPartyDesktopSignIn();
 
-        if (this.props.lastOpenedPublicRoomID) {
+        // Check if we should be running any demos immediately after signing in.
+        if (lodashGet(demoInfo, 'money2020.isBeginningDemo', false)) {
+            Navigation.navigate(ROUTES.MONEY2020, CONST.NAVIGATION.TYPE.FORCED_UP);
+        }
+        if (lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
-            Report.openLastOpenedPublicRoom(this.props.lastOpenedPublicRoomID);
+            Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
         }
         Download.clearDownloads();
+
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
-        const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
-        const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
+        // Listen to keyboard shortcuts for opening certain pages
+        const unsubscribeShortcutsOverviewShortcut = KeyboardShortcut.subscribe(
+            shortcutsOverviewShortcutConfig.shortcutKey,
+            () => {
+                Modal.close(() => {
+                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
+                        return;
+                    }
+                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+                });
+            },
+            shortcutsOverviewShortcutConfig.descriptionKey,
+            shortcutsOverviewShortcutConfig.modifiers,
+            true,
+        );
 
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
-        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
+        const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
-                        return;
-                    }
-                    return Navigation.navigate(ROUTES.SEARCH);
-                });
+                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH)));
             },
-            searchShortcutConfig.descriptionKey,
-            searchShortcutConfig.modifiers,
+            shortcutsOverviewShortcutConfig.descriptionKey,
+            shortcutsOverviewShortcutConfig.modifiers,
             true,
         );
-        this.unsubscribeChatShortcut = KeyboardShortcut.subscribe(
+
+        const unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
-                Modal.close(() => {
-                    if (Navigation.isActiveRoute(ROUTES.NEW)) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.NEW);
-                });
+                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
             },
             chatShortcutConfig.descriptionKey,
             chatShortcutConfig.modifiers,
             true,
         );
-    }
 
-    shouldComponentUpdate(nextProps) {
-        return nextProps.windowHeight !== this.props.windowHeight || nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
-    }
+        return () => {
+            unsubscribeShortcutsOverviewShortcut();
+            unsubscribeSearchShortcut();
+            unsubscribeChatShortcut();
+            Session.cleanupSession();
+        };
 
-    componentWillUnmount() {
-        if (this.unsubscribeSearchShortcut) {
-            this.unsubscribeSearchShortcut();
-        }
-        if (this.unsubscribeChatShortcut) {
-            this.unsubscribeChatShortcut();
-        }
-        Session.cleanupSession();
-        clearInterval(this.interval);
-        this.interval = null;
-    }
+        // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    render() {
-        const screenOptions = getRootNavigatorScreenOptions(this.props.isSmallScreenWidth);
-
-        return (
-            <View style={styles.rootNavigatorContainerStyles(this.props.isSmallScreenWidth)}>
-                <RootStack.Navigator
-                    isSmallScreenWidth={this.props.isSmallScreenWidth}
-                    mode="modal"
-                    // We are disabling the default keyboard handling here since the automatic behavior is to close a
-                    // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
-                    // a header will briefly open and close the keyboard and crash Android.
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                    keyboardHandlingEnabled={false}
-                >
-                    <RootStack.Screen
-                        name={SCREENS.HOME}
-                        options={screenOptions.homeScreen}
-                        getComponent={() => {
-                            const SidebarScreen = require('../../../pages/home/sidebar/SidebarScreen').default;
-                            return SidebarScreen;
-                        }}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
-                        options={screenOptions.centralPaneNavigator}
-                        component={CentralPaneNavigator}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.VALIDATE_LOGIN}
-                        options={{
-                            ...screenOptions.fullScreen,
-                            headerShown: false,
-                            title: 'New Expensify',
-                        }}
-                        getComponent={() => {
-                            const ValidateLoginPage = require('../../../pages/ValidateLoginPage').default;
-                            return ValidateLoginPage;
-                        }}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.TRANSITION_BETWEEN_APPS}
-                        options={defaultScreenOptions}
-                        getComponent={() => {
-                            const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
-                            return LogOutPreviousUserPage;
-                        }}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.CONCIERGE}
-                        options={defaultScreenOptions}
-                        getComponent={() => {
-                            const ConciergePage = require('../../../pages/ConciergePage').default;
-                            return ConciergePage;
-                        }}
-                    />
-                    <RootStack.Screen
-                        name={CONST.DEMO_PAGES.SAASTR}
-                        options={defaultScreenOptions}
-                        component={DemoSetupPage}
-                    />
-                    <RootStack.Screen
-                        name={CONST.DEMO_PAGES.SBE}
-                        options={defaultScreenOptions}
-                        component={DemoSetupPage}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.REPORT_ATTACHMENTS}
-                        options={{
-                            headerShown: false,
-                            presentation: 'transparentModal',
-                        }}
-                        getComponent={() => {
-                            const ReportAttachments = require('../../../pages/home/report/ReportAttachments').default;
-                            return ReportAttachments;
-                        }}
-                        listeners={modalScreenListeners}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.NOT_FOUND}
-                        options={screenOptions.fullScreen}
-                        component={NotFoundPage}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
-                        options={screenOptions.rightModalNavigator}
-                        component={RightModalNavigator}
-                        listeners={modalScreenListeners}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
-                        options={screenOptions.fullScreen}
-                        component={DesktopSignInRedirectPage}
-                    />
-                </RootStack.Navigator>
-            </View>
-        );
-    }
+    return (
+        <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
+            <RootStack.Navigator
+                isSmallScreenWidth={isSmallScreenWidth}
+                mode="modal"
+                // We are disabling the default keyboard handling here since the automatic behavior is to close a
+                // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
+                // a header will briefly open and close the keyboard and crash Android.
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                keyboardHandlingEnabled={false}
+            >
+                <RootStack.Screen
+                    name={SCREENS.HOME}
+                    options={screenOptions.homeScreen}
+                    getComponent={loadSidebarScreen}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
+                    options={screenOptions.centralPaneNavigator}
+                    component={CentralPaneNavigator}
+                />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN}
+                    options={{
+                        ...screenOptions.fullScreen,
+                        headerShown: false,
+                        title: 'New Expensify',
+                    }}
+                    getComponent={loadValidateLoginPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.TRANSITION_BETWEEN_APPS}
+                    options={defaultScreenOptions}
+                    getComponent={loadLogOutPreviousUserPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.CONCIERGE}
+                    options={defaultScreenOptions}
+                    getComponent={loadConciergePage}
+                />
+                <RootStack.Screen
+                    name={CONST.DEMO_PAGES.SAASTR}
+                    options={defaultScreenOptions}
+                    component={DemoSetupPage}
+                />
+                <RootStack.Screen
+                    name={CONST.DEMO_PAGES.SBE}
+                    options={defaultScreenOptions}
+                    component={DemoSetupPage}
+                />
+                <RootStack.Screen
+                    name={CONST.DEMO_PAGES.MONEY2020}
+                    options={defaultScreenOptions}
+                    component={DemoSetupPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.REPORT_ATTACHMENTS}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadReportAttachments}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.NOT_FOUND}
+                    options={screenOptions.fullScreen}
+                    component={NotFoundPage}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
+                    options={screenOptions.rightModalNavigator}
+                    component={RightModalNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
+                    options={screenOptions.fullScreen}
+                    component={DesktopSignInRedirectPage}
+                />
+            </RootStack.Navigator>
+        </View>
+    );
 }
 
+AuthScreens.displayName = 'AuthScreens';
 AuthScreens.propTypes = propTypes;
 AuthScreens.defaultProps = defaultProps;
-export default compose(
-    withWindowDimensions,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        lastOpenedPublicRoomID: {
-            key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-        },
-        isUsingMemoryOnlyKeys: {
-            key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
-        },
-        lastUpdateIDAppliedToClient: {
-            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-        },
-    }),
-)(AuthScreens);
+
+const AuthScreensMemoized = memo(AuthScreens, () => true);
+
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    lastOpenedPublicRoomID: {
+        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
+    },
+    isUsingMemoryOnlyKeys: {
+        key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
+    },
+    lastUpdateIDAppliedToClient: {
+        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    },
+    demoInfo: {
+        key: ONYXKEYS.DEMO_INFO,
+    },
+})(AuthScreensMemoized);

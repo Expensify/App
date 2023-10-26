@@ -1,0 +1,53 @@
+# This is a duplicate for setupGitForOSBotify except we are using a Github App now for Github Authentication.
+# GitHub Apps have higher rate limits. The reason this is being duplicated is because the existing action is still in use
+# in open PRs/branches that aren't up to date with main and it ends up breaking action workflows as a result.
+name: "Setup Git for OSBotify"
+description: "Setup Git for OSBotify"
+
+inputs:
+  GPG_PASSPHRASE:
+    description: "Passphrase used to decrypt GPG key"
+    required: true
+  OS_BOTIFY_APP_ID:
+    description: "Application ID for OS Botify"
+    required: true
+  OS_BOTIFY_PRIVATE_KEY:
+    description: "OS Botify's private key"
+    required: true
+
+outputs:
+  # Do not try to use this for committing code. Use `secrets.OS_BOTIFY_COMMIT_TOKEN` instead
+  OS_BOTIFY_API_TOKEN:
+    description: Token to use for GitHub API interactions.
+    value: ${{ steps.generateToken.outputs.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Decrypt OSBotify GPG key
+      run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase=${{ inputs.GPG_PASSPHRASE }} --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
+      shell: bash
+
+    - name: Import OSBotify GPG Key
+      shell: bash
+      run: cd .github/workflows && gpg --import OSBotify-private-key.asc
+
+    - name: Set up git for OSBotify
+      shell: bash
+      run: |
+        git config user.signingkey 367811D53E34168C
+        git config commit.gpgsign true
+        git config user.name OSBotify
+        git config user.email infra+osbotify@expensify.com
+
+    - name: Enable debug logs for git
+      shell: bash
+      if: runner.debug == '1'
+      run: echo "GIT_TRACE=true" >> "$GITHUB_ENV"
+
+    - name: Generate a token
+      id: generateToken
+      uses: actions/create-github-app-token@9d97a4282b2c51a2f4f0465b9326399f53c890d4
+      with:
+        app-id: ${{ inputs.OS_BOTIFY_APP_ID }}
+        private-key: ${{ inputs.OS_BOTIFY_PRIVATE_KEY }}

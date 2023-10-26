@@ -8,11 +8,11 @@ import {PendingMapViewProps} from './MapViewTypes';
 import BlockingView from '../BlockingViews/BlockingView';
 import * as Expensicons from '../Icon/Expensicons';
 
-function PendingMapView({title = '', subtitle = ''}: PendingMapViewProps) {
+function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps) {
     const hasTextContent = !_.isEmpty(title) || !_.isEmpty(subtitle);
 
     return (
-        <View style={[styles.mapPendingView]}>
+        <View style={[styles.mapPendingView, style]}>
             {hasTextContent ? (
                 <BlockingView
                     icon={Expensicons.EmptyStateRoutePending}

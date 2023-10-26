@@ -87,16 +87,6 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
     }, 300);
 
     /**
-     * @param {String} emoji
-     * @param {Object} emojiObject
-     */
-    const addToFrequentAndSelectEmoji = (emoji, emojiObject) => {
-        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-        User.updateFrequentlyUsedEmojis(frequentEmojiList);
-        onEmojiSelected(emoji, emojiObject);
-    };
-
-    /**
      * @param {Number} skinTone
      */
     const updatePreferredSkinTone = (skinTone) => {
@@ -152,7 +142,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
 
         return (
             <EmojiPickerMenuItem
-                onPress={singleExecution((emoji) => addToFrequentAndSelectEmoji(emoji, item))}
+                onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
                 emoji={emojiCode}
             />
         );
@@ -168,6 +158,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                     accessibilityLabel={translate('common.search')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     onChangeText={filterEmojis}
+                    blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
             {!isFiltered && (
@@ -210,6 +201,16 @@ EmojiPickerMenu.displayName = 'EmojiPickerMenu';
 EmojiPickerMenu.propTypes = propTypes;
 EmojiPickerMenu.defaultProps = defaultProps;
 
+const EmojiPickerMenuWithRef = React.forwardRef((props, ref) => (
+    <EmojiPickerMenu
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+EmojiPickerMenuWithRef.displayName = 'EmojiPickerMenuWithRef';
+
 export default compose(
     withLocalize,
     withOnyx({
@@ -220,12 +221,4 @@ export default compose(
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
-)(
-    React.forwardRef((props, ref) => (
-        <EmojiPickerMenu
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(EmojiPickerMenuWithRef);

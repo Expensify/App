@@ -96,13 +96,15 @@ const propTypes = {
     walletTerms: walletTermsPropTypes,
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.shape({
-        /** Date login was validated, used to show brickroad info status */
-        validatedDate: PropTypes.string,
+    loginList: PropTypes.objectOf(
+        PropTypes.shape({
+            /** Date login was validated, used to show brickroad info status */
+            validatedDate: PropTypes.string,
 
-        /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
-    }),
+            /** Field-specific server side errors keyed by microtime */
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        }),
+    ),
 
     /** Members keyed by accountID for all policies */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
@@ -339,7 +341,8 @@ function InitialSettingsPage(props) {
                     <Tooltip text={translate('common.profile')}>
                         <PressableWithoutFeedback
                             style={styles.mb3}
-                            onPress={openProfileSettings}
+                            disabled={isExecuting}
+                            onPress={singleExecution(openProfileSettings)}
                             accessibilityLabel={translate('common.profile')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
@@ -355,7 +358,8 @@ function InitialSettingsPage(props) {
                     </Tooltip>
                     <PressableWithoutFeedback
                         style={[styles.mt1, styles.mw100]}
-                        onPress={openProfileSettings}
+                        disabled={isExecuting}
+                        onPress={singleExecution(openProfileSettings)}
                         accessibilityLabel={translate('common.profile')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                     >

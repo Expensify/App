@@ -39,7 +39,7 @@ const propTypes = {
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
-    isInModal: PropTypes.bool.isRequired,
+    isInModal: PropTypes.bool,
 
     /** Override the green headline copy */
     customHeadline: PropTypes.string,
@@ -53,6 +53,7 @@ const propTypes = {
 
 const defaultProps = {
     innerRef: () => {},
+    isInModal: false,
     customHeadline: '',
     customHeroBody: '',
 };
@@ -169,7 +170,10 @@ function SignInPageLayout(props) {
                         </SignInPageContent>
                     </View>
                     <View style={[styles.flex0]}>
-                        <Footer scrollPageToTop={scrollPageToTop} />
+                        <Footer
+                            scrollPageToTop={scrollPageToTop}
+                            shouldShowSmallScreen
+                        />
                     </View>
                 </ScrollView>
             )}
@@ -181,16 +185,14 @@ SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 SignInPageLayout.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withSafeAreaInsets,
-    withLocalize,
-)(
-    forwardRef((props, ref) => (
-        <SignInPageLayout
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+const SignInPageLayoutWithRef = forwardRef((props, ref) => (
+    <SignInPageLayout
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+SignInPageLayoutWithRef.displayName = 'SignInPageLayoutWithRef';
+
+export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(SignInPageLayoutWithRef);

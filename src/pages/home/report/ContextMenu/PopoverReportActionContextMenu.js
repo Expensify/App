@@ -12,7 +12,7 @@ import useLocalize from '../../../../hooks/useLocalize';
 function PopoverReportActionContextMenu(_props, ref) {
     const {translate} = useLocalize();
     const reportIDRef = useRef('0');
-    const typeRef = useRef('');
+    const typeRef = useRef(undefined);
     const reportActionRef = useRef({});
     const reportActionIDRef = useRef('0');
     const originalReportIDRef = useRef('0');
@@ -238,7 +238,7 @@ function PopoverReportActionContextMenu(_props, ref) {
             Report.deleteReportComment(reportIDRef.current, reportActionRef.current);
         }
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [reportActionRef]);
+    }, []);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
@@ -278,6 +278,7 @@ function PopoverReportActionContextMenu(_props, ref) {
         instanceID,
         runAndResetOnPopoverHide,
         clearActiveReportAction,
+        contentRef,
     }));
 
     const reportAction = reportActionRef.current;
@@ -315,14 +316,12 @@ function PopoverReportActionContextMenu(_props, ref) {
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal
-                title={translate('reportActionContextMenu.deleteAction', {reportAction})}
+                title={translate('reportActionContextMenu.deleteAction', {action: reportAction})}
                 isVisible={isDeleteCommentConfirmModalVisible}
                 shouldSetModalVisibility={shouldSetModalVisibilityForDeleteConfirmation}
                 onConfirm={confirmDeleteAndHideModal}
                 onCancel={hideDeleteModal}
                 onModalHide={() => {
-                    reportIDRef.current = '0';
-                    reportActionRef.current = {};
                     callbackWhenDeleteModalHide.current();
                 }}
                 prompt={translate('reportActionContextMenu.deleteConfirmation', {action: reportAction})}
