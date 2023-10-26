@@ -7,11 +7,10 @@ import lodashGet from 'lodash/get';
 import CONST from '../../../CONST';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
-import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import useLocalize from '../../../hooks/useLocalize';
 import useNetwork from '../../../hooks/useNetwork';
+import useLocalize from '../../../hooks/useLocalize';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import DateUtils from '../../../libs/DateUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
@@ -23,6 +22,8 @@ import reportPropTypes from '../../reportPropTypes';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import reportActionPropTypes from './reportActionPropTypes';
+import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -35,10 +36,13 @@ const propTypes = {
     mostRecentIOUReportActionID: PropTypes.string,
 
     /** The report metadata loading states */
-    isLoadingReportActions: PropTypes.bool,
+    isLoadingInitialReportActions: PropTypes.bool,
 
     /** Are we loading more report actions? */
-    isLoadingMoreReportActions: PropTypes.bool,
+    isLoadingOlderReportActions: PropTypes.bool,
+
+    /** Are we loading newer report actions? */
+    isLoadingNewerReportActions: PropTypes.bool,
 
     /** Callback executed on list layout */
     onLayout: PropTypes.func.isRequired,
@@ -47,7 +51,10 @@ const propTypes = {
     onScroll: PropTypes.func,
 
     /** Function to load more chats */
-    loadMoreChats: PropTypes.func.isRequired,
+    loadOlderChats: PropTypes.func.isRequired,
+
+    /** Function to load newer chats */
+    loadNewerChats: PropTypes.func.isRequired,
 
     /** The policy object for the current route */
     policy: PropTypes.shape({
@@ -66,8 +73,9 @@ const defaultProps = {
     personalDetails: {},
     onScroll: () => {},
     mostRecentIOUReportActionID: '',
-    isLoadingReportActions: false,
-    isLoadingMoreReportActions: false,
+    isLoadingInitialReportActions: false,
+    isLoadingOlderReportActions: false,
+    isLoadingNewerReportActions: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -97,13 +105,18 @@ function keyExtractor(item) {
 }
 
 function isMessageUnread(message, lastReadTime) {
+    if (!lastReadTime) {
+        return Boolean(!ReportActionsUtils.isCreatedAction(message));
+    }
+
     return Boolean(message && lastReadTime && message.created && lastReadTime < message.created);
 }
 
 function ReportActionsList({
     report,
-    isLoadingReportActions,
-    isLoadingMoreReportActions,
+    isLoadingInitialReportActions,
+    isLoadingOlderReportActions,
+    isLoadingNewerReportActions,
     sortedReportActions,
     windowHeight,
     onScroll,
@@ -112,7 +125,8 @@ function ReportActionsList({
     personalDetailsList,
     currentUserPersonalDetails,
     hasOutstandingIOU,
-    loadMoreChats,
+    loadNewerChats,
+    loadOlderChats,
     onLayout,
     isComposerFullSize,
 }) {
@@ -125,8 +139,9 @@ function ReportActionsList({
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
+    const hasHeaderRendered = useRef(false);
+    const hasFooterRendered = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
-    const firstRenderRef = useRef(true);
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
     // This state is used to force a re-render when the user manually marks a message as unread
@@ -273,50 +288,62 @@ function ReportActionsList({
      * This is so that it will not be conflicting with header's separator line.
      */
     const shouldHideThreadDividerLine = useMemo(
-        () => sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === currentUnreadMarker,
-        [sortedReportActions, currentUnreadMarker],
+        () => ReportActionsUtils.getFirstVisibleReportActionID(sortedReportActions, isOffline) === currentUnreadMarker,
+        [sortedReportActions, isOffline, currentUnreadMarker],
     );
 
     /**
-     * @param {Object} args
-     * @param {Number} args.index
-     * @returns {React.Component}
+     * Evaluate new unread marker visibility for each of the report actions.
+     * @returns boolean
      */
-    const renderItem = useCallback(
-        ({item: reportAction, index}) => {
-            let shouldDisplayNewMarker = false;
 
+    const shouldDisplayNewMarker = useCallback(
+        (reportAction, index) => {
+            let shouldDisplay = false;
             if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
-                shouldDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
-
+                shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, report.lastReadTime));
                 if (!messageManuallyMarkedUnread) {
-                    shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
-                }
-                const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
-
-                if (!currentUnreadMarker && shouldDisplayNewMarker && canDisplayMarker) {
-                    setCurrentUnreadMarker(reportAction.reportActionID);
+                    shouldDisplay = shouldDisplay && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
             } else {
-                shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker;
+                shouldDisplay = reportAction.reportActionID === currentUnreadMarker;
             }
-            return (
-                <ReportActionsListItemRenderer
-                    reportAction={reportAction}
-                    index={index}
-                    report={report}
-                    linkedReportActionID={linkedReportActionID}
-                    hasOutstandingIOU={hasOutstandingIOU}
-                    sortedReportActions={sortedReportActions}
-                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                    shouldDisplayNewMarker={shouldDisplayNewMarker}
-                />
-            );
+            return shouldDisplay;
         },
-        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarkedUnread, shouldHideThreadDividerLine, currentUnreadMarker],
+        [currentUnreadMarker, sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread],
+    );
+
+    useEffect(() => {
+        // Iterate through the report actions and set appropriate unread marker.
+        // This is to avoid a warning of:
+        // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
+        _.each(sortedReportActions, (reportAction, index) => {
+            if (!shouldDisplayNewMarker(reportAction, index)) {
+                return;
+            }
+            if (!currentUnreadMarker && currentUnreadMarker !== reportAction.reportActionID) {
+                setCurrentUnreadMarker(reportAction.reportActionID);
+            }
+        });
+    }, [sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
+
+    const renderItem = useCallback(
+        ({item: reportAction, index}) => (
+            <ReportActionsListItemRenderer
+                reportAction={reportAction}
+                index={index}
+                report={report}
+                linkedReportActionID={linkedReportActionID}
+                hasOutstandingIOU={hasOutstandingIOU}
+                sortedReportActions={sortedReportActions}
+                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
+            />
+        ),
+        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
@@ -325,28 +352,30 @@ function ReportActionsList({
     const hideComposer = ReportUtils.shouldDisableWriteActions(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
-    const renderFooter = useCallback(() => {
+    const contentContainerStyle = useMemo(
+        () => [styles.chatContentScrollView, isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
+        [isLoadingNewerReportActions],
+    );
+
+    const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
+
+    const listFooterComponent = useCallback(() => {
         // Skip this hook on the first render, as we are not sure if more actions are going to be loaded
         // Therefore showing the skeleton on footer might be misleading
-        if (firstRenderRef.current) {
-            firstRenderRef.current = false;
+        if (!hasFooterRendered.current) {
+            hasFooterRendered.current = true;
             return null;
         }
 
-        if (isLoadingMoreReportActions) {
-            return <ReportActionsSkeletonView />;
-        }
-
-        // Make sure the oldest report action loaded is not the first. This is so we do not show the
-        // skeleton view above the created action in a newly generated optimistic chat or one with not
-        // that many comments.
-        const lastReportAction = _.last(sortedReportActions) || {};
-        if (isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return <ReportActionsSkeletonView animate={!isOffline} />;
-        }
-
-        return null;
-    }, [isLoadingMoreReportActions, isLoadingReportActions, sortedReportActions, isOffline]);
+        return (
+            <ListBoundaryLoader
+                type={CONST.LIST_COMPONENTS.FOOTER}
+                isLoadingOlderReportActions={isLoadingOlderReportActions}
+                isLoadingInitialReportActions={isLoadingInitialReportActions}
+                lastReportActionName={lastReportAction.actionName}
+            />
+        );
+    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName]);
 
     const onLayoutInner = useCallback(
         (event) => {
@@ -354,6 +383,19 @@ function ReportActionsList({
         },
         [onLayout],
     );
+
+    const listHeaderComponent = useCallback(() => {
+        if (!hasHeaderRendered.current) {
+            hasHeaderRendered.current = true;
+            return null;
+        }
+        return (
+            <ListBoundaryLoader
+                type={CONST.LIST_COMPONENTS.HEADER}
+                isLoadingNewerReportActions={isLoadingNewerReportActions}
+            />
+        );
+    }, [isLoadingNewerReportActions]);
 
     return (
         <>
@@ -368,17 +410,21 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={sortedReportActions}
                     renderItem={renderItem}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={initialNumToRender}
-                    onEndReached={loadMoreChats}
+                    onEndReached={loadOlderChats}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={renderFooter}
+                    onStartReached={loadNewerChats}
+                    onStartReachedThreshold={0.75}
+                    ListFooterComponent={listFooterComponent}
+                    ListHeaderComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     extraData={extraData}
+                    testID="report-actions-list"
                 />
             </Animated.View>
         </>

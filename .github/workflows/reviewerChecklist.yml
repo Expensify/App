@@ -7,7 +7,7 @@ jobs:
   # then you also need to go into PHP and update the name of this job in the GH_JOB_NAME_CHECKLIST constant
   checklist:
     runs-on: ubuntu-latest
-    if: github.actor != 'OSBotify'
+    if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
     steps:
       - name: reviewerChecklist.js
         uses: Expensify/App/.github/actions/javascript/reviewerChecklist@main

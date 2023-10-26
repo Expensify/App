@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -10,13 +10,15 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ErrorUtils from '../../libs/ErrorUtils';
-import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
 import CONST from '../../CONST';
 import * as Browser from '../../libs/Browser';
+import useAutoFocusInput from '../../hooks/useAutoFocusInput';
+import FormProvider from '../../components/Form/FormProvider';
+import InputWrapper from '../../components/Form/InputWrapper';
 
 const propTypes = {
     /** Beta features list */
@@ -37,9 +39,10 @@ const defaultProps = {
 };
 
 function NewTaskDetailsPage(props) {
-    const inputRef = useRef();
     const [taskTitle, setTaskTitle] = useState(props.task.title);
     const [taskDescription, setTaskDescription] = useState(props.task.description || '');
+
+    const {inputCallbackRef} = useAutoFocusInput();
 
     useEffect(() => {
         setTaskTitle(props.task.title);
@@ -74,7 +77,6 @@ function NewTaskDetailsPage(props) {
     }
     return (
         <ScreenWrapper
-            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={NewTaskDetailsPage.displayName}
@@ -85,7 +87,7 @@ function NewTaskDetailsPage(props) {
                 shouldShowBackButton
                 onBackButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
                 style={[styles.mh5, styles.flexGrow1]}
@@ -94,8 +96,9 @@ function NewTaskDetailsPage(props) {
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    <TextInput
-                        ref={(el) => (inputRef.current = el)}
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        ref={inputCallbackRef}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
@@ -105,7 +108,8 @@ function NewTaskDetailsPage(props) {
                     />
                 </View>
                 <View style={styles.mb5}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
@@ -118,7 +122,7 @@ function NewTaskDetailsPage(props) {
                         onValueChange={(value) => setTaskDescription(value)}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
