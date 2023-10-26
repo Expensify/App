@@ -17,6 +17,7 @@ import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
 import refPropTypes from '../../../../components/refPropTypes';
 import * as Report from '../../../../libs/actions/Report';
+import useNetwork from '../../../../hooks/useNetwork';
 
 const propTypes = {
     /** Beta features list */
@@ -98,6 +99,7 @@ function MoneyRequestParticipantsSelector({
         personalDetails: [],
         userToInvite: null,
     });
+    const {isOffline} = useNetwork();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
@@ -284,6 +286,7 @@ function MoneyRequestParticipantsSelector({
                 confirmButtonText={translate('iou.addToSplit')}
                 onConfirmSelection={navigateToSplit}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}

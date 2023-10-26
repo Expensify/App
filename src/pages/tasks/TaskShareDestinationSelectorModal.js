@@ -20,6 +20,7 @@ import * as Task from '../../libs/actions/Task';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
 import * as Report from '../../libs/actions/Report';
+import useNetwork from '../../hooks/useNetwork';
 
 const propTypes = {
     /* Onyx Props */
@@ -52,6 +53,7 @@ function TaskShareDestinationSelectorModal(props) {
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const {isSearchingForReports} = props;
     const optionRef = useRef();
+    const {isOffline} = useNetwork();
 
     const filteredReports = useMemo(() => {
         const reports = {};
@@ -146,6 +148,7 @@ function TaskShareDestinationSelectorModal(props) {
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputAlert={isOffline ? `${props.translate('common.youAppearToBeOffline')} ${props.translate('search.resultsAreLimited')}` : ''}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
                             ref={optionRef}
