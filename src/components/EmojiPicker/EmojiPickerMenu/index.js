@@ -11,7 +11,6 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import emojiAssets from '../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../Text';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import compose from '../../../libs/compose';
 import getOperatingSystem from '../../../libs/getOperatingSystem';
@@ -23,6 +22,7 @@ import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
 import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -37,9 +37,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.object),
 
-    /** Props related to the dimensions of the window */
-    ...windowDimensionsPropTypes,
-
     ...withLocalizePropTypes,
 };
 
@@ -52,7 +49,9 @@ const defaultProps = {
 const throttleTime = Browser.isMobile() ? 200 : 50;
 
 function EmojiPickerMenu(props) {
-    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, isSmallScreenWidth, windowHeight, translate} = props;
+    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, translate} = props;
+
+    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
 
     // Ref for the emoji search input
     const searchInputRef = useRef(null);
@@ -108,7 +107,7 @@ function EmojiPickerMenu(props) {
     const [selection, setSelection] = useState({start: 0, end: 0});
     const [isFocused, setIsFocused] = useState(false);
     const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
-    const [selectTextOnFocus, setSelectTextOnFocus] = useState(false);
+    const [highlightFirstEmoji, setHighlightFirstEmoji] = useState(false);
 
     useEffect(() => {
         const emojisAndHeaderRowIndices = getEmojisAndHeaderRowIndices();
@@ -162,8 +161,6 @@ function EmojiPickerMenu(props) {
         if (!searchInputRef.current) {
             return;
         }
-
-        setSelectTextOnFocus(true);
         searchInputRef.current.focus();
     }
 
@@ -178,6 +175,7 @@ function EmojiPickerMenu(props) {
             setHeaderIndices(headerRowIndices.current);
             setHighlightedIndex(-1);
             updateFirstNonHeaderIndex(emojis.current);
+            setHighlightFirstEmoji(false);
             return;
         }
         const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, emojis.current.length);
@@ -187,6 +185,7 @@ function EmojiPickerMenu(props) {
         setHeaderIndices([]);
         setHighlightedIndex(0);
         updateFirstNonHeaderIndex(newFilteredEmojiList);
+        setHighlightFirstEmoji(true);
     }, throttleTime);
 
     /**
@@ -213,6 +212,7 @@ function EmojiPickerMenu(props) {
                 searchInputRef.current.blur();
                 setArePointerEventsDisabled(true);
                 setIsUsingKeyboardMovement(true);
+                setHighlightFirstEmoji(false);
 
                 // We only want to hightlight the Emoji if none was highlighted already
                 // If we already have a highlighted Emoji, lets just skip the first navigation
@@ -323,11 +323,7 @@ function EmojiPickerMenu(props) {
 
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
             if (searchInputRef.current && !searchInputRef.current.isFocused()) {
-                setSelectTextOnFocus(false);
                 searchInputRef.current.focus();
-
-                // Re-enable selection on the searchInput
-                setSelectTextOnFocus(true);
             }
         },
         [filteredEmojis, highlightAdjacentEmoji, highlightedIndex, isFocused, onEmojiSelected, preferredSkinTone],
@@ -371,12 +367,16 @@ function EmojiPickerMenu(props) {
         }
 
         setupEventHandlers();
-        updateFirstNonHeaderIndex(emojis.current);
 
         return () => {
             cleanupEventHandlers();
         };
     }, [forwardedRef, shouldFocusInputOnScreenFocus, cleanupEventHandlers, setupEventHandlers]);
+
+    useEffect(() => {
+        // Find and store index of the first emoji item on mount
+        updateFirstNonHeaderIndex(emojis.current);
+    }, []);
 
     const scrollToHeader = useCallback((headerIndex) => {
         if (!emojiListRef.current) {
@@ -438,11 +438,13 @@ function EmojiPickerMenu(props) {
             const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
 
             const isEmojiFocused = index === highlightedIndex && isUsingKeyboardMovement;
+            const shouldEmojiBeHighlighted = index === highlightedIndex && highlightFirstEmoji;
 
             return (
                 <EmojiPickerMenuItem
                     onPress={(emoji) => onEmojiSelected(emoji, item)}
                     onHoverIn={() => {
+                        setHighlightFirstEmoji(false);
                         if (!isUsingKeyboardMovement) {
                             return;
                         }
@@ -456,10 +458,11 @@ function EmojiPickerMenu(props) {
                         setHighlightedIndex((prevState) => (prevState === index ? -1 : prevState))
                     }
                     isFocused={isEmojiFocused}
+                    isHighlighted={shouldEmojiBeHighlighted}
                 />
             );
         },
-        [isUsingKeyboardMovement, highlightedIndex, onEmojiSelected, preferredSkinTone, translate],
+        [isUsingKeyboardMovement, highlightedIndex, onEmojiSelected, preferredSkinTone, translate, highlightFirstEmoji],
     );
 
     const isFiltered = emojis.current.length !== filteredEmojis.length;
@@ -481,7 +484,6 @@ function EmojiPickerMenu(props) {
                     defaultValue=""
                     ref={searchInputRef}
                     autoFocus={shouldFocusInputOnScreenFocus}
-                    selectTextOnFocus={selectTextOnFocus}
                     onSelectionChange={onSelectionChange}
                     onFocus={() => {
                         setHighlightedIndex(-1);
@@ -531,8 +533,17 @@ function EmojiPickerMenu(props) {
 EmojiPickerMenu.propTypes = propTypes;
 EmojiPickerMenu.defaultProps = defaultProps;
 
+const EmojiPickerMenuWithRef = React.forwardRef((props, ref) => (
+    <EmojiPickerMenu
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+EmojiPickerMenuWithRef.displayName = 'EmojiPickerMenuWithRef';
+
 export default compose(
-    withWindowDimensions,
     withLocalize,
     withOnyx({
         preferredSkinTone: {
@@ -542,12 +553,4 @@ export default compose(
             key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
-)(
-    React.forwardRef((props, ref) => (
-        <EmojiPickerMenu
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(EmojiPickerMenuWithRef);

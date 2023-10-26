@@ -23,6 +23,7 @@ import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescr
 import ROUTES from '../../../ROUTES';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
+import DisplayNames from '../../../components/DisplayNames';
 
 const propTypes = {
     /** Route params */
@@ -112,12 +113,13 @@ function ReportSettingsPage(props) {
                                     >
                                         {roomNameLabel}
                                     </Text>
-                                    <Text
+                                    <DisplayNames
+                                        fullTitle={reportName}
+                                        tooltipEnabled
                                         numberOfLines={1}
-                                        style={[styles.optionAlternateText, styles.pre]}
-                                    >
-                                        {reportName}
-                                    </Text>
+                                        textStyles={[styles.optionAlternateText, styles.pre]}
+                                        shouldUseFullTitle
+                                    />
                                 </View>
                             ) : (
                                 <MenuItemWithTopDescription
@@ -162,12 +164,13 @@ function ReportSettingsPage(props) {
                                 >
                                     {translate('workspace.common.workspace')}
                                 </Text>
-                                <Text
+                                <DisplayNames
+                                    fullTitle={linkedWorkspace.name}
+                                    tooltipEnabled
                                     numberOfLines={1}
-                                    style={[styles.optionAlternateText, styles.pre]}
-                                >
-                                    {linkedWorkspace.name}
-                                </Text>
+                                    textStyles={[styles.optionAlternateText, styles.pre]}
+                                    shouldUseFullTitle
+                                />
                             </View>
                         )}
                         {Boolean(report.visibility) && (
@@ -206,7 +209,7 @@ ReportSettingsPage.propTypes = propTypes;
 ReportSettingsPage.defaultProps = defaultProps;
 ReportSettingsPage.displayName = 'ReportSettingsPage';
 export default compose(
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
