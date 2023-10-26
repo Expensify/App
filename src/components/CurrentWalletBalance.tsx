@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import {TextStyle} from 'react-native';
 import styles from '../styles/styles';
