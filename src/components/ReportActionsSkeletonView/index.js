@@ -7,23 +7,26 @@ import CONST from '../../CONST';
 const propTypes = {
     /** Whether to animate the skeleton view */
     shouldAnimate: PropTypes.bool,
+
+    /** Number of possible visible content items */
+    possibleVisibleContentItems: PropTypes.number,
 };
 
 const defaultProps = {
     shouldAnimate: true,
+    possibleVisibleContentItems: 0,
 };
 
-function ReportActionsSkeletonView(props) {
-    // Determines the number of content items based on container height
-    const possibleVisibleContentItems = Math.ceil(Dimensions.get('window').height / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
+function ReportActionsSkeletonView({shouldAnimate, possibleVisibleContentItems}) {
+    const contentItems = possibleVisibleContentItems || Math.ceil(Dimensions.get('window').height / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
     const skeletonViewLines = [];
-    for (let index = 0; index < possibleVisibleContentItems; index++) {
+    for (let index = 0; index < contentItems; index++) {
         const iconIndex = (index + 1) % 4;
         switch (iconIndex) {
             case 2:
                 skeletonViewLines.push(
                     <SkeletonViewLines
-                        shouldAnimate={props.shouldAnimate}
+                        shouldAnimate={shouldAnimate}
                         numberOfRows={2}
                         key={`skeletonViewLines${index}`}
                     />,
@@ -32,7 +35,7 @@ function ReportActionsSkeletonView(props) {
             case 0:
                 skeletonViewLines.push(
                     <SkeletonViewLines
-                        shouldAnimate={props.shouldAnimate}
+                        shouldAnimate={shouldAnimate}
                         numberOfRows={3}
                         key={`skeletonViewLines${index}`}
                     />,
@@ -41,7 +44,7 @@ function ReportActionsSkeletonView(props) {
             default:
                 skeletonViewLines.push(
                     <SkeletonViewLines
-                        shouldAnimate={props.shouldAnimate}
+                        shouldAnimate={shouldAnimate}
                         numberOfRows={1}
                         key={`skeletonViewLines${index}`}
                     />,

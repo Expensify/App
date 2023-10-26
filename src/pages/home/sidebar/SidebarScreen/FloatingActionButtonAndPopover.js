@@ -199,12 +199,12 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.MoneyCircle,
                         text: props.translate('iou.requestMoney'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
+                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST)),
                     },
                     {
                         icon: Expensicons.Send,
                         text: props.translate('iou.sendMoney'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
+                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                     },
                     ...(Permissions.canUseTasks(props.betas)
                         ? [
@@ -257,6 +257,16 @@ FloatingActionButtonAndPopover.propTypes = propTypes;
 FloatingActionButtonAndPopover.defaultProps = defaultProps;
 FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
+const FloatingActionButtonAndPopoverWithRef = forwardRef((props, ref) => (
+    <FloatingActionButtonAndPopover
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+FloatingActionButtonAndPopoverWithRef.displayName = 'FloatingActionButtonAndPopoverWithRef';
+
 export default compose(
     withLocalize,
     withNavigation,
@@ -277,12 +287,4 @@ export default compose(
             key: ONYXKEYS.DEMO_INFO,
         },
     }),
-)(
-    forwardRef((props, ref) => (
-        <FloatingActionButtonAndPopover
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+)(FloatingActionButtonAndPopoverWithRef);

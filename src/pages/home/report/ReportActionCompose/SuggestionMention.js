@@ -9,6 +9,7 @@ import * as UserUtils from '../../../../libs/UserUtils';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 import useLocalize from '../../../../hooks/useLocalize';
+import usePrevious from '../../../../hooks/usePrevious';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import * as SuggestionProps from './suggestionProps';
@@ -54,8 +55,10 @@ function SuggestionMention({
     forwardedRef,
     isAutoSuggestionPickerLarge,
     measureParentContainer,
+    isComposerFocused,
 }) {
     const {translate} = useLocalize();
+    const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowSuggestionMenu;
@@ -181,24 +184,24 @@ function SuggestionMention({
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockCalc.current || selectionEnd < 1) {
+            if (shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
             }
 
             const valueAfterTheCursor = value.substring(selectionEnd);
-            const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+            const indexOfFirstSpecialCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.MENTION_BREAKER);
 
-            let indexOfLastNonWhitespaceCharAfterTheCursor;
-            if (indexOfFirstWhitespaceCharOrEmojiAfterTheCursor === -1) {
-                // we didn't find a whitespace/emoji after the cursor, so we will use the entire string
-                indexOfLastNonWhitespaceCharAfterTheCursor = value.length;
+            let suggestionEndIndex;
+            if (indexOfFirstSpecialCharOrEmojiAfterTheCursor === -1) {
+                // We didn't find a special char/whitespace/emoji after the cursor, so we will use the entire string
+                suggestionEndIndex = value.length;
             } else {
-                indexOfLastNonWhitespaceCharAfterTheCursor = indexOfFirstWhitespaceCharOrEmojiAfterTheCursor + selectionEnd;
+                suggestionEndIndex = indexOfFirstSpecialCharOrEmojiAfterTheCursor + selectionEnd;
             }
 
-            const leftString = value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
+            const leftString = value.substring(0, suggestionEndIndex);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord = _.last(words);
 
@@ -229,12 +232,19 @@ function SuggestionMention({
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value],
+        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused],
     );
 
     useEffect(() => {
+        if (value.length < previousValue.length) {
+            // A workaround to not show the suggestions list when the user deletes a character before the mention.
+            // It is caused by a buggy behavior of the TextInput on iOS. Should be fixed after migration to Fabric.
+            // See: https://github.com/facebook/react-native/pull/36930#issuecomment-1593028467
+            return;
+        }
+
         calculateMentionSuggestion(selection.end);
-    }, [selection, calculateMentionSuggestion]);
+    }, [selection, value, previousValue, calculateMentionSuggestion]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -296,16 +306,18 @@ SuggestionMention.propTypes = propTypes;
 SuggestionMention.defaultProps = defaultProps;
 SuggestionMention.displayName = 'SuggestionMention';
 
+const SuggestionMentionWithRef = React.forwardRef((props, ref) => (
+    <SuggestionMention
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+SuggestionMentionWithRef.displayName = 'SuggestionMentionWithRef';
+
 export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
-})(
-    React.forwardRef((props, ref) => (
-        <SuggestionMention
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+})(SuggestionMentionWithRef);

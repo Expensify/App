@@ -31,7 +31,7 @@ const defaultProps = {
 function DistanceEReceipt({transaction}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {thumbnail} = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename) : {};
+    const {thumbnail} = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction) : {};
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : translate('common.tbd');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
@@ -91,7 +91,8 @@ function DistanceEReceipt({transaction}) {
                                     key={key}
                                 >
                                     <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
-                                    <Text style={styles.eReceiptWaypointAddress}>{waypoint.address || ''}</Text>
+                                    {waypoint.name && <Text style={styles.eReceiptWaypointAddress}>{waypoint.name}</Text>}
+                                    {waypoint.address && <Text style={styles.textLabelSupporting}>{waypoint.address}</Text>}
                                 </View>
                             );
                         })}

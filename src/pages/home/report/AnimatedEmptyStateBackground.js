@@ -41,7 +41,6 @@ function AnimatedEmptyStateBackground() {
 
     return (
         <Animated.Image
-            pointerEvents="none"
             source={EmptyStateBackgroundImage}
             style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
             resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
