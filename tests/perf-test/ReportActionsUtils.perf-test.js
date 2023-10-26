@@ -1,6 +1,7 @@
 import {measureFunction} from 'reassure';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
@@ -51,7 +52,7 @@ const mockedReportActionsMap = getMockedReportActionsMap(2, 10000);
  * More on the measureFunction API:
  * @see https://callstack.github.io/reassure/docs/api#measurefunction-function
  */
-test('getLastVisibleAction with 10k reportActions stored per report', async () => {
+test('getLastVisibleAction on 10k reportActions', async () => {
     const reportId = '1';
 
     await Onyx.multiSet({
@@ -59,4 +60,34 @@ test('getLastVisibleAction with 10k reportActions stored per report', async () =
     });
     await waitForBatchedUpdates();
     await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId), {runs: 20});
+});
+
+test('getLastVisibleAction on 10k reportActions with actionsToMerge', async () => {
+    const reportId = '1';
+    const parentReportActionId = '1';
+    const fakeParentAction = mockedReportActionsMap[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`][parentReportActionId];
+    const actionsToMerge = {
+        [parentReportActionId]: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            previousMessage: fakeParentAction.message,
+            message: [
+                {
+                    translationKey: '',
+                    type: 'COMMENT',
+                    html: '',
+                    text: '',
+                    isEdited: true,
+                    isDeletedParentAction: true,
+                },
+            ],
+            errors: null,
+            linkMetaData: [],
+        },
+    };
+
+    await Onyx.multiSet({
+        ...mockedReportActionsMap,
+    });
+    await waitForBatchedUpdates();
+    await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId, actionsToMerge), {runs: 20});
 });
