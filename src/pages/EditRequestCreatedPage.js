@@ -2,11 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Form from '../components/Form';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import useLocalize from '../hooks/useLocalize';
 import NewDatePicker from '../components/NewDatePicker';
+import FormProvider from '../components/Form/FormProvider';
 
 const propTypes = {
     /** Transaction defailt created value */
@@ -26,7 +26,7 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
             testID={EditRequestCreatedPage.displayName}
         >
             <HeaderWithBackButton title={translate('common.date')} />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
                 onSubmit={onSubmit}
@@ -39,7 +39,7 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
                     defaultValue={defaultCreated}
                     maxDate={new Date()}
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

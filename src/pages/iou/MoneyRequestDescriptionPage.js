@@ -45,11 +45,12 @@ const propTypes = {
     }).isRequired,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
+    selectedTab: PropTypes.oneOf(['', CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
     iou: iouDefaultProps,
+    selectedTab: '',
 };
 
 function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
@@ -83,10 +84,10 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (!isDistanceRequest && (_.isEmpty(iou.participantAccountIDs) || (iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
+        if (!isDistanceRequest && (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
             Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
         }
-    }, [iou.id, iou.participantAccountIDs, iou.amount, iou.receiptPath, iouType, reportID, isDistanceRequest]);
+    }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID, isDistanceRequest]);
 
     function navigateBack() {
         Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));

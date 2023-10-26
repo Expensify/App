@@ -3,13 +3,14 @@ import lodashGet from 'lodash/get';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import {getActionFromState, findFocusedRoute} from '@react-navigation/core';
 import Log from '../Log';
-import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
+import originalGetTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
+import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import getStateFromPath from './getStateFromPath';
 import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
@@ -45,6 +46,12 @@ function canNavigate(methodName, params = {}) {
 
 // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
+
+// Re-exporting the getTopMostCentralPaneRouteName here to fill in default value for state. The getTopMostCentralPaneRouteName isn't defined in this file to avoid cyclic dependencies.
+const getTopMostCentralPaneRouteName = (state = navigationRef.getState()) => originalGetTopMostCentralPaneRouteName(state);
+
+// Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
+const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
 /**
  * Method for finding on which index in stack we are.
@@ -91,7 +98,7 @@ function getPathsForRoutesInRootNavigator() {
 /**
  * Main navigation method for redirecting to a route.
  * @param {String} route
- * @param {String} type - Type of action to perform. Currently UP is supported.
+ * @param {String} [type] - Type of action to perform. Currently UP is supported.
  */
 function navigate(route = ROUTES.HOME, type) {
     if (!canNavigate('navigate', {route})) {
@@ -101,11 +108,6 @@ function navigate(route = ROUTES.HOME, type) {
         pendingRoute = route;
         return;
     }
-
-    // A pressed navigation button will remain focused, keeping its tooltip visible, even if it's supposed to be out of view.
-    // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is missing).
-    // More info: https://github.com/Expensify/App/issues/13146
-    DomUtils.blurActiveElement();
 
     linkTo(navigationRef.current, route, type);
 }
@@ -203,6 +205,11 @@ function dismissModal(targetReportID) {
                 const action = getActionFromState(state, linkingConfig.config);
                 action.type = 'REPLACE';
                 navigationRef.current.dispatch(action);
+                // If not-found page is in the route stack, we need to close it
+            } else if (targetReportID && _.some(rootState.routes, (route) => route.name === SCREENS.NOT_FOUND)) {
+                const lastRouteIndex = rootState.routes.length - 1;
+                const centralRouteIndex = _.findLastIndex(rootState.routes, (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+                navigationRef.current.dispatch({...StackActions.pop(lastRouteIndex - centralRouteIndex), target: rootState.key});
             } else {
                 navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key});
             }
@@ -301,6 +308,8 @@ export default {
     setIsNavigationReady,
     getTopmostReportId,
     getRouteNameFromStateEvent,
+    getTopMostCentralPaneRouteName,
+    getTopmostReportActionId,
 };
 
 export {navigationRef};

@@ -8,7 +8,6 @@ import _ from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import * as ReportUtils from '../../../libs/ReportUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
@@ -83,14 +82,6 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         }, []),
     );
 
-    // Check and dismiss modal
-    useEffect(() => {
-        if (!ReportUtils.shouldDisableWriteActions(report)) {
-            return;
-        }
-        Navigation.dismissModal(reportID);
-    }, [report, reportID]);
-
     // Because we use Onyx to store IOU info, when we try to make two different money requests from different tabs,
     // it can result in an IOU sent with improper values. In such cases we want to reset the flow and redirect the user to the first step of the IOU.
     useEffect(() => {
@@ -110,7 +101,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
-            if (!isDistanceRequestTab && (_.isEmpty(iou.participantAccountIDs) || iou.amount === 0 || shouldReset)) {
+            if (!isDistanceRequestTab && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
             }
         }
@@ -118,7 +109,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         return () => {
             prevMoneyRequestID.current = iou.id;
         };
-    }, [iou.participantAccountIDs, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
+    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
 
     const navigateBack = () => {
         Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
@@ -146,7 +137,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, reportID, report);
+        IOU.navigateToNextPage(iou, iouType, report);
     };
 
     const content = (

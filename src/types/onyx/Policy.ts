@@ -18,6 +18,9 @@ type Policy = {
     /** The email of the policy owner */
     owner: string;
 
+    /** The accountID of the policy owner */
+    ownerAccountID: number;
+
     /** The output currency for the policy */
     outputCurrency: string;
 
@@ -47,6 +50,12 @@ type Policy = {
 
     /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
     isPolicyExpenseChatEnabled: boolean;
+
+    /** Whether the scheduled submit is enabled */
+    autoReporting: boolean;
+
+    /** The scheduled submit frequency set up on the this policy */
+    autoReportingFrequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 };
 
 export default Policy;

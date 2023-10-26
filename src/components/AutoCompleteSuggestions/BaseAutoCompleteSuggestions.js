@@ -70,7 +70,7 @@ function BaseAutoCompleteSuggestions(props) {
     });
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * props.suggestions.length;
-    const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value, props.shouldIncludeReportRecipientLocalTimeHeight));
+    const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value));
 
     useEffect(() => {
         rowHeight.value = withTiming(measureHeightOfSuggestionRows(props.suggestions.length, props.isSuggestionPickerLarge), {
@@ -110,10 +110,14 @@ function BaseAutoCompleteSuggestions(props) {
 BaseAutoCompleteSuggestions.propTypes = propTypes;
 BaseAutoCompleteSuggestions.displayName = 'BaseAutoCompleteSuggestions';
 
-export default React.forwardRef((props, ref) => (
+const BaseAutoCompleteSuggestionsWithRef = React.forwardRef((props, ref) => (
     <BaseAutoCompleteSuggestions
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+BaseAutoCompleteSuggestionsWithRef.displayName = 'BaseAutoCompleteSuggestionsWithRef';
+
+export default BaseAutoCompleteSuggestionsWithRef;

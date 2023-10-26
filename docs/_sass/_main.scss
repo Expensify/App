@@ -299,7 +299,6 @@ button {
     }
 
     .selected {
-        cursor: auto;
         font-weight: bold;
         color: $color-text;
     }
@@ -351,7 +350,7 @@ button {
         img {
             display: block;
             margin: 20px auto;
-            border-radius: 10px;
+            border-radius: 16px;
 
             @include maxBreakpoint($breakpoint-tablet) {
                 width: 100%;
@@ -372,9 +371,26 @@ button {
             flex-wrap: wrap;
         }
 
+        h1 {
+            font-size: 1.5em;
+            padding: 20px 0 12px 0;
+        }
+
+        h2 {
+            font-size: 1.125em;
+            font-weight: 500;
+            font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        }
+
+        h3 {
+            font-size: 1em;
+            font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        }
+
         h2,
         h3 {
-            font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+            margin: 0;
+            padding: 12px 0 12px 0;
         }
 
         blockquote {
@@ -445,21 +461,22 @@ button {
     }
 }
 
-.cards-group, .platform-cards-group {
+.cards-group {
     display: grid;
     grid-template-columns: auto;
     row-gap: 20px;
     column-gap: 20px;
     padding-bottom: 20px;
-}
 
-.cards-group {
     @include breakpoint($breakpoint-desktop) {
         grid-template-columns: 50% 50%;
     }
 }
 
+
 .platform-cards-group {
+    @extend .cards-group;
+
     @include breakpoint($breakpoint-desktop) {
         grid-template-columns: 33.33% 33.33% 33.33%;
     }
@@ -529,7 +546,7 @@ button {
         align-items: center;
 
         img {
-            border-radius: 12px;
+            border-radius: 16px;
             width: 100%;
         }
     }
@@ -641,30 +658,13 @@ button {
 }
 
 .centered-content {
-    height: 240px;
+    width: 100%;
+    height: calc(100vh - 56px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    font-size: larger;
-    position: absolute;
-    top: calc((100vh - 240px) / 2);
-
-    width: 380px;
-    right: calc((100vw - 380px) / 2);
-    @include breakpoint($breakpoint-tablet) {
-        width: 500px;
-        right: calc((100vw - 500px) / 2);
-    }
-
-    &.with-lhn {
-        right: calc((100vw - 380px) / 2);
-
-        @include breakpoint($breakpoint-tablet) {
-            right: calc((100vw - 320px - 500px ) / 2);
-        }
-
-        @include breakpoint($breakpoint-desktop) {
-            right: calc((100vw - 420px - 500px) / 2);
-        }
-    }
 
     div {
         margin-top: 8px;

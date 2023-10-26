@@ -10,6 +10,7 @@ import Button from '../../Button';
 import AttachmentView from '../AttachmentView';
 import SafeAreaConsumer from '../../SafeAreaConsumer';
 import ReportAttachmentsContext from '../../../pages/home/report/ReportAttachmentsContext';
+import * as AttachmentsPropTypes from '../propTypes';
 
 const propTypes = {
     /** Attachment required information such as the source and file name */
@@ -20,8 +21,8 @@ const propTypes = {
         /** Whether source URL requires authentication */
         isAuthTokenRequired: PropTypes.bool,
 
-        /** The source (URL) of the attachment */
-        source: PropTypes.string,
+        /** URL to full-sized attachment or SVG function */
+        source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
 
         /** Additional information about the attachment file */
         file: PropTypes.shape({
@@ -31,6 +32,9 @@ const propTypes = {
 
         /** Whether the attachment has been flagged */
         hasBeenFlagged: PropTypes.bool,
+
+        /** The id of the transaction related to the attachment */
+        transactionID: PropTypes.string,
     }).isRequired,
 
     /** Whether the attachment is currently being viewed in the carousel */
@@ -48,7 +52,7 @@ function CarouselItem({item, isFocused, onPress}) {
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
     // eslint-disable-next-line es/no-nullish-coalescing-operators
-    const [isHidden, setIsHidden] = useState(isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
+    const [isHidden, setIsHidden] = useState(() => isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
 
     const renderButton = (style) => (
         <Button
@@ -97,6 +101,7 @@ function CarouselItem({item, isFocused, onPress}) {
                     isFocused={isFocused}
                     onPress={onPress}
                     isUsedInCarousel
+                    transactionID={item.transactionID}
                 />
             </View>
 
