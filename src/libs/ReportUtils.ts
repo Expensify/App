@@ -2186,7 +2186,7 @@ function navigateToDetailsPage(report: OnyxEntry<Report>) {
  * this is more than random enough for our needs.
  */
 function generateReportID(): string {
-    return Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32).toString();
+    return (Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32)).toString();
 }
 
 function hasReportNameError(report: OnyxEntry<Report>): boolean {
