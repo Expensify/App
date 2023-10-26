@@ -4,6 +4,8 @@ import {ModalProps} from 'react-native-modal';
 import {WindowDimensionsProps} from '../withWindowDimensions/types';
 import CONST from '../../CONST';
 
+type ModalVariant = ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+
 type BaseModalProps = WindowDimensionsProps &
     ModalProps & {
         /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
@@ -31,8 +33,7 @@ type BaseModalProps = WindowDimensionsProps &
         onModalShow?: () => void;
 
         /** Style of modal to display */
-        // type: PropTypes.oneOf(_.values(CONST.MODAL.MODAL_TYPE)),
-        type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+        type?: ModalVariant;
 
         /** The anchor position of a popover modal. Has no effect on other modal types. */
         popoverAnchorPosition?: {

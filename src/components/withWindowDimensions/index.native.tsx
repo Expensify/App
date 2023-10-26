@@ -74,10 +74,6 @@ function WindowDimensionsProvider(props: ChildrenProps) {
 
 WindowDimensionsProvider.displayName = 'WindowDimensionsProvider';
 
-/**
- * @param WrappedComponent
- * @returns
- */
 export default function withWindowDimensions<TProps extends WindowDimensionsProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
     function WithWindowDimensions(props: Omit<TProps, keyof WindowDimensionsProps>, ref: ForwardedRef<TRef>) {
         return (
