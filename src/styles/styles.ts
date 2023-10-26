@@ -4022,6 +4022,8 @@ const styles = (theme: ThemeDefault) =>
         singleOptionSelectorCircle: {
             borderColor: theme.icon,
         },
+
+        approvedOrSubmittedMessage: (isApprovedOrSubmittedMessage: boolean) => (isApprovedOrSubmittedMessage ? {color: theme.textSupporting, fontWeight: 'normal'} : {}),
     } satisfies Styles);
 
 // For now we need to export the styles function that takes the theme as an argument
