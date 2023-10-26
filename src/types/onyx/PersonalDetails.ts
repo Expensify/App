@@ -1,8 +1,10 @@
 import TIMEZONES from '../../TIMEZONES';
 
+type SelectedTimezone = (typeof TIMEZONES)[number];
+
 type Timezone = {
     /** Value of selected timezone */
-    selected?: (typeof TIMEZONES)[number];
+    selected?: SelectedTimezone;
 
     /** Whether timezone is automatically set */
     automatic?: boolean;
@@ -46,6 +48,6 @@ type PersonalDetails = {
     timezone?: Timezone;
 };
 
-export type {Timezone};
+export type {Timezone, SelectedTimezone};
 
 export default PersonalDetails;
