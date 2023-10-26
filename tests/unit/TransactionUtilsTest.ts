@@ -46,19 +46,19 @@ describe('TransactionUtils', () => {
             });
 
             describe('and the transaction property "created" does not have value', () => {
-              const transaction = generateTransaction({
-                  created: undefined,
-                  modifiedCreated: undefined,
-              });
+                const transaction = generateTransaction({
+                    created: undefined,
+                    modifiedCreated: undefined,
+                });
 
-              it('returns an empty string', () => {
-                  const expectedResult = '';
+                it('returns an empty string', () => {
+                    const expectedResult = '';
 
-                  const result = TransactionUtils.getCreated(transaction);
+                    const result = TransactionUtils.getCreated(transaction);
 
-                  expect(result).toEqual(expectedResult);
-              });
-          });
+                    expect(result).toEqual(expectedResult);
+                });
+            });
         });
     });
 });
