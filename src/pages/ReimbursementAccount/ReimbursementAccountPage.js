@@ -33,6 +33,7 @@ import * as PolicyUtils from '../../libs/PolicyUtils';
 import shouldReopenOnfido from '../../libs/shouldReopenOnfido';
 import useLocalize from '../../hooks/useLocalize';
 import useNetwork from '../../hooks/useNetwork';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -225,7 +226,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             // Since there is no VBBA in progress, we won't need to show the component ContinueBankAccountSetup
             return false;
         }
-        return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], getStepToOpenFromRouteParams());
+        return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], getStepToOpenFromRouteParams(route));
     }
 
     // The first time we open this page, props.reimbursementAccount is either not available in Onyx
@@ -243,9 +244,9 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     const policyID = lodashGet(route.params, 'policyID', '');
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const prevIsOfflineRef = useRef(isOffline);
-    const prevReimbursementAccountRef = useRef(reimbursementAccount);
     const requestorStepRef = useRef(null);
+    const prevReimbursementAccount = usePrevious(reimbursementAccount);
+    const prevIsOffline = usePrevious(isOffline);
 
     /**
      * Retrieve verified business bank account currently being set up.
@@ -257,7 +258,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
 
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
-        const stepToOpen = getStepToOpenFromRouteParams();
+        const stepToOpen = getStepToOpenFromRouteParams(route);
         const subStep = achData.subStep || '';
         const localCurrentStep = achData.currentStep || '';
         BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep);
@@ -280,26 +281,27 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         [],
     ); // The empty dependency array ensures this runs only once after the component mounts.
 
+    // Check for network change from offline to online
+    if (prevIsOffline && !isOffline && prevReimbursementAccount && prevReimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        fetchData();
+    }
+
+    if (
+        prevReimbursementAccount && 
+        prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        reimbursementAccount.pendingAction !== prevReimbursementAccount.pendingAction
+    ) {
+        setShouldShowContinueSetupButton(hasInProgressVBBA());
+    }
+
     useEffect(
         () => {
-            // Check for network change from offline to online
-            if (prevIsOfflineRef.current && !isOffline && prevReimbursementAccountRef.current.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                fetchData();
-            }
-
             if (!hasACHDataBeenLoaded) {
                 if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && !reimbursementAccount.isLoading) {
                     setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
                     setHasACHDataBeenLoaded(true);
                 }
                 return;
-            }
-
-            if (
-                prevReimbursementAccountRef.current.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                reimbursementAccount.pendingAction !== prevReimbursementAccountRef.current.pendingAction
-            ) {
-                setShouldShowContinueSetupButton(hasInProgressVBBA());
             }
 
             if (shouldShowContinueSetupButton) {
@@ -321,10 +323,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             const backTo = lodashGet(route.params, 'backTo');
             const policyId = lodashGet(route.params, 'policyID');
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyId, backTo));
-
-            // Update refs with current values
-            prevIsOfflineRef.current = isOffline;
-            prevReimbursementAccountRef.current = reimbursementAccount;
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
