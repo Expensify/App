@@ -524,10 +524,7 @@ function ComposerWithSuggestions({
 
     return (
         <>
-            <View
-                style={[containerComposeStyles, styles.textInputComposeBorder]}
-                nativeID="wtfMate"
-            >
+            <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={shouldAutoFocus}
