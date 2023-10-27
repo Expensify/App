@@ -661,3 +661,5 @@ export {
     shouldReportActionBeVisibleAsLastAction,
     getFirstVisibleReportActionID,
 };
+
+export type {LastVisibleMessage};

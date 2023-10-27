@@ -31,6 +31,7 @@ import DeepValueOf from '../types/utils/DeepValueOf';
 import {IOUMessage, OriginalMessageActionName} from '../types/onyx/OriginalMessage';
 import {Message, ReportActions} from '../types/onyx/ReportAction';
 import {PendingAction} from '../types/onyx/OnyxCommon';
+import {LastVisibleMessage} from './ReportActionsUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string};
 
@@ -479,7 +480,7 @@ function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction?: OnyxEn
 /**
  * Checks if a report is a completed task report.
  */
-function isCompletedTaskReport(report: OnyxEntry<Report>) {
+function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
     return isTaskReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
@@ -1369,7 +1370,7 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
  * @param [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
 
  */
-function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: ReportActions = {}) {
+function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: ReportActions = {}): LastVisibleMessage {
     const report = getReport(reportID);
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID ?? '', actionsToMerge);
 
@@ -1594,7 +1595,7 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
  *    - the current user is the requestor and is not settled yet
  *    - or the user is an admin on the policy the expense report is tied to
  */
-function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>) {
+function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -2150,7 +2151,7 @@ function getReportAndWorkspaceName(report: OnyxEntry<Report>): ReportAndWorkspac
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>) {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>): ReportAndWorkspaceName | Record<string, never> {
     if (isThread(report)) {
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
         const {rootReportName, workspaceName} = getRootReportAndWorkspaceName(parentReport);
