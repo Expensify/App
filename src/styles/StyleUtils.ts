@@ -1,5 +1,5 @@
 import {CSSProperties} from 'react';
-import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
+import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
@@ -1012,7 +1012,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
 /**
  * Select the correct color for text.
  */
-function getColoredBackgroundStyle(isColored: boolean): ViewStyle {
+function getColoredBackgroundStyle(isColored: boolean): StyleProp<TextStyle> | undefined {
     return {backgroundColor: isColored ? themeColors.link : undefined};
 }
 
