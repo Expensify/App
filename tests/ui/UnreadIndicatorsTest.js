@@ -130,13 +130,15 @@ function signInAndGetAppWithUnreadChat() {
     // Render the App and sign in as a test user.
     render(<App />);
     return waitForBatchedUpdatesWithAct()
-        .then(() => {
-            const hintText = Localize.translateLocal('loginForm.loginForm');
-            const loginForm = screen.queryAllByLabelText(hintText);
-            expect(loginForm).toHaveLength(1);
+        .then(() =>
+            waitFor(() => {
+                const hintText = Localize.translateLocal('loginForm.loginForm');
+                const loginForm = screen.queryAllByLabelText(hintText);
+                expect(loginForm).toHaveLength(1);
 
-            return TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
-        })
+                return TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
+            }),
+        )
         .then(() => {
             User.subscribeToUserEvents();
             return waitForBatchedUpdates();
@@ -524,12 +526,14 @@ describe('Unread Indicators', () => {
                 .then(() => {
                     // Simulate the response from the server so that the comment can be deleted in this test
                     lastReportAction = {...CollectionUtils.lastItem(reportActions)};
-                    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         lastMessageText: lastReportAction.message[0].text,
                         lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
                         lastActorAccountID: lastReportAction.actorAccountID,
                         reportID: REPORT_ID,
                     });
+
+                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // Verify the chat preview text matches the last comment from the current user
