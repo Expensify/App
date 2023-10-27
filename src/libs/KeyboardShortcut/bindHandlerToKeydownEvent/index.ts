@@ -1,44 +1,44 @@
-import _ from 'underscore';
 import getKeyEventModifiers from '../getKeyEventModifiers';
 import isEnterWhileComposition from '../isEnterWhileComposition';
+import BindHandlerToKeydownEvent from './types';
 
 /**
  * Checks if an event for that key is configured and if so, runs it.
- * @param {Function} getDisplayName
- * @param {Object} eventHandlers
- * @param {Object} keycommandEvent
- * @param {Event} event
- * @private
  */
-function bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event) {
+const bindHandlerToKeydownEvent: BindHandlerToKeydownEvent = (getDisplayName, eventHandlers, keyCommandEvent, event) => {
     if (!(event instanceof KeyboardEvent) || isEnterWhileComposition(event)) {
         return;
     }
 
-    const eventModifiers = getKeyEventModifiers(keycommandEvent);
-    const displayName = getDisplayName(keycommandEvent.input, eventModifiers);
+    const eventModifiers = getKeyEventModifiers(keyCommandEvent);
+    const displayName = getDisplayName(keyCommandEvent.input, eventModifiers);
 
     // Loop over all the callbacks
-    _.every(eventHandlers[displayName], (callback) => {
+    Object.values(eventHandlers[displayName]).every((callback) => {
+        const textArea = event.target as HTMLTextAreaElement;
+        const contentEditable = textArea?.contentEditable;
+        const nodeName = textArea?.nodeName;
+
         // Early return for excludedNodes
-        if (_.contains(callback.excludedNodes, event.target.nodeName)) {
+        if (callback.excludedNodes.includes(nodeName)) {
             return true;
         }
 
         // If configured to do so, prevent input text control to trigger this event
-        if (!callback.captureOnInputs && (event.target.nodeName === 'INPUT' || event.target.nodeName === 'TEXTAREA' || event.target.contentEditable === 'true')) {
+        if (!callback.captureOnInputs && (nodeName === 'INPUT' || nodeName === 'TEXTAREA' || contentEditable === 'true')) {
             return true;
         }
 
         // Determine if the event should bubble before executing the callback (which may have side-effects)
-        let shouldBubble = callback.shouldBubble || false;
-        if (_.isFunction(callback.shouldBubble)) {
+        let shouldBubble: boolean | (() => void) | void = callback.shouldBubble || false;
+        if (typeof callback.shouldBubble === 'function') {
             shouldBubble = callback.shouldBubble();
         }
 
-        if (_.isFunction(callback.callback)) {
+        if (typeof callback.callback === 'function') {
             callback.callback(event);
         }
+
         if (callback.shouldPreventDefault) {
             event.preventDefault();
         }
@@ -46,6 +46,6 @@ function bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEven
         // If the event should not bubble, short-circuit the loop
         return shouldBubble;
     });
-}
+};
 
 export default bindHandlerToKeydownEvent;
