@@ -33,7 +33,12 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
 
     return (
         <>
-            <Text style={[styles.textLabelSupporting, styles.mb4]}>Test Preferences</Text>
+            <Text
+                style={[styles.textLabelSupporting, styles.mb4]}
+                numberOfLines={1}
+            >
+                Test Preferences
+            </Text>
 
             {/* Option to switch between staging and default api endpoints.
         This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
