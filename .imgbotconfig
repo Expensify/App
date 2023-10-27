@@ -1,7 +1,6 @@
 {
     "ignoredFiles": [
-        // Caused an issue with colour gradients, https://github.com/Expensify/App/issues/30499
-        "assets/images/empty-state_background-fade.png"
+        "assets/images/empty-state_background-fade.png" // Caused an issue with colour gradients, https://github.com/Expensify/App/issues/30499
     ],
     "aggressiveCompression": "false"
 }
