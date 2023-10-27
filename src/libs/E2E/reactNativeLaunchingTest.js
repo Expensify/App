@@ -24,6 +24,7 @@ if (!Metrics.canCapturePerformanceMetrics()) {
 const tests = {
     [E2EConfig.TEST_NAMES.AppStartTime]: require('./tests/appStartTimeTest.e2e').default,
     [E2EConfig.TEST_NAMES.OpenSearchPage]: require('./tests/openSearchPageTest.e2e').default,
+    [E2EConfig.TEST_NAMES.ChatOpening]: require('./tests/chatOpeningTest.e2e').default,
 };
 
 // Once we receive the TII measurement we know that the app is initialized and ready to be used:
@@ -65,5 +66,5 @@ E2EClient.getTestConfig()
 
 // start the usual app
 Performance.markStart('regularAppStart');
-import '../../../index';
+import '../../../appIndex';
 Performance.markEnd('regularAppStart');
