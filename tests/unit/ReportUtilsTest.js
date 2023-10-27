@@ -503,7 +503,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.getReportIDFromLink('new-expensify://r/75431276')).toBe('75431276');
             expect(ReportUtils.getReportIDFromLink('https://www.expensify.cash/r/75431276')).toBe('75431276');
             expect(ReportUtils.getReportIDFromLink('https://staging.new.expensify.com/r/75431276')).toBe('75431276');
-            expect(ReportUtils.getReportIDFromLink('https://new.expensify.com.dev/r/75431276')).toBe('75431276');
+            expect(ReportUtils.getReportIDFromLink('https://dev.new.expensify.com/r/75431276')).toBe('75431276');
             expect(ReportUtils.getReportIDFromLink('https://staging.expensify.cash/r/75431276')).toBe('75431276');
             expect(ReportUtils.getReportIDFromLink('https://new.expensify.com/r/75431276')).toBe('75431276');
         });

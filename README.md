@@ -36,9 +36,9 @@ These instructions should get you set up ready to work on New Expensify 🙌
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
 4. Install `mkcert`: `brew install mkcert` followed by `npm run setup-https`. If you are not using macOS, follow the instructions [here](https://github.com/FiloSottile/mkcert?tab=readme-ov-file#installation). 
-5. Create a host entry in your local hosts file, `/etc/hosts` for new.expensify.com.dev pointing to localhost:
+5. Create a host entry in your local hosts file, `/etc/hosts` for dev.new.expensify.com pointing to localhost:
 ```
-127.0.0.1 new.expensify.com.dev
+127.0.0.1 dev.new.expensify.com
 ```
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
@@ -133,7 +133,7 @@ Note - If you want to run app on `https://127.0.0.1:8082`, then just install the
 2. Select the emulator you want to run if prompted. (If single emulator is available, then it will open automatically)
 3. Let the script execute till the message `🎉 Done!`.
 
-Note - If you want to run app on `https://new.expensify.com.dev:8082`, then just do the Android flow and use `npm run startAndroidEmulator` to start the Android Emulator every time (It will configure the emulator).
+Note - If you want to run app on `https://dev.new.expensify.com:8082`, then just do the Android flow and use `npm run startAndroidEmulator` to start the Android Emulator every time (It will configure the emulator).
 
 
 Possible Scenario:
