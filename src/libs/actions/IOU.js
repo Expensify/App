@@ -525,8 +525,9 @@ function getMoneyRequestInformation(
     // 3. IOU action for the iouReport
     // 4. REPORTPREVIEW action for the chatReport
     // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
+    const currentTime = DateUtils.getDBTime();
     const optimisticCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
-    const optimisticCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
+    const optimisticCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(currentTime, 1));
     const iouAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
@@ -539,6 +540,8 @@ function getMoneyRequestInformation(
         false,
         false,
         receiptObject,
+        false,
+        currentTime,
     );
 
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -1054,7 +1057,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
 
         // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
-        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
+        // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
+        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || '').toLowerCase();
         const accountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
@@ -1121,8 +1125,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // 3. IOU action for the iouReport
         // 4. REPORTPREVIEW action for the chatReport
         // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
+        const currentTime = DateUtils.getDBTime();
         const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
-        const oneOnOneCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+        const oneOnOneCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit, DateUtils.subtractMillisecondsFromDateTime(currentTime, 1));
         const oneOnOneIOUAction = ReportUtils.buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
@@ -1132,6 +1137,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneTransaction.transactionID,
             '',
             oneOnOneIOUReport.reportID,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            currentTime,
         );
 
         // Add optimistic personal details for new participants
@@ -1808,6 +1818,8 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         optimisticPolicyRecentlyUsedTags[tagListName] = [transactionChanges.tag, ...uniquePolicyRecentlyUsedTags];
     }
 
+    const isScanning = TransactionUtils.hasReceipt(updatedTransaction) && TransactionUtils.isReceiptBeingScanned(updatedTransaction);
+
     // STEP 4: Compose the optimistic data
     const currentTime = DateUtils.getDBTime();
     const optimisticData = [
@@ -1841,6 +1853,28 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                 lastVisibleActionCreated: currentTime,
             },
         },
+        ...(!isScanning
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                      value: {
+                          [transactionThread.parentReportActionID]: {
+                              whisperedToAccountIDs: [],
+                          },
+                      },
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`,
+                      value: {
+                          [iouReport.parentReportActionID]: {
+                              whisperedToAccountIDs: [],
+                          },
+                      },
+                  },
+              ]
+            : []),
     ];
 
     if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
@@ -1893,17 +1927,17 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: transaction,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: iouReport,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`,
             value: chatReport,
         },
@@ -2245,7 +2279,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         },
     };
     const optimisticChatReportActionsData = {
-        onyxMethod: Onyx.METHOD.SET,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
         value: {
             [reportPreviewAction.reportActionID]: reportPreviewAction,
