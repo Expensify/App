@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import {RouteProp, useNavigationState} from '@react-navigation/native';
 import CONST from '../../CONST';
-import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import * as Policy from '../../libs/actions/Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import policyMemberPropType from '../policyMemberPropType';
