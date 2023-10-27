@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -271,21 +271,23 @@ HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withOnyx({
-        guideCalendarLink: {
-            key: ONYXKEYS.ACCOUNT,
-            selector: (account) => (account && account.guideCalendarLink) || null,
-            initialValue: null,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
-            selector: reportWithoutHasDraftSelector,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(HeaderView);
+export default memo(
+    compose(
+        withWindowDimensions,
+        withLocalize,
+        withOnyx({
+            guideCalendarLink: {
+                key: ONYXKEYS.ACCOUNT,
+                selector: (account) => (account && account.guideCalendarLink) || null,
+                initialValue: null,
+            },
+            parentReport: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
+                selector: reportWithoutHasDraftSelector,
+            },
+            session: {
+                key: ONYXKEYS.SESSION,
+            },
+        }),
+    )(HeaderView),
+);

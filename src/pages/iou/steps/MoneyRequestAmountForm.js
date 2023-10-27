@@ -290,7 +290,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 ) : null}
                 <Button
                     success
-                    allowBubble
+                    // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
+                    allowBubble={!isEditing}
                     pressOnEnter
                     medium={isExtraSmallScreenHeight}
                     style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt2]}
