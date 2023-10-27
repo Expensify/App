@@ -137,6 +137,7 @@ function resetMoneyRequestInfo(id = '') {
         receiptFilename: '',
         transactionID: '',
         billable: null,
+        isSplitRequest: false,
     });
 }
 
@@ -2863,9 +2864,10 @@ function setMoneyRequestBillable(billable) {
 
 /**
  * @param {Object[]} participants
+ * @param {Boolean} isSplitRequest
  */
-function setMoneyRequestParticipants(participants) {
-    Onyx.merge(ONYXKEYS.IOU, {participants});
+function setMoneyRequestParticipants(participants, isSplitRequest) {
+    Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
 /**
