@@ -7,7 +7,6 @@ import * as TransactionUtils from '../../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 import CONST from '../../../CONST';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
-import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 
 /**
  * Constructs the initial component state from report actions
@@ -25,9 +24,12 @@ function extractAttachmentsFromReport(report, reportActions) {
             if (isVideo) {
                 const splittedUrl = attribs['data-expensify-source'].split('/');
                 attachments.unshift({
-                    source: addEncryptedAuthTokenToURL(tryResolveUrlFromApiRoot(attribs['data-expensify-source'])),
-                    isAuthTokenRequired: true,
+                    reportActionID: {name: null},
+                    source: tryResolveUrlFromApiRoot(attribs['data-expensify-source']),
+                    isAuthTokenRequired: Boolean(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     file: {name: splittedUrl[splittedUrl.length - 1]},
+                    isReceipt: false,
+                    hasBeenFlagged: false,
                 });
                 return;
             }

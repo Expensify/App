@@ -12,8 +12,9 @@ import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 import {ShowContextMenuContext, showContextMenuForReport} from '../ShowContextMenuContext';
 import * as ReportUtils from '../../libs/ReportUtils';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import AttachmentModal from '../AttachmentModal';
 import VideoPlayerPreview from '../VideoPlayerPreview';
+import ROUTES from '../../ROUTES';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Press in handler for the link */
@@ -50,22 +51,14 @@ function BaseAnchorForAttachmentsOnly(props) {
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) =>
                 isVideo ? (
-                    <AttachmentModal
-                        allowDownload
-                        report={report}
-                        reportID={report.reportID}
-                        source={sourceURLWithAuth}
-                        isAuthTokenRequired={props.isAuthTokenRequired}
-                        originalFileName={props.displayName}
-                    >
-                        {({show}) => (
-                            <VideoPlayerPreview
-                                videoUrl={sourceURLWithAuth}
-                                fileName={fileName}
-                                showModal={show}
-                            />
-                        )}
-                    </AttachmentModal>
+                    <VideoPlayerPreview
+                        videoUrl={sourceURL}
+                        fileName={fileName}
+                        showModal={() => {
+                            const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report.reportID, sourceURL);
+                            Navigation.navigate(route);
+                        }}
+                    />
                 ) : (
                     <PressableWithoutFeedback
                         style={props.style}

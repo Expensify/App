@@ -58,7 +58,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
             return;
         }
         setIsThumbnail(false);
-    }, [currentlyPlayingURL, videoUrl]);
+    }, [currentlyPlayingURL, updateCurrentlyPlayingURL, videoUrl]);
 
     return (
         <View style={[styles.overflowHidden, styles.webViewStyles.tagStyles.img, videoStyles]}>

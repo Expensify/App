@@ -7,7 +7,7 @@ import styles from '../../styles/styles';
 import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import VideoPlayerControls from './VideoPlayerControls';
-import VideoPopoverMenu from '../VideoPopoverMenu';
+import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 
 const propTypes = {
     url: PropTypes.string.isRequired,
@@ -44,6 +44,8 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, updateCurrentVideoPlayerRef, updateDuration, updatePosition, duration, position, isPlaying} =
         usePlaybackContext();
 
+    const [sourceURLWithAuth] = React.useState(addEncryptedAuthTokenToURL(url));
+
     const [isVideoLoading, setIsVideoLoading] = React.useState(true);
 
     const ref = useRef(null);
@@ -60,15 +62,16 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
 
     // shared element transition logic for video player
     useEffect(() => {
-        if (!shouldUseSharedVideoElement) {
+        if (!sharedElement || !shouldUseSharedVideoElement) {
             return;
         }
+
         const newParentRef = sharedVideoPlayerParentRef.current;
         if (currentlyPlayingURL === url) {
             newParentRef.appendChild(sharedElement);
         }
         return () => {
-            if (!newParentRef.childNodes[0]) {
+            if (!originalParent && !newParentRef.childNodes[0]) {
                 return;
             }
             originalParent.appendChild(sharedElement);
@@ -108,7 +111,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             style={style}
                             videoStyle={videoStyle}
                             source={{
-                                uri: url || 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
+                                uri: sourceURLWithAuth || 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
                             }}
                             shouldPlay={shouldPlay}
                             useNativeControls={false}
