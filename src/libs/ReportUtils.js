@@ -3242,10 +3242,7 @@ function shouldHideReport(report, currentReportId) {
  */
 function isEmptyChat(report) {
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
-    return !report.lastMessageText
-        && !report.lastMessageTranslationKey
-        && !lastVisibleMessage.lastMessageText
-        && !lastVisibleMessage.lastMessageTranslationKey;
+    return !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
 }
 
 /**
