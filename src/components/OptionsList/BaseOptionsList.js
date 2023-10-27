@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useRef, useCallback, useEffect, forwardRef, memo} from 'react';
+import React, {useRef, useEffect, forwardRef, memo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -120,14 +120,14 @@ function BaseOptionsList({
         flattenedData.current = buildFlatSectionArray();
     });
 
-    const onViewableItemsChanged = useCallback(() => {
+    const onViewableItemsChanged = () => {
         if (didLayout.current || !onLayout) {
             return;
         }
 
         didLayout.current = true;
         onLayout();
-    }, [didLayout, onLayout]);
+    };
 
     /**
      * This function is used to compute the layout of any given item in our list.
