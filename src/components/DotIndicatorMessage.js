@@ -3,6 +3,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import styles from '../styles/styles';
+import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
@@ -25,11 +26,15 @@ const propTypes = {
     // Additional styles to apply to the container */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
+
+    // Additional styles to apply to the text
+    textStyles: stylePropTypes,
 };
 
 const defaultProps = {
     messages: {},
     style: [],
+    textStyles: [],
 };
 
 function DotIndicatorMessage(props) {
@@ -64,7 +69,7 @@ function DotIndicatorMessage(props) {
                 {_.map(sortedMessages, (message, i) => (
                     <Text
                         key={i}
-                        style={styles.offlineFeedback.text}
+                        style={[styles.offlineFeedback.text, ...props.textStyles]}
                     >
                         {message}
                     </Text>

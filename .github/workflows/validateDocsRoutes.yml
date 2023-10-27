@@ -8,7 +8,7 @@ on:
 
 jobs:
   verify:
-    if: github.actor != 'OSBotify'
+    if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

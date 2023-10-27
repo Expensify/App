@@ -91,6 +91,10 @@ function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
 
+function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
+}
+
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
@@ -263,7 +267,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
 /**
  * Checks if a reportAction is deprecated.
  */
-function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: string): boolean {
+function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: string | number): boolean {
     if (!reportAction) {
         return true;
     }
@@ -285,7 +289,7 @@ const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), 
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number): boolean {
     if (!reportAction) {
         return false;
     }
@@ -446,6 +450,19 @@ function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEnt
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions);
     return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) ?? null;
+}
+
+/**
+ * The first visible action is the second last action in sortedReportActions which satisfy following conditions:
+ * 1. That is not pending deletion as pending deletion actions are kept in sortedReportActions in memory.
+ * 2. That has at least one visible child action.
+ * 3. While offline all actions in `sortedReportActions` are visible.
+ * 4. We will get the second last action from filtered actions because the last
+ *    action is always the created action
+ */
+function getFirstVisibleReportActionID(sortedReportActions: ReportAction[], isOffline: boolean): string {
+    const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
+    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions[sortedFilterReportActions.length - 2].reportActionID : '';
 }
 
 /**
@@ -636,6 +653,8 @@ export {
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
+    isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
+    getFirstVisibleReportActionID,
 };
