@@ -127,7 +127,7 @@ function BaseOptionsList({
 
         didLayout.current = true;
         onLayout();
-    }, []);
+    }, [didLayout, onLayout]);
 
     const viewConfigRef = useRef({viewAreaCoveragePercentThreshold: 95});
 
