@@ -10,19 +10,58 @@ const SERVER_ADDRESS = `http://localhost:${Config.SERVER_PORT}`;
  * @param {TestResult} testResult
  * @returns {Promise<void>}
  */
-const submitTestResults = (testResult) =>
-    fetch(`${SERVER_ADDRESS}${Routes.testResults}`, {
+const submitTestResults = (testResult) => {
+    console.debug(`[E2E] Submitting test result '${testResult.name}'…`);
+    return fetch(`${SERVER_ADDRESS}${Routes.testResults}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(testResult),
     }).then((res) => {
-        if (res.statusCode === 200) {
+        if (res.status === 200) {
             console.debug(`[E2E] Test result '${testResult.name}' submitted successfully`);
             return;
         }
-        const errorMsg = `Test result submission failed with status code ${res.statusCode}`;
+        const errorMsg = `Test result submission failed with status code ${res.status}`;
+        res.json()
+            .then((responseText) => {
+                throw new Error(`${errorMsg}: ${responseText}`);
+            })
+            .catch(() => {
+                throw new Error(errorMsg);
+            });
+    });
+};
+
+const submitTestDone = () => fetch(`${SERVER_ADDRESS}${Routes.testDone}`);
+
+let currentActiveTestConfig = null;
+/**
+ * @returns {Promise<TestConfig>}
+ */
+const getTestConfig = () =>
+    fetch(`${SERVER_ADDRESS}${Routes.testConfig}`)
+        .then((res) => res.json())
+        .then((config) => {
+            currentActiveTestConfig = config;
+            return config;
+        });
+
+const getCurrentActiveTestConfig = () => currentActiveTestConfig;
+
+const sendNativeCommand = (payload) =>
+    fetch(`${SERVER_ADDRESS}${Routes.testNativeCommand}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    }).then((res) => {
+        if (res.status === 200) {
+            return true;
+        }
+        const errorMsg = `Sending native command failed with status code ${res.status}`;
         res.json()
             .then((responseText) => {
                 throw new Error(`${errorMsg}: ${responseText}`);
@@ -32,18 +71,10 @@ const submitTestResults = (testResult) =>
             });
     });
 
-const submitTestDone = () => fetch(`${SERVER_ADDRESS}${Routes.testDone}`);
-
-/**
- * @returns {Promise<TestConfig>}
- */
-const getTestConfig = () =>
-    fetch(`${SERVER_ADDRESS}${Routes.testConfig}`)
-        .then((res) => res.json())
-        .then((config) => config);
-
 export default {
     submitTestResults,
     submitTestDone,
     getTestConfig,
+    getCurrentActiveTestConfig,
+    sendNativeCommand,
 };

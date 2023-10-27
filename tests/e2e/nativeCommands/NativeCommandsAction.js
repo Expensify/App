@@ -1,16 +1,22 @@
 const NativeCommandsAction = {
     scroll: 'scroll',
     type: 'type',
+    backspace: 'backspace',
 };
 
 const makeTypeTextCommand = (text) => ({
-    command: NativeCommandsAction.type,
+    actionName: NativeCommandsAction.type,
     payload: {
         text,
     },
 });
 
+const makeBackspaceCommand = () => ({
+    actionName: NativeCommandsAction.backspace,
+});
+
 module.exports = {
     NativeCommandsAction,
     makeTypeTextCommand,
+    makeBackspaceCommand,
 };

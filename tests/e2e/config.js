@@ -66,6 +66,9 @@ module.exports = {
         },
         [TEST_NAMES.ReportTyping]: {
             name: TEST_NAMES.ReportTyping,
+            reportScreen: {
+                autoFocus: true,
+            },
         },
     },
 };
