@@ -1709,9 +1709,10 @@ function getTransactionReportName(reportAction) {
  * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
  * @param {Boolean} isPreviewMessageForParentChatReport
+ * @param {Boolean} shouldHidePayerName
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false) {
+function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false, shouldHidePayerName = false) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1735,7 +1736,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
+    const payerName = shouldHidePayerName ? '' : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
@@ -1770,7 +1771,14 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
-    return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+
+    if (containsNonReimbursable) {
+        return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, formattedAmount});
+    }
+
+    const requestor = getDisplayNameForParticipant(report.lastActorAccountID, true);
+
+    return Localize.translateLocal('iou.requestedAmount', {requestor, formattedAmount});
 }
 
 /**

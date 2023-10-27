@@ -43,7 +43,7 @@ function ReportActionItemMessage(props) {
     if (isIOUReport) {
         const iouReportID = lodashGet(props.action, 'originalMessage.IOUReportID');
         if (iouReportID) {
-            iouMessage = ReportUtils.getReportPreviewMessage(ReportUtils.getReport(iouReportID), props.action);
+            iouMessage = ReportUtils.getReportPreviewMessage(ReportUtils.getReport(iouReportID), props.action, false, false, true);
         }
     }
 
