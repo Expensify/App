@@ -5,6 +5,7 @@ import React, {useCallback, useState, useEffect, useRef, useLayoutEffect, useMem
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import Encryptify from 'react-native-encryptify';
+import performance from 'react-native-performance';
 import * as Report from './libs/actions/Report';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -39,6 +40,11 @@ import DeeplinkWrapper from './components/DeeplinkWrapper';
 import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
 // eslint-disable-next-line no-unused-vars
 import subscribePushNotification from './libs/Notification/PushNotification/subscribePushNotification';
+
+// 255 characters string for testing the encryption lib
+const ENCRYPTION_DATA =
+    'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis,';
+const ENCRYPTION_IV = 'Lorem ipsum dolor sit amet';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -190,24 +196,49 @@ function Expensify(props) {
     }, []);
 
     useEffect(() => {
+        performance.mark('beforeKemGenKeys');
         const kemKeys = Encryptify.KEMGenKeys();
+        performance.measure('KEMGenKeys', 'beforeKemGenKeys');
 
         // eslint-disable-next-line no-console
         console.log({kemKeys});
 
-        const data = 'Hello World! 123';
+        performance.mark('beforeKEMEncrypt');
         const {sharedSecret, cipherText} = Encryptify.KEMEncrypt(kemKeys.public);
-        const encryptedData = Encryptify.AESEncrypt('some iv value', sharedSecret, data);
+        performance.measure('KEMEncrypt', 'beforeKEMEncrypt');
+
+        performance.mark('beforeAESEncrypt');
+        const encryptedData = Encryptify.AESEncrypt(ENCRYPTION_IV, sharedSecret, ENCRYPTION_DATA);
+        performance.measure('AESEncrypt', 'beforeAESEncrypt');
 
         // After encryption on the sender side, the message is sent to the receiver:
         // Only the encryptedData an the cipherText must be sent to the receiver
         // The receiver can then decrypt the cipherText with his private keys
 
+        performance.mark('beforeKEMDecrypt');
         const decryptedSharedSecret = Encryptify.KEMDecrypt(kemKeys.private, cipherText);
-        const decryptedData = Encryptify.AESDecrypt('some iv value', decryptedSharedSecret, encryptedData);
+        performance.measure('KEMDecrypt', 'beforeKEMDecrypt');
+
+        performance.mark('beforeAESDecrypt');
+        const decryptedData = Encryptify.AESDecrypt(ENCRYPTION_IV, decryptedSharedSecret, encryptedData);
+        performance.measure('AESDecrypt', 'beforeAESDecrypt');
+
+        const logString = `"${ENCRYPTION_DATA}"
+got encrypted to:
+${encryptedData}
+and decrypted back to:
+${decryptedData}
+
+Success: ${ENCRYPTION_DATA === decryptedData}
+
+Performance:
+
+`;
 
         // eslint-disable-next-line no-console
-        console.log({encryptedData, decryptedData});
+        console.log(logString);
+        // eslint-disable-next-line no-console
+        console.log(performance.getEntriesByType('measure'));
     }, []);
 
     // Display a blank page until the onyx migration completes
