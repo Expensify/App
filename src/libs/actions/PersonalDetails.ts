@@ -55,6 +55,7 @@ function getDisplayName(login: string, personalDetail: Pick<PersonalDetails, 'fi
     const lastName = userDetails.lastName ?? '';
     const fullName = `${firstName} ${lastName}`.trim();
 
+    // It's possible for fullName to be empty string, so we must use "||" to fallback to userLogin.
     return fullName || userLogin;
 }
 
@@ -71,14 +72,14 @@ function getDisplayNameForTypingIndicator(userAccountIDOrLogin: string, defaultD
     if (Number.isNaN(accountID)) {
         const detailsByLogin = Object.entries(allPersonalDetails ?? {}).find(([, value]) => value?.login === userAccountIDOrLogin)?.[1];
 
-        // It's possible for displayName to be empty string, so we must fallback to userAccountIDOrLogin.
+        // It's possible for displayName to be empty string, so we must use "||" to fallback to userAccountIDOrLogin.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return detailsByLogin?.displayName || userAccountIDOrLogin;
     }
 
     const detailsByAccountID = allPersonalDetails?.[accountID];
 
-    // It's possible for displayName to be empty string, so we must fallback to login or defaultDisplayName.
+    // It's possible for displayName to be empty string, so we must use "||" to fallback to login or defaultDisplayName.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return detailsByAccountID?.displayName || detailsByAccountID?.login || defaultDisplayName;
 }
@@ -89,7 +90,7 @@ function getDisplayNameForTypingIndicator(userAccountIDOrLogin: string, defaultD
  * so we return empty strings instead.
  */
 function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
-    // It's possible for firstName to be empty string, so we must consider lastName instead.
+    // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (firstName || lastName) {
         return {firstName: firstName ?? '', lastName: lastName ?? ''};
