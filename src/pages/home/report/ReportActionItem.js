@@ -73,6 +73,7 @@ import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
 import KYCWall from '../../../components/KYCWall';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -570,24 +571,32 @@ function ReportActionItem(props) {
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 content = (
-                    <>
-                        <ReportActionItemSingle
-                            action={parentReportAction}
-                            showHeader={!props.draftMessage}
-                            wrapperStyles={[styles.chatItem]}
-                            report={props.report}
-                        >
-                            <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
-                        </ReportActionItemSingle>
-                        <View style={styles.reportHorizontalRule} />
-                    </>
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}> 
+                        <AnimatedEmptyStateBackground /> 
+                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth), styles.flex1, styles.justifyContentEnd]}>
+                            <ReportActionItemSingle
+                                action={parentReportAction}
+                                showHeader={!props.draftMessage}
+                                wrapperStyles={[styles.chatItem]}
+                                report={props.report}
+                            >
+                                <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                            </ReportActionItemSingle>
+                            <View style={styles.reportHorizontalRule} />
+                        </View>
+                    </View>
                 );
             } else {
                 content = (
-                    <TaskView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}> 
+                        <AnimatedEmptyStateBackground /> 
+                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                            <TaskView
+                                report={props.report}
+                                shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                            />
+                        </View>
+                    </View>
                 );
             }
         }
