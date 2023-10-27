@@ -100,4 +100,4 @@ const testAesUnderLoad = (sharedSecret: string, iterations: number, shouldLog = 
     performance.clearMeasures();
 };
 
-export {testEncryptionFlow, testAesUnderLoad};
+export {testEncryptionFlow, testAesUnderLoad, PERFORMANCE_METRICS_DECIMAL_PLACES};
