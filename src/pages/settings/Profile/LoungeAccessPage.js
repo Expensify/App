@@ -51,28 +51,7 @@ function LoungeAccessPage(props) {
         <LinearGradient
             colors={[`${themeColors.loungeAccessOverlay}00`, themeColors.loungeAccessOverlay]}
             style={[styles.pAbsolute, styles.w100, styles.h100]}
-        >
-            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pt5, styles.ph5]}>
-                <Avatar
-                    imageStyles={[styles.avatarLarge]}
-                    source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
-                    size={CONST.AVATAR_SIZE.LARGE}
-                    fallbackIcon={props.currentUserPersonalDetails.fallbackIcon}
-                />
-                <Text
-                    style={[styles.textHeadline, styles.pre, styles.mt2]}
-                    numberOfLines={1}
-                >
-                    {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : LocalePhoneNumber.formatPhoneNumber(props.session.email)}
-                </Text>
-                <Text
-                    style={[styles.textLabelSupporting, styles.mt1]}
-                    numberOfLines={1}
-                >
-                    {LocalePhoneNumber.formatPhoneNumber(props.session.email)}
-                </Text>
-            </View>
-        </LinearGradient>
+         />
     );
 
     return (
@@ -82,8 +61,8 @@ function LoungeAccessPage(props) {
             illustration={LottieAnimations.ExpensifyLounge}
             overlayContent={overlayContent}
         >
-            <Text style={[styles.textHeadline, styles.preWrap, styles.mb2]} numberOfLines={2}>{props.translate()}</Text>
-            <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate()}</Text>
+            <Text style={[styles.textHeadline, styles.preWrap, styles.mb2]} numberOfLines={1}>{translate('loungeAccessPage.headline')}</Text>
+            <Text style={[styles.baseFontStyle, styles.mv5]}>{translate('loungeAccessPage.description')}</Text>
         </IllustratedHeaderPageLayout>
     );
 }
