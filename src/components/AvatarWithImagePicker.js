@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useState, useRef, useEffect} from 'react';
-import {View} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
@@ -85,9 +85,6 @@ const propTypes = {
 
     /** File name of the avatar */
     originalFileName: PropTypes.string,
-
-    /** Whether navigation is focused */
-    isFocused: PropTypes.bool.isRequired,
 
     ...withNavigationFocusPropTypes,
 };
