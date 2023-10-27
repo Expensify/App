@@ -1,7 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -14,20 +12,10 @@ import compose from '../../../libs/compose';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import LinearGradient from '../../../components/LinearGradient';
 import styles from '../../../styles/styles';
-import Avatar from '../../../components/Avatar';
 import Text from '../../../components/Text';
-import * as UserUtils from '../../../libs/UserUtils';
-import CONST from '../../../CONST';
 import themeColors from '../../../styles/themes/default';
-import * as LocalePhoneNumber from '../../../libs/LocalePhoneNumber';
 
 const propTypes = {
-    /** The session of the logged in person */
-    session: PropTypes.shape({
-        /** Email of the logged in person */
-        email: PropTypes.string,
-    }),
-
     /** Current user details, which will hold whether or not they have Lounge Access */
     user: userPropTypes,
 
@@ -35,7 +23,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    session: {},
     user: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -61,8 +48,8 @@ function LoungeAccessPage(props) {
             illustration={LottieAnimations.ExpensifyLounge}
             overlayContent={overlayContent}
         >
-            <Text style={[styles.textHeadline, styles.preWrap, styles.mb2]} numberOfLines={1}>{translate('loungeAccessPage.headline')}</Text>
-            <Text style={[styles.baseFontStyle, styles.mv5]}>{translate('loungeAccessPage.description')}</Text>
+            <Text style={[styles.flex1, styles.ph5, styles.textHeadline, styles.preWrap, styles.mb2]} numberOfLines={1}>{translate('loungeAccessPage.headline')}</Text>
+            <Text style={[styles.flex1, styles.ph5, styles.baseFontStyle]}>{translate('loungeAccessPage.description')}</Text>
         </IllustratedHeaderPageLayout>
     );
 }
@@ -74,9 +61,6 @@ LoungeAccessPage.displayName = 'LoungeAccessPage';
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         user: {
             key: ONYXKEYS.USER,
         },
