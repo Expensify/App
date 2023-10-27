@@ -446,7 +446,6 @@ const CONST = {
     EXPENSIFY_URL: 'https://www.expensify.com',
     BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
         'https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account',
-    REFFERAL_PROGRAM: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program#gsc.tab=0',
     PERSONAL_DATA_PROTECTION_INFO_URL: 'https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information',
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
@@ -2782,6 +2781,17 @@ const CONST = {
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
+
+    REFERRAL_PROGRAM: {
+        CONTENT_TYPES: {
+            MONEY_REQUEST: 'request',
+            START_CHAT: 'startChat',
+            SEND_MONEY: 'sendMoney',
+            REFERRAL_FRIEND: 'referralFriend',
+        },
+        REVENUE: 250,
+        REFERRAL_LINK: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program#gsc.tab=0',
+    },
 } as const;
 
 export default CONST;

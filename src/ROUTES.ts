@@ -285,7 +285,6 @@ export default {
     },
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
-    REFFERAL_DETAILS_PAGE: '/refferal',
 
     IOU_REQUEST: 'request/new',
     IOU_SEND: 'send/new',
@@ -378,4 +377,10 @@ export default {
     INDIVIDUALS_OLDDOT: 'individual_workspaces',
     GROUPS_OLDDOT: 'group_workspaces',
     CARDS_AND_DOMAINS_OLDDOT: 'cards-and-domains',
+
+    // Referrals
+    REFERRAL_DETAILS_MODAL: {
+        route: 'referral/:contentType',
+        getRoute: (contentType: string) => `referral/${contentType}`,
+    },
 } as const;

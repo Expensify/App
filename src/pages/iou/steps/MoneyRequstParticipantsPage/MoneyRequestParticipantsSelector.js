@@ -275,15 +275,7 @@ function MoneyRequestParticipantsSelector({
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
                 shouldShowCTA={true}
-                refferalProgramText={{
-                    buttonText: 'Request money',
-                    modalHeader: 'Start a chat, get $250.',
-                    modalBody: {
-                        description: 'Send money to a new Expensify account and you’ll get $250 once they:',
-                        options: ['Set up an annual subscription with two or more active members', 'Make the first two payments toward their Expensify bill'],
-                        additionalInformation: 'Yep, it’s that easy. ',
-                    },
-                }}
+                referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 shouldDelayFocus
             />

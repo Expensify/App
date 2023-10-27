@@ -2387,4 +2387,22 @@ export default {
     globalNavigationOptions: {
         chats: 'Chats', // "Chats" is the accepted term colloqially in Spanish, this is not a bug!!
     },
+    referralProgram: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
+            header: `Start a chat, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Start a chat with a new Expensify account and you’ll get $${CONST.REFERRAL_PROGRAM.REVENUE} once they:\n\n\u2022 Set up an annual subscription with two or more active members\n\u2022 Make the first two payments toward their Expensify bill\n\nYep, it’s that easy.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
+            header: `Request money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Request money from a new Expensify account and you’ll get $${CONST.REFERRAL_PROGRAM.REVENUE} once they:\n\n\u2022 Set up an annual subscription with two or more active members\n\u2022 Make the first two payments toward their Expensify bill\n\nYep, it’s that easy.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
+            header: `Send money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Send money to a new Expensify account and you’ll get $${CONST.REFERRAL_PROGRAM.REVENUE} once they:\n\n\u2022 Set up an annual subscription with two or more active members\n\u2022 Make the first two payments toward their Expensify bill\n\nYep, it’s that easy.`,
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFERRAL_FRIEND]: {
+            header: `Refer a friend, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Send your Expensify referral link to a friend:\n\n%linkURL%\n\n 'When they start an annual subscription, you’ll get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+        },
+    },
 } satisfies EnglishTranslation;

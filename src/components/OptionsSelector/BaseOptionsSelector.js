@@ -61,7 +61,7 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
-        this.handleRefferalModal = this.handleRefferalModal.bind(this);
+        this.handleReferralModal = this.handleReferralModal.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
@@ -74,7 +74,7 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
-            shouldShowRefferalModal: false,
+            shouldShowReferralModal: false,
             errorMessage: '',
         };
     }
@@ -188,8 +188,8 @@ class BaseOptionsSelector extends Component {
         this.props.onChangeText(value);
     }
 
-    handleRefferalModal() {
-        this.setState({shouldShowRefferalModal: !this.state.shouldShowRefferalModal});
+    handleReferralModal() {
+        this.setState({shouldShowReferralModal: !this.state.shouldShowReferralModal});
     }
 
     subscribeToKeyboardShortcut() {
@@ -510,15 +510,14 @@ class BaseOptionsSelector extends Component {
                     <View style={[styles.ph5, styles.pb5, styles.flexShrink0]}>
                         <PressableWithoutFeedback
                             onPress={() => {
-                                Navigation.navigate(ROUTES.REFFERAL_DETAILS_PAGE);
-                                Navigation.setParams({data: this.props.refferalProgramText});
+                                Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(this.props.referralContentType));
                             }}
                             style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
                             accessibilityLabel="test"
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             <Text>
-                                {this.props.refferalProgramText.buttonText},<Text color={colors.green400}> get $250</Text>
+                                {this.props.referralContentType},<Text color={colors.green400}> get $250</Text>
                             </Text>
                             <Icon
                                 src={Info}

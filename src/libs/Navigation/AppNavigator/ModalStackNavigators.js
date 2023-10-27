@@ -41,7 +41,6 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator({
     Money_Request_Description: () => require('../../../pages/iou/MoneyRequestDescriptionPage').default,
     Money_Request_Category: () => require('../../../pages/iou/MoneyRequestCategoryPage').default,
     Money_Request_Tag: () => require('../../../pages/iou/MoneyRequestTagPage').default,
-    Refferal_Details: () => require('../../../pages/iou/RefferalDetailsPage').default,
     Money_Request_Merchant: () => require('../../../pages/iou/MoneyRequestMerchantPage').default,
     IOU_Send_Add_Bank_Account: () => require('../../../pages/AddPersonalBankAccountPage').default,
     IOU_Send_Add_Debit_Card: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default,
@@ -216,6 +215,9 @@ const PrivateNotesModalStackNavigator = createModalStackNavigator({
 const SignInModalStackNavigator = createModalStackNavigator({
     SignIn_Root: () => require('../../../pages/signin/SignInModal').default,
 });
+const ReferralModalStackNavigator = createModalStackNavigator({
+    Referral_Details: () => require('../../../pages/ReferralDetailsPage').default,
+});
 
 export {
     MoneyRequestModalStackNavigator,
@@ -242,4 +244,5 @@ export {
     SignInModalStackNavigator,
     RoomMembersModalStackNavigator,
     RoomInviteModalStackNavigator,
+    ReferralModalStackNavigator,
 };
