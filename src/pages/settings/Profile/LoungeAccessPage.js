@@ -38,7 +38,7 @@ function LoungeAccessPage(props) {
         <LinearGradient
             colors={[`${themeColors.loungeAccessOverlay}00`, themeColors.loungeAccessOverlay]}
             style={[styles.pAbsolute, styles.w100, styles.h100]}
-         />
+        />
     );
 
     return (
@@ -48,7 +48,12 @@ function LoungeAccessPage(props) {
             illustration={LottieAnimations.ExpensifyLounge}
             overlayContent={overlayContent}
         >
-            <Text style={[styles.flex1, styles.ph5, styles.textHeadline, styles.preWrap, styles.mb2]} numberOfLines={1}>{translate('loungeAccessPage.headline')}</Text>
+            <Text
+                style={[styles.flex1, styles.ph5, styles.textHeadline, styles.preWrap, styles.mb2]}
+                numberOfLines={1}
+            >
+                {translate('loungeAccessPage.headline')}
+            </Text>
             <Text style={[styles.flex1, styles.ph5, styles.baseFontStyle]}>{translate('loungeAccessPage.description')}</Text>
         </IllustratedHeaderPageLayout>
     );
