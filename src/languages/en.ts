@@ -638,6 +638,8 @@ export default {
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
+        headline: 'The Expensify Lounge is closed',
+        description: "The Expensify Lounge in San Francisco is closed for the time being, but we'll update this page when it reopens!",
     },
     pronounsPage: {
         pronouns: 'Pronouns',
