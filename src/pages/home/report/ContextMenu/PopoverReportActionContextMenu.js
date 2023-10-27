@@ -238,7 +238,7 @@ function PopoverReportActionContextMenu(_props, ref) {
             Report.deleteReportComment(reportIDRef.current, reportActionRef.current);
         }
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [reportActionRef]);
+    }, []);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));

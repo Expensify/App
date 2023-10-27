@@ -18,7 +18,7 @@ import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
+import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import CONST from '../../CONST';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -32,6 +32,7 @@ import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import SelectionList from '../../components/SelectionList';
 import Text from '../../components/Text';
 import * as Browser from '../../libs/Browser';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -360,7 +361,7 @@ function WorkspaceMembersPage(props) {
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
-                        name: details.login,
+                        name: props.formatPhoneNumber(details.login),
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
@@ -389,7 +390,7 @@ function WorkspaceMembersPage(props) {
             testID={WorkspaceMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={((_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(props.policy)}
+                shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                 subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
@@ -468,7 +469,7 @@ WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
         personalDetails: {
