@@ -326,7 +326,6 @@ function addActions(reportID, text = '', file) {
         lastMessageHtml: lastCommentText,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
-        isLastMessageDeletedParentAction: null,
     };
 
     // Optimistically add the new actions to the store before waiting to save them to the server
@@ -478,8 +477,9 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isLoadingReportActions: true,
-                isLoadingMoreReportActions: false,
+                isLoadingInitialReportActions: true,
+                isLoadingOlderReportActions: false,
+                isLoadingNewerReportActions: false,
             },
         },
     ];
@@ -502,7 +502,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isLoadingReportActions: false,
+                isLoadingInitialReportActions: false,
             },
         },
     ];
@@ -512,7 +512,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isLoadingReportActions: false,
+                isLoadingInitialReportActions: false,
             },
         },
     ];
@@ -738,8 +738,9 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingReportActions: true,
-                        isLoadingMoreReportActions: false,
+                        isLoadingInitialReportActions: true,
+                        isLoadingNewerReportActions: false,
+                        isLoadingOlderReportActions: false,
                     },
                 },
             ],
@@ -748,7 +749,7 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingReportActions: false,
+                        isLoadingInitialReportActions: false,
                     },
                 },
             ],
@@ -757,7 +758,7 @@ function reconnect(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingReportActions: false,
+                        isLoadingInitialReportActions: false,
                     },
                 },
             ],
@@ -772,9 +773,9 @@ function reconnect(reportID) {
  * @param {String} reportID
  * @param {String} reportActionID
  */
-function readOldestAction(reportID, reportActionID) {
+function getOlderActions(reportID, reportActionID) {
     API.read(
-        'ReadOldestAction',
+        'GetOlderActions',
         {
             reportID,
             reportActionID,
@@ -785,7 +786,7 @@ function readOldestAction(reportID, reportActionID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingMoreReportActions: true,
+                        isLoadingOlderReportActions: true,
                     },
                 },
             ],
@@ -794,7 +795,7 @@ function readOldestAction(reportID, reportActionID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingMoreReportActions: false,
+                        isLoadingOlderReportActions: false,
                     },
                 },
             ],
@@ -803,7 +804,53 @@ function readOldestAction(reportID, reportActionID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     value: {
-                        isLoadingMoreReportActions: false,
+                        isLoadingOlderReportActions: false,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
+ * Gets the newer actions that have not been read yet.
+ * Normally happens when you are not located at the bottom of the list and scroll down on a chat.
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ */
+function getNewerActions(reportID, reportActionID) {
+    API.read(
+        'GetNewerActions',
+        {
+            reportID,
+            reportActionID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
+                        isLoadingNewerReportActions: true,
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
+                        isLoadingNewerReportActions: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: {
+                        isLoadingNewerReportActions: false,
                     },
                 },
             ],
@@ -1047,25 +1094,17 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    if (reportAction.childVisibleActionCount === 0) {
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
+    if (lastMessageText || lastMessageTranslationKey) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
+        const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+        const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
         optimisticReport = {
-            lastMessageTranslationKey: '',
-            lastMessageText: '',
-            isLastMessageDeletedParentAction: true,
+            lastMessageTranslationKey,
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
         };
-    } else {
-        const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
-        if (lastMessageText || lastMessageTranslationKey) {
-            const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-            const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
-            const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
-            optimisticReport = {
-                lastMessageTranslationKey,
-                lastMessageText,
-                lastVisibleActionCreated,
-                lastActorAccountID,
-            };
-        }
     }
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
@@ -1110,14 +1149,17 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
-    // Update optimistic data for parent report action if the report is a child report
-    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
-        originalReportID,
-        optimisticReport.lastVisibleActionCreated,
-        CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
-    if (!_.isEmpty(optimisticParentReportData)) {
-        optimisticData.push(optimisticParentReportData);
+    // Update optimistic data for parent report action if the report is a child report and the reportAction has no visible child
+    const childVisibleActionCount = reportAction.childVisibleActionCount || 0;
+    if (childVisibleActionCount === 0) {
+        const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
+            originalReportID,
+            optimisticReport.lastVisibleActionCreated,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        if (!_.isEmpty(optimisticParentReportData)) {
+            optimisticData.push(optimisticParentReportData);
+        }
     }
 
     // Check to see if the report action we are deleting is the first comment on a thread report. In this case, we need to trigger
@@ -1300,7 +1342,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  */
 function saveReportActionDraft(reportID, reportAction, draftMessage) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${reportAction.reportActionID}`, draftMessage);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: draftMessage});
 }
 
 /**
@@ -2420,7 +2462,6 @@ export {
     expandURLPreview,
     markCommentAsUnread,
     readNewestAction,
-    readOldestAction,
     openReport,
     openReportFromDeepLink,
     navigateToAndOpenReport,
@@ -2445,6 +2486,8 @@ export {
     getReportPrivateNote,
     clearPrivateNotesError,
     hasErrorInPrivateNotes,
+    getOlderActions,
+    getNewerActions,
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
