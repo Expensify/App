@@ -1,8 +1,10 @@
 import BaseLocaleListener from './BaseLocaleListener';
-import {LocaleListenerConnect} from './types';
+import {LocaleListener, LocaleListenerConnect} from './types';
 
-const localeListener: LocaleListenerConnect = BaseLocaleListener.connect;
+const localeListenerConnect: LocaleListenerConnect = BaseLocaleListener.connect;
 
-export default {
-    connect: localeListener,
+const localizeListener: LocaleListener = {
+    connect: localeListenerConnect,
 };
+
+export default localizeListener;

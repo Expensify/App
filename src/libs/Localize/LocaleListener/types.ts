@@ -5,5 +5,9 @@ type BaseLocale = ValueOf<typeof CONST.LOCALES>;
 
 type LocaleListenerConnect = (callbackAfterChange?: (locale?: BaseLocale) => void) => void;
 
-export type {LocaleListenerConnect};
+type LocaleListener = {
+    connect: LocaleListenerConnect;
+};
+
+export type {LocaleListenerConnect, LocaleListener};
 export default BaseLocale;
