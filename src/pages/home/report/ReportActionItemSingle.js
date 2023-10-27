@@ -122,7 +122,10 @@ function ReportActionItemSingle(props) {
             id: secondaryAccountId,
         };
     } else if (!isWorkspaceActor) {
-        secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1];
+        const avatarIconIndex = props.report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(props.report) ? 0 : 1;
+        const reportIcons = ReportUtils.getIcons(props.report, {});
+
+        secondaryAvatar = reportIcons[avatarIconIndex];
     }
     const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: primaryDisplayName, id: isWorkspaceActor ? '' : actorAccountID};
 

@@ -4,6 +4,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import * as CollectionUtils from '../../libs/CollectionUtils';
 import FlatList from '../FlatList';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /** Same as FlatList can be any array of anything */
@@ -135,6 +136,7 @@ function BaseInvertedFlatList(props) {
             windowSize={15}
             maintainVisibleContentPosition={{
                 minIndexForVisible: 0,
+                autoscrollToTopThreshold: variables.listItemHeightNormal,
             }}
             inverted
         />
