@@ -13,8 +13,13 @@ import Text from './Text';
 import Icon from './Icon';
 
 const propTypes = {
+    /** List of the Route Name to navigate when the step is selected */
     stepNames: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    /** Function to call when a step is selected */
     onStepSelected: PropTypes.func.isRequired,
+
+    /** The index of the step to start with */
     startStep: PropTypes.number,
 };
 
