@@ -24,6 +24,21 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Check if gpg encrypted private key is present
+      id: key_check
+      shell: bash
+      run: |
+        if [[ -f .github/workflows/OSBotify-private-key.asc.gpg ]]; then
+          echo "::set-output name=key_exists::true"
+        fi
+  
+    - name: Checkout
+      uses: actions/checkout@v3
+      if: steps.key_check.outputs.key_exists != 'true'
+      with:
+        sparse-checkout: |
+          .github
+
     - name: Decrypt OSBotify GPG key
       run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase=${{ inputs.GPG_PASSPHRASE }} --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
       shell: bash
