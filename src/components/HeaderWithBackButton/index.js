@@ -18,6 +18,7 @@ import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
 import useThrottledButtonState from '../../hooks/useThrottledButtonState';
 import useLocalize from '../../hooks/useLocalize';
 import useKeyboardState from '../../hooks/useKeyboardState';
+import useWaitForNavigation from '../../hooks/useWaitForNavigation';
 
 function HeaderWithBackButton({
     iconFill = undefined,
@@ -35,8 +36,10 @@ function HeaderWithBackButton({
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
     shouldShowGetAssistanceButton = false,
+    shouldDisableGetAssistanceButton = false,
     shouldShowPinButton = false,
     shouldShowThreeDotsButton = false,
+    shouldDisableThreeDotsButton = false,
     stepCounter = null,
     subtitle = '',
     title = '',
@@ -49,10 +52,12 @@ function HeaderWithBackButton({
     shouldEnableDetailPageNavigation = false,
     children = null,
     shouldOverlay = false,
+    singleExecution = (func) => func,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
+    const waitForNavigate = useWaitForNavigation();
     return (
         <View
             // Hover on some part of close icons will not work on Electron if dragArea is true
@@ -126,7 +131,8 @@ function HeaderWithBackButton({
                     {shouldShowGetAssistanceButton && (
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
-                                onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))}
+                                disabled={shouldDisableGetAssistanceButton}
+                                onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))))}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
@@ -141,6 +147,7 @@ function HeaderWithBackButton({
                     {shouldShowPinButton && <PinButton report={report} />}
                     {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu
+                            disabled={shouldDisableThreeDotsButton}
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}

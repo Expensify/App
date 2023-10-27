@@ -33,6 +33,7 @@ Onyx.connect({
             _.each(policyReports, ({reportID}) => {
                 cleanUpMergeQueries[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {hasDraft: false};
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
             Onyx.multiSet(cleanUpSetQueries);
@@ -116,6 +117,12 @@ function deleteWorkspace(policyID, reports, policyName) {
             },
         })),
 
+        ..._.map(reports, ({reportID}) => ({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`,
+            value: null,
+        })),
+
         // Add closed actions to all chat reports linked to this policy
         ..._.map(reports, ({reportID, ownerAccountID}) => {
             // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
@@ -162,7 +169,7 @@ function deleteWorkspace(policyID, reports, policyName) {
 /**
  * Is the user an admin of a free policy (aka workspace)?
  *
- * @param {Array} policies
+ * @param {Record<string, Policy>} [policies]
  * @returns {Boolean}
  */
 function isAdminOfFreePolicy(policies) {
@@ -583,6 +590,9 @@ function clearAvatarErrors(policyID) {
  * @param {String} currency
  */
 function updateGeneralSettings(policyID, name, currency) {
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const distanceUnit = _.find(_.values(policy.customUnits), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceRate = _.find(_.values(distanceUnit ? distanceUnit.rates : {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
     const optimisticData = [
         {
             // We use SET because it's faster than merge and avoids a race condition when setting the currency and navigating the user to the Bank account page in confirmCurrencyChangeAndHideModal
@@ -601,6 +611,21 @@ function updateGeneralSettings(policyID, name, currency) {
                 },
                 name,
                 outputCurrency: currency,
+                ...(distanceUnit
+                    ? {
+                          customUnits: {
+                              [distanceUnit.customUnitID]: {
+                                  ...distanceUnit,
+                                  rates: {
+                                      [distanceRate.customUnitRateID]: {
+                                          ...distanceRate,
+                                          currency,
+                                      },
+                                  },
+                              },
+                          },
+                      }
+                    : {}),
             },
         },
     ];
@@ -626,6 +651,13 @@ function updateGeneralSettings(policyID, name, currency) {
                 errorFields: {
                     generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
+                ...(distanceUnit
+                    ? {
+                          customUnits: {
+                              [distanceUnit.customUnitID]: distanceUnit,
+                          },
+                      }
+                    : {}),
             },
         },
     ];

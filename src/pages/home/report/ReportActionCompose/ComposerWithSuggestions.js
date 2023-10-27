@@ -36,6 +36,7 @@ import focusWithDelay from '../../../../libs/focusWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
 import updateMultilineInputRange from '../../../../libs/UpdateMultilineInputRange';
 import * as InputFocus from '../../../../libs/actions/InputFocus';
+import convertToLTRForComposer from '../../../../libs/convertToLTRForComposer';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -213,7 +214,6 @@ function ComposerWithSuggestions({
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
             const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
-
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
@@ -225,9 +225,10 @@ function ComposerWithSuggestions({
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
             }
+            const newCommentConverted = convertToLTRForComposer(newComment);
             emojisPresentBefore.current = emojis;
-            setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
-            setValue(newComment);
+            setIsCommentEmpty(!!newCommentConverted.match(/^(\s)*$/));
+            setValue(newCommentConverted);
             if (commentValue !== newComment) {
                 const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
                 setSelection({
@@ -237,22 +238,22 @@ function ComposerWithSuggestions({
             }
 
             // Indicate that draft has been created.
-            if (commentRef.current.length === 0 && newComment.length !== 0) {
+            if (commentRef.current.length === 0 && newCommentConverted.length !== 0) {
                 Report.setReportWithDraft(reportID, true);
             }
 
             // The draft has been deleted.
-            if (newComment.length === 0) {
+            if (newCommentConverted.length === 0) {
                 Report.setReportWithDraft(reportID, false);
             }
 
-            commentRef.current = newComment;
+            commentRef.current = newCommentConverted;
             if (shouldDebounceSaveComment) {
-                debouncedSaveReportComment(reportID, newComment);
+                debouncedSaveReportComment(reportID, newCommentConverted);
             } else {
-                Report.saveReportComment(reportID, newComment || '');
+                Report.saveReportComment(reportID, newCommentConverted || '');
             }
-            if (newComment) {
+            if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
@@ -458,19 +459,19 @@ function ComposerWithSuggestions({
     }, []);
 
     useEffect(() => {
-        const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
+        const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
-            KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress);
+            KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
             setUpComposeFocusManager();
         });
-        KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress);
+        KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
 
         setUpComposeFocusManager();
 
         return () => {
             ReportActionComposeFocusManager.clear(true);
 
-            KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress);
+            KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
         };

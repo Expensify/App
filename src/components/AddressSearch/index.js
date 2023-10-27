@@ -74,6 +74,9 @@ const propTypes = {
             /** A description of the location (usually the address) */
             description: PropTypes.string,
 
+            /** The name of the location */
+            name: PropTypes.string,
+
             /** Data required by the google auto complete plugin to know where to put the markers on the map */
             geometry: PropTypes.shape({
                 /** Data about the location */
@@ -164,9 +167,10 @@ function AddressSearch(props) {
             // amount of data massaging needs to happen for what the parent expects to get from this function.
             if (_.size(details)) {
                 props.onPress({
-                    address: lodashGet(details, 'description', ''),
+                    address: lodashGet(details, 'description'),
                     lat: lodashGet(details, 'geometry.location.lat', 0),
                     lng: lodashGet(details, 'geometry.location.lng', 0),
+                    name: lodashGet(details, 'name'),
                 });
             }
             return;
@@ -217,7 +221,7 @@ function AddressSearch(props) {
 
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
-
+            name: lodashGet(details, 'name', ''),
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
             // Make sure country is updated first, since city and state will be reset if the country changes
@@ -379,6 +383,16 @@ function AddressSearch(props) {
                                 />
                             </View>
                         }
+                        renderRow={(data) => {
+                            const title = data.isPredefinedPlace ? data.name : data.structured_formatting.main_text;
+                            const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
+                            return (
+                                <View>
+                                    {title && <Text style={[styles.googleSearchText]}>{title}</Text>}
+                                    <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
+                                </View>
+                            );
+                        }}
                         renderHeaderComponent={renderHeaderComponent}
                         onPress={(data, details) => {
                             saveLocationDetails(data, details);
