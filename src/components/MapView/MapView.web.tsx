@@ -32,53 +32,42 @@ type ComponentProps = MapViewProps & MapViewOnyxProps
 const MapView = forwardRef<MapViewHandle, ComponentProps>(
     ({style, styleURL, waypoints, mapPadding, accessToken, userLocation: cachedUserLocation, directionCoordinates, initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM}}, ref) => {
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
-        const [userLocation, setUserLocation] = useState(cachedUserLocation);
+        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
         const [isCurrentPositionFetching, setIsCurrentPositionFetching] = useState(true);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
 
         useFocusEffect(
             useCallback(() => {
-                console.log('Start location search')
                 getCurrentPosition((params) => {
-                    setUserLocation({latitude: params.coords.latitude, longitude: params.coords.longitude})
+                    setCurrentPosition({latitude: params.coords.latitude, longitude: params.coords.longitude})
                     Onyx.merge(ONYXKEYS.USER_LOCATION, { latitude: params.coords.latitude, longitude: params.coords.longitude})
                     setIsCurrentPositionFetching(false);
-                    console.log('Location search success')
                 },
-                () => {
-                    // On error do nothing - an already cached location
-                    // or the default location will be presented to the user
-                    console.log('Location search error')
-                    setIsCurrentPositionFetching(false);
-                })
+                () => { setIsCurrentPositionFetching(false); })
             }, [])
         )
 
         useEffect(() => {
-            if (!userLocation || !mapRef) {
+            if (!currentPosition || !mapRef) {
                 return;
             }
 
-            console.log('Map loaded')
-
-            if (waypoints && waypoints.length > 0) {
-                console.log('Waypoints existing. Dont jump')
+            if (!shouldPanMapToCurrentPosition()) {
                 return;
             }
-
-            if (userInteractedWithMap) {
-                console.log('User already started clicking or dragging through the map. Dont jump')
-                return;
-            }
-
-            console.log('No waypoints added. JumpTo')
 
             mapRef.jumpTo({
-                center: [userLocation.longitude, userLocation.latitude],
+                center: [currentPosition.longitude, currentPosition.latitude],
                 zoom: CONST.MAPBOX.DEFAULT_ZOOM,
             });
-        }, [userLocation, userInteractedWithMap, mapRef])
+        }, [currentPosition, userInteractedWithMap, mapRef])
+
+        // Determines if map can be panned to user's detected
+        // location without bothering the user. It will return
+        // false if user has already started dragging the map or
+        // if there are one or more waypoints present.
+        const shouldPanMapToCurrentPosition = () => !userInteractedWithMap && (!waypoints || waypoints.length === 0)
 
         useEffect(() => {
             if (!waypoints || waypoints.length === 0) {
@@ -139,7 +128,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             <>
                 <View
                     style={style}
-                    // eslint-disable-next-line
                     {...responder.panHandlers}
                 >
                     <Map
@@ -173,7 +161,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 <Text
                     style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset, styles.pre]}
                 >
-                    {isCurrentPositionFetching ? 'Finding your location...' : ' '}
+                    {isCurrentPositionFetching && shouldPanMapToCurrentPosition() ? 'Finding your location...' : ' '}
                 </Text>
             </>
         );
