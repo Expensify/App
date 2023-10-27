@@ -571,8 +571,8 @@ function ReportActionItem(props) {
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 content = (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}> 
-                        <AnimatedEmptyStateBackground /> 
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}>
+                        <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth), styles.flex1, styles.justifyContentEnd]}>
                             <ReportActionItemSingle
                                 action={parentReportAction}
@@ -588,8 +588,8 @@ function ReportActionItem(props) {
                 );
             } else {
                 content = (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}> 
-                        <AnimatedEmptyStateBackground /> 
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}>
+                        <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                             <TaskView
                                 report={props.report}
