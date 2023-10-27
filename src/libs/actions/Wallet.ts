@@ -136,25 +136,23 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
         },
     ];
 
-    API.write(
-        'UpdatePersonalDetailsForWallet',
-        {
-            legalFirstName: firstName,
-            legalLastName: lastName,
-            dob,
-            addressStreet,
-            addressCity,
-            addressState,
-            addressZip,
-            ssn,
-            phoneNumber,
-        },
-        {
-            optimisticData,
-            successData,
-            failureData,
-        },
-    );
+    const parameters: Required<PersonalDetails> = {
+        legalFirstName: firstName,
+        legalLastName: lastName,
+        dob,
+        addressStreet,
+        addressCity,
+        addressState,
+        addressZip,
+        ssn,
+        phoneNumber,
+    };
+
+    API.write('UpdatePersonalDetailsForWallet', parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 type IdentityVerification = {
@@ -211,17 +209,15 @@ function verifyIdentity(parameters: IdentityVerification) {
         },
     ];
 
-    API.write(
-        'VerifyIdentity',
-        {
-            onfidoData,
-        },
-        {
-            optimisticData,
-            successData,
-            failureData,
-        },
-    );
+    const requestParams: IdentityVerification = {
+        onfidoData,
+    };
+
+    API.write('VerifyIdentity', requestParams, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 type WalletTerms = {
@@ -274,17 +270,21 @@ function acceptWalletTerms(parameters: WalletTerms) {
         },
     ];
 
-    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.chatReportID}, {optimisticData, successData, failureData});
+    type WalletTermsParameters = {
+        hasAcceptedTerms: boolean;
+        reportID: number;
+    };
+
+    const requestParams: WalletTermsParameters = {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.chatReportID};
+
+    API.write('AcceptWalletTerms', requestParams, {optimisticData, successData, failureData});
 }
 
 /**
  * Fetches data when the user opens the InitialSettingsPage
  *
- * @typedef {Object} UserWallet
- * @property {Number} availableBalance
- * @property {Number} currentBalance
- * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
- * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to receive funds only.
+ * @property currentStep - used to track which step of the "activate wallet" flow a user is in
+ * @property tierName - will be GOLD when fully activated. SILVER is able to receive funds only.
  */
 function openInitialSettingsPage() {
     API.read('OpenInitialSettingsPage', {});
@@ -293,11 +293,8 @@ function openInitialSettingsPage() {
 /**
  * Fetches data when the user opens the EnablePaymentsPage
  *
- * @typedef {Object} UserWallet
- * @property {Number} availableBalance
- * @property {Number} currentBalance
- * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
- * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to receive funds only.
+ * @property currentStep - used to track which step of the "activate wallet" flow a user is in
+ * @property tierName - will be GOLD when fully activated. SILVER is able to receive funds only.
  */
 function openEnablePaymentsPage() {
     API.read('OpenEnablePaymentsPage', {});
