@@ -122,7 +122,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                     />
                     <MoneyRequestParticipantsSelector
                         ref={(el) => (optionsSelectorRef.current = el)}
-                        participants={iou.participants}
+                        participants={iou.isSplitRequest ? iou.participants : []}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToConfirmationStep(iouType.current)}
                         navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
