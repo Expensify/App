@@ -84,7 +84,32 @@ function ReceiptSelector({route, transactionID, iou, report}) {
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(true);
     const cameraRef = useRef(null);
-    const normalCameraDeviceIdRef = useRef(null);
+    const [videoConstraints, setVideoConstraints] = useState({facingMode: {exact: 'environment'}});
+
+    /**
+     * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
+     * The last deviceId is of regular len camera.
+     */
+    useEffect(() => {
+        navigator.mediaDevices.getUserMedia({audio: true, video: true}).then(() => {
+            if (!navigator.mediaDevices.enumerateDevices) {
+                return;
+            }
+
+            navigator.mediaDevices.enumerateDevices().then((devices) => {
+                const lastBackDeviceId = _.chain(devices)
+                    .reverse()
+                    .find((item) => item.label && item.label.endsWith('facing back'))
+                    .get('deviceId', '')
+                    .value();
+
+                if (!lastBackDeviceId) {
+                    return;
+                }
+                setVideoConstraints({deviceId: lastBackDeviceId});
+            });
+        });
+    }, []);
 
     const hideReciptModal = () => {
         setIsAttachmentInvalid(false);
@@ -170,24 +195,6 @@ function ReceiptSelector({route, transactionID, iou, report}) {
         }),
     ).current;
 
-    /**
-     * On phones that have ultra-wide lens, default camera is ultra-wide.
-     * The last deviceId is of regular len camera.
-     */
-    useEffect(() => {
-        if (!navigator || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-            return;
-        }
-
-        navigator.mediaDevices.enumerateDevices().then((devices) => {
-            normalCameraDeviceIdRef.current = _.chain(devices)
-                .filter((device) => device.kind === 'videoinput')
-                .last()
-                .get('deviceId', '')
-                .value();
-        });
-    }, []);
-
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
@@ -216,7 +223,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
                     ref={cameraRef}
                     screenshotFormat="image/png"
-                    videoConstraints={{facingMode: {exact: 'environment'}, deviceId: normalCameraDeviceIdRef.current}}
+                    videoConstraints={videoConstraints}
                     torchOn={isFlashLightOn}
                     onTorchAvailability={setIsTorchAvailable}
                     forceScreenshotSourceSize
