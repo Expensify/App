@@ -85,7 +85,7 @@ function ReportFooter(props) {
 
     const onSubmitComment = useCallback(
         (text) => {
-            Report.addComment(props.reportID, text);
+            Report.addComment(props.report.reportID, text);
 
             // We need to scroll to the bottom of the list after the comment is added
             const refID = setTimeout(() => {
@@ -119,7 +119,7 @@ function ReportFooter(props) {
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
                             onSubmit={onSubmitComment}
-                            reportID={props.reportID}
+                            reportID={props.report.reportID}
                             isEmptyChat={props.isEmptyChat}
                             lastReportAction={props.lastReportAction}
                             pendingAction={props.pendingAction}
@@ -144,7 +144,6 @@ export default withWindowDimensions(
         ReportFooter,
         (prevProps, nextProps) =>
             isEqual(prevProps.report, nextProps.report) &&
-            isEqual(prevProps.reportActions, nextProps.reportActions) &&
             prevProps.pendingAction === nextProps.pendingAction &&
             prevProps.shouldDisableCompose === nextProps.shouldDisableCompose &&
             prevProps.listHeight === nextProps.listHeight &&

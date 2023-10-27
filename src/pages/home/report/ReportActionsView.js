@@ -216,12 +216,17 @@ function ReportActionsView(props) {
         }
     };
 
+    /**
+     * Create a lightweight Report so as to keep the re-rendering as light as possible by
+     * passing in only the required props.
+     */
     const report = useMemo(
         () => ({
             lastReadTime: props.report.lastReadTime,
             reportID: props.report.reportID,
+            policyID: props.report.policyID,
         }),
-        [props.report.lastReadTime, props.report.reportID],
+        [props.report.lastReadTime, props.report.reportID, props.report.policyID],
     );
 
     // Comments have not loaded at all yet do nothing

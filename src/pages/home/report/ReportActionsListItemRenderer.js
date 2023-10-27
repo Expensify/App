@@ -59,6 +59,10 @@ function ReportActionsListItemRenderer({
         ReportUtils.isChatThread(report) &&
         !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
 
+    /**
+     * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
+     * passing in only the required props.
+     */
     const action = useMemo(
         () => ({
             reportActionID: reportAction.reportActionID,

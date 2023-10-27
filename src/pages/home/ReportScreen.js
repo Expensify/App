@@ -172,7 +172,7 @@ function ReportScreen({
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const lastReportAction = useMemo(
-        () => _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action)),
+        () => reportActions.length ? _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action)) : {},
         [reportActions, parentReportAction],
     );
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
@@ -437,7 +437,6 @@ function ReportScreen({
                                     <ReportFooter
                                         report={report}
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        reportID={reportID}
                                         isComposerFullSize={isComposerFullSize}
                                         policies={policies}
                                         listHeight={listHeight}

@@ -176,14 +176,28 @@ function getFormattedAddress(privatePersonalDetails) {
     return formattedAddress.trim().replace(/,$/, '');
 }
 
+/**
+ * Get personal detail for an accountID
+ * @param {String} accountID 
+ * @returns {PersonalDetail} personal detail object
+ */
 function getPersonalDetailsByAccountID(accountID) {
-    return allPersonalDetails[accountID];
+    return allPersonalDetails ? allPersonalDetails[accountID] : {};
 }
 
+/**
+ * Get whispered personal details for array of accountIDs
+ * @param {Array<String>} whisperedToAccountIDs 
+ * @returns {PersonalDetails} personal details
+ */
 function getWhisperedToPersonalDetails(whisperedToAccountIDs) {
     return _.filter(allPersonalDetails, (details) => _.includes(whisperedToAccountIDs, details.accountID));
 }
 
+/**
+ * Whether personal details is empty
+ * @returns {Boolean} true if personal details is empty
+ */
 function isPersonalDetailsEmpty() {
     return !personalDetails.length;
 }
