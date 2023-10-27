@@ -15,10 +15,11 @@ import {withLocalizePropTypes} from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import exampleCheckImage from './exampleCheckImage';
-import Form from '../../components/Form';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
+import FormProvider from '../../components/Form/FormProvider';
+import InputWrapper from '../../components/Form/InputWrapper';
 
 const propTypes = {
     ..._.omit(StepPropTypes, _.keys(withLocalizePropTypes)),
@@ -84,7 +85,7 @@ function BankAccountManualStep(props) {
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={props.onBackButtonPress}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 onSubmit={submit}
                 validate={validate}
@@ -97,7 +98,8 @@ function BankAccountManualStep(props) {
                     style={[styles.exampleCheckImage, styles.mb5]}
                     source={exampleCheckImage(preferredLocale)}
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     autoFocus
                     shouldDelayFocus={shouldDelayFocus}
                     inputID="routingNumber"
@@ -110,7 +112,8 @@ function BankAccountManualStep(props) {
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="accountNumber"
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
@@ -122,7 +125,8 @@ function BankAccountManualStep(props) {
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
-                <CheckboxWithLabel
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     style={styles.mt4}
                     inputID="acceptTerms"
@@ -135,7 +139,7 @@ function BankAccountManualStep(props) {
                     defaultValue={props.getDefaultStateForField('acceptTerms', false)}
                     shouldSaveDraft
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
