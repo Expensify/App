@@ -1,5 +1,5 @@
 import {CSSProperties} from 'react';
-import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
@@ -1286,8 +1286,8 @@ function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: nu
 /**
  * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
  */
-function getContainerStyles(size: string, isInReportAction = false): StyleProp<ViewStyle> {
-    let containerStyles: StyleProp<ViewStyle>;
+function getContainerStyles(size: string, isInReportAction = false): ViewStyle[] {
+    let containerStyles: ViewStyle[];
 
     switch (size) {
         case CONST.AVATAR_SIZE.SMALL:

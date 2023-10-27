@@ -1,6 +1,5 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
-import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -8,10 +7,11 @@ import Avatar from './Avatar';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import UserDetailsTooltip from './UserDetailsTooltip';
+import type {AvatarSource} from '../libs/UserUtils';
 
 type SubAvatar = {
     /** Avatar source to display */
-    source: React.FC<SvgProps> | string;
+    source: AvatarSource;
 
     /** Denotes whether it is an avatar or a workspace avatar */
     type: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
@@ -23,7 +23,7 @@ type SubAvatar = {
     id: number | string;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: React.FC<SvgProps> | string;
+    fallbackIcon: AvatarSource;
 };
 
 type SubscriptAvatarProps = {
@@ -69,7 +69,7 @@ function SubscriptAvatar({
                     <Avatar
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
                         source={mainAvatar?.source}
-                        size={size || CONST.AVATAR_SIZE.DEFAULT}
+                        size={size}
                         name={mainAvatar?.name}
                         type={mainAvatar?.type}
                         fallbackIcon={mainAvatar?.fallbackIcon}
