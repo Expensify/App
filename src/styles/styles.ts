@@ -4022,6 +4022,53 @@ const styles = (theme: ThemeDefault) =>
         singleOptionSelectorCircle: {
             borderColor: theme.icon,
         },
+
+        interactiveStepHeaderContainer: {
+            flex: 1,
+            alignSelf: 'center',
+            flexDirection: 'row',
+            paddingBottom: 24,
+        },
+
+        interactiveStepHeaderStepContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
+        interactiveStepHeaderStepButton: {
+            width: 40,
+            height: 40,
+            borderWidth: 1,
+            borderRadius: 20,
+            borderColor: colors.green400,
+            justifyContent: 'center',
+            alignItems: 'center',
+            color: colors.white,
+        },
+
+        interactiveStepHeaderLockedStepButton: {
+            borderColor: colors.darkBorders,
+        },
+
+        interactiveStepHeaderStepText: {
+            fontSize: variables.fontSizeLabel,
+            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontWeight: fontWeightBold,
+        },
+
+        interactiveStepHeaderCompletedStepButton: {
+            backgroundColor: colors.green400,
+        },
+
+        interactiveStepHeaderStepLine: {
+            height: 1,
+            flexGrow: 1,
+            backgroundColor: colors.green400,
+        },
+
+        interactiveStepHeaderLockedStepLine: {
+            backgroundColor: colors.darkBorders,
+        },
     } satisfies Styles);
 
 // For now we need to export the styles function that takes the theme as an argument
