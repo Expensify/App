@@ -87,13 +87,13 @@ const testAesUnderLoad = (sharedSecret: string, iterations: number, shouldLog = 
 
     if (shouldLog) {
         const printData = (measures: PerformanceMeasure[]) =>
-            `Encryption | Mean: ${getMeanTime(measures).toFixed(PERFORMANCE_METRICS_DECIMAL_PLACES)}ms, Min: ${getMinTime(measures).toFixed(
-                PERFORMANCE_METRICS_DECIMAL_PLACES,
-            )}ms, Max: ${getMaxTime(measures).toFixed(PERFORMANCE_METRICS_DECIMAL_PLACES)}ms`;
+            `Mean: ${getMeanTime(measures).toFixed(PERFORMANCE_METRICS_DECIMAL_PLACES)}ms, Min: ${getMinTime(measures).toFixed(PERFORMANCE_METRICS_DECIMAL_PLACES)}ms, Max: ${getMaxTime(
+                measures,
+            ).toFixed(PERFORMANCE_METRICS_DECIMAL_PLACES)}ms`;
 
         console.log(`Under Load: (encrypting/decrypting ${iterations} times)`);
-        console.log(printData(encryptionMeasures));
-        console.log(printData(decryptionMeasures));
+        console.log(`Encryption: ${printData(encryptionMeasures)}`);
+        console.log(`Decryption: ${printData(decryptionMeasures)}`);
     }
 
     performance.clearMarks();
