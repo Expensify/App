@@ -46,6 +46,9 @@ module.exports = {
     // The time in milliseconds after which an operation fails due to timeout
     INTERACTION_TIMEOUT: 300000,
 
+    // Period we wait between each test runs, to let the device cool down
+    COOL_DOWN: 90 * 1000,
+
     TEST_NAMES,
 
     /**
