@@ -167,11 +167,11 @@ function AddressPage({privatePersonalDetails, route}) {
     }, [countryFromUrl, handleAddressChange]);
 
     useEffect(() => {
-        if (!stateFromUrl || stateFromUrl === state) {
+        if (!stateFromUrl) {
             return;
         }
         handleAddressChange(stateFromUrl, 'state');
-    }, [state, handleAddressChange, stateFromUrl]);
+    }, [handleAddressChange, stateFromUrl]);
 
     return (
         <ScreenWrapper
