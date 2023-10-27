@@ -103,6 +103,8 @@ function ComposerWithSuggestions({
     forwardedRef,
     isNextModalWillOpenRef,
     editFocused,
+    // For testing
+    children,
 }) {
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
@@ -589,6 +591,9 @@ function ComposerWithSuggestions({
                 updateComment={updateComment}
                 commentRef={commentRef}
             />
+
+            {/* Only used for testing so far */}
+            {children}
         </>
     );
 }

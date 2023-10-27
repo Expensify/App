@@ -6,6 +6,7 @@ import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
 import * as NativeCommands from '../../../../tests/e2e/nativeCommands/NativeCommandsAction';
 import waitForKeyboard from '../actions/waitForKeyboard';
+import {resetRerenderCount, getRerenderCount} from '../../../pages/home/report/ReportActionCompose/ComposerWithSuggestions/index.e2e';
 
 const test = () => {
     // check for login (if already logged in the action will simply resolve)
@@ -29,8 +30,22 @@ const test = () => {
 
             // Wait until keyboard is visible (so we are focused on the input):
             waitForKeyboard().then(() => {
+                resetRerenderCount();
                 console.debug(`[E2E] Keyboard visible, typing…`);
-                E2EClient.sendNativeCommand(NativeCommands.makeTypeTextCommand('Hi'));
+                E2EClient.sendNativeCommand(NativeCommands.makeTypeTextCommand('A'))
+                    .then(() => {
+                        setTimeout(() => {
+                            const rerenderCount = getRerenderCount();
+
+                            E2EClient.submitTestResults({
+                                name: 'Composer typing rerender count',
+                                duration: rerenderCount,
+                            }).then(E2EClient.submitTestDone);
+                        }, 3000);
+                    })
+                    .catch(() => {
+                        // TODO: error handling
+                    });
             });
         });
     });
