@@ -71,7 +71,7 @@ const defaultProps = {
     isLoadingInitialReportActions: false,
     isLoadingOlderReportActions: false,
     isLoadingNewerReportActions: false,
-    policy: {}
+    policy: {},
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;

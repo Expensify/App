@@ -63,18 +63,7 @@ const defaultProps = {
  * The OptionRowLHN component is memoized, so it will only
  * re-render if the data really changed.
  */
-function OptionRowLHNData({
-    isFocused,
-    fullReport,
-    reportActions,
-    preferredLocale,
-    comment,
-    policy,
-    receiptTransactions,
-    parentReportActions,
-    transaction,
-    ...propsToForward
-}) {
+function OptionRowLHNData({isFocused, fullReport, reportActions, preferredLocale, comment, policy, receiptTransactions, parentReportActions, transaction, ...propsToForward}) {
     const reportID = propsToForward.reportID;
 
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];

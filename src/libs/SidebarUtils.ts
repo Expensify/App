@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
-import Onyx, { OnyxEntry } from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import {ValueOf} from 'type-fest';
 import ONYXKEYS from '../ONYXKEYS';

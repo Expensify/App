@@ -178,7 +178,7 @@ function getFormattedAddress(privatePersonalDetails) {
 
 /**
  * Get personal detail for an accountID
- * @param {Number} accountID 
+ * @param {Number} accountID
  * @returns {PersonalDetail} personal detail object
  */
 function getPersonalDetailsByAccountID(accountID) {
@@ -187,7 +187,7 @@ function getPersonalDetailsByAccountID(accountID) {
 
 /**
  * Get whispered personal details for array of accountIDs
- * @param {Array<String>} whisperedToAccountIDs 
+ * @param {Array<String>} whisperedToAccountIDs
  * @returns {PersonalDetails} personal details
  */
 function getWhisperedToPersonalDetails(whisperedToAccountIDs) {

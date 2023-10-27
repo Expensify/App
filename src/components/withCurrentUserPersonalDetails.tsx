@@ -4,7 +4,7 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
 import type {PersonalDetails, Session} from '../types/onyx';
-import { getPersonalDetailsByAccountID } from '../libs/PersonalDetailsUtils';
+import {getPersonalDetailsByAccountID} from '../libs/PersonalDetailsUtils';
 
 type CurrentUserPersonalDetails = PersonalDetails | Record<string, never>;
 

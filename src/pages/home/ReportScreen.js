@@ -172,7 +172,10 @@ function ReportScreen({
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const lastReportAction = useMemo(
-        () => reportActions.length ? _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action)) : {},
+        () =>
+            reportActions.length
+                ? _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action))
+                : {},
         [reportActions, parentReportAction],
     );
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
