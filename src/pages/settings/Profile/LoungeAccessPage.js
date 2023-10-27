@@ -42,21 +42,6 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const menuItems = [
-    {
-        translationKey: 'loungeAccessPage.coffeePromo',
-        icon: Illustrations.CoffeeMug,
-    },
-    {
-        translationKey: 'loungeAccessPage.networkingPromo',
-        icon: Illustrations.ChatBubbles,
-    },
-    {
-        translationKey: 'loungeAccessPage.viewsPromo',
-        icon: Illustrations.SanFrancisco,
-    },
-];
-
 function LoungeAccessPage(props) {
     const {translate} = useLocalize();
 
@@ -99,11 +84,8 @@ function LoungeAccessPage(props) {
             illustration={LottieAnimations.ExpensifyLounge}
             overlayContent={overlayContent}
         >
-            <FeatureList
-                headline="loungeAccessPage.headline"
-                description="loungeAccessPage.description"
-                menuItems={menuItems}
-            />
+            <Text style={[styles.textHeadline, styles.preWrap, styles.mb2]} numberOfLines={2}>{props.translate()}</Text>
+            <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate()}</Text>
         </IllustratedHeaderPageLayout>
     );
 }
