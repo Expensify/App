@@ -340,6 +340,7 @@ class ReimbursementAccountPage extends React.Component {
                 }
                 if (subStep) {
                     BankAccounts.setBankAccountSubStep(null);
+                    BankAccounts.setPlaidEvent(null);
                 } else {
                     Navigation.goBack(backTo);
                 }
@@ -396,8 +397,9 @@ class ReimbursementAccountPage extends React.Component {
                 </ScreenWrapper>
             );
         }
-
-        const isLoading = this.props.isLoadingReportData || this.props.account.isLoading || this.props.reimbursementAccount.isLoading;
+        const isLoading =
+            (this.props.isLoadingReportData || this.props.account.isLoading || this.props.reimbursementAccount.isLoading) &&
+            (!this.props.plaidCurrentEvent || this.props.plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
 
         // Prevent the full-page blocking offline view from being displayed for these steps if the device goes offline.
         const shouldShowOfflineLoader = !(
@@ -492,7 +494,6 @@ class ReimbursementAccountPage extends React.Component {
                 <RequestorStep
                     ref={this.requestorStepRef}
                     reimbursementAccount={this.props.reimbursementAccount}
-                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}
                     shouldShowOnfido={Boolean(shouldShowOnfido)}
                     getDefaultStateForField={this.getDefaultStateForField}
@@ -535,6 +536,7 @@ class ReimbursementAccountPage extends React.Component {
 
 ReimbursementAccountPage.propTypes = propTypes;
 ReimbursementAccountPage.defaultProps = defaultProps;
+ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
 
 export default compose(
     withNetwork(),
@@ -550,6 +552,9 @@ export default compose(
         },
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
+        },
+        plaidCurrentEvent: {
+            key: ONYXKEYS.PLAID_CURRENT_EVENT,
         },
         onfidoToken: {
             key: ONYXKEYS.ONFIDO_TOKEN,

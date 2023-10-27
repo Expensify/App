@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useMemo, memo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -35,6 +35,7 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../reportPropTypes';
 import * as PolicyUtils from '../../libs/PolicyUtils';
+import reportWithoutHasDraftSelector from '../../libs/OnyxSelectors/reportWithoutHasDraftSelector';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -81,7 +82,8 @@ function HeaderView(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
-    const title = ReportUtils.getReportName(reportHeaderData);
+    // Use sorted display names for the title for group chats on native small screen widths
+    const title = ReportUtils.isGroupChat(props.report) ? ReportUtils.getDisplayNamesStringFromTooltips(displayNamesWithTooltips) : ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
@@ -275,23 +277,23 @@ HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withOnyx({
-        guideCalendarLink: {
-            key: ONYXKEYS.ACCOUNT,
-            selector: (account) => (account && account.guideCalendarLink) || null,
-            initialValue: null,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    }),
-)(HeaderView);
+export default memo(
+    compose(
+        withWindowDimensions,
+        withLocalize,
+        withOnyx({
+            guideCalendarLink: {
+                key: ONYXKEYS.ACCOUNT,
+                selector: (account) => (account && account.guideCalendarLink) || null,
+                initialValue: null,
+            },
+            parentReport: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
+                selector: reportWithoutHasDraftSelector,
+            },
+            session: {
+                key: ONYXKEYS.SESSION,
+            },
+        }),
+    )(HeaderView),
+);

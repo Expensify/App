@@ -38,10 +38,14 @@ PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionP
 PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
-export default forwardRef((props, ref) => (
+const PressableWithSecondaryInteractionWithRef = forwardRef((props, ref) => (
     <PressableWithSecondaryInteraction
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+PressableWithSecondaryInteractionWithRef.displayName = 'PressableWithSecondaryInteractionWithRef';
+
+export default PressableWithSecondaryInteractionWithRef;
