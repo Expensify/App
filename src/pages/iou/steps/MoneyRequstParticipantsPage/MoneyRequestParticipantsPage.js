@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -20,6 +20,7 @@ import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import transactionPropTypes from '../../../../components/transactionPropTypes';
+import useInitialValue from '../../../../hooks/useInitialValue';
 
 const propTypes = {
     /** React Navigation route */
@@ -54,10 +55,10 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
     const optionsSelectorRef = useRef();
-    const iouType = useRef(lodashGet(route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(route, 'params.reportID', ''));
-    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, selectedTab);
-    const isSendRequest = iouType.current === CONST.IOU.TYPE.SEND;
+    const iouType = useInitialValue(() => lodashGet(route, 'params.iouType', ''));
+    const reportID = useInitialValue(() => lodashGet(route, 'params.reportID', ''));
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
+    const isSendRequest = iouType === CONST.IOU.TYPE.SEND;
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.TYPE.SPLIT;
     const [headerTitle, setHeaderTitle] = useState();
@@ -80,12 +81,13 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
 
     const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID.current));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID));
     };
 
-    const navigateBack = (forceFallback = false) => {
-        Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType.current, reportID.current), forceFallback);
-    };
+    const navigateBack = useCallback((forceFallback = false) => {
+        Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), forceFallback);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- no deps as we use only initial values
+    }, []);
 
     useEffect(() => {
         const isInvalidDistanceRequest = !isDistanceRequest || isInvalidWaypoint;
@@ -100,7 +102,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
         }
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
-        const moneyRequestId = `${iouType.current}${reportID.current}`;
+        const moneyRequestId = `${iouType}${reportID}`;
         const shouldReset = iou.id !== moneyRequestId;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
@@ -112,7 +114,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
         return () => {
             prevMoneyRequestId.current = iou.id;
         };
-    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, isInvalidWaypoint]);
+    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, iouType, reportID, navigateBack, isInvalidWaypoint]);
 
     return (
         <ScreenWrapper
@@ -131,10 +133,10 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
                         ref={(el) => (optionsSelectorRef.current = el)}
                         participants={iou.participants}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
-                        navigateToRequest={() => navigateToConfirmationStep(iouType.current)}
+                        navigateToRequest={() => navigateToConfirmationStep(iouType)}
                         navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.TYPE.SPLIT)}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                        iouType={iouType.current}
+                        iouType={iouType}
                         isDistanceRequest={isDistanceRequest}
                         isScanRequest={isScanRequest}
                     />
