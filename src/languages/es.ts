@@ -867,7 +867,7 @@ export default {
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
-        availableSpend: 'Capacidad de gasto restante',
+        availableSpend: 'Límite restante',
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
         reportFraud: 'Reportar fraude con la tarjeta virtual',
