@@ -208,10 +208,9 @@ function hasSharedPolicies(policies: OnyxCollection<Policy> | null, allPolicyMem
             if (policy && !isPolicyAdmin(policy)) {
                 return;
             }
-            const policyId = policy ? policy.id : null;
+            const policyId = policy?.id ?? null;
             const policyMembers = allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyId}`] || {};
             if (Object.keys(policyMembers).length > 1) {
-                console.log(Object.keys(policyMembers).length);
                 found = true;
             }
         });
