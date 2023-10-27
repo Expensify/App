@@ -2,7 +2,6 @@ import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} f
 import {Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import {format} from 'date-fns';
-import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
@@ -21,7 +20,7 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
         setIsPickerVisible(false);
 
         if (event.type === 'set') {
-            this.props.onInputChange(format(selectedDate, CONST.DATE.FNS_FORMAT_STRING));
+            onInputChange(format(selectedDate, CONST.DATE.FNS_FORMAT_STRING));
         }
     };
 
@@ -39,7 +38,7 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
         [showPicker],
     );
 
-    const date = this.props.value || this.props.defaultValue;
+    const date = value || defaultValue;
     const dateAsText = date ? format(new Date(date), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     return (
