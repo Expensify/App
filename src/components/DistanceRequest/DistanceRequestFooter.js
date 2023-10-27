@@ -10,8 +10,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import useNetwork from '../../hooks/useNetwork';
 import useLocalize from '../../hooks/useLocalize';
-import DotIndicatorMessage from '../DotIndicatorMessage';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 import theme from '../../styles/themes/default';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import Button from '../Button';
@@ -29,11 +27,9 @@ const propTypes = {
             lat: PropTypes.number,
             lng: PropTypes.number,
             address: PropTypes.string,
+            name: PropTypes.string,
         }),
     ),
-
-    /** Whether there is an error with the route */
-    hasRouteError: PropTypes.bool,
 
     /** Function to call when the user wants to add a new waypoint */
     navigateToWaypointEditPage: PropTypes.func.isRequired,
@@ -53,13 +49,12 @@ const propTypes = {
 
 const defaultProps = {
     waypoints: {},
-    hasRouteError: false,
     mapboxAccessToken: {
         token: '',
     },
     transaction: {},
 };
-function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, hasRouteError, navigateToWaypointEditPage}) {
+function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navigateToWaypointEditPage}) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
@@ -103,13 +98,6 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, hasRo
 
     return (
         <>
-            {hasRouteError && (
-                <DotIndicatorMessage
-                    style={[styles.mh5, styles.mv3]}
-                    messages={ErrorUtils.getLatestErrorField(transaction, 'route')}
-                    type="error"
-                />
-            )}
             <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                 <Button
                     small
@@ -128,18 +116,19 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, hasRo
                         pitchEnabled={false}
                         initialState={{
                             zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                            location: CONST.MAPBOX.DEFAULT_COORDINATE,
+                            location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
                         }}
                         directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
-                        style={styles.mapView}
+                        style={[styles.mapView, styles.mapEditView]}
                         waypoints={waypointMarkers}
                         styleURL={CONST.MAPBOX.STYLE_URL}
-                        overlayStyle={styles.m4}
+                        overlayStyle={styles.mapEditView}
                     />
                 ) : (
                     <PendingMapView
                         title={translate('distance.mapPending.title')}
                         subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                        style={styles.mapEditView}
                     />
                 )}
             </View>

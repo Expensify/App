@@ -22,8 +22,8 @@ import Log from '../../libs/Log';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import useActiveElement from '../../hooks/useActiveElement';
 import BaseListItem from './BaseListItem';
-import themeColors from '../../styles/themes/default';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -52,7 +52,7 @@ function BaseSelectionList({
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
     showConfirmButton = false,
-    shouldFocusOnSelectRow = false,
+    shouldPreventDefaultFocusOnSelectRow = false,
     isKeyboardShown = false,
     inputRef = null,
     disableKeyboardShortcuts = false,
@@ -152,31 +152,33 @@ function BaseSelectionList({
      * @param {Number} index - the index of the item to scroll to
      * @param {Boolean} animated - whether to animate the scroll
      */
-    const scrollToIndex = useCallback((index, animated = true) => {
-        const item = flattenedSections.allOptions[index];
+    const scrollToIndex = useCallback(
+        (index, animated = true) => {
+            const item = flattenedSections.allOptions[index];
 
-        if (!listRef.current || !item) {
-            return;
-        }
-
-        const itemIndex = item.index;
-        const sectionIndex = item.sectionIndex;
-
-        // Note: react-native's SectionList automatically strips out any empty sections.
-        // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
-        // Otherwise, it will cause an index-out-of-bounds error and crash the app.
-        let adjustedSectionIndex = sectionIndex;
-        for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
-                adjustedSectionIndex--;
+            if (!listRef.current || !item) {
+                return;
             }
-        }
 
-        listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
+            const itemIndex = item.index;
+            const sectionIndex = item.sectionIndex;
 
-        // If we don't disable dependencies here, we would need to make sure that the `sections` prop is stable in every usage of this component.
+            // Note: react-native's SectionList automatically strips out any empty sections.
+            // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
+            // Otherwise, it will cause an index-out-of-bounds error and crash the app.
+            let adjustedSectionIndex = sectionIndex;
+            for (let i = 0; i < sectionIndex; i++) {
+                if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
+                    adjustedSectionIndex--;
+                }
+            }
+
+            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
+        },
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        [flattenedSections.allOptions],
+    );
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
@@ -211,14 +213,14 @@ function BaseSelectionList({
 
         onSelectRow(item);
 
-        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };
 
     const selectAllRow = () => {
         onSelectAll();
-        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };
@@ -299,6 +301,7 @@ function BaseSelectionList({
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
                 onDismissError={onDismissError}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             />
         );
     };
@@ -401,6 +404,7 @@ function BaseSelectionList({
                                         accessibilityState={{checked: flattenedSections.allSelected}}
                                         disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                                     >
                                         <Checkbox
                                             accessibilityLabel={translate('workspace.people.selectAll')}
@@ -424,7 +428,7 @@ function BaseSelectionList({
                                     onScrollBeginDrag={onScrollBeginDrag}
                                     keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
-                                    indicatorStyle={themeColors.selectionListIndicatorColor}
+                                    indicatorStyle={themeColors.white}
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={showScrollIndicator}
                                     initialNumToRender={12}

@@ -29,7 +29,7 @@ const propTypes = {
         /** Parameters the route gets */
         params: PropTypes.shape({
             /** Type of IOU */
-            iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)),
+            iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)),
 
             /** Id of the report on which the distance request is being created */
             reportID: PropTypes.string,
@@ -39,13 +39,17 @@ const propTypes = {
     /* Onyx props */
     /** The original transaction that is being edited */
     transaction: transactionPropTypes,
+
+    /** backup version of the original transaction  */
+    transactionBackup: transactionPropTypes,
 };
 
 const defaultProps = {
     transaction: {},
+    transactionBackup: {},
 };
 
-function EditRequestDistancePage({report, route, transaction}) {
+function EditRequestDistancePage({report, route, transaction, transactionBackup}) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const transactionWasSaved = useRef(false);
@@ -87,6 +91,16 @@ function EditRequestDistancePage({report, route, transaction}) {
      * @param {Object} waypoints
      */
     const saveTransaction = (waypoints) => {
+        // If nothing was changed, simply go to transaction thread
+        // We compare only addresses because numbers are rounded while backup
+        const oldWaypoints = lodashGet(transactionBackup, 'comment.waypoints', {});
+        const oldAddresses = _.mapObject(oldWaypoints, (waypoint) => _.pick(waypoint, 'address'));
+        const addresses = _.mapObject(waypoints, (waypoint) => _.pick(waypoint, 'address'));
+        if (_.isEqual(oldAddresses, addresses)) {
+            Navigation.dismissModal(report.reportID);
+            return;
+        }
+
         transactionWasSaved.current = true;
         IOU.updateDistanceRequest(transaction.transactionID, report.reportID, {waypoints});
 
@@ -124,5 +138,8 @@ EditRequestDistancePage.displayName = 'EditRequestDistancePage';
 export default withOnyx({
     transaction: {
         key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
+    },
+    transactionBackup: {
+        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}-backup`,
     },
 })(EditRequestDistancePage);

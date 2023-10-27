@@ -125,6 +125,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
+
       - name: Make zip directory for everything to send to AWS Device Farm
         run: mkdir zip
 
@@ -137,7 +140,7 @@ jobs:
 
       # The downloaded artifact will be a file named "app-e2e-release.apk" so we have to rename it
       - name: Rename baseline APK
-        run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease-baseline.apk"
+        run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease-main.apk"
 
       - name: Download delta APK
         uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
@@ -147,7 +150,7 @@ jobs:
           path: zip
 
       - name: Rename delta APK
-        run: mv "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2eRelease-compare.apk"
+        run: mv "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2eRelease-delta.apk"
 
       - name: Copy e2e code into zip folder
         run: cp -r tests/e2e zip
@@ -162,40 +165,69 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-west-2
 
-      - name: Schedule AWS Device Farm test run
+      - name: Schedule AWS Device Farm test run on main branch
+        uses: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
+        id: schedule-awsdf-main
+        with:
+          name: App E2E Performance Regression Tests
+          project_arn: ${{ secrets.AWS_PROJECT_ARN }}
+          device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
+          app_file: zip/app-e2eRelease-main.apk
+          app_type: ANDROID_APP
+          test_type: APPIUM_NODE
+          test_package_file: App.zip
+          test_package_type: APPIUM_NODE_TEST_PACKAGE
+          test_spec_file: tests/e2e/TestSpecMain.yml
+          test_spec_type: APPIUM_NODE_TEST_SPEC
+          remote_src: false
+          file_artifacts: Customer Artifacts.zip
+          log_artifacts: debug.log
+          cleanup: true
+
+      - name: Print logs if run failed
+        if: failure()
+        run: |
+          echo ${{ steps.schedule-awsdf-main.outputs.data }}
+          unzip "Customer Artifacts.zip" -d mainResults
+          cat ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/debug.log
+
+      - name: Unzip AWS Device Farm main results
+        run: unzip "Customer Artifacts.zip" -d mainResults
+
+      - name: Delete Customer Artifacts.zip
+        run: rm "Customer Artifacts.zip"
+
+      - name: Schedule AWS Device Farm test run on delta branch
         uses: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
         with:
           name: App E2E Performance Regression Tests
           project_arn: ${{ secrets.AWS_PROJECT_ARN }}
           device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
-          app_file: zip/app-e2eRelease-baseline.apk
+          app_file: zip/app-e2eRelease-delta.apk
           app_type: ANDROID_APP
           test_type: APPIUM_NODE
           test_package_file: App.zip
           test_package_type: APPIUM_NODE_TEST_PACKAGE
-          test_spec_file: tests/e2e/TestSpec.yml
+          test_spec_file: tests/e2e/TestSpecDelta.yml
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
           file_artifacts: Customer Artifacts.zip
           cleanup: true
 
-      - name: Unzip AWS Device Farm results
-        if: ${{ always() }}
-        run: unzip "Customer Artifacts.zip"
+      - name: Unzip AWS Device Farm delta results
+        run: unzip "Customer Artifacts.zip" -d deltaResults
 
-      - name: Print AWS Device Farm run results
-        if: ${{ always() }}
-        run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
+      - name: Compare results
+        run: node tests/e2e/merge.js --mainPath ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/main.json --deltaPath ./deltaResults//Host_Machine_Files/\$WORKING_DIRECTORY/delta.json --outputPath ./output.md
 
-      - name: Print AWS Device Farm verbose run results
-        if: ${{ always() && runner.debug != null && fromJSON(runner.debug) }}
-        run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
+      - name: Print results
+        run: cat "./output.md"
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label
         run: |
-          if grep -q '🔴' ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; then
+          if grep -q '🔴' ./output.md; then
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
-            gh pr comment ${{ inputs.PR_NUMBER }} -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
+            gh pr comment ${{ inputs.PR_NUMBER }} -F ./output.md
             gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
           else
             echo '✅ no performance regression detected'

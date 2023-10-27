@@ -76,6 +76,10 @@ const propTypes = {
     /** Container styles */
     style: stylePropTypes,
 
+    /** Submit button container styles */
+    // eslint-disable-next-line react/forbid-prop-types
+    submitButtonStyles: PropTypes.arrayOf(PropTypes.object),
+
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
@@ -98,12 +102,13 @@ const defaultProps = {
     shouldValidateOnBlur: true,
     footerContent: null,
     style: [],
+    submitButtonStyles: [],
     validate: () => ({}),
 };
 
 function Form(props) {
     const [errors, setErrors] = useState({});
-    const [inputValues, setInputValues] = useState({...props.draftValues});
+    const [inputValues, setInputValues] = useState(() => ({...props.draftValues}));
     const formRef = useRef(null);
     const formContentRef = useRef(null);
     const inputRefs = useRef({});
@@ -447,7 +452,7 @@ function Form(props) {
                                 focusInput.focus();
                             }
                         }}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
+                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...props.submitButtonStyles]}
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
                         disablePressOnEnter
@@ -472,6 +477,7 @@ function Form(props) {
             props.isSubmitActionDangerous,
             props.isSubmitButtonVisible,
             props.submitButtonText,
+            props.submitButtonStyles,
         ],
     );
 

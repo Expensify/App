@@ -238,7 +238,7 @@ function PopoverReportActionContextMenu(_props, ref) {
             Report.deleteReportComment(reportIDRef.current, reportActionRef.current);
         }
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [reportActionRef]);
+    }, []);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
@@ -316,7 +316,7 @@ function PopoverReportActionContextMenu(_props, ref) {
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal
-                title={translate('reportActionContextMenu.deleteAction', {reportAction})}
+                title={translate('reportActionContextMenu.deleteAction', {action: reportAction})}
                 isVisible={isDeleteCommentConfirmModalVisible}
                 shouldSetModalVisibility={shouldSetModalVisibilityForDeleteConfirmation}
                 onConfirm={confirmDeleteAndHideModal}

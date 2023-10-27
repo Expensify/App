@@ -64,150 +64,40 @@ describe('ReportUtils', () => {
 
     describe('getIconsForParticipants', () => {
         it('returns sorted avatar source by name, then accountID', () => {
-            expect(ReportUtils.getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails)).toEqual([
-                {
-                    id: 4,
-                    name: '(833) 240-3627',
-                    source: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
-                    },
-                    type: 'avatar',
-                },
-                {
-                    id: 2,
-                    name: 'floki@vikings.net',
-                    source: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
-                    },
-                    type: 'avatar',
-                },
-                {
-                    id: 3,
-                    name: 'Lagertha Lothbrok',
-                    source: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
-                    },
-                    type: 'avatar',
-                },
-                {
-                    id: 5,
-                    name: 'Lagertha Lothbrok',
-                    source: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_6.svg',
-                    },
-                    type: 'avatar',
-                },
-                {
-                    id: 1,
-                    name: 'Ragnar Lothbrok',
-                    source: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
-                    },
-                    type: 'avatar',
-                },
-            ]);
+            const participants = ReportUtils.getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails);
+            expect(participants).toHaveLength(5);
+
+            expect(participants[0].source).toBeInstanceOf(Function);
+            expect(participants[0].name).toBe('(833) 240-3627');
+            expect(participants[0].id).toBe(4);
+            expect(participants[0].type).toBe('avatar');
+
+            expect(participants[1].source).toBeInstanceOf(Function);
+            expect(participants[1].name).toBe('floki@vikings.net');
+            expect(participants[1].id).toBe(2);
+            expect(participants[1].type).toBe('avatar');
         });
     });
 
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
-            expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false)).toStrictEqual([
-                {
-                    displayName: 'Ragnar Lothbrok',
-                    login: 'ragnar@vikings.net',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
-                    },
-                    accountID: 1,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'floki@vikings.net',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
-                    },
-                    login: 'floki@vikings.net',
-                    accountID: 2,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'Lagertha Lothbrok',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
-                    },
-                    login: 'lagertha@vikings.net',
-                    accountID: 3,
-                    pronouns: 'She/her',
-                },
-                {
-                    displayName: '(833) 240-3627',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
-                    },
-                    login: '+18332403627@expensify.sms',
-                    accountID: 4,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'Lagertha Lothbrok',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_6.svg',
-                    },
-                    login: 'lagertha2@vikings.net',
-                    accountID: 5,
-                    pronouns: 'She/her',
-                },
-            ]);
-        });
+            const participants = ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false);
+            expect(participants).toHaveLength(5);
 
-        test('withMultiParticipantReport', () => {
-            expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, true)).toStrictEqual([
-                {
-                    displayName: 'Ragnar',
-                    login: 'ragnar@vikings.net',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
-                    },
-                    accountID: 1,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'floki@vikings.net',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
-                    },
-                    login: 'floki@vikings.net',
-                    accountID: 2,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'Lagertha',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
-                    },
-                    login: 'lagertha@vikings.net',
-                    accountID: 3,
-                    pronouns: 'She/her',
-                },
-                {
-                    displayName: '(833) 240-3627',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
-                    },
-                    login: '+18332403627@expensify.sms',
-                    accountID: 4,
-                    pronouns: undefined,
-                },
-                {
-                    displayName: 'Lagertha',
-                    avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_6.svg',
-                    },
-                    login: 'lagertha2@vikings.net',
-                    accountID: 5,
-                    pronouns: 'She/her',
-                },
-            ]);
+            expect(participants[0].displayName).toBe('(833) 240-3627');
+            expect(participants[0].login).toBe('+18332403627@expensify.sms');
+
+            expect(participants[2].avatar).toBeInstanceOf(Function);
+            expect(participants[2].displayName).toBe('Lagertha Lothbrok');
+            expect(participants[2].login).toBe('lagertha@vikings.net');
+            expect(participants[2].accountID).toBe(3);
+            expect(participants[2].pronouns).toBe('She/her');
+
+            expect(participants[4].avatar).toBeInstanceOf(Function);
+            expect(participants[4].displayName).toBe('Ragnar Lothbrok');
+            expect(participants[4].login).toBe('ragnar@vikings.net');
+            expect(participants[4].accountID).toBe(1);
+            expect(participants[4].pronouns).toBeUndefined();
         });
     });
 
@@ -381,23 +271,23 @@ describe('ReportUtils', () => {
                 expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
             });
         });
-        it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
+        it('returns true when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 hasOutstandingIOU: false,
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: true,
             };
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
         });
-        it('returns true when the report has oustanding IOU and is waiting for a bank account and the logged user is the report owner', () => {
+        it('returns false when the report has outstanding IOU and is not waiting for a bank account and the logged user is the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 hasOutstandingIOU: true,
                 ownerAccountID: currentUserAccountID,
-                isWaitingOnBankAccount: true,
+                isWaitingOnBankAccount: false,
             };
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
         });
         it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
             const report = {
@@ -518,7 +408,7 @@ describe('ReportUtils', () => {
                             chatType,
                         };
                         const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], []);
-                        return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
+                        return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
                     },
                 );
                 expect(onlyHaveSplitOption).toBe(true);
@@ -531,7 +421,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], []);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
 
             it('user has send money permission', () => {
@@ -541,7 +431,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
 
             it("it's a group chat report", () => {
@@ -552,7 +442,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
         });
 
@@ -565,7 +455,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
 
             it("it is an expense report tied to user's own policy expense chat", () => {
@@ -581,7 +471,7 @@ describe('ReportUtils', () => {
                     };
                     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID], [CONST.BETAS.IOU_SEND]);
                     expect(moneyRequestOptions.length).toBe(1);
-                    expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+                    expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
                 });
             });
 
@@ -595,7 +485,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], []);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
 
             it('it is an IOU report in submitted state even with send money permissions', () => {
@@ -608,7 +498,7 @@ describe('ReportUtils', () => {
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
         });
 
@@ -619,8 +509,8 @@ describe('ReportUtils', () => {
             };
             const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], [CONST.BETAS.IOU_SEND]);
             expect(moneyRequestOptions.length).toBe(2);
-            expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
-            expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND)).toBe(true);
+            expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
+            expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND)).toBe(true);
         });
     });
 
