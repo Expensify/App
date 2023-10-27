@@ -80,14 +80,4 @@ const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigato
 NavigationAwareCamera.propTypes = propTypes;
 NavigationAwareCamera.displayName = 'NavigationAwareCamera';
 
-const NavigationAwareCameraWithRef = React.forwardRef((props, ref) => (
-    <NavigationAwareCamera
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-NavigationAwareCameraWithRef.displayName = 'NavigationAwareCameraWithRef';
-
-export default NavigationAwareCameraWithRef;
+export default NavigationAwareCamera;
