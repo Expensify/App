@@ -42,8 +42,30 @@ const getTestConfig = () =>
         .then((res) => res.json())
         .then((config) => config);
 
+const sendNativeCommand = (payload) =>
+    fetch(`${SERVER_ADDRESS}${Routes.testNativeCommand}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    }).then((res) => {
+        if (res.statusCode === 200) {
+            return;
+        }
+        const errorMsg = `Test result submission failed with status code ${res.statusCode}`;
+        res.json()
+            .then((responseText) => {
+                throw new Error(`${errorMsg}: ${responseText}`);
+            })
+            .catch(() => {
+                throw new Error(errorMsg);
+            });
+    });
+
 export default {
     submitTestResults,
     submitTestDone,
     getTestConfig,
+    sendNativeCommand,
 };

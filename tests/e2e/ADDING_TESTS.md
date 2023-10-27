@@ -33,7 +33,7 @@ require('./src/libs/E2E/reactNativeLaunchingTest');
 
 Now you can start the metro bundler in e2e mode with:
 
-```
+```bash
 CAPTURE_METRICS=true E2E_TESTING=true npm start -- --reset-cache
 ```
 

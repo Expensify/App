@@ -4,7 +4,7 @@ const NativeCommandsAction = {
 };
 
 const makeTypeTextCommand = (text) => ({
-    command: NativeCommandsAction.type,
+    actionName: NativeCommandsAction.type,
     payload: {
         text,
     },

@@ -4,6 +4,7 @@ import E2EClient from '../client';
 import Navigation from '../../Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
+import * as NativeCommands from '../../../../tests/e2e/nativeCommands/NativeCommandsAction';
 
 const test = () => {
     // check for login (if already logged in the action will simply resolve)
@@ -18,10 +19,14 @@ const test = () => {
         console.debug('[E2E] Logged in, getting typing metrics and submitting them…');
 
         Performance.subscribeToMeasurements((entry) => {
-            if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
-                console.debug(`[E2E] Sidebar loaded, navigating to a report…`);
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute('98345625'));
+            if (entry.name !== CONST.TIMING.SIDEBAR_LOADED) {
+                return;
             }
+
+            console.debug(`[E2E] Sidebar loaded, navigating to a report…`);
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute('98345625'));
+
+            E2EClient.sendNativeCommand(NativeCommands.makeTypeTextCommand('Hi'));
         });
     });
 };
