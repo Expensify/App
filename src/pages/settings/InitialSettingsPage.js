@@ -365,7 +365,7 @@ function InitialSettingsPage(props) {
                     >
                         <Tooltip text={translate('common.profile')}>
                             <Text
-                                style={[styles.textHeadline, styles.pre, styles.mh2, styles.textAlignCenter]}
+                                style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
                                 numberOfLines={1}
                             >
                                 {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
@@ -374,7 +374,7 @@ function InitialSettingsPage(props) {
                     </PressableWithoutFeedback>
                     {Boolean(props.currentUserPersonalDetails.displayName) && (
                         <Text
-                            style={[styles.textLabelSupporting, styles.mt1]}
+                            style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}
                             numberOfLines={1}
                         >
                             {props.formatPhoneNumber(props.session.email)}
