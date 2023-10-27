@@ -322,7 +322,7 @@ function MoneyRequestConfirmationList(props) {
         } else if ((props.receiptPath && isTypeRequest) || isDistanceRequestWithoutRoute) {
             text = translate('iou.request');
             if (props.iouAmount !== 0) {
-                text = translate('iou.requestAmount', { amount: formattedAmount });    
+                text = translate('iou.requestAmount', {amount: formattedAmount});
             }
         } else {
             const translationKey = isSplitBill ? 'iou.splitAmount' : 'iou.requestAmount';
