@@ -45,7 +45,9 @@ function DebitCardPage(props) {
     const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
     const nameOnCardRef = useRef(null);
 
-    // Reset the form values on mount and unmount of the component
+    /**
+     * Reset the form values on mount and unmount of the component to Make sure we reset the onyx values so old errors don't show if this form is displayed later
+     */
     useEffect(() => {
         PaymentMethods.clearDebitCardFormErrorAndSubmit();
 
