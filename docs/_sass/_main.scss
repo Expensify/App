@@ -36,11 +36,26 @@ html {
 
 table {
     border-collapse: collapse;
-    border-spacing: 0;
     margin-bottom: 20px;
+    border-spacing: 0;
+    border-radius: 10px;
 }
 
+th:first-child {
+    border-top-left-radius: 8px;
+}
 
+th:last-child {
+    border-top-right-radius: 8px;
+}
+
+tr:last-child > td:first-child {
+    border-bottom-left-radius: 8px;
+}
+
+tr:last-child > td:last-child {
+    border-bottom-right-radius: 8px;
+}
 
 caption,
 th,
@@ -55,9 +70,6 @@ td {
 thead tr th {
     font-weight: bold;
     text-align: center;
-}
-
-table tr:nth-child(2n) {
     background-color: $color-green-highlightBG;
 }
 
