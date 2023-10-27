@@ -36,6 +36,7 @@ import writingDirection from './utilities/writingDirection';
 import variables from './variables';
 import colors from './colors';
 import objectFit from './utilities/objectFit';
+import textDecorationLine from './utilities/textDecorationLine';
 
 type AnchorPosition = {
     horizontal: number;
@@ -227,6 +228,7 @@ const styles = (theme: ThemeDefault) =>
         ...userSelect,
         ...textUnderline,
         ...objectFit,
+        ...textDecorationLine,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
@@ -244,6 +246,11 @@ const styles = (theme: ThemeDefault) =>
         autoCompleteSuggestionContainer: {
             flexDirection: 'row',
             alignItems: 'center',
+        },
+
+        rtlTextRenderForSafari: {
+            textAlign: 'left',
+            ...writingDirection.ltr,
         },
 
         emojiSuggestionsEmoji: {
@@ -3148,7 +3155,7 @@ const styles = (theme: ThemeDefault) =>
 
         paymentMethod: {
             paddingHorizontal: 20,
-            height: 64,
+            height: variables.paymentMethodHeight,
         },
 
         archivedReportFooter: {
