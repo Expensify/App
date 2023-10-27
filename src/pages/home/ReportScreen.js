@@ -11,7 +11,6 @@ import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
-import PAGES_CONST from '../PAGES_CONST';
 import Timing from '../../libs/actions/Timing';
 import Performance from '../../libs/Performance';
 import * as Report from '../../libs/actions/Report';
@@ -476,7 +475,6 @@ ReportScreen.defaultProps = defaultProps;
 ReportScreen.displayName = 'ReportScreen';
 
 export default compose(
-    Performance.withRenderTrace({id: PAGES_CONST.REPORT_ACTIONS_VIEW}),
     withViewportOffsetTop,
     withCurrentReportID,
     withOnyx(
