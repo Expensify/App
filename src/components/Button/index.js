@@ -333,6 +333,7 @@ function Button({
                 isDisabled && !danger && !success ? styles.buttonDisabled : undefined,
                 shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                 shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                icon || shouldShowRightIcon ? styles.alignItemsStretch : undefined,
                 ...innerStyles,
             ]}
             hoverStyle={[
