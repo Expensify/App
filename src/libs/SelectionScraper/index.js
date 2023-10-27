@@ -4,7 +4,7 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
 
-const markdownElements = ['h1', 'strong', 'em', 'del', 'blockquote', 'code', 'pre', 'a', 'br'];
+const markdownElements = ['h1', 'strong', 'em', 'del', 'blockquote', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's'];
 const tagAttribute = 'data-testid';
 
 /**
