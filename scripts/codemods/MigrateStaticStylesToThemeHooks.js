@@ -398,13 +398,14 @@ async function migrateStaticStylesForDirectory(directoryPath) {
  * Sometimes blank lines are added in weird places by babel's generator due to the retainLines flag,
  * which is necessary to keep the formatting from the original source as much as possible.
  *
+ * @param {String} directoryPath
  * @returns {Promise<void>}
  */
-async function stripBlankLinesFromDiff() {
+async function stripBlankLinesFromDiff(directoryPath) {
     try {
         console.log('Stripping blank lines from diff...');
         await exec("git diff --ignore-blank-lines -- ':!scripts/codemods/MigrateStaticStylesToThemeHooks.js' > tmp.patch");
-        await exec('git restore src/components');
+        await exec(`git restore ${directoryPath}`);
         await exec(`git apply -v tmp.patch`);
         await exec('rm tmp.patch');
     } catch (error) {
@@ -423,7 +424,7 @@ async function run() {
             await migrateStaticStylesForDirectory(directoryPath);
             console.log('Running prettier...');
             await exec("npx prettier --write $(git diff --name-only --diff-filter d | grep -E '\\.js|\\.tsx$' | xargs)");
-            await stripBlankLinesFromDiff();
+            await stripBlankLinesFromDiff(directoryPath);
         } catch (error) {
             console.error('Error:', error);
         }
