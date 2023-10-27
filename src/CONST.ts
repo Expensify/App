@@ -803,7 +803,7 @@ const CONST = {
     },
 
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
-    PASSWORD_COMPLEXITY__STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
+    PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
 
     // 6 numeric digits
     VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
