@@ -1335,17 +1335,13 @@ function shouldShowGBR(report) {
         return true;
     }
 
-    if (report.isWaitingForTaskCompleteFromAssignee) {
-        return true;
-    }
-
     // Money request waiting for current user to add their credit bank account
     // hasOutstandingIOU will be false if the user paid, but isWaitingOnBankAccount will be true if user don't have a wallet or bank account setup
     if (!report.hasOutstandingIOU && report.isWaitingOnBankAccount && report.ownerAccountID === currentUserAccountID) {
         return true;
     }
 
-    // Child report that is awaiting for current user to Pay
+    // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
     if (report.hasOutstandingChildRequest) {
         return true;
     }
