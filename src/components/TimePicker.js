@@ -43,11 +43,14 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function formatHour(hourText) {
-    // If the integer value of hour is greater than 12, return the second digit with a leading 0
-    const hourNumber = parseInt(hourText, 10);
-
-    // If the integer value of hour is greater than 12, subtract 10
-    const adjustedHour = hourNumber > 12 ? hourNumber - 10 : hourNumber;
+    let adjustedHour = '00';
+    if (hourText > 12 && hourText <= 24) {
+        adjustedHour = String(hourText - 12);
+    } else if (hourText > 24) {
+        adjustedHour = `0${hourText[1]}`;
+    } else {
+        adjustedHour = hourText;
+    }
 
     // Convert to a string and pad with a 0 if needed
     return adjustedHour.toString().padStart(2, '0');
@@ -136,8 +139,15 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
             // Case when the cursor is at the start.
         } else if (selectionHour.start === 0) {
             // Handle cases where the hour would be > 12.
+
+            // when you entering text the filteredText would consist of three numbers
             const formattedText = `${filteredText[0]}${filteredText[2] || 0}`;
-            if (formattedText > 12) {
+            if (formattedText > 12 && formattedText <= 24) {
+                newHour = String(formattedText - 12).padStart(2, '0');
+                newSelection = 2;
+                focusMinuteInputOnFirstCharacter();
+                setAmPmValue(CONST.TIME_PERIOD.PM);
+            } else if (formattedText > 24) {
                 newHour = `0${formattedText[1]}`;
                 newSelection = 2;
                 focusMinuteInputOnFirstCharacter();
@@ -147,12 +157,19 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
             }
         } else if (selectionHour.start === 1) {
             // Case when the cursor is at the second position.
+            const formattedText = `${filteredText[0]}${filteredText[1]}`;
+
             if (filteredText.length < 2) {
                 // If we remove a value, prepend 0.
                 newHour = `0${text}`;
                 newSelection = 0;
                 // If the second digit is > 2, replace the hour with 0 and the second digit.
-            } else if (text[1] > 2) {
+            } else if (formattedText > 12 && formattedText <= 24) {
+                newHour = String(formattedText - 12).padStart(2, '0');
+                newSelection = 2;
+                focusMinuteInputOnFirstCharacter();
+                setAmPmValue(CONST.TIME_PERIOD.PM);
+            } else if (formattedText > 24) {
                 newHour = `0${text[1]}`;
                 newSelection = 2;
                 focusMinuteInputOnFirstCharacter();
@@ -435,10 +452,14 @@ TimePicker.propTypes = propTypes;
 TimePicker.defaultProps = defaultProps;
 TimePicker.displayName = 'TimePicker';
 
-export default React.forwardRef((props, ref) => (
+const TimePickerWithRef = React.forwardRef((props, ref) => (
     <TimePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+TimePickerWithRef.displayName = 'TimePickerWithRef';
+
+export default TimePickerWithRef;
