@@ -203,6 +203,7 @@ function AddPlaidBankAccount({
                             Log.hmmm('[PlaidLink] Error: ', error.message);
                         }}
                         onEvent={(event, metadata) => {
+                            BankAccounts.setPlaidEvent(event);
                             // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
                             if (event === 'ERROR') {
                                 Log.hmmm('[PlaidLink] Error: ', metadata);
