@@ -39,7 +39,7 @@ const test = () => {
 
                             E2EClient.submitTestResults({
                                 name: 'Composer typing rerender count',
-                                duration: rerenderCount,
+                                renderCount: rerenderCount,
                             }).then(E2EClient.submitTestDone);
                         }, 3000);
                     })
