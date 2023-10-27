@@ -28,6 +28,9 @@ import useDelayedInputFocus from '../../hooks/useDelayedInputFocus';
 import ValuePicker from '../../components/ValuePicker';
 import FormProvider from '../../components/Form/FormProvider';
 import InputWrapper from '../../components/Form/InputWrapper';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
+import OfflineIndicator from '../../components/OfflineIndicator';
+import useNetwork from '../../hooks/useNetwork';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -74,6 +77,8 @@ const defaultProps = {
 
 function WorkspaceNewRoomPage(props) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
@@ -171,7 +176,8 @@ function WorkspaceNewRoomPage(props) {
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom={isOffline}
+                shouldShowOfflineIndicator={false}
                 includePaddingTop={false}
                 shouldEnablePickerAvoiding={false}
                 testID={WorkspaceNewRoomPage.displayName}
@@ -248,6 +254,7 @@ function WorkspaceNewRoomPage(props) {
                             </View>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
                         </FormProvider>
+                        {isSmallScreenWidth && <OfflineIndicator style={[]} />}
                     </KeyboardAvoidingView>
                 )}
             </ScreenWrapper>

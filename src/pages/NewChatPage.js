@@ -14,6 +14,7 @@ import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import ScreenWrapper from '../components/ScreenWrapper';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
+import OfflineIndicator from '../components/OfflineIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import * as Browser from '../libs/Browser';
 import compose from '../libs/compose';
@@ -22,6 +23,7 @@ import reportPropTypes from './reportPropTypes';
 import variables from '../styles/variables';
 import useNetwork from '../hooks/useNetwork';
 import useDelayedInputFocus from '../hooks/useDelayedInputFocus';
+import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Beta features list */
@@ -58,6 +60,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     const [filteredUserToInvite, setFilteredUserToInvite] = useState();
     const [selectedOptions, setSelectedOptions] = useState([]);
     const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -218,7 +221,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom={isOffline}
+            shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnableMaxHeight
             testID={NewChatPage.displayName}
@@ -258,6 +262,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             isLoadingNewOptions={isSearchingForReports}
                         />
                     </View>
+                    {isSmallScreenWidth && <OfflineIndicator style={[]} />}
                 </KeyboardAvoidingView>
             )}
         </ScreenWrapper>
