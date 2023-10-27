@@ -524,13 +524,12 @@ describe('Unread Indicators', () => {
                 .then(() => {
                     // Simulate the response from the server so that the comment can be deleted in this test
                     lastReportAction = {...CollectionUtils.lastItem(reportActions)};
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         lastMessageText: lastReportAction.message[0].text,
                         lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
                         lastActorAccountID: lastReportAction.actorAccountID,
                         reportID: REPORT_ID,
                     });
-                    return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // Verify the chat preview text matches the last comment from the current user
