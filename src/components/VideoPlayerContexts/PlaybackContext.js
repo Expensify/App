@@ -45,10 +45,10 @@ function PlaybackContextProvider({children}) {
         [playVideo],
     );
 
-    const updateSharedElements = (parent, child) => {
+    const updateSharedElements = useCallback((parent, child) => {
         setOriginalParent(parent);
         setSharedElement(child);
-    };
+    }, []);
 
     const togglePlay = useCallback(() => {
         currentVideoPlayerRef.current.setStatusAsync({shouldPlay: !isPlaying});
@@ -103,23 +103,24 @@ function PlaybackContextProvider({children}) {
             currentPlaybackSpeed,
         }),
         [
-            currentlyPlayingURL,
-            duration,
-            enterFullScreenMode,
-            isPlaying,
-            originalParent,
-            pauseVideo,
-            playVideo,
-            playbackSpeeds,
-            position,
-            seekPosition,
-            sharedElement,
-            togglePlay,
-            updateCurrentVideoPlayerRef,
             updateCurrentlyPlayingURL,
-            updateDuration,
-            updatePlaybackSpeed,
+            currentlyPlayingURL,
+            originalParent,
+            sharedElement,
+            updateSharedElements,
+            togglePlay,
+            isPlaying,
+            enterFullScreenMode,
+            updateCurrentVideoPlayerRef,
+            position,
             updatePosition,
+            seekPosition,
+            duration,
+            updateDuration,
+            playVideo,
+            pauseVideo,
+            playbackSpeeds,
+            updatePlaybackSpeed,
             currentPlaybackSpeed,
         ],
     );

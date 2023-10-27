@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {Video, ResizeMode} from 'expo-av';
@@ -43,24 +43,45 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const {isSmallScreenWidth} = useWindowDimensions();
     const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, updateCurrentVideoPlayerRef, updateDuration, updatePosition, duration, position, isPlaying} =
         usePlaybackContext();
-
-    const [sourceURLWithAuth] = React.useState(addEncryptedAuthTokenToURL(url));
-
-    const [isVideoLoading, setIsVideoLoading] = React.useState(true);
-
-    const ref = useRef(null);
-    const videoPlayerParentRef = useRef(null);
+    const [isVideoLoading, setIsVideoLoading] = useState(true);
     const videoPlayerRef = useRef(null);
+    const videoPlayerElementParentRef = useRef(null);
+    const videoPlayerElementRef = useRef(null);
     const sharedVideoPlayerParentRef = useRef(null);
+    const sourceURLWithAuth = addEncryptedAuthTokenToURL(url);
 
+    const onReadyForDisplay = useCallback(
+        (e) => {
+            if (!isVideoLoading) {
+                return;
+            }
+            setIsVideoLoading(false);
+            onVideoLoaded(e);
+        },
+        [isVideoLoading, onVideoLoaded],
+    );
+
+    const onPlaybackStatusUpdate = useCallback(
+        (e) => {
+            if (!isPlaying) {
+                return;
+            }
+            updateDuration(e.durationMillis || 0);
+            updatePosition(e.positionMillis || 0);
+        },
+        [isPlaying, updateDuration, updatePosition],
+    );
+
+    // update shared video elements
     useEffect(() => {
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
             return;
         }
-        updateSharedElements(videoPlayerParentRef.current, videoPlayerRef.current);
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, updateSharedElements, url]);
+        updateSharedElements(videoPlayerElementParentRef.current, videoPlayerElementRef.current);
+        updateCurrentVideoPlayerRef(videoPlayerRef.current);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, updateCurrentVideoPlayerRef, updateSharedElements, url]);
 
-    // shared element transition logic for video player
+    // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
         if (!sharedElement || !shouldUseSharedVideoElement) {
             return;
@@ -78,13 +99,6 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         };
     }, [currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
-    useEffect(() => {
-        if (currentlyPlayingURL === url && !shouldUseSharedVideoElement) {
-            updateCurrentVideoPlayerRef(ref.current);
-        }
-        return () => {};
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, updateCurrentVideoPlayerRef, url]);
-
     return (
         <View style={[styles.w100, styles.h100]}>
             {shouldUseSharedVideoElement ? (
@@ -99,15 +113,15 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                         if (!el) {
                             return;
                         }
-                        videoPlayerParentRef.current = el;
+                        videoPlayerElementParentRef.current = el;
                         if (el.childNodes[0]) {
-                            videoPlayerRef.current = el.childNodes[0];
+                            videoPlayerElementRef.current = el.childNodes[0];
                         }
                     }}
                 >
                     <View style={styles.flex1}>
                         <Video
-                            ref={ref}
+                            ref={videoPlayerRef}
                             style={style}
                             videoStyle={videoStyle}
                             source={{
@@ -117,24 +131,9 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             useNativeControls={false}
                             resizeMode={resizeMode}
                             isLooping={isLooping}
-                            onReadyForDisplay={(e) => {
-                                if (!isVideoLoading) {
-                                    return;
-                                }
-                                setIsVideoLoading(false);
-                                onVideoLoaded(e);
-                            }}
+                            onReadyForDisplay={onReadyForDisplay}
                             onLoadStart={() => setIsVideoLoading(true)}
-                            onPlaybackStatusUpdate={(e) => {
-                                if (!isPlaying) {
-                                    return;
-                                }
-                                const videoDuration = e.durationMillis;
-                                if (videoDuration > 0 && !_.isNaN(videoDuration)) {
-                                    updateDuration(videoDuration);
-                                }
-                                updatePosition(e.positionMillis);
-                            }}
+                            onPlaybackStatusUpdate={onPlaybackStatusUpdate}
                         />
                     </View>
                 </View>
