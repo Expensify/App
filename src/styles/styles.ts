@@ -248,6 +248,11 @@ const styles = (theme: ThemeDefault) =>
             alignItems: 'center',
         },
 
+        rtlTextRenderForSafari: {
+            textAlign: 'left',
+            ...writingDirection.ltr,
+        },
+
         emojiSuggestionsEmoji: {
             fontSize: variables.fontSizeMedium,
             width: 51,
@@ -3150,7 +3155,7 @@ const styles = (theme: ThemeDefault) =>
 
         paymentMethod: {
             paddingHorizontal: 20,
-            height: 64,
+            height: variables.paymentMethodHeight,
         },
 
         archivedReportFooter: {

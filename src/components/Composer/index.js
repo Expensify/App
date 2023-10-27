@@ -447,6 +447,7 @@ function Composer({
 
             StyleSheet.flatten([style, {outline: 'none'}]),
             StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
+            Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
         ],
         [style, maxLines, numberOfLines, isComposerFullSize],
     );

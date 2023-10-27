@@ -77,17 +77,29 @@ type Report = {
     total?: number;
     currency?: string;
     isDeletedParentAction?: boolean;
-    isWaitingOnBankAccount?: boolean;
     visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
-    preexistingReportID?: string;
-    iouReportID?: string;
     lastMentionedTime?: string | null;
     parentReportActionIDs?: number[];
     errorFields?: OnyxCommon.ErrorFields;
-    pendingFields?: {
-        createChat: OnyxCommon.PendingAction;
-        addWorkspaceRoom: OnyxCommon.PendingAction;
-    };
+
+    /** Whether the report is waiting on a bank account */
+    isWaitingOnBankAccount?: boolean;
+
+    /** Whether the last message was deleted */
+    isLastMessageDeletedParentAction?: boolean;
+
+    /** The ID of the IOU report */
+    iouReportID?: string;
+
+    /** Total amount of money owed for IOU report */
+    iouReportAmount?: number;
+
+    /** Pending fields for the report */
+    pendingFields?: Record<string, OnyxCommon.PendingAction>;
+
+    /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
+    preexistingReportID?: string;
+
     /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
     nonReimbursableTotal?: number;
     cachedTotal?: string;

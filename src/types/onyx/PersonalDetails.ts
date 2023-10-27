@@ -49,6 +49,9 @@ type PersonalDetails = {
     isOptimisticPersonalDetail?: boolean;
 
     fallbackIcon?: string;
+
+    /** Status of the current user from their personal details */
+    status?: string;
 };
 
 export type {Timezone};

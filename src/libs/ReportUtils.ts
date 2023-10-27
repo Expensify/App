@@ -2525,6 +2525,7 @@ function buildOptimisticIOUReportAction(
     isSendMoneyFlow = false,
     receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
+    created = DateUtils.getDBTime(),
 ): OptimisticIOUReportAction {
     const IOUReportID = iouReportID || generateReportID();
 
@@ -2583,7 +2584,7 @@ function buildOptimisticIOUReportAction(
         ],
         reportActionID: NumberUtils.rand64(),
         shouldShow: true,
-        created: DateUtils.getDBTime(),
+        created,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         whisperedToAccountIDs: [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === receipt?.state) ? [currentUserAccountID] : [],
     };
@@ -2876,8 +2877,9 @@ function buildOptimisticChatReport(
 
 /**
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
+ * @param  [created] - Action created time
  */
-function buildOptimisticCreatedReportAction(emailCreatingAction: string): OptimisticCreatedReportAction {
+function buildOptimisticCreatedReportAction(emailCreatingAction: string, created = DateUtils.getDBTime()): OptimisticCreatedReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -2904,7 +2906,7 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string): Optimi
         ],
         automatic: false,
         avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatar(currentUserAccountID),
-        created: DateUtils.getDBTime(),
+        created,
         shouldShow: true,
     };
 }
