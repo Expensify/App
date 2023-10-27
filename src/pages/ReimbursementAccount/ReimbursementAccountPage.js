@@ -272,7 +272,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     useEffect(
         () => {
             fetchData();
-            // Execute when the component is unmounted
             return () => {
                 BankAccounts.clearReimbursementAccount();
             };
@@ -287,7 +286,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     }
 
     if (
-        prevReimbursementAccount && 
+        prevReimbursementAccount &&
         prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
         reimbursementAccount.pendingAction !== prevReimbursementAccount.pendingAction
     ) {
