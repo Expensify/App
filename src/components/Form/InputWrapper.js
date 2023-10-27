@@ -7,11 +7,13 @@ const propTypes = {
     inputID: PropTypes.string.isRequired,
     valueType: PropTypes.string,
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    valueParser: PropTypes.func,
 };
 
 const defaultProps = {
     forwardedRef: undefined,
     valueType: 'string',
+    valueParser: undefined,
 };
 
 function InputWrapper(props) {
@@ -25,10 +27,14 @@ InputWrapper.propTypes = propTypes;
 InputWrapper.defaultProps = defaultProps;
 InputWrapper.displayName = 'InputWrapper';
 
-export default forwardRef((props, ref) => (
+const InputWrapperWithRef = forwardRef((props, ref) => (
     <InputWrapper
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+InputWrapperWithRef.displayName = 'InputWrapperWithRef';
+
+export default InputWrapperWithRef;

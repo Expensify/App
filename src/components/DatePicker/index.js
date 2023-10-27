@@ -77,10 +77,14 @@ DatePicker.displayName = 'DatePicker';
 DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const DatePickerWithRef = React.forwardRef((props, ref) => (
     <DatePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+DatePickerWithRef.displayName = 'DatePickerWithRef';
+
+export default DatePickerWithRef;
