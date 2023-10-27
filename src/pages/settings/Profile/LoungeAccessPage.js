@@ -10,10 +10,8 @@ import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPa
 import * as LottieAnimations from '../../../components/LottieAnimations';
 import compose from '../../../libs/compose';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
-import LinearGradient from '../../../components/LinearGradient';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
-import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     /** Current user details, which will hold whether or not they have Lounge Access */
@@ -34,19 +32,11 @@ function LoungeAccessPage(props) {
         return <NotFoundPage />;
     }
 
-    const overlayContent = () => (
-        <LinearGradient
-            colors={[`${themeColors.loungeAccessOverlay}00`, themeColors.loungeAccessOverlay]}
-            style={[styles.pAbsolute, styles.w100, styles.h100]}
-        />
-    );
-
     return (
         <IllustratedHeaderPageLayout
             title={translate('loungeAccessPage.loungeAccess')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             illustration={LottieAnimations.ExpensifyLounge}
-            overlayContent={overlayContent}
         >
             <Text
                 style={[styles.flex1, styles.ph5, styles.textHeadline, styles.preWrap, styles.mb2]}
