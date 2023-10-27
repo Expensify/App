@@ -21,6 +21,7 @@ import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 import {ReactionListContext} from '../ReportScreenContext';
 import useInitialValue from '../../../hooks/useInitialValue';
+import useNetwork from '../../../hooks/useNetwork';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -78,6 +79,7 @@ function ReportActionsView(props) {
     const prevNetworkRef = useRef(props.network);
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
+    const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const reportID = props.report.reportID;
 
@@ -85,6 +87,7 @@ function ReportActionsView(props) {
      * @returns {Boolean}
      */
     const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
+    const isFullHistoryFetched = useMemo(() => _.last(props.reportActions).actionName === CONST.REPORT.ACTIONS.TYPE.CREATED, [props.reportActions]);
 
     const openReportIfNecessary = () => {
         // If the report is optimistic (AKA not yet created) we don't need to call openReport again
@@ -149,18 +152,18 @@ function ReportActionsView(props) {
      * displaying.
      */
     const loadOlderChats = () => {
-        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.isLoadingOlderReportActions) {
+        // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
+        if (props.isLoadingOlderReportActions || isOffline) {
             return;
         }
-
-        const oldestReportAction = _.last(props.reportActions);
 
         // Don't load more chats if we're already at the beginning of the chat history
-        if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        if (isFullHistoryFetched) {
             return;
         }
+
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
+        const oldestReportAction = _.last(props.reportActions);
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
     };
 
@@ -231,7 +234,7 @@ function ReportActionsView(props) {
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 isLoadingInitialReportActions={props.isLoadingInitialReportActions}
-                isLoadingOlderReportActions={props.isLoadingOlderReportActions}
+                isLoadingOlderReportActions={props.isLoadingOlderReportActions || (isOffline && !isFullHistoryFetched)}
                 isLoadingNewerReportActions={props.isLoadingNewerReportActions}
                 policy={props.policy}
             />
