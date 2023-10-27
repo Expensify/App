@@ -87,6 +87,12 @@ function BaseValidateCodeForm(props) {
             }
             inputValidateCodeRef.current.focus();
         },
+        focusLastSelected() {
+            if (!inputValidateCodeRef.current) {
+                return;
+            }
+            inputValidateCodeRef.current.focusLastSelected(); 
+        }
     }));
 
     useFocusEffect(
