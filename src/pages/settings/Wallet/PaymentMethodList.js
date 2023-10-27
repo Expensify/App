@@ -333,9 +333,9 @@ function PaymentMethodList({
 
     return (
         <>
-            <View style={[style, {minHeight: variables.paymentMethodHeight}]}>
+            <View style={[style, {minHeight: variables.optionRowHeight}]}>
                 <FlashList
-                    estimatedItemSize={variables.paymentMethodHeight}
+                    estimatedItemSize={variables.optionRowHeight}
                     data={filteredPaymentMethods}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}

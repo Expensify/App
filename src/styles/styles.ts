@@ -3155,7 +3155,7 @@ const styles = (theme: ThemeDefault) =>
 
         paymentMethod: {
             paddingHorizontal: 20,
-            height: variables.paymentMethodHeight,
+            height: variables.optionRowHeight,
         },
 
         archivedReportFooter: {
