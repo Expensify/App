@@ -268,6 +268,7 @@ export default {
         am: 'AM',
         pm: 'PM',
         tbd: 'TBD',
+        selectCurrency: 'Select a currency',
         card: 'Card',
     },
     location: {
@@ -341,10 +342,6 @@ export default {
         paidBy: 'Paid by',
         splitWith: 'Split with',
         whatsItFor: "What's it for?",
-    },
-    iOUCurrencySelection: {
-        selectCurrency: 'Select a currency',
-        allCurrencies: 'All currencies',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',

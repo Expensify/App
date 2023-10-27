@@ -26,6 +26,7 @@ import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import RenderHTML from './RenderHTML';
+import DisplayNames from './DisplayNames';
 
 const propTypes = menuItemPropTypes;
 
@@ -80,6 +81,7 @@ const defaultProps = {
     shouldRenderAsHTML: false,
     rightComponent: undefined,
     shouldShowRightComponent: false,
+    titleWithTooltips: [],
     shouldCheckActionAllowedOnPress: true,
 };
 
@@ -138,6 +140,21 @@ const MenuItem = React.forwardRef((props, ref) => {
     }, [props.title, props.shouldRenderAsHTML, props.shouldParseTitle, html]);
 
     const hasPressableRightComponent = props.iconRight || (props.rightComponent && props.shouldShowRightComponent);
+
+    const renderTitleContent = () => {
+        if (props.titleWithTooltips && _.isArray(props.titleWithTooltips) && props.titleWithTooltips.length > 0) {
+            return (
+                <DisplayNames
+                    fullTitle={props.title}
+                    displayNamesWithTooltips={props.titleWithTooltips}
+                    tooltipEnabled
+                    numberOfLines={1}
+                />
+            );
+        }
+
+        return convertToLTR(props.title);
+    };
 
     const onPressAction = (e) => {
         if (props.disabled || !props.interactive) {
@@ -270,7 +287,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     numberOfLines={props.numberOfLinesTitle || undefined}
                                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.interactive && props.disabled}}
                                                 >
-                                                    {convertToLTR(props.title)}
+                                                    {renderTitleContent()}
                                                 </Text>
                                             )}
                                             {Boolean(props.shouldShowTitleIcon) && (

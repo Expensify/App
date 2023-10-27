@@ -113,7 +113,7 @@ const defaultProps = {
 
 const Form = forwardRef((props, forwardedRef) => {
     const [errors, setErrors] = useState({});
-    const [inputValues, setInputValues] = useState({...props.draftValues});
+    const [inputValues, setInputValues] = useState(() => ({...props.draftValues}));
     const formRef = useRef(null);
     const formContentRef = useRef(null);
     const inputRefs = useRef({});
