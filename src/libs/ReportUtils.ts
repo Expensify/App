@@ -355,7 +355,7 @@ let doesDomainHaveApprovedAccountant = false;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     // Check if I remove that will cause regressions
-    waitForCollectionCallback: true,
+    // waitForCollectionCallback: true,
     callback: (value) => (doesDomainHaveApprovedAccountant = value?.doesDomainHaveApprovedAccountant ?? false),
 });
 
