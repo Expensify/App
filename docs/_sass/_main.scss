@@ -37,7 +37,10 @@ html {
 table {
     border-collapse: collapse;
     border-spacing: 0;
+    margin-bottom: 20px;
 }
+
+
 
 caption,
 th,
@@ -45,6 +48,17 @@ td {
     text-align: left;
     font-weight: 400;
     vertical-align: middle;
+    padding: 6px 13px;
+    border: 1px solid $color-green-borders;
+}
+
+thead tr th {
+    font-weight: bold;
+    text-align: center;
+}
+
+table tr:nth-child(2n) {
+    background-color: $color-green-highlightBG;
 }
 
 q,
@@ -414,6 +428,8 @@ button {
                 opacity: 0.8;
             }
         }
+
+
     }
 
 }
