@@ -1,7 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {useNavigation} from '@react-navigation/native';
@@ -23,8 +23,6 @@ import * as Transaction from '../../libs/actions/Transaction';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
 import transactionPropTypes from '../../components/transactionPropTypes';
-import UserCurrentLocationButton from '../../components/UserCurrentLocationButton';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
@@ -47,6 +45,9 @@ const propTypes = {
 
     recentWaypoints: PropTypes.arrayOf(
         PropTypes.shape({
+            /** The name of the location */
+            name: PropTypes.string,
+
             /** A description of the location (usually the address) */
             description: PropTypes.string,
 
@@ -78,7 +79,6 @@ const defaultProps = {
 function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
-    const [isFetchingLocation, setIsFetchingLocation] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
@@ -166,6 +166,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             lat: values.lat,
             lng: values.lng,
             address: values.address,
+            name: values.name,
         };
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
 
@@ -174,26 +175,6 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             return;
         }
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
-    };
-
-    /**
-     * Sets user current location as a waypoint
-     * @param {Object} geolocationData
-     * @param {Object} geolocationData.coords
-     * @param {Number} geolocationData.coords.latitude
-     * @param {Number} geolocationData.coords.longitude
-     * @param {Number} geolocationData.timestamp
-     */
-    const selectWaypointFromCurrentLocation = (geolocationData) => {
-        setIsFetchingLocation(false);
-
-        const waypoint = {
-            lat: geolocationData.coords.latitude,
-            lng: geolocationData.coords.longitude,
-            address: CONST.YOUR_LOCATION_TEXT,
-        };
-
-        selectWaypoint(waypoint);
     };
 
     return (
@@ -242,6 +223,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                 >
                     <View>
                         <AddressSearch
+                            canUseCurrentLocation
                             inputID={`waypoint${waypointIndex}`}
                             ref={(e) => (textInput.current = e)}
                             hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
@@ -265,17 +247,6 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                             resultTypes=""
                         />
                     </View>
-                    <UserCurrentLocationButton
-                        isDisabled={isOffline}
-                        onClick={() => {
-                            Keyboard.dismiss();
-
-                            setIsFetchingLocation(true);
-                        }}
-                        onLocationError={() => setIsFetchingLocation(false)}
-                        onLocationFetched={selectWaypointFromCurrentLocation}
-                    />
-                    {isFetchingLocation && <FullScreenLoadingIndicator />}
                 </Form>
             </FullPageNotFoundView>
         </ScreenWrapper>
@@ -297,6 +268,7 @@ export default withOnyx({
         // that the google autocomplete component expects for it's "predefined places" feature.
         selector: (waypoints) =>
             _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
+                name: waypoint.name,
                 description: waypoint.address,
                 geometry: {
                     location: {

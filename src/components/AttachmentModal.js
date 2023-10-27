@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useRef, useMemo} from 'react';
+import React, {useState, useCallback, useRef, useMemo, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, Animated, Keyboard} from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -123,7 +123,7 @@ function AttachmentModal(props) {
     const [source, setSource] = useState(props.source);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-    const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
+    const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [shouldShowDownloadButton, setShouldShowDownloadButton] = React.useState(true);
     const {windowWidth} = useWindowDimensions();
 
@@ -136,6 +136,10 @@ function AttachmentModal(props) {
     );
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+
+    useEffect(() => {
+        setFile(props.originalFileName ? {name: props.originalFileName} : undefined);
+    }, [props.originalFileName]);
 
     const onCarouselAttachmentChange = props.onCarouselAttachmentChange;
 
@@ -376,7 +380,7 @@ function AttachmentModal(props) {
             text: props.translate('common.download'),
             onSelected: () => downloadAttachment(source),
         });
-        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction)) {
+        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction) && canEdit) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('receipt.deleteReceipt'),
@@ -447,6 +451,7 @@ function AttachmentModal(props) {
                                 onToggleKeyboard={updateConfirmButtonVisibility}
                                 isWorkspaceAvatar={props.isWorkspaceAvatar}
                                 fallbackSource={props.fallbackSource}
+                                isUsedInAttachmentModal
                             />
                         )
                     )}
@@ -469,7 +474,7 @@ function AttachmentModal(props) {
                         )}
                     </SafeAreaConsumer>
                 )}
-                {isAttachmentReceipt ? (
+                {isAttachmentReceipt && (
                     <ConfirmModal
                         title={translate('receipt.deleteReceipt')}
                         isVisible={isDeleteReceiptConfirmModalVisible}
@@ -480,18 +485,19 @@ function AttachmentModal(props) {
                         cancelText={translate('common.cancel')}
                         danger
                     />
-                ) : (
-                    <ConfirmModal
-                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                        onConfirm={closeConfirmModal}
-                        onCancel={closeConfirmModal}
-                        isVisible={isAttachmentInvalid}
-                        prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                        confirmText={translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
                 )}
             </Modal>
+            {!isAttachmentReceipt && (
+                <ConfirmModal
+                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                    onConfirm={closeConfirmModal}
+                    onCancel={closeConfirmModal}
+                    isVisible={isAttachmentInvalid}
+                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                    confirmText={translate('common.close')}
+                    shouldShowCancelButton={false}
+                />
+            )}
 
             {props.children &&
                 props.children({

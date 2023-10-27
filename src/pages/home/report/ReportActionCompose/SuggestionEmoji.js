@@ -199,6 +199,8 @@ function SuggestionEmoji({
         [shouldBlockCalc],
     );
 
+    const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
+
     useImperativeHandle(
         forwardedRef,
         () => ({
@@ -207,8 +209,9 @@ function SuggestionEmoji({
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
+            getSuggestions,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {
@@ -244,6 +247,8 @@ const SuggestionEmojiWithRef = React.forwardRef((props, ref) => (
         forwardedRef={ref}
     />
 ));
+
+SuggestionEmojiWithRef.displayName = 'SuggestionEmojiWithRef';
 
 export default withOnyx({
     preferredSkinTone: {

@@ -18,7 +18,7 @@ import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
+import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import CONST from '../../CONST';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -32,6 +32,7 @@ import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import SelectionList from '../../components/SelectionList';
 import Text from '../../components/Text';
 import * as Browser from '../../libs/Browser';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -76,10 +77,33 @@ function WorkspaceMembersPage(props) {
     const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState('');
     const prevIsOffline = usePrevious(props.network.isOffline);
-    const accountIDs = useMemo(() => _.keys(props.policyMembers), [props.policyMembers]);
+    const accountIDs = useMemo(() => _.map(_.keys(props.policyMembers), (accountID) => Number(accountID)), [props.policyMembers]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef(null);
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
+    const prevPersonalDetails = usePrevious(props.personalDetails);
+
+    /**
+     * Get filtered personalDetails list with current policyMembers
+     * @param {Object} policyMembers
+     * @param {Object} personalDetails
+     * @returns {Object}
+     */
+    const filterPersonalDetails = (policyMembers, personalDetails) =>
+        _.reduce(
+            _.keys(policyMembers),
+            (result, key) => {
+                if (personalDetails[key]) {
+                    return {
+                        ...result,
+                        [key]: personalDetails[key],
+                    };
+                }
+                return result;
+            },
+            {},
+        );
+
     /**
      * Get members for the current workspace
      */
@@ -116,12 +140,17 @@ function WorkspaceMembersPage(props) {
         if (removeMembersConfirmModalVisible && !_.isEqual(accountIDs, prevAccountIDs)) {
             setRemoveMembersConfirmModalVisible(false);
         }
-        setSelectedEmployees((prevSelected) =>
-            _.intersection(
-                prevSelected,
-                _.map(_.values(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)), (accountID) => Number(accountID)),
-            ),
-        );
+        setSelectedEmployees((prevSelected) => {
+            // Filter all personal details in order to use the elements needed for the current workspace
+            const currentPersonalDetails = filterPersonalDetails(props.policyMembers, props.personalDetails);
+            // We need to filter the previous selected employees by the new personal details, since unknown/new user id's change when transitioning from offline to online
+            const prevSelectedElements = _.map(prevSelected, (id) => {
+                const prevItem = lodashGet(prevPersonalDetails, id);
+                const res = _.find(_.values(currentPersonalDetails), (item) => lodashGet(prevItem, 'login') === lodashGet(item, 'login'));
+                return lodashGet(res, 'accountID', id);
+            });
+            return _.intersection(prevSelectedElements, _.values(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)));
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.policyMembers]);
 
@@ -173,12 +202,12 @@ function WorkspaceMembersPage(props) {
      */
     const toggleAllUsers = (memberList) => {
         const enabledAccounts = _.filter(memberList, (member) => !member.isDisabled);
-        const everyoneSelected = _.every(enabledAccounts, (member) => _.contains(selectedEmployees, Number(member.keyForList)));
+        const everyoneSelected = _.every(enabledAccounts, (member) => _.contains(selectedEmployees, member.accountID));
 
         if (everyoneSelected) {
             setSelectedEmployees([]);
         } else {
-            const everyAccountId = _.map(enabledAccounts, (member) => Number(member.keyForList));
+            const everyAccountId = _.map(enabledAccounts, (member) => member.accountID);
             setSelectedEmployees(everyAccountId);
         }
 
@@ -225,10 +254,10 @@ function WorkspaceMembersPage(props) {
             }
 
             // Add or remove the user if the checkbox is enabled
-            if (_.contains(selectedEmployees, Number(accountID))) {
-                removeUser(Number(accountID));
+            if (_.contains(selectedEmployees, accountID)) {
+                removeUser(accountID);
             } else {
-                addUser(Number(accountID));
+                addUser(accountID);
             }
         },
         [selectedEmployees, addUser, removeUser],
@@ -265,7 +294,8 @@ function WorkspaceMembersPage(props) {
     const getMemberOptions = () => {
         let result = [];
 
-        _.each(props.policyMembers, (policyMember, accountID) => {
+        _.each(props.policyMembers, (policyMember, accountIDKey) => {
+            const accountID = Number(accountIDKey);
             if (isDeletedPolicyMember(policyMember)) {
                 return;
             }
@@ -313,9 +343,9 @@ function WorkspaceMembersPage(props) {
             const isAdmin = props.session.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
 
             result.push({
-                keyForList: accountID,
-                accountID: Number(accountID),
-                isSelected: _.contains(selectedEmployees, Number(accountID)),
+                keyForList: accountIDKey,
+                accountID,
+                isSelected: _.contains(selectedEmployees, accountID),
                 isDisabled:
                     accountID === props.session.accountID ||
                     details.login === props.policy.owner ||
@@ -331,7 +361,7 @@ function WorkspaceMembersPage(props) {
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
-                        name: details.login,
+                        name: props.formatPhoneNumber(details.login),
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
@@ -360,7 +390,7 @@ function WorkspaceMembersPage(props) {
             testID={WorkspaceMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={((_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(props.policy)}
+                shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                 subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
@@ -417,7 +447,7 @@ function WorkspaceMembersPage(props) {
                             textInputValue={searchValue}
                             onChangeText={setSearchValue}
                             headerMessage={getHeaderMessage()}
-                            onSelectRow={(item) => toggleUser(item.keyForList)}
+                            onSelectRow={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
                             showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers))}
@@ -439,7 +469,7 @@ WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
         personalDetails: {

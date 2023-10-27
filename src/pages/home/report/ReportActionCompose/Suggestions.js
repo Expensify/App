@@ -2,7 +2,6 @@ import React, {useRef, useCallback, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
 import SuggestionMention from './SuggestionMention';
 import SuggestionEmoji from './SuggestionEmoji';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as SuggestionProps from './suggestionProps';
 
 const propTypes = {
@@ -12,11 +11,15 @@ const propTypes = {
     /** Function to clear the input */
     resetKeyboardInput: PropTypes.func.isRequired,
 
+    /** Is auto suggestion picker large */
+    isAutoSuggestionPickerLarge: PropTypes.bool,
+
     ...SuggestionProps.baseProps,
 };
 
 const defaultProps = {
     forwardedRef: null,
+    isAutoSuggestionPickerLarge: true,
 };
 
 /**
@@ -25,9 +28,24 @@ const defaultProps = {
  *
  * @returns {React.Component}
  */
-function Suggestions({isComposerFullSize, value, setValue, selection, setSelection, updateComment, composerHeight, forwardedRef, resetKeyboardInput, measureParentContainer}) {
+function Suggestions({
+    isComposerFullSize,
+    value,
+    setValue,
+    selection,
+    setSelection,
+    updateComment,
+    composerHeight,
+    forwardedRef,
+    resetKeyboardInput,
+    measureParentContainer,
+    isAutoSuggestionPickerLarge,
+    isComposerFocused,
+}) {
     const suggestionEmojiRef = useRef(null);
     const suggestionMentionRef = useRef(null);
+
+    const getSuggestions = useCallback(() => suggestionEmojiRef.current.getSuggestions() || suggestionMentionRef.current.getSuggestions(), []);
 
     /**
      * Clean data related to EmojiSuggestions
@@ -71,15 +89,10 @@ function Suggestions({isComposerFullSize, value, setValue, selection, setSelecti
             triggerHotkeyActions,
             updateShouldShowSuggestionMenuToFalse,
             setShouldBlockSuggestionCalc,
+            getSuggestions,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
-
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
-
-    // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
-    const hasEnoughSpaceForLargeSuggestion = windowHeight / composerHeight >= 6.8;
-    const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
     const baseProps = {
         value,
@@ -91,6 +104,7 @@ function Suggestions({isComposerFullSize, value, setValue, selection, setSelecti
         composerHeight,
         isAutoSuggestionPickerLarge,
         measureParentContainer,
+        isComposerFocused,
     };
 
     return (
@@ -114,10 +128,14 @@ Suggestions.propTypes = propTypes;
 Suggestions.defaultProps = defaultProps;
 Suggestions.displayName = 'Suggestions';
 
-export default React.forwardRef((props, ref) => (
+const SuggestionsWithRef = React.forwardRef((props, ref) => (
     <Suggestions
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+SuggestionsWithRef.displayName = 'SuggestionsWithRef';
+
+export default SuggestionsWithRef;

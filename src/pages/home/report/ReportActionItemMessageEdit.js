@@ -35,6 +35,9 @@ import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import focusWithDelay from '../../../libs/focusWithDelay';
 import * as Browser from '../../../libs/Browser';
+import * as InputFocus from '../../../libs/actions/InputFocus';
+import onyxSubscribe from '../../../libs/onyxSubscribe';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /** All the data of the action */
@@ -108,9 +111,11 @@ function ReportActionItemMessageEdit(props) {
         }
         return initialDraft;
     });
-    const [selection, setSelection] = useState(getInitialSelection());
+    const [selection, setSelection] = useState(getInitialSelection);
     const [isFocused, setIsFocused] = useState(false);
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
+    const [modal, setModal] = useState(false);
+    const [onyxFocused, setOnyxFocused] = useState(false);
 
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
@@ -127,6 +132,36 @@ function ReportActionItemMessageEdit(props) {
         // required for keeping last state of isFocused variable
         isFocusedRef.current = isFocused;
     }, [isFocused]);
+
+    useEffect(() => {
+        InputFocus.composerFocusKeepFocusOn(textInputRef.current, isFocused, modal, onyxFocused);
+    }, [isFocused, modal, onyxFocused]);
+
+    useEffect(() => {
+        const unsubscribeOnyxModal = onyxSubscribe({
+            key: ONYXKEYS.MODAL,
+            callback: (modalArg) => {
+                if (_.isNull(modalArg)) {
+                    return;
+                }
+                setModal(modalArg);
+            },
+        });
+
+        const unsubscribeOnyxFocused = onyxSubscribe({
+            key: ONYXKEYS.INPUT_FOCUSED,
+            callback: (modalArg) => {
+                if (_.isNull(modalArg)) {
+                    return;
+                }
+                setOnyxFocused(modalArg);
+            },
+        });
+        return () => {
+            unsubscribeOnyxModal();
+            unsubscribeOnyxFocused();
+        };
+    }, []);
 
     // We consider the report action active if it's focused, its emoji picker is open or its context menu is open
     const isActive = useCallback(
@@ -211,16 +246,16 @@ function ReportActionItemMessageEdit(props) {
                 }
             }
             emojisPresentBefore.current = emojis;
-            setDraft((prevDraft) => {
-                if (newDraftInput !== newDraft) {
-                    const remainder = ComposerUtils.getCommonSuffixLength(prevDraft, newDraft);
-                    setSelection({
-                        start: newDraft.length - remainder,
-                        end: newDraft.length - remainder,
-                    });
-                }
-                return newDraft;
-            });
+
+            setDraft(newDraft);
+
+            if (newDraftInput !== newDraft) {
+                const remainder = ComposerUtils.getCommonSuffixLength(newDraftInput, newDraft);
+                setSelection({
+                    start: newDraft.length - remainder,
+                    end: newDraft.length - remainder,
+                });
+            }
 
             // This component is rendered only when draft is set to a non-empty string. In order to prevent component
             // unmount when user deletes content of textarea, we set previous message instead of empty string.
@@ -234,10 +269,17 @@ function ReportActionItemMessageEdit(props) {
         [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale],
     );
 
+    useEffect(() => {
+        updateDraft(draft);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
+    }, [props.action.reportActionID, preferredLocale]);
+
     /**
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
+        InputFocus.callback(() => setIsFocused(false));
+        InputFocus.inputFocusChange(false);
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action, '');
 
@@ -249,7 +291,7 @@ function ReportActionItemMessageEdit(props) {
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (props.index === 0) {
             const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-                reportScrollManager.scrollToIndex({animated: true, index: props.index}, false);
+                reportScrollManager.scrollToIndex(props.index, false);
                 keyboardDidHideListener.remove();
             });
         }
@@ -364,7 +406,7 @@ function ReportActionItemMessageEdit(props) {
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
-                                reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
+                                reportScrollManager.scrollToIndex(props.index, true);
                                 setShouldShowComposeInputKeyboardAware(false);
 
                                 // Clear active report action when another action gets focused
@@ -424,6 +466,7 @@ function ReportActionItemMessageEdit(props) {
             </View>
             <ExceededCommentLength
                 comment={draft}
+                reportID={props.reportID}
                 onExceededMaxCommentLength={(hasExceeded) => setHasExceededMaxCommentLength(hasExceeded)}
             />
         </>
@@ -434,10 +477,14 @@ ReportActionItemMessageEdit.propTypes = propTypes;
 ReportActionItemMessageEdit.defaultProps = defaultProps;
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-export default React.forwardRef((props, ref) => (
+const ReportActionItemMessageEditWithRef = React.forwardRef((props, ref) => (
     <ReportActionItemMessageEdit
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+ReportActionItemMessageEditWithRef.displayName = 'ReportActionItemMessageEditWithRef';
+
+export default ReportActionItemMessageEditWithRef;

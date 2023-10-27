@@ -18,17 +18,24 @@ const defaultSubRouteOptions = {
  */
 function createModalStackNavigator(screens) {
     const ModalStackNavigator = createStackNavigator();
-    return () => (
-        <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
-            {_.map(screens, (getComponent, name) => (
-                <ModalStackNavigator.Screen
-                    key={name}
-                    name={name}
-                    getComponent={getComponent}
-                />
-            ))}
-        </ModalStackNavigator.Navigator>
-    );
+
+    function ModalStack() {
+        return (
+            <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
+                {_.map(screens, (getComponent, name) => (
+                    <ModalStackNavigator.Screen
+                        key={name}
+                        name={name}
+                        getComponent={getComponent}
+                    />
+                ))}
+            </ModalStackNavigator.Navigator>
+        );
+    }
+
+    ModalStack.displayName = 'ModalStack';
+
+    return ModalStack;
 }
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator({
@@ -91,6 +98,14 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator({
     ReportParticipants_Root: () => require('../../../pages/ReportParticipantsPage').default,
 });
 
+const RoomMembersModalStackNavigator = createModalStackNavigator({
+    RoomMembers_Root: () => require('../../../pages/RoomMembersPage').default,
+});
+
+const RoomInviteModalStackNavigator = createModalStackNavigator({
+    RoomInvite_Root: () => require('../../../pages/RoomInvitePage').default,
+});
+
 const SearchModalStackNavigator = createModalStackNavigator({
     Search_Root: () => require('../../../pages/SearchPage').default,
 });
@@ -143,6 +158,7 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     Settings_App_Download_Links: () => require('../../../pages/settings/AppDownloadLinks').default,
     Settings_Lounge_Access: () => require('../../../pages/settings/Profile/LoungeAccessPage').default,
     Settings_Wallet: () => require('../../../pages/settings/Wallet/WalletPage').default,
+    Settings_Wallet_Cards_Digital_Details_Update_Address: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default,
     Settings_Wallet_DomainCards: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default,
     Settings_Wallet_ReportVirtualCardFraud: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
     Settings_Wallet_Card_Activate: () => require('../../../pages/settings/Wallet/ActivatePhysicalCardPage').default,
@@ -168,6 +184,7 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     ReimbursementAccount: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
     GetAssistance: () => require('../../../pages/GetAssistancePage').default,
     Settings_TwoFactorAuth: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default,
+    Settings_ReportCardLostOrDamaged: () => require('../../../pages/settings/Wallet/ReportCardLostPage').default,
     KeyboardShortcuts: () => require('../../../pages/KeyboardShortcutsPage').default,
 });
 
@@ -229,4 +246,6 @@ export {
     PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
     SignInModalStackNavigator,
+    RoomMembersModalStackNavigator,
+    RoomInviteModalStackNavigator,
 };
