@@ -773,7 +773,6 @@ export default compose(
             prevProps.report.description === nextProps.report.description &&
             ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
             prevProps.report.managerID === nextProps.report.managerID &&
-            prevProps.report.managerEmail === nextProps.report.managerEmail &&
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
             lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0) &&
             lodashGet(prevProps.report, 'nonReimbursableTotal', 0) === lodashGet(nextProps.report, 'nonReimbursableTotal', 0) &&

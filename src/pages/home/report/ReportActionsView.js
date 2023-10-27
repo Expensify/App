@@ -313,10 +313,6 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (lodashGet(newProps, 'report.managerEmail') !== lodashGet(oldProps, 'report.managerEmail')) {
-        return false;
-    }
-
     if (lodashGet(newProps, 'report.total') !== lodashGet(oldProps, 'report.total')) {
         return false;
     }
