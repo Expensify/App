@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {cleanup, screen} from '@testing-library/react-native';
+import {cleanup, screen, waitFor} from '@testing-library/react-native';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -70,7 +70,9 @@ describe('ReportActionItemSingle', () => {
                 const expectedSecondaryIconTestId = 'SvgDefaultAvatar_w Icon';
 
                 return setup().then(() => {
-                    expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeDefined();
+                    waitFor(() => {
+                        expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeDefined();
+                    });
                 });
             });
 

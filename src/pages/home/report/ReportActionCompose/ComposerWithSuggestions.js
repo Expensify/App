@@ -283,6 +283,7 @@ function ComposerWithSuggestions({
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             preferredSkinTone,
             reportID,
@@ -555,6 +556,7 @@ function ComposerWithSuggestions({
 
     const onChangeText = useCallback((text) => {
         updateComment(text, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

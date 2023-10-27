@@ -178,7 +178,7 @@ function getFormattedAddress(privatePersonalDetails) {
 
 /**
  * Get personal detail for an accountID
- * @param {String} accountID 
+ * @param {Number} accountID 
  * @returns {PersonalDetail} personal detail object
  */
 function getPersonalDetailsByAccountID(accountID) {
