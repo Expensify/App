@@ -2,9 +2,14 @@ import {useState, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
+    /** an array of substep components */
     bodyContent: PropTypes.arrayOf(PropTypes.element).isRequired,
-    startFrom: PropTypes.number.isRequired,
+
+    /** an index of the component from bodyContent array to start from */
     onFinished: PropTypes.func.isRequired,
+
+    /** a callback to be fired when pressing Confirm on the last substep screen */
+    startFrom: PropTypes.number,
 };
 
 /**
@@ -20,12 +25,13 @@ const propTypes = {
 /**
  * A hook which manages navigation between substeps
  *
- * @param {[React.ReactElement]} bodyContent an array of substep components
- * @param {number} startFrom an index of the component from bodyContent array to start from
- * @param {Function} onFinished a callback to be fired when pressing Confirm on the last substep screen
+ * @param {Object} param
+ * @param {[React.ReactElement]} param.bodyContent an array of substep components
+ * @param {Function} param.onFinished a callback to be fired when pressing Confirm on the last substep screen
+ * @param {number | undefined} param.startFrom
  * @return {ReturnType}
  */
-export default function useSubStep({bodyContent, startFrom = 0, onFinished}) {
+export default function useSubStep({bodyContent, onFinished, startFrom = 0}) {
     const [screenIndex, setScreenIndex] = useState(startFrom);
     const isEditing = useRef(false);
 
