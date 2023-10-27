@@ -156,17 +156,18 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
         App.setLocale(Localize.getDevicePreferredLocale());
     }, [preferredLocale]);
     useEffect(() => {
-        // If we don't have a login set, reset the user's SAML login preferences
-        if (!credentials.login) {
-            if (isUsingMagicCode) {
-            setIsUsingMagicCode(false);
-            }
-            if (hasInitiatedSAMLLogin) {
-                setHasInitiatedSAMLLogin(false);
-            }
+        if (credentials.login) {
+            return;
         }
 
-    }, [credentials.login, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin])
+        // If we don't have a login set, reset the user's SAML login preferences
+        if (isUsingMagicCode) {
+            setIsUsingMagicCode(false);
+        }
+        if (hasInitiatedSAMLLogin) {
+            setHasInitiatedSAMLLogin(false);
+        }
+    }, [credentials.login, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
 
     const {
         shouldShowLoginForm,
