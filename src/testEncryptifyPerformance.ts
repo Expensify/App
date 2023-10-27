@@ -1,5 +1,5 @@
 import Encryptify from 'react-native-encryptify';
-import performance from 'react-native-performance';
+import performance, {PerformanceMeasure} from 'react-native-performance';
 
 // 255 characters string for testing the encryption lib
 const ENCRYPTION_DATA =
@@ -31,9 +31,6 @@ const testEncryptionFlow = (shouldLog = true): string => {
     const decryptedData = Encryptify.AESDecrypt(ENCRYPTION_IV, decryptedSharedSecret, encryptedData);
     performance.measure('AESDecrypt', 'AESDecrypt');
 
-    performance.clearMarks();
-    performance.clearMeasures();
-
     if (shouldLog) {
         console.log({kemKeys});
 
@@ -49,11 +46,17 @@ Performance:
 
 `;
 
-        // eslint-disable-next-line no-console
+        const performanceLines = performance
+            .getEntriesByType('measure')
+            .map((entry) => `${entry.name}: ${entry.duration}ms`)
+            .join('\n');
+
         console.log(logString);
-        // eslint-disable-next-line no-console
-        console.log(performance.getEntriesByType('measure'));
+        console.log(performanceLines);
     }
+
+    performance.clearMarks();
+    performance.clearMeasures();
 
     return sharedSecret;
 };
@@ -67,29 +70,38 @@ const testAesUnderLoad = (sharedSecret: string, iterations: number, shouldLog = 
 
         performance.mark('AESEncrypt under load');
         const encryptedDataIter = Encryptify.AESEncrypt(ENCRYPTION_IV, sharedSecret, inputData);
-        performance.measure(`Iteration ${i}`, 'AESEncrypt under load');
+        performance.measure(`Encryption Iteration ${i}`, 'AESEncrypt under load');
 
         performance.mark('AESDecrypt under load');
         Encryptify.AESDecrypt(ENCRYPTION_IV, sharedSecret, encryptedDataIter);
-        performance.measure(`Iteration ${i}`, 'AESDecrypt under load');
+        performance.measure(`Decryption teration ${i}`, 'AESDecrypt under load');
     }
 
-    const getAverageTime = (name: string) => performance.getEntriesByName(name).reduce((total, entry) => total + entry.duration, 0) / iterations;
-    const averageTimeToEncrypt = getAverageTime('AESEncrypt under load');
-    const averageTimeToDecrypt = getAverageTime('AESDecrypt under load');
+    const allMeasures = performance.getEntriesByType('measure');
+    const encryptionMeasures = allMeasures.filter((measure) => measure.name.includes('Encryption'));
+    const decryptionMeasures = allMeasures.filter((measure) => measure.name.includes('Decryption'));
+
+    const getMeanTime = (measures: PerformanceMeasure[]) => measures.reduce((total, entry) => total + entry.duration, 0) / iterations;
+    const getMinTime = (measures: PerformanceMeasure[]) => Math.min(...measures.map((entry) => entry.duration));
+    const getMaxTime = (measures: PerformanceMeasure[]) => Math.max(...measures.map((entry) => entry.duration));
 
     if (shouldLog) {
+        const printData = (measures: PerformanceMeasure[]) => `Encryption | Mean: ${getMeanTime(measures)}ms, Min: ${getMinTime(measures)}ms, Max: ${getMaxTime(measures)}ms`;
+
         // eslint-disable-next-line no-console
-        console.log('Under Load: (encrypting/decrypting 100 times)');
+        console.log(`Under Load: (encrypting/decrypting ${iterations} times)`);
         // eslint-disable-next-line no-console
         console.log(performance.getEntriesByName('AESEncrypt under load'));
         // eslint-disable-next-line no-console
-        console.log(`Average time to encrypt: ${averageTimeToEncrypt}ms`);
+        console.log(printData(encryptionMeasures));
         // eslint-disable-next-line no-console
         console.log(performance.getEntriesByName('AESDecrypt under load'));
         // eslint-disable-next-line no-console
-        console.log(`Average time to decrypt: ${averageTimeToDecrypt}ms`);
+        console.log(printData(encryptionMeasures));
     }
+
+    performance.clearMarks();
+    performance.clearMeasures();
 };
 
 export {testEncryptionFlow, testAesUnderLoad};
