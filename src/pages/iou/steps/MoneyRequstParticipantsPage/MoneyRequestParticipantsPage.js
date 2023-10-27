@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
@@ -67,8 +66,13 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
             return;
         }
 
-        setHeaderTitle(_.isEmpty(iou.participants) ? translate('tabSelector.manual') : translate('iou.split'));
-    }, [iou.participants, isDistanceRequest, isSendRequest, translate]);
+        if (isScanRequest) {
+            setHeaderTitle(translate('tabSelector.scan'));
+            return;
+        }
+
+        setHeaderTitle(iou.isSplitRequest ? translate('iou.split') : translate('tabSelector.manual'));
+    }, [iou.isSplitRequest, isDistanceRequest, translate, isScanRequest, isSendRequest]);
 
     const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
@@ -120,7 +124,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                     />
                     <MoneyRequestParticipantsSelector
                         ref={(el) => (optionsSelectorRef.current = el)}
-                        participants={iou.participants}
+                        participants={iou.isSplitRequest ? iou.participants : []}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToConfirmationStep(iouType)}
                         navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.TYPE.SPLIT)}

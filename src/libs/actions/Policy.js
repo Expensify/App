@@ -169,7 +169,7 @@ function deleteWorkspace(policyID, reports, policyName) {
 /**
  * Is the user an admin of a free policy (aka workspace)?
  *
- * @param {Array} policies
+ * @param {Record<string, Policy>} [policies]
  * @returns {Boolean}
  */
 function isAdminOfFreePolicy(policies) {
