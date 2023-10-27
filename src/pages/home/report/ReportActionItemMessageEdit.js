@@ -33,7 +33,7 @@ import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
-import focusWithDelay from '../../../libs/focusWithDelay';
+import focusComposerWithDelay from '../../../libs/focusComposerWithDelay';
 import * as Browser from '../../../libs/Browser';
 import * as InputFocus from '../../../libs/actions/InputFocus';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
@@ -358,7 +358,7 @@ function ReportActionItemMessageEdit(props) {
     /**
      * Focus the composer text input
      */
-    const focus = focusWithDelay(textInputRef.current);
+    const focus = focusComposerWithDelay(textInputRef.current);
 
     return (
         <>

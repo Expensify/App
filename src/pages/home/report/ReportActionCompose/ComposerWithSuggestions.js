@@ -32,7 +32,7 @@ import useLocalize from '../../../../hooks/useLocalize';
 import compose from '../../../../libs/compose';
 import withKeyboardState from '../../../../components/withKeyboardState';
 import {propTypes, defaultProps} from './composerWithSuggestionsProps';
-import focusWithDelay from '../../../../libs/focusWithDelay';
+import focusComposerWithDelay from '../../../../libs/focusComposerWithDelay';
 import useDebounce from '../../../../hooks/useDebounce';
 import updateMultilineInputRange from '../../../../libs/UpdateMultilineInputRange';
 import * as InputFocus from '../../../../libs/actions/InputFocus';
@@ -394,7 +394,7 @@ function ComposerWithSuggestions({
      * @memberof ReportActionCompose
      */
     const focus = useCallback((shouldDelay = false) => {
-        focusWithDelay(textInputRef.current)(shouldDelay);
+        focusComposerWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
     const setUpComposeFocusManager = useCallback(() => {
