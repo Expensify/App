@@ -4,8 +4,6 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import Encryptify from 'react-native-encryptify';
-import performance from 'react-native-performance';
 import * as Report from './libs/actions/Report';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -40,11 +38,7 @@ import DeeplinkWrapper from './components/DeeplinkWrapper';
 import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
 // eslint-disable-next-line no-unused-vars
 import subscribePushNotification from './libs/Notification/PushNotification/subscribePushNotification';
-
-// 255 characters string for testing the encryption lib
-const ENCRYPTION_DATA =
-    'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis,';
-const ENCRYPTION_IV = 'Lorem ipsum dolor sit amet';
+import {testAesUnderLoad, testEncryptionFlow} from './testEncryptifyPerformance';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -196,72 +190,9 @@ function Expensify(props) {
     }, []);
 
     useEffect(() => {
-        performance.mark('KEMGenKeys');
-        const kemKeys = Encryptify.KEMGenKeys();
-        performance.measure('KEMGenKeys', 'KEMGenKeys');
+        const sharedSecret = testEncryptionFlow(true);
 
-        // eslint-disable-next-line no-console
-        console.log({kemKeys});
-
-        performance.mark('KEMEncrypt');
-        const {sharedSecret, cipherText} = Encryptify.KEMEncrypt(kemKeys.public);
-        performance.measure('KEMEncrypt', 'KEMEncrypt');
-
-        performance.mark('AESEncrypt');
-        const encryptedData = Encryptify.AESEncrypt(ENCRYPTION_IV, sharedSecret, ENCRYPTION_DATA);
-        performance.measure('AESEncrypt', 'AESEncrypt');
-
-        // After encryption on the sender side, the message is sent to the receiver:
-        // Only the encryptedData an the cipherText must be sent to the receiver
-        // The receiver can then decrypt the cipherText with his private keys
-
-        performance.mark('KEMDecrypt');
-        const decryptedSharedSecret = Encryptify.KEMDecrypt(kemKeys.private, cipherText);
-        performance.measure('KEMDecrypt', 'KEMDecrypt');
-
-        performance.mark('AESDecrypt');
-        const decryptedData = Encryptify.AESDecrypt(ENCRYPTION_IV, decryptedSharedSecret, encryptedData);
-        performance.measure('AESDecrypt', 'AESDecrypt');
-
-        const logString = `"${ENCRYPTION_DATA}"
-got encrypted to:
-${encryptedData}
-and decrypted back to:
-${decryptedData}
-
-Success: ${ENCRYPTION_DATA === decryptedData}
-
-Performance:
-
-`;
-
-        // eslint-disable-next-line no-console
-        console.log(logString);
-        // eslint-disable-next-line no-console
-        console.log(performance.getEntriesByType('measure'));
-
-        performance.clearMarks();
-        performance.clearMeasures();
-
-        for (let i = 0; i < 100; i++) {
-            // eslint-disable-next-line no-bitwise
-            const inputData = ENCRYPTION_DATA >> i;
-
-            performance.mark('AESEncrypt under load');
-            const encryptedDataIter = Encryptify.AESEncrypt(ENCRYPTION_IV, sharedSecret, inputData);
-            performance.measure(`Iteration ${i}`, 'AESEncrypt under load');
-
-            performance.mark('AESDecrypt under load');
-            Encryptify.AESDecrypt(ENCRYPTION_IV, sharedSecret, encryptedDataIter);
-            performance.measure(`Iteration ${i}`, 'AESDecrypt under load');
-        }
-
-        // eslint-disable-next-line no-console
-        console.log('Under Load: (encrypting/decrypting 100 times)');
-        // eslint-disable-next-line no-console
-        console.log(performance.getEntriesByName('AESEncrypt under load'));
-        // eslint-disable-next-line no-console
-        console.log(performance.getEntriesByName('AESDecrypt under load'));
+        testAesUnderLoad(sharedSecret, 100, true);
     }, []);
 
     // Display a blank page until the onyx migration completes
