@@ -1,12 +1,12 @@
 import React, {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Text as RNText, StyleSheet} from 'react-native';
-import type {StyleProp, TextStyle} from 'react-native';
+import {Text as RNText, TextProps as RNTextProps, StyleSheet} from 'react-native';
+import type {TextStyle} from 'react-native';
 import fontFamily from '../styles/fontFamily';
 import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
 
-type TextProps = {
+type TextProps = RNTextProps & {
     /** The color of the text */
     color?: string;
 
@@ -21,9 +21,6 @@ type TextProps = {
 
     /** The family of the font to use */
     family?: keyof typeof fontFamily;
-
-    /** Any additional styles to apply */
-    style?: StyleProp<TextStyle>;
 };
 
 function Text(
