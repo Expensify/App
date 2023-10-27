@@ -21,6 +21,10 @@ import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 import {ReactionListContext} from '../ReportScreenContext';
 import useInitialValue from '../../../hooks/useInitialValue';
+import { withOnyx } from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
+import { didUserLogInDuringSession } from '../../../libs/SessionUtils';
+import { isUserCreatedPolicyRoom } from '../../../libs/ReportUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -64,6 +68,9 @@ const defaultProps = {
     isLoadingInitialReportActions: false,
     isLoadingOlderReportActions: false,
     isLoadingNewerReportActions: false,
+    session:{
+        authTokenType: ''
+    }
 };
 
 function ReportActionsView(props) {
@@ -76,6 +83,8 @@ function ReportActionsView(props) {
     const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
 
     const prevNetworkRef = useRef(props.network);
+    const prevAuthTokenType = useRef(props.session.authTokenType);
+
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
     const isFocused = useIsFocused();
@@ -117,6 +126,21 @@ function ReportActionsView(props) {
         prevNetworkRef.current = props.network;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.network, props.report, isReportFullyVisible]);
+
+    useEffect(() => {
+        const prevTokenType = prevAuthTokenType.current;
+        const wasLoginChangedDetected = prevTokenType === 'anonymousAccount' && !props.session.authTokenType
+        if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(props.report)) {
+            if (isReportFullyVisible) {
+                openReportIfNecessary();
+            } else {
+                Report.reconnect(reportID);
+            }
+        }
+        // update ref with current network state
+        prevAuthTokenType.current = props.session.authTokenType;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.session, props.report, isReportFullyVisible]);
 
     useEffect(() => {
         const prevIsSmallScreenWidth = prevIsSmallScreenWidthRef.current;
@@ -338,4 +362,10 @@ function arePropsEqual(oldProps, newProps) {
 
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
 
-export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withLocalize, withNetwork())(MemoizedReportActionsView);
+export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withLocalize, withNetwork(),
+withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})
+)(MemoizedReportActionsView);
