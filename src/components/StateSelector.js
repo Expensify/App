@@ -78,10 +78,14 @@ StateSelector.propTypes = propTypes;
 StateSelector.defaultProps = defaultProps;
 StateSelector.displayName = 'StateSelector';
 
-export default React.forwardRef((props, ref) => (
+const StateSelectorWithRef = React.forwardRef((props, ref) => (
     <StateSelector
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+StateSelectorWithRef.displayName = 'StateSelectorWithRef';
+
+export default StateSelectorWithRef;
