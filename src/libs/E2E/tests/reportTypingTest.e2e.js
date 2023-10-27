@@ -30,9 +30,13 @@ const test = () => {
 
             // Wait until keyboard is visible (so we are focused on the input):
             waitForKeyboard().then(() => {
-                resetRerenderCount();
                 console.debug(`[E2E] Keyboard visible, typing…`);
-                E2EClient.sendNativeCommand(NativeCommands.makeTypeTextCommand('A'))
+                E2EClient.sendNativeCommand(NativeCommands.makeBackspaceCommand())
+                    .then(() => {
+                        resetRerenderCount();
+                        return Promise.resolve();
+                    })
+                    .then(() => E2EClient.sendNativeCommand(NativeCommands.makeTypeTextCommand('A')))
                     .then(() => {
                         setTimeout(() => {
                             const rerenderCount = getRerenderCount();
@@ -43,8 +47,9 @@ const test = () => {
                             }).then(E2EClient.submitTestDone);
                         }, 3000);
                     })
-                    .catch(() => {
-                        // TODO: error handling
+                    .catch((error) => {
+                        console.error('[E2E] Error while test', error);
+                        E2EClient.submitTestDone();
                     });
             });
         });

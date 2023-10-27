@@ -1,6 +1,7 @@
 const NativeCommandsAction = {
     scroll: 'scroll',
     type: 'type',
+    backspace: 'backspace',
 };
 
 const makeTypeTextCommand = (text) => ({
@@ -10,7 +11,12 @@ const makeTypeTextCommand = (text) => ({
     },
 });
 
+const makeBackspaceCommand = () => ({
+    actionName: NativeCommandsAction.backspace,
+});
+
 module.exports = {
     NativeCommandsAction,
     makeTypeTextCommand,
+    makeBackspaceCommand,
 };
