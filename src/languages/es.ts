@@ -1462,6 +1462,8 @@ export default {
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
                 genericRemove: 'Ha ocurrido un problema al eliminar al miembro del espacio de trabajo.',
             },
+            addedWithPrimary: 'Se agregaron algunos usuarios con sus nombres de usuario principales.',
+            invitedBySecondaryLogin: ({secondaryLogin}) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',

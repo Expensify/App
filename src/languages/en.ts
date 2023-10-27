@@ -1441,6 +1441,8 @@ export default {
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
                 genericRemove: 'There was a problem removing that workspace member.',
             },
+            addedWithPrimary: 'Some users were added with their primary logins.',
+            invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
         },
         card: {
             header: 'Unlock free Expensify Cards',
