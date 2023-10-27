@@ -255,7 +255,8 @@ function ComposerWithSuggestions({
             const isEmojiInserted = diff.length && endIndex > startIndex && EmojiUtils.containsOnlyEmojis(diff);
             const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(
                 isEmojiInserted ? insertWhiteSpace(commentValue, endIndex) : commentValue,
-                preferredSkinTone, preferredLocale);
+                preferredSkinTone,
+                preferredLocale,
             );
 
             if (!_.isEmpty(emojis)) {
