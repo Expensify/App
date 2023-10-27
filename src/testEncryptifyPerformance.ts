@@ -92,8 +92,8 @@ const testAesUnderLoad = (sharedSecret: string, iterations: number, shouldLog = 
             ).toFixed(PERFORMANCE_METRICS_DECIMAL_PLACES)}ms`;
 
         console.log(`Under Load: (encrypting/decrypting ${iterations} times)`);
-        console.log(`Encryption: ${printData(encryptionMeasures)}`);
-        console.log(`Decryption: ${printData(decryptionMeasures)}`);
+        console.log(`Encryption | ${printData(encryptionMeasures)}`);
+        console.log(`Decryption | ${printData(decryptionMeasures)}`);
     }
 
     performance.clearMarks();

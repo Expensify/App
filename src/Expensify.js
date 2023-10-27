@@ -193,6 +193,8 @@ function Expensify(props) {
         const sharedSecret = testEncryptionFlow(true);
 
         testAesUnderLoad(sharedSecret, 100, true);
+        testAesUnderLoad(sharedSecret, 1000, true);
+        testAesUnderLoad(sharedSecret, 10000, true);
     }, []);
 
     // Display a blank page until the onyx migration completes
