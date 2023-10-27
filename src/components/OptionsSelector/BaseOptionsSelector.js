@@ -513,11 +513,12 @@ class BaseOptionsSelector extends Component {
                                 Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(this.props.referralContentType));
                             }}
                             style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
-                            accessibilityLabel="test"
+                            accessibilityLabel="referral"
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             <Text>
-                                {this.props.referralContentType},<Text color={colors.green400}> get $250</Text>
+                                {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText1`)}
+                                <Text color={colors.green400}>{this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText2`)}</Text>
                             </Text>
                             <Icon
                                 src={Info}

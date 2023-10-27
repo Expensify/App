@@ -275,7 +275,7 @@ function MoneyRequestParticipantsSelector({
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
                 shouldShowCTA={true}
-                referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST}
+                referralContentType={iouType === 'send' ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 shouldDelayFocus
             />
