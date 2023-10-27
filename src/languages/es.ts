@@ -157,6 +157,8 @@ export default {
         noPO: 'No se aceptan apartados ni direcciones postales',
         city: 'Ciudad',
         state: 'Estado',
+        // TODO get translation
+        streetAddress: 'Street address',
         stateOrProvince: 'Estado / Provincia',
         country: 'País',
         zip: 'Código postal',
@@ -256,6 +258,8 @@ export default {
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
+        // TODO get translation
+        whyDoWeAskForThis: 'Why do we ask for this?',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -1365,6 +1369,7 @@ export default {
             OTHER: 'Otra',
         },
     },
+    // TODO will be removed
     requestorStep: {
         headerTitle: 'Información personal',
         subtitle: 'Dé más información sobre tí.',
@@ -1373,6 +1378,19 @@ export default {
         onFidoConditions: 'Al continuar con la solicitud de añadir esta cuenta bancaria, confirma que ha leído, entiende y acepta ',
         isControllingOfficer: 'Estoy autorizado a utilizar la cuenta bancaria de mi compañía para gastos de empresa',
         isControllingOfficerError: 'Debe ser un oficial controlador con autorización para operar la cuenta bancaria de la compañía',
+    },
+    // TODO get translation
+    personalInfoStep: {
+        enterYourLegalFirstAndLast: 'Enter your legal first and last name.',
+        legalFirstName: 'Legal first name',
+        legalLastName: 'Legal last name',
+        enterYourDateOfBirth: 'Enter your date of birth.',
+        enterTheLast4: 'Enter the lsat 4 of your SSN.',
+        dontWorry: "Don't worry, we don't do any personal credit checks!",
+        last4SSN: 'Last 4 Social Security Number',
+        enterYourAddress: 'Enter your address.',
+        letsDoubleCheck: "Let's double check everything looks right",
+        byAddingThisBankAccount: 'By adding this bank account, you confirm that you have read, understand and accept',
     },
     validationStep: {
         headerTitle: 'Validar cuenta bancaria',
