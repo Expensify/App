@@ -129,8 +129,6 @@ function BaseOptionsList({
         onLayout();
     }, [didLayout, onLayout]);
 
-    const viewConfigRef = useRef({viewAreaCoveragePercentThreshold: 95});
-
     /**
      * This function is used to compute the layout of any given item in our list.
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
@@ -279,7 +277,7 @@ function BaseOptionsList({
                         initialNumToRender={12}
                         maxToRenderPerBatch={5}
                         windowSize={5}
-                        viewabilityConfig={viewConfigRef.current}
+                        viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                         onViewableItemsChanged={onViewableItemsChanged}
                         bounces={bounces}
                     />
