@@ -91,8 +91,8 @@ function BaseValidateCodeForm(props) {
             if (!inputValidateCodeRef.current) {
                 return;
             }
-            inputValidateCodeRef.current.focusLastSelected(); 
-        }
+            inputValidateCodeRef.current.focusLastSelected();
+        },
     }));
 
     useFocusEffect(

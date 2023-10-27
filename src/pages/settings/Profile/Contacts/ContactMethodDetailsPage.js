@@ -264,8 +264,8 @@ class ContactMethodDetailsPage extends Component {
                         onCancel={() => this.toggleDeleteModal(false)}
                         onModalHide={() => {
                             InteractionManager.runAfterInteractions(() => {
-                                this.validateCodeFormRef.current.focusLastSelected()
-                            })
+                                this.validateCodeFormRef.current.focusLastSelected();
+                            });
                         }}
                         prompt={this.props.translate('contacts.removeAreYouSure')}
                         confirmText={this.props.translate('common.yesContinue')}
