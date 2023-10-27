@@ -5,6 +5,7 @@ import performance, {PerformanceMeasure} from 'react-native-performance';
 const ENCRYPTION_DATA =
     'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis,';
 const ENCRYPTION_IV = 'Lorem ipsum dolor sit amet';
+const PERFORMANCE_METRICS_DECIMAL_PLACES = 4;
 
 const testEncryptionFlow = (shouldLog = true): string => {
     performance.mark('KEMGenKeys');
@@ -48,7 +49,7 @@ Performance:
 
         const performanceLines = performance
             .getEntriesByType('measure')
-            .map((entry) => `${entry.name}: ${entry.duration}ms`)
+            .map((entry) => `${entry.name}: ${entry.duration.toFixed(PERFORMANCE_METRICS_DECIMAL_PLACES)}ms`)
             .join('\n');
 
         console.log(logString);
@@ -65,7 +66,6 @@ const testAesUnderLoad = (sharedSecret: string, iterations: number, shouldLog = 
     const shiftString = (str: string, numOfChars: number) => str.substring(numOfChars) + str.substring(0, numOfChars);
 
     for (let i = 0; i < iterations; i++) {
-        // eslint-disable-next-line no-bitwise
         const inputData = shiftString(ENCRYPTION_DATA, i);
 
         performance.mark('AESEncrypt under load');
@@ -86,18 +86,14 @@ const testAesUnderLoad = (sharedSecret: string, iterations: number, shouldLog = 
     const getMaxTime = (measures: PerformanceMeasure[]) => Math.max(...measures.map((entry) => entry.duration));
 
     if (shouldLog) {
-        const printData = (measures: PerformanceMeasure[]) => `Encryption | Mean: ${getMeanTime(measures)}ms, Min: ${getMinTime(measures)}ms, Max: ${getMaxTime(measures)}ms`;
+        const printData = (measures: PerformanceMeasure[]) =>
+            `Encryption | Mean: ${getMeanTime(measures).toFixed(PERFORMANCE_METRICS_DECIMAL_PLACES)}ms, Min: ${getMinTime(measures).toFixed(
+                PERFORMANCE_METRICS_DECIMAL_PLACES,
+            )}ms, Max: ${getMaxTime(measures).toFixed(PERFORMANCE_METRICS_DECIMAL_PLACES)}ms`;
 
-        // eslint-disable-next-line no-console
         console.log(`Under Load: (encrypting/decrypting ${iterations} times)`);
-        // eslint-disable-next-line no-console
-        console.log(performance.getEntriesByName('AESEncrypt under load'));
-        // eslint-disable-next-line no-console
         console.log(printData(encryptionMeasures));
-        // eslint-disable-next-line no-console
-        console.log(performance.getEntriesByName('AESDecrypt under load'));
-        // eslint-disable-next-line no-console
-        console.log(printData(encryptionMeasures));
+        console.log(printData(decryptionMeasures));
     }
 
     performance.clearMarks();
