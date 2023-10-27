@@ -112,7 +112,7 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
                     });
                 }}
                 onNavigateToCurrency={() => {
-                    const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+                    const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL_CURRENCY.getRoute(reportID, reportActionID, defaultCurrency, activeRoute));
                 }}
             />

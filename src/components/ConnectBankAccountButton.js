@@ -30,7 +30,7 @@ const defaultProps = {
 };
 
 function ConnectBankAccountButton(props) {
-    const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
+    const activeRoute = Navigation.getActiveRouteWithoutParams();
     return props.network.isOffline ? (
         <View style={props.style}>
             <Text>{`${props.translate('common.youAppearToBeOffline')} ${props.translate('common.thisFeatureRequiresInternet')}`}</Text>
