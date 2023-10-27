@@ -22,7 +22,6 @@ import usePrevious from '../../../hooks/usePrevious';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import Permissions from '../../../libs/Permissions';
 import StateSelector from '../../../components/StateSelector';
-import useGeographicalStateFromRoute from '../../../hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     /* Onyx Props */
@@ -100,8 +99,6 @@ function DebitCardPage(props) {
 
         return errors;
     };
-
-    const stateFromUrl = useGeographicalStateFromRoute();
 
     if (!Permissions.canUseWallet(props.betas)) {
         return <NotFoundPage />;
@@ -185,10 +182,7 @@ function DebitCardPage(props) {
                     containerStyles={[styles.mt4]}
                 />
                 <View style={[styles.mt4, styles.mhn5]}>
-                    <StateSelector
-                        value={stateFromUrl}
-                        inputID="addressState"
-                    />
+                    <StateSelector inputID="addressState" />
                 </View>
                 <CheckboxWithLabel
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}

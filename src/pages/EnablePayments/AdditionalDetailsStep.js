@@ -23,7 +23,6 @@ import DatePicker from '../../components/DatePicker';
 import Form from '../../components/Form';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import useGeographicalStateFromRoute from '../../hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -145,8 +144,6 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
         Wallet.updatePersonalDetails(personalDetails);
     };
 
-    const state = useGeographicalStateFromRoute();
-
     if (!_.isEmpty(walletAdditionalDetails.questions)) {
         return (
             <ScreenWrapper
@@ -213,7 +210,6 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                             state: 'addressState',
                             zipCode: 'addressZipCode',
                         }}
-                        values={state ? {state} : {}}
                         translate={translate}
                         streetTranslationKey={fieldNameTranslationKeys.addressStreet}
                         shouldSaveDraft

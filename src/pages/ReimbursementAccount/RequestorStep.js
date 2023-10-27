@@ -17,7 +17,6 @@ import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import useLocalize from '../../hooks/useLocalize';
 import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
-import useGeographicalStateFromRoute from '../../hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     onBackButtonPress: PropTypes.func.isRequired,
@@ -106,8 +105,6 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
         </View>
     );
 
-    const state = useGeographicalStateFromRoute();
-
     if (shouldShowOnfido) {
         return (
             <RequestorOnfidoStep
@@ -158,7 +155,6 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
                     defaultValues={defaultValues}
                     inputKeys={INPUT_KEYS}
                     shouldSaveDraft
-                    values={state ? {state} : {}}
                 />
                 <CheckboxWithLabel
                     accessibilityLabel={translate('requestorStep.isControllingOfficer')}

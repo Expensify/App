@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
@@ -9,6 +9,7 @@ import ROUTES from '../ROUTES';
 import useLocalize from '../hooks/useLocalize';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import FormHelpMessage from './FormHelpMessage';
+import useGeographicalStateFromRoute from '../hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     /** Form error text. e.g when no country is selected */
@@ -32,6 +33,9 @@ const propTypes = {
 
     /** Label to display on field */
     label: PropTypes.string,
+
+    /** whether to use state from url */
+    useStateFromUrl: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -40,19 +44,35 @@ const defaultProps = {
     forwardedRef: () => {},
     label: undefined,
     paramName: 'state',
+    useStateFromUrl: true,
 };
 
-function StateSelector({errorText, value: stateCode, label, paramName, onInputChange, forwardedRef}) {
+function StateSelector({errorText, useStateFromUrl, value: stateCode, label, paramName, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
 
-    const title = stateCode && _.keys(COMMON_CONST.STATES).includes(stateCode) ? translate(`allStates.${stateCode}.stateName`) : '';
-    const descStyle = title.length === 0 ? styles.textNormal : null;
+    const stateFromUrl = useGeographicalStateFromRoute(paramName);
+
+    const [stateToDisplay, setStateToDisplay] = useState('');
+
+    useEffect(() => {
+        if (useStateFromUrl) {
+            // This will cause the form to revalidate and remove any error related to country name
+            stateFromUrl && onInputChange(stateFromUrl);
+            stateFromUrl && setStateToDisplay(stateFromUrl);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [stateFromUrl, useStateFromUrl]);
 
     useEffect(() => {
         // This will cause the form to revalidate and remove any error related to country name
-        onInputChange(stateCode);
+        stateCode && onInputChange(stateCode);
+        stateCode && setStateToDisplay(stateCode);
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stateCode]);
+
+    const title = stateToDisplay && _.keys(COMMON_CONST.STATES).includes(stateToDisplay) ? translate(`allStates.${stateToDisplay}.stateName`) : '';
+    const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
         <View>

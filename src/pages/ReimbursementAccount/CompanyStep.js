@@ -141,7 +141,6 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
     const shouldDisableCompanyTaxID = Boolean(bankAccountID && getDefaultStateForField('companyTaxID'));
 
     const incorporationState = useGeographicalStateFromRoute('incorporationState') || getDefaultStateForField('incorporationState');
-    const state = useGeographicalStateFromRoute();
 
     return (
         <ScreenWrapper
@@ -183,7 +182,6 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                         state: getDefaultStateForField('addressState'),
                         zipCode: getDefaultStateForField('addressZipCode'),
                     }}
-                    values={state ? {state} : {}}
                     inputKeys={{
                         street: 'addressStreet',
                         city: 'addressCity',
@@ -253,6 +251,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                         label={translate('companyStep.incorporationState')}
                         shouldSaveDraft
                         paramName="incorporationState"
+                        useStateFromUrl={false}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(incorporationState ? {value: incorporationState} : {})}
                     />

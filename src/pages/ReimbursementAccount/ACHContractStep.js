@@ -19,7 +19,6 @@ import Form from '../../components/Form';
 import * as FormActions from '../../libs/actions/FormActions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
-import useGeographicalStateFromRoute from '../../hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     ...StepPropTypes,
@@ -145,8 +144,6 @@ function ACHContractStep(props) {
         });
     };
 
-    const state = useGeographicalStateFromRoute();
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -232,7 +229,6 @@ function ACHContractStep(props) {
                                                 dob: props.getDefaultStateForField(`beneficialOwner_${ownerKey}_dob`, ''),
                                                 ssnLast4: props.getDefaultStateForField(`beneficialOwner_${ownerKey}_ssnLast4`, ''),
                                             }}
-                                            values={state ? {state} : {}}
                                             inputKeys={{
                                                 firstName: `beneficialOwner_${ownerKey}_firstName`,
                                                 lastName: `beneficialOwner_${ownerKey}_lastName`,
