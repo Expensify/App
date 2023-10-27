@@ -282,9 +282,6 @@ function acceptWalletTerms(parameters: WalletTerms) {
 
 /**
  * Fetches data when the user opens the InitialSettingsPage
- *
- * @property currentStep - used to track which step of the "activate wallet" flow a user is in
- * @property tierName - will be GOLD when fully activated. SILVER is able to receive funds only.
  */
 function openInitialSettingsPage() {
     API.read('OpenInitialSettingsPage', {});
@@ -292,9 +289,6 @@ function openInitialSettingsPage() {
 
 /**
  * Fetches data when the user opens the EnablePaymentsPage
- *
- * @property currentStep - used to track which step of the "activate wallet" flow a user is in
- * @property tierName - will be GOLD when fully activated. SILVER is able to receive funds only.
  */
 function openEnablePaymentsPage() {
     API.read('OpenEnablePaymentsPage', {});
