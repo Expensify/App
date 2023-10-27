@@ -131,7 +131,8 @@ const createServerInstance = () => {
                     .then((data) =>
                         executeFromPayload(data.actionName, data.payload).then((status) => {
                             if (status) {
-                                return res.end('ok');
+                                res.end('ok');
+                                return;
                             }
                             res.statusCode = 500;
                             res.end('Error executing command');

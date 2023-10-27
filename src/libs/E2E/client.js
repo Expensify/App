@@ -58,10 +58,10 @@ const sendNativeCommand = (payload) =>
         },
         body: JSON.stringify(payload),
     }).then((res) => {
-        if (res.statusCode === 200) {
+        if (res.status === 200) {
             return true;
         }
-        const errorMsg = `Sending native command failed with status code ${res.statusCode}`;
+        const errorMsg = `Sending native command failed with status code ${res.status}`;
         res.json()
             .then((responseText) => {
                 throw new Error(`${errorMsg}: ${responseText}`);
