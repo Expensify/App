@@ -10,8 +10,11 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import * as Report from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
+import PAGES_CONST from '../PAGES_CONST';
+import Timing from '../../libs/actions/Timing';
+import Performance from '../../libs/Performance';
+import * as Report from '../../libs/actions/Report';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
@@ -159,6 +162,11 @@ function ReportScreen({
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
+
+    if (firstRenderRef.current) {
+        Timing.start(CONST.TIMING.CHAT_RENDER);
+        Performance.markStart(CONST.TIMING.CHAT_RENDER);
+    }
 
     const reportID = getReportID(route);
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
@@ -468,6 +476,7 @@ ReportScreen.defaultProps = defaultProps;
 ReportScreen.displayName = 'ReportScreen';
 
 export default compose(
+    Performance.withRenderTrace({id: PAGES_CONST.REPORT_ACTIONS_VIEW}),
     withViewportOffsetTop,
     withCurrentReportID,
     withOnyx(

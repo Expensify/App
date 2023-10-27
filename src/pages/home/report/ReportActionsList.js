@@ -16,6 +16,8 @@ import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import DateUtils from '../../../libs/DateUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Report from '../../../libs/actions/Report';
+import Performance from '../../../libs/Performance';
+import Timing from '../../../libs/actions/Timing';
 import compose from '../../../libs/compose';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
@@ -368,6 +370,8 @@ function ReportActionsList({
     const onLayoutInner = useCallback(
         (event) => {
             onLayout(event);
+            Timing.end(CONST.TIMING.CHAT_RENDER);
+            Performance.markEnd(CONST.TIMING.CHAT_RENDER);
         },
         [onLayout],
     );
