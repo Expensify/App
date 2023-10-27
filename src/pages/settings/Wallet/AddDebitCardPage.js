@@ -45,6 +45,7 @@ function DebitCardPage(props) {
     const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
     const nameOnCardRef = useRef(null);
 
+    // Reset the form values on mount and unmount of the component
     useEffect(() => {
         PaymentMethods.clearDebitCardFormErrorAndSubmit();
 
@@ -194,7 +195,6 @@ function DebitCardPage(props) {
                         </Text>
                     )}
                     style={[styles.mt4]}
-                    defaultValue={false}
                 />
             </Form>
         </ScreenWrapper>
