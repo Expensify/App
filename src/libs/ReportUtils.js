@@ -4064,10 +4064,17 @@ function getIOUReportActionDisplayMessage(reportAction) {
         const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
         const {amount, currency, comment} = getTransactionDetails(transaction);
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
-        displayMessage = Localize.translateLocal('iou.requestedAmount', {
-            formattedAmount,
-            comment,
-        });
+        const isRequestSettled = isSettled(originalMessage.IOUReportID);
+        if (!isRequestSettled) {
+            displayMessage = Localize.translateLocal('iou.requestedAmount', {
+                formattedAmount,
+                comment,
+            });
+        } else {
+            displayMessage = Localize.translateLocal('iou.payerSettled', {
+                amount: formattedAmount,
+            });
+        }
     }
     return displayMessage;
 }
