@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useRef, useEffect, forwardRef, memo} from 'react';
+import React, {useRef, useCallback, useEffect, forwardRef, memo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -120,14 +120,16 @@ function BaseOptionsList({
         flattenedData.current = buildFlatSectionArray();
     });
 
-    const onViewableItemsChanged = () => {
+    const onViewableItemsChanged = useCallback(() => {
         if (didLayout.current || !onLayout) {
             return;
         }
 
         didLayout.current = true;
         onLayout();
-    };
+    }, []);
+
+    const viewConfigRef = useRef({viewAreaCoveragePercentThreshold: 95});
 
     /**
      * This function is used to compute the layout of any given item in our list.
@@ -277,7 +279,7 @@ function BaseOptionsList({
                         initialNumToRender={12}
                         maxToRenderPerBatch={5}
                         windowSize={5}
-                        viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+                        viewabilityConfig={viewConfigRef.current}
                         onViewableItemsChanged={onViewableItemsChanged}
                         bounces={bounces}
                     />
