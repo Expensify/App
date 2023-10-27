@@ -34,13 +34,19 @@ const submitTestResults = (testResult) =>
 
 const submitTestDone = () => fetch(`${SERVER_ADDRESS}${Routes.testDone}`);
 
+let currentActiveTestConfig = null;
 /**
  * @returns {Promise<TestConfig>}
  */
 const getTestConfig = () =>
     fetch(`${SERVER_ADDRESS}${Routes.testConfig}`)
         .then((res) => res.json())
-        .then((config) => config);
+        .then((config) => {
+            currentActiveTestConfig = config;
+            return config;
+        });
+
+const getCurrentActiveTestConfig = () => currentActiveTestConfig;
 
 const sendNativeCommand = (payload) =>
     fetch(`${SERVER_ADDRESS}${Routes.testNativeCommand}`, {
@@ -67,5 +73,6 @@ export default {
     submitTestResults,
     submitTestDone,
     getTestConfig,
+    getCurrentActiveTestConfig,
     sendNativeCommand,
 };
