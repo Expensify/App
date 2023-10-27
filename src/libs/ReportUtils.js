@@ -4268,4 +4268,5 @@ export {
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
+    getPersonalDetailsForAccountID,
 };
