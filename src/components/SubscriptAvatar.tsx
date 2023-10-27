@@ -1,46 +1,59 @@
 import React, {memo} from 'react';
-import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
+import {SvgProps} from 'react-native-svg';
+import {ValueOf} from 'type-fest';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import Avatar from './Avatar';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
-import avatarPropTypes from './avatarPropTypes';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
-const propTypes = {
+type SubAvatar = {
+    /** Avatar source to display */
+    source: React.FC<SvgProps> | string;
+
+    /** Denotes whether it is an avatar or a workspace avatar */
+    type: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+
+    /** Owner of the avatar. If user, displayName. If workspace, policy name */
+    name: string;
+
+    /** Avatar id */
+    id: number | string;
+
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
+    fallbackIcon: React.FC<SvgProps> | string;
+};
+
+type SubscriptAvatarProps = {
     /** Avatar URL or icon */
-    mainAvatar: avatarPropTypes,
+    mainAvatar?: SubAvatar;
 
     /** Subscript avatar URL or icon */
-    secondaryAvatar: avatarPropTypes,
+    secondaryAvatar?: SubAvatar;
 
     /** Set the size of avatars */
-    size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
+    size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Background color used for subscript avatar border */
-    backgroundColor: PropTypes.string,
+    backgroundColor?: string;
 
     /** Removes margin from around the avatar, used for the chat view */
-    noMargin: PropTypes.bool,
+    noMargin?: boolean;
 
     /** Whether to show the tooltip */
-    showTooltip: PropTypes.bool,
+    showTooltip?: boolean;
 };
 
-const defaultProps = {
-    size: CONST.AVATAR_SIZE.DEFAULT,
-    backgroundColor: themeColors.componentBG,
-    mainAvatar: {},
-    secondaryAvatar: {},
-    noMargin: false,
-    showTooltip: true,
-};
-
-function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, noMargin, showTooltip}) {
+function SubscriptAvatar({
+    mainAvatar,
+    secondaryAvatar,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    backgroundColor = themeColors.componentBG,
+    noMargin = false,
+    showTooltip = true,
+}: SubscriptAvatarProps) {
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
     const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
     const containerStyle = StyleUtils.getContainerStyles(size);
@@ -49,23 +62,23 @@ function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, no
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
-                accountID={lodashGet(mainAvatar, 'id', -1)}
+                accountID={mainAvatar?.id ?? -1}
                 icon={mainAvatar}
             >
                 <View>
                     <Avatar
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
-                        source={mainAvatar.source}
+                        source={mainAvatar?.source}
                         size={size || CONST.AVATAR_SIZE.DEFAULT}
-                        name={mainAvatar.name}
-                        type={mainAvatar.type}
-                        fallbackIcon={mainAvatar.fallbackIcon}
+                        name={mainAvatar?.name}
+                        type={mainAvatar?.type}
+                        fallbackIcon={mainAvatar?.fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
-                accountID={lodashGet(secondaryAvatar, 'id', -1)}
+                accountID={secondaryAvatar?.id ?? -1}
                 icon={secondaryAvatar}
             >
                 <View
@@ -79,12 +92,12 @@ function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, no
                             StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
                             StyleUtils.getBorderColorStyle(backgroundColor),
                         ]}
-                        source={secondaryAvatar.source}
+                        source={secondaryAvatar?.source}
                         size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
                         fill={themeColors.iconSuccessFill}
-                        name={secondaryAvatar.name}
-                        type={secondaryAvatar.type}
-                        fallbackIcon={secondaryAvatar.fallbackIcon}
+                        name={secondaryAvatar?.name}
+                        type={secondaryAvatar?.type}
+                        fallbackIcon={secondaryAvatar?.fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -93,6 +106,5 @@ function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, no
 }
 
 SubscriptAvatar.displayName = 'SubscriptAvatar';
-SubscriptAvatar.propTypes = propTypes;
-SubscriptAvatar.defaultProps = defaultProps;
+
 export default memo(SubscriptAvatar);
