@@ -84,6 +84,9 @@ const ONYXKEYS = {
     /** Contains all the users settings for the Settings page and sub pages */
     USER: 'user',
 
+    /** Contains latitude and longitude of user's last known location */
+    USER_LOCATION: 'userLocation',
+
     /** Contains metadata (partner, login, validation date) for all of the user's logins */
     LOGIN_LIST: 'loginList',
 
@@ -333,6 +336,7 @@ type OnyxValues = {
     [ONYXKEYS.COUNTRY_CODE]: number;
     [ONYXKEYS.COUNTRY]: string;
     [ONYXKEYS.USER]: OnyxTypes.User;
+    [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.Login;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];

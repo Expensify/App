@@ -5,24 +5,80 @@
 
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
 import {View} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import Map, {MapRef, Marker} from 'react-map-gl';
 import mapboxgl from 'mapbox-gl';
-
+import Onyx, { OnyxEntry, withOnyx } from 'react-native-onyx';
 import responder from './responder';
 import utils from './utils';
-
 import CONST from '../../CONST';
+import ONYXKEYS from '../../ONYXKEYS';
+import styles from '../../styles/styles';
+import * as OnyxTypes from '../../types/onyx';
 import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 import Direction from './Direction';
 import {MapViewHandle, MapViewProps} from './MapViewTypes';
-
+import getCurrentPosition from '../../libs/getCurrentPosition';
+import Text from '../../components/Text'
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-const MapView = forwardRef<MapViewHandle, MapViewProps>(
-    ({style, styleURL, waypoints, mapPadding, accessToken, directionCoordinates, initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM}}, ref) => {
+type MapViewOnyxProps = {
+    userLocation: OnyxEntry<OnyxTypes.UserLocation>;
+}
+
+type ComponentProps = MapViewProps & MapViewOnyxProps
+
+const MapView = forwardRef<MapViewHandle, ComponentProps>(
+    ({style, styleURL, waypoints, mapPadding, accessToken, userLocation: cachedUserLocation, directionCoordinates, initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM}}, ref) => {
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
+        const [userLocation, setUserLocation] = useState(cachedUserLocation);
+        const [isCurrentPositionFetching, setIsCurrentPositionFetching] = useState(true);
+        const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
+
+        useFocusEffect(
+            useCallback(() => {
+                console.log('Start location search')
+                getCurrentPosition((params) => {
+                    setUserLocation({latitude: params.coords.latitude, longitude: params.coords.longitude})
+                    Onyx.merge(ONYXKEYS.USER_LOCATION, { latitude: params.coords.latitude, longitude: params.coords.longitude})
+                    setIsCurrentPositionFetching(false);
+                    console.log('Location search success')
+                },
+                () => {
+                    // On error do nothing - an already cached location
+                    // or the default location will be presented to the user
+                    console.log('Location search error')
+                    setIsCurrentPositionFetching(false);
+                })
+            }, [])
+        )
+
+        useEffect(() => {
+            if (!userLocation || !mapRef) {
+                return;
+            }
+
+            console.log('Map loaded')
+
+            if (waypoints && waypoints.length > 0) {
+                console.log('Waypoints existing. Dont jump')
+                return;
+            }
+
+            if (userInteractedWithMap) {
+                console.log('User already started clicking or dragging through the map. Dont jump')
+                return;
+            }
+
+            console.log('No waypoints added. JumpTo')
+
+            mapRef.jumpTo({
+                center: [userLocation.longitude, userLocation.latitude],
+                zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+            });
+        }, [userLocation, userInteractedWithMap, mapRef])
 
         useEffect(() => {
             if (!waypoints || waypoints.length === 0) {
@@ -36,7 +92,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
             if (waypoints.length === 1) {
                 mapRef.flyTo({
                     center: waypoints[0].coordinate,
-                    zoom: 15,
+                    zoom: CONST.MAPBOX.DEFAULT_ZOOM,
                 });
                 return;
             }
@@ -80,40 +136,52 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
         );
 
         return (
-            <View
-                style={style}
-                // eslint-disable-next-line
-                {...responder.panHandlers}
-            >
-                <Map
-                    ref={setRef}
-                    mapLib={mapboxgl}
-                    mapboxAccessToken={accessToken}
-                    initialViewState={{
-                        longitude: initialState.location[0],
-                        latitude: initialState.location[1],
-                        zoom: initialState.zoom,
-                    }}
-                    style={StyleUtils.getTextColorStyle(themeColors.mapAttributionText) as React.CSSProperties}
-                    mapStyle={styleURL}
+            <>
+                <View
+                    style={style}
+                    // eslint-disable-next-line
+                    {...responder.panHandlers}
                 >
-                    {waypoints?.map(({coordinate, markerComponent, id}) => {
-                        const MarkerComponent = markerComponent;
-                        return (
-                            <Marker
-                                key={id}
-                                longitude={coordinate[0]}
-                                latitude={coordinate[1]}
-                            >
-                                <MarkerComponent />
-                            </Marker>
-                        );
-                    })}
-                    {directionCoordinates && <Direction coordinates={directionCoordinates} />}
-                </Map>
-            </View>
+                    <Map
+                        onDrag={() => setUserInteractedWithMap(true)}
+                        ref={setRef}
+                        mapLib={mapboxgl}
+                        mapboxAccessToken={accessToken}
+                        initialViewState={{
+                            longitude: initialState.location[0],
+                            latitude: initialState.location[1],
+                            zoom: initialState.zoom,
+                        }}
+                        style={StyleUtils.getTextColorStyle(themeColors.mapAttributionText) as React.CSSProperties}
+                        mapStyle={styleURL}
+                    >
+                        {waypoints?.map(({coordinate, markerComponent, id}) => {
+                            const MarkerComponent = markerComponent;
+                            return (
+                                <Marker
+                                    key={id}
+                                    longitude={coordinate[0]}
+                                    latitude={coordinate[1]}
+                                >
+                                    <MarkerComponent />
+                                </Marker>
+                            );
+                        })}
+                        {directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                    </Map>
+                </View>
+                <Text
+                    style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset, styles.pre]}
+                >
+                    {isCurrentPositionFetching ? 'Finding your location...' : ' '}
+                </Text>
+            </>
         );
     },
 );
 
-export default MapView;
+export default withOnyx<ComponentProps,MapViewOnyxProps >({
+    userLocation: {
+        key: ONYXKEYS.USER_LOCATION,
+    }
+})(MapView)

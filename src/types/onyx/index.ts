@@ -11,6 +11,7 @@ import Task from './Task';
 import Currency from './Currency';
 import ScreenShareRequest from './ScreenShareRequest';
 import User from './User';
+import UserLocation from './UserLocation';
 import Login from './Login';
 import Session from './Session';
 import Beta from './Beta';
@@ -63,6 +64,7 @@ export type {
     Currency,
     ScreenShareRequest,
     User,
+    UserLocation,
     Login,
     Session,
     Beta,
