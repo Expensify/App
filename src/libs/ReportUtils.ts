@@ -313,8 +313,7 @@ type OptimisticIOUReport = Pick<
 >;
 
 function checkIfCorrectType<T>(arg: T | Record<string, never>): arg is T {
-    // TODO: change it to correct type guard
-    return arg !== undefined;
+    return Object.keys(arg ?? {}).length > 0;
 }
 
 let currentUserEmail: string | undefined;
@@ -1433,7 +1432,6 @@ function isWaitingForIOUActionFromCurrentUser(report: OnyxEntry<Report>): boolea
  *
  * @param  parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  */
-// TODO: TEST IT CAREFULLY
 function isWaitingForTaskCompleteFromAssignee(report: OnyxEntry<Report>, parentReportAction?: OnyxEntry<ReportAction>): boolean {
     return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
 }
