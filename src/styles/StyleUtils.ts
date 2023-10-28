@@ -1316,11 +1316,20 @@ function getTransparentColor(color: string) {
     return `${color}00`;
 }
 
+/**
+ * Get the styles of reports submitted or approved in Old Dot in order to style them like system messages
+ */
+function getApprovedOrSubmittedReportTextStyles(isApprovedOrSubmittedReport = false): TextStyle {
+    // Font family is restored back to a regular font since text with "fontWeight: 'normal'" on Android still appears boldened
+    return isApprovedOrSubmittedReport ? {color: themeColors.textSupporting, fontFamily: fontFamily.EXP_NEUE, fontWeight: 'normal'} : {};
+}
+
 export {
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
     getAnimatedFABStyle,
+    getApprovedOrSubmittedReportTextStyles,
     getAutoCompleteSuggestionContainerStyle,
     getAutoCompleteSuggestionItemStyle,
     getAutoGrowHeightInputStyle,

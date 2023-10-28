@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
@@ -168,7 +169,7 @@ function ReportActionItemFragment(props) {
                         style={[
                             styles.chatItemMessageHeaderSender,
                             props.isSingleLine ? styles.pre : styles.preWrap,
-                            styles.approvedOrSubmittedMessage(props.isApprovedOrSubmittedReportAction),
+                            StyleUtils.getApprovedOrSubmittedReportTextStyles(props.isApprovedOrSubmittedReportAction),
                         ]}
                     >
                         {props.fragment.text}
