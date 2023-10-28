@@ -17,7 +17,8 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
 
     const policyRecentlyUsedTagsList = lodashGet(policyRecentlyUsedTags, tag, []);
     const policyTagList = PolicyUtils.getTagList(policyTags, tag);
-    const policyTagsCount = _.size(_.filter(policyTagList, (policyTag) => policyTag.enabled));
+    const enabledTags = _.filter(policyTagList, (policyTag) => policyTag.enabled);
+    const policyTagsCount = _.size(enabledTags);
     const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTagsCountBelowThreshold;
@@ -38,14 +39,14 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
 
     const initialFocusedIndex = useMemo(() => {
         if (isTagsCountBelowThreshold && selectedOptions.length > 0) {
-            return _.chain(policyTagList)
+            return _.chain(enabledTags)
                 .values()
                 .findIndex((policyTag) => policyTag.name === selectedOptions[0].name, true)
                 .value();
         }
 
         return 0;
-    }, [policyTagList, selectedOptions, isTagsCountBelowThreshold]);
+    }, [enabledTags, selectedOptions, isTagsCountBelowThreshold]);
 
     const sections = useMemo(
         () =>
