@@ -93,6 +93,7 @@ function BaseValidateCodeForm(props) {
 
     const prevRequiresTwoFactorAuth = usePrevious(props.account.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(props.credentials.validateCode);
+    const prevIsUsingRecoveryCode = usePrevious(props.prevIsUsingRecoveryCode);
 
     const inputValidateCodeRef = useRef();
     const input2FARef = useRef();
@@ -124,6 +125,13 @@ function BaseValidateCodeForm(props) {
         }
         setValidateCode(props.credentials.validateCode);
     }, [props.credentials.validateCode, prevValidateCode]);
+
+    useEffect(() => {
+        if (!input2FARef.current || !prevIsUsingRecoveryCode || props.isUsingRecoveryCode) {
+            return;
+        }
+        input2FARef.current.focus();
+    }, [prevIsUsingRecoveryCode, props.isUsingRecoveryCode]);
 
     useEffect(() => {
         if (!input2FARef.current || prevRequiresTwoFactorAuth || !props.account.requiresTwoFactorAuth) {
