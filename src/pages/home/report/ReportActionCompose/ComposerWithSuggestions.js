@@ -124,6 +124,22 @@ function ComposerWithSuggestions({
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
     const parentAction = ReportActionsUtils.getParentReportAction(report);
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentAction))) && shouldShowComposeInput;
+    const textInputRef = useRef(null);
+    const shouldAutoFocusRef = useRef(false);
+
+    shouldAutoFocusRef.current = shouldAutoFocus;
+
+    const prevIsFocused = usePrevious(isFocused);
+
+    useEffect(() => {
+        if (!prevIsFocused && isFocused) {
+            setTimeout(() => {
+                if (shouldAutoFocusRef.current) {
+                    textInputRef.current.focus();
+                }
+            }, CONST.ANIMATED_TRANSITION);
+        }
+    }, [isFocused, prevIsFocused]);
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -134,8 +150,7 @@ function ComposerWithSuggestions({
     }));
 
     const [composerHeight, setComposerHeight] = useState(0);
-
-    const textInputRef = useRef(null);
+    
     const insertedEmojisRef = useRef([]);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
@@ -478,7 +493,7 @@ function ComposerWithSuggestions({
     }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager]);
 
     const prevIsModalVisible = usePrevious(modal.isVisible);
-    const prevIsFocused = usePrevious(isFocused);
+
     useEffect(() => {
         if (modal.isVisible && !prevIsModalVisible) {
             // eslint-disable-next-line no-param-reassign
