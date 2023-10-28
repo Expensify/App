@@ -1319,7 +1319,7 @@ function getTransparentColor(color: string) {
 /**
  * Get the styles of the text next to dot indicators 
  */
-function getDotIndicatorTextStyles(isErrorText: boolean = true): TextStyle {
+function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
     return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
 }
 
