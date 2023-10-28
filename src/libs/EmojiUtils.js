@@ -360,12 +360,18 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
             }
         }
         if (checkEmoji && checkEmoji.metaData.code) {
-            const emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
+            let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
             emojis.push({
                 name,
                 code: checkEmoji.metaData.code,
                 types: checkEmoji.metaData.types,
             });
+
+            // If this is the last emoji in the message and it's the end of the message so far,
+            // add a space after it so the user can keep typing easily.
+            if (i === emojiData.length - 1) {
+                emojiReplacement += ' ';
+            }
 
             newText = newText.replace(emojiData[i], emojiReplacement);
         }

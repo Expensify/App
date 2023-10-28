@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import {getUnixTime} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import Emoji from '../../assets/emojis';
 import * as EmojiUtils from '../../src/libs/EmojiUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -98,6 +99,16 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.containsOnlyEmojis('𝕿𝖊𝖘𝖙')).toBe(false);
         expect(EmojiUtils.containsOnlyEmojis('🆃🅴🆂🆃')).toBe(false);
         expect(EmojiUtils.containsOnlyEmojis('🅃🄴🅂🅃')).toBe(false);
+    });
+
+    it('replaces an emoji code with an emoji and a space', () => {
+        const text = 'Hi :smile:';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄 ');
+    });
+
+    it('will add a space after the last emoji if there is text after it', () => {
+        const text = 'Hi :smile::wave:space after last emoji';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space after last emoji');
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
