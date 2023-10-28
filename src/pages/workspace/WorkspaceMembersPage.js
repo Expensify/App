@@ -29,6 +29,7 @@ import * as PolicyUtils from '../../libs/PolicyUtils';
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
+import MessagesRow from '../../components/MessagesRow';
 import SelectionList from '../../components/SelectionList';
 import Text from '../../components/Text';
 import * as Browser from '../../libs/Browser';
@@ -290,6 +291,7 @@ function WorkspaceMembersPage(props) {
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
+    const invitedPrimaryToSecondaryLogins = _.invert(props.policy.primaryLoginsInvited);
 
     const getMemberOptions = () => {
         let result = [];
@@ -367,6 +369,9 @@ function WorkspaceMembersPage(props) {
                 ],
                 errors: policyMember.errors,
                 pendingAction: policyMember.pendingAction,
+
+                // Note which secondary login was used to invite this primary login
+                invitedSecondaryLogin: invitedPrimaryToSecondaryLogins[details.login] || '',
             });
         });
 
@@ -381,6 +386,20 @@ function WorkspaceMembersPage(props) {
             return props.translate('workspace.common.mustBeOnlineToViewMembers');
         }
         return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
+    };
+
+    const getHeaderContent = () => {
+        if (_.isEmpty(invitedPrimaryToSecondaryLogins)) {
+            return null;
+        }
+        return (
+            <MessagesRow
+                type="success"
+                messages={{0: props.translate('workspace.people.addedWithPrimary')}}
+                containerStyles={[styles.pb5, styles.ph5]}
+                onClose={() => Policy.dismissAddedWithPrimaryMessages(policyID)}
+            />
+        );
     };
 
     return (
@@ -447,6 +466,7 @@ function WorkspaceMembersPage(props) {
                             textInputValue={searchValue}
                             onChangeText={setSearchValue}
                             headerMessage={getHeaderMessage()}
+                            headerContent={getHeaderContent()}
                             onSelectRow={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}

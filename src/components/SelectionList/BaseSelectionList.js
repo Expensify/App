@@ -48,6 +48,7 @@ function BaseSelectionList({
     headerMessage = '',
     confirmButtonText = '',
     onConfirm,
+    headerContent,
     footerContent,
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
@@ -391,6 +392,7 @@ function BaseSelectionList({
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}
+                        {Boolean(headerContent) && headerContent}
                         {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
                             <OptionsListSkeletonView shouldAnimate />
                         ) : (

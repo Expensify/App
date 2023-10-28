@@ -414,6 +414,8 @@ export default {
         deleteConfirmation: ({action}: DeleteConfirmationParams) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
+        subscribeToThread: 'Suscribirse al hilo',
+        unsubscribeFromThread: 'Darse de baja del hilo',
         flagAsOffensive: 'Marcar como ofensivo',
     },
     emojiReactions: {
@@ -1462,6 +1464,8 @@ export default {
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
                 genericRemove: 'Ha ocurrido un problema al eliminar al miembro del espacio de trabajo.',
             },
+            addedWithPrimary: 'Se agregaron algunos usuarios con sus nombres de usuario principales.',
+            invitedBySecondaryLogin: ({secondaryLogin}) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',

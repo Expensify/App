@@ -784,6 +784,16 @@ function getReport(reportID) {
 }
 
 /**
+ * Returns whether or not the author of the action is this user
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isActionCreator(reportAction) {
+    return reportAction.actorAccountID === currentUserAccountID;
+}
+
+/**
  * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
  * policy admin
  *
@@ -4121,6 +4131,7 @@ export {
     canEditReportAction,
     canFlagReportAction,
     shouldShowFlagComment,
+    isActionCreator,
     canDeleteReportAction,
     canLeaveRoom,
     sortReportsByLastRead,

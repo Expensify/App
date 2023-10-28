@@ -174,6 +174,9 @@ const propTypes = {
     /** A ref to forward to the TextInput */
     inputRef: PropTypes.oneOfType([PropTypes.object]),
 
+    /** Custom content to display in the header */
+    headerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
     /** Custom content to display in the footer */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 };
