@@ -1,16 +1,16 @@
-import React, {useState, useRef, useCallback, useEffect} from 'react';
-import {Button, View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
-import moment from 'moment';
 import isFunction from 'lodash/isFunction';
-import TextInput from '../TextInput';
-import Popover from '../Popover';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import {propTypes, defaultProps} from './datepickerPropTypes';
-import useKeyboardState from '../../hooks/useKeyboardState';
-import useLocalize from '../../hooks/useLocalize';
+import moment from 'moment';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Button, Keyboard, View} from 'react-native';
+import Popover from '@components/Popover';
+import TextInput from '@components/TextInput';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes} from './datepickerPropTypes';
 
 function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLocale, minDate, maxDate, label, disabled, onBlur, placeholder, containerStyles, errorText}) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);

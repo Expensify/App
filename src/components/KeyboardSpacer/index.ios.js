@@ -3,10 +3,10 @@
  * keyboard allowing the user to see what they are typing.
  */
 import React from 'react';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import BaseKeyboardSpacer from './BaseKeyboardSpacer';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import * as StyleUtils from '../../styles/StyleUtils';
-import CONST from '../../CONST';
 
 function KeyboardSpacer(props) {
     return (

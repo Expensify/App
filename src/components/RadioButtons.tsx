@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import styles from '@styles/styles';
 import RadioButtonWithLabel from './RadioButtonWithLabel';
-import styles from '../styles/styles';
 
 type Choice = {
     label: string;
