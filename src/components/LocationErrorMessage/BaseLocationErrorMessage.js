@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import CONST from '../../CONST';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
@@ -42,14 +43,14 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
             <View style={styles.offlineFeedback.textContainer}>
                 {isPermissionDenied ? (
                     <Text>
-                        <Text style={[styles.offlineFeedback.text]}>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles()]}>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
                         <TextLink
                             onPress={onAllowLocationLinkPress}
                             style={styles.locationErrorLinkText}
                         >
                             {` ${translate('location.allowPermission')} `}
                         </TextLink>
-                        <Text style={[styles.offlineFeedback.text]}>{translate('location.tryAgain')}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles()]}>{translate('location.tryAgain')}</Text>
                     </Text>
                 ) : (
                     <Text style={styles.offlineFeedback.text}>{translate('location.notFound')}</Text>

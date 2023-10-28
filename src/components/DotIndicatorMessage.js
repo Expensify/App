@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
+import * as StyleUtils from '../styles/StyleUtils';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
@@ -71,7 +72,7 @@ function DotIndicatorMessage(props) {
                 {_.map(sortedMessages, (message, i) => (
                     <Text
                         key={i}
-                        style={[styles.offlineFeedback.text, ...props.textStyles, isErrorMessage && {color: styles.formError.color}]}
+                        style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), ...props.textStyles]}
                     >
                         {message}
                     </Text>
