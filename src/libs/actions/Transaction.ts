@@ -216,12 +216,13 @@ function getRoute(transactionID: string, waypoints: WaypointCollection) {
  *                             which will replace the existing ones.
  */
 function updateWaypoints(transactionID: string, waypoints: WaypointCollection): Promise<void> {
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+    const transaction = allTransactions?.[transactionID] ?? {};
+    let newTransaction: Transaction = {
+        ...transaction,
         comment: {
-            waypoints,
+            ...transaction.comment,
+            waypoints: waypoints,
         },
-
-        // Empty out errors when we're saving new waypoints as this indicates the user is updating their input
         errorFields: {
             route: null,
         },
@@ -235,7 +236,8 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection): 
                 },
             },
         },
-    });
+    };
+    return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, newTransaction);
 }
 
 export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints};
