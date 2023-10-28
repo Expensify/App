@@ -21,6 +21,7 @@ import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 import {ReactionListContext} from '../ReportScreenContext';
 import useInitialValue from '../../../hooks/useInitialValue';
+import useReportScrollManager from '../../../hooks/useReportScrollManager';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -80,6 +81,7 @@ function ReportActionsView(props) {
 
     const isFocused = useIsFocused();
     const reportID = props.report.reportID;
+    const reportScrollManager = useReportScrollManager();
 
     /**
      * @returns {Boolean}
@@ -169,8 +171,13 @@ function ReportActionsView(props) {
      * displaying.
      */
     const loadNewerChats = useMemo(
-        () =>
-            _.throttle(({distanceFromStart}) => {
+        () => {         
+            return _.throttle(({distanceFromStart}) => {
+                if (reportScrollManager.isAutomaticScrollToBottom) {
+                    reportScrollManager.isAutomaticScrollToBottom = false;
+                    return;
+                }
+
                 if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions) {
                     return;
                 }
@@ -192,8 +199,9 @@ function ReportActionsView(props) {
 
                 const newestReportAction = _.first(props.reportActions);
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
-            }, 500),
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID],
+            }, 500)
+        },
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID, reportScrollManager],
     );
 
     /**
