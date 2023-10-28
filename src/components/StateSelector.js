@@ -55,18 +55,21 @@ function StateSelector({errorText, useStateFromUrl, value: stateCode, label, par
     const [stateToDisplay, setStateToDisplay] = useState('');
 
     useEffect(() => {
-        if (useStateFromUrl) {
-            // This will cause the form to revalidate and remove any error related to country name
-            stateFromUrl && onInputChange(stateFromUrl);
-            stateFromUrl && setStateToDisplay(stateFromUrl);
-        }
+        if (!useStateFromUrl || !stateFromUrl) return;
+
+        // This will cause the form to revalidate and remove any error related to country name
+        onInputChange(stateFromUrl);
+        setStateToDisplay(stateFromUrl);
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stateFromUrl, useStateFromUrl]);
 
     useEffect(() => {
+        if (!stateCode) return;
+
         // This will cause the form to revalidate and remove any error related to country name
-        stateCode && onInputChange(stateCode);
-        stateCode && setStateToDisplay(stateCode);
+        onInputChange(stateCode);
+        setStateToDisplay(stateCode);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stateCode]);
