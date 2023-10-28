@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import ReportScreen from '../../../pages/home/ReportScreen';
+import ReportScreen from '@pages/home/ReportScreen';
 import ReportScreenIDSetter from './ReportScreenIDSetter';
 
 const propTypes = {

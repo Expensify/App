@@ -1,5 +1,5 @@
-import getKeyEventModifiers from '../getKeyEventModifiers';
-import isEnterWhileComposition from '../isEnterWhileComposition';
+import getKeyEventModifiers from '@libs/KeyboardShortcut/getKeyEventModifiers';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import BindHandlerToKeydownEvent from './types';
 
 /**

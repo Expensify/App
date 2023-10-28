@@ -1,8 +1,8 @@
-import {ValueOf} from 'type-fest';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
-import DeepValueOf from './types/utils/DeepValueOf';
-import * as OnyxTypes from './types/onyx';
+import {ValueOf} from 'type-fest';
 import CONST from './CONST';
+import * as OnyxTypes from './types/onyx';
+import DeepValueOf from './types/utils/DeepValueOf';
 
 /**
  * This is a file containing constants for all the top level keys in our store

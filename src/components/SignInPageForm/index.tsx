@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-import FormElement from '../FormElement';
+import FormElement from '@components/FormElement';
 import SignInPageFormProps from './types';
 
 const preventFormDefault = (event: SubmitEvent) => {

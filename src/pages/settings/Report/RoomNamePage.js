@@ -1,26 +1,26 @@
-import React, {useCallback, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import {useIsFocused} from '@react-navigation/native';
-import CONST from '../../../CONST';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Form from '../../../components/Form';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
-import compose from '../../../libs/compose';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
-import withReportOrNotFound from '../../home/report/withReportOrNotFound';
-import reportPropTypes from '../../reportPropTypes';
-import ROUTES from '../../../ROUTES';
-import * as Report from '../../../libs/actions/Report';
-import RoomNameInput from '../../../components/RoomNameInput';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import PropTypes from 'prop-types';
+import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RoomNameInput from '@components/RoomNameInput';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
