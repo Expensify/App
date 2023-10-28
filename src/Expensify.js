@@ -190,24 +190,28 @@ function Expensify(props) {
     }, []);
 
     useEffect(() => {
-        const kemKeys = Encryptify.KEMGenKeys();
+        async function exec() {
+            const kemKeys = await Encryptify.KemGenKeys();
 
-        // eslint-disable-next-line no-console
-        console.log({kemKeys});
+            // eslint-disable-next-line no-console
+            console.log({kemKeys});
 
-        const data = 'Hello World! 123';
-        const {sharedSecret, cipherText} = Encryptify.KEMEncrypt(kemKeys.public);
-        const encryptedData = Encryptify.AESEncrypt('some iv value', sharedSecret, data);
+            const data = 'Hello World! 123';
+            const {sharedSecret, cipherText} = await Encryptify.KemEncrypt(kemKeys.public);
+            const encryptedData = await Encryptify.AesEncrypt('some iv value', sharedSecret, data);
 
-        // After encryption on the sender side, the message is sent to the receiver:
-        // Only the encryptedData an the cipherText must be sent to the receiver
-        // The receiver can then decrypt the cipherText with his private keys
+            // After encryption on the sender side, the message is sent to the receiver:
+            // Only the encryptedData an the cipherText must be sent to the receiver
+            // The receiver can then decrypt the cipherText with his private keys
 
-        const decryptedSharedSecret = Encryptify.KEMDecrypt(kemKeys.private, cipherText);
-        const decryptedData = Encryptify.AESDecrypt('some iv value', decryptedSharedSecret, encryptedData);
+            const decryptedSharedSecret = await Encryptify.KemDecrypt(kemKeys.private, cipherText);
+            const decryptedData = await Encryptify.AesDecrypt('some iv value', decryptedSharedSecret, encryptedData);
 
-        // eslint-disable-next-line no-console
-        console.log({encryptedData, decryptedData});
+            // eslint-disable-next-line no-console
+            console.log({encryptedData, decryptedData});
+        }
+
+        exec();
     }, []);
 
     // Display a blank page until the onyx migration completes
