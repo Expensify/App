@@ -16,8 +16,18 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     // eslint-disable-next-line rulesdir/prefer-use-responsive-for-layout
     const {isSmallScreenWidth} = useWindowDimensions();
 
-    const {params} = useRoute();
+    let params: RouteParams = {};
 
+    try {
+        const route = useRoute();
+        if (route && route.params) {
+            params = route.params as RouteParams;
+        }
+    } catch (error) {
+        return {
+            shouldUseNarrowLayout: false,
+        };
+    }
     return {
         shouldUseNarrowLayout: isSmallScreenWidth || ((params as RouteParams)?.isInRHP ?? false),
     };
