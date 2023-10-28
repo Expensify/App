@@ -50,7 +50,15 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         User.clearDraftCustomStatus();
     };
 
-    const navigateBackToSettingsPage = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
+    const topmostReportId = Navigation.getTopmostReportId();
+    const navigateBackToSettingsPage = useCallback(() => {
+            if (topmostReportId) {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId))
+            } else {
+                Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true);
+            }
+        }
+    , [topmostReportId]);
     const updateStatus = useCallback(() => {
         User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji});
 
