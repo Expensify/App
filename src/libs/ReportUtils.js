@@ -1568,6 +1568,10 @@ function canEditMoneyRequest(reportAction) {
         return true;
     }
 
+    if (reportAction.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+        return false;
+    }
+
     const moneyRequestReportID = lodashGet(reportAction, 'originalMessage.IOUReportID', 0);
 
     if (!moneyRequestReportID) {
