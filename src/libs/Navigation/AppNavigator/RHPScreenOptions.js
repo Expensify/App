@@ -7,6 +7,7 @@ const RHPScreenOptions = {
     gestureDirection: 'horizontal',
     cardStyle: styles.navigationScreenCardStyle,
     cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    isInRHP: true,
 };
 
 export default RHPScreenOptions;

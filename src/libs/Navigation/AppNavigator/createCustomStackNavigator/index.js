@@ -26,6 +26,7 @@ const defaultProps = {
 };
 
 function ResponsiveStackNavigator(props) {
+    // eslint-disable-next-line rulesdir/prefer-use-responsive-for-layout
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const isSmallScreenWidthRef = useRef(isSmallScreenWidth);

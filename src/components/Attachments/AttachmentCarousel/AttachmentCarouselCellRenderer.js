@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {PixelRatio, View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import styles from '@styles/styles';
 
@@ -14,8 +15,9 @@ const defaultProps = {
 };
 
 function AttachmentCarouselCellRenderer(props) {
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
-    const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
     const style = [props.style, styles.h100, {width: PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
 
     return (

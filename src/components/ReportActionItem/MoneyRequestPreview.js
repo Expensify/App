@@ -15,6 +15,7 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
@@ -138,7 +139,8 @@ const defaultProps = {
 };
 
 function MoneyRequestPreview(props) {
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
@@ -287,7 +289,7 @@ function MoneyRequestPreview(props) {
                                     <Text
                                         style={[
                                             styles.moneyRequestPreviewAmount,
-                                            StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth),
+                                            StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, shouldUseNarrowLayout, windowWidth),
                                             isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}

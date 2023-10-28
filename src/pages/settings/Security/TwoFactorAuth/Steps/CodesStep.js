@@ -11,6 +11,7 @@ import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayTo
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
@@ -26,7 +27,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function CodesStep({account = defaultAccount}) {
     const {translate} = useLocalize();
-    const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {isExtraSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [error, setError] = useState('');
 
     const {setStep} = useTwoFactorAuthContext();
@@ -59,7 +61,7 @@ function CodesStep({account = defaultAccount}) {
                     <View style={styles.mv3}>
                         <Text>{translate('twoFactorAuth.codesLoseAccess')}</Text>
                     </View>
-                    <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
+                    <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, shouldUseNarrowLayout})}>
                         {account.isLoading ? (
                             <View style={styles.twoFactorLoadingContainer}>
                                 <ActivityIndicator color={themeColors.spinner} />

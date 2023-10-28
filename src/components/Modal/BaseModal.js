@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
@@ -52,7 +53,8 @@ function BaseModal({
     forwardedRef,
     children,
 }) {
-    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const safeAreaInsets = useSafeAreaInsets();
 
@@ -142,13 +144,13 @@ function BaseModal({
                 {
                     windowWidth,
                     windowHeight,
-                    isSmallScreenWidth,
+                    shouldUseNarrowLayout,
                 },
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
             ),
-        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, type, windowHeight, windowWidth],
+        [innerContainerStyle, shouldUseNarrowLayout, outerStyle, popoverAnchorPosition, type, windowHeight, windowWidth],
     );
 
     const {

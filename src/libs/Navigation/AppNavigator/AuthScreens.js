@@ -142,6 +142,7 @@ const defaultProps = {
 };
 
 function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo}) {
+    // eslint-disable-next-line rulesdir/prefer-use-responsive-for-layout
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
     const isInitialRender = useRef(true);

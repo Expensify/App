@@ -1,6 +1,7 @@
 import React from 'react';
 import Animated, {SensorType, useAnimatedSensor, useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 import EmptyStateBackgroundImage from '@assets/images/empty-state_background-fade.png';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -10,7 +11,8 @@ import CONST from '@src/CONST';
 const IMAGE_OFFSET_Y = 75;
 
 function AnimatedEmptyStateBackground() {
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const IMAGE_OFFSET_X = windowWidth / 2;
 
     // If window width is greater than the max background width, repeat the background image
@@ -23,7 +25,7 @@ function AnimatedEmptyStateBackground() {
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             return {};
         }
         /*
@@ -42,7 +44,7 @@ function AnimatedEmptyStateBackground() {
     return (
         <Animated.Image
             source={EmptyStateBackgroundImage}
-            style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
+            style={[StyleUtils.getReportWelcomeBackgroundImageStyle(shouldUseNarrowLayout), animatedStyles]}
             resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
         />
     );

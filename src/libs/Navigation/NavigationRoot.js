@@ -57,6 +57,7 @@ function NavigationRoot(props) {
     const globalNavigation = useContext(SidebarNavigationContext);
 
     const {updateCurrentReportID} = useCurrentReportID();
+    // eslint-disable-next-line rulesdir/prefer-use-responsive-for-layout
     const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {

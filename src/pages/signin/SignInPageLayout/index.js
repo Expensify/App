@@ -6,6 +6,7 @@ import SignInGradient from '@assets/images/home-fade-gradient.svg';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import compose from '@libs/compose';
 import SignInPageHero from '@pages/signin/SignInPageHero';
 import styles from '@styles/styles';
@@ -38,9 +39,6 @@ const propTypes = {
     /** A reference so we can expose scrollPageToTop */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
-    /** Whether or not the sign in page is being rendered in the RHP modal */
-    isInModal: PropTypes.bool,
-
     /** Override the green headline copy */
     customHeadline: PropTypes.string,
 
@@ -53,7 +51,6 @@ const propTypes = {
 
 const defaultProps = {
     innerRef: () => {},
-    isInModal: false,
     customHeadline: '',
     customHeroBody: '',
 };
@@ -63,12 +60,12 @@ function SignInPageLayout(props) {
     const prevPreferredLocale = usePrevious(props.preferredLocale);
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
-    const shouldShowSmallScreen = props.isSmallScreenWidth || props.isInModal;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // To scroll on both mobile and web, we need to set the container height manually
     const containerHeight = props.windowHeight - props.insets.top - props.insets.bottom;
 
-    if (shouldShowSmallScreen) {
+    if (shouldUseNarrowLayout) {
         containerStyles = [styles.flex1];
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
@@ -94,7 +91,7 @@ function SignInPageLayout(props) {
 
     return (
         <View style={containerStyles}>
-            {!shouldShowSmallScreen ? (
+            {!shouldUseNarrowLayout ? (
                 <View style={contentContainerStyles}>
                     <ScrollView
                         keyboardShouldPersistTaps="handled"
@@ -172,7 +169,7 @@ function SignInPageLayout(props) {
                     <View style={[styles.flex0]}>
                         <Footer
                             scrollPageToTop={scrollPageToTop}
-                            shouldShowSmallScreen
+                            shouldUseNarrowLayout
                         />
                     </View>
                 </ScrollView>

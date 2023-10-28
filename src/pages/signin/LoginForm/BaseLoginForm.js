@@ -18,6 +18,7 @@ import withNavigationFocus from '@components/withNavigationFocus';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '@components/withToggleVisibilityView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -69,9 +70,6 @@ const propTypes = {
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
-    /** Whether or not the sign in page is being rendered in the RHP modal */
-    isInModal: PropTypes.bool,
-
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 
@@ -90,10 +88,10 @@ const defaultProps = {
     closeAccount: {},
     blurOnSubmit: false,
     innerRef: () => {},
-    isInModal: false,
 };
 
 function LoginForm(props) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const input = useRef();
     const [login, setLogin] = useState(() => Str.removeSMSDomain(props.credentials.login || ''));
     const [formError, setFormError] = useState(false);
@@ -180,7 +178,7 @@ function LoginForm(props) {
             return;
         }
         let focusTimeout;
-        if (props.isInModal) {
+        if (shouldUseNarrowLayout) {
             focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             input.current.focus();

@@ -13,6 +13,7 @@ import TestToolsModal from '@components/TestToolsModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import styles from '@styles/styles';
@@ -36,7 +37,8 @@ function ScreenWrapper({
     onEntryTransitionEnd,
     testID,
 }) {
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const keyboardState = useKeyboardState();
     const {isDevelopment} = useEnvironment();
     const {isOffline} = useNetwork();
@@ -146,7 +148,7 @@ function ScreenWrapper({
                                               })
                                             : children
                                     }
-                                    {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                    {shouldUseNarrowLayout && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
                                 </PickerAvoidingView>
                             </KeyboardAvoidingView>
                         </View>

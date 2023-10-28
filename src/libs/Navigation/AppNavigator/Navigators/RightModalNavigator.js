@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
 import styles from '@styles/styles';
@@ -19,12 +19,12 @@ const propTypes = {
 };
 
 function RightModalNavigator(props) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <NoDropZone>
-            {!isSmallScreenWidth && <Overlay onPress={props.navigation.goBack} />}
-            <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
+            {!shouldUseNarrowLayout && <Overlay onPress={props.navigation.goBack} />}
+            <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
                 <Stack.Navigator screenOptions={RHPScreenOptions}>
                     <Stack.Screen
                         name="Settings"

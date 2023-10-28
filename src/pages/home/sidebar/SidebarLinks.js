@@ -12,7 +12,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -48,14 +48,14 @@ const propTypes = {
 function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen}) {
     const modal = useRef({});
     const {translate, updateLocale} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             return;
         }
         App.confirmReadyToOpenApp();
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     useEffect(() => {
         App.setSidebarLoaded();
@@ -129,13 +129,17 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             // or when continuously clicking different LHNs, only apply to small screen
             // since getTopmostReportId always returns on other devices
             const reportActionID = Navigation.getTopmostReportActionId();
-            if (isCreateMenuOpen || (option.reportID === Navigation.getTopmostReportId() && !reportActionID) || (isSmallScreenWidth && isActiveReport(option.reportID) && !reportActionID)) {
+            if (
+                isCreateMenuOpen ||
+                (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||
+                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID)
+            ) {
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
             onLinkClick();
         },
-        [isCreateMenuOpen, isSmallScreenWidth, isActiveReport, onLinkClick],
+        [isCreateMenuOpen, shouldUseNarrowLayout, isActiveReport, onLinkClick],
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
@@ -168,7 +172,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
                 data={optionListItems}
                 onSelectRow={showReportPage}
-                shouldDisableFocusOptions={isSmallScreenWidth}
+                shouldDisableFocusOptions={shouldUseNarrowLayout}
                 optionMode={viewMode}
             />
             {isLoading && <OptionsListSkeletonView shouldAnimate />}

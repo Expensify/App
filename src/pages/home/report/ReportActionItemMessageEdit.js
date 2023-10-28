@@ -16,7 +16,7 @@ import Tooltip from '@components/Tooltip';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useReportScrollManager from '@hooks/useReportScrollManager';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -83,7 +83,7 @@ function ReportActionItemMessageEdit(props) {
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const getInitialDraft = () => {
         if (props.draftMessage === props.action.message[0].html) {
@@ -341,7 +341,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const triggerSaveOrCancel = useCallback(
         (e) => {
-            if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
+            if (!e || ComposerUtils.canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
             }
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
@@ -352,7 +352,7 @@ function ReportActionItemMessageEdit(props) {
                 deleteDraft();
             }
         },
-        [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
+        [deleteDraft, isKeyboardShown, shouldUseNarrowLayout, publishDraft],
     );
 
     /**
@@ -402,7 +402,7 @@ function ReportActionItemMessageEdit(props) {
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
-                            maxLines={isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
+                            maxLines={shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
