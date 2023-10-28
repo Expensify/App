@@ -146,6 +146,83 @@ export default [
         getDescription: () => {},
     },
     {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.subscribeToThread',
+        icon: Expensicons.Bell,
+        successTextTranslateKey: '',
+        successIcon: null,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
+            let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (!childReportNotificationPreference) {
+                const isActionCreator = ReportUtils.isActionCreator(reportAction);
+                childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+            }
+            const subscribed = childReportNotificationPreference !== 'hidden';
+            const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+            const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
+            return !subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
+        },
+        onPress: (closePopover, {reportAction, reportID}) => {
+            let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (!childReportNotificationPreference) {
+                const isActionCreator = ReportUtils.isActionCreator(reportAction);
+                childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+            }
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    ReportActionComposeFocusManager.focus();
+                    Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
+                });
+                return;
+            }
+
+            ReportActionComposeFocusManager.focus();
+            Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.unsubscribeFromThread',
+        icon: Expensicons.BellSlash,
+        successTextTranslateKey: '',
+        successIcon: null,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
+            let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (!childReportNotificationPreference) {
+                const isActionCreator = ReportUtils.isActionCreator(reportAction);
+                childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+            }
+            const subscribed = childReportNotificationPreference !== 'hidden';
+            if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
+                return false;
+            }
+            const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+            const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
+            return subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
+        },
+        onPress: (closePopover, {reportAction, reportID}) => {
+            let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (!childReportNotificationPreference) {
+                const isActionCreator = ReportUtils.isActionCreator(reportAction);
+                childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+            }
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    ReportActionComposeFocusManager.focus();
+                    Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
+                });
+                return;
+            }
+
+            ReportActionComposeFocusManager.focus();
+            Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
+        },
+        getDescription: () => {},
+    },
+    {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,

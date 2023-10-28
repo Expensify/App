@@ -268,14 +268,14 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     }}
                     onKeyPress={textInputKeyPress}
                 />
+                {!_.isEmpty(formError) && (
+                    <FormHelpMessage
+                        style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
+                        isError
+                        message={translate(formError)}
+                    />
+                )}
             </View>
-            {!_.isEmpty(formError) && (
-                <FormHelpMessage
-                    style={[styles.ph5]}
-                    isError
-                    message={translate(formError)}
-                />
-            )}
             <View
                 onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
                 style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
@@ -294,7 +294,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     allowBubble={!isEditing}
                     pressOnEnter
                     medium={isExtraSmallScreenHeight}
-                    style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt2]}
+                    style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
                     onPress={submitAndNavigateToNextPage}
                     text={buttonText}
                 />

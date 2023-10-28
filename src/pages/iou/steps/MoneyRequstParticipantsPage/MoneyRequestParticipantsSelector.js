@@ -157,9 +157,10 @@ function MoneyRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = (option) => {
-        onAddParticipants([
-            {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText},
-        ]);
+        onAddParticipants(
+            [{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText}],
+            false,
+        );
         navigateToRequest();
     };
 
@@ -198,8 +199,7 @@ function MoneyRequestParticipantsSelector({
                     },
                 ];
             }
-
-            onAddParticipants(newSelectedOptions);
+            onAddParticipants(newSelectedOptions, newSelectedOptions.length !== 0);
         },
         [participants, onAddParticipants],
     );
