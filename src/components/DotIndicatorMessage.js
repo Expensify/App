@@ -1,15 +1,15 @@
-import React from 'react';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
-import styles from '../styles/styles';
-import stylePropTypes from '../styles/stylePropTypes';
-import * as StyleUtils from '../styles/StyleUtils';
+import * as StyleUtils from '@styles/StyleUtils';
+import _ from 'underscore';
+import * as Localize from '@libs/Localize';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import themeColors from '../styles/themes/default';
 import Text from './Text';
-import * as Localize from '../libs/Localize';
 
 const propTypes = {
     /**

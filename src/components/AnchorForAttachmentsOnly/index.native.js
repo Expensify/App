@@ -1,7 +1,7 @@
 import React from 'react';
+import styles from '@styles/styles';
 import * as anchorForAttachmentsOnlyPropTypes from './anchorForAttachmentsOnlyPropTypes';
 import BaseAnchorForAttachmentsOnly from './BaseAnchorForAttachmentsOnly';
-import styles from '../../styles/styles';
 
 function AnchorForAttachmentsOnly(props) {
     return (
