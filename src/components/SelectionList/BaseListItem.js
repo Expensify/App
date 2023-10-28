@@ -1,19 +1,19 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
-import {baseListItemPropTypes} from './selectionListPropTypes';
-import * as StyleUtils from '../../styles/StyleUtils';
-import UserListItem from './UserListItem';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import CONST from '../../CONST';
-import useLocalize from '../../hooks/useLocalize';
-import Text from '../Text';
+import {baseListItemPropTypes} from './selectionListPropTypes';
+import UserListItem from './UserListItem';
 
 function BaseListItem({
     item,

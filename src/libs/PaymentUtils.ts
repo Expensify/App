@@ -1,10 +1,10 @@
-import BankAccountModel from './models/BankAccount';
-import getBankIcon from '../components/Icon/BankIcons';
-import CONST from '../CONST';
+import getBankIcon from '@components/Icon/BankIcons';
+import CONST from '@src/CONST';
+import BankAccount from '@src/types/onyx/BankAccount';
+import Fund from '@src/types/onyx/Fund';
+import PaymentMethod from '@src/types/onyx/PaymentMethod';
 import * as Localize from './Localize';
-import Fund from '../types/onyx/Fund';
-import BankAccount from '../types/onyx/BankAccount';
-import PaymentMethod from '../types/onyx/PaymentMethod';
+import BankAccountModel from './models/BankAccount';
 
 type AccountType = BankAccount['accountType'] | Fund['accountType'];
 
