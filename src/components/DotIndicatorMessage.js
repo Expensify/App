@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import * as StyleUtils from '@styles/StyleUtils';
 import _ from 'underscore';
 import * as Localize from '@libs/Localize';
 import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
