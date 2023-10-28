@@ -35,12 +35,16 @@ type ReimbursementAccountSubStep = BankAccountSubStep | '';
 
 function clearPlaid(): Promise<void> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
-
+    Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, null);
     return Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
 }
 
 function openPlaidView() {
     clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
+}
+
+function setPlaidEvent(eventName: string) {
+    Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, eventName);
 }
 
 /**
@@ -433,6 +437,7 @@ export {
     clearOnfidoToken,
     clearPersonalBankAccount,
     clearPlaid,
+    setPlaidEvent,
     openPlaidView,
     connectBankAccountManually,
     connectBankAccountWithPlaid,

@@ -194,15 +194,21 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, onMouseEnt
         [child.props],
     );
 
+    // We need to access the ref of a children from both parent and current component
+    // So we pass it to current ref and assign it once again to the child ref prop
+    const hijackRef = (el) => {
+        ref.current = el;
+        assignRef(child.ref, el);
+    };
+
     if (!DeviceCapabilities.hasHoverSupport()) {
-        return child;
+        return React.cloneElement(child, {
+            ref: hijackRef,
+        });
     }
 
     return React.cloneElement(child, {
-        ref: (el) => {
-            ref.current = el;
-            assignRef(child.ref, el);
-        },
+        ref: hijackRef,
         onMouseEnter: enableHoveredOnMouseEnter,
         onMouseLeave: disableHoveredOnMouseLeave,
         onBlur: disableHoveredOnBlur,
