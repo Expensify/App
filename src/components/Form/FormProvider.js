@@ -100,7 +100,7 @@ function getInitialValueByType(valueType) {
 }
 
 function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}) {
-    const inputRefs = useRef(null);
+    const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const [inputValues, setInputValues] = useState({});
     const [errors, setErrors] = useState({});
@@ -204,8 +204,10 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
     const registerInput = useCallback(
         (inputID, propsToParse = {}) => {
-            const newRef = propsToParse.ref || createRef();
-            inputRefs[inputID] = newRef;
+            const newRef = inputRefs.current[inputID] || propsToParse.ref || createRef();
+            if (inputRefs.current[inputID] !== newRef) {
+                inputRefs.current[inputID] = newRef;
+            }
 
             if (!_.isUndefined(propsToParse.value)) {
                 inputValues[inputID] = propsToParse.value;
@@ -229,7 +231,13 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
             return {
                 ...propsToParse,
-                ref: newRef,
+                ref:
+                    typeof propsToParse.ref === 'function'
+                        ? (node) => {
+                              propsToParse.ref(node);
+                              newRef.current = node;
+                          }
+                        : newRef,
                 inputID,
                 key: propsToParse.key || inputID,
                 errorText: errors[inputID] || fieldErrorMessage,
