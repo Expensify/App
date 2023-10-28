@@ -89,6 +89,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
     const haveValidatedWaypointsChanged = !_.isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
     const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
+    const numberOfNoneEmptyWaypoints = _.filter(_.values(waypoints), (value) => !_.isEmpty(value) && TransactionUtils.waypointHasValidAddress(value)).length;
 
     useEffect(() => {
         MapboxToken.init();
@@ -150,8 +151,8 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             return ErrorUtils.getLatestErrorField(transaction, 'route');
         }
 
-        // Initially, both waypoints will be null, and if we give fallback value as empty string that will result in true condition, that's why different default values.
-        if (_.keys(waypoints).length === 2 && lodashGet(waypoints, 'waypoint0.address', 'address1') === lodashGet(waypoints, 'waypoint1.address', 'address2')) {
+        const isDuplicatedWaypoints = numberOfNoneEmptyWaypoints > _.size(validatedWaypoints) && _.size(validatedWaypoints) === 1;
+        if (isDuplicatedWaypoints) {
             return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
         }
 
