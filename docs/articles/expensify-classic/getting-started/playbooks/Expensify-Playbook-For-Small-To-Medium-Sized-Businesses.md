@@ -6,7 +6,7 @@ redirect_from: articles/playbooks/Expensify-Playbook-for-Small-to-Medium-Sized-B
 # Overview
 This guide provides practical tips and recommendations for small businesses with 100 to 250 employees to effectively use Expensify to improve spend visibility, facilitate employee reimbursements, and reduce the risk of fraudulent expenses.
 
-- See our [US-based VC-Backed Startups](https://help.expensify.com/articles/playbooks/Expensify-Playbook-for-US-based-VC-Backed-Startups) if you are more concerned with top-line revenue growth
+- See our [US-based VC-Backed Startups](https://help.expensify.com/articles/expensify-classic/getting-started/playbooks/Expensify-Playbook-For-US-Based-VC-Backed-Startups) if you are more concerned with top-line revenue growth
 
 # Who you are
 As a small to medium-sized business owner, your main aim is to achieve success and grow your business. To achieve your goals, it is crucial that you make worthwhile investments in both your workforce and your business processes. This means providing your employees with the resources they need to generate revenue effectively, while also adopting measures to guarantee that expenses are compliant.
