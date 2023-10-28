@@ -147,10 +147,10 @@ You only need to do this once: you are fully set up for not only reimbursing exp
 
 ## Step 9: Invite employees and set an approval workflow
 *Select an Approval Mode*
-We recommend you select *Advanced Approval* as your Approval Mode to set up a middle-management layer of a approval. If you have a single layer of approval, we recommend selecting [Submit & Approve](https://community.expensify.com/discussion/5643/deep-dive-submit-and-approve). But if *Advanced Approval* if your jam, keep reading! 
+We recommend you select *Advanced Approval* as your Approval Mode to set up a middle-management layer of approval. If you have a single layer of approval, we recommend selecting [Submit & Approve](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows#gsc.tab=0). But if *Advanced Approval* is your jam, keep reading! 
 
 *Import your employees in bulk via CSV*
-Given the amount of employees you have, it’s best you import employees in bulk via CSV. You can learn more about using a CSV file to bulk upload employees with *Advanced Approval [here](https://community.expensify.com/discussion/5735/deep-dive-the-ins-and-outs-of-advanced-approval)*
+Given the amount of employees you have, it’s best you import employees in bulk via CSV. You can learn more about using a CSV file to bulk upload employees with *Advanced Approval [here](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows#gsc.tab=0)*
 
 ![Bulk import your employees](https://help.expensify.com/assets/images/playbook-impoort-employees.png){:width="100%"}
 
@@ -191,7 +191,7 @@ As mentioned above, we’ll be able to pull in transactions as they post (daily)
 Expensify provides a corporate card with the following features:
 
 - Up to 2% cash back (up to 4% in your first 3 months!)
-- [SmartLimits](https://community.expensify.com/discussion/4851/deep-dive-what-are-unapproved-expense-limits#latest) to control what each individual cardholder can spend
+- [SmartLimits](https://help.expensify.com/articles/expensify-classic/expensify-card/Card-Settings) to control what each individual cardholder can spend
 - A stable, unbreakable real-time connection (third-party bank feeds can run into connectivity issues)
 - Receipt compliance - informing notifications (eg. add a receipt!) for users *as soon as the card is swiped*
 - A 50% discount on the price of all Expensify plans
@@ -202,7 +202,7 @@ The Expensify Card is recommended as the most efficient way to manage your compa
 
 Here’s how to enable it:
 
-1. There are *two ways* you can [apply for the Expensify Card](https://community.expensify.com/discussion/4874/how-to-apply-for-the-expensify-card)
+1. There are *two ways* you can [apply for the Expensify Card](https://help.expensify.com/articles/expensify-classic/expensify-card/Set-Up-the-Card-for-Your-Company)
       - *Via your tasks on the Home page* 
       - *Via Domain Settings* - Go to Settings > Domain > Company Cards > Enable Expensify Card
 2. Assign the cards to your employees
@@ -212,7 +212,7 @@ Here’s how to enable it:
 
 Once the Expensify Cards have been assigned, each employee will be prompted to enter their mailing address so they can receive their physical card. In the meantime, a virtual card will be ready to use immediately.
 
-If you have an accounting system we directly integrate with, check out how we take automation a step further with [Continuous Reconciliation](https://community.expensify.com/discussion/7335/faq-what-is-the-expensify-card-auto-reconciliation-process). We’ll create an Expensify Card clearing and liability account for you. Each time settlement occurs, we’ll take the total amount of your purchases and create a journal entry that credits the settlement account and debits the liability account - saving you hours of manual reconciliation work at the end of your statement period. 
+If you have an accounting system we directly integrate with, check out how we take automation a step further with [Continuous Reconciliation](https://help.expensify.com/articles/expensify-classic/expensify-card/Auto-Reconciliation). We’ll create an Expensify Card clearing and liability account for you. Each time settlement occurs, we’ll take the total amount of your purchases and create a journal entry that credits the settlement account and debits the liability account - saving you hours of manual reconciliation work at the end of your statement period. 
 
 ## Step 12: Set up Bill Pay and Invoicing
 As a small business, managing bills and invoices can be a complex and time-consuming task. Whether you receive bills from vendors or need to invoice clients, it's important to have a solution that makes the process simple, efficient, and cost-effective.
