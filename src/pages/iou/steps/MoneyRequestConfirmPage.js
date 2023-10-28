@@ -323,6 +323,10 @@ function MoneyRequestConfirmPage(props) {
             return props.translate('common.send');
         }
 
+        if (isScanRequest) {
+            return props.translate('tabSelector.scan');
+        }
+
         return props.translate('tabSelector.manual');
     };
 

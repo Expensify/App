@@ -459,19 +459,19 @@ function ComposerWithSuggestions({
     }, []);
 
     useEffect(() => {
-        const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
+        const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
-            KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress);
+            KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
             setUpComposeFocusManager();
         });
-        KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress);
+        KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
 
         setUpComposeFocusManager();
 
         return () => {
             ReportActionComposeFocusManager.clear(true);
 
-            KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress);
+            KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
         };

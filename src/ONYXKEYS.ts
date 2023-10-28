@@ -119,6 +119,9 @@ const ONYXKEYS = {
     /** Token needed to initialize Plaid link */
     PLAID_LINK_TOKEN: 'plaidLinkToken',
 
+    /** Capture Plaid event  */
+    PLAID_CURRENT_EVENT: 'plaidCurrentEvent',
+
     /** Token needed to initialize Onfido */
     ONFIDO_TOKEN: 'onfidoToken',
 
