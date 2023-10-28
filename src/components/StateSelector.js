@@ -55,7 +55,9 @@ function StateSelector({errorText, useStateFromUrl, value: stateCode, label, par
     const [stateToDisplay, setStateToDisplay] = useState('');
 
     useEffect(() => {
-        if (!useStateFromUrl || !stateFromUrl) return;
+        if (!useStateFromUrl || !stateFromUrl) {
+            return;
+        }
 
         // This will cause the form to revalidate and remove any error related to country name
         onInputChange(stateFromUrl);
@@ -65,7 +67,9 @@ function StateSelector({errorText, useStateFromUrl, value: stateCode, label, par
     }, [stateFromUrl, useStateFromUrl]);
 
     useEffect(() => {
-        if (!stateCode) return;
+        if (!stateCode) {
+            return;
+        }
 
         // This will cause the form to revalidate and remove any error related to country name
         onInputChange(stateCode);
