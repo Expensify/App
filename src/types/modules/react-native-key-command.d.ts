@@ -23,9 +23,9 @@ declare module 'react-native-key-command' {
         keyModifierAlternate = 'keyModifierAlternate',
     }
 
-    type KeyCommand = {input: string; modifierFlags: string};
+    type KeyCommand = {input: string; modifierFlags?: string};
 
-    declare function addListener(keyCommand: KeyCommand, callback: (keycommandEvent: KeyCommand, event: Event) => void): () => void;
+    declare function addListener(keyCommand: KeyCommand, callback: (keycommandEvent: KeyCommand, event: KeyboardEvent) => void): () => void;
 
     // eslint-disable-next-line import/prefer-default-export
     export {constants, addListener};
