@@ -157,25 +157,32 @@ function ReportActionItemFragment(props) {
                 </Text>
             );
         }
-        case 'TEXT':
-            return (
+        case 'TEXT': {
+            const textFragment = (
+                <Text
+                    numberOfLines={props.isSingleLine ? 1 : undefined}
+                    style={[
+                        styles.chatItemMessageHeaderSender,
+                        props.isSingleLine ? styles.pre : styles.preWrap,
+                        StyleUtils.getApprovedOrSubmittedReportTextStyles(props.isApprovedOrSubmittedReportAction),
+                    ]}
+                >
+                    {props.fragment.text}
+                </Text>
+            );
+
+            return props.isApprovedOrSubmittedReportAction ? (
+                textFragment
+            ) : (
                 <UserDetailsTooltip
                     accountID={props.accountID}
                     delegateAccountID={props.delegateAccountID}
                     icon={props.actorIcon}
                 >
-                    <Text
-                        numberOfLines={props.isSingleLine ? 1 : undefined}
-                        style={[
-                            styles.chatItemMessageHeaderSender,
-                            props.isSingleLine ? styles.pre : styles.preWrap,
-                            StyleUtils.getApprovedOrSubmittedReportTextStyles(props.isApprovedOrSubmittedReportAction),
-                        ]}
-                    >
-                        {props.fragment.text}
-                    </Text>
+                    {textFragment}
                 </UserDetailsTooltip>
             );
+        }
         case 'LINK':
             return <Text>LINK</Text>;
         case 'INTEGRATION_COMMENT':
