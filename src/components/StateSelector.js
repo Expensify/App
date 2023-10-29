@@ -34,7 +34,7 @@ const propTypes = {
     /** Label to display on field */
     label: PropTypes.string,
 
-    /** whether to use state from url */
+    /** whether to use state from url, for cases when url value is passed from parent */
     useStateFromUrl: PropTypes.bool,
 };
 

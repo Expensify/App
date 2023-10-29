@@ -25,7 +25,6 @@ import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
 import StateSelector from '../../components/StateSelector';
-import useGeographicalStateFromRoute from '../../hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     ...StepPropTypes,
@@ -140,8 +139,6 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
     const shouldDisableCompanyName = Boolean(bankAccountID && getDefaultStateForField('companyName'));
     const shouldDisableCompanyTaxID = Boolean(bankAccountID && getDefaultStateForField('companyTaxID'));
 
-    const incorporationState = useGeographicalStateFromRoute('incorporationState') || getDefaultStateForField('incorporationState');
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -249,11 +246,9 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     <StateSelector
                         inputID="incorporationState"
                         label={translate('companyStep.incorporationState')}
+                        defaultValue={getDefaultStateForField('incorporationState')}
                         shouldSaveDraft
                         paramName="incorporationState"
-                        useStateFromUrl={false}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...(incorporationState ? {value: incorporationState} : {})}
                     />
                 </View>
                 <CheckboxWithLabel
