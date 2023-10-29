@@ -59,6 +59,8 @@ function BaseModal({
     const isVisibleRef = useRef(isVisible);
     const wasVisible = usePrevious(isVisible);
 
+    const onCloseKey = useRef(Modal.getAvailableKey());
+
     /**
      * Hides modal
      * @param {Boolean} [callHideCallback=true] Should we call the onModalHide callback
@@ -84,10 +86,10 @@ function BaseModal({
         if (isVisible) {
             Modal.willAlertModalBecomeVisible(true);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-            Modal.setCloseModal(onClose);
+            Modal.setCloseModal(onCloseKey.current, onClose);
         } else if (wasVisible && !isVisible) {
             Modal.willAlertModalBecomeVisible(false);
-            Modal.setCloseModal(null);
+            Modal.setCloseModal(onCloseKey.current, null);
         }
     }, [isVisible, wasVisible, onClose]);
 
@@ -100,7 +102,7 @@ function BaseModal({
             hideModal(true);
             Modal.willAlertModalBecomeVisible(false);
             // To prevent closing any modal already unmounted when this modal still remains as visible state
-            Modal.setCloseModal(null);
+            Modal.setCloseModal(onCloseKey.current, null);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
