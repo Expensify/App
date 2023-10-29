@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { View } from 'react-native';
-import { Circle, Rect } from 'react-native-svg';
-import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+import {View} from 'react-native';
+import {Circle, Rect} from 'react-native-svg';
 import compose from '@libs/compose';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
@@ -11,9 +10,9 @@ import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withWindowDimensions, { windowDimensionsPropTypes } from './withWindowDimensions';
-
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     ...windowDimensionsPropTypes,

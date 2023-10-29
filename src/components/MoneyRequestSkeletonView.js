@@ -3,7 +3,7 @@ import {Rect} from 'react-native-svg';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
-import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 function MoneyRequestSkeletonView() {
     return (
