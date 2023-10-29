@@ -261,7 +261,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
         return false;
     }
 
-    // Do not group if report preview is the type of current or previous report action, but not both
+    // Do not group if one of previous / current action is report preview and another one is not report preview
     if ((isReportPreviewAction(previousAction) && !isReportPreviewAction(currentAction)) || (isReportPreviewAction(currentAction) && !isReportPreviewAction(previousAction))) {
         return false;
     }
