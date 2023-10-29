@@ -7,9 +7,9 @@ import styles from '@styles/styles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import useLocalize from '@hooks/useLocalize';
+import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import FormHelpMessage from './FormHelpMessage';
-import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     /** Form error text. e.g when no country is selected */
