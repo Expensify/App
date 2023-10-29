@@ -4,10 +4,10 @@ import Log from '@libs/Log';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
+import {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
-import {TranslationFlatObject, TranslationPaths} from '../../languages/types';
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';
