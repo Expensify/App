@@ -1,30 +1,30 @@
-import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
-import React, {useEffect, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../../ONYXKEYS';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import TabSelector from '../../components/TabSelector/TabSelector';
-import CONST from '../../CONST';
-import useLocalize from '../../hooks/useLocalize';
-import * as IOUUtils from '../../libs/IOUUtils';
-import Navigation from '../../libs/Navigation/Navigation';
-import styles from '../../styles/styles';
-import ReceiptSelector from './ReceiptSelector';
-import * as IOU from '../../libs/actions/IOU';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TabSelector from '@components/TabSelector/TabSelector';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import compose from '@libs/compose';
+import * as IOUUtils from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import * as ReportUtils from '@libs/ReportUtils';
+import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import NewDistanceRequestPage from './NewDistanceRequestPage';
-import DragAndDropProvider from '../../components/DragAndDrop/Provider';
-import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
+import ReceiptSelector from './ReceiptSelector';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
-import withReportOrNotFound from '../home/report/withReportOrNotFound';
-import compose from '../../libs/compose';
-import reportPropTypes from '../reportPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
-import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** React Navigation route */
@@ -157,7 +157,7 @@ export default compose(
     withReportOrNotFound(false),
     withOnyx({
         selectedTab: {
-            key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
         },
     }),
 )(MoneyRequestSelectorPage);

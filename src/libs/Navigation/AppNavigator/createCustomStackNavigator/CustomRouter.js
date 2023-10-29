@@ -1,8 +1,8 @@
-import _ from 'underscore';
 import {StackRouter} from '@react-navigation/native';
 import lodashFindLast from 'lodash/findLast';
-import NAVIGATORS from '../../../../NAVIGATORS';
-import SCREENS from '../../../../SCREENS';
+import _ from 'underscore';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 
 /**
  * @param {Object} state - react-navigation state
@@ -12,11 +12,11 @@ const isAtLeastOneCentralPaneNavigatorInState = (state) => _.find(state.routes, 
 
 /**
  * @param {Object} state - react-navigation state
- * @returns {String|undefined}
+ * @returns {String}
  */
 const getTopMostReportIDFromRHP = (state) => {
     if (!state) {
-        return;
+        return '';
     }
     const topmostRightPane = lodashFindLast(state.routes, (route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
@@ -33,6 +33,8 @@ const getTopMostReportIDFromRHP = (state) => {
     if (topmostRoute.params && topmostRoute.params.reportID) {
         return topmostRoute.params.reportID;
     }
+
+    return '';
 };
 /**
  * Adds report route without any specific reportID to the state.

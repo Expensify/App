@@ -1,10 +1,10 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import * as Task from '../../libs/actions/Task';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import * as Task from '@userActions/Task';
 
 const propTypes = {
     /** Name of the reportAction action */
