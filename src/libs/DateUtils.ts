@@ -1,29 +1,28 @@
-import {zonedTimeToUtc, utcToZonedTime, formatInTimeZone} from 'date-fns-tz';
-import {es, enGB} from 'date-fns/locale';
 import {
-    formatDistanceToNow,
-    subMinutes,
     addDays,
-    subDays,
-    isBefore,
-    subMilliseconds,
-    startOfWeek,
+    endOfDay,
     endOfWeek,
     format,
-    setDefaultOptions,
-    endOfDay,
-    isSameDay,
+    formatDistanceToNow,
     isAfter,
+    isBefore,
+    isSameDay,
     isSameYear,
+    setDefaultOptions,
+    startOfWeek,
+    subDays,
+    subMilliseconds,
+    subMinutes,
 } from 'date-fns';
-
-import Onyx from 'react-native-onyx';
+import {formatInTimeZone, utcToZonedTime, zonedTimeToUtc} from 'date-fns-tz';
+import {enGB, es} from 'date-fns/locale';
 import throttle from 'lodash/throttle';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
-import * as Localize from './Localize';
+import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {Timezone} from '@src/types/onyx/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
-import {Timezone} from '../types/onyx/PersonalDetails';
+import * as Localize from './Localize';
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({

@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Sets the selected tab for a given tab ID

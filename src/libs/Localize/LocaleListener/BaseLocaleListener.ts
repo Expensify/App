@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
 import BaseLocale, {LocaleListenerConnect} from './types';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 let preferredLocale: BaseLocale = CONST.LOCALES.DEFAULT;
 
