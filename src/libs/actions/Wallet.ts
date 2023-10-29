@@ -2,9 +2,9 @@ import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
-import * as OnyxCommon from '../../types/onyx/OnyxCommon';
-import {WalletAdditionalQuestionsDetails} from '../../types/onyx';
+import CONST from '@src/CONST';
+import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import {WalletAdditionalQuestionsDetails} from '@src/types/onyx';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID
