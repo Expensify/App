@@ -7,9 +7,9 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
-import CONST from '@src/CONST';
 
 const propTypes = {
     /** The report action */
