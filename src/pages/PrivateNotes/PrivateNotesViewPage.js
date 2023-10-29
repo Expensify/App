@@ -1,25 +1,25 @@
-import React from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import withLocalize from '../../components/withLocalize';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import ROUTES from '../../ROUTES';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import reportPropTypes from '../reportPropTypes';
-import personalDetailsPropType from '../personalDetailsPropType';
-import useLocalize from '../../hooks/useLocalize';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
-import CONST from '../../CONST';
-import * as ReportUtils from '../../libs/ReportUtils';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** All of the personal details for everyone */

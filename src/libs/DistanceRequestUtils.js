@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 

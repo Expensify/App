@@ -1,9 +1,9 @@
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
+import * as API from '@libs/API';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
 import * as OnyxCommon from '../../types/onyx/OnyxCommon';
-import * as API from '../API';
 import {WalletAdditionalQuestionsDetails} from '../../types/onyx';
 
 /**
