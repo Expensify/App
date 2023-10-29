@@ -1,7 +1,7 @@
 import Config from 'react-native-config';
-import Environment from './types';
 import betaChecker from '@libs/Environment/betaChecker';
 import CONST from '@src/CONST';
+import Environment from './types';
 
 let environment: Environment | null = null;
 
