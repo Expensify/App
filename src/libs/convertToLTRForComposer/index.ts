@@ -13,10 +13,7 @@ const convertToLTRForComposer: ConvertToLTRForComposer = (text) => {
     // character at the start which leads to unexpected behaviour for Emoji/Mention suggestions.
     if (!hasRTLCharacters(text)) {
         // If text is empty string return empty string to avoid an empty draft due to special character.
-        if (text === '' || text.startsWith(CONST.UNICODE.LTR)) {
-            return '';
-        }
-        return text;
+        return text.replace(CONST.UNICODE.LTR, '');
     }
 
     // Check if the text contains only spaces. If it does, we do not concatenate it with CONST.UNICODE.LTR,
