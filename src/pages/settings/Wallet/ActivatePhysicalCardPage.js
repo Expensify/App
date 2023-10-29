@@ -1,31 +1,31 @@
-import React, {useRef, useCallback, useState, useEffect} from 'react';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Text from '../../../components/Text';
-import Navigation from '../../../libs/Navigation/Navigation';
-import styles from '../../../styles/styles';
-import MagicCodeInput from '../../../components/MagicCodeInput';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
-import * as CardSettings from '../../../libs/actions/Card';
-import BigNumberPad from '../../../components/BigNumberPad';
-import Button from '../../../components/Button';
-import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
-import themeColors from '../../../styles/themes/default';
-import SCREENS from '../../../SCREENS';
-import * as LottieAnimations from '../../../components/LottieAnimations';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
-import ONYXKEYS from '../../../ONYXKEYS';
-import useLocalize from '../../../hooks/useLocalize';
-import ROUTES from '../../../ROUTES';
-import CONST from '../../../CONST';
+import BigNumberPad from '@components/BigNumberPad';
+import Button from '@components/Button';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import * as LottieAnimations from '@components/LottieAnimations';
+import MagicCodeInput from '@components/MagicCodeInput';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as CardUtils from '@libs/CardUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as CardSettings from '@userActions/Card';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import assignedCardPropTypes from './assignedCardPropTypes';
-import * as CardUtils from '../../../libs/CardUtils';
-import useNetwork from '../../../hooks/useNetwork';
-import NotFoundPage from '../../ErrorPage/NotFoundPage';
 
 const propTypes = {
     /* Onyx Props */
@@ -78,7 +78,7 @@ function ActivatePhysicalCardPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
     }, [cardID, cardList, domain, physicalCard.isLoading]);
 
     useEffect(
@@ -131,7 +131,7 @@ function ActivatePhysicalCardPage({
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain))}
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}

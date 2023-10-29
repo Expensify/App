@@ -3,11 +3,11 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
-import styles from '../../styles/styles';
+import Tooltip from '@components/Tooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import ControlSelection from '@libs/ControlSelection';
+import styles from '@styles/styles';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
-import ControlSelection from '../../libs/ControlSelection';
-import Tooltip from '../Tooltip';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** React-native-reanimated lib handler which executes when the user is panning slider */

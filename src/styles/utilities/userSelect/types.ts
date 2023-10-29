@@ -1,5 +1,5 @@
-import {CSSProperties} from 'react';
+import {TextStyle} from 'react-native';
 
-type UserSelectStyles = Record<'userSelectText' | 'userSelectNone', Partial<Pick<CSSProperties, 'userSelect' | 'WebkitUserSelect'>>>;
+type UserSelectStyles = Record<'userSelectText' | 'userSelectNone', Pick<TextStyle, 'userSelect' | 'WebkitUserSelect'>>;
 
 export default UserSelectStyles;

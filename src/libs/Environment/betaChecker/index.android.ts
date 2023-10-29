@@ -1,19 +1,16 @@
-import semver from 'semver';
 import Onyx from 'react-native-onyx';
-import CONST from '../../../CONST';
+import semver from 'semver';
+import * as AppUpdate from '@userActions/AppUpdate';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../../../package.json';
-import ONYXKEYS from '../../../ONYXKEYS';
-import * as AppUpdate from '../../actions/AppUpdate';
 import IsBetaBuild from './types';
 
 let isLastSavedBeta = false;
 Onyx.connect({
     key: ONYXKEYS.IS_BETA,
     callback: (value) => {
-        if (!value) {
-            return;
-        }
-        isLastSavedBeta = value;
+        isLastSavedBeta = Boolean(value);
     },
 });
 
