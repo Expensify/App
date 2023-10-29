@@ -1,14 +1,14 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../../../../styles/styles';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Timing from '../../../../libs/actions/Timing';
-import CONST from '../../../../CONST';
-import Performance from '../../../../libs/Performance';
-import * as Browser from '../../../../libs/Browser';
-import GlobalNavigation from '../GlobalNavigation';
-import SubNavigation from '../SubNavigation/SubNavigation';
+import ScreenWrapper from '@components/ScreenWrapper';
+import * as Browser from '@libs/Browser';
+import Performance from '@libs/Performance';
+import GlobalNavigation from '@pages/home/sidebar/GlobalNavigation';
+import SubNavigation from '@pages/home/sidebar/SubNavigation/SubNavigation';
+import styles from '@styles/styles';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Children to wrap (floating button). */

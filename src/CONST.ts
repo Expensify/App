@@ -171,6 +171,10 @@ const CONST = {
             ERROR: {
                 TOO_MANY_ATTEMPTS: 'Too many attempts',
             },
+            EVENTS_NAME: {
+                OPEN: 'OPEN',
+                EXIT: 'EXIT',
+            },
         },
         ERROR: {
             MISSING_ROUTING_NUMBER: '402 Missing routingNumber',
@@ -254,7 +258,6 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_CATEGORIES: 'newDotCategories',
         NEW_DOT_TAGS: 'newDotTags',
         NEW_DOT_SAML: 'newDotSAML',
     },

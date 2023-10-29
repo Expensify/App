@@ -1,11 +1,11 @@
+import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import * as API from '../API';
-import * as ReportUtils from '../ReportUtils';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
+import * as API from '@libs/API';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 let currentUserEmail;
 Onyx.connect({

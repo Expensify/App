@@ -1,12 +1,12 @@
-import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import styles from '../../../../styles/styles';
-import SidebarLinksData from '../SidebarLinksData';
-import Timing from '../../../../libs/actions/Timing';
-import CONST from '../../../../CONST';
-import Performance from '../../../../libs/Performance';
-import safeAreaInsetPropTypes from '../../../safeAreaInsetPropTypes';
+import Performance from '@libs/Performance';
+import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
+import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
+import styles from '@styles/styles';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Function called when a pinned chat is selected. */
