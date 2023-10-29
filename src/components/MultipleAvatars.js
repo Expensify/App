@@ -1,16 +1,16 @@
-import React, {memo, useMemo} from 'react';
 import PropTypes from 'prop-types';
+import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import Avatar from './Avatar';
-import Tooltip from './Tooltip';
-import Text from './Text';
-import themeColors from '../styles/themes/default';
-import * as StyleUtils from '../styles/StyleUtils';
-import CONST from '../CONST';
-import variables from '../styles/variables';
 import avatarPropTypes from './avatarPropTypes';
+import Text from './Text';
+import Tooltip from './Tooltip';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
 const propTypes = {
