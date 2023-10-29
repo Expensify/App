@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 
 const commonListItemPropTypes = {
     /** Whether this item is focused (for arrow key controls) */

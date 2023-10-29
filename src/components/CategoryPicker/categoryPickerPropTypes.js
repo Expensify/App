@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import categoryPropTypes from '../categoryPropTypes';
+import categoryPropTypes from '@components/categoryPropTypes';
 
 const propTypes = {
     /** The policyID we are getting categories for */

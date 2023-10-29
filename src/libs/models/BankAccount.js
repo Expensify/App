@@ -1,8 +1,8 @@
-import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
-import CONST from '../../CONST';
+import _ from 'underscore';
+import CONST from '@src/CONST';
 
 class BankAccount {
     static STATE = {
