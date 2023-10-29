@@ -1,6 +1,6 @@
 import React from 'react';
-import Animated, {AnimatedStyle, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {StyleProp, ViewStyle} from 'react-native';
+import Animated, {AnimatedStyle, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import variables from '@styles/variables';
 
