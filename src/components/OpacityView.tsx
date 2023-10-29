@@ -1,8 +1,8 @@
 import React from 'react';
 import Animated, {AnimatedStyle, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {StyleProp, ViewStyle} from 'react-native';
-import variables from '../styles/variables';
-import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
+import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
+import variables from '@styles/variables';
 
 type OpacityViewProps = {
     /**
@@ -19,7 +19,7 @@ type OpacityViewProps = {
      * Array of style objects
      * @default []
      */
-    style: StyleProp<AnimatedStyle<ViewStyle>>;
+    style?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /**
      * The value to use for the opacity when the view is dimmed

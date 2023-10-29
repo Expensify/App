@@ -1,16 +1,16 @@
-import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {withNetwork} from '../../../components/OnyxProvider';
-import networkPropTypes from '../../../components/networkPropTypes';
-import compose from '../../../libs/compose';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Text from '../../../components/Text';
-import TextWithEllipsis from '../../../components/TextWithEllipsis';
+import _ from 'underscore';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import Text from '@components/Text';
+import TextWithEllipsis from '@components/TextWithEllipsis';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import styles from '@styles/styles';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Key-value pairs of user accountIDs/logins and whether or not they are typing. Keys are accountIDs or logins. */

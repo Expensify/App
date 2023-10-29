@@ -1,20 +1,19 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-
-import * as TestHelper from '../utils/TestHelper';
-import HttpUtils from '../../src/libs/HttpUtils';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import _ from 'underscore';
 import CONST from '../../src/CONST';
-import * as Network from '../../src/libs/Network';
-import * as NetworkStore from '../../src/libs/Network/NetworkStore';
-import * as Session from '../../src/libs/actions/Session';
-import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
-import Log from '../../src/libs/Log';
-import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as App from '../../src/libs/actions/App';
-import NetworkConnection from '../../src/libs/NetworkConnection';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
+import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
+import * as Session from '../../src/libs/actions/Session';
+import HttpUtils from '../../src/libs/HttpUtils';
+import Log from '../../src/libs/Log';
+import * as Network from '../../src/libs/Network';
+import * as MainQueue from '../../src/libs/Network/MainQueue';
+import * as NetworkStore from '../../src/libs/Network/NetworkStore';
+import NetworkConnection from '../../src/libs/NetworkConnection';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('../../src/libs/Log');
 

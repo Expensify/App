@@ -1,12 +1,12 @@
 import Onyx from 'react-native-onyx';
+import HttpUtils from '../../src/libs/HttpUtils';
+import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as NetworkStore from '../../src/libs/Network/NetworkStore';
-import * as Request from '../../src/libs/Request';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
+import * as Request from '../../src/libs/Request';
+import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import * as MainQueue from '../../src/libs/Network/MainQueue';
-import HttpUtils from '../../src/libs/HttpUtils';
 
 Onyx.init({
     keys: ONYXKEYS,

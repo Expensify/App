@@ -1,14 +1,14 @@
 import {createRef} from 'react';
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
-import ONYXKEYS, {OnyxValues} from '../../ONYXKEYS';
-import * as API from '../API';
-import CONST from '../../CONST';
-import Navigation from '../Navigation/Navigation';
-import * as CardUtils from '../CardUtils';
-import ROUTES from '../../ROUTES';
-import {FilterMethodPaymentType} from '../../types/onyx/WalletTransfer';
-import PaymentMethod from '../../types/onyx/PaymentMethod';
+import * as API from '@libs/API';
+import * as CardUtils from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
+import ONYXKEYS, {OnyxValues} from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import PaymentMethod from '@src/types/onyx/PaymentMethod';
+import {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
 type KYCWallRef = {
     continue?: () => void;
@@ -22,14 +22,14 @@ const kycWallRef = createRef<KYCWallRef>();
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
  */
-function continueSetup() {
+function continueSetup(fallbackRoute = ROUTES.HOME) {
     if (!kycWallRef.current?.continue) {
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack(fallbackRoute);
         return;
     }
 
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
-    Navigation.goBack(ROUTES.HOME);
+    Navigation.goBack(fallbackRoute);
     kycWallRef.current.continue();
 }
 

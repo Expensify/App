@@ -1,10 +1,10 @@
 import React from 'react';
-import CONST from '../CONST';
-import Badge from './Badge';
-import styles from '../styles/styles';
-import * as Environment from '../libs/Environment/Environment';
+import useEnvironment from '@hooks/useEnvironment';
+import * as Environment from '@libs/Environment/Environment';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import pkg from '../../package.json';
-import useEnvironment from '../hooks/useEnvironment';
+import Badge from './Badge';
 
 const ENVIRONMENT_SHORT_FORM = {
     [CONST.ENVIRONMENT.DEV]: 'DEV',
