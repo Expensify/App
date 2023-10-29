@@ -1,4 +1,4 @@
-import CONST from '@src/CONST';
+import CONST from '../../CONST';
 import ConvertToLTRForComposer from './types';
 
 function hasRTLCharacters(text: string): boolean {
@@ -9,10 +9,11 @@ function hasRTLCharacters(text: string): boolean {
 
 // Converts a given text to ensure it starts with the LTR (Left-to-Right) marker.
 const convertToLTRForComposer: ConvertToLTRForComposer = (text) => {
-    // Ensure that the text starts with RTL characters if not we return the same text to avoid concatination with special character at the start which leads to unexpected behaviour for Emoji/Mention suggestions.
+    // Ensure that the text starts with RTL characters if not we return the same text to avoid concatination with special
+    // character at the start which leads to unexpected behaviour for Emoji/Mention suggestions.
     if (!hasRTLCharacters(text)) {
         // If text is empty string return empty string to avoid an empty draft due to special character.
-        if (text === '' || CONST.UNICODE.LTR.match(text)) {
+        if (text === '' || text.startsWith(CONST.UNICODE.LTR)) {
             return '';
         }
         return text;
