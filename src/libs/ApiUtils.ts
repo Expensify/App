@@ -1,5 +1,5 @@
-import {ValueOf} from 'type-fest';
 import Onyx from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
