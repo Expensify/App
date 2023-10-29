@@ -4,12 +4,6 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddressSearch from '@components/AddressSearch';
 import CountrySelector from '@components/CountrySelector';
@@ -28,6 +22,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     /* Onyx Props */

@@ -3,14 +3,14 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import lodashGet from 'lodash/get';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import SelectionList from '../../../../components/SelectionList';
-import searchCountryOptions from '../../../../libs/searchCountryOptions';
-import StringUtils from '../../../../libs/StringUtils';
-import useLocalize from '../../../../hooks/useLocalize';
-import styles from '../../../../styles/styles';
+import Navigation from '@libs/Navigation/Navigation';
+import ScreenWrapper from '@components/ScreenWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import SelectionList from '@components/SelectionList';
+import searchCountryOptions from '@libs/searchCountryOptions';
+import StringUtils from '@libs/StringUtils';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
 
 const propTypes = {
     /** Route from navigation */
