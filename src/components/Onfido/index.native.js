@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import onfidoPropTypes from './onfidoPropTypes';
-import getPlatform from '../../libs/getPlatform';
+import getPlatform from '@libs/getPlatform';
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
     const {translate} = useLocalize();
