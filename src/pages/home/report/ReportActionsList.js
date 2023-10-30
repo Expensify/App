@@ -365,7 +365,7 @@ function ReportActionsList({
         if (!markerFound) {
             setCurrentUnreadMarker(null);
         }
-    }, [sortedReportActions, report.lastReadTime, , report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
+    }, [sortedReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (
