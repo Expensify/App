@@ -101,6 +101,19 @@ Onyx.connect({
     },
 });
 
+let isInFocusMode = false;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: (priorityMode) => isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD,
+});
+
+// In order to tell if the user has been asked to upgrade for their current device we will set an Onyx key with the current device login
+let lastOfferedFocusMode = '';
+Onyx.connect({
+    key: ONYXKEYS.NVP_LAST_OFFERED_FOCUS_MODE,
+    callback: val => focusModeUpgradeRequestLogin = val,
+});
+
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -1528,6 +1541,39 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
     }
 }
 
+function promoteFocusModeUpgrade() {
+    Welcome.serverDataIsReadyPromise().then(() => {
+        // Check to see if the user is using #focus mode or if we have already asked them to upgrade on any devices.
+        if (isInFocusMode || lastOfferedFocusMode !== '') {
+            Log.info('Not offering to promote user to optimized focus mode.', false, {isInFocusMode, lastOfferedFocusMode});
+            return;
+        }
+
+        const reportCount = Object.keys(allReports).length;
+        if (reportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_PROMOTION) {
+            Log.info('Not offering to promote user to optimized focus mode as they do not have many reports', false, {reportCount});
+            return;
+        }
+
+        Log.info('Offering to promote user to focus mode', false, {reportCount});
+
+        // Record that we asked them to upgrade so we don't ask them again later.
+        const newLastOfferedTime = DateUtils.getDBTime();
+        API.write('SetLastOfferedFocusMode', {value: newLastOfferedTime}, {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.NVP_LAST_OFFERED_FOCUS_MODE,
+                    value: newLastOfferedTime,
+                },
+            ],
+        });
+
+        // Trigger modal to display
+        Onyx.set(ONYXKEYS.FOCUS_MODE_UPGRADE_REQUEST, true);
+    });
+}
+
 /**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
@@ -2540,6 +2586,7 @@ export {
     getCurrentUserAccountID,
     setLastOpenedPublicRoom,
     flagComment,
+    promoteFocusModeUpgrade,
     openLastOpenedPublicRoom,
     updatePrivateNotes,
     getReportPrivateNote,

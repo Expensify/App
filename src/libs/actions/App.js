@@ -53,6 +53,12 @@ Onyx.connect({
             // eslint-disable-next-line no-use-before-define
             openApp();
         }
+
+        // If user switches from Most recent to #focus let's drop all the reports they don't need to free up memory and improve performance.
+        if (nextPriorityMode === CONST.PRIORITY_MODE.GSD && priorityMode === CONST.PRIORITY_MODE.DEFAULT) {
+            console.log('@marcaaron focus mode enabled');
+        }
+
         priorityMode = nextPriorityMode;
     },
 });

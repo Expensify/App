@@ -584,8 +584,9 @@ function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
 /**
  * Sync user chat priority mode with Onyx and Server
  * @param {String} mode
+ * @param {boolean} [shouldNavigate]
  */
-function updateChatPriorityMode(mode) {
+function updateChatPriorityMode(mode, shouldNavigate = true) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -600,7 +601,14 @@ function updateChatPriorityMode(mode) {
         },
         {optimisticData},
     );
-    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+
+    if (shouldNavigate) {
+        Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+    }
+}
+
+function clearOfferFocusModeUpgrade() {
+    Onyx.set(ONYXKEYS.FOCUS_MODE_UPGRADE_REQUEST, false);
 }
 
 /**
@@ -844,6 +852,7 @@ function clearDraftCustomStatus() {
 }
 
 export {
+    clearOfferFocusModeUpgrade,
     closeAccount,
     resendValidateCode,
     requestContactMethodValidateCode,

@@ -193,6 +193,9 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
             App.reconnectApp(lastUpdateIDAppliedToClient);
         }
 
+        // Promote #focus mode upgrade
+        Report.promoteFocusModeUpgrade();
+
         App.setUpPoliciesAndNavigate(session);
 
         App.redirectThirdPartyDesktopSignIn();
