@@ -285,7 +285,7 @@ function extractEmojis(text: string): Emoji[] {
         return [];
     }
 
-    const emojis = [];
+    const emojis: Emoji[] = [];
 
     // Text can contain similar emojis as well as their skin tone variants. Create a Set to remove duplicate emojis from the search.
 
@@ -423,7 +423,7 @@ function suggestEmojis(text: string, lang: keyof typeof emojisTrie, limit = CONS
  * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
  */
 const getPreferredSkinToneIndex = (val: string | number): number | string => {
-    if (!!val && Number.isInteger(Number(val))) {
+    if (val !== null && Number.isInteger(Number(val))) {
         return val;
     }
 
