@@ -1358,6 +1358,7 @@ export default {
         isControllingOfficerError: 'You must be a controlling officer with authorization to operate the business bank account.',
     },
     personalInfoStep: {
+        personalInfo: 'Personal info',
         enterYourLegalFirstAndLast: 'Enter your legal first and last name.',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',

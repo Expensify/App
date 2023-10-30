@@ -13,6 +13,7 @@ import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
 import HelpLinks from '../HelpLinks';
+import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -25,26 +26,30 @@ const REQUIRED_FIELDS = [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_N
 
 const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
-function FullName(props) {
+function FullName({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
     const defaultValues = {
-        firstName: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME], ''),
-        lastName: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME], ''),
+        firstName: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME], ''),
+        lastName: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME], ''),
     };
 
-    const handleNextPress = () => {
-        // TODO save to onyx
-        props.onNext();
+    const handleSubmit = (values) => {
+        BankAccounts.updateOnyxVBBAData({
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME],
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME],
+        });
+        onNext();
     };
 
     return (
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
-            submitButtonText={translate('common.next')}
+            submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
-            onSubmit={props.onNext}
+            onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
+            submitButtonStyles={[styles.mb0]}
         >
             <View>
                 <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourLegalFirstAndLast')}</Text>

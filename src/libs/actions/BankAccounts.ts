@@ -71,6 +71,10 @@ function clearOnfidoToken() {
     Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, '');
 }
 
+function updateOnyxVBBAData(data: Record<string, string>) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: data});
+}
+
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  */
@@ -445,6 +449,7 @@ export {
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
     updatePersonalInformationForBankAccount,
+    updateOnyxVBBAData,
     openWorkspaceView,
     validateBankAccount,
     verifyIdentityForBankAccount,

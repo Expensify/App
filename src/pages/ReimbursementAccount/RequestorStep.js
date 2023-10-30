@@ -22,6 +22,7 @@ import DateOfBirth from './PersonalInfo/substeps/DateOfBirth';
 import SocialSecurityNumber from './PersonalInfo/substeps/SocialSecurityNumber';
 import Address from './PersonalInfo/substeps/Address';
 import Confirmation from './PersonalInfo/substeps/Confirmation';
+import PersonalInfo from './PersonalInfo/PersonalInfo';
 
 const propTypes = {
     onBackButtonPress: PropTypes.func.isRequired,
@@ -120,106 +121,87 @@ function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPres
     }
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={RequestorStep.displayName}
-        >
-            <HeaderWithBackButton
-                title={translate('requestorStep.headerTitle')}
-                stepCounter={STEP_COUNTER}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                onBackButtonPress={onBackButtonPress}
-                shouldShowGetAssistanceButton
-            />
-            {/*<FullName*/}
-            {/*    onNext={() => {}}*/}
-            {/*    onMove={() => {}}*/}
-            {/*    isEditing={false}*/}
-            {/*/>*/}
-            {/*<DateOfBirth*/}
-            {/*    onNext={() => {}}*/}
-            {/*    onMove={() => {}}*/}
-            {/*    isEditing={false}*/}
-            {/*/>*/}
-            {/*<SocialSecurityNumber*/}
-            {/*    onNext={() => {}}*/}
-            {/*    onMove={() => {}}*/}
-            {/*    isEditing={false}*/}
-            {/*/>*/}
-            {/*<Address*/}
-            {/*    onNext={() => {}}*/}
-            {/*    onMove={() => {}}*/}
-            {/*    isEditing={false}*/}
-            {/*/>*/}
-            <Confirmation
-                onNext={() => {}}
-                onMove={() => {}}
-                isEditing={false}
-            />
-            {/*<Form*/}
-            {/*    formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}*/}
-            {/*    submitButtonText={translate('common.saveAndContinue')}*/}
-            {/*    validate={validate}*/}
-            {/*    onSubmit={submit}*/}
-            {/*    style={[styles.mh5, styles.flexGrow1]}*/}
-            {/*    scrollContextEnabled*/}
-            {/*>*/}
-            {/*    <Text>{translate('requestorStep.subtitle')}</Text>*/}
-            {/*    <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>*/}
-            {/*        <TextLink*/}
-            {/*            style={[styles.textMicro]}*/}
-            {/*            href={CONST.BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL}*/}
-            {/*        >*/}
-            {/*            {translate('requestorStep.learnMore')}*/}
-            {/*        </TextLink>*/}
-            {/*        <Text style={[styles.textMicroSupporting]}>{' | '}</Text>*/}
-            {/*        <TextLink*/}
-            {/*            style={[styles.textMicro, styles.textLink]}*/}
-            {/*            href={CONST.PERSONAL_DATA_PROTECTION_INFO_URL}*/}
-            {/*        >*/}
-            {/*            {translate('requestorStep.isMyDataSafe')}*/}
-            {/*        </TextLink>*/}
-            {/*    </View>*/}
-            {/*    <IdentityForm*/}
-            {/*        translate={translate}*/}
-            {/*        defaultValues={defaultValues}*/}
-            {/*        inputKeys={INPUT_KEYS}*/}
-            {/*        shouldSaveDraft*/}
-            {/*    />*/}
-            {/*    <CheckboxWithLabel*/}
-            {/*        accessibilityLabel={translate('requestorStep.isControllingOfficer')}*/}
-            {/*        inputID="isControllingOfficer"*/}
-            {/*        defaultValue={getDefaultStateForField('isControllingOfficer', false)}*/}
-            {/*        LabelComponent={renderLabelComponent}*/}
-            {/*        style={[styles.mt4]}*/}
-            {/*        shouldSaveDraft*/}
-            {/*    />*/}
-            {/*    <Text style={[styles.mt3, styles.textMicroSupporting]}>*/}
-            {/*        {translate('requestorStep.onFidoConditions')}*/}
-            {/*        <TextLink*/}
-            {/*            href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}*/}
-            {/*            style={[styles.textMicro]}*/}
-            {/*        >*/}
-            {/*            {translate('onfidoStep.facialScan')}*/}
-            {/*        </TextLink>*/}
-            {/*        {', '}*/}
-            {/*        <TextLink*/}
-            {/*            href={CONST.ONFIDO_PRIVACY_POLICY_URL}*/}
-            {/*            style={[styles.textMicro]}*/}
-            {/*        >*/}
-            {/*            {translate('common.privacy')}*/}
-            {/*        </TextLink>*/}
-            {/*        {` ${translate('common.and')} `}*/}
-            {/*        <TextLink*/}
-            {/*            href={CONST.ONFIDO_TERMS_OF_SERVICE_URL}*/}
-            {/*            style={[styles.textMicro]}*/}
-            {/*        >*/}
-            {/*            {translate('common.termsOfService')}*/}
-            {/*        </TextLink>*/}
-            {/*    </Text>*/}
-            {/*</Form>*/}
+        <ScreenWrapper testID={RequestorStep.displayName}>
+            <PersonalInfo />
         </ScreenWrapper>
     );
+
+    // return (
+    //     <ScreenWrapper
+    //         includeSafeAreaPaddingBottom={false}
+    //         testID={RequestorStep.displayName}
+    //     >
+    //         <HeaderWithBackButton
+    //             title={translate('requestorStep.headerTitle')}
+    //             stepCounter={STEP_COUNTER}
+    //             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+    //             onBackButtonPress={onBackButtonPress}
+    //             shouldShowGetAssistanceButton
+    //         />
+    //         <Form
+    //             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+    //             submitButtonText={translate('common.saveAndContinue')}
+    //             validate={validate}
+    //             onSubmit={submit}
+    //             style={[styles.mh5, styles.flexGrow1]}
+    //             scrollContextEnabled
+    //         >
+    //             <Text>{translate('requestorStep.subtitle')}</Text>
+    //             <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
+    //                 <TextLink
+    //                     style={[styles.textMicro]}
+    //                     href={CONST.BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL}
+    //                 >
+    //                     {translate('requestorStep.learnMore')}
+    //                 </TextLink>
+    //                 <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
+    //                 <TextLink
+    //                     style={[styles.textMicro, styles.textLink]}
+    //                     href={CONST.PERSONAL_DATA_PROTECTION_INFO_URL}
+    //                 >
+    //                     {translate('requestorStep.isMyDataSafe')}
+    //                 </TextLink>
+    //             </View>
+    //             <IdentityForm
+    //                 translate={translate}
+    //                 defaultValues={defaultValues}
+    //                 inputKeys={INPUT_KEYS}
+    //                 shouldSaveDraft
+    //             />
+    //             <CheckboxWithLabel
+    //                 accessibilityLabel={translate('requestorStep.isControllingOfficer')}
+    //                 inputID="isControllingOfficer"
+    //                 defaultValue={getDefaultStateForField('isControllingOfficer', false)}
+    //                 LabelComponent={renderLabelComponent}
+    //                 style={[styles.mt4]}
+    //                 shouldSaveDraft
+    //             />
+    //             <Text style={[styles.mt3, styles.textMicroSupporting]}>
+    //                 {translate('requestorStep.onFidoConditions')}
+    //                 <TextLink
+    //                     href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}
+    //                     style={[styles.textMicro]}
+    //                 >
+    //                     {translate('onfidoStep.facialScan')}
+    //                 </TextLink>
+    //                 {', '}
+    //                 <TextLink
+    //                     href={CONST.ONFIDO_PRIVACY_POLICY_URL}
+    //                     style={[styles.textMicro]}
+    //                 >
+    //                     {translate('common.privacy')}
+    //                 </TextLink>
+    //                 {` ${translate('common.and')} `}
+    //                 <TextLink
+    //                     href={CONST.ONFIDO_TERMS_OF_SERVICE_URL}
+    //                     style={[styles.textMicro]}
+    //                 >
+    //                     {translate('common.termsOfService')}
+    //                 </TextLink>
+    //             </Text>
+    //         </Form>
+    //     </ScreenWrapper>
+    // );
 }
 
 RequestorStep.propTypes = propTypes;

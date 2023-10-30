@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import useLocalize from '../../../../hooks/useLocalize';
@@ -12,6 +13,8 @@ import TextLink from '../../../../components/TextLink';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import Button from '../../../../components/Button';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
+import * as ErrorUtils from '../../../../libs/ErrorUtils';
+import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -20,57 +23,58 @@ const propTypes = {
     ...subStepPropTypes,
 };
 
-function Confirmation(props) {
+function Confirmation({reimbursementAccount, onNext, onMove}) {
     const {translate} = useLocalize();
 
-    const defaultValues = {
-        firstName: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME], ''),
-        lastName: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME], ''),
-        dob: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB], ''),
-        ssnLast4: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4], ''),
-        street: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET], ''),
-        city: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY], ''),
-        state: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE], ''),
-        zipCode: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE], ''),
-    };
-    const handleConfirmPress = () => {
-        // TODO API.write
-        props.onNext();
+    const values = {
+        firstName: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME], ''),
+        lastName: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME], ''),
+        dob: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB], ''),
+        ssnLast4: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4], ''),
+        street: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET], ''),
+        city: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY], ''),
+        state: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE], ''),
+        zipCode: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE], ''),
     };
 
+    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
+
     return (
-        <ScreenWrapper testID={Confirmation.displayName}>
+        <ScreenWrapper
+            testID={Confirmation.displayName}
+            style={[styles.pt0]}
+        >
             <Text style={[styles.textHeadline, styles.ph5, styles.mb8]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
             <MenuItemWithTopDescription
                 description={translate('personalInfoStep.legalName')}
-                title={`${defaultValues.firstName} ${defaultValues.lastName}`}
+                title={`${values.firstName} ${values.lastName}`}
                 shouldShowRightIcon
                 onPress={() => {
-                    // TODO Navigate legalName
+                    onMove(0);
                 }}
             />
             <MenuItemWithTopDescription
                 description={translate('common.dob')}
-                title={defaultValues.dob}
+                title={values.dob}
                 shouldShowRightIcon
                 onPress={() => {
-                    // TODO Navigate dob
+                    onMove(1);
                 }}
             />
             <MenuItemWithTopDescription
                 description={translate('personalInfoStep.last4SSN')}
-                title={defaultValues.ssnLast4}
+                title={values.ssnLast4}
                 shouldShowRightIcon
                 onPress={() => {
-                    // TODO Navigate last4
+                    onMove(2);
                 }}
             />
             <MenuItemWithTopDescription
                 description={translate('personalInfoStep.address')}
-                title={`${defaultValues.street}, ${defaultValues.city}, ${defaultValues.state} ${defaultValues.zipCode}`}
+                title={`${values.street}, ${values.city}, ${values.state} ${values.zipCode}`}
                 shouldShowRightIcon
                 onPress={() => {
-                    // TODO Navigate address
+                    onMove(3);
                 }}
             />
 
@@ -97,12 +101,21 @@ function Confirmation(props) {
                     {translate('common.termsOfService')}
                 </TextLink>
             </Text>
-            <Button
-                success
-                style={[styles.w100, styles.mtAuto, styles.ph5]}
-                onPress={handleConfirmPress}
-                text={translate('common.confirm')}
-            />
+            <View style={[styles.ph5, styles.mtAuto]}>
+                {error.length > 0 && (
+                    <DotIndicatorMessage
+                        textStyles={[styles.formError]}
+                        type="error"
+                        messages={{0: error}}
+                    />
+                )}
+                <Button
+                    success
+                    style={[styles.w100, styles.mt2]}
+                    onPress={onNext}
+                    text={translate('common.confirm')}
+                />
+            </View>
         </ScreenWrapper>
     );
 }

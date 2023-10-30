@@ -1381,6 +1381,7 @@ export default {
     },
     // TODO get translation
     personalInfoStep: {
+        personalInfo: 'Personal info',
         enterYourLegalFirstAndLast: 'Enter your legal first and last name.',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',

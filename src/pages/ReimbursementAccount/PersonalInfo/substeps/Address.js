@@ -13,6 +13,7 @@ import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes
 import HelpLinks from '../HelpLinks';
 import AddressForm from '../../AddressForm';
 import CONST from '../../../../CONST';
+import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -49,27 +50,33 @@ const validate = (values) => {
     return errors;
 };
 
-function Address(props) {
+function Address({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
     const defaultValues = {
-        street: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET], ''),
-        city: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY], ''),
-        state: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE], ''),
-        zipCode: lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE], ''),
+        street: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET], ''),
+        city: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY], ''),
+        state: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE], ''),
+        zipCode: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE], ''),
     };
 
-    const handleNextPress = () => {
-        // TODO save to onyx
-        props.onNext();
+    const handleSubmit = (values) => {
+        BankAccounts.updateOnyxVBBAData({
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET],
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY],
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE],
+            [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE],
+        });
+        onNext();
     };
 
     return (
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
-            submitButtonText={translate('common.confirm')}
+            submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
-            onSubmit={props.onNext}
+            onSubmit={handleSubmit}
+            submitButtonStyles={[styles.mb0]}
             style={[styles.mh5, styles.flexGrow1]}
         >
             <View>

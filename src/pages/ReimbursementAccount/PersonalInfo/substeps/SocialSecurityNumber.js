@@ -13,6 +13,7 @@ import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
 import HelpLinks from '../HelpLinks';
+import * as BankAccounts from '../../../../libs/actions/BankAccounts';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -32,30 +33,30 @@ const validate = (values) => {
 
     return errors;
 };
-function SocialSecurityNumber(props) {
+function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const defaultSsnLast4 = lodashGet(props.reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4], '');
+    const defaultSsnLast4 = lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4], '');
 
-    const handleNextPress = () => {
-        // TODO save to onyx
-        props.onNext();
+    const handleSubmit = (values) => {
+        BankAccounts.updateOnyxVBBAData({[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4]: values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4]});
+        onNext();
     };
 
     return (
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
-            submitButtonText={translate('common.next')}
+            submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
-            onSubmit={props.onNext}
+            onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
+            submitButtonStyles={[styles.mb0]}
         >
             <View>
                 <Text style={[styles.textHeadline]}>{translate('personalInfoStep.enterTheLast4')}</Text>
                 <Text style={[styles.mb3]}>{translate('personalInfoStep.dontWorry')}</Text>
                 <TextInput
                     inputID={CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4}
-                    shouldSaveDraft
                     label={translate('personalInfoStep.last4SSN')}
                     accessibilityLabel={translate('personalInfoStep.last4SSN')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
