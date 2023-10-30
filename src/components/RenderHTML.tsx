@@ -1,6 +1,6 @@
 import React from 'react';
 import {RenderHTMLSource} from 'react-native-render-html';
-import useWindowDimensions from '../hooks/useWindowDimensions';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 type RenderHTMLProps = {
     /** HTML string to render */

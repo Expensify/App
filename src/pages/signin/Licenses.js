@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
-import styles from '../../styles/styles';
-import CONST from '../../CONST';
-import Text from '../../components/Text';
-import TextLink from '../../components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import LocalePicker from '../../components/LocalePicker';
+import LocalePicker from '@components/LocalePicker';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const currentYear = new Date().getFullYear();
 

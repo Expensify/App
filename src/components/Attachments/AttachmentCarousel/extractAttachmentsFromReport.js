@@ -1,11 +1,11 @@
 import {Parser as HtmlParser} from 'htmlparser2';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import * as TransactionUtils from '../../../libs/TransactionUtils';
-import * as ReceiptUtils from '../../../libs/ReceiptUtils';
-import CONST from '../../../CONST';
-import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
+import _ from 'underscore';
+import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
 
 /**
  * Constructs the initial component state from report actions
@@ -54,9 +54,10 @@ function extractAttachmentsFromReport(report, reportActions) {
             const transaction = TransactionUtils.getTransaction(transactionID);
             if (TransactionUtils.hasReceipt(transaction)) {
                 const {image} = ReceiptUtils.getThumbnailAndImageURIs(transaction);
+                const isLocalFile = typeof image === 'string' && (image.startsWith('blob:') || image.startsWith('file:'));
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(image),
-                    isAuthTokenRequired: true,
+                    isAuthTokenRequired: !isLocalFile,
                     file: {name: transaction.filename},
                     isReceipt: true,
                     transactionID,

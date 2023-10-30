@@ -1,23 +1,23 @@
-import React, {useMemo} from 'react';
-import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
+import React, {useMemo} from 'react';
+import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
-import Text from './Text';
-import styles from '../styles/styles';
-import transactionPropTypes from './transactionPropTypes';
-import * as ReceiptUtils from '../libs/ReceiptUtils';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import * as TransactionUtils from '../libs/TransactionUtils';
-import tryResolveUrlFromApiRoot from '../libs/tryResolveUrlFromApiRoot';
-import ThumbnailImage from './ThumbnailImage';
-import useLocalize from '../hooks/useLocalize';
+import EReceiptBackground from '@assets/images/eReceipt_background.svg';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 import Icon from './Icon';
-import themeColors from '../styles/themes/default';
 import * as Expensicons from './Icon/Expensicons';
-import EReceiptBackground from '../../assets/images/eReceipt_background.svg';
-import useNetwork from '../hooks/useNetwork';
 import PendingMapView from './MapView/PendingMapView';
+import Text from './Text';
+import ThumbnailImage from './ThumbnailImage';
+import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {
     /** The transaction for the distance request */
@@ -31,7 +31,7 @@ const defaultProps = {
 function DistanceEReceipt({transaction}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {thumbnail} = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename) : {};
+    const {thumbnail} = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction) : {};
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : translate('common.tbd');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
@@ -91,7 +91,8 @@ function DistanceEReceipt({transaction}) {
                                     key={key}
                                 >
                                     <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
-                                    <Text style={styles.eReceiptWaypointAddress}>{waypoint.address || ''}</Text>
+                                    {waypoint.name && <Text style={styles.eReceiptWaypointAddress}>{waypoint.name}</Text>}
+                                    {waypoint.address && <Text style={styles.textLabelSupporting}>{waypoint.address}</Text>}
                                 </View>
                             );
                         })}

@@ -2,7 +2,7 @@ import React, {forwardRef} from 'react';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import CellRendererComponent from './CellRendererComponent';
 
-export default forwardRef((props, ref) => (
+const BaseInvertedFlatListWithRef = forwardRef((props, ref) => (
     <BaseInvertedFlatList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
@@ -16,3 +16,7 @@ export default forwardRef((props, ref) => (
         removeClippedSubviews={false}
     />
 ));
+
+BaseInvertedFlatListWithRef.displayName = 'BaseInvertedFlatListWithRef';
+
+export default BaseInvertedFlatListWithRef;
