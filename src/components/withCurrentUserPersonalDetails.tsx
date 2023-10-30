@@ -1,11 +1,11 @@
 import React, {ComponentType, ForwardedRef, RefAttributes, useMemo} from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
-import ONYXKEYS from '../ONYXKEYS';
-import personalDetailsPropType from '../pages/personalDetailsPropType';
-import type {PersonalDetails, Session} from '../types/onyx';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetails, Session} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxProvider';
-import CONST from '../CONST';
 
 type CurrentUserPersonalDetails = PersonalDetails | Record<string, never>;
 
