@@ -23,7 +23,7 @@ afterEach(() => {
 });
 
 const getMockedReportActionsMap = (reportsLength = 10, actionsPerReportLength = 100) => {
-    const mockReportActions = Array.from({length: actionsPerReportLength}, (_, i) => {
+    const mockReportActions = Array.from({length: actionsPerReportLength}, (_reportAction, i) => {
         const reportActionKey = i + 1;
         const email = `actor+${reportActionKey}@mail.com`;
         const reportAction = LHNTestUtils.getFakeReportAction(email);
@@ -31,7 +31,7 @@ const getMockedReportActionsMap = (reportsLength = 10, actionsPerReportLength = 
         return {[reportActionKey]: reportAction};
     });
 
-    const reportKeysMap = Array.from({length: reportsLength}, (__, i) => {
+    const reportKeysMap = Array.from({length: reportsLength}, (_report, i) => {
         const key = i + 1;
 
         return {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key}`]: _.assign({}, ...mockReportActions)};
