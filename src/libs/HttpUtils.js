@@ -3,6 +3,7 @@ import _ from 'underscore';
 import alert from '@components/Alert';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import * as NetworkActions from './actions/Network';
 import * as ApiUtils from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 
@@ -44,6 +45,7 @@ const regex = /[?&]command=([^&]+)/;
  */
 function processHTTPRequest(url, method = 'get', body = null, canCancel = true) {
     const startTime = new Date().valueOf();
+
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: canCancel ? cancellationController.signal : undefined,
