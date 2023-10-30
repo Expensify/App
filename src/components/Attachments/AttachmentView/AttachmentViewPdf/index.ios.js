@@ -11,6 +11,7 @@ function AttachmentViewPdf(props) {
     );
 }
 
+
 AttachmentViewPdf.propTypes = attachmentViewPdfPropTypes;
 AttachmentViewPdf.defaultProps = attachmentViewPdfDefaultProps;
 

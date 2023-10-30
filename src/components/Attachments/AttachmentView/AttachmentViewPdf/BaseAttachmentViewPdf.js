@@ -4,6 +4,7 @@ import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCa
 import PDFView from '@components/PDFView';
 import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
 
+
 const propTypes = {
     /** Updates the scale value of the pdf */
     updateScale: PropTypes.func,
