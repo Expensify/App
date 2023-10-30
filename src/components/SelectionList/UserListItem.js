@@ -1,11 +1,11 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
-import styles from '../../styles/styles';
-import Text from '../Text';
+import SubscriptAvatar from '@components/SubscriptAvatar';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import styles from '@styles/styles';
 import {userListItemPropTypes} from './selectionListPropTypes';
-import Tooltip from '../Tooltip';
-import SubscriptAvatar from '../SubscriptAvatar';
 
 function UserListItem({item, isFocused = false, showTooltip}) {
     return (

@@ -1,7 +1,7 @@
-import React, {forwardRef, createContext, useEffect, useState, useMemo} from 'react';
-import {Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
+import React, {createContext, forwardRef, useEffect, useMemo, useState} from 'react';
+import {Keyboard} from 'react-native';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
 
 const KeyboardStateContext = createContext(null);
 const keyboardStatePropTypes = {

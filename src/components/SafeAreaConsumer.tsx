@@ -1,7 +1,7 @@
 import React from 'react';
-import {EdgeInsets, SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import type {DimensionValue} from 'react-native';
-import * as StyleUtils from '../styles/StyleUtils';
+import {EdgeInsets, SafeAreaInsetsContext} from 'react-native-safe-area-context';
+import * as StyleUtils from '@styles/StyleUtils';
 
 type ChildrenProps = {
     paddingTop?: DimensionValue;

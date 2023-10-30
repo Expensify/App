@@ -1,24 +1,24 @@
-import React, {useRef, useMemo, useState, memo} from 'react';
-import {InteractionManager, View} from 'react-native';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
+import React, {memo, useMemo, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
-import ContextMenuItem from '../../../../components/ContextMenuItem';
-import {propTypes as genericReportActionContextMenuPropTypes, defaultProps as GenericReportActionContextMenuDefaultProps} from './genericReportActionContextMenuPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import _ from 'underscore';
+import ContextMenuItem from '@components/ContextMenuItem';
+import {withBetas} from '@components/OnyxProvider';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useNetwork from '@hooks/useNetwork';
+import compose from '@libs/compose';
+import getReportActionContextMenuStyles from '@styles/getReportActionContextMenuStyles';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
-import compose from '../../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import {withBetas} from '../../../../components/OnyxProvider';
-import * as Session from '../../../../libs/actions/Session';
+import {defaultProps as GenericReportActionContextMenuDefaultProps, propTypes as genericReportActionContextMenuPropTypes} from './genericReportActionContextMenuPropTypes';
 import {hideContextMenu} from './ReportActionContextMenu';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
-import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
-import useKeyboardShortcut from '../../../../hooks/useKeyboardShortcut';
-import useNetwork from '../../../../hooks/useNetwork';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */

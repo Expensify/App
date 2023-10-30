@@ -1,13 +1,13 @@
+import isEmpty from 'lodash/isEmpty';
+import omit from 'lodash/omit';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import isEmpty from 'lodash/isEmpty';
-import omit from 'lodash/omit';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
-import getComponentDisplayName from '../../libs/getComponentDisplayName';
-import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import compose from '@libs/compose';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import ONYXKEYS from '@src/ONYXKEYS';
+import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 
 export default function (WrappedComponent) {
     const propTypes = {
@@ -46,13 +46,15 @@ export default function (WrappedComponent) {
     WithPolicyAndFullscreenLoading.defaultProps = defaultProps;
     WithPolicyAndFullscreenLoading.displayName = `WithPolicyAndFullscreenLoading(${getComponentDisplayName(WrappedComponent)})`;
 
-    const withPolicyAndFullscreenLoading = React.forwardRef((props, ref) => (
+    const WithPolicyAndFullscreenLoadingWithRef = React.forwardRef((props, ref) => (
         <WithPolicyAndFullscreenLoading
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithPolicyAndFullscreenLoadingWithRef.displayName = 'WithPolicyAndFullscreenLoadingWithRef';
 
     return compose(
         withPolicy,
@@ -61,5 +63,5 @@ export default function (WrappedComponent) {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
             },
         }),
-    )(withPolicyAndFullscreenLoading);
+    )(WithPolicyAndFullscreenLoadingWithRef);
 }
