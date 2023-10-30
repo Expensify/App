@@ -11,12 +11,18 @@ import OptionsList from '@components/OptionsList';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import setSelection from '@libs/setSelection';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
+import colors from '@styles/colors';
+import Icon from '@components/Icon';
+import {Info} from '@components/Icon/Expensicons';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
@@ -183,7 +189,7 @@ class BaseOptionsSelector extends Component {
     }
 
     handleReferralModal() {
-        this.setState({shouldShowReferralModal: !this.state.shouldShowReferralModal});
+        this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
     }
 
     subscribeToKeyboardShortcut() {

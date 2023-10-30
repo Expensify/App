@@ -1,19 +1,30 @@
 import React from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
-import Navigation from '../libs/Navigation/Navigation';
-import useLocalize from '../hooks/useLocalize';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Text from '../components/Text';
-import {PaymentHands} from '../components/Icon/Illustrations';
-import CONST from '../CONST';
-import TextLink from '../components/TextLink';
-import styles from '../styles/styles';
-import Button from '../components/Button';
-import FixedFooter from '../components/FixedFooter';
-import Icon from '../components/Icon';
-import NotFoundPage from '../pages/ErrorPage/NotFoundPage';
+import PropTypes from 'prop-types';
+import Navigation from '@libs/Navigation/Navigation';
+import useLocalize from '@hooks/useLocalize';
+import ScreenWrapper from '@components/ScreenWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Text from '@components/Text';
+import {PaymentHands} from '@components/Icon/Illustrations';
+import CONST from '@src/CONST';
+import TextLink from '@components/TextLink';
+import styles from '@styles/styles';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+import Icon from '@components/Icon';
+import NotFoundPage from './ErrorPage/NotFoundPage';
+
+const propTypes = {
+    /** Navigation route context info provided by react navigation */
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            /** The type of the content from where CTA was called */
+            contentType: PropTypes.string,
+        }),
+    }).isRequired,
+};
 
 function ReferralDetailsPage({route}) {
     const {translate} = useLocalize();
@@ -60,5 +71,6 @@ function ReferralDetailsPage({route}) {
 }
 
 ReferralDetailsPage.displayName = 'ReferralDetailsPage';
+ReferralDetailsPage.propTypes = propTypes;
 
 export default ReferralDetailsPage;
