@@ -44,16 +44,11 @@ const propTypes = {
 
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
-
-    // Commenting it for the future migration to TS as its not used now but we have it in Props
-    // /** Beta features list */
-    // betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     selectedTab: CONST.TAB.SCAN,
     report: {},
-    // betas: [],
 };
 
 function MoneyRequestSelectorPage(props) {
