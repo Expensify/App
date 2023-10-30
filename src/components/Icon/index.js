@@ -1,10 +1,10 @@
+import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import themeColors from '../../styles/themes/default';
-import variables from '../../styles/variables';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
 import IconWrapperStyles from './IconWrapperStyles';
 
 const propTypes = {

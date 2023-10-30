@@ -1,19 +1,14 @@
-import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import * as Illustrations from '../../../../../components/Icon/Illustrations';
-import styles from '../../../../../styles/styles';
-import BlockingView from '../../../../../components/BlockingViews/BlockingView';
-import FixedFooter from '../../../../../components/FixedFooter';
-import Button from '../../../../../components/Button';
-import variables from '../../../../../styles/variables';
-import StepWrapper from '../StepWrapper/StepWrapper';
-import useLocalize from '../../../../../hooks/useLocalize';
-import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
-import {TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes';
-import ONYXKEYS from '../../../../../ONYXKEYS';
-import Navigation from '../../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../../ROUTES';
-import CONST from '../../../../../CONST';
+import React from 'react';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+import * as Illustrations from '@components/Icon/Illustrations';
+import useLocalize from '@hooks/useLocalize';
+import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import ROUTES from '@src/ROUTES';
 
 function DisabledStep({account}) {
     const {translate} = useLocalize();

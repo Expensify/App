@@ -1,15 +1,11 @@
-import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import ConfirmationPage from '../../../../../components/ConfirmationPage';
-import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
-import * as LottieAnimations from '../../../../../components/LottieAnimations';
-import StepWrapper from '../StepWrapper/StepWrapper';
-import useLocalize from '../../../../../hooks/useLocalize';
-import Navigation from '../../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../../ROUTES';
-import CONST from '../../../../../CONST';
-import ONYXKEYS from '../../../../../ONYXKEYS';
-import {TwoFactorAuthPropTypes, defaultAccount} from '../TwoFactorAuthPropTypes';
+import React from 'react';
+import ConfirmationPage from '@components/ConfirmationPage';
+import * as LottieAnimations from '@components/LottieAnimations';
+import useLocalize from '@hooks/useLocalize';
+import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
+import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 function SuccessStep({account = defaultAccount}) {
     const {translate} = useLocalize();
