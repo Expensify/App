@@ -25,12 +25,12 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import ReportActionItemImages from './ReportActionItemImages';
 
 const propTypes = {
@@ -107,6 +107,8 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const managerID = props.iouReport.managerID || 0;
@@ -212,7 +214,7 @@ function ReportPreview(props) {
                             {hasErrors && (
                                 <Icon
                                     src={Expensicons.DotIndicator}
-                                    fill={themeColors.danger}
+                                    fill={theme.danger}
                                 />
                             )}
                         </View>
@@ -223,7 +225,7 @@ function ReportPreview(props) {
                                     <View style={styles.defaultCheckmarkWrapper}>
                                         <Icon
                                             src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
+                                            fill={theme.iconSuccessFill}
                                         />
                                     </View>
                                 )}

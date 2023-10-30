@@ -5,8 +5,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -41,6 +41,7 @@ const defaultProps = {
 };
 
 function ValueSelectorModal({currentValue, items, selectedItem, label, isVisible, onClose, onItemSelected}) {
+    const styles = useThemeStyles();
     const [sectionsData, setSectionsData] = useState([]);
 
     useEffect(() => {

@@ -23,11 +23,11 @@ import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -60,6 +60,7 @@ const defaultProps = {
 };
 
 function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     // We need to edit the note in markdown format, but display it in HTML format

@@ -3,10 +3,10 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import AttachmentModal from './AttachmentModal';
 import Avatar from './Avatar';
 import avatarPropTypes from './avatarPropTypes';
@@ -22,6 +22,8 @@ const defaultProps = {
 };
 
 function RoomHeaderAvatars(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     if (!props.icons.length) {
         return null;
     }
@@ -45,7 +47,7 @@ function RoomHeaderAvatars(props) {
                         <Avatar
                             source={props.icons[0].source}
                             imageStyles={[styles.avatarLarge]}
-                            fill={themeColors.iconSuccessFill}
+                            fill={theme.iconSuccessFill}
                             size={CONST.AVATAR_SIZE.LARGE}
                             name={props.icons[0].name}
                             type={props.icons[0].type}
@@ -89,7 +91,7 @@ function RoomHeaderAvatars(props) {
                                 >
                                     <Avatar
                                         source={icon.source}
-                                        fill={themeColors.iconSuccessFill}
+                                        fill={theme.iconSuccessFill}
                                         size={CONST.AVATAR_SIZE.LARGE}
                                         containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                         name={icon.name}

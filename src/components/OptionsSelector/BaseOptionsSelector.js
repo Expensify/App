@@ -15,8 +15,8 @@ import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import setSelection from '@libs/setSelection';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
@@ -37,13 +37,14 @@ const propTypes = {
 
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
     shouldDelayFocus: false,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
-    listContainerStyles: [styles.flex1],
+    listContainerStyles: [this.props.themeStyles.flex1],
     listStyles: [],
     ...optionsSelectorDefaultProps,
 };
@@ -441,8 +442,24 @@ class BaseOptionsSelector extends Component {
 
         const optionsAndInputsBelowThem = (
             <>
-                <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
-                <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
+                <View
+                    style={[
+                        this.props.themeStyles.flexGrow0,
+                        this.props.themeStyles.flexShrink1,
+                        this.props.themeStyles.flexBasisAuto,
+                        this.props.themeStyles.w100,
+                        this.props.themeStyles.flexRow,
+                    ]}
+                >
+                    {optionsList}
+                </View>
+                <View
+                    style={
+                        this.props.shouldUseStyleForChildren
+                            ? [this.props.themeStyles.ph5, this.props.themeStyles.pv5, this.props.themeStyles.flexGrow1, this.props.themeStyles.flexShrink0]
+                            : []
+                    }
+                >
                     {this.props.children}
                     {this.props.shouldShowTextInput && textInput}
                 </View>
@@ -457,18 +474,18 @@ class BaseOptionsSelector extends Component {
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
                 shouldResetIndexOnEndReached={false}
             >
-                <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
+                <View style={[this.props.themeStyles.flexGrow1, this.props.themeStyles.flexShrink1, this.props.themeStyles.flexBasisAuto]}>
                     {/*
                      * The OptionsList component uses a SectionList which uses a VirtualizedList internally.
                      * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
                      * To work around this, we wrap the OptionsList component with a horizontal ScrollView.
                      */}
                     {this.props.shouldTextInputAppearBelowOptions && this.props.shouldAllowScrollingChildren && (
-                        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                        <ScrollView contentContainerStyle={[this.props.themeStyles.flexGrow1]}>
                             <ScrollView
                                 horizontal
                                 bounces={false}
-                                contentContainerStyle={[styles.flex1, styles.flexColumn]}
+                                contentContainerStyle={[this.props.themeStyles.flex1, this.props.themeStyles.flexColumn]}
                             >
                                 {optionsAndInputsBelowThem}
                             </ScrollView>
@@ -479,13 +496,13 @@ class BaseOptionsSelector extends Component {
 
                     {!this.props.shouldTextInputAppearBelowOptions && (
                         <>
-                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
+                            <View style={this.props.shouldUseStyleForChildren ? [this.props.themeStyles.ph5, this.props.themeStyles.pb3] : []}>
                                 {this.props.children}
                                 {this.props.shouldShowTextInput && textInput}
                                 {Boolean(this.props.textInputAlert) && (
                                     <FormHelpMessage
                                         message={this.props.textInputAlert}
-                                        style={[styles.mb3]}
+                                        style={[this.props.themeStyles.mb3]}
                                         isError={false}
                                     />
                                 )}
@@ -499,7 +516,7 @@ class BaseOptionsSelector extends Component {
                         {shouldShowDefaultConfirmButton && (
                             <Button
                                 success
-                                style={[styles.w100]}
+                                style={[this.props.themeStyles.w100]}
                                 text={defaultConfirmButtonText}
                                 onPress={this.props.onConfirmSelection}
                                 pressOnEnter
@@ -517,4 +534,4 @@ class BaseOptionsSelector extends Component {
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
 
-export default compose(withLocalize, withNavigationFocus)(BaseOptionsSelector);
+export default compose(withLocalize, withNavigationFocus, withThemeStyles)(BaseOptionsSelector);

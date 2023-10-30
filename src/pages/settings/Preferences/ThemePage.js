@@ -9,11 +9,11 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -27,6 +27,7 @@ const defaultProps = {
 };
 
 function ThemePage(props) {
+    const styles = useThemeStyles();
     const localesToThemes = _.map(_.values(_.omit(CONST.THEME, 'DEFAULT')), (theme) => ({
         value: theme,
         text: props.translate(`themePage.themes.${theme}.label`),

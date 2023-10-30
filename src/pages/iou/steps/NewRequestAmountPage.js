@@ -15,11 +15,11 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
 
 const propTypes = {
@@ -55,6 +55,7 @@ const defaultProps = {
 };
 
 function NewRequestAmountPage({route, iou, report, selectedTab}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);

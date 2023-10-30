@@ -10,10 +10,10 @@ import UnorderedList from '@components/UnorderedList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import userPropTypes from '@pages/settings/userPropTypes';
-import styles from '@styles/styles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Information about the logged in user's account */
@@ -27,6 +27,7 @@ const defaultProps = {
 };
 
 function WorkspaceCardVBANoECardView(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <Section

@@ -3,10 +3,10 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import getStyledTextArray from '@libs/GetStyledTextArray';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Avatar from './Avatar';
 import avatarPropTypes from './avatarPropTypes';
@@ -59,6 +59,8 @@ const defaultProps = {
 const keyExtractor = (item) => item.alternateText;
 
 function MentionSuggestions(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     /**
      * Render a suggestion menu item component.
      * @param {Object} item
@@ -77,7 +79,7 @@ function MentionSuggestions(props) {
                         size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
                         name={item.icons[0].name}
                         type={item.icons[0].type}
-                        fill={themeColors.success}
+                        fill={theme.success}
                         fallbackIcon={item.icons[0].fallbackIcon}
                     />
                 </View>

@@ -2,8 +2,8 @@ import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
+import useThemeStyles from '@styles/useThemeStyles';
 import Checkbox from './Checkbox';
 import FormHelpMessage from './FormHelpMessage';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -84,6 +84,7 @@ const defaultProps = {
 };
 
 function CheckboxWithLabel(props) {
+    const styles = useThemeStyles();
     // We need to pick the first value that is strictly a boolean
     // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
     const [isChecked, setIsChecked] = useState(() => _.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value)));

@@ -19,11 +19,11 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
@@ -55,6 +55,7 @@ const defaultProps = {
 };
 
 function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';

@@ -13,9 +13,9 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Beta features list */
@@ -86,6 +86,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     isDistanceRequest,
 }) {
+    const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
         recentReports: [],

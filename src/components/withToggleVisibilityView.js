@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import refPropTypes from './refPropTypes';
 
 const toggleVisibilityViewPropTypes = {
@@ -12,6 +12,7 @@ const toggleVisibilityViewPropTypes = {
 
 export default function (WrappedComponent) {
     function WithToggleVisibilityView(props) {
+        const styles = useThemeStyles();
         return (
             <View style={!props.isVisible && styles.visuallyHidden}>
                 <WrappedComponent

@@ -13,11 +13,11 @@ import withLocalize from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import Log from '@libs/Log';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import * as CanvasSize from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
 
@@ -263,13 +263,13 @@ class PDFView extends Component {
 
     renderPDFView() {
         const pageWidth = this.calculatePageWidth();
-        const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
+        const outerContainerStyle = [this.props.themeStyles.w100, this.props.themeStyles.h100, this.props.themeStyles.justifyContentCenter, this.props.themeStyles.alignItemsCenter];
 
         // If we're requesting a password then we need to hide - but still render -
         // the PDF component.
         const pdfContainerStyle = this.state.shouldRequestPassword
-            ? [styles.PDFView, styles.noSelect, this.props.style, styles.invisible]
-            : [styles.PDFView, styles.noSelect, this.props.style];
+            ? [this.props.themeStyles.PDFView, this.props.themeStyles.noSelect, this.props.style, this.props.themeStyles.invisible]
+            : [this.props.themeStyles.PDFView, this.props.themeStyles.noSelect, this.props.style];
 
         return (
             <View style={outerContainerStyle}>
@@ -297,7 +297,7 @@ class PDFView extends Component {
                         {this.state.pageViewports.length > 0 && (
                             <List
                                 outerRef={this.setListAttributes}
-                                style={styles.PDFViewList}
+                                style={this.props.themeStyles.PDFViewList}
                                 width={this.props.isSmallScreenWidth ? pageWidth : this.state.containerWidth}
                                 height={this.state.containerHeight}
                                 estimatedItemSize={this.calculatePageHeight(0)}
@@ -326,7 +326,7 @@ class PDFView extends Component {
         return this.props.onPress ? (
             <PressableWithoutFeedback
                 onPress={this.props.onPress}
-                style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
+                style={[this.props.themeStyles.flex1, this.props.themeStyles.flexRow, this.props.themeStyles.alignSelfStretch]}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}
             >
@@ -355,4 +355,5 @@ export default compose(
             key: ONYXKEYS.MAX_CANVAS_WIDTH,
         },
     }),
+    withThemeStyles,
 )(PDFView);

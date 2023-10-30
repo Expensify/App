@@ -11,11 +11,11 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
 
 const propTypes = {
@@ -44,6 +44,7 @@ const defaultProps = {
 };
 
 function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
     const optionsSelectorRef = useRef();

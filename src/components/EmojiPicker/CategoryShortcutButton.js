@@ -5,11 +5,11 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The emoji code of the category header */
@@ -23,6 +23,8 @@ const propTypes = {
 };
 
 function CategoryShortcutButton(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isHighlighted, setIsHighlighted] = useState(false);
 
@@ -41,7 +43,7 @@ function CategoryShortcutButton(props) {
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Icon
-                    fill={themeColors.icon}
+                    fill={theme.icon}
                     src={props.icon}
                     height={variables.iconSizeNormal}
                     width={variables.iconSizeNormal}

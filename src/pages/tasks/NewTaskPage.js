@@ -18,10 +18,10 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Task Creation Data */
@@ -64,6 +64,7 @@ const defaultProps = {
 };
 
 function NewTaskPage(props) {
+    const styles = useThemeStyles();
     const [assignee, setAssignee] = useState({});
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([props.task.assigneeAccountID], props.personalDetails), false);
     const [shareDestination, setShareDestination] = useState({});

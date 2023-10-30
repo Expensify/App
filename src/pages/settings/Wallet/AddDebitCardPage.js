@@ -18,11 +18,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import styles from '@styles/styles';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /* Onyx Props */
@@ -42,6 +42,7 @@ const defaultProps = {
 };
 
 function DebitCardPage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
     const nameOnCardRef = useRef(null);

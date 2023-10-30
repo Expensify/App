@@ -9,9 +9,9 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import Banner from './Banner';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
@@ -50,6 +50,7 @@ const defaultProps = {
 };
 
 function ArchivedReportFooter(props) {
+    const styles = useThemeStyles();
     const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
     let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [props.report.ownerAccountID, 'displayName']);
 

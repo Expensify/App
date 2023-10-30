@@ -10,9 +10,9 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import * as Browser from '@libs/Browser';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Transaction default description value */
@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const descriptionInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);

@@ -26,14 +26,14 @@ import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import containerComposeStyles from '@styles/containerComposeStyles';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import {defaultProps, propTypes} from './composerWithSuggestionsProps';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
@@ -105,6 +105,8 @@ function ComposerWithSuggestions({
     isNextModalWillOpenRef,
     editFocused,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
@@ -532,7 +534,7 @@ function ComposerWithSuggestions({
                     ref={setTextInputRef}
                     textAlignVertical="top"
                     placeholder={inputPlaceholder}
-                    placeholderTextColor={themeColors.placeholderText}
+                    placeholderTextColor={theme.placeholderText}
                     onChangeText={(commentValue) => updateComment(commentValue, true)}
                     onKeyPress={triggerHotkeyActions}
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}

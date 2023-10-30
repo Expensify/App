@@ -22,12 +22,12 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** React Navigation route */
@@ -61,6 +61,7 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmPage(props) {
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {windowWidth} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);

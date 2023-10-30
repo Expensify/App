@@ -16,11 +16,11 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -44,6 +44,7 @@ const updateDisplayName = (values) => {
 };
 
 function DisplayNamePage(props) {
+    const styles = useThemeStyles();
     const currentUserDetails = props.currentUserPersonalDetails || {};
 
     /**

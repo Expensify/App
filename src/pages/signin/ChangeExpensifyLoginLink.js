@@ -7,9 +7,9 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The credentials of the logged in person */
@@ -31,6 +31,7 @@ const defaultProps = {
 };
 
 function ChangeExpensifyLoginLink(props) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
             {!_.isEmpty(props.credentials.login) && <Text style={styles.mr1}>{props.translate('loginForm.notYou', {user: props.formatPhoneNumber(props.credentials.login)})}</Text>}

@@ -2,11 +2,11 @@ import PropTypes from 'prop-types';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import Avatar from './Avatar';
 import avatarPropTypes from './avatarPropTypes';
 import Text from './Text';
@@ -58,7 +58,7 @@ const propTypes = {
 const defaultProps = {
     icons: [],
     size: CONST.AVATAR_SIZE.DEFAULT,
-    secondAvatarStyle: [StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)],
+    secondAvatarStyle: [StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)],
     fallbackIcon: undefined,
     shouldStackHorizontally: false,
     shouldDisplayAvatarsInRows: false,
@@ -86,6 +86,8 @@ const avatarSizeToStylesMap = {
     },
 };
 function MultipleAvatars(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     let avatarContainerStyles = StyleUtils.getContainerStyles(props.size, props.isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[props.size] || avatarSizeToStylesMap.default, [props.size]);
 
@@ -137,7 +139,7 @@ function MultipleAvatars(props) {
                     <Avatar
                         source={props.icons[0].source}
                         size={props.size}
-                        fill={themeColors.iconSuccessFill}
+                        fill={theme.iconSuccessFill}
                         name={props.icons[0].name}
                         type={props.icons[0].type}
                         fallbackIcon={props.icons[0].fallbackIcon}
@@ -187,7 +189,7 @@ function MultipleAvatars(props) {
                                             StyleUtils.getAvatarBorderWidth(props.size),
                                         ]}
                                         source={icon.source || props.fallbackIcon}
-                                        fill={themeColors.iconSuccessFill}
+                                        fill={theme.iconSuccessFill}
                                         size={props.size}
                                         name={icon.name}
                                         type={icon.type}
@@ -213,7 +215,7 @@ function MultipleAvatars(props) {
                                         }),
 
                                         // Set overlay background color with RGBA value so that the text will not inherit opacity
-                                        StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),
+                                        StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                                         StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
                                         props.icons[3].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[3].type) : {},
                                     ]}
@@ -230,7 +232,9 @@ function MultipleAvatars(props) {
                                             selectable={false}
                                             style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}
                                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                        >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
+                                        >
+                                            {`+${avatars.length - props.maxAvatarsInRow}`}
+                                        </Text>
                                     </View>
                                 </View>
                             </Tooltip>
@@ -252,7 +256,7 @@ function MultipleAvatars(props) {
                             <View>
                                 <Avatar
                                     source={props.icons[0].source || props.fallbackIcon}
-                                    fill={themeColors.iconSuccessFill}
+                                    fill={theme.iconSuccessFill}
                                     size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
                                     name={props.icons[0].name}
@@ -280,7 +284,7 @@ function MultipleAvatars(props) {
                                     <View>
                                         <Avatar
                                             source={props.icons[1].source || props.fallbackIcon}
-                                            fill={themeColors.iconSuccessFill}
+                                            fill={theme.iconSuccessFill}
                                             size={avatarSize}
                                             imageStyles={[singleAvatarStyle]}
                                             name={props.icons[1].name}

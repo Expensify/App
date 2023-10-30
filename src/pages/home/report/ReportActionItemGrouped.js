@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Children view component for this action item */
@@ -17,6 +17,7 @@ const defaultProps = {
 };
 
 function ReportActionItemGrouped(props) {
+    const styles = useThemeStyles();
     return (
         <View style={props.wrapperStyles}>
             <View style={[styles.chatItemRightGrouped]}>{props.children}</View>

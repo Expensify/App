@@ -2,8 +2,8 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
 import useNativeDriver from '@libs/useNativeDriver';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
@@ -23,6 +23,7 @@ const OFFSET_X = {
 };
 
 function Switch(props) {
+    const styles = useThemeStyles();
     const offsetX = useRef(new Animated.Value(props.isOn ? OFFSET_X.ON : OFFSET_X.OFF));
 
     useEffect(() => {

@@ -7,10 +7,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import RadioListItem from './RadioListItem';
 import {baseListItemPropTypes} from './selectionListPropTypes';
 import UserListItem from './UserListItem';
@@ -25,6 +25,8 @@ function BaseListItem({
     onSelectRow,
     onDismissError = () => {},
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
@@ -71,7 +73,7 @@ function BaseListItem({
                                 {item.isSelected && (
                                     <Icon
                                         src={Expensicons.Checkmark}
-                                        fill={themeColors.textLight}
+                                        fill={theme.textLight}
                                         height={14}
                                         width={14}
                                     />
@@ -94,7 +96,7 @@ function BaseListItem({
                             <View>
                                 <Icon
                                     src={Expensicons.Checkmark}
-                                    fill={themeColors.success}
+                                    fill={theme.success}
                                 />
                             </View>
                         </View>

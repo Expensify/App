@@ -21,11 +21,11 @@ import compose from '@libs/compose';
 import BankAccount from '@libs/models/BankAccount';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import Enable2FAPrompt from './Enable2FAPrompt';
 import EnableStep from './EnableStep';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
@@ -74,6 +74,7 @@ const filterInput = (amount) => {
 };
 
 function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account}) {
+    const styles = useThemeStyles();
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}

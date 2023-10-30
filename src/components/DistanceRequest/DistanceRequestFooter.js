@@ -13,10 +13,10 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import styles from '@styles/styles';
-import theme from '@styles/themes/default';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const MAX_WAYPOINTS = 25;
 
@@ -55,6 +55,8 @@ const defaultProps = {
     transaction: {},
 };
 function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navigateToWaypointEditPage}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 

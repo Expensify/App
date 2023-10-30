@@ -4,8 +4,8 @@ import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepCont
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import styles from '@styles/styles';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import useThemeStyles from '@styles/useThemeStyles';
 import StepWrapperPropTypes from './StepWrapperPropTypes';
 
 function StepWrapper({
@@ -16,6 +16,7 @@ function StepWrapper({
     shouldEnableKeyboardAvoidingView = true,
     onEntryTransitionEnd,
 }) {
+    const styles = useThemeStyles();
     const shouldShowStepCounter = Boolean(stepCounter);
 
     const {animationDirection} = useAnimatedStepContext();

@@ -3,8 +3,8 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
 import * as Task from '@userActions/Task';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Name of the reportAction action */
@@ -18,6 +18,7 @@ const propTypes = {
 };
 
 function TaskAction(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>

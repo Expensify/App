@@ -9,8 +9,8 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import DateUtils from '@libs/DateUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import styles from '@styles/styles';
 import * as Chronos from '@userActions/Chronos';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The ID of the report */
@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 function ChronosOOOListActions(props) {
+    const styles = useThemeStyles();
     const events = lodashGet(props.action, 'originalMessage.events', []);
 
     if (!events.length) {

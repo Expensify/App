@@ -23,11 +23,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
 const propTypes = {
@@ -68,6 +68,8 @@ const defaultProps = {
 };
 
 function ReceiptSelector({route, transactionID, iou, report}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const iouType = lodashGet(route, 'params.iouType', '');
 
     // Grouping related states
@@ -176,9 +178,10 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={themeColors.textSupporting}
+                        color={theme.textSupporting}
                     />
                 )}
+
                 {cameraPermissionState === 'denied' && (
                     <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
                         <Icon
@@ -222,7 +225,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                                 height={32}
                                 width={32}
                                 src={Expensicons.Gallery}
-                                fill={themeColors.textSupporting}
+                                fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>
                     )}
@@ -249,7 +252,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                         height={32}
                         width={32}
                         src={Expensicons.Bolt}
-                        fill={isFlashLightOn ? themeColors.iconHovered : themeColors.textSupporting}
+                        fill={isFlashLightOn ? theme.iconHovered : theme.textSupporting}
                     />
                 </PressableWithFeedback>
             </View>

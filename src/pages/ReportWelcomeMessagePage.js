@@ -15,11 +15,11 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import reportPropTypes from './reportPropTypes';
 import {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
@@ -45,6 +45,7 @@ const defaultProps = {
 };
 
 function ReportWelcomeMessagePage(props) {
+    const styles = useThemeStyles();
     const parser = new ExpensiMark();
     const [welcomeMessage, setWelcomeMessage] = useState(() => parser.htmlToMarkdown(props.report.welcomeMessage));
     const welcomeMessageInputRef = useRef(null);

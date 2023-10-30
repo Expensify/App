@@ -10,11 +10,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
@@ -46,6 +46,7 @@ const defaultProps = {
 };
 
 function MoneyRequestMerchantPage({iou, route}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef(null);
     const iouType = lodashGet(route, 'params.iouType', '');

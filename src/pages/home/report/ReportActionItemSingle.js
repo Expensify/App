@@ -22,12 +22,12 @@ import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -83,6 +83,8 @@ const showWorkspaceDetails = (reportID) => {
 };
 
 function ReportActionItemSingle(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
     let {displayName} = personalDetails[actorAccountID] || {};
@@ -169,10 +171,7 @@ function ReportActionItemSingle(props) {
                     icons={[icon, secondaryAvatar]}
                     isInReportAction
                     shouldShowTooltip
-                    secondAvatarStyle={[
-                        StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG),
-                        props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG) : undefined,
-                    ]}
+                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.highlightBG) : undefined]}
                 />
             );
         }
@@ -251,9 +250,12 @@ function ReportActionItemSingle(props) {
                                 <Text
                                     style={styles.userReportStatusEmoji}
                                     numberOfLines={1}
-                                >{`${status.emojiCode}`}</Text>
+                                >
+                                    {`${status.emojiCode}`}
+                                </Text>
                             </Tooltip>
                         )}
+
                         <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}

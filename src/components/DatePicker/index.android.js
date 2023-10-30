@@ -3,11 +3,12 @@ import moment from 'moment';
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import TextInput from '@components/TextInput';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import {defaultProps, propTypes} from './datepickerPropTypes';
 
 function DatePicker({value, defaultValue, label, placeholder, errorText, containerStyles, disabled, onBlur, onInputChange, maxDate, minDate}, outerRef) {
+    const styles = useThemeStyles();
     const ref = useRef();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);

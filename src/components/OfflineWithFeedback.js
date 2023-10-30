@@ -5,9 +5,9 @@ import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import MessagesRow from './MessagesRow';
 
 /**
@@ -92,6 +92,7 @@ function applyStrikeThrough(children) {
 }
 
 function OfflineWithFeedback(props) {
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
     const hasErrors = !_.isEmpty(props.errors);

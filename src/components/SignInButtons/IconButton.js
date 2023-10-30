@@ -4,8 +4,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The on press method */
@@ -33,6 +33,7 @@ const providerData = {
 };
 
 function IconButton({onPress, translate, provider}) {
+    const styles = useThemeStyles();
     return (
         <PressableWithoutFeedback
             onPress={onPress}

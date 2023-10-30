@@ -30,9 +30,9 @@ function googleSignInRequest() {
                 Log.alert(`[Google Sign In] Google sign in failed: ${error}`);
             }
             /** The logged code is useful for debugging any new errors that are not specifically handled. To decode, see:
-              - The common status codes documentation: https://developers.google.com/android/reference/com/google/android/gms/common/api/CommonStatusCodes
-              - The Google Sign In codes documentation: https://developers.google.com/android/reference/com/google/android/gms/auth/api/signin/GoogleSignInStatusCodes
-            */
+      - The common status codes documentation: https://developers.google.com/android/reference/com/google/android/gms/common/api/CommonStatusCodes
+      - The Google Sign In codes documentation: https://developers.google.com/android/reference/com/google/android/gms/auth/api/signin/GoogleSignInStatusCodes
+    */
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
                 Log.info('[Google Sign In] Google Sign In cancelled');
             } else {

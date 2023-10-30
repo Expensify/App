@@ -14,10 +14,10 @@ import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import editedLabelStyles from '@styles/editedLabelStyles';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 
 const propTypes = {
@@ -90,6 +90,8 @@ const defaultProps = {
 };
 
 function ReportActionItemFragment(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     switch (props.fragment.type) {
         case 'COMMENT': {
             const {html, text} = props.fragment;
@@ -142,7 +144,7 @@ function ReportActionItemFragment(props) {
                             </Text>
                             <Text
                                 fontSize={variables.fontSizeSmall}
-                                color={themeColors.textSupporting}
+                                color={theme.textSupporting}
                                 style={[editedLabelStyles, isPendingDelete ? styles.offlineFeedback.deleted : undefined, ...props.style]}
                             >
                                 {props.translate('reportActionCompose.edited')}

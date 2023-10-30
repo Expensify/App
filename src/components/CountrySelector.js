@@ -3,8 +3,8 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
@@ -33,6 +33,7 @@ const defaultProps = {
 };
 
 function CountrySelector({errorText, value: countryCode, onInputChange, forwardedRef}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';

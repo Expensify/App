@@ -2,15 +2,16 @@ import React, {useState} from 'react';
 import withWindowDimensions from '@components/withWindowDimensions';
 import StatusBar from '@libs/StatusBar';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
 import BaseModal from './BaseModal';
 import {defaultProps, propTypes} from './modalPropTypes';
 
 function Modal(props) {
+    const theme = useTheme();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState();
 
-    const setStatusBarColor = (color = themeColors.appBG) => {
+    const setStatusBarColor = (color = theme.appBG) => {
         if (!props.fullscreen) {
             return;
         }
@@ -29,7 +30,7 @@ function Modal(props) {
             props.type === CONST.MODAL.MODAL_TYPE.CENTERED || props.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE || props.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
         setPreviousStatusBarColor(statusBarColor);
         // If it is a full screen modal then match it with appBG, otherwise we use the backdrop color
-        setStatusBarColor(isFullScreenModal ? themeColors.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
+        setStatusBarColor(isFullScreenModal ? theme.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
         props.onModalShow();
     };
 

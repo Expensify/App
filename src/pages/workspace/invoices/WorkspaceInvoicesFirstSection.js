@@ -6,8 +6,8 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
 import * as Link from '@userActions/Link';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -17,6 +17,7 @@ const propTypes = {
 };
 
 function WorkspaceInvoicesFirstSection(props) {
+    const styles = useThemeStyles();
     const sendInvoiceUrl = encodeURI('reports?param={"createInvoice":true}');
     const viewAllInvoicesUrl = `reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`;
 

@@ -17,11 +17,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import userPropTypes from '@pages/settings/userPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The session of the logged in person */
@@ -58,6 +58,8 @@ const menuItems = [
 ];
 
 function LoungeAccessPage(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     if (!props.user.hasLoungeAccess) {
@@ -66,7 +68,7 @@ function LoungeAccessPage(props) {
 
     const overlayContent = () => (
         <LinearGradient
-            colors={[`${themeColors.loungeAccessOverlay}00`, themeColors.loungeAccessOverlay]}
+            colors={[`${theme.loungeAccessOverlay}00`, theme.loungeAccessOverlay]}
             style={[styles.pAbsolute, styles.w100, styles.h100]}
         >
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pt5, styles.ph5]}>

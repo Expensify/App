@@ -3,14 +3,15 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
 
 function FailedKYC(props) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.ph5]}>

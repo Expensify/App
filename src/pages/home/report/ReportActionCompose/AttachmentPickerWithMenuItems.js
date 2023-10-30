@@ -14,12 +14,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Beta features list */
@@ -117,6 +117,7 @@ function AttachmentPickerWithMenuItems({
     onItemSelected,
     actionButtonRef,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
 

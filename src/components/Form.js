@@ -8,9 +8,9 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import FormSubmit from './FormSubmit';
 import networkPropTypes from './networkPropTypes';
@@ -107,6 +107,7 @@ const defaultProps = {
 };
 
 function Form(props) {
+    const styles = useThemeStyles();
     const [errors, setErrors] = useState({});
     const [inputValues, setInputValues] = useState(() => ({...props.draftValues}));
     const formRef = useRef(null);

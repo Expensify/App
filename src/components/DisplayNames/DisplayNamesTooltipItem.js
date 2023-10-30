@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     index: PropTypes.number,
@@ -45,6 +45,7 @@ const defaultProps = {
 };
 
 function DisplayNamesTooltipItem({index, getTooltipShiftX, accountID, avatar, login, displayName, textStyles, childRefs}) {
+    const styles = useThemeStyles();
     const tooltipIndexBridge = useCallback(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
 
     return (

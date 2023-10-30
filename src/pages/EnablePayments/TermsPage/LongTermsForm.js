@@ -7,8 +7,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import * as Localize from '@libs/Localize';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const termsData = [
     {
@@ -77,6 +77,7 @@ const getLongTermsSections = () =>
     ));
 
 function LongTermsForm() {
+    const styles = useThemeStyles();
     return (
         <>
             <CollapsibleSection title={Localize.translateLocal('termsStep.longTermsForm.listOfAllFees')}>{getLongTermsSections()}</CollapsibleSection>

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import Text from './Text';
 
 const propTypes = {
@@ -18,6 +18,7 @@ const defaultProps = {
 };
 
 function InlineErrorText(props) {
+    const styles = useThemeStyles();
     if (_.isEmpty(props.children)) {
         return null;
     }

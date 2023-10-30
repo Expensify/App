@@ -7,9 +7,9 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -44,7 +44,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iconColor: themeColors.offline,
+    iconColor: theme.offline,
     subtitle: '',
     shouldShowLink: false,
     linkKey: 'notFound.goBackHome',
@@ -55,6 +55,8 @@ const defaultProps = {
 };
 
 function BlockingView(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     function renderContent() {
         return (

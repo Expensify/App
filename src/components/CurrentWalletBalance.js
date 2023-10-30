@@ -3,8 +3,8 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import styles from '@styles/styles';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
@@ -31,6 +31,7 @@ const defaultProps = {
 };
 
 function CurrentWalletBalance(props) {
+    const styles = useThemeStyles();
     const formattedBalance = CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance);
     return <Text style={[styles.pv5, styles.alignSelfCenter, styles.textHeadline, styles.textXXXLarge, ...props.balanceStyles]}>{`${formattedBalance}`}</Text>;
 }

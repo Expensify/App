@@ -6,11 +6,11 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import styles from '@styles/styles';
-import theme from '@styles/themes/default';
 import * as MapboxToken from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
 import PendingMapView from './MapView/PendingMapView';
@@ -73,6 +73,8 @@ const getWaypointMarkers = (waypoints) => {
 };
 
 function ConfirmedRoute({mapboxAccessToken, transaction}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {route0: route} = transaction.routes || {};
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
 import Svg, {G, Path, Polygon} from 'react-native-svg';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
 
 const propTypes = {
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
@@ -15,12 +15,13 @@ const propTypes = {
 };
 
 const defaultProps = {
-    fill: themeColors.icon,
+    fill: theme.icon,
     hovered: 'false',
     pressed: 'false',
 };
 
 function LoungeAccessIcon(props) {
+    const theme = useTheme();
     return (
         <Svg
             id="Layer_1"
@@ -44,7 +45,7 @@ function LoungeAccessIcon(props) {
             </G>
             <G>
                 <Path
-                    fill={props.hovered === 'true' || props.pressed === 'true' ? props.fill : themeColors.starDefaultBG}
+                    fill={props.hovered === 'true' || props.pressed === 'true' ? props.fill : theme.starDefaultBG}
                     className="st1"
                     d="M31,9.8c-0.1-0.2-0.2-0.4-0.5-0.4h-2.1l-0.8-2C27.4,7,27.1,7,27,7c-0.1,0-0.4,0-0.6,0.4l-0.8,1.9h-2.1 c-0.4,0-0.5,0.4-0.5,0.4c0,0.1-0.1,0.4,0.1,0.6l1.6,1.8l-0.6,1.9c-0.1,0.3,0.1,0.5,0.2,0.7c0.1,0,0.3,0.2,0.7,0.1l2-1.1l2,1.2 c0.3,0.2,0.6,0,0.7-0.1c0.1-0.1,0.3-0.3,0.2-0.7l-0.6-2l1.5-1.7C31,10.3,31,10,31,9.8z"
                 />

@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import Text from './Text';
 
 const propTypes = {
@@ -17,6 +17,7 @@ const defaultProps = {
 };
 
 function TextPill(props) {
+    const styles = useThemeStyles();
     const propsStyle = StyleUtils.parseStyleAsArray(props.style);
 
     return (

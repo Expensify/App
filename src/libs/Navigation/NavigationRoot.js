@@ -8,7 +8,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import StatusBar from '@libs/StatusBar';
 import {SidebarNavigationContext} from '@pages/home/sidebar/SidebarNavigationContext';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
 import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
@@ -18,7 +18,7 @@ const navigationTheme = {
     ...DefaultTheme,
     colors: {
         ...DefaultTheme.colors,
-        background: themeColors.appBG,
+        background: theme.appBG,
     },
 };
 
@@ -52,6 +52,7 @@ function parseAndLogRoute(state) {
 }
 
 function NavigationRoot(props) {
+    const theme = useTheme();
     useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
     const globalNavigation = useContext(SidebarNavigationContext);
@@ -81,8 +82,8 @@ function NavigationRoot(props) {
         navigationRef.resetRoot(navigationRef.getRootState());
     }, [isSmallScreenWidth, props.authenticated]);
 
-    const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
-    const statusBarBackgroundColor = useRef(themeColors.appBG);
+    const prevStatusBarBackgroundColor = useRef(theme.appBG);
+    const statusBarBackgroundColor = useRef(theme.appBG);
     const statusBarAnimation = useSharedValue(0);
 
     const updateStatusBarBackgroundColor = (color) => StatusBar.setBackgroundColor(color);
@@ -101,12 +102,12 @@ function NavigationRoot(props) {
 
     const animateStatusBarBackgroundColor = () => {
         const currentRoute = navigationRef.getCurrentRoute();
-        const currentScreenBackgroundColor = (currentRoute.params && currentRoute.params.backgroundColor) || themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
+        const currentScreenBackgroundColor = (currentRoute.params && currentRoute.params.backgroundColor) || theme.PAGE_BACKGROUND_COLORS[currentRoute.name] || theme.appBG;
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
 
-        if (currentScreenBackgroundColor === themeColors.appBG && prevStatusBarBackgroundColor.current === themeColors.appBG) {
+        if (currentScreenBackgroundColor === theme.appBG && prevStatusBarBackgroundColor.current === theme.appBG) {
             return;
         }
 

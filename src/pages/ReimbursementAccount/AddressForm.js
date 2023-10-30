@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import StatePicker from '@components/StatePicker';
 import TextInput from '@components/TextInput';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Translate key for Street name */
@@ -92,6 +92,7 @@ const defaultProps = {
 };
 
 function AddressForm(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <View>

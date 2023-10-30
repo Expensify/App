@@ -2,8 +2,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import * as Animatable from 'react-native-animatable';
 import useNativeDriver from '@libs/useNativeDriver';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Children to wrap in AnimatedStep. */
@@ -38,6 +38,7 @@ function getAnimationStyle(direction) {
 }
 
 function AnimatedStep(props) {
+    const styles = useThemeStyles();
     return (
         <Animatable.View
             onAnimationEnd={() => {

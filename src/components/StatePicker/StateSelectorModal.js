@@ -9,8 +9,8 @@ import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import searchCountryOptions from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -43,6 +43,7 @@ const defaultProps = {
 };
 
 function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     useEffect(() => {

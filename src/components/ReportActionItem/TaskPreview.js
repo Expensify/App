@@ -18,13 +18,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -65,6 +65,7 @@ const defaultProps = {
 };
 
 function TaskPreview(props) {
+    const styles = useThemeStyles();
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there

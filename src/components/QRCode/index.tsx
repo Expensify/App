@@ -1,8 +1,8 @@
 import React, {Ref} from 'react';
 import {ImageSourcePropType} from 'react-native';
 import QRCodeLibrary from 'react-native-qrcode-svg';
-import defaultTheme from '@styles/themes/default';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
 
 type LogoRatio = typeof CONST.QR.DEFAULT_LOGO_SIZE_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO;
 
@@ -45,11 +45,12 @@ function QRCode({
     logo,
     getRef,
     size = 120,
-    color = defaultTheme.text,
-    backgroundColor = defaultTheme.highlightBG,
+    color = theme.text,
+    backgroundColor = theme.highlightBG,
     logoRatio = CONST.QR.DEFAULT_LOGO_SIZE_RATIO,
     logoMarginRatio = CONST.QR.DEFAULT_LOGO_MARGIN_RATIO,
 }: QRCodeProps) {
+    const theme = useTheme();
     return (
         <QRCodeLibrary
             getRef={getRef}

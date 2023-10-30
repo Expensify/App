@@ -3,10 +3,10 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -72,6 +72,8 @@ const defaultProps = {
 };
 
 function ButtonWithDropdownMenu(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
@@ -134,7 +136,7 @@ function ButtonWithDropdownMenu(props) {
                             <View style={[styles.dropDownButtonArrowContain]}>
                                 <Icon
                                     src={Expensicons.DownArrow}
-                                    fill={themeColors.textLight}
+                                    fill={theme.textLight}
                                 />
                             </View>
                         </View>

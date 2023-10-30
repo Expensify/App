@@ -6,8 +6,8 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import UnorderedList from '@components/UnorderedList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
 import * as Link from '@userActions/Link';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -20,6 +20,7 @@ const MENU_LINKS = {
 };
 
 function WorkspaceCardVBAWithECardView(props) {
+    const styles = useThemeStyles();
     const menuItems = [
         {
             title: props.translate('workspace.common.issueAndManageCards'),

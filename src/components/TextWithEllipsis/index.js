@@ -3,8 +3,8 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Leading text before the ellipsis */
@@ -30,6 +30,7 @@ const defaultProps = {
 };
 
 function TextWithEllipsis(props) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.flexRow, ...StyleUtils.parseStyleAsArray(props.wrapperStyle)]}>
             <View style={[styles.flexShrink1, ...StyleUtils.parseStyleAsArray(props.leadingTextParentStyle)]}>

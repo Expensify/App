@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 import Tooltip from './Tooltip';
@@ -16,6 +16,7 @@ const propTypes = {
 };
 
 function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
         <Tooltip text={translate('common.selectCurrency')}>

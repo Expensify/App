@@ -5,8 +5,8 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import DatePicker from '@components/DatePicker';
 import TextInput from '@components/TextInput';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import AddressForm from './AddressForm';
 
 const propTypes = {
@@ -130,6 +130,7 @@ const defaultProps = {
 };
 
 function IdentityForm(props) {
+    const styles = useThemeStyles();
     // dob field has multiple validations/errors, we are handling it temporarily like this.
     const dobErrorText = (props.errors.dob ? props.translate('bankAccount.error.dob') : '') || (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
     const identityFormInputKeys = ['firstName', 'lastName', 'dob', 'ssnLast4'];

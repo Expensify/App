@@ -10,11 +10,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
@@ -49,6 +49,7 @@ const defaultProps = {
 };
 
 function MoneyRequestDatePage({iou, route, selectedTab}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');

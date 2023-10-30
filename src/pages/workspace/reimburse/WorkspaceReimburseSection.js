@@ -11,10 +11,10 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import BankAccount from '@libs/models/BankAccount';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Policy values needed in the component */
@@ -33,6 +33,8 @@ const propTypes = {
 };
 
 function WorkspaceReimburseSection(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const achState = lodashGet(props.reimbursementAccount, 'achData.state', '');
     const hasVBA = achState === BankAccount.STATE.OPEN;
@@ -69,7 +71,7 @@ function WorkspaceReimburseSection(props) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ActivityIndicator
-                    color={themeColors.spinner}
+                    color={theme.spinner}
                     size="large"
                 />
             </View>

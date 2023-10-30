@@ -5,9 +5,9 @@ import _ from 'underscore';
 import DomUtils from '@libs/DomUtils';
 import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
+import useThemeStyles from '@styles/useThemeStyles';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
@@ -50,6 +50,7 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 function BaseMiniContextMenuItem(props) {
+    const styles = useThemeStyles();
     return (
         <Tooltip text={props.tooltipText}>
             <PressableWithoutFeedback

@@ -4,9 +4,9 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import Text from '@components/Text';
 import {withCurrentUserPersonalDetailsDefaultProps} from '@components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /**
@@ -54,6 +54,7 @@ const defaultProps = {
 };
 
 function EmojiReactionBubble(props) {
+    const styles = useThemeStyles();
     return (
         <PressableWithSecondaryInteraction
             style={({hovered, pressed}) => [

@@ -6,12 +6,13 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {SidebarNavigationContext} from '@pages/home/sidebar/SidebarNavigationContext';
 import SignInOrAvatarWithOptionalStatus from '@pages/home/sidebar/SignInOrAvatarWithOptionalStatus';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import GlobalNavigationMenuItem from './GlobalNavigationMenuItem';
 
 function GlobalNavigation() {
+    const styles = useThemeStyles();
     const sidebarNavigation = useContext(SidebarNavigationContext);
     const {translate} = useLocalize();
     const items = useMemo(

@@ -5,9 +5,9 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Whether source url requires authentication */
@@ -32,6 +32,7 @@ const defaultProps = {
 };
 
 function ImageView({isAuthTokenRequired, url, fileName, onError}) {
+    const styles = useThemeStyles();
     const [isLoading, setIsLoading] = useState(true);
     const [containerHeight, setContainerHeight] = useState(0);
     const [containerWidth, setContainerWidth] = useState(0);

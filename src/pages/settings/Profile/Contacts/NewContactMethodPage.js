@@ -16,11 +16,11 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /* Onyx Props */
@@ -58,6 +58,7 @@ const addNewContactMethod = (values) => {
 };
 
 function NewContactMethodPage(props) {
+    const styles = useThemeStyles();
     const loginInputRef = useRef(null);
 
     const validate = React.useCallback(

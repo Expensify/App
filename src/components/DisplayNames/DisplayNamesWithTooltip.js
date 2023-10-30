@@ -4,11 +4,12 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import {defaultProps, propTypes} from './displayNamesPropTypes';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 
 function DisplayNamesWithToolTip(props) {
+    const styles = useThemeStyles();
     const containerRef = useRef(null);
     const childRefs = useRef([]);
     const isEllipsisActive = lodashGet(containerRef.current, 'offsetWidth') < lodashGet(containerRef.current, 'scrollWidth');

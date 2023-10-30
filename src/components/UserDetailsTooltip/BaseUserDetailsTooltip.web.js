@@ -9,12 +9,13 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import {defaultProps, propTypes} from './userDetailsTooltipPropTypes';
 
 function BaseUserDetailsTooltip(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);

@@ -3,9 +3,9 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import compose from '@libs/compose';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -56,6 +56,7 @@ const defaultProps = {
 };
 
 function Banner(props) {
+    const styles = useThemeStyles();
     return (
         <Hoverable>
             {(isHovered) => {

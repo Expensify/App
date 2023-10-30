@@ -14,11 +14,11 @@ import compose from '@libs/compose';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 const propTypes = {
@@ -49,6 +49,7 @@ const defaultProps = {
 };
 
 function ReportActionItemCreated(props) {
+    const styles = useThemeStyles();
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }

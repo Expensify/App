@@ -14,11 +14,11 @@ import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 
@@ -163,6 +163,8 @@ function AddressSearch({
     translate,
     value,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -377,7 +379,7 @@ function AddressSearch({
         () => (
             <View style={[styles.pv4]}>
                 <ActivityIndicator
-                    color={themeColors.spinner}
+                    color={theme.spinner}
                     size="small"
                 />
             </View>
@@ -502,8 +504,8 @@ function AddressSearch({
                         }}
                         numberOfLines={2}
                         isRowScrollable={false}
-                        listHoverColor={themeColors.border}
-                        listUnderlayColor={themeColors.buttonPressedBG}
+                        listHoverColor={theme.border}
+                        listUnderlayColor={theme.buttonPressedBG}
                         onLayout={(event) => {
                             // We use the height of the element to determine if we should hide the border of the listView dropdown
                             // to prevent a lingering border when there are no address suggestions.

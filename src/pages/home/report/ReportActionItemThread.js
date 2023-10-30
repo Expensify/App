@@ -7,9 +7,9 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** List of participant icons for the thread */
@@ -35,6 +35,7 @@ const propTypes = {
 };
 
 function ReportActionItemThread(props) {
+    const styles = useThemeStyles();
     const numberOfRepliesText = props.numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${props.numberOfReplies}`;
     const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
 

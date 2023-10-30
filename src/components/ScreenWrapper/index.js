@@ -15,9 +15,9 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import styles from '@styles/styles';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import {defaultProps, propTypes} from './propTypes';
 
 function ScreenWrapper({
@@ -36,6 +36,7 @@ function ScreenWrapper({
     onEntryTransitionEnd,
     testID,
 }) {
+    const styles = useThemeStyles();
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const keyboardState = useKeyboardState();
     const {isDevelopment} = useEnvironment();

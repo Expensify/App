@@ -18,10 +18,10 @@ import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import NewDistanceRequestPage from './NewDistanceRequestPage';
 import ReceiptSelector from './ReceiptSelector';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
@@ -56,6 +56,7 @@ const defaultProps = {
 };
 
 function MoneyRequestSelectorPage(props) {
+    const styles = useThemeStyles();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const iouType = lodashGet(props.route, 'params.iouType', '');

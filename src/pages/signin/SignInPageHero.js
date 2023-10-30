@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
+import useThemeStyles from '@styles/useThemeStyles';
 import SignInHeroCopy from './SignInHeroCopy';
 import SignInHeroImage from './SignInHeroImage';
 
@@ -24,6 +24,7 @@ const defaultProps = {
 };
 
 function SignInPageHero(props) {
+    const styles = useThemeStyles();
     return (
         <View
             style={[

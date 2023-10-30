@@ -10,10 +10,10 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import IdentityForm from './IdentityForm';
 import {reimbursementAccountPropTypes} from './reimbursementAccountPropTypes';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
@@ -71,6 +71,7 @@ const validate = (values) => {
 };
 
 function RequestorStep({reimbursementAccount, shouldShowOnfido, onBackButtonPress, getDefaultStateForField}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const defaultValues = useMemo(

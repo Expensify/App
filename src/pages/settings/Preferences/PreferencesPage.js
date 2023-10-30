@@ -12,13 +12,13 @@ import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The chat priority mode */
@@ -37,6 +37,8 @@ const defaultProps = {
 };
 
 function PreferencesPage(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
     const {translate, preferredLocale} = useLocalize();
 
@@ -44,7 +46,7 @@ function PreferencesPage(props) {
         <IllustratedHeaderPageLayout
             title={translate('common.preferences')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
+            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.PreferencesDJ}
         >
             <View style={styles.mb6}>

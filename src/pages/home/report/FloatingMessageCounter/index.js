@@ -7,9 +7,9 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNativeDriver from '@libs/useNativeDriver';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
 
 const propTypes = {
@@ -29,6 +29,8 @@ const MARKER_INACTIVE_TRANSLATE_Y = -40;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
 function FloatingMessageCounter(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const translateY = useMemo(() => new Animated.Value(MARKER_INACTIVE_TRANSLATE_Y), []);
 
@@ -72,8 +74,9 @@ function FloatingMessageCounter(props) {
                             <Icon
                                 small
                                 src={Expensicons.DownArrow}
-                                fill={themeColors.textLight}
+                                fill={theme.textLight}
                             />
+
                             <Text
                                 selectable={false}
                                 style={[styles.ml2, styles.buttonSmallText, styles.textWhite]}

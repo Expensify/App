@@ -9,8 +9,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import refPropTypes from '@components/refPropTypes';
 import {ScrollContext} from '@components/ScrollViewWithContext';
 import Text from '@components/Text';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** A forwarded ref */
@@ -110,6 +110,8 @@ const defaultProps = {
 };
 
 function BasePicker(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [isHighlighted, setIsHighlighted] = useState(false);
 
     // reference to the root View
@@ -124,7 +126,7 @@ function BasePicker(props) {
         ? {}
         : {
               ...props.placeholder,
-              color: themeColors.pickerOptionsTextColor,
+              color: theme.pickerOptionsTextColor,
           };
 
     useEffect(() => {
@@ -243,7 +245,7 @@ function BasePicker(props) {
                 <RNPickerSelect
                     onValueChange={onInputChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows
-                    items={_.map(props.items, (item) => ({...item, color: themeColors.pickerOptionsTextColor}))}
+                    items={_.map(props.items, (item) => ({...item, color: theme.pickerOptionsTextColor}))}
                     style={props.size === 'normal' ? styles.picker(props.isDisabled, props.backgroundColor) : styles.pickerSmall(props.backgroundColor)}
                     useNativeAndroidPickerStyle={false}
                     placeholder={placeholder}

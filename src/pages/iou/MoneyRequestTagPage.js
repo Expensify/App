@@ -13,10 +13,10 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
@@ -50,6 +50,7 @@ const defaultProps = {
 };
 
 function MoneyRequestTagPage({route, report, policyTags, iou}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const iouType = lodashGet(route, 'params.iouType', '');

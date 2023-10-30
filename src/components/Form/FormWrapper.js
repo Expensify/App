@@ -9,7 +9,7 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import errorsPropType from './errorsPropType';
 
 const propTypes = {
@@ -77,6 +77,7 @@ const defaultProps = {
 };
 
 function FormWrapper(props) {
+    const styles = useThemeStyles();
     const {onSubmit, children, formState, errors, inputRefs, submitButtonText, footerContent, isSubmitButtonVisible, style, enabledWhenOffline, isSubmitActionDangerous, formID} = props;
     const formRef = useRef(null);
     const formContentRef = useRef(null);

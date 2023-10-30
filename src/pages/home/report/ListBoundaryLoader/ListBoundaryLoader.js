@@ -3,9 +3,9 @@ import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useNetwork from '@hooks/useNetwork';
-import styles, {stylesGenerator} from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles, {stylesGenerator} from '@styles/useThemeStyles';
 
 const propTypes = {
     /** type of rendered loader. Can be 'header' or 'footer' */
@@ -32,6 +32,8 @@ const defaultProps = {
 };
 
 function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitialReportActions, lastReportActionName, isLoadingNewerReportActions}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
     // we use two different loading components for header and footer to reduce the jumping effect when you scrolling to the newer reports
@@ -58,7 +60,7 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
         return (
             <View style={[stylesGenerator.alignItemsCenter, styles.justifyContentCenter, styles.chatBottomLoader]}>
                 <ActivityIndicator
-                    color={themeColors.spinner}
+                    color={theme.spinner}
                     size="small"
                 />
             </View>

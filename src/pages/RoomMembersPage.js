@@ -21,11 +21,11 @@ import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
@@ -78,6 +78,7 @@ const defaultProps = {
 };
 
 function RoomMembersPage(props) {
+    const styles = useThemeStyles();
     const [selectedMembers, setSelectedMembers] = useState([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [searchValue, setSearchValue] = useState('');

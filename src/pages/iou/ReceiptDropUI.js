@@ -4,8 +4,8 @@ import {Text, View} from 'react-native';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Callback to execute when a file is dropped. */
@@ -20,6 +20,7 @@ const defaultProps = {
 };
 
 function ReceiptDropUI({onDrop, receiptImageTopPosition}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
         <DragAndDropConsumer onDrop={onDrop}>

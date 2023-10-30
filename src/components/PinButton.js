@@ -1,10 +1,10 @@
 import React from 'react';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -22,6 +22,8 @@ const defaultProps = {
 };
 
 function PinButton(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
             <PressableWithFeedback
@@ -33,7 +35,7 @@ function PinButton(props) {
             >
                 <Icon
                     src={Expensicons.Pin}
-                    fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
+                    fill={props.report.isPinned ? theme.heading : theme.icon}
                 />
             </PressableWithFeedback>
         </Tooltip>

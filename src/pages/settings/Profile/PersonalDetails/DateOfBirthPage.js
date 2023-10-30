@@ -13,11 +13,11 @@ import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /* Onyx Props */
@@ -37,6 +37,7 @@ const defaultProps = {
 };
 
 function DateOfBirthPage({translate, privatePersonalDetails}) {
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
 

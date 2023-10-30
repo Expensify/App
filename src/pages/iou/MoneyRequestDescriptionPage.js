@@ -16,10 +16,10 @@ import * as Browser from '@libs/Browser';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
@@ -55,6 +55,7 @@ const defaultProps = {
 };
 
 function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef(null);
     const focusTimeoutRef = useRef(null);

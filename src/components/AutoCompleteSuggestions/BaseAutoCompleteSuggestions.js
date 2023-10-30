@@ -3,9 +3,9 @@ import React, {useEffect, useRef} from 'react';
 import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import {propTypes} from './autoCompleteSuggestionsPropTypes';
 
 /**
@@ -29,6 +29,7 @@ const measureHeightOfSuggestionRows = (numRows, isSuggestionPickerLarge) => {
 };
 
 function BaseAutoCompleteSuggestions(props) {
+    const styles = useThemeStyles();
     const rowHeight = useSharedValue(0);
     const scrollRef = useRef(null);
     /**

@@ -3,7 +3,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import Log from '@libs/Log';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
 
@@ -39,6 +39,7 @@ const defaultProps = {
  *
  */
 function ImageWithSizeCalculation(props) {
+    const styles = useThemeStyles();
     const isLoadedRef = useRef(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);

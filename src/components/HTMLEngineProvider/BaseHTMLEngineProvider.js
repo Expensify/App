@@ -4,7 +4,7 @@ import {defaultHTMLElementModels, RenderHTMLConfigProvider, TRenderEngineProvide
 import _ from 'underscore';
 import convertToLTR from '@libs/convertToLTR';
 import singleFontFamily from '@styles/fontFamily/singleFontFamily';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 
@@ -61,6 +61,7 @@ const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]
 // Beware that each prop should be referentialy stable between renders to avoid
 // costly invalidations and commits.
 function BaseHTMLEngineProvider(props) {
+    const styles = useThemeStyles();
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [props.textSelectable]);
 

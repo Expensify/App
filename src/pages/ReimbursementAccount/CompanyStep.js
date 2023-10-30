@@ -19,10 +19,10 @@ import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import AddressForm from './AddressForm';
 import StepPropTypes from './StepPropTypes';
 
@@ -54,6 +54,7 @@ const defaultProps = {
 };
 
 function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
+    const styles = useThemeStyles();
     /**
      * @param {Array} fieldNames
      *

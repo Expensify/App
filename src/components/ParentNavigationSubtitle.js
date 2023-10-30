@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
@@ -31,6 +31,7 @@ const defaultProps = {
 };
 
 function ParentNavigationSubtitle(props) {
+    const styles = useThemeStyles();
     const {workspaceName, rootReportName} = props.parentNavigationSubtitleData;
 
     const {translate} = useLocalize();

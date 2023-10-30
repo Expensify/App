@@ -17,13 +17,13 @@ import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import styles from '@styles/styles';
-import theme from '@styles/themes/default';
 import * as Card from '@userActions/Card';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import assignedCardPropTypes from './assignedCardPropTypes';
 import DangerCardSection from './DangerCardSection';
 import CardDetails from './WalletPage/CardDetails';
@@ -52,6 +52,8 @@ function ExpensifyCardPage({
         params: {domain},
     },
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const domainCards = CardUtils.getDomainCards(cardList)[domain];

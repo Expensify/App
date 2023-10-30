@@ -15,11 +15,11 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Login list for the user that is signed in */
@@ -34,6 +34,7 @@ const defaultProps = {
 };
 
 function KnowATeacherPage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     /**

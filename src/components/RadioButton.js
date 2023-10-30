@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -30,6 +30,7 @@ const defaultProps = {
 };
 
 function RadioButton(props) {
+    const styles = useThemeStyles();
     return (
         <PressableWithFeedback
             disabled={props.disabled}

@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
+import useThemeStyles from '@styles/useThemeStyles';
 import ReportActionItemImage from './ReportActionItemImage';
 
 const propTypes = {
@@ -49,6 +49,7 @@ const defaultProps = {
  */
 
 function ReportActionItemImages({images, size, total, isHovered}) {
+    const styles = useThemeStyles();
     // Calculate the number of images to be shown, limited by the value of 'size' (if defined)
     // or the total number of images.
     const numberOfShownImages = Math.min(size || images.length, images.length);

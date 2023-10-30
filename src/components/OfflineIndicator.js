@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
+import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import networkPropTypes from './networkPropTypes';
@@ -39,6 +39,7 @@ const setStyles = (containerStyles, isSmallScreenWidth) => {
 };
 
 function OfflineIndicator(props) {
+    const styles = useThemeStyles();
     if (!props.network.isOffline) {
         return null;
     }

@@ -6,8 +6,8 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import DateUtils from '@libs/DateUtils';
 import Timers from '@libs/Timers';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Personal details of the participant */
@@ -29,6 +29,7 @@ function getParticipantLocalTime(participant, preferredLocale) {
 }
 
 function ParticipantLocalTime(props) {
+    const styles = useThemeStyles();
     const {participant, preferredLocale, translate} = props;
 
     const [localTime, setLocalTime] = useState(() => getParticipantLocalTime(participant, preferredLocale));

@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Number of rows to show in Skeleton UI block */
@@ -17,12 +17,14 @@ const defaultTypes = {
 };
 
 function SkeletonViewLines(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <SkeletonViewContentLoader
             animate={props.shouldAnimate}
             height={CONST.CHAT_SKELETON_VIEW.HEIGHT_FOR_ROW_COUNT[props.numberOfRows]}
-            backgroundColor={themeColors.skeletonLHNIn}
-            foregroundColor={themeColors.skeletonLHNOut}
+            backgroundColor={theme.skeletonLHNIn}
+            foregroundColor={theme.skeletonLHNOut}
             style={styles.mr5}
         >
             <Circle

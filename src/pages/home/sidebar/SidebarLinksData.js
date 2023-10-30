@@ -12,9 +12,9 @@ import compose from '@libs/compose';
 import * as SessionUtils from '@libs/SessionUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import SidebarLinks, {basePropTypes} from './SidebarLinks';
 
 const propTypes = {
@@ -64,6 +64,7 @@ const defaultProps = {
 };
 
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef(null);

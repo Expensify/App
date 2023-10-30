@@ -8,15 +8,16 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
 const propTypes = {...htmlRendererPropTypes};
 
 function ImageRenderer(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const htmlAttribs = props.tnode.attributes;

@@ -3,8 +3,8 @@ import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import Text from '@components/Text';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 /**
  * Breaks the text into matrix
@@ -39,6 +39,7 @@ const defaultProps = {
 };
 
 function WrappedText(props) {
+    const styles = useThemeStyles();
     if (!_.isString(props.children)) {
         return null;
     }

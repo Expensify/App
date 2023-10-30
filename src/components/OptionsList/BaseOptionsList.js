@@ -7,8 +7,8 @@ import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
+import useThemeStyles from '@styles/useThemeStyles';
 import {defaultProps as optionsListDefaultProps, propTypes as optionsListPropTypes} from './optionsListPropTypes';
 
 const propTypes = {
@@ -70,6 +70,7 @@ function BaseOptionsList({
     nestedScrollEnabled,
     bounces,
 }) {
+    const styles = useThemeStyles();
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
     const didLayout = useRef(false);

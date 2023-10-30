@@ -9,10 +9,10 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import compose from '@libs/compose';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import ReportActionItem from './ReportActionItem';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -46,6 +46,7 @@ const defaultProps = {
 };
 
 function ReportActionItemParentAction(props) {
+    const styles = useThemeStyles();
     const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
 
     // In case of transaction threads, we do not want to render the parent report action.

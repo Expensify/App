@@ -14,8 +14,8 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './attachmentPickerPropTypes';
 import launchCamera from './launchCamera';
 
@@ -101,6 +101,7 @@ const getDataForUpload = (fileData) => {
  * @returns {JSX.Element}
  */
 function AttachmentPicker({type, children, shouldHideCameraOption}) {
+    const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
 
     const completeAttachmentSelection = useRef();

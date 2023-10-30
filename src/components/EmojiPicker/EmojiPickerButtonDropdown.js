@@ -8,10 +8,10 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */
@@ -25,6 +25,7 @@ const defaultProps = {
 };
 
 function EmojiPickerButtonDropdown(props) {
+    const styles = useThemeStyles();
     const emojiPopoverAnchor = useRef(null);
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 

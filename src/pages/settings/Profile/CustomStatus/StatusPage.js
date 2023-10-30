@@ -14,18 +14,20 @@ import withLocalize from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 function StatusPage({draftStatus, currentUserPersonalDetails}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const localize = useLocalize();
     const currentUserEmojiCode = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
     const currentUserStatusText = lodashGet(currentUserPersonalDetails, 'status.text', '');
@@ -82,7 +84,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 />
             }
             headerContainerStyles={[styles.staticHeaderImage]}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS]}
+            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.STATUS]}
             footer={footerComponent}
         >
             <View style={[styles.mh5, styles.mb5]}>
@@ -103,7 +105,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                     titleStyle={styles.ml0}
                     icon={Expensicons.Close}
                     onPress={clearStatus}
-                    iconFill={themeColors.danger}
+                    iconFill={theme.danger}
                     wrapperStyle={[styles.pl2]}
                 />
             )}

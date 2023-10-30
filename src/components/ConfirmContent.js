@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
+import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
@@ -87,6 +87,7 @@ const defaultProps = {
 };
 
 function ConfirmContent(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
