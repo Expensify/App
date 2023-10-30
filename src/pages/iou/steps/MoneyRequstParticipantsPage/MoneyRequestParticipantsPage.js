@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import lodashSize from 'lodash/size';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import compose from '@libs/compose';
@@ -64,7 +64,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
     const [headerTitle, setHeaderTitle] = useState();
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
-    const isInvalidWaypoint = _.size(validatedWaypoints) < 2;
+    const isInvalidWaypoint = lodashSize(validatedWaypoints) < 2;
     useEffect(() => {
         if (isDistanceRequest) {
             setHeaderTitle(translate('common.distance'));
