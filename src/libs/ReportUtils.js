@@ -1902,10 +1902,10 @@ function getModifiedExpenseMessage(reportAction) {
     }
     
     return messageFragments.reduce((acc, value, index) => {
-        if (index == 0) {
+        if (index === 0) {
             return acc + value;
         }
-        return acc + ". " + value.charAt(0).toUpperCase() + value.slice(1);
+        return `${acc}. ${value.charAt(0).toUpperCase()}${value.slice(1)}`;
     }, "");
 }
 
