@@ -8,12 +8,12 @@ import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
+import * as Browser from '@libs/Browser';
 import Text from './Text';
 import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
-import * as Browser from '../libs/Browser';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
