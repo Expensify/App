@@ -1,3 +1,4 @@
+import {CommonActions, useNavigation} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
@@ -12,11 +13,13 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
+import Navigation from '@libs/Navigation/Navigation';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm';
 import {defaultAccount, TwoFactorAuthPropTypes} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
 import styles from '@styles/styles';
 import * as Session from '@userActions/Session';
+import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,8 +42,14 @@ function VerifyStep({account, session}) {
     useEffect(() => {
         Session.clearAccountMessages();
 
-        if (account.twoFactorAuthStep !== 'VERIFY') {
+        if (account.requiresTwoFactorAuth) {
             Navigation.navigate(ROUTES.SETTINGS_2FA.ENABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
+            return;
+        }
+
+        if (!account.codesAreCopied) {
+            Navigation.navigate(ROUTES.SETTINGS_2FA.CODES, CONST.NAVIGATION.TYPE.FORCED_UP);
+            return;
         }
 
         formRef.current.focus();

@@ -10,12 +10,13 @@ import {TwoFactorAuthStep} from '@src/types/onyx/Account';
 function clearTwoFactorAuthData() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {recoveryCodes: '', twoFactorAuthSecretKey: '', twoFactorAuthStep: '', codesAreCopied: false});
 }
+
 function setTwoFactorAuthStep(twoFactorAuthStep: TwoFactorAuthStep) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthStep});
 }
 
-function setCodesAreCopied() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {codesAreCopied: true});
+function setCodesAreCopied(codesAreCopied = true) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {codesAreCopied});
 }
 
 function quitAndNavigateBackToSettings() {
