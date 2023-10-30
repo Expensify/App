@@ -1,12 +1,12 @@
 import React from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import ONYXKEYS from '../ONYXKEYS';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import styles from '@styles/styles';
+import toggleTestToolsModal from '@userActions/TestTool';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Modal from './Modal';
-import CONST from '../CONST';
-import toggleTestToolsModal from '../libs/actions/TestTool';
 import TestToolMenu from './TestToolMenu';
-import styles from '../styles/styles';
 
 type TestToolsModalOnyxProps = {
     /** Whether the test tools modal is open */
