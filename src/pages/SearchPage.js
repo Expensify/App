@@ -17,8 +17,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
-import useLocalize from '../hooks/useLocalize';
-import useNetwork from "../hooks/useNetwork";
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from "@hooks/useNetwork";
 
 const propTypes = {
     /* Onyx Props */
