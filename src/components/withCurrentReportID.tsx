@@ -2,8 +2,8 @@ import React, {createContext, forwardRef, useCallback, useState, useMemo, RefAtt
 import PropTypes from 'prop-types';
 import {NavigationState} from '@react-navigation/native';
 
-import getComponentDisplayName from '../libs/getComponentDisplayName';
-import Navigation from '../libs/Navigation/Navigation';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import Navigation from '@libs/Navigation/Navigation';
 
 type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;

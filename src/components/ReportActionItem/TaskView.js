@@ -1,33 +1,33 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import reportPropTypes from '../../pages/reportPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withWindowDimensions from '../withWindowDimensions';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
-import compose from '../../libs/compose';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
-import Hoverable from '../Hoverable';
-import MenuItem from '../MenuItem';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import styles from '../../styles/styles';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as StyleUtils from '../../styles/StyleUtils';
-import * as Task from '../../libs/actions/Task';
-import CONST from '../../CONST';
-import Checkbox from '../Checkbox';
-import convertToLTR from '../../libs/convertToLTR';
-import Text from '../Text';
-import Icon from '../Icon';
-import getButtonState from '../../libs/getButtonState';
-import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
-import * as Session from '../../libs/actions/Session';
-import * as Expensicons from '../Icon/Expensicons';
-import SpacerView from '../SpacerView';
+import Checkbox from '@components/Checkbox';
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import SpacerView from '@components/SpacerView';
+import Text from '@components/Text';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import convertToLTR from '@libs/convertToLTR';
+import getButtonState from '@libs/getButtonState';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -47,11 +47,13 @@ function TaskView(props) {
     }, [props.report]);
 
     const taskTitle = convertToLTR(props.report.reportName || '');
+    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.managerID], props.personalDetails), false);
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
+
     return (
         <View>
             <OfflineWithFeedback
@@ -156,6 +158,7 @@ function TaskView(props) {
                             isSmallAvatarSubscriptMenu
                             shouldGreyOutWhenDisabled={false}
                             interactive={!isDisableInteractive}
+                            titleWithTooltips={assigneeTooltipDetails}
                         />
                     </OfflineWithFeedback>
                 ) : (

@@ -1,18 +1,18 @@
-import React from 'react';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import Tab from '../actions/Tab';
-import ONYXKEYS from '../../ONYXKEYS';
+import React from 'react';
+import {withOnyx} from 'react-native-onyx';
+import Tab from '@userActions/Tab';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
-    /* ID of the tab component to be saved in onyx */
+    /** ID of the tab component to be saved in onyx */
     id: PropTypes.string.isRequired,
 
-    /* Name of the selected tab */
+    /** Name of the selected tab */
     selectedTab: PropTypes.string,
 
-    /* Children nodes */
+    /** Children nodes */
     children: PropTypes.node.isRequired,
 };
 

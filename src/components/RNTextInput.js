@@ -1,9 +1,9 @@
+import PropTypes from 'prop-types';
 import React from 'react';
-import _ from 'underscore';
 // eslint-disable-next-line no-restricted-imports
 import {TextInput} from 'react-native';
 import Animated from 'react-native-reanimated';
-import PropTypes from 'prop-types';
+import _ from 'underscore';
 
 const propTypes = {
     /** A ref to forward to the text input */
@@ -38,10 +38,14 @@ RNTextInput.propTypes = propTypes;
 RNTextInput.defaultProps = defaultProps;
 RNTextInput.displayName = 'RNTextInput';
 
-export default React.forwardRef((props, ref) => (
+const RNTextInputWithRef = React.forwardRef((props, ref) => (
     <RNTextInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+RNTextInputWithRef.displayName = 'RNTextInputWithRef';
+
+export default RNTextInputWithRef;
