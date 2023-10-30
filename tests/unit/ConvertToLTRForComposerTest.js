@@ -21,6 +21,17 @@ describe('convertToLTRForComposer', () => {
         }
     });
 
+    test('Input with mixed RTL and LTR characters is prefixed with LTR marker', () => {
+        // Test when input contains mix of RTL and LTR characters
+        const inputText = 'مثال test ';
+        const result = convertToLTRForComposer(inputText);
+        if (platform === 'android') {
+            expect(result).toBe(inputText);
+        } else {
+            expect(result).toBe(`${CONST.UNICODE.LTR}${inputText}`);
+        }
+    });
+
     test('Input with only space remains unchanged', () => {
         // Test when input contains only spaces
         const inputText = '   ';
