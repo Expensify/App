@@ -1,13 +1,13 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import BlockingView from '../BlockingViews/BlockingView';
-import MapView from '../MapView';
-import styles from '../../styles/styles';
-import useNetwork from '../../hooks/useNetwork';
-import useLocalize from '../../hooks/useLocalize';
-import * as Expensicons from '../Icon/Expensicons';
-import * as StyleUtils from '../../styles/StyleUtils';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MapView from '@components/MapView';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
 import * as distanceMapViewPropTypes from './distanceMapViewPropTypes';
 
 function DistanceMapView(props) {

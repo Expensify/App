@@ -1,24 +1,24 @@
-import React, {memo} from 'react';
-import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
+import React, {memo} from 'react';
+import avatarPropTypes from '@components/avatarPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import ZeroWidthView from '@components/ZeroWidthView';
+import compose from '@libs/compose';
+import convertToLTR from '@libs/convertToLTR';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import editedLabelStyles from '@styles/editedLabelStyles';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
-import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
-import themeColors from '../../../styles/themes/default';
-import RenderHTML from '../../../components/RenderHTML';
-import Text from '../../../components/Text';
-import * as EmojiUtils from '../../../libs/EmojiUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import compose from '../../../libs/compose';
-import convertToLTR from '../../../libs/convertToLTR';
-import {withNetwork} from '../../../components/OnyxProvider';
-import CONST from '../../../CONST';
-import editedLabelStyles from '../../../styles/editedLabelStyles';
-import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
-import avatarPropTypes from '../../../components/avatarPropTypes';
-import * as Browser from '../../../libs/Browser';
 
 const propTypes = {
     /** Users accountID */
@@ -90,24 +90,6 @@ const defaultProps = {
 };
 
 function ReportActionItemFragment(props) {
-    /**
-     * Checks text element for presence of emoji as first character
-     * and insert Zero-Width character to avoid selection issue
-     * mentioned here https://github.com/Expensify/App/issues/29021
-     *
-     * @param {String} text
-     * @param {Boolean} displayAsGroup
-     * @returns {ReactNode | null} Text component with zero width character
-     */
-
-    const checkForEmojiForSelection = (text, displayAsGroup) => {
-        const firstLetterIsEmoji = EmojiUtils.isFirstLetterEmoji(text);
-        if (firstLetterIsEmoji && !displayAsGroup && !Browser.isMobile()) {
-            return <Text>&#x200b;</Text>;
-        }
-        return null;
-    };
-
     switch (props.fragment.type) {
         case 'COMMENT': {
             const {html, text} = props.fragment;
@@ -139,7 +121,10 @@ function ReportActionItemFragment(props) {
 
             return (
                 <Text style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}>
-                    {checkForEmojiForSelection(text, props.displayAsGroup)}
+                    <ZeroWidthView
+                        text={text}
+                        displayAsGroup={props.displayAsGroup}
+                    />
                     <Text
                         selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                         style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style, isPendingDelete ? styles.offlineFeedback.deleted : undefined]}
