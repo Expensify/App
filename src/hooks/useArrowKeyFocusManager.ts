@@ -1,6 +1,6 @@
-import {useState, useEffect, useCallback, useMemo} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import CONST from '@src/CONST';
 import useKeyboardShortcut from './useKeyboardShortcut';
-import CONST from '../CONST';
 
 type Config = {
     maxIndex: number;

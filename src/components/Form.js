@@ -1,23 +1,23 @@
-import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import lodashGet from 'lodash/get';
-import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import compose from '../libs/compose';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import * as FormActions from '../libs/actions/FormActions';
-import * as ErrorUtils from '../libs/ErrorUtils';
-import styles from '../styles/styles';
-import CONST from '../CONST';
+import _ from 'underscore';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Visibility from '@libs/Visibility';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import * as FormActions from '@userActions/FormActions';
+import CONST from '@src/CONST';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import FormSubmit from './FormSubmit';
+import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollViewWithContext from './ScrollViewWithContext';
-import stylePropTypes from '../styles/stylePropTypes';
-import {withNetwork} from './OnyxProvider';
-import networkPropTypes from './networkPropTypes';
-import Visibility from '../libs/Visibility';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -108,7 +108,7 @@ const defaultProps = {
 
 function Form(props) {
     const [errors, setErrors] = useState({});
-    const [inputValues, setInputValues] = useState({...props.draftValues});
+    const [inputValues, setInputValues] = useState(() => ({...props.draftValues}));
     const formRef = useRef(null);
     const formContentRef = useRef(null);
     const inputRefs = useRef({});
