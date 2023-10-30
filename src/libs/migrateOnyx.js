@@ -1,8 +1,8 @@
 import _ from 'underscore';
 import Log from './Log';
+import KeyReportActionsDraftByReportActionID from './migrations/KeyReportActionsDraftByReportActionID';
 import PersonalDetailsByAccountID from './migrations/PersonalDetailsByAccountID';
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
-import KeyReportActionsDraftByReportActionID from './migrations/KeyReportActionsDraftByReportActionID';
 
 export default function () {
     const startTime = Date.now();

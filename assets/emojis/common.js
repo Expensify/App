@@ -1,11 +1,11 @@
 import Smiley from '../images/emoji.svg';
-import AnimalsAndNature from '../images/emojiCategoryIcons/plant.svg';
+import Flags from '../images/emojiCategoryIcons/flag.svg';
 import FoodAndDrink from '../images/emojiCategoryIcons/hamburger.svg';
-import TravelAndPlaces from '../images/emojiCategoryIcons/plane.svg';
-import Activities from '../images/emojiCategoryIcons/soccer-ball.svg';
 import Objects from '../images/emojiCategoryIcons/light-bulb.svg';
 import Symbols from '../images/emojiCategoryIcons/peace-sign.svg';
-import Flags from '../images/emojiCategoryIcons/flag.svg';
+import TravelAndPlaces from '../images/emojiCategoryIcons/plane.svg';
+import AnimalsAndNature from '../images/emojiCategoryIcons/plant.svg';
+import Activities from '../images/emojiCategoryIcons/soccer-ball.svg';
 import FrequentlyUsed from '../images/history.svg';
 
 const skinTones = [

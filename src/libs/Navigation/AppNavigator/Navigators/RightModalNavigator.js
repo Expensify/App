@@ -1,14 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 import PropTypes from 'prop-types';
-
-import * as ModalStackNavigators from '../ModalStackNavigators';
-import RHPScreenOptions from '../RHPScreenOptions';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import styles from '../../../../styles/styles';
+import React from 'react';
+import {View} from 'react-native';
+import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
+import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
+import styles from '@styles/styles';
 import Overlay from './Overlay';
-import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
 
 const Stack = createStackNavigator();
 

@@ -1,21 +1,21 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import AppleSignIn from '@components/SignInButtons/AppleSignIn';
+import GoogleSignIn from '@components/SignInButtons/GoogleSignIn';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SignInPageLayout from './SignInPageLayout';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Text from '../../components/Text';
-import TextLink from '../../components/TextLink';
-import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
-import GoogleSignIn from '../../components/SignInButtons/GoogleSignIn';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Which sign in provider we are using. */
