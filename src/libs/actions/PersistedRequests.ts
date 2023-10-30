@@ -1,5 +1,5 @@
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import isEqual from 'lodash/isEqual';
+import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Request} from '@src/types/onyx';
 
