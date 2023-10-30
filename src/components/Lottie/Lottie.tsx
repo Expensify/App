@@ -1,6 +1,6 @@
 import LottieView, {LottieViewProps} from 'lottie-react-native';
-import React, {CSSProperties, ForwardedRef, forwardRef, useMemo} from 'react';
-import {View, ViewStyle} from 'react-native';
+import React, {ForwardedRef, forwardRef} from 'react';
+import {View} from 'react-native';
 import DotLottieAnimation from '@components/LottieAnimations/types';
 import useNetwork from '@hooks/useNetwork';
 import styles from '@styles/styles';
