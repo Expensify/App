@@ -4,7 +4,7 @@ description: Expense Settings
 ---
 # Overview
 
-Expensify offers multiple ways to customize how expenses are created in your workspace. In this doc, you’ll learn how to set up and expense basics, distance expenses, and time expenses. 
+Expensify offers multiple ways to customize how expenses are created in your workspace. In this doc, you’ll learn how to set up expense basics, distance expenses, and time expenses. 
 
 Whether you’re flying solo with your Individual workspace or submitting with a team on your Group workspace, we have settings to support how you use Expensify.
 
@@ -69,7 +69,7 @@ Preliminary setup steps include:
 3. Click **Add A Mileage Rate** to add as many rates as you need, 
 4. Set the reimbursable amount per mile or kilometer. 
 
-Note: _If a rate is toggled off it is immediately disabled. This means that users are no longer able to select it when creating a new distance expense. If only one rate is available then this rate will be toggled on by default._
+Note: _If a rate is toggled off it is immediately disabled. This means that users are no longer able to select it when creating a new distance expense. If only one rate is available then that rate will be toggled on by default._
 
 ## Set an hourly rate
 
@@ -96,7 +96,7 @@ Note: _If a report has audit alerts on it, you'll need to Review the report and 
 
 ## Tracking tax on mileage expenses
 
-If you’re tracking tax in Expensify you can also track tax on distance expenses. The first step is to enable tax the workspace. You can do this by going to  **Settings** > **Workspaces** > **Individual** or **Group** > [_Workspace Name_] > **Tax**.
+If you’re tracking tax in Expensify you can also track tax on distance expenses. The first step is to enable tax in the workspace. You can do this by going to  **Settings** > **Workspaces** > **Individual** or **Group** > [_Workspace Name_] > **Tax**.
 
 Once tax is enabled on a workspace level you will see a toggle to _Track Tax_ in the Distance section of the workspace settings. If tax is disabled on the workspace the Track Tax toggle will not display.
 

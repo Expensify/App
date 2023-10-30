@@ -1,17 +1,16 @@
-import {isEqual, max, parseISO} from 'date-fns';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import ReportAction, {ReportActions} from '../types/onyx/ReportAction';
-import Report from '../types/onyx/Report';
-import {ActionName} from '../types/onyx/OriginalMessage';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {ActionName} from '@src/types/onyx/OriginalMessage';
+import Report from '@src/types/onyx/Report';
+import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
 import * as CollectionUtils from './CollectionUtils';
-import Log from './Log';
-import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Environment from './Environment/Environment';
+import isReportMessageAttachment from './isReportMessageAttachment';
+import Log from './Log';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
@@ -92,6 +91,10 @@ function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
 
+function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
+}
+
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
@@ -145,7 +148,7 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
 
-    return reportActions.filter(Boolean).sort((first, second) => {
+    return reportActions?.filter(Boolean).sort((first, second) => {
         // First sort by timestamp
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
@@ -171,6 +174,9 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
  * Finds most recent IOU request action ID.
  */
 function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): string | null {
+    if (!Array.isArray(reportActions)) {
+        return null;
+    }
     const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
     const iouRequestActions = reportActions?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && iouRequestTypes.includes(action.originalMessage.type)) ?? [];
 
@@ -261,7 +267,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
 /**
  * Checks if a reportAction is deprecated.
  */
-function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: string): boolean {
+function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: string | number): boolean {
     if (!reportAction) {
         return true;
     }
@@ -283,7 +289,7 @@ const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), 
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number): boolean {
     if (!reportAction) {
         return false;
     }
@@ -367,24 +373,19 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
 /**
  */
 function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
-    const updatedActionsToMerge: ReportActions = {};
+    let reportActions: ReportActions;
     if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
-        Object.keys(actionsToMerge).forEach(
-            (actionToMergeID) => (updatedActionsToMerge[actionToMergeID] = {...allReportActions?.[reportID]?.[actionToMergeID], ...actionsToMerge[actionToMergeID]}),
-        );
+        reportActions = {...allReportActions?.[reportID]};
+        Object.keys(actionsToMerge).forEach((actionToMergeID) => (reportActions[actionToMergeID] = {...allReportActions?.[reportID]?.[actionToMergeID], ...actionsToMerge[actionToMergeID]}));
+    } else {
+        reportActions = allReportActions?.[reportID] ?? {};
     }
-    const actions = Object.values({
-        ...allReportActions?.[reportID],
-        ...updatedActionsToMerge,
-    });
-    const visibleActions = actions.filter((action) => shouldReportActionBeVisibleAsLastAction(action));
-
-    if (visibleActions.length === 0) {
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
+    const sortedReportActions = getSortedReportActions(visibleReportActions, true);
+    if (sortedReportActions.length === 0) {
         return null;
     }
-    const maxDate = max(visibleActions.map((action) => parseISO(action.created)));
-    const maxAction = visibleActions.find((action) => isEqual(parseISO(action.created), maxDate));
-    return maxAction ?? null;
+    return sortedReportActions[0];
 }
 
 function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions = {}): LastVisibleMessage {
@@ -449,6 +450,19 @@ function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEnt
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions);
     return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) ?? null;
+}
+
+/**
+ * The first visible action is the second last action in sortedReportActions which satisfy following conditions:
+ * 1. That is not pending deletion as pending deletion actions are kept in sortedReportActions in memory.
+ * 2. That has at least one visible child action.
+ * 3. While offline all actions in `sortedReportActions` are visible.
+ * 4. We will get the second last action from filtered actions because the last
+ *    action is always the created action
+ */
+function getFirstVisibleReportActionID(sortedReportActions: ReportAction[], isOffline: boolean): string {
+    const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
+    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions[sortedFilterReportActions.length - 2].reportActionID : '';
 }
 
 /**
@@ -639,6 +653,8 @@ export {
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
+    isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
+    getFirstVisibleReportActionID,
 };

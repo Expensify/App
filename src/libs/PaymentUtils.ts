@@ -1,20 +1,21 @@
-import BankAccountModel from './models/BankAccount';
-import getBankIcon from '../components/Icon/BankIcons';
-import CONST from '../CONST';
+import getBankIcon from '@components/Icon/BankIcons';
+import CONST from '@src/CONST';
+import BankAccount from '@src/types/onyx/BankAccount';
+import Fund from '@src/types/onyx/Fund';
+import PaymentMethod from '@src/types/onyx/PaymentMethod';
 import * as Localize from './Localize';
-import Fund from '../types/onyx/Fund';
-import BankAccount from '../types/onyx/BankAccount';
-import PaymentMethod from '../types/onyx/PaymentMethod';
+import BankAccountModel from './models/BankAccount';
 
 type AccountType = BankAccount['accountType'] | Fund['accountType'];
 
 /**
- * Check to see if user has either a debit card or personal bank account added
+ * Check to see if user has either a debit card or personal bank account added that can be used with a wallet.
  */
 function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountList: Record<string, BankAccount>, shouldIncludeDebitCard = true): boolean {
     const validBankAccount = Object.values(bankAccountList).some((bankAccountJSON) => {
         const bankAccount = new BankAccountModel(bankAccountJSON);
-        return bankAccount.getPendingAction() !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount.isDefaultCredit();
+
+        return bankAccount.getPendingAction() !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount.isOpen() && bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL;
     });
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
