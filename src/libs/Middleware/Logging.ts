@@ -1,7 +1,7 @@
-import Log from '../Log';
-import CONST from '../../CONST';
-import Request from '../../types/onyx/Request';
-import Response from '../../types/onyx/Response';
+import Log from '@libs/Log';
+import CONST from '@src/CONST';
+import Request from '@src/types/onyx/Request';
+import Response from '@src/types/onyx/Response';
 import Middleware from './types';
 
 function logRequestDetails(message: string, request: Request, response?: Response | void) {

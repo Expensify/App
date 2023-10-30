@@ -1,21 +1,21 @@
+import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import Text from '../Text';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import Icon from '../Icon';
-import CONST from '../../CONST';
-import * as StyleUtils from '../../styles/StyleUtils';
-import HapticFeedback from '../../libs/HapticFeedback';
-import withNavigationFallback from '../withNavigationFallback';
-import compose from '../../libs/compose';
-import * as Expensicons from '../Icon/Expensicons';
-import withNavigationFocus from '../withNavigationFocus';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import refPropTypes from '@components/refPropTypes';
+import Text from '@components/Text';
+import withNavigationFallback from '@components/withNavigationFallback';
+import withNavigationFocus from '@components/withNavigationFocus';
+import compose from '@libs/compose';
+import HapticFeedback from '@libs/HapticFeedback';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import validateSubmitShortcut from './validateSubmitShortcut';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Should the press event bubble across multiple instances when Enter key triggers it. */
@@ -301,6 +301,7 @@ class Button extends Component {
                     this.props.isDisabled && !this.props.danger && !this.props.success ? styles.buttonDisabled : undefined,
                     this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                    this.props.icon || this.props.shouldShowRightIcon ? styles.alignItemsStretch : undefined,
                     ...this.props.innerStyles,
                 ]}
                 hoverStyle={[
