@@ -1,9 +1,9 @@
-import React, {ComponentType, RefAttributes, ForwardedRef, useMemo} from 'react';
+import React, {ComponentType, ForwardedRef, RefAttributes, useMemo} from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
-import ONYXKEYS from '../ONYXKEYS';
-import personalDetailsPropType from '../pages/personalDetailsPropType';
-import type {PersonalDetails, Session} from '../types/onyx';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetails, Session} from '@src/types/onyx';
 
 type CurrentUserPersonalDetails = PersonalDetails | Record<string, never>;
 

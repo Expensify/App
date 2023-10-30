@@ -1,25 +1,25 @@
-import _ from 'underscore';
+import 'core-js/features/array/at';
+import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import 'core-js/features/array/at';
-import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
-import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
-import {VariableSizeList as List} from 'react-window';
 import {withOnyx} from 'react-native-onyx';
-import * as CanvasSize from '../../libs/actions/CanvasSize';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
-import CONST from '../../CONST';
+import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
+import {VariableSizeList as List} from 'react-window';
+import _ from 'underscore';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import withLocalize from '@components/withLocalize';
+import withWindowDimensions from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import Log from '@libs/Log';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as CanvasSize from '@userActions/CanvasSize';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
-import withWindowDimensions from '../withWindowDimensions';
-import withLocalize from '../withLocalize';
-import compose from '../../libs/compose';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import Log from '../../libs/Log';
-import ONYXKEYS from '../../ONYXKEYS';
-import Text from '../Text';
 
 /**
  * Each page has a default border. The app should take this size into account

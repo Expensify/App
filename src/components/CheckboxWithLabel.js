@@ -1,13 +1,14 @@
-import React, {useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
 import Checkbox from './Checkbox';
-import Text from './Text';
 import FormHelpMessage from './FormHelpMessage';
-import variables from '../styles/variables';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import refPropTypes from './refPropTypes';
+import Text from './Text';
 
 /**
  * Returns an error if the required props are not provided
@@ -54,7 +55,7 @@ const propTypes = {
     defaultValue: PropTypes.bool,
 
     /** React ref being forwarded to the Checkbox input */
-    forwardedRef: PropTypes.func,
+    forwardedRef: refPropTypes,
 
     /** The ID used to uniquely identify the input in a Form */
     /* eslint-disable-next-line react/no-unused-prop-types */
