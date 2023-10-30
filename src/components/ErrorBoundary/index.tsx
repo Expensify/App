@@ -1,5 +1,5 @@
 import BaseErrorBoundary, {LogError, BaseErrorBoundaryProps} from './BaseErrorBoundary';
-import Log from '../../libs/Log';
+import Log from '@libs//Log';
 
 const logError: LogError = (errorMessage, error, errorInfo) => {
     // Log the error to the server
