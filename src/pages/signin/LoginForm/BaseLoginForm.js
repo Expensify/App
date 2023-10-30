@@ -98,18 +98,52 @@ function LoginForm(props) {
     const [login, setLogin] = useState(() => Str.removeSMSDomain(props.credentials.login || ''));
     const [formError, setFormError] = useState(false);
     const prevIsVisible = usePrevious(props.isVisible);
+    const firstBlurred = useRef(!canFocusInputOnScreenFocus());
 
     const {translate} = props;
 
     /**
-     * Handle text input and clear formError upon text change
+     * Validate the input value and set the error for formError
+     *
+     * @param {String} value
+     */
+    const validate = useCallback(
+        (value) => {
+            const loginTrim = value.trim();
+            if (!loginTrim) {
+                setFormError('common.pleaseEnterEmailOrPhoneNumber');
+                return false;
+            }
+
+            const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
+            const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+
+            if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
+                if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
+                    setFormError('common.error.phoneNumber');
+                } else {
+                    setFormError('loginForm.error.invalidFormatEmailLogin');
+                }
+                return false;
+            }
+
+            setFormError(null);
+            return true;
+        },
+        [setFormError],
+    );
+
+    /**
+     * Handle text input and validate the text input if it is blurred
      *
      * @param {String} text
      */
     const onTextInput = useCallback(
         (text) => {
             setLogin(text);
-            setFormError(null);
+            if (firstBlurred.current) {
+                validate(text);
+            }
 
             if (props.account.errors || props.account.message) {
                 Session.clearAccountMessages();
@@ -120,7 +154,7 @@ function LoginForm(props) {
                 CloseAccount.setDefaultData();
             }
         },
-        [props.account, props.closeAccount, input, setFormError, setLogin],
+        [props.account, props.closeAccount, input, setLogin, validate],
     );
 
     function getSignInWithStyles() {
@@ -140,23 +174,11 @@ function LoginForm(props) {
             CloseAccount.setDefaultData();
         }
 
+        if (!validate(login)) {
+            return;
+        }
+
         const loginTrim = login.trim();
-        if (!loginTrim) {
-            setFormError('common.pleaseEnterEmailOrPhoneNumber');
-            return;
-        }
-
-        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
-        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
-
-        if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
-            if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
-                setFormError('common.error.phoneNumber');
-            } else {
-                setFormError('loginForm.error.invalidFormatEmailLogin');
-            }
-            return;
-        }
 
         // If the user has entered a guide email, then we are going to enable an experimental Onyx mode to help with performance
         if (PolicyUtils.isExpensifyGuideTeam(loginTrim)) {
@@ -164,11 +186,12 @@ function LoginForm(props) {
             MemoryOnlyKeys.enable();
         }
 
-        setFormError(null);
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
         // Check if this login has an account associated with it or not
         Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : loginTrim);
-    }, [login, props.account, props.closeAccount, props.network, setFormError]);
+    }, [login, props.account, props.closeAccount, props.network, validate]);
 
     useEffect(() => {
         // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
@@ -228,6 +251,13 @@ function LoginForm(props) {
                     textContentType="username"
                     nativeID="username"
                     name="username"
+                    onBlur={() => {
+                        if (firstBlurred.current) {
+                            return;
+                        }
+                        firstBlurred.current = true;
+                        validate(login);
+                    }}
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
