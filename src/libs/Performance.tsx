@@ -1,15 +1,14 @@
-import React, {Profiler, forwardRef} from 'react';
-import {Alert, InteractionManager} from 'react-native';
-import lodashTransform from 'lodash/transform';
-import isObject from 'lodash/isObject';
 import isEqual from 'lodash/isEqual';
-import {Performance as RNPerformance, PerformanceEntry, PerformanceMark, PerformanceMeasure} from 'react-native-performance';
+import isObject from 'lodash/isObject';
+import lodashTransform from 'lodash/transform';
+import React, {forwardRef, Profiler} from 'react';
+import {Alert, InteractionManager} from 'react-native';
+import {PerformanceEntry, PerformanceMark, PerformanceMeasure, Performance as RNPerformance} from 'react-native-performance';
 import {PerformanceObserverEntryList} from 'react-native-performance/lib/typescript/performance-observer';
-
-import * as Metrics from './Metrics';
-import getComponentDisplayName from './getComponentDisplayName';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 import isE2ETestSession from './E2E/isE2ETestSession';
+import getComponentDisplayName from './getComponentDisplayName';
+import * as Metrics from './Metrics';
 
 type WrappedComponentConfig = {id: string};
 

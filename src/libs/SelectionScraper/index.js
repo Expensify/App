@@ -1,8 +1,8 @@
 import render from 'dom-serializer';
+import Str from 'expensify-common/lib/str';
 import {parseDocument} from 'htmlparser2';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 
 const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';

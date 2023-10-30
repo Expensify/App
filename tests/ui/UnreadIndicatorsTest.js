@@ -2,28 +2,28 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {Linking, AppState, DeviceEventEmitter} from 'react-native';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import lodashGet from 'lodash/get';
-import {subMinutes, format, addSeconds, subSeconds} from 'date-fns';
+import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
+import lodashGet from 'lodash/get';
 import App from '../../src/App';
+import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import * as TestHelper from '../utils/TestHelper';
-import appSetup from '../../src/setup';
-import fontWeightBold from '../../src/styles/fontWeight/bold';
 import * as AppActions from '../../src/libs/actions/App';
-import * as NumberUtils from '../../src/libs/NumberUtils';
-import LocalNotification from '../../src/libs/Notification/LocalNotification';
 import * as Report from '../../src/libs/actions/Report';
+import * as User from '../../src/libs/actions/User';
 import * as CollectionUtils from '../../src/libs/CollectionUtils';
 import DateUtils from '../../src/libs/DateUtils';
-import * as User from '../../src/libs/actions/User';
+import * as Localize from '../../src/libs/Localize';
+import LocalNotification from '../../src/libs/Notification/LocalNotification';
+import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
-import CONFIG from '../../src/CONFIG';
-import * as Localize from '../../src/libs/Localize';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import appSetup from '../../src/setup';
+import fontWeightBold from '../../src/styles/fontWeight/bold';
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(30000);
@@ -221,7 +221,7 @@ describe('Unread Indicators', () => {
                 // And that the text is bold
                 const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
-                expect(lodashGet(displayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(displayNameText, ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
 
                 return navigateToSidebarOption(0);
             })
@@ -233,7 +233,6 @@ describe('Unread Indicators', () => {
                 const reportCommentsHintText = Localize.translateLocal('accessibilityHints.chatMessage');
                 const reportComments = screen.queryAllByLabelText(reportCommentsHintText);
                 expect(reportComments).toHaveLength(9);
-
                 // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
                 // have actionID of 4
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
@@ -241,12 +240,10 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
                 expect(reportActionID).toBe('4');
-
                 // Scroll up and verify that the "New messages" badge appears
                 scrollUpToRevealNewMessagesBadge();
                 return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(true));
             }));
-
     it('Clear the new line indicator and bold when we navigate away from a chat that is now read', () =>
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread chat from the sidebar
@@ -259,7 +256,6 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 expect(areYouOnChatListScreen()).toBe(false);
-
                 // Then navigate back to the sidebar
                 return navigateToSidebar();
             })
@@ -267,6 +263,7 @@ describe('Unread Indicators', () => {
                 // Verify the LHN is now open
                 expect(areYouOnChatListScreen()).toBe(true);
 
+                // Tap on the chat again
                 return navigateToSidebarOption(0);
             })
             .then(() => {
@@ -279,7 +276,6 @@ describe('Unread Indicators', () => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
-
                 // Tap on the chat again
                 return navigateToSidebarOption(0);
             })
@@ -290,7 +286,6 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
                 expect(areYouOnChatListScreen()).toBe(false);
             }));
-
     it('Shows a browser notification and bold text when a new message arrives for a chat that is read', () =>
         signInAndGetAppWithUnreadChat()
             .then(() => {
@@ -299,7 +294,6 @@ describe('Unread Indicators', () => {
                 const NEW_REPORT_ID = '2';
                 const NEW_REPORT_CREATED_DATE = subSeconds(new Date(), 5);
                 const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
-
                 const createdReportActionID = NumberUtils.rand64();
                 const commentReportActionID = NumberUtils.rand64();
                 const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${USER_A_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
@@ -362,17 +356,16 @@ describe('Unread Indicators', () => {
                 const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                 const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
                 expect(optionRows).toHaveLength(2);
-
                 // Verify the text for both chats are bold indicating that nothing has not yet been read
                 const displayNameHintTexts = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts[0];
-                expect(lodashGet(firstReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(firstReportOption, ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
                 expect(lodashGet(firstReportOption, ['props', 'children'])).toBe('C User');
 
                 const secondReportOption = displayNameTexts[1];
-                expect(lodashGet(secondReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(secondReportOption, ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
                 expect(lodashGet(secondReportOption, ['props', 'children'])).toBe('B User');
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
@@ -384,9 +377,9 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
+                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(undefined);
                 expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('C User');
-                expect(lodashGet(displayNameTexts[1], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(displayNameTexts[1], ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
                 expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
             }));
 
@@ -407,12 +400,10 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
                 expect(reportActionID).toBe('3');
-
                 // Scroll up and verify the new messages badge appears
                 scrollUpToRevealNewMessagesBadge();
                 return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(true));
             })
-
             // Navigate to the sidebar
             .then(navigateToSidebar)
             .then(() => {
@@ -420,7 +411,7 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
                 expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
 
                 // Navigate to the report again and back to the sidebar
@@ -432,7 +423,7 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
+                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(undefined);
                 expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
 
                 // Navigate to the report again and verify the new line indicator is missing
