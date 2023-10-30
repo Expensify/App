@@ -14,8 +14,8 @@ import * as Link from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import * as Session from '@userActions/Session';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import * as Session from '../../../libs/actions/Session';
 
 function AnchorRenderer(props) {
     const htmlAttribs = props.tnode.attributes;
