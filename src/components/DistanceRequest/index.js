@@ -187,10 +187,10 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             return;
         }
         setOptimisticWaypoints(validatedWaypoints);
-            // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            Transaction.updateWaypoints(transactionID, validatedWaypoints).then(() => {
-                setOptimisticWaypoints(null);
-            });
+        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+        Transaction.updateWaypoints(transactionID, validatedWaypoints).then(() => {
+            setOptimisticWaypoints(null);
+        });
         onSubmit(validatedWaypoints);
     }, [onSubmit, setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, transactionID]);
 
