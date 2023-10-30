@@ -46,8 +46,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         ref,
     ) => {
         const {isOffline} = useNetwork();
-        // @ts-ignore - useLocalize not migrated to TypeScript yet
-        const {translate} = useLocalize();
+        const {translate} = useLocalize()
 
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
@@ -56,6 +55,10 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
         useFocusEffect(
             useCallback(() => {
+                if (isOffline) {
+                    return;
+                }
+
                 getCurrentPosition(
                     (params) => {
                         const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
@@ -63,10 +66,14 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         setUserLocation(currentCoords);
                     },
                     () => {
+                        if (cachedUserLocation) {
+                            return;
+                        }
+
                         setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
                     },
                 );
-            }, [initialState.location]),
+            }, [cachedUserLocation, isOffline, initialState.location]),
         );
 
         // Determines if map can be panned to user's detected
