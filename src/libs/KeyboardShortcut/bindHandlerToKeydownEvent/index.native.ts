@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import getKeyEventModifiers from '@libs/KeyboardShortcut/getKeyEventModifiers';
 import BindHandlerToKeydownEvent from './types';
 
