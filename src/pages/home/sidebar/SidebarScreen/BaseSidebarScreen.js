@@ -3,13 +3,13 @@ import React from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import * as Browser from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import Performance from '@libs/Performance';
 import GlobalNavigation from '@pages/home/sidebar/GlobalNavigation';
 import SubNavigation from '@pages/home/sidebar/SubNavigation/SubNavigation';
 import styles from '@styles/styles';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import getPlatform from '@libs/getPlatform';
 
 const propTypes = {
     /** Children to wrap (floating button). */
