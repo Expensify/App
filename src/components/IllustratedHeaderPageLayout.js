@@ -39,10 +39,11 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
             headerContent={
                 <>
                     <Lottie
+                        source={illustration}
                         style={styles.w100}
+                        webStyle={styles.w100}
                         autoPlay
                         loop
-                        animation={illustration}
                     />
                     {overlayContent && overlayContent()}
                 </>

@@ -47,6 +47,7 @@ function ConfirmationPage(props) {
                     autoPlay
                     loop
                     style={styles.confirmationAnimation}
+                    webStyle={styles.confirmationAnimationWeb}
                 />
                 <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{props.heading}</Text>
                 <Text style={styles.textAlignCenter}>{props.description}</Text>

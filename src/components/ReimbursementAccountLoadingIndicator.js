@@ -39,6 +39,7 @@ function ReimbursementAccountLoadingIndicator(props) {
                             autoPlay
                             loop
                             style={styles.loadingVBAAnimation}
+                            webStyle={styles.loadingVBAAnimationWeb}
                         />
                         <View style={[styles.ph6]}>
                             <Text style={[styles.textAlignCenter]}>{translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
