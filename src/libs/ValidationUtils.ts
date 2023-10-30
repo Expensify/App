@@ -1,15 +1,15 @@
-import {subYears, addYears, addMinutes, startOfDay, endOfMonth, isAfter, isBefore, isValid, isWithinInterval, isSameDay, parse, format, parseISO} from 'date-fns';
-import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import {addMinutes, addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
+import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
+import {Report} from '@src/types/onyx';
+import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
-import * as LoginUtils from './LoginUtils';
 import DateUtils from './DateUtils';
-import {Report} from '../types/onyx';
-import * as OnyxCommon from '../types/onyx/OnyxCommon';
+import * as LoginUtils from './LoginUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card

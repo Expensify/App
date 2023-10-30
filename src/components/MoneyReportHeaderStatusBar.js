@@ -1,10 +1,10 @@
 import React, {useMemo} from 'react';
 import {Text, View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import * as NextStepUtils from '../libs/NextStepUtils';
-import useLocalize from '../hooks/useLocalize';
-import nextStepPropTypes from '../pages/nextStepPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import * as NextStepUtils from '@libs/NextStepUtils';
+import nextStepPropTypes from '@pages/nextStepPropTypes';
+import styles from '@styles/styles';
 import RenderHTML from './RenderHTML';
 
 const propTypes = {

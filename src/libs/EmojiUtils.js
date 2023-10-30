@@ -1,14 +1,14 @@
-import _ from 'underscore';
 import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
-import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashMin from 'lodash/min';
 import lodashSum from 'lodash/sum';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import * as Emojis from '@assets/emojis';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import emojisTrie from './EmojiTrie';
-import * as Emojis from '../../assets/emojis';
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({

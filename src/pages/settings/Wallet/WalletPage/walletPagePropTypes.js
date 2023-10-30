@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
-import walletTransferPropTypes from '../walletTransferPropTypes';
-import networkPropTypes from '../../../../components/networkPropTypes';
-import bankAccountPropTypes from '../../../../components/bankAccountPropTypes';
-import cardPropTypes from '../../../../components/cardPropTypes';
-import userWalletPropTypes from '../../../EnablePayments/userWalletPropTypes';
-import walletTermsPropTypes from '../../../EnablePayments/walletTermsPropTypes';
+import bankAccountPropTypes from '@components/bankAccountPropTypes';
+import cardPropTypes from '@components/cardPropTypes';
+import networkPropTypes from '@components/networkPropTypes';
+import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
+import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
+import walletTransferPropTypes from '@pages/settings/Wallet/walletTransferPropTypes';
 
 const propTypes = {
     /** Wallet balance transfer props */

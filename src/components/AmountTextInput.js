@@ -1,10 +1,10 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import * as StyleUtils from '../styles/StyleUtils';
-import TextInput from './TextInput';
-import styles from '../styles/styles';
-import CONST from '../CONST';
+import React from 'react';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import refPropTypes from './refPropTypes';
+import TextInput from './TextInput';
 
 const propTypes = {
     /** Formatted amount in local currency  */

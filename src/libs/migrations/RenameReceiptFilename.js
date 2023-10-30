@@ -1,8 +1,8 @@
+import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import lodashHas from 'lodash/has';
-import ONYXKEYS from '../../ONYXKEYS';
-import Log from '../Log';
+import Log from '@libs/Log';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 // This migration changes the property name on a transaction from receiptFilename to filename so that it matches what is stored in the database
 export default function () {

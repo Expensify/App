@@ -1,4 +1,4 @@
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 
 /**
  * Generates a random positive 64 bit numeric string by randomly generating the left, middle, and right parts and concatenating them. Used to generate client-side ids.
