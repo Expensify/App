@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
+import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -124,7 +124,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>
-                        <InputWrapper
+                        <InputWrapperWithRef
                             InputComponent={TextInput}
                             inputID="moneyRequestComment"
                             name="moneyRequestComment"
