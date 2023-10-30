@@ -7,7 +7,7 @@ import variables from '@styles/variables';
 import Checkbox from './Checkbox';
 import FormHelpMessage from './FormHelpMessage';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import refPropTypes from '@components/refPropTypes';
+import refPropTypes from './refPropTypes';
 import Text from './Text';
 
 /**
