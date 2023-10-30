@@ -1,15 +1,15 @@
-import React, {useState, useMemo, useCallback} from 'react';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import SelectionList from '../../../../components/SelectionList';
-import searchCountryOptions from '../../../../libs/searchCountryOptions';
-import StringUtils from '../../../../libs/StringUtils';
-import CONST from '../../../../CONST';
-import useLocalize from '../../../../hooks/useLocalize';
+import PropTypes from 'prop-types';
+import React, {useCallback, useMemo, useState} from 'react';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import searchCountryOptions from '@libs/searchCountryOptions';
+import StringUtils from '@libs/StringUtils';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Route from navigation */

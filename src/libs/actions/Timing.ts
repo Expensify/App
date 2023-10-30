@@ -1,8 +1,8 @@
-import getPlatform from '../getPlatform';
-import * as Environment from '../Environment/Environment';
-import Firebase from '../Firebase';
-import * as API from '../API';
-import Log from '../Log';
+import * as API from '@libs/API';
+import * as Environment from '@libs/Environment/Environment';
+import Firebase from '@libs/Firebase';
+import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 
 type TimestampData = {
     startTime: number;
