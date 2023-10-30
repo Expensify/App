@@ -1,25 +1,26 @@
-import _ from 'underscore';
-import React, {useCallback} from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import Form from '../../../../components/Form';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import TextInput from '../../../../components/TextInput';
-import styles from '../../../../styles/styles';
-import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
-import compose from '../../../../libs/compose';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
-import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import * as ErrorUtils from '../../../../libs/ErrorUtils';
+import _ from 'underscore';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -87,7 +88,7 @@ function LegalNamePage(props) {
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                     validate={validate}
@@ -96,7 +97,8 @@ function LegalNamePage(props) {
                     enabledWhenOffline
                 >
                     <View style={[styles.mb4]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="legalFirstName"
                             name="lfname"
                             label={props.translate('privatePersonalDetails.legalFirstName')}
@@ -108,7 +110,8 @@ function LegalNamePage(props) {
                         />
                     </View>
                     <View>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="legalLastName"
                             name="llname"
                             label={props.translate('privatePersonalDetails.legalLastName')}
@@ -119,7 +122,7 @@ function LegalNamePage(props) {
                             spellCheck={false}
                         />
                     </View>
-                </Form>
+                </FormProvider>
             )}
         </ScreenWrapper>
     );

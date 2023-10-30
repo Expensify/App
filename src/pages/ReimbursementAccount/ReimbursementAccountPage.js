@@ -2,38 +2,38 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {useState, useRef, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import {View} from 'react-native';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import shouldReopenOnfido from '@libs/shouldReopenOnfido';
+import withPolicy from '@pages/workspace/withPolicy';
+import ROUTES from '@src/ROUTES';
+import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import ONYXKEYS from '../../ONYXKEYS';
-import ReimbursementAccountLoadingIndicator from '../../components/ReimbursementAccountLoadingIndicator';
-import Navigation from '../../libs/Navigation/Navigation';
-import CONST from '../../CONST';
-import BankAccount from '../../libs/models/BankAccount';
-import compose from '../../libs/compose';
-import styles from '../../styles/styles';
-import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
-import Text from '../../components/Text';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Text from '@components/TextInput';
+import ScreenWrapper from '@components/ScreenWrapper';
+import * as BankAccounts from '@userActions/BankAccounts';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
+import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
+import BankAccount from '@libs/models/BankAccount';
+import compose from '@libs/compose';
+import styles from '@styles/styles';
+import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
+import ACHContractStep from './ACHContractStep';
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
+import EnableStep from './EnableStep';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
-import ACHContractStep from './ACHContractStep';
-import EnableStep from './EnableStep';
-import ROUTES from '../../ROUTES';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
-import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
-import withPolicy from '../workspace/withPolicy';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import shouldReopenOnfido from '../../libs/shouldReopenOnfido';
-import useLocalize from '../../hooks/useLocalize';
-import useNetwork from '../../hooks/useNetwork';
-import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -352,6 +352,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 }
                 if (subStep) {
                     BankAccounts.setBankAccountSubStep(null);
+                    BankAccounts.setPlaidEvent(null);
                 } else {
                     Navigation.goBack(backTo);
                 }
@@ -401,7 +402,8 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         );
     }
 
-    const isLoading = isLoadingReportData || account.isLoading || reimbursementAccount.isLoading;
+    const isLoading = (isLoadingReportData || account.isLoading || reimbursementAccount.isLoading) &&
+                  (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
     const shouldShowOfflineLoader = !(
         isOffline && _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep)
     );
@@ -549,6 +551,9 @@ export default compose(
         },
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
+        },
+        plaidCurrentEvent: {
+            key: ONYXKEYS.PLAID_CURRENT_EVENT,
         },
         onfidoToken: {
             key: ONYXKEYS.ONFIDO_TOKEN,

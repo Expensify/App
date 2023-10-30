@@ -1,10 +1,10 @@
-import React from 'react';
 import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
-import Log from '../../../libs/Log';
-import IconButton from '../IconButton';
-import * as Session from '../../../libs/actions/Session';
-import CONST from '../../../CONST';
-import CONFIG from '../../../CONFIG';
+import React from 'react';
+import IconButton from '@components/SignInButtons/IconButton';
+import Log from '@libs/Log';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 
 /**
  * Google Sign In method for iOS and android that returns identityToken.

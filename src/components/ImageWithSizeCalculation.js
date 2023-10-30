@@ -1,9 +1,9 @@
-import _ from 'underscore';
-import React, {useState, useRef, useEffect} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Log from '../libs/Log';
-import styles from '../styles/styles';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import Log from '@libs/Log';
+import styles from '@styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
 

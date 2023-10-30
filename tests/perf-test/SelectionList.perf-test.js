@@ -1,6 +1,6 @@
+import {fireEvent} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import {measurePerformance} from 'reassure';
-import {fireEvent} from '@testing-library/react-native';
 import _ from 'underscore';
 import SelectionList from '../../src/components/SelectionList';
 import variables from '../../src/styles/variables';

@@ -1,19 +1,14 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import CONST from '../CONST';
-import stylePropTypes from '../styles/stylePropTypes';
-import styles from '../styles/styles';
-import Tooltip from './Tooltip';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import * as StyleUtils from '../styles/StyleUtils';
-import DotIndicatorMessage from './DotIndicatorMessage';
-import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import useLocalize from '../hooks/useLocalize';
-import useNetwork from '../hooks/useNetwork';
+import _ from 'underscore';
+import useNetwork from '@hooks/useNetwork';
+import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
+import MessagesRow from './MessagesRow';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -97,7 +92,6 @@ function applyStrikeThrough(children) {
 }
 
 function OfflineWithFeedback(props) {
-    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
     const hasErrors = !_.isEmpty(props.errors);
@@ -128,25 +122,13 @@ function OfflineWithFeedback(props) {
                 </View>
             )}
             {props.shouldShowErrorMessages && hasErrorMessages && (
-                <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
-                    <DotIndicatorMessage
-                        style={[styles.flex1]}
-                        messages={errorMessages}
-                        type="error"
-                    />
-                    {props.canDismissError && (
-                        <Tooltip text={translate('common.close')}>
-                            <PressableWithoutFeedback
-                                onPress={props.onClose}
-                                style={[styles.touchableButtonImage]}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                accessibilityLabel={translate('common.close')}
-                            >
-                                <Icon src={Expensicons.Close} />
-                            </PressableWithoutFeedback>
-                        </Tooltip>
-                    )}
-                </View>
+                <MessagesRow
+                    messages={errorMessages}
+                    type="error"
+                    onClose={props.onClose}
+                    containerStyles={props.errorRowStyles}
+                    canDismiss={props.canDismissError}
+                />
             )}
         </View>
     );

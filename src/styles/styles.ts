@@ -6,10 +6,11 @@ import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from
 import {CustomAnimation} from 'react-native-animatable';
 import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
-import CONST from '../CONST';
-import * as Browser from '../libs/Browser';
+import * as Browser from '@libs/Browser';
+import CONST from '@src/CONST';
 import addOutlineWidth from './addOutlineWidth';
 import codeStyles from './codeStyles';
+import colors from './colors';
 import fontFamily from './fontFamily';
 import fontWeightBold from './fontWeight/bold';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
@@ -19,14 +20,16 @@ import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsNone from './pointerEventsNone';
 import defaultTheme from './themes/default';
 import {ThemeDefault} from './themes/types';
+import borders from './utilities/borders';
 import cursor from './utilities/cursor';
 import display from './utilities/display';
 import flex from './utilities/flex';
+import objectFit from './utilities/objectFit';
 import overflow from './utilities/overflow';
 import positioning from './utilities/positioning';
 import sizing from './utilities/sizing';
 import spacing from './utilities/spacing';
-import borders from './utilities/borders';
+import textDecorationLine from './utilities/textDecorationLine';
 import textUnderline from './utilities/textUnderline';
 import userSelect from './utilities/userSelect';
 import visibility from './utilities/visibility';
@@ -34,8 +37,6 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
-import colors from './colors';
-import objectFit from './utilities/objectFit';
 
 type AnchorPosition = {
     horizontal: number;
@@ -227,6 +228,7 @@ const styles = (theme: ThemeDefault) =>
         ...userSelect,
         ...textUnderline,
         ...objectFit,
+        ...textDecorationLine,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
@@ -244,6 +246,11 @@ const styles = (theme: ThemeDefault) =>
         autoCompleteSuggestionContainer: {
             flexDirection: 'row',
             alignItems: 'center',
+        },
+
+        rtlTextRenderForSafari: {
+            textAlign: 'left',
+            ...writingDirection.ltr,
         },
 
         emojiSuggestionsEmoji: {
@@ -480,7 +487,9 @@ const styles = (theme: ThemeDefault) =>
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
             justifyContent: 'center',
+            alignItems: 'center',
             ...spacing.ph3,
+            ...spacing.pv0,
         },
 
         buttonContainer: {
@@ -507,18 +516,14 @@ const styles = (theme: ThemeDefault) =>
         buttonSmall: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeSmall,
-            paddingTop: 4,
             paddingHorizontal: 14,
-            paddingBottom: 4,
             backgroundColor: theme.buttonDefaultBG,
         },
 
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
-            paddingTop: 12,
             paddingRight: 16,
-            paddingBottom: 12,
             paddingLeft: 16,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -526,9 +531,7 @@ const styles = (theme: ThemeDefault) =>
         buttonLarge: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
-            paddingTop: 8,
             paddingRight: 10,
-            paddingBottom: 8,
             paddingLeft: 10,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -609,7 +612,6 @@ const styles = (theme: ThemeDefault) =>
         },
 
         buttonCTA: {
-            paddingVertical: 6,
             ...spacing.mh4,
         },
 
@@ -2898,16 +2900,6 @@ const styles = (theme: ThemeDefault) =>
             width: variables.sideBarWidth - 68,
         },
 
-        cardOverlay: {
-            backgroundColor: theme.overlay,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            opacity: variables.overlayOpacity,
-        },
-
         shortTermsBorder: {
             borderWidth: 1,
             borderColor: theme.border,
@@ -3163,7 +3155,7 @@ const styles = (theme: ThemeDefault) =>
 
         paymentMethod: {
             paddingHorizontal: 20,
-            height: 64,
+            height: variables.optionRowHeight,
         },
 
         archivedReportFooter: {
