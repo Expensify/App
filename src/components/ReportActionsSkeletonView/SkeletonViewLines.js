@@ -1,10 +1,10 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import {Rect, Circle} from 'react-native-svg';
+import React from 'react';
 import SkeletonViewContentLoader from 'react-content-loader/native';
-import CONST from '../../CONST';
-import themeColors from '../../styles/themes/default';
-import styles from '../../styles/styles';
+import {Circle, Rect} from 'react-native-svg';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Number of rows to show in Skeleton UI block */

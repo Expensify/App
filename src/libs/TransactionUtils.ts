@@ -1,12 +1,12 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
 import {format, isValid} from 'date-fns';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import DateUtils from './DateUtils';
+import Onyx, {OnyxCollection} from 'react-native-onyx';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
+import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isExpensifyCard} from './CardUtils';
+import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
-import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
-import {Receipt, Comment, WaypointCollection, Waypoint} from '../types/onyx/Transaction';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
 
@@ -396,9 +396,6 @@ function getAllReportTransactions(reportID?: string): Transaction[] {
     return transactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
-/**
- * Checks if a waypoint has a valid address
- */
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
@@ -414,7 +411,9 @@ function getWaypointIndex(key: string): number {
  * Filters the waypoints which are valid and returns those
  */
 function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = false): WaypointCollection {
-    const sortedIndexes = Object.keys(waypoints).map(getWaypointIndex).sort();
+    const sortedIndexes = Object.keys(waypoints)
+        .map(getWaypointIndex)
+        .sort((a, b) => a - b);
     const waypointValues = sortedIndexes.map((index) => waypoints[`waypoint${index}`]);
     // Ensure the number of waypoints is between 2 and 25
     if (waypointValues.length < 2 || waypointValues.length > 25) {
