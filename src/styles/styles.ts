@@ -8,6 +8,7 @@ import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
+import DotLottieAnimation from '@components/LottieAnimations/types';
 import addOutlineWidth from './addOutlineWidth';
 import codeStyles from './codeStyles';
 import colors from './colors';
@@ -37,7 +38,6 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
-import { DotLottieAnimation } from '@components/LottieAnimations';
 
 type AnchorPosition = {
     horizontal: number;
