@@ -1,10 +1,10 @@
-import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
-import Text from '../../../components/Text';
-import {withCurrentDate} from '../../../components/OnyxProvider';
+import React, {memo} from 'react';
+import {withCurrentDate} from '@components/OnyxProvider';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import styles from '@styles/styles';
 
 const propTypes = {
     /** UTC timestamp for when the action was created */

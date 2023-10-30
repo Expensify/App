@@ -1,13 +1,12 @@
+import {ResizeMode, Video} from 'expo-av';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {Video, ResizeMode} from 'expo-av';
-import _ from 'underscore';
-import styles from '../../styles/styles';
-import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import styles from '@styles/styles';
 import VideoPlayerControls from './VideoPlayerControls';
-import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 
 const propTypes = {
     url: PropTypes.string.isRequired,

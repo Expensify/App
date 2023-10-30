@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect, useState} from 'react';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming, runOnJS} from 'react-native-reanimated';
-import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types

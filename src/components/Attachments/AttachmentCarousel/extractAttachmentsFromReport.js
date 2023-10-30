@@ -1,12 +1,12 @@
-import {Parser as HtmlParser} from 'htmlparser2';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import * as TransactionUtils from '../../../libs/TransactionUtils';
-import * as ReceiptUtils from '../../../libs/ReceiptUtils';
-import CONST from '../../../CONST';
-import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
+import {Parser as HtmlParser} from 'htmlparser2';
+import lodashGet from 'lodash/get';
+import _ from 'underscore';
+import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
 
 /**
  * Constructs the initial component state from report actions

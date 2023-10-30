@@ -1,19 +1,19 @@
-import _ from 'underscore';
-import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
-import styles from '../../styles/styles';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import MenuItem from '../MenuItem';
-import {propTypes as createMenuPropTypes, defaultProps as createMenuDefaultProps} from './popoverMenuPropTypes';
-import refPropTypes from '../refPropTypes';
-import Text from '../Text';
-import CONST from '../../CONST';
-import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
-import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import * as Expensicons from '../Icon/Expensicons';
+import _ from 'underscore';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import refPropTypes from '@components/refPropTypes';
+import Text from '@components/Text';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import {defaultProps as createMenuDefaultProps, propTypes as createMenuPropTypes} from './popoverMenuPropTypes';
 
 const propTypes = {
     ...createMenuPropTypes,

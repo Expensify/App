@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import refPropTypes from '../refPropTypes';
-import variables from '../../styles/variables';
-import CONST from '../../CONST';
+import refPropTypes from '@components/refPropTypes';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */

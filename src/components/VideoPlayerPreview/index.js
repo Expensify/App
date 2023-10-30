@@ -1,13 +1,13 @@
-import React, {useState, useMemo, useEffect} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import VideoPlayer from '../VideoPlayer';
-import styles from '../../styles/styles';
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import * as Expensicons from '@components/Icon/Expensicons';
+import VideoPlayer from '@components/VideoPlayer';
+import IconButton from '@components/VideoPlayer/IconButton';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import styles from '@styles/styles';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
-import IconButton from '../VideoPlayer/IconButton';
-import * as Expensicons from '../Icon/Expensicons';
 
 const propTypes = {
     videoUrl: PropTypes.string.isRequired,
@@ -15,7 +15,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     videoDimensions: PropTypes.object,
 
-    thumbnailUrl: PropTypes.stridg,
+    thumbnailUrl: PropTypes.string,
 
     fileName: PropTypes.string.isRequired,
 

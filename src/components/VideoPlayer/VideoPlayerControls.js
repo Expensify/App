@@ -1,14 +1,14 @@
-import React, {useEffect} from 'react';
-import {View, Text} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
+import {Text, View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import * as Expensicons from '@components/Icon/Expensicons';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+import VolumeButton from '@components/VolumeButton';
 import IconButton from './IconButton';
-import * as Expensicons from '../Icon/Expensicons';
 import ProgressBar from './ProgressBar';
 import convertMillisecondsToTime from './utils';
-import VolumeButton from '../VolumeButton';
-import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
-import {useVideoPopoverMenuContext} from '../VideoPlayerContexts/VideoPopoverMenuContext';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types

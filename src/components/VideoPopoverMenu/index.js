@@ -1,10 +1,10 @@
 import React from 'react';
 import _ from 'underscore';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import * as Expensicons from '../Icon/Expensicons';
-import PopoverMenu from '../PopoverMenu';
-import {usePlaybackContext} from '../VideoPlayerContexts/PlaybackContext';
-import {useVideoPopoverMenuContext} from '../VideoPlayerContexts/VideoPopoverMenuContext';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PopoverMenu from '@components/PopoverMenu';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 const propTypes = {};
 

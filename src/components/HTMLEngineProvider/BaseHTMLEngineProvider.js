@@ -1,12 +1,12 @@
-import _ from 'underscore';
-import React, {useMemo} from 'react';
-import {TRenderEngineProvider, RenderHTMLConfigProvider, defaultHTMLElementModels} from 'react-native-render-html';
 import PropTypes from 'prop-types';
-import htmlRenderers from './HTMLRenderers';
+import React, {useMemo} from 'react';
+import {defaultHTMLElementModels, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
+import _ from 'underscore';
+import convertToLTR from '@libs/convertToLTR';
+import singleFontFamily from '@styles/fontFamily/singleFontFamily';
+import styles from '@styles/styles';
 import * as HTMLEngineUtils from './htmlEngineUtils';
-import styles from '../../styles/styles';
-import convertToLTR from '../../libs/convertToLTR';
-import singleFontFamily from '../../styles/fontFamily/singleFontFamily';
+import htmlRenderers from './HTMLRenderers';
 
 const propTypes = {
     /** Whether text elements should be selectable */

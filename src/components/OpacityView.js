@@ -1,9 +1,9 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import PropTypes from 'prop-types';
-import variables from '../styles/variables';
-import * as StyleUtils from '../styles/StyleUtils';
-import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
+import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
+import * as StyleUtils from '@styles/StyleUtils';
+import variables from '@styles/variables';
 
 const propTypes = {
     /**

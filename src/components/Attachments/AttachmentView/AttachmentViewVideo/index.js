@@ -1,9 +1,8 @@
 import React, {memo} from 'react';
-import VideoPlayer from '../../../VideoPlayer';
-import withLocalize, {withLocalizePropTypes} from '../../../withLocalize';
-import compose from '../../../../libs/compose';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import {usePlaybackContext} from '../../../VideoPlayerContexts/PlaybackContext';
+import VideoPlayer from '@components/VideoPlayer';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
 
 const propTypes = {
     ...withLocalizePropTypes,

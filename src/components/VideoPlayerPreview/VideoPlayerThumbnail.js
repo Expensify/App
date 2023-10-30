@@ -1,9 +1,9 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import ImageWithSizeCalculation from '../Image';
-import styles from '../../styles/styles';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
+import React from 'react';
+import ImageWithSizeCalculation from '@components/Image';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     thumbnailUrl: PropTypes.string.isRequired,

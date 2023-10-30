@@ -1,12 +1,12 @@
-import React, {useState} from 'react';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import Hoverable from '../Hoverable';
-import {useVolumeContext} from '../VideoPlayerContexts/VolumeContext';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types

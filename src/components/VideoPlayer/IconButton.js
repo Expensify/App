@@ -1,9 +1,9 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import Icon from '../Icon';
-import CONST from '../../CONST';
-import Hoverable from '../Hoverable';
+import React from 'react';
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import CONST from '@src/CONST';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
