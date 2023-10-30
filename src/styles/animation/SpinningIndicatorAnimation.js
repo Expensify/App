@@ -1,5 +1,5 @@
 import {Animated, Easing} from 'react-native';
-import useNativeDriver from '../../libs/useNativeDriver';
+import useNativeDriver from '@libs/useNativeDriver';
 
 class SpinningIndicatorAnimation {
     constructor() {
