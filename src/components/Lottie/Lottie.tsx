@@ -1,9 +1,9 @@
 import LottieView, {LottieViewProps} from 'lottie-react-native';
 import React, {CSSProperties, ForwardedRef, forwardRef} from 'react';
-import {ViewStyle, Text} from 'react-native';
+import {View, ViewStyle} from 'react-native';
 import DotLottieAnimation from '@components/LottieAnimations/types';
-import styles from '@styles/styles';
 import useNetwork from '@hooks/useNetwork';
+import styles from '@styles/styles';
 
 type Props = {
     animation: DotLottieAnimation;
@@ -12,30 +12,24 @@ type Props = {
 function Lottie({animation, ...props}: Props, ref: ForwardedRef<LottieView>) {
     const [isError, setIsError] = React.useState(false);
 
-    const source = animation.file;
+    useNetwork({onReconnect: () => setIsError(false)});
+
     const style: ViewStyle = styles.aspectRatioLottie(animation);
 
-    useNetwork({onReconnect: () => {
-      console.log('reconnected, load image again');
-      setIsError(false);
-    }});
-
+    // If the image fails to load, we'll just render an empty view
     if (isError) {
-        return <Text>Animation not loaded. You are offline!</Text>;
+        return <View style={style} />;
     }
 
     return (
         <LottieView
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            source={source}
+            source={animation.file}
             ref={ref}
             style={[props.style, style]}
             webStyle={style as CSSProperties}
-            onAnimationFailure={(error) => {
-              console.log('animation failure', error);
-              setIsError(true);
-            }}
+            onAnimationFailure={() => setIsError(true)}
         />
     );
 }
