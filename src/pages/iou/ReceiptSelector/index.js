@@ -91,23 +91,27 @@ function ReceiptSelector({route, transactionID, iou, report}) {
      * The last deviceId is of regular len camera.
      */
     useEffect(() => {
-        if (!navigator.mediaDevices.enumerateDevices) {
-            setVideoConstraints({facingMode: {exact: 'environment'}});
-            return;
-        }
+        navigator.mediaDevices.getUserMedia({audio: true, video: true}).then((stream) => {
+            _.forEach(stream.getTracks(), (videoStream) => videoStream.stop());
 
-        navigator.mediaDevices.enumerateDevices().then((devices) => {
-            const lastBackDeviceId = _.chain(devices)
-                .filter((item) => item.label && item.label.endsWith('facing back'))
-                .last()
-                .get('deviceId', '')
-                .value();
-
-            if (!lastBackDeviceId) {
+            if (!navigator.mediaDevices.enumerateDevices) {
                 setVideoConstraints({facingMode: {exact: 'environment'}});
                 return;
             }
-            setVideoConstraints({deviceId: lastBackDeviceId});
+
+            navigator.mediaDevices.enumerateDevices().then((devices) => {
+                const lastBackDeviceId = _.chain(devices)
+                    .filter((item) => item.kind === 'videoinput')
+                    .last()
+                    .get('deviceId', '')
+                    .value();
+
+                if (!lastBackDeviceId) {
+                    setVideoConstraints({facingMode: {exact: 'environment'}});
+                    return;
+                }
+                setVideoConstraints({deviceId: lastBackDeviceId});
+            });
         });
     }, []);
 
