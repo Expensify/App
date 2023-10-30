@@ -37,6 +37,7 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
+import { DotLottieAnimation } from '@components/LottieAnimations';
 
 type AnchorPosition = {
     horizontal: number;
@@ -4009,12 +4010,7 @@ const styles = (theme: ThemeDefault) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        aspectRatioLottie: (source) => {
-            if (!source.uri && typeof source === 'object' && source.w && source.h) {
-                return {aspectRatio: source.w / source.h};
-            }
-            return {};
-        },
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h, width: '100%'}),
 
         receiptDropHeaderGap: {
             backgroundColor: theme.receiptDropUIBG,

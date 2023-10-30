@@ -57,7 +57,6 @@
     "workflow-test:generate": "node workflow_tests/utils/preGenerateTest.js"
   },
   "dependencies": {
-    "@dotlottie/react-player": "^1.6.3",
     "@expensify/react-native-web": "0.18.15",
     "@formatjs/intl-datetimeformat": "^6.10.0",
     "@formatjs/intl-getcanonicallocales": "^2.2.0",
