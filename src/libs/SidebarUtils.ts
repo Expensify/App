@@ -170,7 +170,6 @@ function getOrderedReportIDs(
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned - Always sorted by reportDisplayName
-    // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
     // 3. Drafts - Always sorted by reportDisplayName
     // 4. Non-archived reports and settled IOUs
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
@@ -179,15 +178,12 @@ function getOrderedReportIDs(
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     const pinnedReports: Report[] = [];
-    const outstandingIOUReports: Report[] = [];
     const draftReports: Report[] = [];
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
     reportsToDisplay.forEach((report) => {
-        if (report.isPinned) {
+        if (report.isPinned || ReportUtils.shouldShowGBR(report)) {
             pinnedReports.push(report);
-        } else if (ReportUtils.shouldShowGBR(report)) {
-            outstandingIOUReports.push(report);
         } else if (report.hasDraft) {
             draftReports.push(report);
         } else if (ReportUtils.isArchivedRoom(report)) {
@@ -199,11 +195,6 @@ function getOrderedReportIDs(
 
     // Sort each group of reports accordingly
     pinnedReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
-    outstandingIOUReports.sort((a, b) => {
-        const compareAmounts = a?.iouReportAmount && b?.iouReportAmount ? b.iouReportAmount - a.iouReportAmount : 0;
-        const compareDisplayNames = a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0;
-        return compareAmounts || compareDisplayNames;
-    });
     draftReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
 
     if (isInDefaultMode) {
@@ -221,7 +212,7 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedReports, ...outstandingIOUReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
+    const LHNReports = [...pinnedReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
     setWithLimit(reportIDsCache, cachedReportsKey, LHNReports);
     return LHNReports;
 }
