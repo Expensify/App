@@ -1,12 +1,12 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import Lottie from 'lottie-react-native';
-import * as LottieAnimations from './LottieAnimations';
-import Text from './Text';
-import styles from '../styles/styles';
+import styles from '@styles/styles';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
+import Lottie from './Lottie';
+import * as LottieAnimations from './LottieAnimations';
+import Text from './Text';
 
 const propTypes = {
     /** The asset to render */

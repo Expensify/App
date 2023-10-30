@@ -1,8 +1,8 @@
 import render from 'dom-serializer';
-import {parseDocument} from 'htmlparser2';
 import Str from 'expensify-common/lib/str';
+import {parseDocument} from 'htmlparser2';
 import {DataNode, Element, Node} from 'domhandler';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 import GetCurrentSelection from './types';
 
 const elementsWillBeSkipped = ['html', 'body'];

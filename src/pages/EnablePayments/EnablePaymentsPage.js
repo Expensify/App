@@ -1,24 +1,23 @@
-import _ from 'underscore';
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import * as Wallet from '../../libs/actions/Wallet';
-import ONYXKEYS from '../../ONYXKEYS';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import CONST from '../../CONST';
-import userWalletPropTypes from './userWalletPropTypes';
-
+import _ from 'underscore';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import Navigation from '@libs/Navigation/Navigation';
+import * as Wallet from '@userActions/Wallet';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import ActivateStep from './ActivateStep';
+import AdditionalDetailsStep from './AdditionalDetailsStep';
+import FailedKYC from './FailedKYC';
 // Steps
 import OnfidoStep from './OnfidoStep';
-import AdditionalDetailsStep from './AdditionalDetailsStep';
 import TermsStep from './TermsStep';
-import ActivateStep from './ActivateStep';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import FailedKYC from './FailedKYC';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import useLocalize from '../../hooks/useLocalize';
-import useNetwork from '../../hooks/useNetwork';
+import userWalletPropTypes from './userWalletPropTypes';
 
 const propTypes = {
     /** The user's wallet */
@@ -33,13 +32,20 @@ function EnablePaymentsPage({userWallet}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
+    const {isPendingOnfidoResult, hasFailedOnfido} = userWallet;
+
     useEffect(() => {
         if (isOffline) {
             return;
         }
 
+        if (isPendingOnfidoResult || hasFailedOnfido) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET, CONST.NAVIGATION.TYPE.UP);
+            return;
+        }
+
         Wallet.openEnablePaymentsPage();
-    }, [isOffline]);
+    }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
 
     if (_.isEmpty(userWallet)) {
         return <FullScreenLoadingIndicator />;
@@ -47,6 +53,7 @@ function EnablePaymentsPage({userWallet}) {
 
     return (
         <ScreenWrapper
+            shouldShowOfflineIndicator={userWallet.currentStep !== CONST.WALLET.STEP.ONFIDO}
             includeSafeAreaPaddingBottom={false}
             testID={EnablePaymentsPage.displayName}
         >
@@ -61,10 +68,6 @@ function EnablePaymentsPage({userWallet}) {
                             <FailedKYC />
                         </>
                     );
-                }
-
-                if (userWallet.shouldShowWalletActivationSuccess) {
-                    return <ActivateStep userWallet={userWallet} />;
                 }
 
                 const currentStep = userWallet.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;

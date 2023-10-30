@@ -1,12 +1,12 @@
-import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import useLocalize from '../hooks/useLocalize';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 const propTypes = {
     /** Form error text. e.g when no country is selected */
@@ -68,10 +68,14 @@ CountrySelector.propTypes = propTypes;
 CountrySelector.defaultProps = defaultProps;
 CountrySelector.displayName = 'CountrySelector';
 
-export default React.forwardRef((props, ref) => (
+const CountrySelectorWithRef = React.forwardRef((props, ref) => (
     <CountrySelector
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+CountrySelectorWithRef.displayName = 'CountrySelectorWithRef';
+
+export default CountrySelectorWithRef;

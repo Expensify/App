@@ -1,13 +1,13 @@
-import React, {memo} from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import Avatar from './Avatar';
-import CONST from '../CONST';
-import * as StyleUtils from '../styles/StyleUtils';
 import avatarPropTypes from './avatarPropTypes';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
@@ -43,17 +43,10 @@ const defaultProps = {
 function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, noMargin, showTooltip}) {
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
     const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
-    const containerStyle = isSmall ? styles.emptyAvatarSmall : styles.emptyAvatar;
-    // Default the margin style to what is normal for small or normal sized avatars
-    let marginStyle = isSmall ? styles.emptyAvatarMarginSmall : styles.emptyAvatarMargin;
-
-    // Some views like the chat view require that there be no margins
-    if (noMargin) {
-        marginStyle = {};
-    }
+    const containerStyle = StyleUtils.getContainerStyles(size);
 
     return (
-        <View style={[containerStyle, marginStyle]}>
+        <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
                 accountID={lodashGet(mainAvatar, 'id', -1)}
