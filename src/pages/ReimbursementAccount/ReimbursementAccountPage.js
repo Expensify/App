@@ -39,6 +39,9 @@ const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
     plaidLinkToken: PropTypes.string,
 
+    /** Plaid SDK current event */
+    plaidCurrentEvent: PropTypes.string,
+
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
@@ -85,6 +88,7 @@ const defaultProps = {
     onfidoToken: '',
     policy: {},
     plaidLinkToken: '',
+    plaidCurrentEvent: '',
     isLoadingReportData: false,
     account: {},
     session: {
@@ -132,7 +136,7 @@ function getStepToOpenFromRouteParams(route) {
     }
 }
 
-function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, policy, account, isLoadingReportData, session, plaidLinkToken, reimbursementAccountDraft}) {
+function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, policy, account, isLoadingReportData, session, plaidLinkToken, plaidCurrentEvent, reimbursementAccountDraft}) {
     // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
     // user left off. This view will refer to the achData as the single source of truth to determine which route to
     // display. We can also specify a specific route to navigate to via route params when the component first
