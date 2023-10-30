@@ -1,8 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import {View, PixelRatio} from 'react-native';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
-import styles from '../../../styles/styles';
+import React from 'react';
+import {PixelRatio, View} from 'react-native';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import styles from '@styles/styles';
 
 const propTypes = {
     /** Cell Container styles */

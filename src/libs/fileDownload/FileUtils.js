@@ -1,7 +1,7 @@
 import {Alert, Linking, Platform} from 'react-native';
-import CONST from '../../CONST';
-import * as Localize from '../Localize';
-import DateUtils from '../DateUtils';
+import DateUtils from '@libs/DateUtils';
+import * as Localize from '@libs/Localize';
+import CONST from '@src/CONST';
 
 /**
  * Show alert on successful attachment download
