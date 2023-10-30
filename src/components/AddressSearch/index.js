@@ -1,26 +1,26 @@
-import _ from 'underscore';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import PropTypes from 'prop-types';
-import {Keyboard, LogBox, ScrollView, View, Text, ActivityIndicator} from 'react-native';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
-import compose from '../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import TextInput from '../TextInput';
-import * as ApiUtils from '../../libs/ApiUtils';
-import * as GooglePlacesUtils from '../../libs/GooglePlacesUtils';
-import getCurrentPosition from '../../libs/getCurrentPosition';
-import CONST from '../../CONST';
-import * as StyleUtils from '../../styles/StyleUtils';
-import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import variables from '../../styles/variables';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import LocationErrorMessage from '../LocationErrorMessage';
-import {withNetwork} from '../OnyxProvider';
-import networkPropTypes from '../networkPropTypes';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
+import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+import _ from 'underscore';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import LocationErrorMessage from '@components/LocationErrorMessage';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import * as ApiUtils from '@libs/ApiUtils';
+import compose from '@libs/compose';
+import getCurrentPosition from '@libs/getCurrentPosition';
+import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
+import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the

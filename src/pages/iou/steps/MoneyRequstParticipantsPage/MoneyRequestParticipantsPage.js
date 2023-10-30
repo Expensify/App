@@ -1,26 +1,25 @@
-import React, {useEffect, useRef, useState, useCallback} from 'react';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import compose from '../../../../libs/compose';
-import CONST from '../../../../CONST';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import ROUTES from '../../../../ROUTES';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import compose from '@libs/compose';
+import useInitialValue from '@hooks/useInitialValue';
+import useLocalize from '@hooks/useLocalize';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import transactionPropTypes from '@components/transactionPropTypes';
 import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
-import styles from '../../../../styles/styles';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import * as IOU from '../../../../libs/actions/IOU';
-import * as TransactionUtils from '../../../../libs/TransactionUtils';
-import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
-import {iouPropTypes, iouDefaultProps} from '../../propTypes';
-import useLocalize from '../../../../hooks/useLocalize';
-import transactionPropTypes from '../../../../components/transactionPropTypes';
-import useInitialValue from '../../../../hooks/useInitialValue';
 
 const propTypes = {
     /** React Navigation route */
@@ -76,8 +75,13 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
             return;
         }
 
-        setHeaderTitle(_.isEmpty(iou.participants) ? translate('tabSelector.manual') : translate('iou.split'));
-    }, [iou.participants, isDistanceRequest, isSendRequest, translate]);
+        if (isScanRequest) {
+            setHeaderTitle(translate('tabSelector.scan'));
+            return;
+        }
+
+        setHeaderTitle(iou.isSplitRequest ? translate('iou.split') : translate('tabSelector.manual'));
+    }, [iou.isSplitRequest, isDistanceRequest, translate, isScanRequest, isSendRequest]);
 
     const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
@@ -131,7 +135,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
                     />
                     <MoneyRequestParticipantsSelector
                         ref={(el) => (optionsSelectorRef.current = el)}
-                        participants={iou.participants}
+                        participants={iou.isSplitRequest ? iou.participants : []}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToConfirmationStep(iouType)}
                         navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.TYPE.SPLIT)}

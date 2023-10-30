@@ -1,6 +1,6 @@
 import React, {ForwardedRef} from 'react';
 import {ScrollView, ScrollViewProps} from 'react-native';
-import styles from '../styles/styles';
+import styles from '@styles/styles';
 
 type FormScrollViewProps = ScrollViewProps & {
     /** Form elements */
