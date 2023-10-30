@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import CONST from '../../../CONST';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import CONST from '@src/CONST';
 
 function useCarouselArrows() {
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();

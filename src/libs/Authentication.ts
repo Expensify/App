@@ -1,13 +1,13 @@
-import requireParameters from './requireParameters';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import Response from '@src/types/onyx/Response';
+import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
+import redirectToSignIn from './actions/SignInRedirect';
+import * as ErrorUtils from './ErrorUtils';
+import Log from './Log';
 import * as Network from './Network';
 import * as NetworkStore from './Network/NetworkStore';
-import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
-import CONFIG from '../CONFIG';
-import redirectToSignIn from './actions/SignInRedirect';
-import CONST from '../CONST';
-import Log from './Log';
-import * as ErrorUtils from './ErrorUtils';
-import Response from '../types/onyx/Response';
+import requireParameters from './requireParameters';
 
 type Parameters = {
     useExpensifyLogin?: boolean;

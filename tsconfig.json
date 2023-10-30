@@ -30,7 +30,20 @@
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
         "skipLibCheck": true,
-        "incremental": true
+        "incremental": true,
+        "baseUrl": ".",
+        "paths": {
+            "@assets/*": ["./assets/*"],
+            "@components/*": ["./src/components/*"],
+            "@hooks/*": ["./src/hooks/*"],
+            "@libs/*": ["./src/libs/*"],
+            "@navigation/*": ["./src/libs/Navigation/*"],
+            "@pages/*": ["./src/pages/*"],
+            "@styles/*": ["./src/styles/*"],
+            // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+            "@src/*": ["./src/*"],
+            "@userActions/*": ["./src/libs/actions/*"]
+        }
     },
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"],
     "include": ["src", "desktop", "web", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*"]
