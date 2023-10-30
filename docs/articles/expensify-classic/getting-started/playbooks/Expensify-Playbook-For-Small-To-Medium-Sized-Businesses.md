@@ -114,7 +114,7 @@ For an efficient company, we recommend setting up [Scheduled Submit](https://hel
 - You’ll notice *Scheduled Submit* is located directly under *Report Basics*
 - Choose *Daily*
 
-Between Expensify's SmartScan technology, automatic categorization, and [DoubleCheck](https://community.expensify.com/discussion/5738/deep-dive-how-does-concierge-receipt-audit-work) features, your employees shouldn't need to do anything more than swipe their Expensify Card or take a photo of  their receipt.
+Between Expensify's SmartScan technology, automatic categorization, and [DoubleCheck](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approving-Reports) features, your employees shouldn't need to do anything more than swipe their Expensify Card or take a photo of  their receipt.
 
 Expenses with violations will stay behind for the employee to fix, while expenses that are “in-workspace” will move into an approver’s queue to mitigate any potential for delays. Scheduled Submit will ensure all expenses are submitted automatically for approval.
 
