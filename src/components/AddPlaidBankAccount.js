@@ -236,6 +236,7 @@ function AddPlaidBankAccount({
                     src={icon}
                     height={iconSize}
                     width={iconSize}
+                    additionalStyles={iconStyles}
                 />
                 <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
             </View>
