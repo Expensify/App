@@ -1,22 +1,22 @@
-import React, {memo} from 'react';
-import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
+import React, {memo} from 'react';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import ZeroWidthView from '@components/ZeroWidthView';
+import compose from '@libs/compose';
+import convertToLTR from '@libs/convertToLTR';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import editedLabelStyles from '@styles/editedLabelStyles';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import reportActionFragmentPropTypes from '../reportActionFragmentPropTypes';
-import reportActionSourcePropType from '../reportActionSourcePropType';
-import styles from '../../../../styles/styles';
-import variables from '../../../../styles/variables';
-import themeColors from '../../../../styles/themes/default';
-import Text from '../../../../components/Text';
-import * as EmojiUtils from '../../../../libs/EmojiUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
-import compose from '../../../../libs/compose';
-import convertToLTR from '../../../../libs/convertToLTR';
-import CONST from '../../../../CONST';
-import editedLabelStyles from '../../../../styles/editedLabelStyles';
-import RenderCommentHTML from './RenderCommentHTML';
-import ZeroWidthView from '../../../../components/ZeroWidthView';
+import reportActionSourcePropType from "@pages/home/report/reportActionSourcePropType";
+import RenderCommentHTML from "@pages/home/report/comment/RenderCommentHTML";
 
 const propTypes = {
     /** The reportAction's source */

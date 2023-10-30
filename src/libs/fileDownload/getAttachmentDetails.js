@@ -1,5 +1,5 @@
-import CONST from '../../CONST';
-import tryResolveUrlFromApiRoot from '../tryResolveUrlFromApiRoot';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
 
 /**
  * Extract the thumbnail URL, source URL and the original filename from the HTML.

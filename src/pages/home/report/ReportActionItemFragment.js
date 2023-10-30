@@ -1,19 +1,19 @@
-import React, {memo} from 'react';
 import PropTypes from 'prop-types';
+import React, {memo} from 'react';
+import avatarPropTypes from '@components/avatarPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
-import styles from '../../../styles/styles';
-import RenderHTML from '../../../components/RenderHTML';
-import Text from '../../../components/Text';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
-import {withNetwork} from '../../../components/OnyxProvider';
-import CONST from '../../../CONST';
-import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
-import avatarPropTypes from '../../../components/avatarPropTypes';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
-import TextCommentFragment from './comment/TextCommentFragment';
+import AttachmentCommentFragment from '@pages/home/report/comment/AttachmentCommentFragment';
+import TextCommentFragment from '@pages/home/report/comment/TextCommentFragment';
+import * as ReportUtils from '@libs/ReportUtils';
 
 const propTypes = {
     /** Users accountID */

@@ -1,11 +1,11 @@
-import React from 'react';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import * as Expensicons from '../Icon/Expensicons';
-import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
-import theme from '../../styles/themes/default';
-import useLocalize from '../../hooks/useLocalize';
+import React from 'react';
+import _ from 'underscore';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import useLocalize from '@hooks/useLocalize';
+import theme from '@styles/themes/default';
 
 const propTypes = {
     /** The waypoints for the distance request */
@@ -14,6 +14,7 @@ const propTypes = {
             lat: PropTypes.number,
             lng: PropTypes.number,
             address: PropTypes.string,
+            name: PropTypes.string,
         }),
     ),
 
@@ -65,10 +66,13 @@ function DistanceRequestRenderItem({waypoints, item, onSecondaryInteraction, get
         waypointIcon = Expensicons.DotIndicator;
     }
 
+    const waypoint = lodashGet(waypoints, [`waypoint${index}`], {});
+    const title = waypoint.name || waypoint.address;
+
     return (
         <MenuItemWithTopDescription
             description={translate(descriptionKey)}
-            title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
+            title={title}
             icon={Expensicons.DragHandles}
             iconFill={theme.icon}
             secondaryIcon={waypointIcon}
