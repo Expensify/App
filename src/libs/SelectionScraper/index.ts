@@ -1,7 +1,7 @@
 import render from 'dom-serializer';
+import {DataNode, Element, Node} from 'domhandler';
 import Str from 'expensify-common/lib/str';
 import {parseDocument} from 'htmlparser2';
-import {DataNode, Element, Node} from 'domhandler';
 import CONST from '@src/CONST';
 import GetCurrentSelection from './types';
 
