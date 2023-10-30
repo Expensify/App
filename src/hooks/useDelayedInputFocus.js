@@ -1,6 +1,6 @@
-import {useCallback, useRef} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
-import CONST from '../CONST';
+import {useCallback, useRef} from 'react';
+import CONST from '@src/CONST';
 
 /**
  * Focus a text input when a screen is navigated to, after the specified time delay has elapsed.

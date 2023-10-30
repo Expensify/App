@@ -1,14 +1,13 @@
 /* eslint-disable rulesdir/no-api-in-views */
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import Log from '../Log';
-
+import _ from 'underscore';
+import Log from '@libs/Log';
+import mockAuthenticatePusher from './apiMocks/authenticatePusher';
 // mock functions
 import mockBeginSignin from './apiMocks/beginSignin';
-import mockSigninUser from './apiMocks/signinUser';
-import mockAuthenticatePusher from './apiMocks/authenticatePusher';
 import mockOpenApp from './apiMocks/openApp';
 import mockOpenReport from './apiMocks/openReport';
+import mockSigninUser from './apiMocks/signinUser';
 
 /**
  * A dictionary which has the name of a API command as key, and a function which
