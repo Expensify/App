@@ -1,14 +1,14 @@
-import React, {forwardRef} from 'react';
-import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {forwardRef} from 'react';
+import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
-import htmlRendererPropTypes from '../htmlRendererPropTypes';
-import withLocalize from '../../../withLocalize';
-import {ShowContextMenuContext, showContextMenuForReport} from '../../../ShowContextMenuContext';
-import styles from '../../../../styles/styles';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import PressableWithoutFeedback from '../../../Pressable/PressableWithoutFeedback';
-import CONST from '../../../../CONST';
+import htmlRendererPropTypes from '@components/HTMLEngineProvider/HTMLRenderers/htmlRendererPropTypes';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import withLocalize from '@components/withLocalize';
+import * as ReportUtils from '@libs/ReportUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Press in handler for the code block */

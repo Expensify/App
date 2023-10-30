@@ -1,10 +1,10 @@
-import {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
+import {useCallback, useRef} from 'react';
 import {StyleSheet} from 'react-native';
-import Reanimated, {useSharedValue, withTiming, Easing, useAnimatedStyle, runOnJS} from 'react-native-reanimated';
-import BootSplash from '../../libs/BootSplash';
-import Logo from '../../../assets/images/new-expensify-dark.svg';
-import styles from '../../styles/styles';
+import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Logo from '@assets/images/new-expensify-dark.svg';
+import BootSplash from '@libs/BootSplash';
+import styles from '@styles/styles';
 
 const propTypes = {
     /** Splash screen has been hidden */
@@ -17,6 +17,9 @@ const defaultProps = {
 
 function SplashScreenHider(props) {
     const {onHide} = props;
+
+    const logoSizeRatio = BootSplash.logoSizeRatio || 1;
+    const navigationBarHeight = BootSplash.navigationBarHeight || 0;
 
     const opacity = useSharedValue(1);
     const scale = useSharedValue(1);
@@ -64,15 +67,15 @@ function SplashScreenHider(props) {
                 opacityStyle,
                 {
                     // Apply negative margins to center the logo on window (instead of screen)
-                    marginBottom: -(BootSplash.navigationBarHeight || 0),
+                    marginBottom: -navigationBarHeight,
                 },
             ]}
         >
             <Reanimated.View style={scaleStyle}>
                 <Logo
                     viewBox="0 0 80 80"
-                    width={100}
-                    height={100}
+                    width={100 * logoSizeRatio}
+                    height={100 * logoSizeRatio}
                 />
             </Reanimated.View>
         </Reanimated.View>

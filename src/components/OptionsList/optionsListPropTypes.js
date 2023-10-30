@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import SectionList from '../SectionList';
-import styles from '../../styles/styles';
-import optionPropTypes from '../optionPropTypes';
+import optionPropTypes from '@components/optionPropTypes';
+import SectionList from '@components/SectionList';
+import styles from '@styles/styles';
 
 const propTypes = {
     /** option flexStyle for the options list container */
@@ -87,6 +87,15 @@ const propTypes = {
 
     /** Whether to wrap large text up to 2 lines */
     isRowMultilineSupported: PropTypes.bool,
+
+    /** Whether we are loading new options */
+    isLoadingNewOptions: PropTypes.bool,
+
+    /** Whether nested scroll of options is enabled, true by default */
+    nestedScrollEnabled: PropTypes.bool,
+
+    /** Whether the list should have a bounce effect on iOS */
+    bounces: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -113,6 +122,9 @@ const defaultProps = {
     shouldPreventDefaultFocusOnSelectRow: false,
     showScrollIndicator: false,
     isRowMultilineSupported: false,
+    isLoadingNewOptions: false,
+    nestedScrollEnabled: true,
+    bounces: true,
 };
 
 export {propTypes, defaultProps};

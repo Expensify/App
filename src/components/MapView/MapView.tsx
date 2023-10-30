@@ -1,19 +1,18 @@
-import {View} from 'react-native';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Mapbox, {MapState, MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import styles from '../../styles/styles';
-
+import {View} from 'react-native';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import Direction from './Direction';
+import {MapViewHandle, MapViewProps} from './MapViewTypes';
 import responder from './responder';
 import utils from './utils';
-import Direction from './Direction';
-import CONST from '../../CONST';
-
-import {MapViewProps, MapViewHandle} from './MapViewTypes';
 
 const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady}, ref) => {
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
+    const navigation = useNavigation();
 
     useImperativeHandle(
         ref,
@@ -30,6 +29,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
     // When the page regains focus, the onIdled method of the map will set the actual "idled" state,
     // which in turn triggers the callback.
     useFocusEffect(
+        // eslint-disable-next-line rulesdir/prefer-early-return
         useCallback(() => {
             if (waypoints?.length && isIdle) {
                 if (waypoints.length === 1) {
@@ -46,11 +46,15 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                     cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
                 }
             }
-            return () => {
-                setIsIdle(false);
-            };
         }, [mapPadding, waypoints, isIdle, directionCoordinates]),
     );
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('blur', () => {
+            setIsIdle(false);
+        });
+        return unsubscribe;
+    }, [navigation]);
 
     useEffect(() => {
         setAccessToken(accessToken);

@@ -1,14 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import * as Link from '../../libs/actions/Link';
-import Icon from '../../components/Icon';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
-import CONST from '../../CONST';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import * as Link from '@userActions/Link';
+import CONST from '@src/CONST';
 
 const socialsList = [
     {

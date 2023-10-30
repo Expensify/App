@@ -94,31 +94,31 @@
             transition: transform var(--label-transition-duration);
         }
 
-        @media screen and (min-width: 480px) { 
-            .splash-logo > svg { 
-                width: 104px; 
-                height: 104px; 
+        @media screen and (min-width: 480px) {
+            .splash-logo > svg {
+                width: 104px;
+                height: 104px;
             }
         }
 
-        @media screen and (max-width: 479px) { 
-            .splash-logo > svg { 
-                width: 52px; 
-                height: 52px; 
+        @media screen and (max-width: 479px) {
+            .splash-logo > svg {
+                width: 52px;
+                height: 52px;
             }
         }
 
         #splash {
-            position: absolute; 
+            position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
             top: 0;
-            background-color: #061B09; 
-            width: 100%; 
-            height: 100%; 
-            display: flex; 
-            justify-content: center; 
+            background-color: #061B09;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
             align-items: center;
             transition-duration: 250ms;
             transition-property: opacity;
@@ -131,6 +131,7 @@
         <!-- polyfill.io is only needed on Web to support older browsers. It should not be loaded for desktop -->
         <script src="https://polyfill.io/v3/polyfill.min.js?features=default%2CResizeObserver&flags=gated"></script>
     <% } %>
+    <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
     <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" data-drag-area="true"></div>

@@ -1,10 +1,10 @@
-import React, {useState} from 'react';
-import {View, Image} from 'react-native';
 import lodashGet from 'lodash/get';
-import Text from '../components/Text';
-import DragAndDropProvider from '../components/DragAndDrop/Provider';
-import DragAndDropConsumer from '../components/DragAndDrop/Consumer';
-import styles from '../styles/styles';
+import React, {useState} from 'react';
+import {Image, View} from 'react-native';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import Text from '@components/Text';
+import styles from '@styles/styles';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

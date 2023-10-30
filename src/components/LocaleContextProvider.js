@@ -1,17 +1,16 @@
-import React, {createContext, useMemo} from 'react';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-
-import ONYXKEYS from '../ONYXKEYS';
-import * as Localize from '../libs/Localize';
-import DateUtils from '../libs/DateUtils';
-import * as NumberFormatUtils from '../libs/NumberFormatUtils';
-import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
-import CONST from '../CONST';
-import compose from '../libs/compose';
+import PropTypes from 'prop-types';
+import React, {createContext, useMemo} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import compose from '@libs/compose';
+import DateUtils from '@libs/DateUtils';
+import * as LocaleDigitUtils from '@libs/LocaleDigitUtils';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import * as Localize from '@libs/Localize';
+import * as NumberFormatUtils from '@libs/NumberFormatUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
-import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 
 const LocaleContext = createContext(null);
 

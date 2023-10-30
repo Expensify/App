@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
-import IconButton from '../IconButton';
-import CONFIG from '../../../CONFIG';
-import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/styles';
-import CONST from '../../../CONST';
+import IconButton from '@components/SignInButtons/IconButton';
+import styles from '@styles/styles';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const appleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.APPLE_SIGN_IN}`;
 

@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import {ValueOf} from 'type-fest';
-import KeyboardShortcut from '../libs/KeyboardShortcut';
-import CONST from '../CONST';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import CONST from '@src/CONST';
 
 type Shortcut = ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>;
 type KeyboardShortcutConfig = {
