@@ -1,32 +1,32 @@
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import withNavigationFocus from '../../components/withNavigationFocus';
-import * as Report from '../../libs/actions/Report';
-import * as App from '../../libs/actions/App';
-import useLocalize from '../../hooks/useLocalize';
-import styles from '../../styles/styles';
-import RoomNameInput from '../../components/RoomNameInput';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import Text from '../../components/Text';
-import TextInput from '../../components/TextInput';
-import Permissions from '../../libs/Permissions';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import Form from '../../components/Form';
-import policyMemberPropType from '../policyMemberPropType';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import compose from '../../libs/compose';
-import variables from '../../styles/variables';
-import ValuePicker from '../../components/ValuePicker';
-import useAutoFocusInput from '../../hooks/useAutoFocusInput';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Form from '@components/Form';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import RoomNameInput from '@components/RoomNameInput';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import ValuePicker from '@components/ValuePicker';
+import withNavigationFocus from '@components/withNavigationFocus';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Permissions from '@libs/Permissions';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import policyMemberPropType from '@pages/policyMemberPropType';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as App from '@userActions/App';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -214,7 +214,6 @@ function WorkspaceNewRoomPage(props) {
                                 <ValuePicker
                                     inputID="policyID"
                                     label={translate('workspace.common.workspace')}
-                                    placeholder={translate('newRoomPage.selectAWorkspace')}
                                     items={workspaceOptions}
                                     onValueChange={setPolicyID}
                                 />

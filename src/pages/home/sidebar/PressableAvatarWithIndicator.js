@@ -1,17 +1,17 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
-import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
-import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
-import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
-import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import Navigation from '../../../libs/Navigation/Navigation';
-import * as UserUtils from '../../../libs/UserUtils';
-import useLocalize from '../../../hooks/useLocalize';
-import ROUTES from '../../../ROUTES';
-import CONST from '../../../CONST';
-import personalDetailsPropType from '../../personalDetailsPropType';
+import React, {useCallback} from 'react';
+import AvatarWithIndicator from '@components/AvatarWithIndicator';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import * as UserUtils from '@libs/UserUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Whether the create menu is open or not */

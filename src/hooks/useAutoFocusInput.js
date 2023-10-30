@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useState, useEffect, useRef, useCallback, useContext} from 'react';
-import CONST from '../CONST';
-import * as Expensify from '../Expensify';
+import CONST from '@src/CONST';
+import * as Expensify from '@src/Expensify';
 
 export default function useAutoFocusInput() {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
