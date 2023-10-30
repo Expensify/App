@@ -21,5 +21,6 @@ const WebGenericPressable = forwardRef((props, ref) => (
 
 WebGenericPressable.propTypes = GenericPressablePropTypes.pressablePropTypes;
 WebGenericPressable.defaultProps = GenericPressablePropTypes.defaultProps;
+WebGenericPressable.displayName = 'WebGenericPressable';
 
 export default WebGenericPressable;

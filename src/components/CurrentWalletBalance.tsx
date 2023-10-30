@@ -1,11 +1,11 @@
 import React from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import {TextStyle} from 'react-native';
-import styles from '../styles/styles';
-import ONYXKEYS from '../ONYXKEYS';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import styles from '@styles/styles';
+import ONYXKEYS from '@src/ONYXKEYS';
+import UserWallet from '@src/types/onyx/UserWallet';
 import Text from './Text';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import UserWallet from '../types/onyx/UserWallet';
 
 type CurrentWalletBalanceOnyxProps = {
     /** The user's wallet account */
