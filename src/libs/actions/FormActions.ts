@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
 import {KeyValueMapping, NullishDeep} from 'react-native-onyx/lib/types';
-import {OnyxFormKey} from '../../ONYXKEYS';
-import {Form} from '../../types/onyx';
-import * as OnyxCommon from '../../types/onyx/OnyxCommon';
+import {OnyxFormKey} from '@src/ONYXKEYS';
+import {Form} from '@src/types/onyx';
+import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
 type OnyxFormKeyWithoutDraft = ExcludeDraft<OnyxFormKey>;
