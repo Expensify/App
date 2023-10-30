@@ -2,11 +2,11 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
+import InputWrapper from '@components/Form/InputWrapper';
 import StatePicker from '@components/StatePicker';
 import TextInput from '@components/TextInput';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
-import InputWrapper from '@components/Form/InputWrapper';
 
 const propTypes = {
     /** Translate key for Street name */
