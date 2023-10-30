@@ -44,9 +44,11 @@ module.exports = {
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
         type: 'distribution',
-        notarize: {
-            teamId: '368M544MTT',
-        },
+        notarize: isPublishing
+            ? {
+                  teamId: '368M544MTT',
+              }
+            : undefined,
     },
     dmg: {
         title: 'New Expensify',
