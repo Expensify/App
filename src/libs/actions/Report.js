@@ -315,7 +315,7 @@ function addActions(reportID, text = '', file) {
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction || reportCommentAction;
 
-    const currentTime = DateUtils.getDBTime();
+    const currentTime = DateUtils.getDBTimeWithSkew();
 
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
 

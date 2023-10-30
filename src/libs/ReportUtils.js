@@ -2206,7 +2206,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
             ],
             automatic: false,
             avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
-            created: DateUtils.getDBTime(),
+            created: DateUtils.getDBTimeWithSkew(),
             message: [
                 {
                     translationKey: isAttachment ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',

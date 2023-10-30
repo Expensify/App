@@ -55,6 +55,12 @@ Onyx.connect({
     },
 });
 
+let networkTimeSkew: number = 0;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (value) => (networkTimeSkew = value?.timeSkew),
+});
+
 /**
  * Gets the locale string and setting default locale for date-fns
  */
@@ -305,6 +311,15 @@ function getDateStringFromISOTimestamp(isoTimestamp: string): string {
 }
 
 /**
+ * Returns the current time plus skew in milliseconds in the format expected by the database
+ *
+ * @returns {String}
+ */
+function getDBTimeWithSkew() {
+    return getDBTime(new Date().valueOf() + networkTimeSkew);
+}
+
+/**
  * receive date like 2020-05-16 05:34:14 and format it to show in string like "Until 05:34 PM"
  */
 function getStatusUntilDate(inputDate: string): string {
@@ -374,6 +389,7 @@ const DateUtils = {
     isTomorrow,
     isYesterday,
     formatWithUTCTimeZone,
+    getDBTimeWithSkew,
 };
 
 export default DateUtils;
