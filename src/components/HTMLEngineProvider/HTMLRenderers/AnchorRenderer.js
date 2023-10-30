@@ -11,10 +11,10 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Url from '@libs/Url';
 import styles from '@styles/styles';
 import * as Link from '@userActions/Link';
+import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import * as Session from '@userActions/Session';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
 function AnchorRenderer(props) {
