@@ -3,15 +3,15 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as Localize from '@libs/Localize';
+import fileDownload from '@libs/fileDownload';
 import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
-import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import fileDownload from '@libs/fileDownload';
 
 const propTypes = {
     /**
