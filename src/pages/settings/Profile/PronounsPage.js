@@ -1,22 +1,22 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useMemo, useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import Text from '../../../components/Text';
-import styles from '../../../styles/styles';
-import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import CONST from '../../../CONST';
-import ROUTES from '../../../ROUTES';
-import Navigation from '../../../libs/Navigation/Navigation';
-import SelectionList from '../../../components/SelectionList';
-import useLocalize from '../../../hooks/useLocalize';
-import ONYXKEYS from '../../../ONYXKEYS';
-import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
-import compose from '../../../libs/compose';
+import React, {useEffect, useMemo, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import Text from '@components/Text';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
