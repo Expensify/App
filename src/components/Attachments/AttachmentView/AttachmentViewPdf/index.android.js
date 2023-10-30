@@ -7,7 +7,6 @@ import {attachmentViewPdfPropTypes, attachmentViewPdfDefaultProps} from './propT
 import AttachmentCarouselPagerContext from '../../AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
 
-
 function AttachmentViewPdf(props) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const scaleRef = useSharedValue(1);
