@@ -258,6 +258,15 @@ const runTests = async () => {
             }
         }
         testLog.done();
+
+        // If we still have tests add a cool down period
+        if (testIndex < numOfTests - 1) {
+            const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.COOL_DOWN / 1000}s`);
+            coolDownLogs.updateText(`Cooling down for ${config.COOL_DOWN / 1000}s`);
+            // eslint-disable-next-line no-loop-func
+            await new Promise((resolve) => setTimeout(resolve, config.COOL_DOWN));
+            coolDownLogs.done();
+        }
     }
 
     // Calculate statistics and write them to our work file
