@@ -1,4 +1,4 @@
-import ChildrenProps from '../../types/utils/ChildrenProps';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SafeAreaProps = ChildrenProps;
 
