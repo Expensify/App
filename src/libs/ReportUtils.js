@@ -1401,6 +1401,10 @@ function hasReimbursableTransactions(iouReportID) {
     return _.filter(allTransactions, (transaction) => transaction.reimbursable === true).length > 0;
 }
 
+function isMarkedAsDone(report) {
+    return isExpenseReport(report) && report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+}
+
 /**
  * @param {Object} report
  * @param {Object} allReportsDict
@@ -1509,7 +1513,7 @@ function getMoneyRequestReportName(report, policy = undefined) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report.currency, hasOnlyDistanceRequestTransactions(report.reportID));
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
     const ownerName = getDisplayNameForParticipant(report.ownerAccountID);
-    const isDone = isExpenseReport(report) && report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+    const isDone = isMarkedAsDone(report);
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerName,
         amount: formattedAmount,
@@ -4337,4 +4341,5 @@ export {
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
     buildOptimisticDoneReportAction,
+    isMarkedAsDone,
 };

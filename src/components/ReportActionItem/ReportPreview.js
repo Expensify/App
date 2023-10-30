@@ -115,7 +115,7 @@ function ReportPreview(props) {
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
-    const iouDone = props.iouReport.statusNum === CONST.REPORT.STATUS.CLOSED && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+    const iouDone = ReportUtils.isMarkedAsDone(props.iouReportID);
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);

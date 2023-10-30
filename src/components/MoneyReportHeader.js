@@ -72,7 +72,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const isDone = moneyRequestReport.statusNum === CONST.REPORT.STATUS.CLOSED && moneyRequestReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+    const isDone = ReportUtils.isMarkedAsDone(moneyRequestReport);
     const policyType = lodashGet(policy, 'type');
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
