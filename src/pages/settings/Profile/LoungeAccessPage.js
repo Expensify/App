@@ -1,17 +1,17 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import ONYXKEYS from '../../../ONYXKEYS';
-import userPropTypes from '../userPropTypes';
-import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import useLocalize from '../../../hooks/useLocalize';
-import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '../../../components/LottieAnimations';
-import compose from '../../../libs/compose';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
+import Navigation from '@libs/Navigation/Navigation';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import userPropTypes from '@pages/settings/userPropTypes';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import useLocalize from '@hooks/useLocalize';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import * as LottieAnimations from '@components/LottieAnimations';
+import compose from '@libs/compose';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import styles from '@styles/styles';
+import Text from '@components/Text';
 
 const propTypes = {
     /** Current user details, which will hold whether or not they have Lounge Access */

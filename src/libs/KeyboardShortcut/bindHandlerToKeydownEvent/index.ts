@@ -1,5 +1,5 @@
-import getKeyEventModifiers from '../getKeyEventModifiers';
-import isEnterWhileComposition from '../isEnterWhileComposition';
+import getKeyEventModifiers from '@libs/KeyboardShortcut/getKeyEventModifiers';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import BindHandlerToKeydownEvent from './types';
 
 /**
@@ -42,7 +42,9 @@ const bindHandlerToKeydownEvent: BindHandlerToKeydownEvent = (getDisplayName, ev
         if (callback.shouldPreventDefault) {
             event.preventDefault();
         }
-
+        if (callback.shouldStopPropagation) {
+            event.stopPropagation();
+        }
         // If the event should not bubble, short-circuit the loop
         return shouldBubble;
     });

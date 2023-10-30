@@ -1,7 +1,7 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {RenderHTMLSource} from 'react-native-render-html';
-import useWindowDimensions from '../hooks/useWindowDimensions';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 const propTypes = {
     /** HTML string to render */

@@ -1,7 +1,8 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
-import CONST from '../../CONST';
+import * as API from '@libs/API';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 /**
  * @param {Number} cardID
  */
@@ -91,13 +92,13 @@ function requestReplacementExpensifyCard(cardId, reason) {
 /**
  * Activates the physical Expensify card based on the last four digits of the card number
  *
- * @param {Number} lastFourDigits
+ * @param {Number} cardLastFourDigits
  * @param {Number} cardID
  */
-function activatePhysicalExpensifyCard(lastFourDigits, cardID) {
+function activatePhysicalExpensifyCard(cardLastFourDigits, cardID) {
     API.write(
         'ActivatePhysicalExpensifyCard',
-        {lastFourDigits, cardID},
+        {cardLastFourDigits, cardID},
         {
             optimisticData: [
                 {
