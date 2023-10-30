@@ -1006,6 +1006,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
         overflow: 'hidden',
         top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + borderWidth),
         height,
+        minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
 }
 
