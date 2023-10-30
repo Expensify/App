@@ -1,7 +1,7 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React, {useEffect} from 'react';
 import {Alert, Linking} from 'react-native';
+import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {RESULTS, PERMISSIONS, checkMultiple} from 'react-native-permissions';
 import {Onfido as OnfidoSDK, OnfidoCaptureType, OnfidoDocumentType, OnfidoCountryCode} from '@onfido/react-native-sdk';
 import onfidoPropTypes from './onfidoPropTypes';
