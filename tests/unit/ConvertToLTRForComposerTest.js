@@ -1,6 +1,6 @@
+import {platform} from 'os';
 import convertToLTRForComposer from '../../src/libs/convertToLTRForComposer';
 import CONST from '../../src/CONST';
-import {platform} from 'os';
 
 describe('convertToLTRForComposer', () => {
     test('Input without RTL characters remains unchanged', () => {
