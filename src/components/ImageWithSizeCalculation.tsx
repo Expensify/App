@@ -1,6 +1,6 @@
-import React, {useState, useRef, useEffect} from 'react';
-import {View, ViewStyle, StyleProp} from 'react-native';
 import delay from 'lodash/delay';
+import React, {useEffect, useRef, useState} from 'react';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import {OnLoadEvent} from 'react-native-fast-image';
 import Log from '@libs/Log';
 import styles from '@styles/styles';
