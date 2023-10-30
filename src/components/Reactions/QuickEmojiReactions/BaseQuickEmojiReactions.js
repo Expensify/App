@@ -1,17 +1,17 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import EmojiReactionBubble from '../EmojiReactionBubble';
-import AddReactionBubble from '../AddReactionBubble';
-import CONST from '../../../CONST';
-import styles from '../../../styles/styles';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Tooltip from '../../Tooltip';
-import * as EmojiUtils from '../../../libs/EmojiUtils';
-import EmojiReactionsPropTypes from '../EmojiReactionsPropTypes';
-import * as Session from '../../../libs/actions/Session';
+import _ from 'underscore';
+import AddReactionBubble from '@components/Reactions/AddReactionBubble';
+import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
+import EmojiReactionsPropTypes from '@components/Reactions/EmojiReactionsPropTypes';
+import Tooltip from '@components/Tooltip';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import styles from '@styles/styles';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const baseQuickEmojiReactionsPropTypes = {
     emojiReactions: EmojiReactionsPropTypes,

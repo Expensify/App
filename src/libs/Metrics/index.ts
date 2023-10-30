@@ -1,4 +1,4 @@
-import CONFIG from '../../CONFIG';
+import CONFIG from '@src/CONFIG';
 import {CanCaptureOnyxMetrics, CanCapturePerformanceMetrics} from './types';
 
 // We don't capture performance metrics on web as there are enough tools available

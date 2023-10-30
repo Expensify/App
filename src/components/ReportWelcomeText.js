@@ -1,22 +1,22 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import UserDetailsTooltip from './UserDetailsTooltip';
-import styles from '../styles/styles';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import Text from './Text';
+import UserDetailsTooltip from './UserDetailsTooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import compose from '../libs/compose';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as PolicyUtils from '../libs/PolicyUtils';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import ONYXKEYS from '../ONYXKEYS';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import reportPropTypes from '../pages/reportPropTypes';
-import CONST from '../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */

@@ -1,8 +1,8 @@
-import _ from 'underscore';
 import {StackRouter} from '@react-navigation/native';
 import lodashFindLast from 'lodash/findLast';
-import NAVIGATORS from '../../../../NAVIGATORS';
-import SCREENS from '../../../../SCREENS';
+import _ from 'underscore';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 
 /**
  * @param {Object} state - react-navigation state

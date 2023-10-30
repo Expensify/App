@@ -1,12 +1,11 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
-import ThemeContext from './ThemeContext';
-import useThemePreference from './useThemePreference';
-import CONST from '../../CONST';
-
+import React, {useMemo} from 'react';
+import CONST from '@src/CONST';
 // Going to eventually import the light theme here too
 import darkTheme from './default';
+import ThemeContext from './ThemeContext';
+import useThemePreference from './useThemePreference';
 
 const propTypes = {
     /** Rendered child component */
