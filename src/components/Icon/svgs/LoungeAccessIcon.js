@@ -1,7 +1,7 @@
+import PropTypes from 'prop-types';
 import * as React from 'react';
 import Svg, {G, Path, Polygon} from 'react-native-svg';
-import PropTypes from 'prop-types';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '@styles/themes/default';
 
 const propTypes = {
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */

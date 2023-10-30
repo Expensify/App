@@ -1,19 +1,19 @@
-import _ from 'underscore';
-import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import lodashUnion from 'lodash/union';
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
-import * as API from '../API';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import * as NumberUtils from '../NumberUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
-import * as ErrorUtils from '../ErrorUtils';
-import * as ReportUtils from '../ReportUtils';
-import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import Log from '../Log';
+import lodashGet from 'lodash/get';
+import lodashUnion from 'lodash/union';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import * as API from '@libs/API';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+import * as NumberUtils from '@libs/NumberUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const allPolicies = {};
 Onyx.connect({
@@ -43,6 +43,13 @@ Onyx.connect({
 
         allPolicies[key] = val;
     },
+});
+
+let allPolicyMembers;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyMembers = val),
 });
 
 let lastAccessedWorkspacePolicyID = null;
@@ -169,7 +176,7 @@ function deleteWorkspace(policyID, reports, policyName) {
 /**
  * Is the user an admin of a free policy (aka workspace)?
  *
- * @param {Array} policies
+ * @param {Record<string, Policy>} [policies]
  * @returns {Boolean}
  */
 function isAdminOfFreePolicy(policies) {
@@ -248,6 +255,27 @@ function removeMembers(accountIDs, policyID) {
             value: {[reportAction.reportActionID]: reportAction},
         })),
     ];
+
+    // If the policy has primaryLoginsInvited, then it displays informative messages on the members page about which primary logins were added by secondary logins.
+    // If we delete all these logins then we should clear the informative messages since they are no longer relevant.
+    if (!_.isEmpty(policy.primaryLoginsInvited)) {
+        // Take the current policy members and remove them optimistically
+        const policyMemberAccountIDs = _.map(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`], (value, key) => Number(key));
+        const remainingMemberAccountIDs = _.difference(policyMemberAccountIDs, accountIDs);
+        const remainingLogins = PersonalDetailsUtils.getLoginsByAccountIDs(remainingMemberAccountIDs);
+        const invitedPrimaryToSecondaryLogins = _.invert(policy.primaryLoginsInvited);
+
+        // Then, if no remaining members exist that were invited by a secondary login, clear the informative messages
+        if (!_.some(remainingLogins, (remainingLogin) => Boolean(invitedPrimaryToSecondaryLogins[remainingLogin]))) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    primaryLoginsInvited: null,
+                },
+            });
+        }
+    }
 
     const successData = [
         {
@@ -1307,6 +1335,15 @@ function clearErrors(policyID) {
 }
 
 /**
+ * Dismiss the informative messages about which policy members were added with primary logins when invited with their secondary login.
+ *
+ * @param {String} policyID
+ */
+function dismissAddedWithPrimaryMessages(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
+}
+
+/**
  * @param {String} policyID
  * @param {String} category
  * @returns {Object}
@@ -1349,6 +1386,7 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     clearErrors,
+    dismissAddedWithPrimaryMessages,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
     createDraftInitialWorkspace,

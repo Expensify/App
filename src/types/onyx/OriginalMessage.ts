@@ -1,6 +1,6 @@
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
-import DeepValueOf from '../utils/DeepValueOf';
+import CONST from '@src/CONST';
+import DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
 

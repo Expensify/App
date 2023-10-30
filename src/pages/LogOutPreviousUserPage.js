@@ -1,12 +1,12 @@
-import React, {useEffect} from 'react';
-import {Linking} from 'react-native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
+import {Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
-import * as Session from '../libs/actions/Session';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
-import * as SessionUtils from '../libs/SessionUtils';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import * as SessionUtils from '@libs/SessionUtils';
+import * as Session from '@userActions/Session';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */
