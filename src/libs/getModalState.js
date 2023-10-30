@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 let modalState = {};
 

@@ -1,9 +1,9 @@
 import {OnyxUpdate} from 'react-native-onyx';
-import CONFIG from '../CONFIG';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
 import * as Pusher from './Pusher/pusher';
-import CONST from '../CONST';
 import {PushJSON} from './Pusher/pusher';
 
 type Callback = (data: OnyxUpdate[]) => Promise<void>;
