@@ -1,4 +1,4 @@
-import type {EventHandler} from '../index';
+import type {EventHandler} from '..';
 
 type KeyCommandEvent = {input: string; modifierFlags?: string};
 
