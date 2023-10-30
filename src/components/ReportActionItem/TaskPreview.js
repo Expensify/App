@@ -24,7 +24,7 @@ import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '../../libs/LocalePhoneNumber';
+import ROUTES from '@src/ROUTES';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import refPropTypes from '../refPropTypes';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
