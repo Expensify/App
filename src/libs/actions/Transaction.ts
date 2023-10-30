@@ -217,11 +217,11 @@ function getRoute(transactionID: string, waypoints: WaypointCollection) {
  */
 function updateWaypoints(transactionID: string, waypoints: WaypointCollection): Promise<void> {
     const transaction = allTransactions?.[transactionID] ?? {};
-    let newTransaction: Transaction = {
+    const newTransaction: Transaction = {
         ...transaction,
         comment: {
             ...transaction.comment,
-            waypoints: waypoints,
+            waypoints,
         },
         errorFields: {
             route: null,
