@@ -1,6 +1,6 @@
-import React, {useEffect, useImperativeHandle, useRef, useState, forwardRef} from 'react';
-import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import {TapGestureHandler} from 'react-native-gesture-handler';
 import styles from '../styles/styles';
