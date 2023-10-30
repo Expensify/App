@@ -1,35 +1,35 @@
-import React, {useEffect, useMemo} from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import ROUTES from '../ROUTES';
-import compose from '../libs/compose';
-import Navigation from '../libs/Navigation/Navigation';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as PolicyUtils from '../libs/PolicyUtils';
-import * as TransactionUtils from '../libs/TransactionUtils';
-import * as IOU from '../libs/actions/IOU';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import Permissions from '../libs/Permissions';
-import tagPropTypes from '../components/tagPropTypes';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import EditRequestDescriptionPage from './EditRequestDescriptionPage';
-import EditRequestMerchantPage from './EditRequestMerchantPage';
-import EditRequestCreatedPage from './EditRequestCreatedPage';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import categoryPropTypes from '@components/categoryPropTypes';
+import ScreenWrapper from '@components/ScreenWrapper';
+import tagPropTypes from '@components/tagPropTypes';
+import transactionPropTypes from '@components/transactionPropTypes';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
-import EditRequestReceiptPage from './EditRequestReceiptPage';
-import reportPropTypes from './reportPropTypes';
-import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
+import EditRequestCreatedPage from './EditRequestCreatedPage';
+import EditRequestDescriptionPage from './EditRequestDescriptionPage';
+import EditRequestDistancePage from './EditRequestDistancePage';
+import EditRequestMerchantPage from './EditRequestMerchantPage';
+import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
-import categoryPropTypes from '../components/categoryPropTypes';
-import ScreenWrapper from '../components/ScreenWrapper';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
-import transactionPropTypes from '../components/transactionPropTypes';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -104,7 +104,7 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
 
     // A flag for showing the categories page
-    const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
+    const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
     const shouldShowTags = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
