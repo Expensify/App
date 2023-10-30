@@ -1,30 +1,30 @@
-import {ActivityIndicator, Alert, AppState, Text, View} from 'react-native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {ActivityIndicator, Alert, AppState, Text, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
-import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
-import Icon from '../../../components/Icon';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import AttachmentPicker from '../../../components/AttachmentPicker';
-import styles from '../../../styles/styles';
-import Shutter from '../../../../assets/images/shutter.svg';
-import Hand from '../../../../assets/images/hand.svg';
-import * as IOU from '../../../libs/actions/IOU';
-import themeColors from '../../../styles/themes/default';
-import reportPropTypes from '../../reportPropTypes';
-import CONST from '../../../CONST';
-import Button from '../../../components/Button';
-import useLocalize from '../../../hooks/useLocalize';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Log from '../../../libs/Log';
+import {useCameraDevices} from 'react-native-vision-camera';
+import Hand from '@assets/images/hand.svg';
+import Shutter from '@assets/images/shutter.svg';
+import AttachmentPicker from '@components/AttachmentPicker';
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useLocalize from '@hooks/useLocalize';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as CameraPermission from './CameraPermission';
-import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import Navigation from '../../../libs/Navigation/Navigation';
-import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 
 const propTypes = {
     /** React Navigation route */
@@ -53,6 +53,9 @@ const propTypes = {
 
     /** Whether or not the receipt selector is in a tab navigator for tab animations */
     isInTabNavigator: PropTypes.bool,
+
+    /** Name of the selected receipt tab */
+    selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
@@ -60,9 +63,10 @@ const defaultProps = {
     iou: iouDefaultProps,
     transactionID: '',
     isInTabNavigator: true,
+    selectedTab: '',
 };
 
-function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) {
+function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, selectedTab}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -195,6 +199,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator}) 
                     photo
                     cameraTabIndex={pageIndex}
                     isInTabNavigator={isInTabNavigator}
+                    selectedTab={selectedTab}
                 />
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>

@@ -1,15 +1,15 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
-import Log from '../Log';
-import Config from '../../CONFIG';
-import translations from '../../languages/translations';
-import CONST from '../../CONST';
+import _ from 'underscore';
+import Log from '@libs/Log';
+import Config from '@src/CONFIG';
+import CONST from '@src/CONST';
+import translations from '@src/languages/translations';
+import ONYXKEYS from '@src/ONYXKEYS';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
-import ONYXKEYS from '../../ONYXKEYS';
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';

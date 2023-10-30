@@ -1,14 +1,14 @@
 /* eslint-disable rulesdir/no-api-in-views */
 import Onyx from 'react-native-onyx';
-import Log from '../Log';
+import Log from '@libs/Log';
+import mockAuthenticatePusher from './apiMocks/authenticatePusher';
 import Response from '../../types/onyx/Response';
 
 // mock functions
 import mockBeginSignin from './apiMocks/beginSignin';
-import mockSigninUser from './apiMocks/signinUser';
-import mockAuthenticatePusher from './apiMocks/authenticatePusher';
 import mockOpenApp from './apiMocks/openApp';
 import mockOpenReport from './apiMocks/openReport';
+import mockSigninUser from './apiMocks/signinUser';
 
 type ApiCommandParameters = Record<string, unknown>;
 

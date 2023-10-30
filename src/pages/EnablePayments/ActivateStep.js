@@ -1,16 +1,16 @@
-import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import * as LottieAnimations from '../../components/LottieAnimations';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import _ from 'underscore';
+import ConfirmationPage from '@components/ConfirmationPage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as LottieAnimations from '@components/LottieAnimations';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import userWalletPropTypes from './userWalletPropTypes';
-import CONST from '../../CONST';
-import * as PaymentMethods from '../../libs/actions/PaymentMethods';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
 import walletTermsPropTypes from './walletTermsPropTypes';
-import ConfirmationPage from '../../components/ConfirmationPage';
 
 const propTypes = {
     ...withLocalizePropTypes,
