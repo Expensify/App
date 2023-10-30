@@ -1,10 +1,9 @@
 /* eslint-disable rulesdir/no-api-in-views */
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
-import mockAuthenticatePusher from './apiMocks/authenticatePusher';
-import Response from '../../types/onyx/Response';
-
+import Response from '@src/types/onyx/Response';
 // mock functions
+import mockAuthenticatePusher from './apiMocks/authenticatePusher';
 import mockBeginSignin from './apiMocks/beginSignin';
 import mockOpenApp from './apiMocks/openApp';
 import mockOpenReport from './apiMocks/openReport';

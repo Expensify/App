@@ -1,5 +1,5 @@
-import Response from '../../../types/onyx/Response';
-import {SigninParams} from '../types';
+import {SigninParams} from '@libs/E2E/types';
+import Response from '@src/types/onyx/Response';
 
 const beginSignin = ({email}: SigninParams): Response => ({
     onyxData: [

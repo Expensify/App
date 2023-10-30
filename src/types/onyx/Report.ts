@@ -54,9 +54,6 @@ type Report = {
     /** ID of the report */
     reportID: string;
 
-    /** ID of the iou report */
-    iouReportID?: number;
-
     /** ID of the chat report */
     chatReportID?: string;
 

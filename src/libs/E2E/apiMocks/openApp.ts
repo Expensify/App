@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import Response from '../../../types/onyx/Response';
+import Response from '@src/types/onyx/Response';
 
 const openApp = (): Response => ({
     onyxData: [
@@ -1773,7 +1773,7 @@ const openApp = (): Response => ({
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'RR',
                     hasOutstandingIOU: true,
-                    iouReportID: 2543745284790730,
+                    iouReportID: '2543745284790730',
                 },
                 report_358751490033727: {
                     reportID: '358751490033727',
@@ -1950,7 +1950,7 @@ const openApp = (): Response => ({
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'Requested \u20ac200.00 from Christoph for Essen mit Kunden',
                     hasOutstandingIOU: true,
-                    iouReportID: 4249286573496381,
+                    iouReportID: '4249286573496381',
                 },
                 report_5277760851229035: {
                     reportID: '5277760851229035',
