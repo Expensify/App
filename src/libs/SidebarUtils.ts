@@ -1,23 +1,23 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
-import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
-import {ValueOf} from 'type-fest';
-import ONYXKEYS from '../ONYXKEYS';
-import * as ReportUtils from './ReportUtils';
-import * as ReportActionsUtils from './ReportActionsUtils';
-import * as Localize from './Localize';
 import CONST from '../CONST';
-import * as OptionsListUtils from './OptionsListUtils';
-import * as CollectionUtils from './CollectionUtils';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
-import * as UserUtils from './UserUtils';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import ReportAction, {ReportActions} from '../types/onyx/ReportAction';
+import ONYXKEYS from '../ONYXKEYS';
+import {PersonalDetails} from '../types/onyx';
 import Beta from '../types/onyx/Beta';
+import * as OnyxCommon from '../types/onyx/OnyxCommon';
 import Policy from '../types/onyx/Policy';
 import Report from '../types/onyx/Report';
-import {PersonalDetails} from '../types/onyx';
-import * as OnyxCommon from '../types/onyx/OnyxCommon';
+import ReportAction, {ReportActions} from '../types/onyx/ReportAction';
+import * as CollectionUtils from './CollectionUtils';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
+import * as Localize from './Localize';
+import * as OptionsListUtils from './OptionsListUtils';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
+import * as ReportUtils from './ReportUtils';
+import * as UserUtils from './UserUtils';
+import Str from 'expensify-common/lib/str';
+import Onyx from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 
 const visibleReportActionItems: ReportActions = {};
 const lastReportActions: ReportActions = {};
@@ -182,7 +182,7 @@ function getOrderedReportIDs(
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
     reportsToDisplay.forEach((report) => {
-        if (report.isPinned || ReportUtils.shouldShowGBR(report)) {
+        if (report.isPinned ?? ReportUtils.shouldShowGBR(report)) {
             pinnedReports.push(report);
         } else if (report.hasDraft) {
             draftReports.push(report);
