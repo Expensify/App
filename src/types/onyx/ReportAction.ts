@@ -1,8 +1,8 @@
-import {ValueOf} from 'type-fest';
 import {SvgProps} from 'react-native-svg';
-import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
+import {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
-import CONST from '../../CONST';
+import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
 import {Receipt} from './Transaction';
 
 type Message = {
