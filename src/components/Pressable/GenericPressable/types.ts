@@ -1,7 +1,7 @@
 import {ValueOf} from 'type-fest';
 import {GestureResponderEvent, PressableProps as RNPressableProps, PressableStateCallbackType, StyleProp, ViewStyle, HostComponent} from 'react-native';
 import {ElementRef, RefObject} from 'react';
-import CONST from '../../../CONST';
+import CONST from '@src/CONST';
 
 type StylePropWithFunction = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
 

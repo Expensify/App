@@ -1,6 +1,7 @@
-import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
+import React, {ForwardedRef, forwardRef, useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Pressable} from 'react-native';
+import {GestureResponderEvent, Pressable} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import _ from 'underscore';
 import useSingleExecution from '@hooks/useSingleExecution';
 import Accessibility from '@libs/Accessibility';
@@ -9,15 +10,13 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
+import PressableProps from "./types";
 import genericPressablePropTypes from './PropTypes';
 
 /**
  * Returns the cursor style based on the state of Pressable
- * @param {Boolean} isDisabled
- * @param {Boolean} isText
- * @returns {Object}
  */
-const getCursorStyle = (isDisabled, isText) => {
+const getCursorStyle = (isDisabled: boolean, isText: boolean) => {
     if (isDisabled) {
         return styles.cursorDisabled;
     }
@@ -29,7 +28,7 @@ const getCursorStyle = (isDisabled, isText) => {
     return styles.cursorPointer;
 };
 
-const GenericPressable = forwardRef((props, ref) => {
+const GenericPressable = (props: PressableProps, ref: ForwardedRef<PressableProps>) => {
     const {
         children,
         onPress,
@@ -68,7 +67,7 @@ const GenericPressable = forwardRef((props, ref) => {
 
     const shouldUseDisabledCursor = useMemo(() => isDisabled && !isExecuting, [isDisabled, isExecuting]);
 
-    const onLongPressHandler = useCallback(
+    const onLongPressHandler = useCallback<(event: GestureResponderEvent) => void>(
         (event) => {
             if (isDisabled) {
                 return;
@@ -79,7 +78,7 @@ const GenericPressable = forwardRef((props, ref) => {
             if (shouldUseHapticsOnLongPress) {
                 HapticFeedback.longPress();
             }
-            if (ref && ref.current) {
+            if (ref?.current) {
                 ref.current.blur();
             }
             onLongPress(event);
@@ -89,7 +88,7 @@ const GenericPressable = forwardRef((props, ref) => {
         [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled],
     );
 
-    const onPressHandler = useCallback(
+    const onPressHandler = useCallback<(event: GestureResponderEvent) => void>(
         (event) => {
             if (isDisabled) {
                 return;
@@ -100,7 +99,7 @@ const GenericPressable = forwardRef((props, ref) => {
             if (shouldUseHapticsOnPress) {
                 HapticFeedback.press();
             }
-            if (ref && ref.current) {
+            if (ref?.current) {
                 ref.current.blur();
             }
             onPress(event);
@@ -130,8 +129,8 @@ const GenericPressable = forwardRef((props, ref) => {
 
     return (
         <Pressable
-            hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
-            onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
+            hitSlop={shouldUseAutoHitSlop && typeof hitSlop !== 'function' ? hitSlop : undefined}
+            onLayout={shouldUseAutoHitSlop && typeof onLayout !== 'object' ? onLayout : undefined}
             ref={ref}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
@@ -154,9 +153,9 @@ const GenericPressable = forwardRef((props, ref) => {
                 ...props.accessibilityState,
             }}
             aria-disabled={isDisabled}
-            aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers}+${keyboardShortcut.shortcutKey}`}
+            aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers.join('+')}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs
-            onMagicTap={!isDisabled && onPressHandler}
+            onMagicTap={!isDisabled ? onPressHandler : undefined}
             onAccessibilityTap={!isDisabled && onPressHandler}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
@@ -164,10 +163,9 @@ const GenericPressable = forwardRef((props, ref) => {
             {(state) => (_.isFunction(props.children) ? props.children({...state, isScreenReaderActive, isDisabled}) : props.children)}
         </Pressable>
     );
-});
+};
 
 GenericPressable.displayName = 'GenericPressable';
-GenericPressable.propTypes = genericPressablePropTypes.pressablePropTypes;
 GenericPressable.defaultProps = genericPressablePropTypes.defaultProps;
 
-export default GenericPressable;
+export default forwardRef(GenericPressable);
