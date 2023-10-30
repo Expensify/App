@@ -42,8 +42,6 @@ function BaseTextInput(props) {
     const input = useRef(null);
     const isLabelActive = useRef(initialActiveLabel);
 
-    const operatingSystem = getOperatingSystem();
-
     // AutoFocus which only works on mount:
     useEffect(() => {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
