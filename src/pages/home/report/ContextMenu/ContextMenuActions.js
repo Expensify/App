@@ -200,7 +200,10 @@ export default [
                     const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
+                    const displayMessage = 'turulu';
+                    Clipboard.setString(displayMessage);
+                } else if (ReportActionsUtils.isDoneAction(reportAction)) {
+                    const displayMessage = "MEGAPOTATO";
                     Clipboard.setString(displayMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();

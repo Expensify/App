@@ -2667,7 +2667,7 @@ function submitReport(expenseReport) {
 }
 
 function markAsDone(chatReport, iouReport) {
-    const optimisticReportAction = ReportUtils.buildOptimisticClosedReportAction(iouReport.total, iouReport.currency, iouReport.reportID);
+    const optimisticReportAction = ReportUtils.buildOptimisticDoneReportAction(iouReport.total, iouReport.currency, iouReport.reportID);
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2681,7 +2681,7 @@ function markAsDone(chatReport, iouReport) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
                 [optimisticReportAction.reportActionID]: {
                     ...optimisticReportAction,
@@ -2733,7 +2733,7 @@ function markAsDone(chatReport, iouReport) {
         },
     ];
 
-    API.write('MarkAsDone', {iouReportID: iouReport.reportID}, {optimisticData, successData, failureData});
+    API.write('MarkAsDone', {iouReportID: iouReport.reportID, reportActionID: optimisticReportAction.reportActionID,}, {optimisticData, successData, failureData});
 }
 
 function settleMoneyRequest(paymentType, chatReport, iouReport) {

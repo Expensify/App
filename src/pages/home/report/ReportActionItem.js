@@ -303,6 +303,7 @@ function ReportActionItem(props) {
      */
     const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false) => {
         let children;
+        console.log(props.action);
 
         // Show the MoneyRequestPreview for when request was created, bill was split or money was sent
         if (
@@ -408,10 +409,7 @@ function ReportActionItem(props) {
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-            const message = ReportUtils.getModifiedExpenseMessage(props.action);
-            if (message.length > 0) {
-                children = <ReportActionItemBasicMessage message={message}/>;
-            }
+            children = <ReportActionItemBasicMessage message={ReportUtils.getModifiedExpenseMessage(props.action)} />;
         } else {
             const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
             children = (

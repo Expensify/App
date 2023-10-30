@@ -79,6 +79,10 @@ function isMoneyRequestAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
 
+function isDoneAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED;
+}
+
 function isReportPreviewAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
@@ -650,6 +654,7 @@ export {
     isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,
+    isDoneAction,
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
