@@ -1,8 +1,8 @@
 import React, {ReactElement} from 'react';
-import {View, TextStyle, StyleProp} from 'react-native';
-import styles from '../styles/styles';
-import Text from './Text';
+import {StyleProp, TextStyle, View} from 'react-native';
+import styles from '@styles/styles';
 import EnvironmentBadge from './EnvironmentBadge';
+import Text from './Text';
 
 type HeaderProps = {
     /** Title of the Header */
