@@ -2,16 +2,16 @@ import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import WebView from 'react-native-webview';
-import ONYXKEYS from '../../../ONYXKEYS';
-import CONFIG from '../../../CONFIG';
-import * as Session from '../../../libs/actions/Session';
-import SAMLLoadingIndicator from '../../../components/SAMLLoadingIndicator';
-import getPlatform from '../../../libs/getPlatform';
-import FullPageOfflineBlockingView from '../../../components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
+import CONFIG from '@src/CONFIG';
+import ROUTES from '@src/ROUTES';
+import * as Session from '@userActions/Session';
+import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Navigation from '@libs/Navigation/Navigation';
+import getPlatform from '@libs/getPlatform';
 
 const propTypes = {
     /** The credentials of the logged in person */

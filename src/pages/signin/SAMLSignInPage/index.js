@@ -3,7 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SAMLLoadingIndicator from '../../../components/SAMLLoadingIndicator';
+import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 
 
 const propTypes = {
