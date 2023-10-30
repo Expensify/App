@@ -7,7 +7,6 @@ import ConciergeExclamation from '@assets/images/product-illustrations/concierge
 import CreditCardsBlue from '@assets/images/product-illustrations/credit-cards--blue.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
-import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import InvoiceOrange from '@assets/images/product-illustrations/invoice--orange.svg';
 import JewelBoxBlue from '@assets/images/product-illustrations/jewel-box--blue.svg';
 import JewelBoxGreen from '@assets/images/product-illustrations/jewel-box--green.svg';
@@ -17,6 +16,7 @@ import Lounge from '@assets/images/product-illustrations/lounge.svg';
 import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
 import MoneyEnvelopeBlue from '@assets/images/product-illustrations/money-envelope--blue.svg';
 import MoneyMousePink from '@assets/images/product-illustrations/money-mouse--pink.svg';
+import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import ReceiptYellow from '@assets/images/product-illustrations/receipt--yellow.svg';
 import ReceiptsSearchYellow from '@assets/images/product-illustrations/receipts-search--yellow.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
