@@ -26,7 +26,7 @@ function getTestBuildMessage() {
     const iOSQRCode = iOSSuccess ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})` : "The QR code can't be generated, because the iOS build failed";
     const webQRCode = webSuccess ? `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})` : "The QR code can't be generated, because the web build failed";
 
-    const message = `:test_tube::test_tube: Use the links below to test this adhoc build in Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
+    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | ${androidLink}  | ${iOSLink}  |
