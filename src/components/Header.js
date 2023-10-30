@@ -1,10 +1,10 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import Text from './Text';
+import styles from '@styles/styles';
 import EnvironmentBadge from './EnvironmentBadge';
+import Text from './Text';
 
 const propTypes = {
     /** Title of the Header */
