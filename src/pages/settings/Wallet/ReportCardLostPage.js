@@ -1,27 +1,27 @@
-import React, {useState, useEffect} from 'react';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import styles from '../../../styles/styles';
-import ONYXKEYS from '../../../ONYXKEYS';
-import SingleOptionSelector from '../../../components/SingleOptionSelector';
-import useLocalize from '../../../hooks/useLocalize';
-import Text from '../../../components/Text';
-import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import usePrivatePersonalDetails from '../../../hooks/usePrivatePersonalDetails';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SingleOptionSelector from '@components/SingleOptionSelector';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import * as CardUtils from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import styles from '@styles/styles';
+import * as CardActions from '@userActions/Card';
+import * as FormActions from '@userActions/FormActions';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import assignedCardPropTypes from './assignedCardPropTypes';
-import * as CardUtils from '../../../libs/CardUtils';
-import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
-import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import usePrevious from '../../../hooks/usePrevious';
-import * as FormActions from '../../../libs/actions/FormActions';
-import * as CardActions from '../../../libs/actions/Card';
-import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 
 /** Options for reason selector */
 const OPTIONS = [

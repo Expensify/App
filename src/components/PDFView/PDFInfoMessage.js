@@ -1,13 +1,13 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
-import Text from '../Text';
-import TextLink from '../TextLink';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
 
 const propTypes = {
     /** Callback function to indicate that PDF password form should be shown */

@@ -1,8 +1,8 @@
 /* eslint-disable es/no-nullish-coalescing-operators */
+import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import ONYXKEYS from '../ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function getNewDotURL(url) {
     const urlObj = new URL(url);
