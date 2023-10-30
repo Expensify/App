@@ -99,6 +99,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                     onSelectRow={onStateSelected}
                     onChangeText={setSearchValue}
                     initiallyFocusedOptionKey={currentState}
+                    shouldStopPropagation
                 />
             </ScreenWrapper>
         </Modal>
