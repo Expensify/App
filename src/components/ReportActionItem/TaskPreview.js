@@ -11,11 +11,15 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import RenderHTML from '@components/RenderHTML';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import refPropTypes from '@components/refPropTypes';
 import compose from '@libs/compose';
 import getButtonState from '@libs/getButtonState';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import ControlSelection from '@libs/ControlSelection';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import styles from '@styles/styles';
@@ -25,10 +29,6 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {showContextMenuForReport} from '../ShowContextMenuContext';
-import refPropTypes from '../refPropTypes';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import ControlSelection from '../../libs/ControlSelection';
 
 const propTypes = {
     /** All personal details asssociated with user */
