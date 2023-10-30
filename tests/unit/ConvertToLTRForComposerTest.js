@@ -1,5 +1,5 @@
-import convertToLTRForComposer from '../../src/libs/convertToLTRForComposer';
-import CONST from '../../src/CONST';
+import convertToLTRForComposer from '@libs/convertToLTRForComposer';
+import CONST from '@src/CONST';
 
 describe('convertToLTRForComposer', () => {
     test('Input without RTL characters remains unchanged', () => {
