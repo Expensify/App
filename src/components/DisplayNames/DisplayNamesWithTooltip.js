@@ -2,11 +2,11 @@ import lodashGet from 'lodash/get';
 import React, {Fragment, useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import styles from '@styles/styles';
 import * as StringUtils from '@libs/StringUtils';
-import RenderHTML from '@components/RenderHTML';
+import styles from '@styles/styles';
 import {defaultProps, propTypes} from './displayNamesPropTypes';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 

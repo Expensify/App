@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
-import {defaultHTMLElementModels, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
+import {defaultHTMLElementModels, HTMLContentModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
 import _ from 'underscore';
 import convertToLTR from '@libs/convertToLTR';
 import singleFontFamily from '@styles/fontFamily/singleFontFamily';
