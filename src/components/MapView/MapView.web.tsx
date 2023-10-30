@@ -8,6 +8,7 @@ import {View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import Map, {MapRef, Marker} from 'react-map-gl';
 import mapboxgl from 'mapbox-gl';
+import PendingMapView from '../MapView/PendingMapView';
 import Onyx, { OnyxEntry, withOnyx } from 'react-native-onyx';
 import responder from './responder';
 import utils from './utils';
@@ -19,6 +20,9 @@ import themeColors from '../../styles/themes/default';
 import Direction from './Direction';
 import {MapViewHandle, MapViewProps} from './MapViewTypes';
 import getCurrentPosition from '../../libs/getCurrentPosition';
+import useNetwork from '../../hooks/useNetwork';
+import useLocalize from '../../hooks/useLocalize';
+import styles from '../../styles/styles';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 type MapViewOnyxProps = {
@@ -29,20 +33,23 @@ type ComponentProps = MapViewProps & MapViewOnyxProps
 
 const MapView = forwardRef<MapViewHandle, ComponentProps>(
     ({style, styleURL, waypoints, mapPadding, accessToken, userLocation: cachedUserLocation, directionCoordinates, initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM}}, ref) => {
+        const {isOffline} = useNetwork();
+        const {translate} = useLocalize();
+
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
-        const [isCurrentPositionFetching, setIsCurrentPositionFetching] = useState(true);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
 
         useFocusEffect(
             useCallback(() => {
                 getCurrentPosition((params) => {
-                    setCurrentPosition({latitude: params.coords.latitude, longitude: params.coords.longitude})
-                    Onyx.merge(ONYXKEYS.USER_LOCATION, { latitude: params.coords.latitude, longitude: params.coords.longitude})
-                    setIsCurrentPositionFetching(false);
+                    setCurrentPosition({longitude: params.coords.longitude, latitude: params.coords.latitude})
+                    Onyx.merge(ONYXKEYS.USER_LOCATION, { longitude: params.coords.longitude, latitude: params.coords.latitude})
                 },
-                () => { setIsCurrentPositionFetching(false); })
+                () => {
+                    setCurrentPosition({ longitude: initialState.location[0], latitude: initialState.location[1] })
+                })
             }, [])
         )
 
@@ -55,7 +62,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 return;
             }
 
-            mapRef.jumpTo({
+            mapRef.flyTo({
                 center: [currentPosition.longitude, currentPosition.latitude],
                 zoom: CONST.MAPBOX.DEFAULT_ZOOM,
             });
@@ -123,38 +130,48 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         );
 
         return (
-            <View
-                style={style}
-                {...responder.panHandlers}
-            >
-                <Map
-                    onDrag={() => setUserInteractedWithMap(true)}
-                    ref={setRef}
-                    mapLib={mapboxgl}
-                    mapboxAccessToken={accessToken}
-                    initialViewState={{
-                        longitude: initialState.location[0],
-                        latitude: initialState.location[1],
-                        zoom: initialState.zoom,
-                    }}
-                    style={StyleUtils.getTextColorStyle(themeColors.mapAttributionText) as React.CSSProperties}
-                    mapStyle={styleURL}
-                >
-                    {waypoints?.map(({coordinate, markerComponent, id}) => {
-                        const MarkerComponent = markerComponent;
-                        return (
-                            <Marker
-                                key={id}
-                                longitude={coordinate[0]}
-                                latitude={coordinate[1]}
-                            >
-                                <MarkerComponent />
-                            </Marker>
-                        );
-                    })}
-                    {directionCoordinates && <Direction coordinates={directionCoordinates} />}
-                </Map>
-            </View>
+            <>
+                {!isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
+                    <View
+                        style={style}
+                        {...responder.panHandlers}
+                    >
+                        <Map
+                            onDrag={() => setUserInteractedWithMap(true)}
+                            ref={setRef}
+                            mapLib={mapboxgl}
+                            mapboxAccessToken={accessToken}
+                            initialViewState={{
+                                longitude: currentPosition?.longitude,
+                                latitude: currentPosition?.latitude,
+                                zoom: initialState.zoom,
+                            }}
+                            style={StyleUtils.getTextColorStyle(themeColors.mapAttributionText) as React.CSSProperties}
+                            mapStyle={styleURL}
+                        >
+                            {waypoints?.map(({coordinate, markerComponent, id}) => {
+                                const MarkerComponent = markerComponent;
+                                return (
+                                    <Marker
+                                        key={id}
+                                        longitude={coordinate[0]}
+                                        latitude={coordinate[1]}
+                                    >
+                                        <MarkerComponent />
+                                    </Marker>
+                                );
+                            })}
+                            {directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                        </Map>
+                    </View>
+                ) : (
+                    <PendingMapView
+                        title={translate('distance.mapPending.title')}
+                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                        style={styles.mapEditView}
+                    />
+                )}
+            </>
         );
     },
 );
