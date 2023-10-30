@@ -1,26 +1,26 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import {useFocusEffect} from '@react-navigation/native';
 import {withOnyx} from 'react-native-onyx';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import ONYXKEYS from '../../ONYXKEYS';
-import TextInput from '../../components/TextInput';
-import reportPropTypes from '../reportPropTypes';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
-import * as Task from '../../libs/actions/Task';
-import * as ReportUtils from '../../libs/ReportUtils';
-import CONST from '../../CONST';
-import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
-import * as Browser from '../../libs/Browser';
-import Navigation from '../../libs/Navigation/Navigation';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
-import withReportOrNotFound from '../home/report/withReportOrNotFound';
-import FormProvider from '../../components/Form/FormProvider';
-import InputWrapper from '../../components/Form/InputWrapper';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** The report currently being looked at */

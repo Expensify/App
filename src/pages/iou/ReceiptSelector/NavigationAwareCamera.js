@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import Webcam from 'react-webcam';
 import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useTabAnimation} from '@react-navigation/material-top-tabs';
 
