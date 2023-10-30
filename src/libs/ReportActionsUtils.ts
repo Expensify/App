@@ -313,6 +313,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+        console.log(reportAction);
         return false;
     }
 

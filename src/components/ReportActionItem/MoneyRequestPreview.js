@@ -166,11 +166,8 @@ function MoneyRequestPreview(props) {
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
     const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
-<<<<<<< HEAD
     const isDone = props.iouReport.statusNum === CONST.REPORT.STATUS.CLOSED && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
-=======
     const isDeleted = lodashGet(props.action, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
->>>>>>> main
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant =

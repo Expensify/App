@@ -303,7 +303,6 @@ function ReportActionItem(props) {
      */
     const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false) => {
         let children;
-        console.log(props.action);
 
         // Show the MoneyRequestPreview for when request was created, bill was split or money was sent
         if (

@@ -1398,7 +1398,6 @@ function hasNonReimbursableTransactions(iouReportID) {
  */
 function hasReimbursableTransactions(iouReportID) {
     const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    console.log(allTransactions);
     return _.filter(allTransactions, (transaction) => transaction.reimbursable === true).length > 0;
 }
 
