@@ -97,7 +97,7 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
     traverse.default(ast, {
         ImportDeclaration({node}) {
             const source = node.source.value;
-            if (source === `${relativePathToStylesDir}/styles`) {
+            if (source === `${relativePathToStylesDir}/styles` || source === '@styles/styles') {
                 styleIdentifier = node.specifiers[0].local.name;
                 node.specifiers[0].local.name = 'withThemeStyles';
                 node.specifiers.push({
@@ -109,7 +109,7 @@ async function migrateStylesForClassComponent(filePath, fileContents, ast) {
                 });
                 node.source.value = `${relativePathToComponentsDir}/withThemeStyles`;
             }
-            if (source === `${relativePathToStylesDir}/themes/default`) {
+            if (source === `${relativePathToStylesDir}/themes/default` || source === '@styles/themes/default') {
                 themeColorsIdentifier = node.specifiers[0].local.name;
                 node.specifiers[0].local.name = 'withTheme';
                 node.specifiers.push({
@@ -282,12 +282,12 @@ async function migrateStylesForFunctionComponent(filePath, fileContents, ast, co
     traverse.default(ast, {
         ImportDeclaration({node}) {
             const source = node.source.value;
-            if (source === `${relativePathToStylesDir}/styles`) {
+            if (source === `${relativePathToStylesDir}/styles` || source === '@styles/styles') {
                 styleIdentifier = node.specifiers[0].local.name;
                 node.specifiers[0].local.name = 'useThemeStyles';
                 node.source.value = `${relativePathToStylesDir}/useThemeStyles`;
             }
-            if (source === `${relativePathToStylesDir}/themes/default`) {
+            if (source === `${relativePathToStylesDir}/themes/default` || source === '@styles/themes/default') {
                 themeColorsIdentifier = node.specifiers[0].local.name;
                 node.specifiers[0].local.name = 'useTheme';
                 node.source.value = `${relativePathToStylesDir}/themes/useTheme`;
