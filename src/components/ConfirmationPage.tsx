@@ -1,12 +1,12 @@
+import {AnimationObject} from 'lottie-react-native';
 import React from 'react';
 import {View} from 'react-native';
-import {AnimationObject} from 'lottie-react-native';
+import styles from '@styles/styles';
+import Button from './Button';
+import FixedFooter from './FixedFooter';
 import Lottie from './Lottie';
 import * as LottieAnimations from './LottieAnimations';
 import Text from './Text';
-import styles from '../styles/styles';
-import Button from './Button';
-import FixedFooter from './FixedFooter';
 
 type ConfirmationPageProps = {
     /** The asset to render */

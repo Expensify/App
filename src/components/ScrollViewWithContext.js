@@ -1,4 +1,4 @@
-import React, {useState, useRef, useMemo} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {ScrollView} from 'react-native';
 
 const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
@@ -51,11 +51,15 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, innerRe
 ScrollViewWithContext.propTypes = propTypes;
 ScrollViewWithContext.displayName = 'ScrollViewWithContext';
 
-export default React.forwardRef((props, ref) => (
+const ScrollViewWithContextWithRef = React.forwardRef((props, ref) => (
     <ScrollViewWithContext
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+ScrollViewWithContextWithRef.displayName = 'ScrollViewWithContextWithRef';
+
+export default ScrollViewWithContextWithRef;
 export {ScrollContext};

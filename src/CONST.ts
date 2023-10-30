@@ -171,6 +171,10 @@ const CONST = {
             ERROR: {
                 TOO_MANY_ATTEMPTS: 'Too many attempts',
             },
+            EVENTS_NAME: {
+                OPEN: 'OPEN',
+                EXIT: 'EXIT',
+            },
         },
         ERROR: {
             MISSING_ROUTING_NUMBER: '402 Missing routingNumber',
@@ -254,7 +258,6 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_CATEGORIES: 'newDotCategories',
         NEW_DOT_TAGS: 'newDotTags',
         NEW_DOT_SAML: 'newDotSAML',
     },
@@ -2779,11 +2782,18 @@ const CONST = {
         SCROLLING: 'scrolling',
     },
 
+    CHAT_HEADER_LOADER_HEIGHT: 36,
+
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
         DEFAULT_MARGIN_VERTICAL: 8,
         HIDDEN_MARGIN_VERTICAL: 0,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
+    },
+
+    LIST_COMPONENTS: {
+        HEADER: 'header',
+        FOOTER: 'footer',
     },
 
     GLOBAL_NAVIGATION_OPTION: {

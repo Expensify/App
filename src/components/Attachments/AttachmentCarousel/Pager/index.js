@@ -1,14 +1,14 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useRef, useState, useImperativeHandle, useMemo} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {GestureHandlerRootView, createNativeWrapper} from 'react-native-gesture-handler';
-import Animated, {runOnJS, useAnimatedProps, useAnimatedReaction, useEvent, useHandler, useSharedValue} from 'react-native-reanimated';
+import React, {useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {createNativeWrapper, GestureHandlerRootView} from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
+import Animated, {runOnJS, useAnimatedProps, useAnimatedReaction, useEvent, useHandler, useSharedValue} from 'react-native-reanimated';
 import _ from 'underscore';
-import styles from '../../../../styles/styles';
+import refPropTypes from '@components/refPropTypes';
+import styles from '@styles/styles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
-import refPropTypes from '../../../refPropTypes';
 
 const AnimatedPagerView = Animated.createAnimatedComponent(createNativeWrapper(PagerView));
 
@@ -171,10 +171,14 @@ function AttachmentCarouselPager({
 AttachmentCarouselPager.propTypes = pagerPropTypes;
 AttachmentCarouselPager.defaultProps = pagerDefaultProps;
 
-export default React.forwardRef((props, ref) => (
+const AttachmentCarouselPagerWithRef = React.forwardRef((props, ref) => (
     <AttachmentCarouselPager
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+AttachmentCarouselPagerWithRef.displayName = 'AttachmentCarouselPagerWithRef';
+
+export default AttachmentCarouselPagerWithRef;
