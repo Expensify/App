@@ -321,14 +321,19 @@ function ReportActionsList({
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
+        let markerFound = false;
         _.each(sortedReportActions, (reportAction, index) => {
             if (!shouldDisplayNewMarker(reportAction, index)) {
                 return;
             }
+            markerFound = true;
             if (!currentUnreadMarker && currentUnreadMarker !== reportAction.reportActionID) {
                 setCurrentUnreadMarker(reportAction.reportActionID);
             }
         });
+        if (!markerFound) {
+            setCurrentUnreadMarker(null);
+        }
     }, [sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
 
     const renderItem = useCallback(
