@@ -2,6 +2,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -11,8 +13,6 @@ import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapperWithRef from '@components/Form/InputWrapper';
 
 const propTypes = {
     /** Transaction default description value */
