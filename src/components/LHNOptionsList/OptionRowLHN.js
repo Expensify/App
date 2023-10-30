@@ -210,8 +210,8 @@ function OptionRowLHN(props) {
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
                         needsOffscreenAlphaCompositing={props.optionItem.icons.length >= 2}
                     >
-                        <View style={sidebarInnerRowStyle}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[sidebarInnerRowStyle, styles.flex1]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                                 {!_.isEmpty(optionItem.icons) &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
@@ -233,28 +233,26 @@ function OptionRowLHN(props) {
                                             shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}
                                         />
                                     ))}
-                                <View style={contentContainerStyles}>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
-                                        <DisplayNames
-                                            accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={fullTitle}
-                                            displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
-                                            tooltipEnabled
-                                            numberOfLines={1}
-                                            textStyles={displayNameStyle}
-                                            shouldUseFullTitle={
-                                                optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport
-                                            }
-                                        />
-                                        {isStatusVisible && (
-                                            <Tooltip
-                                                text={statusContent}
-                                                shiftVertical={-4}
-                                            >
-                                                <Text style={styles.ml1}>{emojiCode}</Text>
-                                            </Tooltip>
-                                        )}
-                                    </View>
+                                <View style={[contentContainerStyles, styles.flex1]}>
+                                    <DisplayNames
+                                        accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
+                                        fullTitle={fullTitle}
+                                        displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
+                                        tooltipEnabled
+                                        numberOfLines={1}
+                                        textStyles={displayNameStyle}
+                                        shouldUseFullTitle={
+                                            optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport
+                                        }
+                                    />
+                                    {isStatusVisible && (
+                                        <Tooltip
+                                            text={statusContent}
+                                            shiftVertical={-4}
+                                        >
+                                            <Text style={styles.ml1}>{emojiCode}</Text>
+                                        </Tooltip>
+                                    )}
                                     {optionItem.alternateText ? (
                                         <Text
                                             style={alternateTextStyle}

@@ -1551,7 +1551,7 @@ const styles = (theme: ThemeDefault) =>
         optionDisplayNameCompact: {
             minWidth: 'auto',
             flexBasis: 'auto',
-            flexGrow: 0,
+            flexGrow: 1,
             flexShrink: 1,
         },
 
@@ -1569,8 +1569,8 @@ const styles = (theme: ThemeDefault) =>
 
         optionAlternateTextCompact: {
             flexShrink: 1,
-            flexGrow: 1,
-            flexBasis: 'auto',
+            flexGrow: 20,
+            flexBasis: 40,
             ...optionAlternateTextPlatformStyles,
         },
 
