@@ -104,16 +104,20 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         }
     };
 
+    const initializeAmount = useCallback((newAmount) => {
+        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmount(newAmount).toString() : '';
+        setCurrentAmount(frontendAmount);
+        setSelection({
+            start: frontendAmount.length,
+            end: frontendAmount.length,
+        });
+    }, []);
+
     useEffect(() => {
         if (!currency || !_.isNumber(amount)) {
             return;
         }
-        const amountAsStringForState = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
-        setCurrentAmount(amountAsStringForState);
-        setSelection({
-            start: amountAsStringForState.length,
-            end: amountAsStringForState.length,
-        });
+        initializeAmount(amount);
         // we want to update the state only when the amount is changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount]);
@@ -214,8 +218,13 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             return;
         }
 
+        // Update display amount string post-edit to ensure consistency with backend amount
+        // Reference: https://github.com/Expensify/App/issues/30505
+        const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
+        initializeAmount(backendAmount);
+
         onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount]);
+    }, [onSubmitButtonPress, currentAmount, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
