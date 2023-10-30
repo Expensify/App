@@ -1,8 +1,7 @@
-import React, {ComponentType, RefAttributes, ForwardedRef, ReactElement, forwardRef, useContext, useMemo} from 'react';
 import {NavigationContext} from '@react-navigation/core';
 import {NavigationProp} from '@react-navigation/native';
 import {ParamListBase} from '@react-navigation/routers';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
+import React, {ComponentType, ForwardedRef, forwardRef, ReactElement, RefAttributes, useContext, useMemo} from 'react';
 
 type AddListenerCallback = () => void;
 
@@ -44,7 +43,7 @@ export default function <TProps, TRef>(WrappedComponent: ComponentType<TProps & 
         );
     }
 
-    WithNavigationFallback.displayName = `WithNavigationFocusWithFallback(${getComponentDisplayName(WrappedComponent)})`;
+    WithNavigationFallback.displayName = 'WithNavigationFocusWithFallback';
 
     return forwardRef(WithNavigationFallback);
 }
