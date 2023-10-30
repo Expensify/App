@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import DevMenu from 'react-native-dev-menu';
-import toggleTestToolsModal from '../../libs/actions/TestTool';
+import toggleTestToolsModal from '@userActions/TestTool';
 import CustomDevMenuElement from './types';
 
 // eslint-disable-next-line react/function-component-definition

@@ -1,19 +1,19 @@
-import React, {useRef, useEffect} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Tooltip from '../Tooltip';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import Text from '../Text';
-import getButtonState from '../../libs/getButtonState';
-import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import variables from '../../styles/variables';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as Session from '../../libs/actions/Session';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import CONST from '../../CONST';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import getButtonState from '@libs/getButtonState';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import variables from '@styles/variables';
+import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether it is for context menu so we can modify its style */
