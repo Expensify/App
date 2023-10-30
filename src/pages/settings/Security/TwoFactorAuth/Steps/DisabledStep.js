@@ -1,13 +1,18 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
+import {TwoFactorAuthPropTypes} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function DisabledStep({account}) {

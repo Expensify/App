@@ -1,11 +1,13 @@
+import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Navigation from '@libs/Navigation/Navigation';
 import styles from '@styles/styles';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import ROUTES from '@src/ROUTES';
 import StepWrapperPropTypes from './StepWrapperPropTypes';
-import Navigation from '@libs/Navigation/Navigation';
 
 function StepWrapper({title = '', stepCounter = null, onBackButtonPress, children = null, shouldEnableKeyboardAvoidingView = true}) {
     const navigation = useNavigation();

@@ -1,10 +1,14 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import * as LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
+import {defaultAccount, TwoFactorAuthPropTypes} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function SuccessStep({account = defaultAccount}) {
