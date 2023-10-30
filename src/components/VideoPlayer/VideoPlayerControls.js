@@ -41,7 +41,6 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
     }, [isCurrentlySet, togglePlay, updateCurrentlyPlayingURL, url]);
 
     const enterFullScreenMode = useCallback(() => {
-        console.log('XXX');
         updateCurrentlyPlayingURL(url);
         videoPlayerRef.current.presentFullscreenPlayer();
     }, [updateCurrentlyPlayingURL, url, videoPlayerRef]);

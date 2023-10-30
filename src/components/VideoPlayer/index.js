@@ -52,8 +52,6 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const sharedVideoPlayerParentRef = useRef(null);
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(url);
 
-    console.log('X');
-
     const onReadyForDisplay = useCallback(
         (e) => {
             onVideoLoaded(e);
