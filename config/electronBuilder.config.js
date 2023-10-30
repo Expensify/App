@@ -27,8 +27,7 @@ if (!isCorrectElectronEnv) {
 }
 
 /**
- * The configuration for the production and staging Electron builds.
- * It can be used to create local builds of the same, by omitting the `--publish` flag
+ * The configuration for the debug, production and staging Electron builds.
  */
 module.exports = {
     appId: 'com.expensifyreactnative.chat',
