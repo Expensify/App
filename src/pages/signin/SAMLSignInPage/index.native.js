@@ -1,17 +1,17 @@
+import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import WebView from 'react-native-webview';
-import ONYXKEYS from '@src/ONYXKEYS';
-import CONFIG from '@src/CONFIG';
-import ROUTES from '@src/ROUTES';
-import * as Session from '@userActions/Session';
-import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Navigation from '@libs/Navigation/Navigation';
 import getPlatform from '@libs/getPlatform';
+import Navigation from '@libs/Navigation/Navigation';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The credentials of the logged in person */

@@ -1,12 +1,12 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
-import Icon from '@components/Icon';
-import Text from '@components/Text';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
-import useLocalize from '@hooks/useLocalize';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import * as Illustrations from './Icon/Illustrations';
+import Text from './Text';
 
 function SAMLLoadingIndicator() {
     const {translate} = useLocalize();
