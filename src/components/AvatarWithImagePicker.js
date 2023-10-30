@@ -20,9 +20,18 @@ import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import getImageResolution from '../libs/fileDownload/getImageResolution';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import * as Browser from '@libs/Browser';
 import AttachmentModal from './AttachmentModal';
+import AttachmentPicker from './AttachmentPicker';
+import Avatar from './Avatar';
+import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import * as Browser from '../libs/Browser';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import OfflineWithFeedback from './OfflineWithFeedback';
+import PopoverMenu from './PopoverMenu';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
 import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {

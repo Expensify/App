@@ -1,14 +1,14 @@
+import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import * as API from '../API';
-import * as UserUtils from '../UserUtils';
-import * as LocalePhoneNumber from '../LocalePhoneNumber';
-import ROUTES from '../../ROUTES';
-import Navigation from '../Navigation/Navigation';
+import * as API from '@libs/API';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import Navigation from '@libs/Navigation/Navigation';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 let currentUserEmail = '';
 let currentUserAccountID;
