@@ -1,9 +1,10 @@
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import ONYXKEYS from '../../../ONYXKEYS';
-import CONFIG from '../../../CONFIG';
+import CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SAMLLoadingIndicator from '../../../components/SAMLLoadingIndicator';
+
 
 const propTypes = {
     /** The credentials of the logged in person */

@@ -155,6 +155,10 @@ export default {
         marginLeft: 32,
     },
 
+    ml9: {
+        marginLeft: 36,
+    },
+
     ml10: {
         marginLeft: 40,
     },

@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
+import * as API from '@libs/API';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Fetch and save locally the Onfido SDK token and applicantID

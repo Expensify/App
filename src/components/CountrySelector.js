@@ -1,12 +1,12 @@
-import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import useLocalize from '../hooks/useLocalize';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 const propTypes = {
     /** Form error text. e.g when no country is selected */

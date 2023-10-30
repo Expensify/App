@@ -1,27 +1,27 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
-import _ from 'underscore';
 import {format} from 'date-fns';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
+import _ from 'underscore';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import * as CurrencyUtils from './CurrencyUtils';
+import DateUtils from './DateUtils';
+import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
-import * as Expensicons from '../components/Icon/Expensicons';
+import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
+import Permissions from './Permissions';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
-import Permissions from './Permissions';
-import DateUtils from './DateUtils';
-import linkingConfig from './Navigation/linkingConfig';
-import isReportMessageAttachment from './isReportMessageAttachment';
-import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
-import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
 
 let currentUserEmail;
@@ -781,6 +781,16 @@ function isMoneyRequestReport(reportOrID) {
 function getReport(reportID) {
     // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
     return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
+}
+
+/**
+ * Returns whether or not the author of the action is this user
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isActionCreator(reportAction) {
+    return reportAction.actorAccountID === currentUserAccountID;
 }
 
 /**
@@ -4121,6 +4131,7 @@ export {
     canEditReportAction,
     canFlagReportAction,
     shouldShowFlagComment,
+    isActionCreator,
     canDeleteReportAction,
     canLeaveRoom,
     sortReportsByLastRead,

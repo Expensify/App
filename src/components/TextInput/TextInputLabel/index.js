@@ -1,8 +1,8 @@
-import React, {useRef, useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
-import styles from '../../../styles/styles';
-import {propTypes, defaultProps} from './TextInputLabelPropTypes';
-import CONST from '../../../CONST';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes} from './TextInputLabelPropTypes';
 
 function TextInputLabel({for: inputId, label, labelTranslateY, labelScale}) {
     const labelRef = useRef(null);
