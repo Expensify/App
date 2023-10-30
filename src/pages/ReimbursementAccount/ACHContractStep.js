@@ -1,23 +1,23 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import React, {useState} from 'react';
-import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
-import Text from '../../components/Text';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import styles from '../../styles/styles';
-import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import TextLink from '../../components/TextLink';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize from '@components/withLocalize';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as FormActions from '@userActions/FormActions';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import IdentityForm from './IdentityForm';
-import withLocalize from '../../components/withLocalize';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import CONST from '../../CONST';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import ONYXKEYS from '../../ONYXKEYS';
-import Form from '../../components/Form';
-import * as FormActions from '../../libs/actions/FormActions';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
@@ -28,7 +28,7 @@ const propTypes = {
 };
 
 function ACHContractStep(props) {
-    const [beneficialOwners, setBeneficialOwners] = useState(
+    const [beneficialOwners, setBeneficialOwners] = useState(() =>
         lodashGet(props.reimbursementAccountDraft, 'beneficialOwners', lodashGet(props.reimbursementAccount, 'achData.beneficialOwners', [])),
     );
 

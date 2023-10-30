@@ -24,7 +24,7 @@ const restrictedImportPatterns = [
 ];
 
 module.exports = {
-    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'plugin:react-native-a11y/basic', 'prettier'],
+    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'plugin:react-native-a11y/basic', 'plugin:@dword-design/import-alias/recommended', 'prettier'],
     plugins: ['react-hooks', 'react-native-a11y'],
     parser: 'babel-eslint',
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', 'node_modules/.cache/**', '.git/**'],
@@ -49,7 +49,30 @@ module.exports = {
                         touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
                     },
                 ],
+                '@dword-design/import-alias/prefer-alias': [
+                    'warn',
+                    {
+                        alias: {
+                            '@assets': './assets',
+                            '@components': './src/components',
+                            '@hooks': './src/hooks',
+                            // This is needed up here, if not @libs/actions would take the priority
+                            '@userActions': './src/libs/actions',
+                            '@libs': './src/libs',
+                            '@navigation': './src/libs/Navigation',
+                            '@pages': './src/pages',
+                            '@styles': './src/styles',
+                            // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+                            '@src': './src',
+                        },
+                    },
+                ],
             },
+        },
+        // This helps disable the `prefer-alias` rule to be enabled for specific directories
+        {
+            files: ['tests/**/*.js', 'tests/**/*.ts', 'tests/**/*.jsx', 'assets/**/*.js', '.storybook/**/*.js'],
+            rules: {'@dword-design/import-alias/prefer-alias': ['off']},
         },
         {
             files: ['*.js', '*.jsx'],
@@ -79,6 +102,7 @@ module.exports = {
                     },
                 ],
                 curly: 'error',
+                'react/display-name': 'error',
             },
         },
         {

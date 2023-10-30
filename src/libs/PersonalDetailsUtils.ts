@@ -1,10 +1,10 @@
 import Onyx, {OnyxEntry} from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import * as OnyxTypes from '@src/types/onyx';
+import {PersonalDetailsList} from '@src/types/onyx';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
-import * as OnyxTypes from '../types/onyx';
-import {PersonalDetailsList} from '../types/onyx';
 
 let personalDetails: Array<OnyxTypes.PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
@@ -19,7 +19,7 @@ Onyx.connect({
 /**
  * @param [defaultValue] optional default display name value
  */
-function getDisplayNameOrDefault(displayName: string, defaultValue?: string): string {
+function getDisplayNameOrDefault(displayName?: string, defaultValue?: string): string {
     return displayName ?? defaultValue ?? Localize.translateLocal('common.hidden');
 }
 

@@ -1,8 +1,8 @@
-import {ValueOf} from 'type-fest';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
-import DeepValueOf from './types/utils/DeepValueOf';
-import * as OnyxTypes from './types/onyx';
+import {ValueOf} from 'type-fest';
 import CONST from './CONST';
+import * as OnyxTypes from './types/onyx';
+import DeepValueOf from './types/utils/DeepValueOf';
 
 /**
  * This is a file containing constants for all the top level keys in our store
@@ -118,6 +118,9 @@ const ONYXKEYS = {
 
     /** Token needed to initialize Plaid link */
     PLAID_LINK_TOKEN: 'plaidLinkToken',
+
+    /** Capture Plaid event  */
+    PLAID_CURRENT_EVENT: 'plaidCurrentEvent',
 
     /** Token needed to initialize Onfido */
     ONFIDO_TOKEN: 'onfidoToken',
@@ -244,7 +247,7 @@ const ONYXKEYS = {
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
-        // REPORT_METADATA is a perf optimization used to hold loading states (isLoadingReportActions, isLoadingMoreReportActions).
+        // REPORT_METADATA is a perf optimization used to hold loading states (isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions).
         // A lot of components are connected to the Report entity and do not care about the actions. Setting the loading state
         // directly on the report caused a lot of unnecessary re-renders
         REPORT_METADATA: 'reportMetadata_',
@@ -384,15 +387,15 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategory;
-    [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTag;
+    [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTags;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
-    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMember;
+    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
-    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: string;
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: string;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES]: number;
