@@ -3,13 +3,13 @@ import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Session} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Session} from '@src/types/onyx';
 
 type CurrentUserPersonalDetails = PersonalDetails | Record<string, never>;
 
 type OnyxProps = {
     /** Personal details of all the users, including current user */
-    personalDetails: OnyxEntry<Record<string, PersonalDetails>>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** Session of the current user */
     session: OnyxEntry<Session>;
@@ -37,7 +37,7 @@ export default function <TProps extends ComponentProps, TRef>(
         const accountID = props.session?.accountID ?? 0;
         const accountPersonalDetails = props.personalDetails?.[accountID];
         const currentUserPersonalDetails: CurrentUserPersonalDetails = useMemo(
-            () => (accountPersonalDetails ? {...accountPersonalDetails, accountID} : {}),
+            () => (accountPersonalDetails ? {...accountPersonalDetails, accountID} : {}) as CurrentUserPersonalDetails,
             [accountPersonalDetails, accountID],
         );
         return (
