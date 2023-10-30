@@ -1,16 +1,16 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import {propTypes as anchorForAttachmentsOnlyPropTypes, defaultProps as anchorForAttachmentsOnlyDefaultProps} from './anchorForAttachmentsOnlyPropTypes';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import AttachmentView from '../Attachments/AttachmentView';
-import * as Download from '../../libs/actions/Download';
-import fileDownload from '../../libs/fileDownload';
-import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
-import {ShowContextMenuContext, showContextMenuForReport} from '../ShowContextMenuContext';
-import * as ReportUtils from '../../libs/ReportUtils';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import AttachmentView from '@components/Attachments/AttachmentView';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import fileDownload from '@libs/fileDownload';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as Download from '@userActions/Download';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps as anchorForAttachmentsOnlyDefaultProps, propTypes as anchorForAttachmentsOnlyPropTypes} from './anchorForAttachmentsOnlyPropTypes';
 
 const propTypes = {
     /** Press in handler for the link */

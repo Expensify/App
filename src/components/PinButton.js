@@ -1,15 +1,15 @@
 import React from 'react';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import reportPropTypes from '../pages/reportPropTypes';
-import * as Report from '../libs/actions/Report';
-import * as Expensicons from './Icon/Expensicons';
-import * as Session from '../libs/actions/Session';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import CONST from '../CONST';
 
 const propTypes = {
     /** Report to pin */

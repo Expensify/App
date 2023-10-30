@@ -1,18 +1,18 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import TextInput from '../components/TextInput';
-import Picker from '../components/Picker';
-import StatePicker from '../components/StatePicker';
-import AddressSearch from '../components/AddressSearch';
-import DatePicker from '../components/DatePicker';
-import * as FormActions from '../libs/actions/FormActions';
-import styles from '../styles/styles';
-import CheckboxWithLabel from '../components/CheckboxWithLabel';
-import Text from '../components/Text';
-import NetworkConnection from '../libs/NetworkConnection';
-import CONST from '../CONST';
-import InputWrapper from '../components/Form/InputWrapper';
-import FormProvider from '../components/Form/FormProvider';
+import AddressSearch from '@components/AddressSearch';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import DatePicker from '@components/DatePicker';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import Picker from '@components/Picker';
+import StatePicker from '@components/StatePicker';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import NetworkConnection from '@libs/NetworkConnection';
+import styles from '@styles/styles';
+import * as FormActions from '@userActions/FormActions';
+import CONST from '@src/CONST';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

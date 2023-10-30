@@ -3,24 +3,23 @@ import {PopoverContextProps, PopoverContextValue} from './types';
 
 const PopoverContext = React.createContext<PopoverContextValue>({
     onOpen: () => {},
-    popover: null,
+    popover: {},
     close: () => {},
     isOpen: false,
 });
 
 function PopoverContextProvider(props: PopoverContextProps) {
-    return (
-        <PopoverContext.Provider
-            value={{
-                onOpen: () => {},
-                close: () => {},
-                popover: null,
-                isOpen: false,
-            }}
-        >
-            {props.children}
-        </PopoverContext.Provider>
+    const contextValue = React.useMemo(
+        () => ({
+            onOpen: () => {},
+            close: () => {},
+            popover: {},
+            isOpen: false,
+        }),
+        [],
     );
+
+    return <PopoverContext.Provider value={contextValue}>{props.children}</PopoverContext.Provider>;
 }
 
 PopoverContextProvider.displayName = 'PopoverContextProvider';

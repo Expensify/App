@@ -3,7 +3,7 @@ import {AnchorRef, PopoverContextProps, PopoverContextValue} from './types';
 
 const PopoverContext = React.createContext<PopoverContextValue>({
     onOpen: () => {},
-    popover: null,
+    popover: {},
     close: () => {},
     isOpen: false,
 });
@@ -16,7 +16,11 @@ function PopoverContextProvider(props: PopoverContextProps) {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
             return;
         }
+
         activePopoverRef.current.close();
+        if (activePopoverRef.current.onCloseCallback) {
+            activePopoverRef.current.onCloseCallback();
+        }
         activePopoverRef.current = null;
         setIsOpen(false);
     }, []);
@@ -95,23 +99,25 @@ function PopoverContextProvider(props: PopoverContextProps) {
                 closePopover(activePopoverRef.current.anchorRef);
             }
             activePopoverRef.current = popoverParams;
+            if (popoverParams && popoverParams.onOpenCallback) {
+                popoverParams.onOpenCallback();
+            }
             setIsOpen(true);
         },
         [closePopover],
     );
 
-    return (
-        <PopoverContext.Provider
-            value={{
-                onOpen,
-                close: closePopover,
-                popover: activePopoverRef.current,
-                isOpen,
-            }}
-        >
-            {props.children}
-        </PopoverContext.Provider>
+    const contextValue = React.useMemo(
+        () => ({
+            onOpen,
+            close: closePopover,
+            popover: activePopoverRef.current,
+            isOpen,
+        }),
+        [onOpen, closePopover, isOpen],
     );
+
+    return <PopoverContext.Provider value={contextValue}>{props.children}</PopoverContext.Provider>;
 }
 
 PopoverContextProvider.displayName = 'PopoverContextProvider';
