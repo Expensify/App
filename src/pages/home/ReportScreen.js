@@ -220,7 +220,7 @@ function ReportScreen({
         );
     }
 
-    if (reportID === '') {
+    if (reportID === '' || isLoading) {
         headerView = <ReportHeaderSkeletonView />;
     }
 
