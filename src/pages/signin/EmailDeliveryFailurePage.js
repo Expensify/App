@@ -1,17 +1,17 @@
+import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
-import styles from '../../styles/styles';
-import Text from '../../components/Text';
-import TextLink from '../../components/TextLink';
-import ONYXKEYS from '../../ONYXKEYS';
-import useLocalize from '../../hooks/useLocalize';
-import useKeyboardState from '../../hooks/useKeyboardState';
-import redirectToSignIn from '../../libs/actions/SignInRedirect';
-import CONST from '../../CONST';
-import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import redirectToSignIn from '@userActions/SignInRedirect';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /* Onyx Props */
