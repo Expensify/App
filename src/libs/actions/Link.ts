@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import asyncOpenURL from '../asyncOpenURL';
-import * as API from '../API';
-import * as Environment from '../Environment/Environment';
-import * as Url from '../Url';
+import * as API from '@libs/API';
+import asyncOpenURL from '@libs/asyncOpenURL';
+import * as Environment from '@libs/Environment/Environment';
+import * as Url from '@libs/Url';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 let isNetworkOffline = false;
 Onyx.connect({
@@ -48,7 +48,9 @@ function openOldDotLink(url: string) {
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects('OpenOldDotLink', {}, {})
-            .then((response) => buildOldDotURL(url, response.shortLivedAuthToken))
+            .then((response) => {
+                return response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url);
+            })
             .catch(() => buildOldDotURL(url)),
         (oldDotURL) => oldDotURL,
     );

@@ -1,13 +1,13 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import stylePropTypes from '../styles/stylePropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import * as StyleUtils from '../styles/StyleUtils';
-import CONST from '../CONST';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import refPropTypes from './refPropTypes';
 
@@ -91,7 +91,7 @@ function Checkbox(props) {
             onPress={firePressHandlerOnClick}
             onMouseDown={props.onMouseDown}
             ref={props.forwardedRef}
-            style={[props.style, styles.checkboxPressable]}
+            style={[StyleUtils.getCheckboxPressableStyle(props.containerBorderRadius + 2), props.style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceKey}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
             accessibilityState={{checked: props.isChecked}}
@@ -108,6 +108,7 @@ function Checkbox(props) {
                         props.isChecked && styles.checkedContainer,
                         props.hasError && styles.borderColorDanger,
                         props.disabled && styles.cursorDisabled,
+                        props.disabled && styles.buttonOpacityDisabled,
                         props.isChecked && styles.borderColorFocus,
                     ]}
                 >

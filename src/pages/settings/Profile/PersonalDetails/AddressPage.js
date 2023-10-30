@@ -1,27 +1,27 @@
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import React, {useState, useCallback, useEffect} from 'react';
-import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import Form from '../../../../components/Form';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
-import TextInput from '../../../../components/TextInput';
-import styles from '../../../../styles/styles';
-import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import AddressSearch from '../../../../components/AddressSearch';
-import StatePicker from '../../../../components/StatePicker';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import useLocalize from '../../../../hooks/useLocalize';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
-import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import CountrySelector from '../../../../components/CountrySelector';
+import _ from 'underscore';
+import AddressSearch from '@components/AddressSearch';
+import CountrySelector from '@components/CountrySelector';
+import Form from '@components/Form';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import StatePicker from '@components/StatePicker';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -71,16 +71,26 @@ function updateAddress(values) {
 function AddressPage({privatePersonalDetails, route}) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
+    const address = useMemo(() => lodashGet(privatePersonalDetails, 'address') || {}, [privatePersonalDetails]);
     const countryFromUrl = lodashGet(route, 'params.country');
-    const [currentCountry, setCurrentCountry] = useState(countryFromUrl || PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')));
-    const isUSAForm = currentCountry === CONST.COUNTRY.US;
+    const [currentCountry, setCurrentCountry] = useState(address.country);
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
-
-    const address = lodashGet(privatePersonalDetails, 'address') || {};
+    const isUSAForm = currentCountry === CONST.COUNTRY.US;
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
+    const [city, setCity] = useState(address.city);
+
+    useEffect(() => {
+        if (!address) {
+            return;
+        }
+        setState(address.state);
+        setCurrentCountry(address.country);
+        setCity(address.city);
+    }, [address]);
+
     /**
      * @param {Function} translate - translate function
      * @param {Boolean} isUSAForm - selected country ISO code is US
@@ -127,23 +137,28 @@ function AddressPage({privatePersonalDetails, route}) {
     }, []);
 
     const handleAddressChange = useCallback((value, key) => {
-        if (key !== 'country' && key !== 'state') {
+        if (key !== 'country' && key !== 'state' && key !== 'city') {
             return;
         }
         if (key === 'country') {
             setCurrentCountry(value);
             setState('');
+            setCity('');
             return;
         }
-        setState(value);
+        if (key === 'state') {
+            setState(value);
+            return;
+        }
+        setCity(value);
     }, []);
 
     useEffect(() => {
-        if (!countryFromUrl || countryFromUrl === currentCountry) {
+        if (!countryFromUrl) {
             return;
         }
         handleAddressChange(countryFromUrl, 'country');
-    }, [countryFromUrl, handleAddressChange, currentCountry]);
+    }, [countryFromUrl, handleAddressChange]);
 
     return (
         <ScreenWrapper
@@ -151,7 +166,7 @@ function AddressPage({privatePersonalDetails, route}) {
             testID={AddressPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('privatePersonalDetails.homeAddress')}
+                title={translate('privatePersonalDetails.address')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
@@ -227,9 +242,10 @@ function AddressPage({privatePersonalDetails, route}) {
                         label={translate('common.city')}
                         accessibilityLabel={translate('common.city')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={address.city || ''}
+                        value={city || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
+                        onValueChange={handleAddressChange}
                     />
                     <View style={styles.formSpaceVertical} />
                     <TextInput

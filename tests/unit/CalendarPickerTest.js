@@ -1,24 +1,37 @@
-import {render, fireEvent, within} from '@testing-library/react-native';
-import moment from 'moment';
+import {fireEvent, render, within} from '@testing-library/react-native';
+import {addYears, eachMonthOfInterval, format, subYears} from 'date-fns';
 import CalendarPicker from '../../src/components/NewDatePicker/CalendarPicker';
 import CONST from '../../src/CONST';
+import DateUtils from '../../src/libs/DateUtils';
 
-moment.locale(CONST.LOCALES.EN);
-const monthNames = moment.localeData().months();
+DateUtils.setLocale(CONST.LOCALES.EN);
+const fullYear = new Date().getFullYear();
+const monthsArray = eachMonthOfInterval({
+    start: new Date(fullYear, 0, 1), // January 1st of the current year
+    end: new Date(fullYear, 11, 31), // December 31st of the current year
+});
+// eslint-disable-next-line rulesdir/prefer-underscore-method
+const monthNames = monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
 
 jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({navigate: jest.fn()}),
     createNavigationContainerRef: jest.fn(),
 }));
 
-jest.mock('../../src/components/withLocalize', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        translate={() => ''}
-        preferredLocale="en"
-    />
-));
+jest.mock('../../src/components/withLocalize', () => (Component) => {
+    function WrappedComponent(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                translate={() => ''}
+                preferredLocale="en"
+            />
+        );
+    }
+    WrappedComponent.displayName = `WrappedComponent`;
+    return WrappedComponent;
+});
 
 jest.mock('../../src/hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -33,8 +46,8 @@ describe('CalendarPicker', () => {
 
     test('displays the current month and year', () => {
         const currentDate = new Date();
-        const maxDate = moment(currentDate).add(1, 'Y').toDate();
-        const minDate = moment(currentDate).subtract(1, 'Y').toDate();
+        const maxDate = addYears(new Date(currentDate), 1);
+        const minDate = subYears(new Date(currentDate), 1);
         const {getByText} = render(
             <CalendarPicker
                 maxDate={maxDate}

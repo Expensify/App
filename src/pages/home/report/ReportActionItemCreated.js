@@ -1,24 +1,25 @@
-import React, {memo} from 'react';
-import {View, Image} from 'react-native';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import ONYXKEYS from '../../../ONYXKEYS';
-import ReportWelcomeText from '../../../components/ReportWelcomeText';
-import participantPropTypes from '../../../components/participantPropTypes';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import styles from '../../../styles/styles';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import * as Report from '../../../libs/actions/Report';
-import reportPropTypes from '../../reportPropTypes';
-import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import compose from '../../../libs/compose';
-import withLocalize from '../../../components/withLocalize';
-import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
-import MultipleAvatars from '../../../components/MultipleAvatars';
-import CONST from '../../../CONST';
+import React, {memo} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import participantPropTypes from '@components/participantPropTypes';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ReportWelcomeText from '@components/ReportWelcomeText';
+import withLocalize from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 const propTypes = {
     /** The id of the report */
@@ -64,11 +65,7 @@ function ReportActionItemCreated(props) {
             needsOffscreenAlphaCompositing
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <Image
-                    pointerEvents="none"
-                    source={EmptyStateBackgroundImage}
-                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
-                />
+                <AnimatedEmptyStateBackground />
                 <View
                     accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
@@ -110,6 +107,7 @@ export default compose(
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            selector: reportWithoutHasDraftSelector,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

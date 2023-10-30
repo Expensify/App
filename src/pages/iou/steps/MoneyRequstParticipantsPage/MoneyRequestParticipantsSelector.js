@@ -1,21 +1,21 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import styles from '../../../../styles/styles';
-import OptionsSelector from '../../../../components/OptionsSelector';
-import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import * as Browser from '../../../../libs/Browser';
-import compose from '../../../../libs/compose';
-import CONST from '../../../../CONST';
-import personalDetailsPropType from '../../../personalDetailsPropType';
-import reportPropTypes from '../../../reportPropTypes';
-import refPropTypes from '../../../../components/refPropTypes';
+import OptionsSelector from '@components/OptionsSelector';
+import refPropTypes from '@components/refPropTypes';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Beta features list */
@@ -59,9 +59,6 @@ const propTypes = {
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
 
-    /** Whether the money request is a scan request or not */
-    isScanRequest: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
@@ -73,7 +70,6 @@ const defaultProps = {
     reports: {},
     betas: [],
     isDistanceRequest: false,
-    isScanRequest: false,
 };
 
 function MoneyRequestParticipantsSelector({
@@ -89,7 +85,6 @@ function MoneyRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
-    isScanRequest,
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
@@ -109,16 +104,17 @@ function MoneyRequestParticipantsSelector({
         const newSections = [];
         let indexOffset = 0;
 
-        newSections.push({
-            title: undefined,
-            data: _.map(participants, (participant) => {
-                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
-            }),
-            shouldShow: true,
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
+            searchTerm,
+            participants,
+            newChatOptions.recentReports,
+            newChatOptions.personalDetails,
+            personalDetails,
+            true,
             indexOffset,
-        });
-        indexOffset += participants.length;
+        );
+        newSections.push(formatResults.section);
+        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return newSections;
@@ -143,14 +139,17 @@ function MoneyRequestParticipantsSelector({
         if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
             newSections.push({
                 undefined,
-                data: [newChatOptions.userToInvite],
+                data: _.map([newChatOptions.userToInvite], (participant) => {
+                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+                }),
                 shouldShow: true,
                 indexOffset,
             });
         }
 
         return newSections;
-    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate]);
+    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate, searchTerm]);
 
     /**
      * Adds a single participant to the request
@@ -158,10 +157,11 @@ function MoneyRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = (option) => {
-        onAddParticipants([
-            {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText},
-        ]);
-        navigateToRequest(option);
+        onAddParticipants(
+            [{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText}],
+            false,
+        );
+        navigateToRequest();
     };
 
     /**
@@ -199,32 +199,9 @@ function MoneyRequestParticipantsSelector({
                     },
                 ];
             }
-
-            onAddParticipants(newSelectedOptions);
-
-            const chatOptions = OptionsListUtils.getFilteredOptions(
-                reports,
-                personalDetails,
-                betas,
-                isOptionInList ? searchTerm : '',
-                newSelectedOptions,
-                CONST.EXPENSIFY_EMAILS,
-
-                // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-                // sees the option to request money from their admin on their own Workspace Chat.
-                iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
-
-                // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-                !isDistanceRequest,
-            );
-
-            setNewChatOptions({
-                recentReports: chatOptions.recentReports,
-                personalDetails: chatOptions.personalDetails,
-                userToInvite: chatOptions.userToInvite,
-            });
+            onAddParticipants(newSelectedOptions, newSelectedOptions.length !== 0);
         },
-        [participants, onAddParticipants, reports, personalDetails, betas, searchTerm, iouType, isDistanceRequest],
+        [participants, onAddParticipants],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -247,10 +224,18 @@ function MoneyRequestParticipantsSelector({
 
             // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to request money from their admin on their own Workspace Chat.
-            iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+            iouType === CONST.IOU.TYPE.REQUEST,
 
             // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
             !isDistanceRequest,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            true,
         );
         setNewChatOptions({
             recentReports: chatOptions.recentReports,
@@ -264,7 +249,7 @@ function MoneyRequestParticipantsSelector({
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowConfirmButton = !(participants.length > 1 && hasPolicyExpenseChatParticipant);
-    const isAllowedToSplit = !isDistanceRequest && !isScanRequest;
+    const isAllowedToSplit = !isDistanceRequest && iouType !== CONST.IOU.TYPE.SEND;
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
@@ -287,7 +272,7 @@ function MoneyRequestParticipantsSelector({
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
-                shouldFocusOnSelectRow={!Browser.isMobile()}
+                shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 shouldDelayFocus
             />
         </View>
@@ -297,6 +282,16 @@ function MoneyRequestParticipantsSelector({
 MoneyRequestParticipantsSelector.propTypes = propTypes;
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
+
+const MoneyRequestParticipantsSelectorWithRef = React.forwardRef((props, ref) => (
+    <MoneyRequestParticipantsSelector
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+MoneyRequestParticipantsSelectorWithRef.displayName = 'MoneyRequestParticipantsSelectorWithRef';
 
 export default compose(
     withLocalize,
@@ -311,12 +306,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(
-    React.forwardRef((props, ref) => (
-        <MoneyRequestParticipantsSelector
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(MoneyRequestParticipantsSelectorWithRef);

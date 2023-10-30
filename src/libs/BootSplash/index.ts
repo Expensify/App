@@ -1,4 +1,4 @@
-import Log from '../Log';
+import Log from '@libs/Log';
 import {VisibilityStatus} from './types';
 
 function resolveAfter(delay: number): Promise<void> {
@@ -30,5 +30,6 @@ function getVisibilityStatus(): Promise<VisibilityStatus> {
 export default {
     hide,
     getVisibilityStatus,
+    logoSizeRatio: 1,
     navigationBarHeight: 0,
 };

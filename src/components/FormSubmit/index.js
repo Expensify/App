@@ -1,10 +1,10 @@
-import React, {useEffect} from 'react';
 import lodashGet from 'lodash/get';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import * as ComponentUtils from '@libs/ComponentUtils';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import CONST from '@src/CONST';
 import * as formSubmitPropTypes from './formSubmitPropTypes';
-import CONST from '../../CONST';
-import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
-import * as ComponentUtils from '../../libs/ComponentUtils';
 
 function FormSubmit({innerRef, children, onSubmit, style}) {
     /**
@@ -27,6 +27,7 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
 
         // Pressing Enter on TEXTAREA element adds a new line. When `dataset.submitOnEnter` prop is passed, call the submit callback.
         if (tagName === 'TEXTAREA' && lodashGet(event, 'target.dataset.submitOnEnter', 'false') === 'true') {
+            event.preventDefault();
             onSubmit();
             return;
         }
@@ -74,10 +75,14 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
 FormSubmit.propTypes = formSubmitPropTypes.propTypes;
 FormSubmit.defaultProps = formSubmitPropTypes.defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const FormSubmitWithRef = React.forwardRef((props, ref) => (
     <FormSubmit
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+FormSubmitWithRef.displayName = 'FormSubmitWithRef';
+
+export default FormSubmitWithRef;

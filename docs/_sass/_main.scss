@@ -350,7 +350,7 @@ button {
         img {
             display: block;
             margin: 20px auto;
-            border-radius: 10px;
+            border-radius: 16px;
 
             @include maxBreakpoint($breakpoint-tablet) {
                 width: 100%;
@@ -371,9 +371,26 @@ button {
             flex-wrap: wrap;
         }
 
+        h1 {
+            font-size: 1.5em;
+            padding: 20px 0 12px 0;
+        }
+
+        h2 {
+            font-size: 1.125em;
+            font-weight: 500;
+            font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        }
+
+        h3 {
+            font-size: 1em;
+            font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        }
+
         h2,
         h3 {
-            font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+            margin: 0;
+            padding: 12px 0 12px 0;
         }
 
         blockquote {
@@ -529,7 +546,7 @@ button {
         align-items: center;
 
         img {
-            border-radius: 12px;
+            border-radius: 16px;
             width: 100%;
         }
     }

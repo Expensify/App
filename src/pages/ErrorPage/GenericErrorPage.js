@@ -1,21 +1,21 @@
 import React from 'react';
-import {View} from 'react-native';
 import {useErrorBoundary} from 'react-error-boundary';
-import Icon from '../../components/Icon';
-import defaultTheme from '../../styles/themes/default';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import Text from '../../components/Text';
-import Button from '../../components/Button';
-import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import * as Session from '../../libs/actions/Session';
-import variables from '../../styles/variables';
-import styles from '../../styles/styles';
+import {View} from 'react-native';
+import LogoWordmark from '@assets/images/expensify-wordmark.svg';
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import defaultTheme from '@styles/themes/default';
+import variables from '@styles/variables';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 import ErrorBodyText from './ErrorBodyText';
-import TextLink from '../../components/TextLink';
-import CONST from '../../CONST';
-import SafeAreaConsumer from '../../components/SafeAreaConsumer';
-import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,

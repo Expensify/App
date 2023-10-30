@@ -46,6 +46,10 @@ export default {
         width: '70%',
     },
 
+    w80: {
+        width: '80%',
+    },
+
     w100: {
         width: '100%',
     },

@@ -1,17 +1,17 @@
-import React, {memo} from 'react';
 import PropTypes from 'prop-types';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import Text from './Text';
-import CONST from '../CONST';
+import * as UserUtils from '@libs/UserUtils';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
+import AttachmentModal from './AttachmentModal';
 import Avatar from './Avatar';
-import themeColors from '../styles/themes/default';
-import * as StyleUtils from '../styles/StyleUtils';
 import avatarPropTypes from './avatarPropTypes';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
-import * as UserUtils from '../libs/UserUtils';
-import AttachmentModal from './AttachmentModal';
+import Text from './Text';
 
 const propTypes = {
     icons: PropTypes.arrayOf(avatarPropTypes),
@@ -70,7 +70,7 @@ function RoomHeaderAvatars(props) {
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(iconsToDisplay, (icon, index) => (
                     <View
-                        key={`${icon.source}${index}`}
+                        key={`${icon.id}${index}`}
                         style={[styles.justifyContentCenter, styles.alignItemsCenter]}
                     >
                         <AttachmentModal

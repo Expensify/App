@@ -1,14 +1,14 @@
-import React from 'react';
-import {View, Text} from 'react-native';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import styles from '../../../styles/styles';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {Text, View} from 'react-native';
+import _ from 'underscore';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import styles from '@styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     /** The report action */
@@ -54,15 +54,14 @@ function ReportActionItemMessage(props) {
                     <ReportActionItemFragment
                         key={`actionFragment-${props.action.reportActionID}-${index}`}
                         fragment={fragment}
-                        isAttachment={props.action.isAttachment}
                         iouMessage={iouMessage}
                         isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
                         attachmentInfo={props.action.attachmentInfo}
                         pendingAction={props.action.pendingAction}
                         source={lodashGet(props.action, 'originalMessage.source')}
                         accountID={props.action.actorAccountID}
-                        loading={props.action.isLoading}
                         style={props.style}
+                        displayAsGroup={props.displayAsGroup}
                     />
                 ))
             ) : (

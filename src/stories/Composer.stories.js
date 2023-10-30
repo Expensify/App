@@ -1,14 +1,14 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useState} from 'react';
-import {View, Image} from 'react-native';
-import Composer from '../components/Composer';
-import RenderHTML from '../components/RenderHTML';
-import Text from '../components/Text';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import * as StyleUtils from '../styles/StyleUtils';
-import CONST from '../CONST';
-import withNavigationFallback from '../components/withNavigationFallback';
+import {Image, View} from 'react-native';
+import Composer from '@components/Composer';
+import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
+import withNavigationFallback from '@components/withNavigationFallback';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 
 const ComposerWithNavigation = withNavigationFallback(Composer);
 
