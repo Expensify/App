@@ -1,5 +1,5 @@
-import React, {memo, useCallback, useContext, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import React, {memo, useCallback, useContext, useEffect} from 'react';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import PDFView from '@components/PDFView';
 import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';

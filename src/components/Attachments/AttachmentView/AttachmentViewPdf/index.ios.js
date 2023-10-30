@@ -1,6 +1,6 @@
 import React, {memo} from 'react';
 import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
-import {attachmentViewPdfPropTypes, attachmentViewPdfDefaultProps} from './propTypes';
+import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
 
 function AttachmentViewPdf(props) {
     return (
