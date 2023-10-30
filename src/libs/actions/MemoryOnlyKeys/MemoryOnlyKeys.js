@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Log from '../../Log';
+import Log from '@libs/Log';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const memoryOnlyKeys = [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.POLICY, ONYXKEYS.PERSONAL_DETAILS_LIST];
 

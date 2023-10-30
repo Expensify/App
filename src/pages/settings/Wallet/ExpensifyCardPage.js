@@ -3,28 +3,30 @@ import React, {useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../../../ONYXKEYS';
-import ROUTES from '../../../ROUTES';
-import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import CardPreview from '../../../components/CardPreview';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import useLocalize from '../../../hooks/useLocalize';
-import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import Navigation from '../../../libs/Navigation/Navigation';
-import styles from '../../../styles/styles';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import * as CardUtils from '../../../libs/CardUtils';
-import Button from '../../../components/Button';
-import CardDetails from './WalletPage/CardDetails';
-import MenuItem from '../../../components/MenuItem';
-import CONST from '../../../CONST';
+import Button from '@components/Button';
+import CardPreview from '@components/CardPreview';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as CardUtils from '@libs/CardUtils';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import styles from '@styles/styles';
+import theme from '@styles/themes/default';
+import * as Card from '@userActions/Card';
+import * as Link from '@userActions/Link';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import assignedCardPropTypes from './assignedCardPropTypes';
-import theme from '../../../styles/themes/default';
-import DotIndicatorMessage from '../../../components/DotIndicatorMessage';
-import * as Link from '../../../libs/actions/Link';
 import DangerCardSection from './DangerCardSection';
+import CardDetails from './WalletPage/CardDetails';
 
 const propTypes = {
     /* Onyx Props */
@@ -50,12 +52,14 @@ function ExpensifyCardPage({
         params: {domain},
     },
 }) {
+    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
     const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
     const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
 
-    const [shouldShowCardDetails, setShouldShowCardDetails] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [details, setDetails] = useState({});
 
     if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
         return <NotFoundPage />;
@@ -64,7 +68,14 @@ function ExpensifyCardPage({
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
 
     const handleRevealDetails = () => {
-        setShouldShowCardDetails(true);
+        setIsLoading(true);
+        // We can't store the response in Onyx for security reasons.
+        // That is this action is handled manually and the response is stored in a local state
+        // Hence the eslint disable here.
+        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+        Card.revealVirtualCardDetails(virtualCard.cardID)
+            .then(setDetails)
+            .finally(() => setIsLoading(false));
     };
 
     const hasDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
@@ -97,6 +108,32 @@ function ExpensifyCardPage({
 
                         {hasDetectedIndividualFraud && !hasDetectedDomainFraud ? (
                             <>
+                                {details.pan ? (
+                                    <CardDetails
+                                        pan={details.pan}
+                                        expiration={details.expiration}
+                                        cvv={details.cvv}
+                                        privatePersonalDetails={{address: details.address}}
+                                        domain={domain}
+                                    />
+                                ) : (
+                                    <MenuItemWithTopDescription
+                                        description={translate('cardPage.virtualCardNumber')}
+                                        title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                        interactive={false}
+                                        titleStyle={styles.walletCardNumber}
+                                        shouldShowRightComponent
+                                        rightComponent={
+                                            <Button
+                                                medium
+                                                text={translate('cardPage.cardDetails.revealDetails')}
+                                                onPress={handleRevealDetails}
+                                                isDisabled={isLoading || isOffline}
+                                                isLoading={isLoading}
+                                            />
+                                        }
+                                    />
+                                )}
                                 <DangerCardSection
                                     title={translate('cardPage.suspiciousBannerTitle')}
                                     description={translate('cardPage.suspiciousBannerDescription')}
@@ -123,12 +160,12 @@ function ExpensifyCardPage({
                                 />
                                 {!_.isEmpty(virtualCard) && (
                                     <>
-                                        {shouldShowCardDetails ? (
+                                        {details.pan ? (
                                             <CardDetails
-                                                // This is just a temporary mock, it will be replaced in this issue https://github.com/orgs/Expensify/projects/58?pane=issue&itemId=33286617
-                                                pan="1234123412341234"
-                                                expiration="11/02/2024"
-                                                cvv="321"
+                                                pan={details.pan}
+                                                expiration={details.expiration}
+                                                cvv={details.cvv}
+                                                privatePersonalDetails={{address: details.address}}
                                                 domain={domain}
                                             />
                                         ) : (
@@ -143,6 +180,8 @@ function ExpensifyCardPage({
                                                         medium
                                                         text={translate('cardPage.cardDetails.revealDetails')}
                                                         onPress={handleRevealDetails}
+                                                        isDisabled={isLoading || isOffline}
+                                                        isLoading={isLoading}
                                                     />
                                                 }
                                             />
