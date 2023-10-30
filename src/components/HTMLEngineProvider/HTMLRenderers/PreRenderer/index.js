@@ -1,9 +1,8 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import _ from 'underscore';
-
-import ControlSelection from '../../../../libs/ControlSelection';
-import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
-import htmlRendererPropTypes from '../htmlRendererPropTypes';
+import htmlRendererPropTypes from '@components/HTMLEngineProvider/HTMLRenderers/htmlRendererPropTypes';
+import ControlSelection from '@libs/ControlSelection';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BasePreRenderer from './BasePreRenderer';
 
 const supportsPassive = DeviceCapabilities.hasPassiveEventListenerSupport();
