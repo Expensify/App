@@ -1,25 +1,25 @@
-import React from 'react';
-import _ from 'underscore';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import Text from '../../Text';
-import styles from '../../../styles/styles';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
-import UserDetailsTooltip from '../../UserDetailsTooltip';
+import React from 'react';
+import {withOnyx} from 'react-native-onyx';
+import {TNodeChildrenRenderer} from 'react-native-render-html';
+import _ from 'underscore';
+import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import Text from '@components/Text';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import withCurrentUserPersonalDetails from '../../withCurrentUserPersonalDetails';
-import personalDetailsPropType from '../../../pages/personalDetailsPropType';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
-import compose from '../../../libs/compose';
-import ONYXKEYS from '../../../ONYXKEYS';
-import useLocalize from '../../../hooks/useLocalize';
-import CONST from '../../../CONST';
-import * as LocalePhoneNumber from '../../../libs/LocalePhoneNumber';
 
 const propTypes = {
     ...htmlRendererPropTypes,
