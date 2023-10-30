@@ -254,8 +254,8 @@ export default compose(
         },
         savedWelcomeMessage: {
             key: `${ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}Draft`,
-            selector: (draft) => draft ? draft.welcomeMessage : ''
-        }
+            selector: (draft) => (draft ? draft.welcomeMessage : ''),
+        },
     }),
     withNavigationFocus,
 )(WorkspaceInviteMessagePage);
