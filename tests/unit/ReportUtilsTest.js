@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../src/CONST';
-import ONYXKEYS from '../../src/ONYXKEYS';
 import * as ReportUtils from '../../src/libs/ReportUtils';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import ONYXKEYS from '../../src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -520,8 +520,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.getReportIDFromLink('new-expensify://r/75431276')).toBe('75431276');
             expect(ReportUtils.getReportIDFromLink('https://www.expensify.cash/r/75431276')).toBe('75431276');
             expect(ReportUtils.getReportIDFromLink('https://staging.new.expensify.com/r/75431276')).toBe('75431276');
-            expect(ReportUtils.getReportIDFromLink('http://localhost/r/75431276')).toBe('75431276');
-            expect(ReportUtils.getReportIDFromLink('http://localhost:8080/r/75431276')).toBe('75431276');
+            expect(ReportUtils.getReportIDFromLink('https://dev.new.expensify.com/r/75431276')).toBe('75431276');
             expect(ReportUtils.getReportIDFromLink('https://staging.expensify.cash/r/75431276')).toBe('75431276');
             expect(ReportUtils.getReportIDFromLink('https://new.expensify.com/r/75431276')).toBe('75431276');
         });

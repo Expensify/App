@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['**.js', '**.ts', '**.tsx']
+    paths: ['**.js', '**.ts', '**.tsx', '**.json', '**.mjs', '**.cjs', 'config/.editorconfig', '.watchmanconfig', '.imgbotconfig']
 
 jobs:
   lint:

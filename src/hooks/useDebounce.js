@@ -1,5 +1,5 @@
-import {useEffect, useRef} from 'react';
 import lodashDebounce from 'lodash/debounce';
+import {useEffect, useRef} from 'react';
 
 /**
  * Create and return a debounced function.

@@ -1,21 +1,21 @@
 import React, {useEffect, useState} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import styles from '../../styles/styles';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import TextLink from '../../components/TextLink';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import Text from '../../components/Text';
-import ShortTermsForm from './TermsPage/ShortTermsForm';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import ONYXKEYS from '@src/ONYXKEYS';
 import LongTermsForm from './TermsPage/LongTermsForm';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import walletTermsPropTypes from './walletTermsPropTypes';
-import * as ErrorUtils from '../../libs/ErrorUtils';
+import ShortTermsForm from './TermsPage/ShortTermsForm';
 import userWalletPropTypes from './userWalletPropTypes';
+import walletTermsPropTypes from './walletTermsPropTypes';
 
 const propTypes = {
     /** The user's wallet */
