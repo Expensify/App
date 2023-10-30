@@ -1,19 +1,19 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
-import KeyboardAvoidingView from '../KeyboardAvoidingView';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import Text from '../Text';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
+import withLocalize from '@components/withLocalize';
+import withWindowDimensions from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import {propTypes as pdfViewPropTypes, defaultProps} from './pdfViewPropTypes';
-import compose from '../../libs/compose';
-import withWindowDimensions from '../withWindowDimensions';
-import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
-import withLocalize from '../withLocalize';
-import CONST from '../../CONST';
+import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
 
 const propTypes = {
     ...pdfViewPropTypes,
@@ -143,7 +143,7 @@ class PDFView extends Component {
             <View style={containerStyles}>
                 {this.state.failedToLoadPDF && (
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>
+                        <Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>
                     </View>
                 )}
                 {this.state.shouldAttemptPDFLoad && (

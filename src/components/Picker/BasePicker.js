@@ -1,16 +1,16 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React, {useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import RNPickerSelect from 'react-native-picker-select';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import FormHelpMessage from '../FormHelpMessage';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import {ScrollContext} from '../ScrollViewWithContext';
-import refPropTypes from '../refPropTypes';
+import _ from 'underscore';
+import FormHelpMessage from '@components/FormHelpMessage';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import refPropTypes from '@components/refPropTypes';
+import {ScrollContext} from '@components/ScrollViewWithContext';
+import Text from '@components/Text';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 
 const propTypes = {
     /** A forwarded ref */
@@ -283,7 +283,7 @@ BasePicker.propTypes = propTypes;
 BasePicker.defaultProps = defaultProps;
 BasePicker.displayName = 'BasePicker';
 
-export default React.forwardRef((props, ref) => (
+const BasePickerWithRef = React.forwardRef((props, ref) => (
     <BasePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
@@ -293,3 +293,7 @@ export default React.forwardRef((props, ref) => (
         key={props.inputID}
     />
 ));
+
+BasePickerWithRef.displayName = 'BasePickerWithRef';
+
+export default BasePickerWithRef;
