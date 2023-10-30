@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import {View} from 'react-native';
-import EReceiptThumbnail from '../components/EReceiptThumbnail';
+import EReceiptThumbnail from '@components/EReceiptThumbnail';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
