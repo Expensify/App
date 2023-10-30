@@ -1,10 +1,10 @@
-import * as ActiveClientManager from '../ActiveClientManager';
-import CONST from '../../CONST';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
+import CONST from '@src/CONST';
+import {Request} from '@src/types/onyx';
+import Response from '@src/types/onyx/Response';
+import pkg from '../../../package.json';
 import * as MainQueue from './MainQueue';
 import * as SequentialQueue from './SequentialQueue';
-import pkg from '../../../package.json';
-import {Request} from '../../types/onyx';
-import Response from '../../types/onyx/Response';
 
 // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {

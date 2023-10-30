@@ -1,10 +1,10 @@
+import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import * as Session from '../../../libs/actions/Session';
-import CONFIG from '../../../CONFIG';
-import styles from '../../../styles/styles';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
 
 const propTypes = {
     /** Whether we're rendering in the Desktop Flow, if so show a different button. */

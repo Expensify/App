@@ -1,8 +1,8 @@
 import Str from 'expensify-common/lib/str';
 import * as KeyCommand from 'react-native-key-command';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import CONST from '@src/CONST';
 import bindHandlerToKeydownEvent from './bindHandlerToKeydownEvent';
-import getOperatingSystem from '../getOperatingSystem';
-import CONST from '../../CONST';
 
 const operatingSystem = getOperatingSystem();
 

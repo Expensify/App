@@ -1,20 +1,20 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import reportPropTypes from '../../pages/reportPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as StyleUtils from '../../styles/StyleUtils';
-import Text from '../Text';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import variables from '../../styles/variables';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import useLocalize from '../../hooks/useLocalize';
-import AnimatedEmptyStateBackground from '../../pages/home/report/AnimatedEmptyStateBackground';
-import SpacerView from '../SpacerView';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import SpacerView from '@components/SpacerView';
+import Text from '@components/Text';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
 
 const propTypes = {
     /** The report currently being looked at */

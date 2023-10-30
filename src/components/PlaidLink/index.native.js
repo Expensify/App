@@ -1,8 +1,8 @@
 import {useEffect} from 'react';
-import {openLink, useDeepLinkRedirector, usePlaidEmitter, dismissLink} from 'react-native-plaid-link-sdk';
-import Log from '../../libs/Log';
-import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
-import CONST from '../../CONST';
+import {dismissLink, openLink, useDeepLinkRedirector, usePlaidEmitter} from 'react-native-plaid-link-sdk';
+import Log from '@libs/Log';
+import CONST from '@src/CONST';
+import {plaidLinkDefaultProps, plaidLinkPropTypes} from './plaidLinkPropTypes';
 
 function PlaidLink(props) {
     useDeepLinkRedirector();

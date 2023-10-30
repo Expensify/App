@@ -1,17 +1,17 @@
-import React from 'react';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
-import styles from '../styles/styles';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
+import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import DotIndicatorMessage from './DotIndicatorMessage';
-import Tooltip from './Tooltip';
-import CONST from '../CONST';
-import * as StyleUtils from '../styles/StyleUtils';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import stylePropTypes from '../styles/stylePropTypes';
-import useLocalize from '../hooks/useLocalize';
+import Tooltip from './Tooltip';
 
 const propTypes = {
     /* The messages to display */
