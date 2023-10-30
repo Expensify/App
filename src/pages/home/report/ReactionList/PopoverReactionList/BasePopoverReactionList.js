@@ -1,19 +1,19 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Dimensions} from 'react-native';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
-import PopoverWithMeasuredContent from '../../../../../components/PopoverWithMeasuredContent';
-import BaseReactionList from '../BaseReactionList';
-import compose from '../../../../../libs/compose';
-import withCurrentUserPersonalDetails from '../../../../../components/withCurrentUserPersonalDetails';
-import * as PersonalDetailsUtils from '../../../../../libs/PersonalDetailsUtils';
-import * as EmojiUtils from '../../../../../libs/EmojiUtils';
-import CONST from '../../../../../CONST';
-import ONYXKEYS from '../../../../../ONYXKEYS';
-import EmojiReactionsPropTypes from '../../../../../components/Reactions/EmojiReactionsPropTypes';
+import _ from 'underscore';
+import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import EmojiReactionsPropTypes from '@components/Reactions/EmojiReactionsPropTypes';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import BaseReactionList from '@pages/home/report/ReactionList/BaseReactionList';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     reportActionID: PropTypes.string,
