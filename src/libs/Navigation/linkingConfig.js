@@ -1,7 +1,7 @@
-import ROUTES from '../../ROUTES';
-import SCREENS from '../../SCREENS';
-import CONST from '../../CONST';
-import NAVIGATORS from '../../NAVIGATORS';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 export default {
     prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'http://localhost', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
@@ -91,6 +91,10 @@ export default {
                             },
                             Settings_Wallet_Choose_Transfer_Account: {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
+                                exact: true,
+                            },
+                            Settings_ReportCardLostOrDamaged: {
+                                path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
                                 exact: true,
                             },
                             Settings_Wallet_Card_Activate: {
@@ -323,6 +327,16 @@ export default {
                     Participants: {
                         screens: {
                             ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS.route,
+                        },
+                    },
+                    RoomInvite: {
+                        screens: {
+                            RoomInvite_Root: ROUTES.ROOM_INVITE.route,
+                        },
+                    },
+                    RoomMembers: {
+                        screens: {
+                            RoomMembers_Root: ROUTES.ROOM_MEMBERS.route,
                         },
                     },
                     MoneyRequest: {

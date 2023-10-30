@@ -1,14 +1,14 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import ScreenWrapper from '../components/ScreenWrapper';
-import Text from '../components/Text';
-import styles from '../styles/styles';
-import CONST from '../CONST';
-import useLocalize from '../hooks/useLocalize';
-import KeyboardShortcut from '../libs/KeyboardShortcut';
-import MenuItem from '../components/MenuItem';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 function KeyboardShortcutsPage() {
     const {translate} = useLocalize();
