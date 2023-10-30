@@ -1,13 +1,13 @@
-import React, {useEffect, useState, useMemo} from 'react';
-import PropTypes from 'prop-types';
 import {debounce} from 'lodash';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
-import * as ReportUtils from '../libs/ReportUtils';
-import useLocalize from '../hooks/useLocalize';
+import useLocalize from '@hooks/useLocalize';
+import * as ReportUtils from '@libs/ReportUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Text from './Text';
-import styles from '../styles/styles';
-import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** Report ID to get the comment from (used in withOnyx) */
