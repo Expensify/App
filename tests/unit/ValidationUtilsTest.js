@@ -1,4 +1,4 @@
-import {addDays, format, subYears, startOfDay} from 'date-fns';
+import {addDays, format, startOfDay, subYears} from 'date-fns';
 import CONST from '../../src/CONST';
 
 const ValidationUtils = require('../../src/libs/ValidationUtils');

@@ -1,15 +1,15 @@
-import {View} from 'react-native';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import getButtonState from '../libs/getButtonState';
-import variables from '../styles/variables';
-import Tooltip from './Tooltip';
+import DomUtils from '@libs/DomUtils';
+import getButtonState from '@libs/getButtonState';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import variables from '@styles/variables';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import ReportActionComposeFocusManager from '../libs/ReportActionComposeFocusManager';
-import DomUtils from '../libs/DomUtils';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
 const propTypes = {
     /**
@@ -90,10 +90,14 @@ BaseMiniContextMenuItem.propTypes = propTypes;
 BaseMiniContextMenuItem.defaultProps = defaultProps;
 BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
 
-export default React.forwardRef((props, ref) => (
+const BaseMiniContextMenuItemWithRef = React.forwardRef((props, ref) => (
     <BaseMiniContextMenuItem
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+BaseMiniContextMenuItemWithRef.displayName = 'BaseMiniContextMenuItemWithRef';
+
+export default BaseMiniContextMenuItemWithRef;

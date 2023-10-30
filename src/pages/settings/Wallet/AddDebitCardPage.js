@@ -1,27 +1,28 @@
+import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import TextLink from '../../../components/TextLink';
-import useLocalize from '../../../hooks/useLocalize';
-import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
-import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
-import StatePicker from '../../../components/StatePicker';
-import TextInput from '../../../components/TextInput';
-import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
-import AddressSearch from '../../../components/AddressSearch';
-import Form from '../../../components/Form';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import usePrevious from '../../../hooks/usePrevious';
-import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import Permissions from '../../../libs/Permissions';
+import AddressSearch from '@components/AddressSearch';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import StatePicker from '@components/StatePicker';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import styles from '@styles/styles';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -114,7 +115,7 @@ function DebitCardPage(props) {
                 title={translate('addDebitCardPage.addADebitCard')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
                 validate={validate}
                 onSubmit={PaymentMethods.addPaymentCard}
@@ -122,15 +123,17 @@ function DebitCardPage(props) {
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
             >
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="nameOnCard"
                     label={translate('addDebitCardPage.nameOnCard')}
                     accessibilityLabel={translate('addDebitCardPage.nameOnCard')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    ref={(ref) => (nameOnCardRef.current = ref)}
+                    ref={nameOnCardRef}
                     spellCheck={false}
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="cardNumber"
                     label={translate('addDebitCardPage.debitCardNumber')}
                     accessibilityLabel={translate('addDebitCardPage.debitCardNumber')}
@@ -140,7 +143,8 @@ function DebitCardPage(props) {
                 />
                 <View style={[styles.flexRow, styles.mt4]}>
                     <View style={[styles.flex1, styles.mr2]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="expirationDate"
                             label={translate('addDebitCardPage.expiration')}
                             accessibilityLabel={translate('addDebitCardPage.expiration')}
@@ -151,7 +155,8 @@ function DebitCardPage(props) {
                         />
                     </View>
                     <View style={[styles.flex1]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="securityCode"
                             label={translate('addDebitCardPage.cvv')}
                             accessibilityLabel={translate('addDebitCardPage.cvv')}
@@ -162,7 +167,8 @@ function DebitCardPage(props) {
                     </View>
                 </View>
                 <View>
-                    <AddressSearch
+                    <InputWrapper
+                        InputComponent={AddressSearch}
                         inputID="addressStreet"
                         label={translate('addDebitCardPage.billingAddress')}
                         containerStyles={[styles.mt4]}
@@ -171,7 +177,8 @@ function DebitCardPage(props) {
                         isLimitedToUSA
                     />
                 </View>
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="addressZipCode"
                     label={translate('common.zip')}
                     accessibilityLabel={translate('common.zip')}
@@ -182,11 +189,16 @@ function DebitCardPage(props) {
                     containerStyles={[styles.mt4]}
                 />
                 <View style={[styles.mt4, styles.mhn5]}>
-                    <StatePicker inputID="addressState" />
+                    <InputWrapper
+                        InputComponent={StatePicker}
+                        inputID="addressState"
+                    />
                 </View>
-                <CheckboxWithLabel
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     inputID="acceptTerms"
+                    defaultValue={false}
                     LabelComponent={() => (
                         <Text>
                             {`${translate('common.iAcceptThe')}`}
@@ -195,7 +207,7 @@ function DebitCardPage(props) {
                     )}
                     style={[styles.mt4]}
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

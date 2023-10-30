@@ -1,9 +1,9 @@
 import React, {useCallback} from 'react';
-import {DragDropContext, Droppable, Draggable, type OnDragEndResponder} from 'react-beautiful-dnd';
+import {DragDropContext, Draggable, Droppable, type OnDragEndResponder} from 'react-beautiful-dnd';
 import {ScrollView} from 'react-native';
-import useDraggableInPortal from './useDraggableInPortal';
+import styles from '@styles/styles';
 import type {DraggableListProps} from './types';
-import styles from '../../styles/styles';
+import useDraggableInPortal from './useDraggableInPortal';
 
 type ReorderParams<T> = {
     list: T[];
@@ -73,6 +73,7 @@ function DraggableList<T>(
         <ScrollView
             ref={ref}
             style={styles.flex1}
+            contentContainerStyle={styles.flex1}
         >
             <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable
