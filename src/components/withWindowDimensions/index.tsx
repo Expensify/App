@@ -5,9 +5,9 @@ import {Dimensions} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import variables from '../../styles/variables';
-import getWindowHeightAdjustment from '../../libs/getWindowHeightAdjustment';
 import ChildrenProps from '../../types/utils/ChildrenProps';
 import {NewDimensions, WindowDimensionsContextData, WindowDimensionsProps} from './types';
+import getWindowHeightAdjustment from '@libs/getWindowHeightAdjustment';
 
 const WindowDimensionsContext = createContext<WindowDimensionsContextData | null>(null);
 const windowDimensionsPropTypes = {

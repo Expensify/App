@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';

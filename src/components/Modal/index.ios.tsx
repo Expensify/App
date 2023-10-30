@@ -1,5 +1,5 @@
 import React from 'react';
-import withWindowDimensions from '../withWindowDimensions';
+import withWindowDimensions from '@components/withWindowDimensions';
 import BaseModal from './BaseModal';
 import BaseModalProps from './types';
 

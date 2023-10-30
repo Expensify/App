@@ -1,8 +1,8 @@
 import React from 'react';
 import {AppState} from 'react-native';
-import withWindowDimensions from '../withWindowDimensions';
+import withWindowDimensions from '@components/withWindowDimensions';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import BaseModal from './BaseModal';
-import ComposerFocusManager from '../../libs/ComposerFocusManager';
 import BaseModalProps from './types';
 
 AppState.addEventListener('focus', () => {
