@@ -1,5 +1,7 @@
 import {
     addDays,
+    eachDayOfInterval,
+    eachMonthOfInterval,
     endOfDay,
     endOfWeek,
     format,
@@ -8,8 +10,6 @@ import {
     isBefore,
     isSameDay,
     isSameYear,
-    eachMonthOfInterval,
-    eachDayOfInterval,
     isValid,
     setDefaultOptions,
     startOfWeek,
@@ -407,12 +407,9 @@ const DateUtils = {
     isToday,
     isTomorrow,
     isYesterday,
-<<<<<<< HEAD
     getMonthNames,
     getDaysOfWeek,
-=======
     formatWithUTCTimeZone,
->>>>>>> upstream/main
 };
 
 export default DateUtils;
