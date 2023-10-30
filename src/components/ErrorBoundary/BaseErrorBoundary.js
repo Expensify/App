@@ -1,8 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
-import BootSplash from '../../libs/BootSplash';
-import GenericErrorPage from '../../pages/ErrorPage/GenericErrorPage';
+import BootSplash from '@libs/BootSplash';
+import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
 
 const propTypes = {
     /* A message posted to `logError` (along with error data) when this component intercepts an error */

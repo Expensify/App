@@ -1,5 +1,5 @@
-import React, {forwardRef, useContext} from 'react';
 import PropTypes from 'prop-types';
+import React, {forwardRef, useContext} from 'react';
 import FormContext from './FormContext';
 
 const propTypes = {
@@ -25,10 +25,14 @@ InputWrapper.propTypes = propTypes;
 InputWrapper.defaultProps = defaultProps;
 InputWrapper.displayName = 'InputWrapper';
 
-export default forwardRef((props, ref) => (
+const InputWrapperWithRef = forwardRef((props, ref) => (
     <InputWrapper
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+InputWrapperWithRef.displayName = 'InputWrapperWithRef';
+
+export default InputWrapperWithRef;
