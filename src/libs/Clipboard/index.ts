@@ -109,9 +109,8 @@ const setHtml: SetHtml = (html: string, text: string) => {
     } else {
         navigator.clipboard.write([
             new ClipboardItem({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* eslint-disable @typescript-eslint/naming-convention */
                 'text/html': new Blob([html], {type: 'text/html'}),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'text/plain': new Blob([text], {type: 'text/plain'}),
             }),
         ]);
