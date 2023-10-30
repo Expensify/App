@@ -13,14 +13,12 @@ import responder from './responder';
 import utils from './utils';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
 import * as OnyxTypes from '../../types/onyx';
 import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 import Direction from './Direction';
 import {MapViewHandle, MapViewProps} from './MapViewTypes';
 import getCurrentPosition from '../../libs/getCurrentPosition';
-import Text from '../../components/Text'
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 type MapViewOnyxProps = {
@@ -125,45 +123,38 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         );
 
         return (
-            <>
-                <View
-                    style={style}
-                    {...responder.panHandlers}
+            <View
+                style={style}
+                {...responder.panHandlers}
+            >
+                <Map
+                    onDrag={() => setUserInteractedWithMap(true)}
+                    ref={setRef}
+                    mapLib={mapboxgl}
+                    mapboxAccessToken={accessToken}
+                    initialViewState={{
+                        longitude: initialState.location[0],
+                        latitude: initialState.location[1],
+                        zoom: initialState.zoom,
+                    }}
+                    style={StyleUtils.getTextColorStyle(themeColors.mapAttributionText) as React.CSSProperties}
+                    mapStyle={styleURL}
                 >
-                    <Map
-                        onDrag={() => setUserInteractedWithMap(true)}
-                        ref={setRef}
-                        mapLib={mapboxgl}
-                        mapboxAccessToken={accessToken}
-                        initialViewState={{
-                            longitude: initialState.location[0],
-                            latitude: initialState.location[1],
-                            zoom: initialState.zoom,
-                        }}
-                        style={StyleUtils.getTextColorStyle(themeColors.mapAttributionText) as React.CSSProperties}
-                        mapStyle={styleURL}
-                    >
-                        {waypoints?.map(({coordinate, markerComponent, id}) => {
-                            const MarkerComponent = markerComponent;
-                            return (
-                                <Marker
-                                    key={id}
-                                    longitude={coordinate[0]}
-                                    latitude={coordinate[1]}
-                                >
-                                    <MarkerComponent />
-                                </Marker>
-                            );
-                        })}
-                        {directionCoordinates && <Direction coordinates={directionCoordinates} />}
-                    </Map>
-                </View>
-                <Text
-                    style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset, styles.pre]}
-                >
-                    {isCurrentPositionFetching && shouldPanMapToCurrentPosition() ? 'Finding your location...' : ' '}
-                </Text>
-            </>
+                    {waypoints?.map(({coordinate, markerComponent, id}) => {
+                        const MarkerComponent = markerComponent;
+                        return (
+                            <Marker
+                                key={id}
+                                longitude={coordinate[0]}
+                                latitude={coordinate[1]}
+                            >
+                                <MarkerComponent />
+                            </Marker>
+                        );
+                    })}
+                    {directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                </Map>
+            </View>
         );
     },
 );
