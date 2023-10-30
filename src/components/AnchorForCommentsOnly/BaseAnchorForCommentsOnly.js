@@ -1,20 +1,20 @@
-import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {StyleSheet} from 'react-native';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
-import Text from '../Text';
-import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
-import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
-import Tooltip from '../Tooltip';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
+import _ from 'underscore';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
+import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import {propTypes as anchorForCommentsOnlyPropTypes} from './anchorForCommentsOnlyPropTypes';
-import CONST from '../../CONST';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Press in handler for the link */

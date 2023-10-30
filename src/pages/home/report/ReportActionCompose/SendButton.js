@@ -1,15 +1,15 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import PropTypes from 'prop-types';
-import styles from '../../../../styles/styles';
-import themeColors from '../../../../styles/themes/default';
-import Icon from '../../../../components/Icon';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import CONST from '../../../../CONST';
-import Tooltip from '../../../../components/Tooltip';
-import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
-import useLocalize from '../../../../hooks/useLocalize';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Tooltip from '@components/Tooltip';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the button is disabled */

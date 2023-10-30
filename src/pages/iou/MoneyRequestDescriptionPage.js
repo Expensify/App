@@ -1,25 +1,25 @@
-import React, {useEffect, useRef, useCallback} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {useFocusEffect} from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import {iouPropTypes, iouDefaultProps} from './propTypes';
-import TextInput from '../../components/TextInput';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Form from '../../components/Form';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import * as IOU from '../../libs/actions/IOU';
-import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
-import CONST from '../../CONST';
-import useLocalize from '../../hooks/useLocalize';
-import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
-import * as Browser from '../../libs/Browser';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import * as Browser from '@libs/Browser';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
     /** Onyx Props */

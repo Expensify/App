@@ -27,6 +27,9 @@ module.exports = ({config}) => {
         'react-native$': 'react-native-web',
         '@react-native-community/netinfo': path.resolve(__dirname, '../__mocks__/@react-native-community/netinfo.js'),
         '@react-navigation/native': path.resolve(__dirname, '../__mocks__/@react-navigation/native'),
+
+        // Module alias support for storybook files, coping from `webpack.common.js`
+        ...custom.resolve.alias,
     };
 
     // Necessary to overwrite the values in the existing DefinePlugin hardcoded to the Config staging values

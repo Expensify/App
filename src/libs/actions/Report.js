@@ -1,33 +1,33 @@
-import {InteractionManager} from 'react-native';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import lodashDebounce from 'lodash/debounce';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Pusher from '../Pusher/pusher';
-import LocalNotification from '../Notification/LocalNotification';
-import Navigation from '../Navigation/Navigation';
-import * as ActiveClientManager from '../ActiveClientManager';
-import Visibility from '../Visibility';
-import ROUTES from '../../ROUTES';
-import * as API from '../API';
-import CONFIG from '../../CONFIG';
-import CONST from '../../CONST';
-import Log from '../Log';
-import * as ReportUtils from '../ReportUtils';
-import DateUtils from '../DateUtils';
-import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as CollectionUtils from '../CollectionUtils';
-import * as EmojiUtils from '../EmojiUtils';
-import * as ErrorUtils from '../ErrorUtils';
-import * as UserUtils from '../UserUtils';
-import * as Welcome from './Welcome';
-import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import * as Environment from '../Environment/Environment';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
+import lodashDebounce from 'lodash/debounce';
+import lodashGet from 'lodash/get';
+import {InteractionManager} from 'react-native';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
+import * as API from '@libs/API';
+import * as CollectionUtils from '@libs/CollectionUtils';
+import DateUtils from '@libs/DateUtils';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import * as Environment from '@libs/Environment/Environment';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import LocalNotification from '@libs/Notification/LocalNotification';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as Pusher from '@libs/Pusher/pusher';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
+import Visibility from '@libs/Visibility';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import * as Session from './Session';
+import * as Welcome from './Welcome';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -1149,14 +1149,17 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
-    // Update optimistic data for parent report action if the report is a child report
-    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
-        originalReportID,
-        optimisticReport.lastVisibleActionCreated,
-        CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
-    if (!_.isEmpty(optimisticParentReportData)) {
-        optimisticData.push(optimisticParentReportData);
+    // Update optimistic data for parent report action if the report is a child report and the reportAction has no visible child
+    const childVisibleActionCount = reportAction.childVisibleActionCount || 0;
+    if (childVisibleActionCount === 0) {
+        const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
+            originalReportID,
+            optimisticReport.lastVisibleActionCreated,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        if (!_.isEmpty(optimisticParentReportData)) {
+            optimisticData.push(optimisticParentReportData);
+        }
     }
 
     // Check to see if the report action we are deleting is the first comment on a thread report. In this case, we need to trigger
@@ -1339,7 +1342,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  */
 function saveReportActionDraft(reportID, reportAction, draftMessage) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${reportAction.reportActionID}`, draftMessage);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: draftMessage});
 }
 
 /**
@@ -1357,8 +1360,10 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {String} previousValue
  * @param {String} newValue
  * @param {boolean} navigate
+ * @param {String} parentReportID
+ * @param {String} parentReportActionID
  */
-function updateNotificationPreference(reportID, previousValue, newValue, navigate) {
+function updateNotificationPreference(reportID, previousValue, newValue, navigate, parentReportID = 0, parentReportActionID = 0) {
     if (previousValue === newValue) {
         if (navigate) {
             Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
@@ -1379,9 +1384,65 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
             value: {notificationPreference: previousValue},
         },
     ];
+    if (parentReportID && parentReportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[parentReportActionID]: {childReportNotificationPreference: newValue}},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[parentReportActionID]: {childReportNotificationPreference: previousValue}},
+        });
+    }
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
     if (navigate) {
         Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+    }
+}
+
+/**
+ * This will subscribe to an existing thread, or create a new one and then subsribe to it if necessary
+ *
+ * @param {String} childReportID The reportID we are trying to open
+ * @param {Object} parentReportAction the parent comment of a thread
+ * @param {String} parentReportID The reportID of the parent
+ * @param {String} prevNotificationPreference The previous notification preference for the child report
+ *
+ */
+function toggleSubscribeToChildReport(childReportID = '0', parentReportAction = {}, parentReportID = '0', prevNotificationPreference) {
+    if (childReportID !== '0') {
+        openReport(childReportID);
+        const parentReportActionID = lodashGet(parentReportAction, 'reportActionID', '0');
+        if (!prevNotificationPreference || prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, parentReportID, parentReportActionID);
+        } else {
+            updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, false, parentReportID, parentReportActionID);
+        }
+    } else {
+        const participantAccountIDs = _.uniq([currentUserAccountID, Number(parentReportAction.actorAccountID)]);
+        const parentReport = allReports[parentReportID];
+        const newChat = ReportUtils.buildOptimisticChatReport(
+            participantAccountIDs,
+            lodashGet(parentReportAction, ['message', 0, 'text']),
+            lodashGet(parentReport, 'chatType', ''),
+            lodashGet(parentReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
+            CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+            false,
+            '',
+            undefined,
+            undefined,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            parentReportAction.reportActionID,
+            parentReportID,
+        );
+
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat.participantAccountIDs);
+        openReport(newChat.reportID, participantLogins, newChat, parentReportAction.reportActionID);
+        const notificationPreference =
+            prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, false, parentReportID, parentReportAction.reportActionID);
     }
 }
 
@@ -2359,7 +2420,7 @@ function clearPrivateNotesError(reportID, accountID) {
 }
 
 function getDraftPrivateNote(reportID) {
-    return draftNoteMap[reportID];
+    return draftNoteMap[reportID] || '';
 }
 
 /**
@@ -2464,6 +2525,7 @@ export {
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToAndOpenChildReport,
+    toggleSubscribeToChildReport,
     updatePolicyRoomNameAndNavigate,
     clearPolicyRoomNameErrors,
     clearIOUError,

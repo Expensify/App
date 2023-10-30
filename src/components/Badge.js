@@ -1,11 +1,11 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import Text from './Text';
-import CONST from '../CONST';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import Text from './Text';
 
 const propTypes = {
     /** Is Success type */

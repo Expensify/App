@@ -1,12 +1,12 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import RadioButton from './RadioButton';
-import Text from './Text';
+import styles from '@styles/styles';
 import FormHelpMessage from './FormHelpMessage';
 import * as Pressables from './Pressable';
+import RadioButton from './RadioButton';
+import Text from './Text';
 
 const propTypes = {
     /** Whether the radioButton is checked */

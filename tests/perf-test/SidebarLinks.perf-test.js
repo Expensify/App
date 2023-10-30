@@ -1,13 +1,13 @@
-import {measurePerformance} from 'reassure';
-import Onyx from 'react-native-onyx';
 import {fireEvent, screen} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
+import {measurePerformance} from 'reassure';
 import _ from 'underscore';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import variables from '../../src/styles/variables';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-import variables from '../../src/styles/variables';
 
 /**
  * Performance tests with Reassure can require big timeouts as all runs

@@ -2,8 +2,8 @@ name: Process new code merged to main
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths-ignore: [docs/**, contributingGuides/**, jest/**, tests/**, workflow_tests/**]
 
 jobs:
   typecheck:
@@ -111,71 +111,6 @@ jobs:
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-
-  # Check if actor is member of Expensify organization by looking for Expensify/expensify team
-  isExpensifyEmployee:
-    runs-on: ubuntu-latest
-
-    outputs:
-      IS_EXPENSIFY_EMPLOYEE: ${{ fromJSON(steps.checkAuthor.outputs.IS_EXPENSIFY_EMPLOYEE) }}
-
-    steps:
-      - name: Get merged pull request
-        id: getMergedPullRequest
-        uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check whether the PR author is member of Expensify/expensify team
-        id: checkAuthor
-        run: |
-          if gh api /orgs/Expensify/teams/expensify-expensify/memberships/${{ steps.getMergedPullRequest.outputs.author }} --silent; then
-            echo "IS_EXPENSIFY_EMPLOYEE=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "IS_EXPENSIFY_EMPLOYEE=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-  newContributorWelcomeMessage:
-    runs-on: ubuntu-latest
-    needs: isExpensifyEmployee
-    if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) }}
-    steps:
-      # Version: 2.3.4
-      - name: Checkout
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Get merged pull request
-        id: getMergedPullRequest
-        # TODO: Point back action actions-ecosystem after https://github.com/actions-ecosystem/action-get-merged-pull-request/pull/223 is merged
-        uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get PR count for ${{ steps.getMergedPullRequest.outputs.author }}
-        run: echo "PR_COUNT=$(gh pr list --author ${{ steps.getMergedPullRequest.outputs.author }} --state any | grep -c '')" >> "$GITHUB_ENV"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Comment on ${{ steps.getMergedPullRequest.outputs.author }}\'s first pull request!
-        if: ${{ fromJSON(env.PR_COUNT) == 1 }}
-        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
-        with:
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          number: ${{ steps.getMergedPullRequest.outputs.number }}
-          body: |
-            @${{ steps.getMergedPullRequest.outputs.author }}, Great job getting your first Expensify/App pull request over the finish line! :tada:
-
-            I know there's a lot of information in our [contributing guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md), so here are some points to take note of :memo::
-
-            1. Now that your first PR has been merged, you can be hired for another issue. Once you've completed a few issues, you may be eligible to work on more than one job at a time.
-            2. Once your PR is deployed to our staging servers, it will undergo quality assurance (QA) testing. If we find that it doesn't work as expected or causes a regression, you'll be responsible for fixing it. Typically, we would revert this PR and give you another chance to create a similar PR without causing a regression.
-            3. Once your PR is deployed to _production_, we start a 7-day timer :alarm_clock:. After it has been on production for 7 days without causing any regressions, then we pay out the Upwork job. :moneybag:
-
-            So it might take a while before you're paid for your work, but we typically post multiple new jobs every day, so there's plenty of opportunity. I hope you've had a positive experience contributing to this repo! :blush:
 
   e2ePerformanceTests:
     needs: [chooseDeployActions]

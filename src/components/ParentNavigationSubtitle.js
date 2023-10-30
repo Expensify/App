@@ -1,12 +1,12 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import CONST from '../CONST';
-import Text from './Text';
+import React from 'react';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import useLocalize from '../hooks/useLocalize';
+import Text from './Text';
 
 const propTypes = {
     parentNavigationSubtitleData: PropTypes.shape({
