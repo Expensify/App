@@ -1,27 +1,27 @@
-import _ from 'underscore';
-import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
-import {Animated, View, StyleSheet, ActivityIndicator} from 'react-native';
 import Str from 'expensify-common/lib/str';
-import RNTextInput from '../../RNTextInput';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
+import _ from 'underscore';
+import Checkbox from '@components/Checkbox';
+import FormHelpMessage from '@components/FormHelpMessage';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RNTextInput from '@components/RNTextInput';
+import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
+import Text from '@components/Text';
+import withLocalize from '@components/withLocalize';
+import * as Browser from '@libs/Browser';
+import isInputAutoFilled from '@libs/isInputAutoFilled';
+import useNativeDriver from '@libs/useNativeDriver';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import * as styleConst from '../styleConst';
 import TextInputLabel from '../TextInputLabel';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
-import themeColors from '../../../styles/themes/default';
-import styles from '../../../styles/styles';
-import Icon from '../../Icon';
-import * as Expensicons from '../../Icon/Expensicons';
-import Text from '../../Text';
-import * as styleConst from '../styleConst';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import variables from '../../../styles/variables';
-import Checkbox from '../../Checkbox';
-import CONST from '../../../CONST';
-import FormHelpMessage from '../../FormHelpMessage';
-import isInputAutoFilled from '../../../libs/isInputAutoFilled';
-import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
-import withLocalize from '../../withLocalize';
-import useNativeDriver from '../../../libs/useNativeDriver';
-import * as Browser from '../../../libs/Browser';
-import SwipeInterceptPanResponder from '../../SwipeInterceptPanResponder';
 
 function BaseTextInput(props) {
     const initialValue = props.value || props.defaultValue || '';
@@ -230,7 +230,7 @@ function BaseTextInput(props) {
     /* To prevent text jumping caused by virtual DOM calculations on Safari and mobile Chrome,
     make sure to include the `lineHeight`.
     Reference: https://github.com/Expensify/App/issues/26735
-
+ 
     For other platforms, explicitly remove `lineHeight` from single-line inputs
     to prevent long text from disappearing once it exceeds the input space.
     See https://github.com/Expensify/App/issues/13802 */
@@ -394,11 +394,11 @@ function BaseTextInput(props) {
                 )}
             </View>
             {/*
-                Text input component doesn't support auto grow by default.
-                We're using a hidden text input to achieve that.
-                This text view is used to calculate width or height of the input value given textStyle in this component.
-                This Text component is intentionally positioned out of the screen.
-            */}
+                 Text input component doesn't support auto grow by default.
+                 We're using a hidden text input to achieve that.
+                 This text view is used to calculate width or height of the input value given textStyle in this component.
+                 This Text component is intentionally positioned out of the screen.
+             */}
             {(props.autoGrow || props.autoGrowHeight) && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
                 // https://github.com/Expensify/App/issues/8158

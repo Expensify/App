@@ -1,27 +1,27 @@
-import _ from 'underscore';
-import React, {useState, useRef, useEffect, useCallback} from 'react';
-import {Animated, View, StyleSheet} from 'react-native';
 import Str from 'expensify-common/lib/str';
-import RNTextInput from '../../RNTextInput';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
+import _ from 'underscore';
+import Checkbox from '@components/Checkbox';
+import FormHelpMessage from '@components/FormHelpMessage';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RNTextInput from '@components/RNTextInput';
+import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
+import Text from '@components/Text';
+import withLocalize from '@components/withLocalize';
+import getSecureEntryKeyboardType from '@libs/getSecureEntryKeyboardType';
+import isInputAutoFilled from '@libs/isInputAutoFilled';
+import useNativeDriver from '@libs/useNativeDriver';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import * as styleConst from '../styleConst';
 import TextInputLabel from '../TextInputLabel';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
-import themeColors from '../../../styles/themes/default';
-import styles from '../../../styles/styles';
-import Icon from '../../Icon';
-import * as Expensicons from '../../Icon/Expensicons';
-import Text from '../../Text';
-import * as styleConst from '../styleConst';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import variables from '../../../styles/variables';
-import Checkbox from '../../Checkbox';
-import getSecureEntryKeyboardType from '../../../libs/getSecureEntryKeyboardType';
-import CONST from '../../../CONST';
-import FormHelpMessage from '../../FormHelpMessage';
-import isInputAutoFilled from '../../../libs/isInputAutoFilled';
-import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
-import withLocalize from '../../withLocalize';
-import useNativeDriver from '../../../libs/useNativeDriver';
-import SwipeInterceptPanResponder from '../../SwipeInterceptPanResponder';
 
 function BaseTextInput(props) {
     const initialValue = props.value || props.defaultValue || '';
@@ -46,19 +46,11 @@ function BaseTextInput(props) {
             return;
         }
 
-        let focusTimeout;
         if (props.shouldDelayFocus) {
-            focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
-            return;
+            const focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
+            return () => clearTimeout(focusTimeout);
         }
         input.current.focus();
-
-        return () => {
-            if (!focusTimeout) {
-                return;
-            }
-            clearTimeout(focusTimeout);
-        };
         // We only want this to run on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -221,7 +213,7 @@ function BaseTextInput(props) {
     // eslint-disable-next-line react/forbid-foreign-prop-types
     const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));
     const hasLabel = Boolean(props.label.length);
-    const isReadOnly = _.isUndefined(props.readOnly) ? props.disabled : !props.readOnly;
+    const isReadOnly = _.isUndefined(props.readOnly) ? props.disabled : props.readOnly;
     const inputHelpText = props.errorText || props.hint;
     const placeholder = props.prefixCharacter || isFocused || !hasLabel || (hasLabel && props.forceActiveLabel) ? props.placeholder : null;
     const maxHeight = StyleSheet.flatten(props.containerStyles).maxHeight;
@@ -266,7 +258,7 @@ function BaseTextInput(props) {
                         {hasLabel ? (
                             <>
                                 {/* Adding this background to the label only for multiline text input,
-                                to prevent text overlapping with label when scrolling */}
+                                 to prevent text overlapping with label when scrolling */}
                                 {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
                                     isLabelActive={isLabelActive.current}
@@ -313,14 +305,13 @@ function BaseTextInput(props) {
                                     props.prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(props.prefixCharacter) + styles.pl1.paddingLeft),
                                     props.secureTextEntry && styles.secureInput,
 
-                                    // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
-                                    // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
                                     !isMultiline && {height, lineHeight: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
                                     // Add disabled color theme when field is not editable.
                                     props.disabled && styles.textInputDisabled,
+                                    styles.pointerEventsAuto,
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={props.maxLength}
@@ -339,6 +330,13 @@ function BaseTextInput(props) {
                                 // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
                                 dataSet={{submitOnEnter: isMultiline && props.submitOnEnter}}
                             />
+                            {props.isLoading && (
+                                <ActivityIndicator
+                                    size="small"
+                                    color={themeColors.iconSuccessFill}
+                                    style={[styles.mt4, styles.ml1]}
+                                />
+                            )}
                             {Boolean(props.secureTextEntry) && (
                                 <Checkbox
                                     style={[styles.flex1, styles.textInputIconContainer]}
@@ -371,12 +369,15 @@ function BaseTextInput(props) {
                 )}
             </View>
             {/*
-                Text input component doesn't support auto grow by default.
-                We're using a hidden text input to achieve that.
-                This text view is used to calculate width or height of the input value given textStyle in this component.
-                This Text component is intentionally positioned out of the screen.
-            */}
+                 Text input component doesn't support auto grow by default.
+                 We're using a hidden text input to achieve that.
+                 This text view is used to calculate width or height of the input value given textStyle in this component.
+                 This Text component is intentionally positioned out of the screen.
+             */}
             {(props.autoGrow || props.autoGrowHeight) && (
+                // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
+                // https://github.com/Expensify/App/issues/8158
+                // https://github.com/Expensify/App/issues/26628
                 <Text
                     style={[...props.inputStyle, props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width, maxHeight), styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                     onLayout={(e) => {

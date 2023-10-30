@@ -4,8 +4,8 @@ import {StyleSheet} from 'react-native';
 import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import themeColors from '@styles/themes/default';
 import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 
 const propTypes = {
     /** Maximum number of lines in the text input */

@@ -3,13 +3,13 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import {computeHorizontalShift, computeVerticalShift} from '@styles/getPopoverWithMeasuredContentStyles';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import Popover from './Popover';
 import {defaultProps as defaultPopoverProps, propTypes as popoverPropTypes} from './Popover/popoverPropTypes';
 import {windowDimensionsPropTypes} from './withWindowDimensions';
-import getClickedTargetLocation from '../libs/getClickedTargetLocation';
 
 const propTypes = {
     // All popover props except:

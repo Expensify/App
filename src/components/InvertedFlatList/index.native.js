@@ -1,7 +1,7 @@
 import React, {forwardRef} from 'react';
+import styles from '../../styles/styles';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import CellRendererComponent from './CellRendererComponent';
-import styles from '../../styles/styles';
 
 const BaseInvertedFlatListWithRef = forwardRef((props, ref) => (
     <BaseInvertedFlatList

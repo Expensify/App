@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useRef} from 'react';
-import {DeviceEventEmitter, FlatList, StyleSheet} from 'react-native';
+import {DeviceEventEmitter, FlatList} from 'react-native';
 import _ from 'underscore';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 
