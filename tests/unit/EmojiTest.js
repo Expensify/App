@@ -1,14 +1,14 @@
-import _ from 'underscore';
 import {getUnixTime} from 'date-fns';
-import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
 import Emoji from '../../assets/emojis';
+import CONST from '../../src/CONST';
+import * as User from '../../src/libs/actions/User';
 import * as EmojiUtils from '../../src/libs/EmojiUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import * as User from '../../src/libs/actions/User';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as TestHelper from '../utils/TestHelper';
-import CONST from '../../src/CONST';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('EmojiTest', () => {
     it('matches all the emojis in the list', () => {

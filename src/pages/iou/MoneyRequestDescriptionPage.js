@@ -1,8 +1,9 @@
-import React, {useEffect, useRef, useCallback} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {useFocusEffect} from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {iouPropTypes, iouDefaultProps} from './propTypes';
