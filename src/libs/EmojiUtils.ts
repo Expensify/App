@@ -1,14 +1,14 @@
-import memoize from 'lodash/memoize';
-import {SvgProps} from 'react-native-svg';
 import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
+import memoize from 'lodash/memoize';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
+import {SvgProps} from 'react-native-svg';
+import * as Emojis from '@assets/emojis';
+import {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {FrequentlyUsedEmoji} from '@src/types/onyx';
 import emojisTrie from './EmojiTrie';
-import * as Emojis from '../../assets/emojis';
-import {FrequentlyUsedEmoji} from '../types/onyx';
-import {Emoji, HeaderEmoji, PickerEmojis} from '../../assets/emojis/types';
 
 type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
 type EmojiSpacer = {code: string; spacer: boolean};

@@ -1,7 +1,7 @@
 /**
  * Web browsers have a tab title and favicon which can be updated to show there are unread comments
  */
-import CONFIG from '../../../CONFIG';
+import CONFIG from '@src/CONFIG';
 
 let unreadTotalCount = 0;
 /**

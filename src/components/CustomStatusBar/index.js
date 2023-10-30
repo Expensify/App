@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
-import StatusBar from '../../libs/StatusBar';
-import Navigation, {navigationRef} from '../../libs/Navigation/Navigation';
-import themeColors from '../../styles/themes/default';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import StatusBar from '@libs/StatusBar';
+import themeColors from '@styles/themes/default';
 
 function CustomStatusBar() {
     useEffect(() => {

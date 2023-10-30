@@ -1,13 +1,13 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import Text from '../../../components/Text';
-import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import * as Illustrations from '../../../components/Icon/Illustrations';
-import Section from '../../../components/Section';
-import * as Link from '../../../libs/actions/Link';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Section from '@components/Section';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import * as Link from '@userActions/Link';
 import WorkspaceBillsFirstSection from './WorkspaceBillsFirstSection';
 
 const propTypes = {
