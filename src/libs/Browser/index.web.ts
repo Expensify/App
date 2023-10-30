@@ -1,7 +1,7 @@
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileSafari, IsSafari, OpenRouteInDesktopApp} from './types';
-import CONST from '../../CONST';
-import CONFIG from '../../CONFIG';
-import ROUTES from '../../ROUTES';
 
 /**
  * Fetch browser name from UA string

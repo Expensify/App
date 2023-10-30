@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import MagicCodeInput from '../components/MagicCodeInput';
+import MagicCodeInput from '@components/MagicCodeInput';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
