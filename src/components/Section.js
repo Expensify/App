@@ -1,11 +1,11 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import Text from './Text';
-import styles from '../styles/styles';
-import MenuItemList from './MenuItemList';
+import styles from '@styles/styles';
 import Icon from './Icon';
+import MenuItemList from './MenuItemList';
 import menuItemPropTypes from './menuItemPropTypes';
+import Text from './Text';
 
 const propTypes = {
     /** An array of props that are pass to individual MenuItem components */

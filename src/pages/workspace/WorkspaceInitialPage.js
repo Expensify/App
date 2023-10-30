@@ -1,39 +1,39 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useState} from 'react';
-import {View, ScrollView} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import styles from '../../styles/styles';
-import Tooltip from '../../components/Tooltip';
-import Text from '../../components/Text';
-import ConfirmModal from '../../components/ConfirmModal';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import * as App from '../../libs/actions/App';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import MenuItem from '../../components/MenuItem';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import compose from '../../libs/compose';
-import Avatar from '../../components/Avatar';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import React, {useCallback, useEffect, useState} from 'react';
+import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import Avatar from '@components/Avatar';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ConfirmModal from '@components/ConfirmModal';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions from '@components/withWindowDimensions';
+import useSingleExecution from '@hooks/useSingleExecution';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as App from '@userActions/App';
+import * as Policy from '@userActions/Policy';
+import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import reportPropTypes from '../reportPropTypes';
-import * as Policy from '../../libs/actions/Policy';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import CONST from '../../CONST';
-import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
-import ONYXKEYS from '../../ONYXKEYS';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
-import withWindowDimensions from '../../components/withWindowDimensions';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
-import useSingleExecution from '../../hooks/useSingleExecution';
-import useWaitForNavigation from '../../hooks/useWaitForNavigation';
 
 const propTypes = {
     ...policyPropTypes,
@@ -92,7 +92,7 @@ function WorkspaceInitialPage(props) {
             return;
         }
 
-        App.savePolicyDraftByNewWorkspace(props.policyDraft.id, props.policyDraft.name, '', false);
+        App.savePolicyDraftByNewWorkspace(props.policyDraft.id, props.policyDraft.name, '', props.policyDraft.makeMeAdmin);
         // We only care when the component renders the first time
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

@@ -1,20 +1,20 @@
-import React, {useEffect} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import Text from '../components/Text';
-import * as Session from '../libs/actions/Session';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
-import Navigation from '../libs/Navigation/Navigation';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import Icon from '../components/Icon';
-import * as Expensicons from '../components/Icon/Expensicons';
-import * as Illustrations from '../components/Icon/Illustrations';
-import useLocalize from '../hooks/useLocalize';
-import TextLink from '../components/TextLink';
-import ONYXKEYS from '../ONYXKEYS';
+import {withOnyx} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as Session from '@userActions/Session';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short-lived token are in the URL */

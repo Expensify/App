@@ -1,6 +1,6 @@
-import Onyx from 'react-native-onyx';
+import {addDays, addMinutes, format, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {format as tzFormat, utcToZonedTime} from 'date-fns-tz';
-import {addMinutes, subHours, subMinutes, subSeconds, format, setMinutes, setHours, subDays, addDays} from 'date-fns';
+import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -180,6 +180,32 @@ describe('DateUtils', () => {
             const timestamp = 1669086850792;
             const getDBTime = DateUtils.getDBTime(timestamp);
             expect(getDBTime).toBe('2022-11-22 03:14:10.792');
+        });
+    });
+
+    describe('formatWithUTCTimeZone', () => {
+        describe('when the date is invalid', () => {
+            it('returns an empty string', () => {
+                const invalidDateStr = '';
+
+                const formattedDate = DateUtils.formatWithUTCTimeZone(invalidDateStr);
+
+                expect(formattedDate).toEqual('');
+            });
+        });
+
+        describe('when the date is valid', () => {
+            const scenarios = [
+                {dateFormat: CONST.DATE.FNS_FORMAT_STRING, expectedResult: '2022-11-07'},
+                {dateFormat: CONST.DATE.FNS_TIMEZONE_FORMAT_STRING, expectedResult: '2022-11-07T00:00:00Z'},
+                {dateFormat: CONST.DATE.FNS_DB_FORMAT_STRING, expectedResult: '2022-11-07 00:00:00.000'},
+            ];
+
+            test.each(scenarios)('returns the date as string with the format "$dateFormat"', ({dateFormat, expectedResult}) => {
+                const formattedDate = DateUtils.formatWithUTCTimeZone(datetime, dateFormat);
+
+                expect(formattedDate).toEqual(expectedResult);
+            });
         });
     });
 });
