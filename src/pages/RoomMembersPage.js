@@ -93,7 +93,7 @@ function RoomMembersPage(props) {
 
     useEffect(() => {
         // Kick the user out if they tried to navigate to this via the URL
-        if (!PolicyUtils.isPolicyMember(props.report.policyID, props.policies) || !Permissions.canUsePolicyRooms(props.betas)) {
+        if ((ReportUtils.isPublicRoom(props.report) && !PolicyUtils.isPolicyMember(props.report.policyID, props.policies)) || !Permissions.canUsePolicyRooms(props.betas)) {
             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
             return;
         }

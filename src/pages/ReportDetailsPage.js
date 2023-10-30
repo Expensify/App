@@ -95,7 +95,7 @@ function ReportDetailsPage(props) {
             return items;
         }
 
-        if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && isPolicyMember)) {
+        if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && (!ReportUtils.isPublicRoom(props.report) || isPolicyMember))) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
@@ -110,7 +110,7 @@ function ReportDetailsPage(props) {
                     }
                 },
             });
-        } else if ((!participants.length || !isPolicyMember) && isUserCreatedPolicyRoom && !props.report.parentReportID) {
+        } else if (isUserCreatedPolicyRoom && (!participants.length || !isPolicyMember) && !props.report.parentReportID) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
