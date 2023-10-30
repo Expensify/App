@@ -1871,7 +1871,9 @@ function getModifiedExpenseMessage(reportAction) {
 
     const hasModifiedComment = _.has(reportActionOriginalMessage, 'oldComment') && _.has(reportActionOriginalMessage, 'newComment');
     if (hasModifiedComment) {
-        messageFragments.push(getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.newComment, reportActionOriginalMessage.oldComment, Localize.translateLocal('common.description'), true));
+        messageFragments.push(
+            getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.newComment, reportActionOriginalMessage.oldComment, Localize.translateLocal('common.description'), true),
+        );
     }
 
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
@@ -1883,12 +1885,16 @@ function getModifiedExpenseMessage(reportAction) {
     }
 
     if (hasModifiedMerchant) {
-        messageFragments.push(getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, Localize.translateLocal('common.merchant'), true));
+        messageFragments.push(
+            getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, Localize.translateLocal('common.merchant'), true),
+        );
     }
 
     const hasModifiedCategory = _.has(reportActionOriginalMessage, 'oldCategory') && _.has(reportActionOriginalMessage, 'category');
     if (hasModifiedCategory) {
-        messageFragments.push(getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.category, reportActionOriginalMessage.oldCategory, Localize.translateLocal('common.category'), true));
+        messageFragments.push(
+            getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.category, reportActionOriginalMessage.oldCategory, Localize.translateLocal('common.category'), true),
+        );
     }
 
     const hasModifiedTag = _.has(reportActionOriginalMessage, 'oldTag') && _.has(reportActionOriginalMessage, 'tag');
@@ -1898,15 +1904,17 @@ function getModifiedExpenseMessage(reportAction) {
 
     const hasModifiedBillable = _.has(reportActionOriginalMessage, 'oldBillable') && _.has(reportActionOriginalMessage, 'billable');
     if (hasModifiedBillable) {
-        messageFragments.push(getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.billable, reportActionOriginalMessage.oldBillable, Localize.translateLocal('iou.request'), true));
+        messageFragments.push(
+            getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.billable, reportActionOriginalMessage.oldBillable, Localize.translateLocal('iou.request'), true),
+        );
     }
-    
+
     return messageFragments.reduce((acc, value, index) => {
         if (index === 0) {
             return acc + value;
         }
         return `${acc}. ${value.charAt(0).toUpperCase()}${value.slice(1)}`;
-    }, "");
+    }, '');
 }
 
 /**
