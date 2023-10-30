@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Text, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -24,7 +24,7 @@ const defaultProps = {};
 function VideoPlayerControls({duration, position, url}) {
     const {togglePlay, isPlaying, seekPosition, enterFullScreenMode, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {showPopover} = useVideoPopoverMenuContext();
-    const [durationFormatted, setDurationFormatted] = React.useState('0:00');
+    const [durationFormatted, setDurationFormatted] = useState('0:00');
 
     const isCurrentlySet = currentlyPlayingURL === url;
     const isCurrentlyPlaying = isCurrentlySet && isPlaying;

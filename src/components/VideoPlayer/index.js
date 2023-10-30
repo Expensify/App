@@ -1,7 +1,9 @@
+/* eslint-disable no-underscore-dangle */
 import {ResizeMode, Video} from 'expo-av';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -40,8 +42,7 @@ const defaultProps = {
 
 function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement}) {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, updateCurrentVideoPlayerRef, updateDuration, updatePosition, duration, position, isPlaying} =
-        usePlaybackContext();
+    const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, updateCurrentVideoPlayerRef, currentVideoPlayerRef, updateIsPlaying} = usePlaybackContext();
     const [isVideoLoading, setIsVideoLoading] = useState(true);
     const videoPlayerRef = useRef(null);
     const videoPlayerElementParentRef = useRef(null);
@@ -49,27 +50,34 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const sharedVideoPlayerParentRef = useRef(null);
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(url);
 
+    const [duration, setDuration] = useState(0);
+    const [position, setPosition] = useState(0);
+
     const onReadyForDisplay = useCallback(
         (e) => {
-            if (!isVideoLoading) {
-                return;
-            }
-            setIsVideoLoading(false);
             onVideoLoaded(e);
         },
-        [isVideoLoading, onVideoLoaded],
+        [onVideoLoaded],
     );
 
     const onPlaybackStatusUpdate = useCallback(
         (e) => {
-            if (!isPlaying) {
-                return;
-            }
-            updateDuration(e.durationMillis || 0);
-            updatePosition(e.positionMillis || 0);
+            updateIsPlaying(e.isPlaying);
+            setIsVideoLoading(Number.isNaN(e.durationMillis));
+            setDuration(e.durationMillis || 0);
+            setPosition(e.positionMillis || 0);
         },
-        [isPlaying, updateDuration, updatePosition],
+        [updateIsPlaying],
     );
+
+    const bindFunctions = useCallback(() => {
+        currentVideoPlayerRef.current._onPlaybackStatusUpdate = onPlaybackStatusUpdate;
+
+        // update states after binding
+        currentVideoPlayerRef.current.getStatusAsync().then((status) => {
+            onPlaybackStatusUpdate(status);
+        });
+    }, [currentVideoPlayerRef, onPlaybackStatusUpdate]);
 
     // update shared video elements
     useEffect(() => {
@@ -89,6 +97,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         const newParentRef = sharedVideoPlayerParentRef.current;
         if (currentlyPlayingURL === url) {
             newParentRef.appendChild(sharedElement);
+            bindFunctions();
         }
         return () => {
             if (!originalParent && !newParentRef.childNodes[0]) {
@@ -96,7 +105,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
             }
             originalParent.appendChild(sharedElement);
         };
-    }, [currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     return (
         <View style={[styles.w100, styles.h100]}>
@@ -131,12 +140,13 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             resizeMode={resizeMode}
                             isLooping={isLooping}
                             onReadyForDisplay={onReadyForDisplay}
-                            onLoadStart={() => setIsVideoLoading(true)}
                             onPlaybackStatusUpdate={onPlaybackStatusUpdate}
                         />
                     </View>
                 </View>
             )}
+
+            {isVideoLoading && <FullScreenLoadingIndicator />}
 
             <VideoPlayerControls
                 duration={duration}

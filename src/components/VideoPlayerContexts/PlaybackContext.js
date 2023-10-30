@@ -1,5 +1,5 @@
-import React, {useMemo, useState, useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 
 const PlaybackContext = React.createContext(null);
 
@@ -9,22 +9,22 @@ function PlaybackContextProvider({children}) {
     const [originalParent, setOriginalParent] = useState(null);
 
     const [isPlaying, setIsPlaying] = useState(false);
-    const [duration, setDuration] = useState(0);
-    const [position, setPosition] = useState(0);
 
     const playbackSpeeds = useMemo(() => [0.25, 0.5, 1, 1.5, 2], []);
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(playbackSpeeds[2]);
 
     const currentVideoPlayerRef = useRef(null);
 
+    const updateIsPlaying = useCallback((isVideoPlaying) => {
+        setIsPlaying(isVideoPlaying);
+    }, []);
+
     const pauseVideo = useCallback(() => {
         currentVideoPlayerRef.current.setStatusAsync({shouldPlay: false});
-        setIsPlaying(false);
     }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
         currentVideoPlayerRef.current.setStatusAsync({shouldPlay: true});
-        setIsPlaying(true);
     }, [currentVideoPlayerRef]);
 
     const updateCurrentlyPlayingURL = useCallback(
@@ -59,20 +59,12 @@ function PlaybackContextProvider({children}) {
         currentVideoPlayerRef.current.presentFullscreenPlayer();
     }, [currentVideoPlayerRef]);
 
-    const updatePosition = useCallback((newPosition) => {
-        setPosition(newPosition);
-    }, []);
-
     const seekPosition = useCallback(
         (newPosition) => {
             currentVideoPlayerRef.current.setStatusAsync({positionMillis: newPosition});
         },
         [currentVideoPlayerRef],
     );
-
-    const updateDuration = useCallback((newDuration) => {
-        setDuration(newDuration);
-    }, []);
 
     const updatePlaybackSpeed = useCallback((newPlaybackSpeed) => {
         currentVideoPlayerRef.current.setStatusAsync({rate: newPlaybackSpeed});
@@ -91,16 +83,13 @@ function PlaybackContextProvider({children}) {
             enterFullScreenMode,
             currentVideoPlayerRef,
             updateCurrentVideoPlayerRef,
-            position,
-            updatePosition,
             seekPosition,
-            duration,
-            updateDuration,
             playVideo,
             pauseVideo,
             playbackSpeeds,
             updatePlaybackSpeed,
             currentPlaybackSpeed,
+            updateIsPlaying,
         }),
         [
             updateCurrentlyPlayingURL,
@@ -112,16 +101,13 @@ function PlaybackContextProvider({children}) {
             isPlaying,
             enterFullScreenMode,
             updateCurrentVideoPlayerRef,
-            position,
-            updatePosition,
             seekPosition,
-            duration,
-            updateDuration,
             playVideo,
             pauseVideo,
             playbackSpeeds,
             updatePlaybackSpeed,
             currentPlaybackSpeed,
+            updateIsPlaying,
         ],
     );
     return <PlaybackContext.Provider value={contextValue}>{children}</PlaybackContext.Provider>;
