@@ -1,16 +1,16 @@
-import React, {useCallback} from 'react';
-import {View, Text} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import React, {useCallback} from 'react';
+import {Text, View} from 'react-native';
 import _ from 'underscore';
 import Avatar from '@components/Avatar';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as UserUtils from '@libs/UserUtils';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import {defaultProps, propTypes} from './userDetailsTooltipPropTypes';
 
 function BaseUserDetailsTooltip(props) {
