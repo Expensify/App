@@ -7,7 +7,7 @@ import FeatureList from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LinearGradient from '@components/LinearGradient';
-import * as LottieAnimations from '@components/LottieAnimations';
+import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -98,7 +98,6 @@ function LoungeAccessPage(props) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             illustration={LottieAnimations.ExpensifyLounge}
             overlayContent={overlayContent}
-            useDotLottie
         >
             <FeatureList
                 headline="loungeAccessPage.headline"

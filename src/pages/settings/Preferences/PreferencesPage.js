@@ -4,7 +4,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '@components/LottieAnimations';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
@@ -46,7 +46,6 @@ function PreferencesPage(props) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.PreferencesDJ}
-            useDotLottie
         >
             <View style={styles.mb6}>
                 <Text

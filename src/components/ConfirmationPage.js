@@ -5,7 +5,7 @@ import styles from '@styles/styles';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
 import Lottie from './Lottie';
-import * as LottieAnimations from './LottieAnimations';
+import LottieAnimations from './LottieAnimations';
 import Text from './Text';
 
 const propTypes = {
