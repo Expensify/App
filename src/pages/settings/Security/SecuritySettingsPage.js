@@ -65,7 +65,7 @@ function SecuritySettingsPage(props) {
             onPress: item.action,
             shouldShowRightIcon: true,
         }));
-    }, [translate, waitForNavigate]);
+    }, [props.account.requiresTwoFactorAuth, translate, waitForNavigate]);
 
     return (
         <IllustratedHeaderPageLayout
