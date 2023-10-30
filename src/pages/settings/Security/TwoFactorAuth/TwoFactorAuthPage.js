@@ -1,5 +1,5 @@
 import React from 'react';
-import AnimatedStepProvider from '../../../../components/AnimatedStep/AnimatedStepProvider';
+import AnimatedStepProvider from '@components/AnimatedStep/AnimatedStepProvider';
 import TwoFactorAuthSteps from './TwoFactorAuthSteps';
 
 function TwoFactorAuthPage() {

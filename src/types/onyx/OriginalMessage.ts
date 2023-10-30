@@ -1,6 +1,6 @@
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
-import DeepValueOf from '../utils/DeepValueOf';
+import CONST from '@src/CONST';
+import DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
 
@@ -145,7 +145,18 @@ type OriginalMessageReportPreview = {
 
 type OriginalMessagePolicyChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
-    originalMessage: unknown;
+    originalMessage: {
+        targetAccountIDs?: number[];
+        roomName?: string;
+    };
+};
+
+type OriginalMessageRoomChangeLog = {
+    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
+    originalMessage: {
+        targetAccountIDs?: number[];
+        roomName?: string;
+    };
 };
 
 type OriginalMessagePolicyTask = {
@@ -177,6 +188,7 @@ type OriginalMessage =
     | OriginalMessageRenamed
     | OriginalMessageChronosOOOList
     | OriginalMessageReportPreview
+    | OriginalMessageRoomChangeLog
     | OriginalMessagePolicyChangeLog
     | OriginalMessagePolicyTask
     | OriginalMessageModifiedExpense

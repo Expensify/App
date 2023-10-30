@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import * as ReportActionUtils from '../ReportActionsUtils';
-import * as ReportUtils from '../ReportUtils';
-import ReportAction from '../../types/onyx/ReportAction';
+import * as ReportActionUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ReportAction from '@src/types/onyx/ReportAction';
 
 function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);

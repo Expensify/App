@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import reportActionPropTypes from '../reportActionPropTypes';
-import CONST from '../../../../CONST';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Details about any modals being used */

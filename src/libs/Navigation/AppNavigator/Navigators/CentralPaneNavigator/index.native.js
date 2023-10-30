@@ -1,5 +1,5 @@
 import React from 'react';
-import FreezeWrapper from '../../../FreezeWrapper';
+import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
 import BaseCentralPaneNavigator from './BaseCentralPaneNavigator';
 
 function CentralPaneNavigator() {
