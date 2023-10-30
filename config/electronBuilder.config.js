@@ -1,6 +1,5 @@
 const {version} = require('../package.json');
 
-const isPublishing = process.argv.includes('--publish');
 const pullRequestNumber = process.env.PULL_REQUEST_NUMBER;
 
 const s3Bucket = {
@@ -44,11 +43,9 @@ module.exports = {
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
         type: 'distribution',
-        notarize: isPublishing
-            ? {
-                  teamId: '368M544MTT',
-              }
-            : undefined,
+        notarize: {
+            teamId: '368M544MTT',
+        },
     },
     dmg: {
         title: 'New Expensify',
