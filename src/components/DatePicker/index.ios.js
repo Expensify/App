@@ -1,7 +1,6 @@
 import RNDatePicker from '@react-native-community/datetimepicker';
 import {format} from 'date-fns';
 import isFunction from 'lodash/isFunction';
-import moment from 'moment';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Button, Keyboard, View} from 'react-native';
 import Popover from '@components/Popover';
