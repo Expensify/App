@@ -9,7 +9,7 @@ type KeyboardShortcutConfig = {
     shouldBubble?: boolean;
     priority?: number;
     shouldPreventDefault?: boolean;
-    excludedNodes?: Node[];
+    excludedNodes?: string[];
     isActive?: boolean;
 };
 
