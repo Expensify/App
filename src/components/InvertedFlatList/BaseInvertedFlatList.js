@@ -1,9 +1,10 @@
-import React, {forwardRef, useCallback, useRef} from 'react';
-import {View, FlatList as NativeFlatlist} from 'react-native';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import * as CollectionUtils from '../../libs/CollectionUtils';
-import FlatList from '../FlatList';
+import React, {forwardRef, useCallback, useRef} from 'react';
+import {FlatList as NativeFlatlist, View} from 'react-native';
+import _ from 'underscore';
+import FlatList from '@components/FlatList';
+import * as CollectionUtils from '@libs/CollectionUtils';
+import variables from '@styles/variables';
 
 const propTypes = {
     /** Same as FlatList can be any array of anything */
@@ -133,6 +134,10 @@ function BaseInvertedFlatList(props) {
             // Web requires that items be measured or else crazy things happen when scrolling.
             getItemLayout={shouldMeasureItems ? getItemLayout : undefined}
             windowSize={15}
+            maintainVisibleContentPosition={{
+                minIndexForVisible: 0,
+                autoscrollToTopThreshold: variables.listItemHeightNormal,
+            }}
             inverted
         />
     );
@@ -142,10 +147,14 @@ BaseInvertedFlatList.propTypes = propTypes;
 BaseInvertedFlatList.defaultProps = defaultProps;
 BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
 
-export default forwardRef((props, ref) => (
+const BaseInvertedFlatListWithRef = forwardRef((props, ref) => (
     <BaseInvertedFlatList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+BaseInvertedFlatListWithRef.displayName = 'BaseInvertedFlatListWithRef';
+
+export default BaseInvertedFlatListWithRef;

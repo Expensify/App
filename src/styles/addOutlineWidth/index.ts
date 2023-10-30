@@ -2,8 +2,7 @@
  * Web and desktop platforms support the "addOutlineWidth" property, so it
  * can be added to the object
  */
-
-import themeDefault from '../themes/default';
+import themeDefault from '@styles/themes/default';
 import AddOutlineWidth from './types';
 
 /**

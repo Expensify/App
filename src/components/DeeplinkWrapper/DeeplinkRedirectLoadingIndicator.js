@@ -1,19 +1,19 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import TextLink from '../TextLink';
-import Text from '../Text';
-import Icon from '../Icon';
-import * as Illustrations from '../Icon/Illustrations';
-import * as Expensicons from '../Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
-import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     openLinkInBrowser: PropTypes.func.isRequired,

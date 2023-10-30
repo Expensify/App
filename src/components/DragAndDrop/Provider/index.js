@@ -1,11 +1,11 @@
-import _ from 'underscore';
-import React, {useRef, useCallback, useEffect} from 'react';
-import {View} from 'react-native';
 import {PortalHost} from '@gorhom/portal';
 import Str from 'expensify-common/lib/str';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import useDragAndDrop from '@hooks/useDragAndDrop';
+import styles from '@styles/styles';
 import dragAndDropProviderPropTypes from './dragAndDropProviderPropTypes';
-import styles from '../../../styles/styles';
-import useDragAndDrop from '../../../hooks/useDragAndDrop';
 
 const DragAndDropContext = React.createContext({});
 
@@ -37,8 +37,9 @@ function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = 
         setIsDraggingOver(isDraggingOver);
     }, [isDraggingOver, setIsDraggingOver]);
 
+    const contextValue = useMemo(() => ({isDraggingOver, setOnDropHandler, dropZoneID: dropZoneID.current}), [isDraggingOver, setOnDropHandler]);
     return (
-        <DragAndDropContext.Provider value={{isDraggingOver, setOnDropHandler, dropZoneID: dropZoneID.current}}>
+        <DragAndDropContext.Provider value={contextValue}>
             <View
                 ref={(e) => (dropZone.current = e)}
                 style={[styles.flex1, styles.w100, styles.h100]}

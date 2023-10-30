@@ -1,22 +1,20 @@
-import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import PropTypes from 'prop-types';
-import React, {useEffect, useRef, useMemo} from 'react';
 import {deepEqual} from 'fast-equals';
-import {withReportCommentDrafts} from '../OnyxProvider';
-import SidebarUtils from '../../libs/SidebarUtils';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
-import * as Report from '../../libs/actions/Report';
-import * as UserUtils from '../../libs/UserUtils';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as TransactionUtils from '../../libs/TransactionUtils';
-
-import participantPropTypes from '../participantPropTypes';
-import CONST from '../../CONST';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useRef} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import participantPropTypes from '@components/participantPropTypes';
+import compose from '@libs/compose';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import SidebarUtils from '@libs/SidebarUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import * as UserUtils from '@libs/UserUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './OptionRowLHN';
 
 const propTypes = {
     /** Whether row should be focused */
@@ -164,14 +162,10 @@ const personalDetailsSelector = (personalDetails) =>
  */
 export default React.memo(
     compose(
-        withReportCommentDrafts({
-            propName: 'comment',
-            transformValue: (drafts, props) => {
-                const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
-                return lodashGet(drafts, draftKey, '');
-            },
-        }),
         withOnyx({
+            comment: {
+                key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+            },
             fullReport: {
                 key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             },

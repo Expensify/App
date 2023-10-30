@@ -1,17 +1,17 @@
-import React, {useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import styles from '../../styles/styles';
-import CONST from '../../CONST';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getButtonState from '../../libs/getButtonState';
-import * as Expensicons from '../Icon/Expensicons';
-import Tooltip from '../Tooltip';
-import Text from '../Text';
-import Icon from '../Icon';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import getButtonState from '@libs/getButtonState';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */
@@ -76,12 +76,15 @@ function EmojiPickerButtonDropdown(props) {
 EmojiPickerButtonDropdown.propTypes = propTypes;
 EmojiPickerButtonDropdown.defaultProps = defaultProps;
 EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
-export default withLocalize(
-    React.forwardRef((props, ref) => (
-        <EmojiPickerButtonDropdown
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+
+const EmojiPickerButtonDropdownWithRef = React.forwardRef((props, ref) => (
+    <EmojiPickerButtonDropdown
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+EmojiPickerButtonDropdownWithRef.displayName = 'EmojiPickerButtonDropdownWithRef';
+
+export default withLocalize(EmojiPickerButtonDropdownWithRef);

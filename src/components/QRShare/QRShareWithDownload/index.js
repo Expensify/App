@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
-import fileDownload from '../../../libs/fileDownload';
+import {withNetwork} from '@components/OnyxProvider';
+import getQrCodeFileName from '@components/QRShare/getQrCodeDownloadFileName';
+import {qrShareDefaultProps, qrSharePropTypes} from '@components/QRShare/propTypes';
+import fileDownload from '@libs/fileDownload';
 import QRShare from '..';
-import {qrShareDefaultProps, qrSharePropTypes} from '../propTypes';
-import getQrCodeFileName from '../getQrCodeDownloadFileName';
-import {withNetwork} from '../../OnyxProvider';
 
 class QRShareWithDownload extends Component {
     qrShareRef = React.createRef();

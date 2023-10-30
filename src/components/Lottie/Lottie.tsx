@@ -1,8 +1,6 @@
-import React, {CSSProperties, ForwardedRef, forwardRef} from 'react';
 import LottieView, {LottieViewProps} from 'lottie-react-native';
-import {ViewStyle} from 'react-native';
-import {DotLottieAnimation} from '../LottieAnimations'
-import styles from '../../styles/styles';
+import React, {forwardRef} from 'react';
+import styles from '@styles/styles';
 
 type Props = {
   animation: DotLottieAnimation;
