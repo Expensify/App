@@ -1,7 +1,7 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import BaseQuickEmojiReactions, {baseQuickEmojiReactionsPropTypes} from './BaseQuickEmojiReactions';
-import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,

@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../src/ONYXKEYS';
 import * as LocalePhoneNumber from '../../src/libs/LocalePhoneNumber';
+import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ES_NUMBER = '+34702474537';

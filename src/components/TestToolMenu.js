@@ -1,21 +1,21 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import styles from '../styles/styles';
-import Switch from './Switch';
-import Text from './Text';
-import * as User from '../libs/actions/User';
-import * as Network from '../libs/actions/Network';
-import * as Session from '../libs/actions/Session';
-import ONYXKEYS from '../ONYXKEYS';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {withOnyx} from 'react-native-onyx';
+import * as ApiUtils from '@libs/ApiUtils';
+import compose from '@libs/compose';
+import styles from '@styles/styles';
+import * as Network from '@userActions/Network';
+import * as Session from '@userActions/Session';
+import * as User from '@userActions/User';
+import CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Button from './Button';
-import TestToolRow from './TestToolRow';
 import networkPropTypes from './networkPropTypes';
-import compose from '../libs/compose';
 import {withNetwork} from './OnyxProvider';
-import * as ApiUtils from '../libs/ApiUtils';
-import CONFIG from '../CONFIG';
+import Switch from './Switch';
+import TestToolRow from './TestToolRow';
+import Text from './Text';
 
 const propTypes = {
     /** User object in Onyx */
