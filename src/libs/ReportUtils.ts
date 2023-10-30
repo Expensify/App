@@ -1,19 +1,24 @@
-import {SvgProps} from 'react-native-svg';
 import {format} from 'date-fns';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashEscape from 'lodash/escape';
-import lodashIsEqual from 'lodash/isEqual';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
-import {ValueOf} from 'type-fest';
+import lodashIsEqual from 'lodash/isEqual';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import _ from 'underscore';
+import {SvgProps} from 'react-native-svg';
+import {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {Beta, Login, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
+import {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
+import DeepValueOf from '@src/types/utils/DeepValueOf';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -23,16 +28,10 @@ import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
 import * as ReportActionsUtils from './ReportActionsUtils';
+import {LastVisibleMessage} from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import * as UserUtils from './UserUtils';
-import {Beta, Login, PersonalDetails, Policy, Report, ReportAction, Transaction} from '../types/onyx';
-import {Receipt, WaypointCollection} from '../types/onyx/Transaction';
-import DeepValueOf from '../types/utils/DeepValueOf';
-import {IOUMessage, OriginalMessageActionName} from '../types/onyx/OriginalMessage';
-import {Message, ReportActions} from '../types/onyx/ReportAction';
-import {PendingAction} from '../types/onyx/OnyxCommon';
-import {LastVisibleMessage} from './ReportActionsUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string};
 
@@ -3248,7 +3247,7 @@ function shouldReportBeInOptionList(
     isInGSDMode: boolean,
     betas: Beta[],
     policies: OnyxCollection<Policy>,
-    allReportActions: OnyxCollection<ReportActions>,
+    allReportActions?: OnyxCollection<ReportActions>,
     excludeEmptyChats = false,
 ) {
     const isInDefaultMode = !isInGSDMode;
