@@ -1,23 +1,24 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {View, Keyboard} from 'react-native';
-import CONST from '../../../CONST';
+import AnonymousReportFooter from '@components/AnonymousReportFooter';
+import ArchivedReportFooter from '@components/ArchivedReportFooter';
+import OfflineIndicator from '@components/OfflineIndicator';
+import participantPropTypes from '@components/participantPropTypes';
+import SwipeableView from '@components/SwipeableView';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useNetwork from '@hooks/useNetwork';
+import compose from '@libs/compose';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
-import AnonymousReportFooter from '../../../components/AnonymousReportFooter';
-import SwipeableView from '../../../components/SwipeableView';
-import OfflineIndicator from '../../../components/OfflineIndicator';
-import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
-import compose from '../../../libs/compose';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import useNetwork from '../../../hooks/useNetwork';
-import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
 import reportActionPropTypes from './reportActionPropTypes';
-import reportPropTypes from '../../reportPropTypes';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
     /** Report object for the current report */
@@ -32,11 +33,17 @@ const propTypes = {
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
 
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
     /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
 
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
+
+    /** Height of the list which the composer is part of */
+    listHeight: PropTypes.number,
 
     /** Whetjer the report is ready for display */
     isReportReadyForDisplay: PropTypes.bool,
@@ -49,8 +56,10 @@ const defaultProps = {
     reportActions: [],
     onSubmitComment: () => {},
     pendingAction: null,
+    personalDetails: {},
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
+    listHeight: 0,
     isReportReadyForDisplay: true,
 };
 
@@ -71,6 +80,7 @@ function ReportFooter(props) {
                         <AnonymousReportFooter
                             report={props.report}
                             isSmallSizeLayout={isSmallSizeLayout}
+                            personalDetails={props.personalDetails}
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
@@ -90,6 +100,7 @@ function ReportFooter(props) {
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
                             disabled={props.shouldDisableCompose}
+                            listHeight={props.listHeight}
                             isReportReadyForDisplay={props.isReportReadyForDisplay}
                         />
                     </SwipeableView>
@@ -105,7 +116,9 @@ ReportFooter.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withOnyx({
-        shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
-        initialValue: false,
+        shouldShowComposeInput: {
+            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+            initialValue: false,
+        },
     }),
 )(ReportFooter);

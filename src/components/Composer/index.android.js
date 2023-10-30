@@ -1,10 +1,10 @@
-import React, {useEffect, useCallback, useRef, useMemo} from 'react';
-import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {StyleSheet} from 'react-native';
 import _ from 'underscore';
-import RNTextInput from '../RNTextInput';
-import themeColors from '../../styles/themes/default';
-import * as ComposerUtils from '../../libs/ComposerUtils';
+import RNTextInput from '@components/RNTextInput';
+import * as ComposerUtils from '@libs/ComposerUtils';
+import themeColors from '@styles/themes/default';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -131,10 +131,14 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const ComposerWithRef = React.forwardRef((props, ref) => (
     <Composer
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+ComposerWithRef.displayName = 'ComposerWithRef';
+
+export default ComposerWithRef;

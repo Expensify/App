@@ -1,14 +1,14 @@
+import lodashGet from 'lodash/get';
 import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../ONYXKEYS';
-import {propTypes, defaultProps} from './categoryPickerPropTypes';
-import styles from '../../styles/styles';
-import CONST from '../../CONST';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import OptionsSelector from '../OptionsSelector';
-import useLocalize from '../../hooks/useLocalize';
+import OptionsSelector from '@components/OptionsSelector';
+import useLocalize from '@hooks/useLocalize';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps, propTypes} from './categoryPickerPropTypes';
 
 function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}) {
     const {translate} = useLocalize();
@@ -32,6 +32,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
     }, [selectedCategory]);
 
     const sections = useMemo(() => {
+        const validPolicyRecentlyUsedCategories = _.filter(policyRecentlyUsedCategories, (p) => !_.isEmpty(p));
         const {categoryOptions} = OptionsListUtils.getFilteredOptions(
             {},
             {},
@@ -43,7 +44,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             false,
             true,
             policyCategories,
-            policyRecentlyUsedCategories,
+            validPolicyRecentlyUsedCategories,
             false,
         );
 
@@ -62,7 +63,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         return categoryInitialFocusedIndex;
     }, [selectedCategory, searchValue, isCategoriesCountBelowThreshold, sections]);
 
-    const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
     const shouldShowTextInput = !isCategoriesCountBelowThreshold;
 
     return (

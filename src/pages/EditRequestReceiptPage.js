@@ -1,12 +1,13 @@
-import React, {useState} from 'react';
 import PropTypes from 'prop-types';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Navigation from '../libs/Navigation/Navigation';
-import useLocalize from '../hooks/useLocalize';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
 import ReceiptSelector from './iou/ReceiptSelector';
-import DragAndDropProvider from '../components/DragAndDrop/Provider';
-import styles from '../styles/styles';
 
 const propTypes = {
     /** React Navigation route */
@@ -40,17 +41,21 @@ function EditRequestReceiptPage({route, transactionID}) {
             testID={EditRequestReceiptPage.displayName}
             headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
         >
-            <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
-                <HeaderWithBackButton
-                    title={translate('common.receipt')}
-                    onBackButtonPress={Navigation.goBack}
-                />
-                <ReceiptSelector
-                    route={route}
-                    transactionID={transactionID}
-                    isInTabNavigator={false}
-                />
-            </DragAndDropProvider>
+            {({safeAreaPaddingBottomStyle}) => (
+                <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
+                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                        <HeaderWithBackButton
+                            title={translate('common.receipt')}
+                            onBackButtonPress={Navigation.goBack}
+                        />
+                        <ReceiptSelector
+                            route={route}
+                            transactionID={transactionID}
+                            isInTabNavigator={false}
+                        />
+                    </View>
+                </DragAndDropProvider>
+            )}
         </ScreenWrapper>
     );
 }

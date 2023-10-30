@@ -1,8 +1,8 @@
 import React from 'react';
+import ControlSelection from '@libs/ControlSelection';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as anchorForAttachmentsOnlyPropTypes from './anchorForAttachmentsOnlyPropTypes';
 import BaseAnchorForAttachmentsOnly from './BaseAnchorForAttachmentsOnly';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import ControlSelection from '../../libs/ControlSelection';
 
 function AnchorForAttachmentsOnly(props) {
     return (
