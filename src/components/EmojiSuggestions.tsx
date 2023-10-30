@@ -1,12 +1,12 @@
 import React, {ReactElement} from 'react';
 import {View} from 'react-native';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import * as EmojiUtils from '../libs/EmojiUtils';
-import Text from './Text';
-import getStyledTextArray from '../libs/GetStyledTextArray';
+import type {SimpleEmoji} from '@libs/EmojiTrie';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import getStyledTextArray from '@libs/GetStyledTextArray';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
-import type {SimpleEmoji} from '../libs/EmojiTrie';
+import Text from './Text';
 
 type MeasureParentContainerCallback = (x: number, y: number, width: number) => void;
 
