@@ -99,7 +99,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
                 closePopover(activePopoverRef.current.anchorRef);
             }
             activePopoverRef.current = popoverParams;
-            if (popoverParams && popoverParams.onOpenCallback) {
+            if (popoverParams?.onOpenCallback) {
                 popoverParams.onOpenCallback();
             }
             setIsOpen(true);
