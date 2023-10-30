@@ -192,7 +192,9 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
         } else {
             App.reconnectApp(lastUpdateIDAppliedToClient);
         }
-        App.setUpPoliciesAndNavigate(session, !isSmallScreenWidth);
+
+        App.setUpPoliciesAndNavigate(session);
+
         App.redirectThirdPartyDesktopSignIn();
 
         // Check if we should be running any demos immediately after signing in.
