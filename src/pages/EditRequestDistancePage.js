@@ -1,21 +1,21 @@
-import React, {useEffect, useRef} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import React, {useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Navigation from '../libs/Navigation/Navigation';
-import useLocalize from '../hooks/useLocalize';
-import DistanceRequest from '../components/DistanceRequest';
+import _ from 'underscore';
+import DistanceRequest from '@components/DistanceRequest';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
+import Navigation from '@libs/Navigation/Navigation';
+import * as IOU from '@userActions/IOU';
+import * as TransactionEdit from '@userActions/TransactionEdit';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import reportPropTypes from './reportPropTypes';
-import * as IOU from '../libs/actions/IOU';
-import transactionPropTypes from '../components/transactionPropTypes';
-import * as TransactionEdit from '../libs/actions/TransactionEdit';
-import useNetwork from '../hooks/useNetwork';
-import usePrevious from '../hooks/usePrevious';
 
 const propTypes = {
     /** The transactionID we're currently editing */

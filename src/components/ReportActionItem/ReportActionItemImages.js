@@ -1,13 +1,13 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../../styles/styles';
-import Text from '../Text';
+import Text from '@components/Text';
+import transactionPropTypes from '@components/transactionPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import variables from '@styles/variables';
 import ReportActionItemImage from './ReportActionItemImage';
-import * as StyleUtils from '../../styles/StyleUtils';
-import variables from '../../styles/variables';
-import transactionPropTypes from '../transactionPropTypes';
 
 const propTypes = {
     /** array of image and thumbnail URIs */

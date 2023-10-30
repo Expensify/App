@@ -1,15 +1,15 @@
-import _ from 'underscore';
-import React, {useState, useCallback} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import * as Emojis from '../../../assets/emojis';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Text from '../Text';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import * as Emojis from '@assets/emojis';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Stores user's preferred skin tone */

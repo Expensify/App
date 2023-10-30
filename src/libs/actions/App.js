@@ -1,25 +1,25 @@
 // Do not remove this import until moment package is fully removed.
 // Issue - https://github.com/Expensify/App/issues/26719
+import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import 'moment/locale/es';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import * as API from '../API';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import Log from '../Log';
-import Performance from '../Performance';
+import * as API from '@libs/API';
+import * as Browser from '@libs/Browser';
+import Log from '@libs/Log';
+import getCurrentUrl from '@libs/Navigation/currentUrl';
+import Navigation from '@libs/Navigation/Navigation';
+import Performance from '@libs/Performance';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as SessionUtils from '@libs/SessionUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import * as Policy from './Policy';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import * as SessionUtils from '../SessionUtils';
-import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
-import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
-import * as Browser from '../Browser';
 
 let currentUserAccountID;
 let currentUserEmail;
@@ -323,43 +323,16 @@ function endSignOnTransition() {
 }
 
 /**
- * Create a new workspace and navigate to it
- *
- * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
- * @param {String} [policyName] Optional, custom policy name we will use for created workspace
- * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
- * @param {Boolean} [shouldNavigateToAdminChat] Optional, navigate to the #admin room after creation
- */
-function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false, shouldNavigateToAdminChat = true) {
-    const policyID = Policy.generatePolicyID();
-    const adminsChatReportID = Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
-    Navigation.isNavigationReady()
-        .then(() => {
-            if (transitionFromOldDot) {
-                // We must call goBack() to remove the /transition route from history
-                Navigation.goBack(ROUTES.HOME);
-            }
-
-            if (shouldNavigateToAdminChat) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
-            }
-
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-        })
-        .then(endSignOnTransition);
-}
-
-/**
  * Create a new draft workspace and navigate to it
  *
  * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
-function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false) {
+function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false) {
     const policyID = Policy.generatePolicyID();
-    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID);
+    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID, makeMeAdmin);
 
     Navigation.isNavigationReady()
         .then(() => {
@@ -403,9 +376,8 @@ function savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail = 
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
- * @param {Boolean} shouldNavigateToAdminChat Should we navigate to admin chat after creating workspace
  */
-function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
+function setUpPoliciesAndNavigate(session) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
@@ -426,7 +398,7 @@ function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        createWorkspaceAndNavigateToIt(policyOwnerEmail, makeMeAdmin, policyName, true, shouldNavigateToAdminChat);
+        createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail, policyName, true, makeMeAdmin);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
@@ -555,7 +527,6 @@ export {
     handleRestrictedEvent,
     beginDeepLinkRedirect,
     beginDeepLinkRedirectAfterTransition,
-    createWorkspaceAndNavigateToIt,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,
     savePolicyDraftByNewWorkspace,

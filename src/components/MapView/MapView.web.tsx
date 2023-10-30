@@ -12,17 +12,17 @@ import PendingMapView from '../MapView/PendingMapView';
 import Onyx, { OnyxEntry, withOnyx } from 'react-native-onyx';
 import responder from './responder';
 import utils from './utils';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as OnyxTypes from '../../types/onyx';
-import * as StyleUtils from '../../styles/StyleUtils';
-import themeColors from '../../styles/themes/default';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import * as OnyxTypes from '@src/types/onyx';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
 import Direction from './Direction';
 import {MapViewHandle, MapViewProps} from './MapViewTypes';
-import getCurrentPosition from '../../libs/getCurrentPosition';
-import useNetwork from '../../hooks/useNetwork';
-import useLocalize from '../../hooks/useLocalize';
-import styles from '../../styles/styles';
+import getCurrentPosition from '@src/libs/getCurrentPosition';
+import useNetwork from '@src/hooks/useNetwork';
+import useLocalize from '@src/hooks/useLocalize';
+import styles from '@src/styles/styles';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 type MapViewOnyxProps = {
