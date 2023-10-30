@@ -1,5 +1,4 @@
 import Account from './Account';
-import Task from './Task';
 import UserLocation from './UserLocation';
 import AccountData from './AccountData';
 import BankAccount from './BankAccount';
