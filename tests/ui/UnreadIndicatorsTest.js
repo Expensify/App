@@ -1,10 +1,10 @@
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import {Linking, AppState, DeviceEventEmitter} from 'react-native';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import lodashGet from 'lodash/get';
+import React from 'react';
+import {AppState, DeviceEventEmitter, Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
 import App from '../../src/App';
 import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
