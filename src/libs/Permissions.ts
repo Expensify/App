@@ -1,6 +1,6 @@
 import {OnyxEntry} from 'react-native-onyx';
-import CONST from '../CONST';
-import Beta from '../types/onyx/Beta';
+import CONST from '@src/CONST';
+import Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return Boolean(betas?.includes(CONST.BETAS.ALL));

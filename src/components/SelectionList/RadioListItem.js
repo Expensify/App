@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import styles from '../../styles/styles';
-import Text from '../Text';
+import Text from '@components/Text';
+import styles from '@styles/styles';
 import {radioListItemPropTypes} from './selectionListPropTypes';
 
 function RadioListItem({item, isFocused = false}) {

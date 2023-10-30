@@ -1,4 +1,4 @@
-import {ActionListContextType} from '../../pages/home/ReportScreenContext';
+import {ActionListContextType} from '@pages/home/ReportScreenContext';
 
 type ReportScrollManagerData = {
     ref: ActionListContextType;

@@ -152,7 +152,6 @@ export default {
     anonymousReportFooterBreakpoint: 650,
     dropDownButtonDividerHeight: 28,
     addPaymentMethodLeftSpacing: 2,
-    paymentMethodHeight: 64,
     addBankAccountLeftSpacing: 3,
     eReceiptThumbnailSmallBreakpoint: 110,
     eReceiptThumbnailMediumBreakpoint: 335,

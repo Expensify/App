@@ -1,5 +1,6 @@
-import {format} from 'date-fns';
 import {SvgProps} from 'react-native-svg';
+import {format} from 'date-fns';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashEscape from 'lodash/escape';
 import lodashIsEqual from 'lodash/isEqual';
@@ -7,23 +8,23 @@ import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import {ValueOf} from 'type-fest';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
+import _ from 'underscore';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import * as CurrencyUtils from './CurrencyUtils';
+import DateUtils from './DateUtils';
+import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
-import * as Expensicons from '../components/Icon/Expensicons';
+import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
+import Permissions from './Permissions';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
-import Permissions from './Permissions';
-import DateUtils from './DateUtils';
-import linkingConfig from './Navigation/linkingConfig';
-import isReportMessageAttachment from './isReportMessageAttachment';
-import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
-import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
 import {Beta, Login, PersonalDetails, Policy, Report, ReportAction, Transaction} from '../types/onyx';
 import {Receipt, WaypointCollection} from '../types/onyx/Transaction';
@@ -898,6 +899,14 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | string): boolean {
 function getReport(reportID: string | undefined): OnyxEntry<Report> | Record<string, never> {
     // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
     return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
+}
+
+/**
+ * Returns whether or not the author of the action is this user
+ *
+ */
+function isActionCreator(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actorAccountID === currentUserAccountID;
 }
 
 /**
@@ -4012,6 +4021,7 @@ export {
     canEditReportAction,
     canFlagReportAction,
     shouldShowFlagComment,
+    isActionCreator,
     canDeleteReportAction,
     canLeaveRoom,
     sortReportsByLastRead,
