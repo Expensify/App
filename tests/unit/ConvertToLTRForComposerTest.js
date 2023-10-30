@@ -1,5 +1,5 @@
-import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import CONST from '@src/CONST';
+import convertToLTRForComposer from '../../src/libs/convertToLTRForComposer';
+import CONST from '../../src/CONST';
 import {platform} from 'os';
 
 describe('convertToLTRForComposer', () => {
