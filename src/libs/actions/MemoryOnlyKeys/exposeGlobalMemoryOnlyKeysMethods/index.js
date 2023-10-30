@@ -1,4 +1,4 @@
-import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
+import * as MemoryOnlyKeys from '../MemoryOnlyKeys';
 
 const exposeGlobalMemoryOnlyKeysMethods = () => {
     window.enableMemoryOnlyKeys = () => {

@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../src/CONST';
-import * as ReportUtils from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
+import * as ReportUtils from '../../src/libs/ReportUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');

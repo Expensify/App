@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
-import withWindowDimensions from '@components/withWindowDimensions';
-import StatusBar from '@libs/StatusBar';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
-import CONST from '@src/CONST';
+import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
-import {defaultProps, propTypes} from './modalPropTypes';
+import {propTypes, defaultProps} from './modalPropTypes';
+import * as StyleUtils from '../../styles/StyleUtils';
+import themeColors from '../../styles/themes/default';
+import StatusBar from '../../libs/StatusBar';
+import CONST from '../../CONST';
 
 function Modal(props) {
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState();

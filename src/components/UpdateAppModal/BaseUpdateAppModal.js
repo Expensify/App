@@ -1,7 +1,7 @@
-import React, {memo, useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
-import withLocalize from '@components/withLocalize';
-import {defaultProps, propTypes} from './updateAppModalPropTypes';
+import React, {useState, memo} from 'react';
+import {propTypes, defaultProps} from './updateAppModalPropTypes';
+import ConfirmModal from '../ConfirmModal';
+import withLocalize from '../withLocalize';
 
 function BaseUpdateAppModal({translate, onSubmit}) {
     const [isModalOpen, setIsModalOpen] = useState(true);

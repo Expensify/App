@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
-import * as API from '@libs/API';
-import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
+import * as API from '../../API';
+import * as PlaidDataProps from '../../../pages/ReimbursementAccount/plaidDataPropTypes';
+import * as ReimbursementAccountProps from '../../../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.

@@ -1,7 +1,7 @@
-import PropTypes from 'prop-types';
 import React, {forwardRef} from 'react';
-import getComponentDisplayName from '@libs/getComponentDisplayName';
+import PropTypes from 'prop-types';
 import {LocaleContext} from './LocaleContextProvider';
+import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 const withLocalizePropTypes = {
     /** Returns translated string for given locale and phrase */

@@ -1,16 +1,16 @@
+import React, {useState, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
-import CONST from '@src/CONST';
+import useWindowDimensions from '../hooks/useWindowDimensions';
+import styles from '../styles/styles';
 import Button from './Button';
+import PopoverMenu from './PopoverMenu';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import PopoverMenu from './PopoverMenu';
+import themeColors from '../styles/themes/default';
+import CONST from '../CONST';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** Text to display for the menu header */

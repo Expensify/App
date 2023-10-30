@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import participantPropTypes from '@components/participantPropTypes';
-import CONST from '@src/CONST';
+import CONST from '../../../CONST';
+import participantPropTypes from '../../../components/participantPropTypes';
 
 const iouPropTypes = PropTypes.shape({
     /** ID (iouType + reportID) of the request */

@@ -1,7 +1,7 @@
 import React from 'react';
-import withWindowDimensions from '@components/withWindowDimensions';
+import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
-import {defaultProps, propTypes} from './modalPropTypes';
+import {propTypes, defaultProps} from './modalPropTypes';
 
 function Modal(props) {
     return (

@@ -1,6 +1,6 @@
 import React from 'react';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ScreenWrapper from '@components/ScreenWrapper';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 function NotFoundPage() {

@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import * as API from '@libs/API';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as API from '../API';
 import * as Device from './Device';
 
 let isUserOptedInToPushNotifications = false;

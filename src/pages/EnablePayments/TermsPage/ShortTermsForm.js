@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
-import * as Localize from '@libs/Localize';
-import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
-import styles from '@styles/styles';
-import CONST from '@src/CONST';
+import styles from '../../../styles/styles';
+import Text from '../../../components/Text';
+import * as Localize from '../../../libs/Localize';
+import CONST from '../../../CONST';
+import TextLink from '../../../components/TextLink';
+import userWalletPropTypes from '../userWalletPropTypes';
 
 const propTypes = {
     /** The user's wallet */

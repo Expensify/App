@@ -1,7 +1,7 @@
 import React from 'react';
-import styles from '@styles/styles';
-import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
+import styles from '../../styles/styles';
 import WrappedText from './WrappedText';
+import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 
 function InlineCodeBlock(props) {
     const TDefaultRenderer = props.TDefaultRenderer;

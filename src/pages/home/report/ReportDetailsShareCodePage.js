@@ -1,7 +1,7 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import reportPropTypes from '@pages/reportPropTypes';
-import ShareCodePage from '@pages/ShareCodePage';
+import PropTypes from 'prop-types';
+import reportPropTypes from '../../reportPropTypes';
+import ShareCodePage from '../../ShareCodePage';
 import withReportOrNotFound from './withReportOrNotFound';
 
 const propTypes = {

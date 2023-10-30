@@ -1,12 +1,12 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
+import PropTypes from 'prop-types';
 import Avatar from './Avatar';
-import * as Expensicons from './Icon/Expensicons';
-import Indicator from './Indicator';
+import styles from '../styles/styles';
 import Tooltip from './Tooltip';
+import * as UserUtils from '../libs/UserUtils';
+import Indicator from './Indicator';
+import * as Expensicons from './Icon/Expensicons';
 
 const propTypes = {
     /** URL for the avatar */

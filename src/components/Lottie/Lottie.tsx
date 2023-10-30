@@ -1,6 +1,6 @@
-import LottieView, {LottieViewProps} from 'lottie-react-native';
 import React, {forwardRef} from 'react';
-import styles from '@styles/styles';
+import LottieView, {LottieViewProps} from 'lottie-react-native';
+import styles from '../../styles/styles';
 
 const Lottie = forwardRef<LottieView, LottieViewProps>((props: LottieViewProps, ref) => (
     <LottieView

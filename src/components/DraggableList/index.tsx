@@ -1,9 +1,9 @@
 import React, {useCallback} from 'react';
-import {DragDropContext, Draggable, Droppable, type OnDragEndResponder} from 'react-beautiful-dnd';
+import {DragDropContext, Droppable, Draggable, type OnDragEndResponder} from 'react-beautiful-dnd';
 import {ScrollView} from 'react-native';
-import styles from '@styles/styles';
-import type {DraggableListProps} from './types';
 import useDraggableInPortal from './useDraggableInPortal';
+import type {DraggableListProps} from './types';
+import styles from '../../styles/styles';
 
 type ReorderParams<T> = {
     list: T[];

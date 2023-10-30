@@ -1,9 +1,9 @@
-import Onyx from 'react-native-onyx';
 import semver from 'semver';
-import * as AppUpdate from '@userActions/AppUpdate';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import Onyx from 'react-native-onyx';
+import CONST from '../../../CONST';
 import pkg from '../../../../package.json';
+import ONYXKEYS from '../../../ONYXKEYS';
+import * as AppUpdate from '../../actions/AppUpdate';
 
 let isLastSavedBeta = false;
 Onyx.connect({

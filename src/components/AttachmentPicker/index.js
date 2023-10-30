@@ -1,7 +1,7 @@
 import React, {useRef} from 'react';
-import Visibility from '@libs/Visibility';
-import CONST from '@src/CONST';
-import {defaultProps, propTypes} from './attachmentPickerPropTypes';
+import CONST from '../../CONST';
+import {propTypes, defaultProps} from './attachmentPickerPropTypes';
+import Visibility from '../../libs/Visibility';
 
 /**
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE

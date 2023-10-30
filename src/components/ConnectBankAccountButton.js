@@ -1,16 +1,16 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import compose from '@libs/compose';
-import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
-import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
-import Button from './Button';
+import * as ReimbursementAccount from '../libs/actions/ReimbursementAccount';
 import * as Expensicons from './Icon/Expensicons';
-import networkPropTypes from './networkPropTypes';
+import styles from '../styles/styles';
+import Button from './Button';
 import {withNetwork} from './OnyxProvider';
-import Text from './Text';
+import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import networkPropTypes from './networkPropTypes';
+import Text from './Text';
+import Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
     ...withLocalizePropTypes,

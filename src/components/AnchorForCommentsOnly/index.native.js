@@ -1,6 +1,7 @@
 import React from 'react';
 import {Linking} from 'react-native';
 import _ from 'underscore';
+
 import * as anchorForCommentsOnlyPropTypes from './anchorForCommentsOnlyPropTypes';
 import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
 

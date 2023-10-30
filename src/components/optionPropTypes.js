@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import CONST from '@src/CONST';
-import avatarPropTypes from './avatarPropTypes';
+import CONST from '../CONST';
 import participantPropTypes from './participantPropTypes';
+import avatarPropTypes from './avatarPropTypes';
 
 export default PropTypes.shape({
     // Text to display

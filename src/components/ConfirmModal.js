@@ -1,9 +1,9 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import CONST from '@src/CONST';
-import ConfirmContent from './ConfirmContent';
+import PropTypes from 'prop-types';
 import Modal from './Modal';
+import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import ConfirmContent from './ConfirmContent';
 
 const propTypes = {
     /** Title of the modal */

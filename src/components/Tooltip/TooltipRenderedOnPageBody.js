@@ -1,10 +1,10 @@
+import React, {useLayoutEffect, useEffect, useState, useRef, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
-import Text from '@components/Text';
-import Log from '@libs/Log';
-import getTooltipStyles from '@styles/getTooltipStyles';
+import ReactDOM from 'react-dom';
+import getTooltipStyles from '../../styles/getTooltipStyles';
+import Text from '../Text';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** Window width */

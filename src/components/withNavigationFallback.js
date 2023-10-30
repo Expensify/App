@@ -1,6 +1,6 @@
-import {NavigationContext} from '@react-navigation/core';
 import React, {forwardRef, useContext, useMemo} from 'react';
-import getComponentDisplayName from '@libs/getComponentDisplayName';
+import {NavigationContext} from '@react-navigation/core';
+import getComponentDisplayName from '../libs/getComponentDisplayName';
 import refPropTypes from './refPropTypes';
 
 export default function (WrappedComponent) {

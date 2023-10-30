@@ -1,11 +1,11 @@
-import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import CONST from '../../src/CONST';
+import Onyx from 'react-native-onyx';
+import {View} from 'react-native';
 import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import CONST from '../../src/CONST';
 
 describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not

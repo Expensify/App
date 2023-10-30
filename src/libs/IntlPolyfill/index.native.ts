@@ -1,5 +1,5 @@
-import polyfillListFormat from './polyfillListFormat';
 import polyfillNumberFormat from './polyfillNumberFormat';
+import polyfillListFormat from './polyfillListFormat';
 import IntlPolyfill from './types';
 
 /**

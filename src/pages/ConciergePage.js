@@ -1,13 +1,13 @@
-import {useFocusEffect} from '@react-navigation/native';
-import PropTypes from 'prop-types';
-import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import Navigation from '@libs/Navigation/Navigation';
-import * as Report from '@userActions/Report';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import React from 'react';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
+import ONYXKEYS from '../ONYXKEYS';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import Navigation from '../libs/Navigation/Navigation';
+import * as Report from '../libs/actions/Report';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Session info for the currently logged in user. */

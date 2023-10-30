@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import {attachmentViewDefaultProps, attachmentViewPropTypes} from '@components/Attachments/AttachmentView/propTypes';
+import {attachmentViewPropTypes, attachmentViewDefaultProps} from '../propTypes';
 
 const attachmentViewImagePropTypes = {
     ...attachmentViewPropTypes,

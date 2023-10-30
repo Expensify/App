@@ -1,3 +1,3 @@
-import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
+import SwipeInterceptPanResponder from '../../SwipeInterceptPanResponder';
 
 export default SwipeInterceptPanResponder;

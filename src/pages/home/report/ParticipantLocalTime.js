@@ -1,13 +1,13 @@
-import lodashGet from 'lodash/get';
-import React, {useEffect, useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View} from 'react-native';
-import participantPropTypes from '@components/participantPropTypes';
-import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import DateUtils from '@libs/DateUtils';
-import Timers from '@libs/Timers';
-import styles from '@styles/styles';
-import CONST from '@src/CONST';
+import lodashGet from 'lodash/get';
+import styles from '../../../styles/styles';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import participantPropTypes from '../../../components/participantPropTypes';
+import Text from '../../../components/Text';
+import Timers from '../../../libs/Timers';
+import CONST from '../../../CONST';
+import DateUtils from '../../../libs/DateUtils';
 
 const propTypes = {
     /** Personal details of the participant */

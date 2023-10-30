@@ -1,4 +1,4 @@
-import CONST from '@src/CONST';
+import CONST from '../../../CONST';
 
 /**
  * Determines if the deeplink prompt should be shown on the current screen

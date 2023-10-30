@@ -11,7 +11,7 @@ on:
 
 jobs:
   verify:
-    if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
+    if: github.actor != 'OSBotify'
     runs-on: macos-latest
     steps:
       - name: Checkout

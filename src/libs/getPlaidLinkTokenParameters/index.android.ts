@@ -1,4 +1,4 @@
-import CONST from '@src/CONST';
+import CONST from '../../CONST';
 import GetPlaidLinkTokenParameters from './types';
 
 const getPlaidLinkTokenParameters: GetPlaidLinkTokenParameters = () => ({

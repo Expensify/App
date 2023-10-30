@@ -1,9 +1,9 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
-import StylePropType from '@styles/stylePropTypes';
+import PropTypes from 'prop-types';
 import GenericPressable from './GenericPressable';
 import genericPressablePropTypes from './GenericPressable/PropTypes';
+import StylePropType from '../../styles/stylePropTypes';
 
 const propTypes = {
     /** Element that should be clickable  */

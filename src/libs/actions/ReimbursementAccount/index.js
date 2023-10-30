@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import deleteFromBankAccountList from './deleteFromBankAccountList';
+import ONYXKEYS from '../../../ONYXKEYS';
 import resetFreePlanBankAccount from './resetFreePlanBankAccount';
+import deleteFromBankAccountList from './deleteFromBankAccountList';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
 export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidationErrorFields, resetReimbursementAccount, showBankAccountFormValidationError} from './errors';

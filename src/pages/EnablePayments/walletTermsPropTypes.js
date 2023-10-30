@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '@src/CONST';
+import CONST from '../../CONST';
 
 /** Prop types related to the Terms step of KYC flow */
 export default PropTypes.shape({

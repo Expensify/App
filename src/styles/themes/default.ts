@@ -1,5 +1,5 @@
-import colors from '@styles/colors';
-import SCREENS from '@src/SCREENS';
+import SCREENS from '../../SCREENS';
+import colors from '../colors';
 import type {ThemeBase} from './types';
 
 const darkTheme = {

@@ -1,12 +1,12 @@
-import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
-import * as Browser from '@libs/Browser';
-import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import CONST from '@src/CONST';
+import PropTypes from 'prop-types';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import getButtonState from '../../../libs/getButtonState';
+import Text from '../../Text';
+import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
+import CONST from '../../../CONST';
+import * as Browser from '../../../libs/Browser';
 
 const propTypes = {
     /** The unicode that is used to display the emoji */
@@ -29,9 +29,6 @@ const propTypes = {
 
     /** Whether this menu item is currently focused or not */
     isFocused: PropTypes.bool,
-
-    /** Whether the menu item should be highlighted or not */
-    isHighlighted: PropTypes.bool,
 };
 
 class EmojiPickerMenuItem extends PureComponent {
@@ -59,7 +56,6 @@ class EmojiPickerMenuItem extends PureComponent {
         if (!this.props.isFocused) {
             return;
         }
-
         this.focusAndScroll();
     }
 
@@ -95,7 +91,7 @@ class EmojiPickerMenuItem extends PureComponent {
                 ref={(ref) => (this.ref = ref)}
                 style={({pressed}) => [
                     this.props.isFocused ? styles.emojiItemKeyboardHighlighted : {},
-                    this.state.isHovered || this.props.isHighlighted ? styles.emojiItemHighlighted : {},
+                    this.state.isHovered ? styles.emojiItemHighlighted : {},
                     Browser.isMobile() && StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
                     styles.emojiItem,
                 ]}
@@ -111,7 +107,6 @@ class EmojiPickerMenuItem extends PureComponent {
 EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.defaultProps = {
     isFocused: false,
-    isHighlighted: false,
     onHoverIn: () => {},
     onHoverOut: () => {},
     onFocus: () => {},
@@ -120,7 +115,4 @@ EmojiPickerMenuItem.defaultProps = {
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
-export default React.memo(
-    EmojiPickerMenuItem,
-    (prevProps, nextProps) => prevProps.isFocused === nextProps.isFocused && prevProps.isHighlighted === nextProps.isHighlighted && prevProps.emoji === nextProps.emoji,
-);
+export default React.memo(EmojiPickerMenuItem, (prevProps, nextProps) => prevProps.isFocused === nextProps.isFocused && prevProps.emoji === nextProps.emoji);

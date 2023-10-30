@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import _ from 'underscore';
 import BaseTextInputWithCurrencySymbol from './BaseTextInputWithCurrencySymbol';
 import * as textInputWithCurrencySymbolPropTypes from './textInputWithCurrencySymbolPropTypes';

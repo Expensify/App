@@ -1,9 +1,9 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import styles from '@styles/styles';
-import CONST from '@src/CONST';
-import refPropTypes from './refPropTypes';
+import PropTypes from 'prop-types';
 import TextInput from './TextInput';
+import styles from '../styles/styles';
+import CONST from '../CONST';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Formatted amount in local currency  */

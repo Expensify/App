@@ -1,11 +1,11 @@
-import RNDatePicker from '@react-native-community/datetimepicker';
-import moment from 'moment';
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
-import TextInput from '@components/TextInput';
-import styles from '@styles/styles';
-import CONST from '@src/CONST';
-import {defaultProps, propTypes} from './datepickerPropTypes';
+import RNDatePicker from '@react-native-community/datetimepicker';
+import moment from 'moment';
+import TextInput from '../TextInput';
+import CONST from '../../CONST';
+import {propTypes, defaultProps} from './datepickerPropTypes';
+import styles from '../../styles/styles';
 
 function DatePicker({value, defaultValue, label, placeholder, errorText, containerStyles, disabled, onBlur, onInputChange, maxDate, minDate}, outerRef) {
     const ref = useRef();

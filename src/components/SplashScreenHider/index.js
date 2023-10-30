@@ -1,6 +1,6 @@
-import PropTypes from 'prop-types';
 import {useEffect} from 'react';
-import BootSplash from '@libs/BootSplash';
+import PropTypes from 'prop-types';
+import BootSplash from '../../libs/BootSplash';
 
 const propTypes = {
     /** Splash screen has been hidden */

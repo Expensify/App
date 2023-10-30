@@ -1,5 +1,5 @@
-import styles from '@styles/styles';
-import variables from '@styles/variables';
+import styles from '../styles';
+import variables from '../variables';
 
 export default (windowWidth) => {
     if (windowWidth > variables.mobileResponsiveWidthBreakpoint) {

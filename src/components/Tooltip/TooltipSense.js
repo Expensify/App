@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import CONST from '@src/CONST';
+import CONST from '../../CONST';
 
 let active = false;
 

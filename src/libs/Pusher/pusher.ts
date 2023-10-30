@@ -1,15 +1,15 @@
-import isObject from 'lodash/isObject';
-import {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
 import Onyx from 'react-native-onyx';
+import {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
+import isObject from 'lodash/isObject';
 import {LiteralUnion, ValueOf} from 'type-fest';
-import Log from '@libs/Log';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {OnyxUpdateEvent, OnyxUpdatesFromServer} from '@src/types/onyx';
-import DeepValueOf from '@src/types/utils/DeepValueOf';
-import TYPE from './EventType';
+import ONYXKEYS from '../../ONYXKEYS';
 import Pusher from './library';
+import TYPE from './EventType';
+import Log from '../Log';
+import DeepValueOf from '../../types/utils/DeepValueOf';
 import {SocketEventName} from './library/types';
+import CONST from '../../CONST';
+import {OnyxUpdateEvent, OnyxUpdatesFromServer} from '../../types/onyx';
 
 type States = {
     previous: string;

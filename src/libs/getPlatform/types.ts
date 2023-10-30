@@ -1,5 +1,5 @@
 import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+import CONST from '../../CONST';
 
 type Platform = ValueOf<typeof CONST.PLATFORM>;
 

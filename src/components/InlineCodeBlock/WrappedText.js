@@ -1,10 +1,10 @@
-import PropTypes from 'prop-types';
+import _ from 'underscore';
 import React, {Fragment} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
-import Text from '@components/Text';
-import styles from '@styles/styles';
-import CONST from '@src/CONST';
+import PropTypes from 'prop-types';
+import styles from '../../styles/styles';
+import Text from '../Text';
+import CONST from '../../CONST';
 
 /**
  * Breaks the text into matrix

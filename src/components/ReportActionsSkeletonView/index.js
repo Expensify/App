@@ -1,8 +1,8 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import {Dimensions, View} from 'react-native';
-import CONST from '@src/CONST';
+import PropTypes from 'prop-types';
+import {View, Dimensions} from 'react-native';
 import SkeletonViewLines from './SkeletonViewLines';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Whether to animate the skeleton view */

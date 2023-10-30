@@ -1,8 +1,8 @@
-import {fireEvent, render, within} from '@testing-library/react-native';
-import {addYears, eachMonthOfInterval, format, subYears} from 'date-fns';
+import {render, fireEvent, within} from '@testing-library/react-native';
+import {format, eachMonthOfInterval, subYears, addYears} from 'date-fns';
+import DateUtils from '../../src/libs/DateUtils';
 import CalendarPicker from '../../src/components/NewDatePicker/CalendarPicker';
 import CONST from '../../src/CONST';
-import DateUtils from '../../src/libs/DateUtils';
 
 DateUtils.setLocale(CONST.LOCALES.EN);
 const fullYear = new Date().getFullYear();

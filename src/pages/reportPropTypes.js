@@ -1,7 +1,7 @@
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import avatarPropTypes from '@components/avatarPropTypes';
-import CONST from '@src/CONST';
+import PropTypes from 'prop-types';
+import CONST from '../CONST';
+import avatarPropTypes from '../components/avatarPropTypes';
 
 export default PropTypes.shape({
     /** The specific type of chat */

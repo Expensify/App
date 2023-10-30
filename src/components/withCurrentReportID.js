@@ -1,7 +1,8 @@
+import React, {createContext, forwardRef, useCallback, useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import React, {createContext, forwardRef, useCallback, useMemo, useState} from 'react';
-import getComponentDisplayName from '@libs/getComponentDisplayName';
-import Navigation from '@libs/Navigation/Navigation';
+
+import getComponentDisplayName from '../libs/getComponentDisplayName';
+import Navigation from '../libs/Navigation/Navigation';
 
 const CurrentReportIDContext = createContext(null);
 

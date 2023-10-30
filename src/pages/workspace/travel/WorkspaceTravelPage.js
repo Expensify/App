@@ -1,10 +1,10 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import CONST from '@src/CONST';
+import PropTypes from 'prop-types';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import WorkspacePageWithSections from '../WorkspacePageWithSections';
 import WorkspaceTravelNoVBAView from './WorkspaceTravelNoVBAView';
 import WorkspaceTravelVBAView from './WorkspaceTravelVBAView';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */

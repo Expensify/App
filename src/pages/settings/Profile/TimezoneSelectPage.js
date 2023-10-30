@@ -1,17 +1,16 @@
 import lodashGet from 'lodash/get';
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import _ from 'underscore';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import useInitialValue from '@hooks/useInitialValue';
-import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetails from '@userActions/PersonalDetails';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import TIMEZONES from '@src/TIMEZONES';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import CONST from '../../../CONST';
+import TIMEZONES from '../../../TIMEZONES';
+import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import SelectionList from '../../../components/SelectionList';
+import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -37,7 +36,7 @@ const getUserTimezone = (currentUserPersonalDetails) => lodashGet(currentUserPer
 function TimezoneSelectPage(props) {
     const {translate} = useLocalize();
     const timezone = getUserTimezone(props.currentUserPersonalDetails);
-    const allTimezones = useInitialValue(() =>
+    const allTimezones = useRef(
         _.chain(TIMEZONES)
             .filter((tz) => !tz.startsWith('Etc/GMT'))
             .map((text) => ({
@@ -48,7 +47,7 @@ function TimezoneSelectPage(props) {
             .value(),
     );
     const [timezoneInputText, setTimezoneInputText] = useState('');
-    const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
+    const [timezoneOptions, setTimezoneOptions] = useState(allTimezones.current);
 
     /**
      * @param {Object} timezone
@@ -65,7 +64,7 @@ function TimezoneSelectPage(props) {
         setTimezoneInputText(searchText);
         const searchWords = searchText.toLowerCase().match(/[a-z0-9]+/g) || [];
         setTimezoneOptions(
-            _.filter(allTimezones, (tz) =>
+            _.filter(allTimezones.current, (tz) =>
                 _.every(
                     searchWords,
                     (word) =>

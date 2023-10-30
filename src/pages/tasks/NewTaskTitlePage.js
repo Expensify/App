@@ -1,22 +1,21 @@
-import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Form from '@components/Form';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import compose from '@libs/compose';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
-import styles from '@styles/styles';
-import * as Task from '@userActions/Task';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import PropTypes from 'prop-types';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import Navigation from '../../libs/Navigation/Navigation';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import styles from '../../styles/styles';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as ErrorUtils from '../../libs/ErrorUtils';
+import Form from '../../components/Form';
+import TextInput from '../../components/TextInput';
+import Permissions from '../../libs/Permissions';
+import ROUTES from '../../ROUTES';
+import * as Task from '../../libs/actions/Task';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Beta features list */
@@ -39,7 +38,7 @@ const defaultProps = {
 };
 
 function NewTaskTitlePage(props) {
-    const {inputCallbackRef} = useAutoFocusInput();
+    const inputRef = useRef(null);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -69,6 +68,13 @@ function NewTaskTitlePage(props) {
     }
     return (
         <ScreenWrapper
+            onEntryTransitionEnd={() => {
+                if (!inputRef.current) {
+                    return;
+                }
+
+                inputRef.current.focus();
+            }}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={NewTaskTitlePage.displayName}
@@ -91,7 +97,7 @@ function NewTaskTitlePage(props) {
                     <TextInput
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={props.task.title}
-                        ref={inputCallbackRef}
+                        ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}

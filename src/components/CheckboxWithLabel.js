@@ -1,13 +1,13 @@
-import PropTypes from 'prop-types';
 import React, {useState} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '@styles/styles';
-import variables from '@styles/variables';
+import styles from '../styles/styles';
 import Checkbox from './Checkbox';
-import FormHelpMessage from './FormHelpMessage';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
+import FormHelpMessage from './FormHelpMessage';
+import variables from '../styles/variables';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 /**
  * Returns an error if the required props are not provided

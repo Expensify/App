@@ -1,12 +1,12 @@
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
-import SignInHeroCopy from './SignInHeroCopy';
+import * as StyleUtils from '../../styles/StyleUtils';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import SignInHeroImage from './SignInHeroImage';
+import SignInHeroCopy from './SignInHeroCopy';
+import styles from '../../styles/styles';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /** Override the green headline copy */

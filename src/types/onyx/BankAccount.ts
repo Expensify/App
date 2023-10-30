@@ -1,4 +1,4 @@
-import CONST from '@src/CONST';
+import CONST from '../../CONST';
 import AccountData from './AccountData';
 import * as OnyxCommon from './OnyxCommon';
 

@@ -1,5 +1,5 @@
-import getPlatform from '@libs/getPlatform';
-import CONFIG from '@src/CONFIG';
+import CONFIG from '../../CONFIG';
+import getPlatform from '../getPlatform';
 import * as NetworkStore from './NetworkStore';
 
 /**

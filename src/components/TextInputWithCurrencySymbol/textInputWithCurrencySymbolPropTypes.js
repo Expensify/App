@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import refPropTypes from '@components/refPropTypes';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** A ref to forward to amount text input */

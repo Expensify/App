@@ -22,13 +22,7 @@ info
 
 ASYNC_PROCESSES=()
 for SHELL_SCRIPT in $SHELL_SCRIPTS; do
-  if [[ "$CI" == 'true' ]]; then
-    # ShellCheck is installed by default on GitHub Actions ubuntu runners
-    shellcheck -e SC1091 "$SHELL_SCRIPT" &
-  else
-    # Otherwise shellcheck is used via npx
-    npx shellcheck -e SC1091 "$SHELL_SCRIPT" &
-  fi
+  npx shellcheck -e SC1091 "$SHELL_SCRIPT" &
   ASYNC_PROCESSES+=($!)
 done
 

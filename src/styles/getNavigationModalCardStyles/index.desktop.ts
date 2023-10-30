@@ -1,4 +1,4 @@
-import positioning from '@styles/utilities/positioning';
+import positioning from '../utilities/positioning';
 import GetNavigationModalCardStyles from './types';
 
 const getNavigationModalCardStyles: GetNavigationModalCardStyles = () => ({

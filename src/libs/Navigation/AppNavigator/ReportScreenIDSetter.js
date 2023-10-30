@@ -1,13 +1,13 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import {useEffect} from 'react';
+import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import usePermissions from '@hooks/usePermissions';
-import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import reportPropTypes from '@pages/reportPropTypes';
-import * as App from '@userActions/App';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
+import * as ReportUtils from '../../ReportUtils';
+import reportPropTypes from '../../../pages/reportPropTypes';
+import * as App from '../../actions/App';
+import usePermissions from '../../../hooks/usePermissions';
+import Navigation from '../Navigation';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */

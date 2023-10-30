@@ -1,15 +1,15 @@
-import lodashGet from 'lodash/get';
 import React, {useCallback, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
+import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import Navigation from '@libs/Navigation/Navigation';
-import * as Report from '@userActions/Report';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import {walletStatementDefaultProps, walletStatementPropTypes} from './WalletStatementModalPropTypes';
+import {walletStatementPropTypes, walletStatementDefaultProps} from './WalletStatementModalPropTypes';
+import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
+import * as Report from '../../libs/actions/Report';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
 
 const IOU_ROUTES = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
 const renderLoading = () => <FullScreenLoadingIndicator />;

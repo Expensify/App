@@ -1,7 +1,7 @@
-import isEqual from 'lodash/isEqual';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {Request} from '@src/types/onyx';
+import isEqual from 'lodash/isEqual';
+import ONYXKEYS from '../../ONYXKEYS';
+import {Request} from '../../types/onyx';
 
 let persistedRequests: Request[] = [];
 

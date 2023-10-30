@@ -1,34 +1,40 @@
+import _ from 'underscore';
 import React, {useCallback, useRef} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import TextInput from '@components/TextInput';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import compose from '@libs/compose';
-import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import * as Task from '@userActions/Task';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import Form from '../../components/Form';
+import ONYXKEYS from '../../ONYXKEYS';
+import TextInput from '../../components/TextInput';
+import styles from '../../styles/styles';
+import reportPropTypes from '../reportPropTypes';
+import compose from '../../libs/compose';
+import * as Task from '../../libs/actions/Task';
+import * as ReportUtils from '../../libs/ReportUtils';
+import CONST from '../../CONST';
+import Navigation from '../../libs/Navigation/Navigation';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
+import withReportOrNotFound from '../home/report/withReportOrNotFound';
 
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
+
+    /** Current user session */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
 
     /* Onyx Props */
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    session: {},
     report: {},
 };
 
@@ -52,7 +58,7 @@ function TaskTitlePage(props) {
         (values) => {
             // Set the title of the report in the store and then call Task.editTaskReport
             // to update the title of the report on the server
-            Task.editTaskAndNavigate(props.report, {title: values.title});
+            Task.editTaskAndNavigate(props.report, props.session.accountID, {title: values.title});
         },
         [props],
     );
@@ -78,7 +84,7 @@ function TaskTitlePage(props) {
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton title={props.translate('task.task')} />
-                    <FormProvider
+                    <Form
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
                         validate={validate}
@@ -87,8 +93,7 @@ function TaskTitlePage(props) {
                         enabledWhenOffline
                     >
                         <View style={[styles.mb4]}>
-                            <InputWrapper
-                                InputComponent={TextInput}
+                            <TextInput
                                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="title"
                                 name="title"
@@ -106,7 +111,7 @@ function TaskTitlePage(props) {
                                 }}
                             />
                         </View>
-                    </FormProvider>
+                    </Form>
                 </FullPageNotFoundView>
             )}
         </ScreenWrapper>
@@ -122,6 +127,9 @@ export default compose(
     withCurrentUserPersonalDetails,
     withReportOrNotFound(),
     withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import stylePropTypes from '@styles/stylePropTypes';
-import CONST from '@src/CONST';
+import CONST from '../CONST';
+import stylePropTypes from '../styles/stylePropTypes';
 import avatarPropTypes from './avatarPropTypes';
 import refPropTypes from './refPropTypes';
 

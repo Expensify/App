@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 let preferredLocale = CONST.LOCALES.DEFAULT;
 

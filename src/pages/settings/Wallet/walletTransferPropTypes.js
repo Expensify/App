@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import CONST from '@src/CONST';
+import CONST from '../../../CONST';
 
 /** Wallet balance transfer props */
 const walletTransferPropTypes = PropTypes.shape({

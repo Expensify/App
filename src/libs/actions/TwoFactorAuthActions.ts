@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
-import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import {TwoFactorAuthStep} from '@src/types/onyx/Account';
+import ONYXKEYS from '../../ONYXKEYS';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import {TwoFactorAuthStep} from '../../types/onyx/Account';
 
 /**
  * Clear 2FA data if the flow is interrupted without finishing

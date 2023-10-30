@@ -1,7 +1,7 @@
-import CONST from '@src/CONST';
-import {Report, Transaction} from '@src/types/onyx';
-import * as CurrencyUtils from './CurrencyUtils';
+import CONST from '../CONST';
 import * as TransactionUtils from './TransactionUtils';
+import * as CurrencyUtils from './CurrencyUtils';
+import {Report, Transaction} from '../types/onyx';
 
 /**
  * Calculates the amount per user given a list of participants

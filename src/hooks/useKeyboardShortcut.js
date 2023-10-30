@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
-import CONST from '@src/CONST';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
+import CONST from '../CONST';
 
 /**
  * Register a keyboard shortcut handler.

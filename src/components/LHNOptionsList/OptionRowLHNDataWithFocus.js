@@ -1,6 +1,6 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
+import PropTypes from 'prop-types';
+import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../withCurrentReportID';
 import OptionRowLHNData from './OptionRowLHNData';
 
 const propTypes = {

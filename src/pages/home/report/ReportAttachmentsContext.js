@@ -1,6 +1,6 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef} from 'react';
-import useCurrentReportID from '@hooks/useCurrentReportID';
+import PropTypes from 'prop-types';
+import useCurrentReportID from '../../../hooks/useCurrentReportID';
 
 const ReportAttachmentsContext = React.createContext();
 

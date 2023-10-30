@@ -1,8 +1,8 @@
-import React, {forwardRef} from 'react';
 import _ from 'underscore';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import Text from '@components/Text';
+import React, {forwardRef} from 'react';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
+import Text from '../Text';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed.

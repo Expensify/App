@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
 
 function triggerUpdateAvailable() {
     Onyx.set(ONYXKEYS.UPDATE_AVAILABLE, true);

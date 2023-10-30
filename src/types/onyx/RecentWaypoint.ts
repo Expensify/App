@@ -1,7 +1,4 @@
 type RecentWaypoint = {
-    /** The name associated with the address of the waypoint */
-    name?: string;
-
     /** The full address of the waypoint */
     address: string;
 

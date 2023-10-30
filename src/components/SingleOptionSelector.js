@@ -1,12 +1,12 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '@styles/styles';
-import CONST from '@src/CONST';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import {View} from 'react-native';
 import SelectCircle from './SelectCircle';
+import styles from '../styles/styles';
+import CONST from '../CONST';
 import Text from './Text';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {

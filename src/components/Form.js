@@ -1,23 +1,23 @@
+import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
-import compose from '@libs/compose';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import Visibility from '@libs/Visibility';
-import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
-import * as FormActions from '@userActions/FormActions';
-import CONST from '@src/CONST';
+import {withOnyx} from 'react-native-onyx';
+import compose from '../libs/compose';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import * as FormActions from '../libs/actions/FormActions';
+import * as ErrorUtils from '../libs/ErrorUtils';
+import styles from '../styles/styles';
+import CONST from '../CONST';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import FormSubmit from './FormSubmit';
-import networkPropTypes from './networkPropTypes';
-import {withNetwork} from './OnyxProvider';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollViewWithContext from './ScrollViewWithContext';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import stylePropTypes from '../styles/stylePropTypes';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
+import Visibility from '../libs/Visibility';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */

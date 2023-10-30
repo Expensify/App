@@ -1,17 +1,17 @@
-import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
+import React, {useRef, useEffect, useContext} from 'react';
 import PropTypes from 'prop-types';
-import React, {useContext, useEffect, useRef} from 'react';
-import {Easing, interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
-import useCurrentReportID from '@hooks/useCurrentReportID';
-import useFlipper from '@hooks/useFlipper';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import Log from '@libs/Log';
-import StatusBar from '@libs/StatusBar';
-import {SidebarNavigationContext} from '@pages/home/sidebar/SidebarNavigationContext';
-import themeColors from '@styles/themes/default';
-import AppNavigator from './AppNavigator';
-import linkingConfig from './linkingConfig';
+import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
+import {useSharedValue, useAnimatedReaction, interpolateColor, withTiming, withDelay, Easing, runOnJS} from 'react-native-reanimated';
+import useFlipper from '../../hooks/useFlipper';
 import Navigation, {navigationRef} from './Navigation';
+import linkingConfig from './linkingConfig';
+import AppNavigator from './AppNavigator';
+import themeColors from '../../styles/themes/default';
+import Log from '../Log';
+import StatusBar from '../StatusBar';
+import useCurrentReportID from '../../hooks/useCurrentReportID';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
+import {SidebarNavigationContext} from '../../pages/home/sidebar/SidebarNavigationContext';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {

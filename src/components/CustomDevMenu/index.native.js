@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import DevMenu from 'react-native-dev-menu';
-import toggleTestToolsModal from '@userActions/TestTool';
+import toggleTestToolsModal from '../../libs/actions/TestTool';
 
 function CustomDevMenu() {
     useEffect(() => {

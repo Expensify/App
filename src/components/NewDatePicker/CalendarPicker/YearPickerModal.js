@@ -1,14 +1,14 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Modal from '@components/Modal';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import {radioListItemPropTypes} from '@components/SelectionList/selectionListPropTypes';
-import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
-import CONST from '@src/CONST';
+import HeaderWithBackButton from '../../HeaderWithBackButton';
+import CONST from '../../../CONST';
+import SelectionList from '../../SelectionList';
+import Modal from '../../Modal';
+import {radioListItemPropTypes} from '../../SelectionList/selectionListPropTypes';
+import useLocalize from '../../../hooks/useLocalize';
+import ScreenWrapper from '../../ScreenWrapper';
+import styles from '../../../styles/styles';
 
 const propTypes = {
     /** Whether the modal is visible */

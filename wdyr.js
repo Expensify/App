@@ -1,7 +1,8 @@
 // Implements Why Did You Render (WDYR) in Dev
-import lodashGet from 'lodash/get';
+
 import React from 'react';
 import Config from 'react-native-config';
+import lodashGet from 'lodash/get';
 
 const useWDYR = lodashGet(Config, 'USE_WDYR') === 'true';
 

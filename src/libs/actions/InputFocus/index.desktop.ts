@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
+import ReportActionComposeFocusManager from '../../ReportActionComposeFocusManager';
 
 function inputFocusChange(focus: boolean) {
     Onyx.set(ONYXKEYS.INPUT_FOCUSED, focus);

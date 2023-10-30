@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
-import CONFIG from '../../src/CONFIG';
-import enhanceParameters from '../../src/libs/Network/enhanceParameters';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import enhanceParameters from '../../src/libs/Network/enhanceParameters';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import CONFIG from '../../src/CONFIG';
 
 beforeEach(() => Onyx.clear());
 

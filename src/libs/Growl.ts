@@ -1,5 +1,5 @@
 import React from 'react';
-import CONST from '@src/CONST';
+import CONST from '../CONST';
 
 type GrowlRef = {
     show?: (bodyText: string, type: string, duration: number) => void;

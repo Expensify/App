@@ -1,11 +1,11 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
-import CONST from '@src/CONST';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import PropTypes from 'prop-types';
 import Text from './Text';
+import styles from '../styles/styles';
 import Tooltip from './Tooltip';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import CONST from '../CONST';
+import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
     /** Currency symbol of selected currency */

@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
-import Text from '@components/Text';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
-import styles from '@styles/styles';
+import styles from '../../styles/styles';
+import Text from '../Text';
+import UserDetailsTooltip from '../UserDetailsTooltip';
 
 const propTypes = {
     index: PropTypes.number,

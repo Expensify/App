@@ -1,27 +1,27 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
-import React, {useEffect, useRef, useState} from 'react';
-import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
-import CONST from '@src/CONST';
-import Button from './Button';
-import DisplayNames from './DisplayNames';
-import Hoverable from './Hoverable';
+import lodashGet from 'lodash/get';
+import React, {useState, useEffect, useRef} from 'react';
+import PropTypes from 'prop-types';
+import {View, StyleSheet, InteractionManager} from 'react-native';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
+import optionPropTypes from './optionPropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import Button from './Button';
 import MultipleAvatars from './MultipleAvatars';
-import OfflineWithFeedback from './OfflineWithFeedback';
-import optionPropTypes from './optionPropTypes';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import Hoverable from './Hoverable';
+import DisplayNames from './DisplayNames';
+import themeColors from '../styles/themes/default';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Text from './Text';
 import SelectCircle from './SelectCircle';
 import SubscriptAvatar from './SubscriptAvatar';
-import Text from './Text';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import OfflineWithFeedback from './OfflineWithFeedback';
+import CONST from '../CONST';
+import * as ReportUtils from '../libs/ReportUtils';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
 
 const propTypes = {
     /** Style for hovered state */

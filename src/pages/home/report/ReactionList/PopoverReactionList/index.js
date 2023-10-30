@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types';
 import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import PropTypes from 'prop-types';
 import BasePopoverReactionList from './BasePopoverReactionList';
 
 const propTypes = {

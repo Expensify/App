@@ -1,8 +1,8 @@
-import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
-import React from 'react';
 import _ from 'underscore';
-import styles from '@styles/styles';
-import SCREENS from '@src/SCREENS';
+import React from 'react';
+import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
+import styles from '../../../styles/styles';
+import SCREENS from '../../../SCREENS';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,

@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types';
 import {Animated} from 'react-native';
+import PropTypes from 'prop-types';
 
 const propTypes = {
     /** GrowlNotification content */

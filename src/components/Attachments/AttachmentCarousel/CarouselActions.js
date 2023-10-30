@@ -1,8 +1,8 @@
+import {useEffect} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import {useEffect} from 'react';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
-import CONST from '@src/CONST';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Callback to cycle through attachments */

@@ -1,8 +1,8 @@
+import React, {useContext, useRef, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import React, {useContext, useMemo, useRef} from 'react';
-import {PopoverContext} from '@components/PopoverProvider';
+import {propTypes as tooltipPropTypes, defaultProps as tooltipDefaultProps} from './tooltipPropTypes';
 import BaseTooltip from './BaseTooltip';
-import {defaultProps as tooltipDefaultProps, propTypes as tooltipPropTypes} from './tooltipPropTypes';
+import {PopoverContext} from '../PopoverProvider';
 
 const propTypes = {
     ...tooltipPropTypes,

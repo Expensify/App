@@ -1,22 +1,22 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState, useCallback, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
+import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import BigNumberPad from '@components/BigNumberPad';
-import Button from '@components/Button';
-import FormHelpMessage from '@components/FormHelpMessage';
-import refPropTypes from '@components/refPropTypes';
-import TextInputWithCurrencySymbol from '@components/TextInputWithCurrencySymbol';
-import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import getOperatingSystem from '@libs/getOperatingSystem';
-import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
-import styles from '@styles/styles';
-import CONST from '@src/CONST';
+import styles from '../../../styles/styles';
+import BigNumberPad from '../../../components/BigNumberPad';
+import * as CurrencyUtils from '../../../libs/CurrencyUtils';
+import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
+import Button from '../../../components/Button';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
+import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
+import useLocalize from '../../../hooks/useLocalize';
+import CONST from '../../../CONST';
+import FormHelpMessage from '../../../components/FormHelpMessage';
+import refPropTypes from '../../../components/refPropTypes';
+import getOperatingSystem from '../../../libs/getOperatingSystem';
+import * as Browser from '../../../libs/Browser';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** IOU amount saved in Onyx */
@@ -136,17 +136,10 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             if (!_.isEmpty(formError)) {
                 setFormError('');
             }
-
-            // setCurrentAmount contains another setState(setSelection) making it error-prone since it is leading to setSelection being called twice for a single setCurrentAmount call. This solution introducing the hasSelectionBeenSet flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
-
-            let hasSelectionBeenSet = false;
             setCurrentAmount((prevAmount) => {
                 const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
                 const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-                if (!hasSelectionBeenSet) {
-                    hasSelectionBeenSet = true;
-                    setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
-                }
+                setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
                 return strippedAmount;
             });
         },
@@ -268,14 +261,14 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     }}
                     onKeyPress={textInputKeyPress}
                 />
-                {!_.isEmpty(formError) && (
-                    <FormHelpMessage
-                        style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
-                        isError
-                        message={translate(formError)}
-                    />
-                )}
             </View>
+            {!_.isEmpty(formError) && (
+                <FormHelpMessage
+                    style={[styles.ph5]}
+                    isError
+                    message={translate(formError)}
+                />
+            )}
             <View
                 onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
                 style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
@@ -290,11 +283,10 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 ) : null}
                 <Button
                     success
-                    // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
-                    allowBubble={!isEditing}
+                    allowBubble
                     pressOnEnter
                     medium={isExtraSmallScreenHeight}
-                    style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                    style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt2]}
                     onPress={submitAndNavigateToNextPage}
                     text={buttonText}
                 />

@@ -1,4 +1,4 @@
-import Log from '@libs/Log';
+import Log from '../Log';
 import {VisibilityStatus} from './types';
 
 function resolveAfter(delay: number): Promise<void> {

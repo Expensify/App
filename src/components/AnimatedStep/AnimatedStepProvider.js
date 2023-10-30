@@ -1,7 +1,7 @@
-import PropTypes from 'prop-types';
 import React, {useMemo, useState} from 'react';
-import CONST from '@src/CONST';
+import PropTypes from 'prop-types';
 import AnimatedStepContext from './AnimatedStepContext';
+import CONST from '../../CONST';
 
 const propTypes = {
     children: PropTypes.node.isRequired,

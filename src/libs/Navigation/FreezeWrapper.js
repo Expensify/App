@@ -1,7 +1,7 @@
-import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import React, {useEffect, useState, useRef} from 'react';
 import lodashFindIndex from 'lodash/findIndex';
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef, useState} from 'react';
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {Freeze} from 'react-freeze';
 import {InteractionManager} from 'react-native';
 

@@ -1,15 +1,15 @@
-import React, {useContext, useMemo} from 'react';
+import React, {useMemo, useContext} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import * as Expensicons from '@components/Icon/Expensicons';
-import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
-import {SidebarNavigationContext} from '@pages/home/sidebar/SidebarNavigationContext';
-import SignInOrAvatarWithOptionalStatus from '@pages/home/sidebar/SignInOrAvatarWithOptionalStatus';
-import styles from '@styles/styles';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import styles from '../../../../styles/styles';
+import * as Expensicons from '../../../../components/Icon/Expensicons';
+import CONST from '../../../../CONST';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
+import useLocalize from '../../../../hooks/useLocalize';
 import GlobalNavigationMenuItem from './GlobalNavigationMenuItem';
+import {SidebarNavigationContext} from '../SidebarNavigationContext';
+import SignInOrAvatarWithOptionalStatus from '../SignInOrAvatarWithOptionalStatus';
 
 function GlobalNavigation() {
     const sidebarNavigation = useContext(SidebarNavigationContext);

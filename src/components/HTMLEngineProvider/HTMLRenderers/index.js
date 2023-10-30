@@ -1,8 +1,8 @@
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
 import EditedRenderer from './EditedRenderer';
-import ImageRenderer from './ImageRenderer';
 import MentionHereRenderer from './MentionHereRenderer';
+import ImageRenderer from './ImageRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import PreRenderer from './PreRenderer';
 

@@ -1,12 +1,12 @@
-import {format, isValid} from 'date-fns';
 import Onyx, {OnyxCollection} from 'react-native-onyx';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
-import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
-import {isExpensifyCard} from './CardUtils';
+import {format, isValid} from 'date-fns';
+import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
+import {isExpensifyCard} from './CardUtils';
 import * as NumberUtils from './NumberUtils';
+import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
+import {Receipt, Comment, WaypointCollection, Waypoint} from '../types/onyx/Transaction';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
 
@@ -396,6 +396,9 @@ function getAllReportTransactions(reportID?: string): Transaction[] {
     return transactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
+/**
+ * Checks if a waypoint has a valid address
+ */
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }

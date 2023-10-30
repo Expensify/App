@@ -1,20 +1,20 @@
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as API from '@libs/API';
-import DateUtils from '@libs/DateUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
-import * as Localize from '@libs/Localize';
-import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as API from '../API';
+import * as ReportUtils from '../ReportUtils';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import CONST from '../../CONST';
+import DateUtils from '../DateUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
+import * as UserUtils from '../UserUtils';
+import * as ErrorUtils from '../ErrorUtils';
+import * as ReportActionsUtils from '../ReportActionsUtils';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
+import * as Localize from '../Localize';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -356,9 +356,11 @@ function reopenTask(taskReport) {
 
 /**
  * @param {object} report
+ * @param {Number} ownerAccountID
  * @param {Object} editedTask
+ * @param {Object} assigneeChatReport - The chat report between you and the assignee
  */
-function editTaskAndNavigate(report, {title, description}) {
+function editTaskAndNavigate(report, ownerAccountID, {title, description, assignee = '', assigneeAccountID = 0}, assigneeChatReport = null) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
 
@@ -367,6 +369,9 @@ function editTaskAndNavigate(report, {title, description}) {
 
     // Description can be unset, so we default to an empty string if so
     const reportDescription = (!_.isUndefined(description) ? description : lodashGet(report, 'description', '')).trim();
+
+    let assigneeChatReportOnyxData;
+    const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : 0;
 
     const optimisticData = [
         {
@@ -380,9 +385,12 @@ function editTaskAndNavigate(report, {title, description}) {
             value: {
                 reportName,
                 description: reportDescription,
+                managerID: assigneeAccountID || report.managerID,
+                managerEmail: assignee || report.managerEmail,
                 pendingFields: {
                     ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                     ...(description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
             },
         },
@@ -395,6 +403,7 @@ function editTaskAndNavigate(report, {title, description}) {
                 pendingFields: {
                     ...(title && {reportName: null}),
                     ...(description && {description: null}),
+                    ...(assigneeAccountID && {managerID: null}),
                 },
             },
         },
@@ -411,9 +420,29 @@ function editTaskAndNavigate(report, {title, description}) {
             value: {
                 reportName: report.reportName,
                 description: report.description,
+                assignee: report.managerEmail,
+                assigneeAccountID: report.managerID,
             },
         },
     ];
+
+    // If we make a change to the assignee, we want to add a comment to the assignee's chat
+    // Check if the assignee actually changed
+    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
+        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
+            currentUserAccountID,
+            assignee,
+            assigneeAccountID,
+            report.reportID,
+            assigneeChatReportID,
+            report.parentReportID,
+            reportName,
+            assigneeChatReport,
+        );
+        optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
+        successData.push(...assigneeChatReportOnyxData.successData);
+        failureData.push(...assigneeChatReportOnyxData.failureData);
+    }
 
     API.write(
         'EditTask',
@@ -421,7 +450,16 @@ function editTaskAndNavigate(report, {title, description}) {
             taskReportID: report.reportID,
             title: reportName,
             description: reportDescription,
+            assignee: assignee || report.managerEmail,
+            assigneeAccountID: assigneeAccountID || report.managerID,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
+            assigneeChatReportID,
+            assigneeChatReportActionID:
+                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticAssigneeAddComment
+                    ? assigneeChatReportOnyxData.optimisticAssigneeAddComment.reportAction.reportActionID
+                    : 0,
+            assigneeChatCreatedReportActionID:
+                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticChatCreatedReportAction ? assigneeChatReportOnyxData.optimisticChatCreatedReportAction.reportActionID : 0,
         },
         {optimisticData, successData, failureData},
     );

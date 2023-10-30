@@ -1,19 +1,19 @@
-import {getActionFromState} from '@react-navigation/core';
-import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
-import Log from '@libs/Log';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import getStateFromPath from './getStateFromPath';
+import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import {getActionFromState} from '@react-navigation/core';
+import Log from '../Log';
+import linkTo from './linkTo';
+import ROUTES from '../../ROUTES';
+import linkingConfig from './linkingConfig';
+import navigationRef from './navigationRef';
+import NAVIGATORS from '../../NAVIGATORS';
+import originalGetTopmostReportId from './getTopmostReportId';
 import originalGetTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
-import originalGetTopmostReportId from './getTopmostReportId';
-import linkingConfig from './linkingConfig';
-import linkTo from './linkTo';
-import navigationRef from './navigationRef';
+import getStateFromPath from './getStateFromPath';
+import SCREENS from '../../SCREENS';
+import CONST from '../../CONST';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {

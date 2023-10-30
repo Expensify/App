@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '@src/CONST';
+import CONST from '../CONST';
 
 export default PropTypes.shape({
     /** The transaction id */
@@ -45,9 +45,6 @@ export default PropTypes.shape({
 
             /** The address of the waypoint */
             address: PropTypes.string,
-
-            /** The name of the waypoint */
-            name: PropTypes.string,
         }),
     }),
 

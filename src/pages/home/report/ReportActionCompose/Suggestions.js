@@ -1,7 +1,7 @@
+import React, {useRef, useCallback, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
-import React, {useCallback, useImperativeHandle, useRef} from 'react';
-import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
+import SuggestionEmoji from './SuggestionEmoji';
 import * as SuggestionProps from './suggestionProps';
 
 const propTypes = {

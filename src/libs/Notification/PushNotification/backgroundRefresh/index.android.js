@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import Visibility from '@libs/Visibility';
-import * as App from '@userActions/App';
-import ONYXKEYS from '@src/ONYXKEYS';
+import * as App from '../../../actions/App';
+import Visibility from '../../../Visibility';
+import ONYXKEYS from '../../../../ONYXKEYS';
 
 function getLastOnyxUpdateID() {
     return new Promise((resolve) => {

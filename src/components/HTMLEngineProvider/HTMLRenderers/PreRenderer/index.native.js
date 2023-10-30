@@ -1,6 +1,6 @@
 import React from 'react';
-import htmlRendererPropTypes from '@components/HTMLEngineProvider/HTMLRenderers/htmlRendererPropTypes';
-import withLocalize from '@components/withLocalize';
+import withLocalize from '../../../withLocalize';
+import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import BasePreRenderer from './BasePreRenderer';
 
 function PreRenderer(props) {

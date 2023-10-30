@@ -1,12 +1,12 @@
 import React, {useEffect, useRef} from 'react';
 import _ from 'underscore';
-import * as Browser from '@libs/Browser';
-import DomUtils from '@libs/DomUtils';
-import Visibility from '@libs/Visibility';
-import styles from '@styles/styles';
+import styles from '../../styles/styles';
+import * as styleConst from './styleConst';
 import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './BaseTextInput/baseTextInputPropTypes';
-import * as styleConst from './styleConst';
+import DomUtils from '../../libs/DomUtils';
+import Visibility from '../../libs/Visibility';
+import * as Browser from '../../libs/Browser';
 
 function TextInput(props) {
     const textInputRef = useRef(null);

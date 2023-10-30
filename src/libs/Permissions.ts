@@ -1,5 +1,5 @@
-import CONST from '@src/CONST';
-import Beta from '@src/types/onyx/Beta';
+import CONST from '../CONST';
+import Beta from '../types/onyx/Beta';
 
 function canUseAllBetas(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.ALL);
@@ -42,6 +42,10 @@ function canUseCustomStatus(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.CUSTOM_STATUS) || canUseAllBetas(betas);
 }
 
+function canUseCategories(betas: Beta[]): boolean {
+    return betas?.includes(CONST.BETAS.NEW_DOT_CATEGORIES) || canUseAllBetas(betas);
+}
+
 function canUseTags(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.NEW_DOT_TAGS) || canUseAllBetas(betas);
 }
@@ -62,6 +66,7 @@ export default {
     canUsePolicyRooms,
     canUseTasks,
     canUseCustomStatus,
+    canUseCategories,
     canUseTags,
     canUseLinkPreviews,
 };

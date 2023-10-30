@@ -1,8 +1,8 @@
+import _ from 'underscore';
 import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
-import Log from '@libs/Log';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
+import Log from '../Log';
 
 const DEPRECATED_ONYX_KEYS = {
     // Deprecated personal details object which was keyed by login instead of accountID.

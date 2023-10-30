@@ -1,6 +1,6 @@
 import React from 'react';
-import MenuItem from './MenuItem';
 import menuItemPropTypes from './menuItemPropTypes';
+import MenuItem from './MenuItem';
 
 const propTypes = menuItemPropTypes;
 

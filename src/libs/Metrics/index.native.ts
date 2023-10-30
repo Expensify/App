@@ -1,4 +1,4 @@
-import CONFIG from '@src/CONFIG';
+import CONFIG from '../../CONFIG';
 import {CanCaptureOnyxMetrics, CanCapturePerformanceMetrics} from './types';
 
 /**

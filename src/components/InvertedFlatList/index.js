@@ -1,9 +1,9 @@
-import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useRef} from 'react';
+import PropTypes from 'prop-types';
 import {DeviceEventEmitter, FlatList} from 'react-native';
 import _ from 'underscore';
-import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Passed via forwardRef so we can access the FlatList ref */

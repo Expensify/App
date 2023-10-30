@@ -1,5 +1,5 @@
-import lodashGet from 'lodash/get';
 import React, {useEffect, useRef} from 'react';
+import lodashGet from 'lodash/get';
 import BaseOnfidoWeb from './BaseOnfidoWeb';
 import onfidoPropTypes from './onfidoPropTypes';
 

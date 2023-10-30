@@ -1,9 +1,9 @@
-import React from 'react';
 import _ from 'underscore';
-import Modal from '@components/Modal';
-import {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import CONST from '@src/CONST';
-import {defaultProps, propTypes as popoverPropTypes} from './popoverPropTypes';
+import React from 'react';
+import {propTypes as popoverPropTypes, defaultProps} from './popoverPropTypes';
+import CONST from '../../CONST';
+import Modal from '../Modal';
+import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
     ..._.omit(popoverPropTypes, _.keys(windowDimensionsPropTypes)),

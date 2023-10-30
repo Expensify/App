@@ -1,15 +1,15 @@
-import PropTypes from 'prop-types';
+import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import compose from '@libs/compose';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
-import * as App from '@userActions/App';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import Picker from './Picker';
+import PropTypes from 'prop-types';
+import compose from '../libs/compose';
+import * as App from '../libs/actions/App';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
+import Picker from './Picker';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Indicates which locale the user currently has selected */

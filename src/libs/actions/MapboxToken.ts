@@ -1,11 +1,11 @@
 import {isAfter} from 'date-fns';
-import {AppState, NativeEventSubscription} from 'react-native';
 import Onyx from 'react-native-onyx';
-import * as ActiveClientManager from '@libs/ActiveClientManager';
-import * as API from '@libs/API';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {MapboxAccessToken, Network} from '@src/types/onyx';
+import {AppState, NativeEventSubscription} from 'react-native';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as API from '../API';
+import CONST from '../../CONST';
+import * as ActiveClientManager from '../ActiveClientManager';
+import {MapboxAccessToken, Network} from '../../types/onyx';
 
 let authToken: string | null;
 Onyx.connect({

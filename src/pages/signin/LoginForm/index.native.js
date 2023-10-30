@@ -1,7 +1,7 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
-import AppStateMonitor from '@libs/AppStateMonitor';
+import PropTypes from 'prop-types';
 import BaseLoginForm from './BaseLoginForm';
+import AppStateMonitor from '../../../libs/AppStateMonitor';
 
 const propTypes = {
     /** Function used to scroll to the top of the page */

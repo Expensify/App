@@ -1,14 +1,14 @@
 /* eslint-disable es/no-optional-chaining */
-import PropTypes from 'prop-types';
-import React, {useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState, useImperativeHandle, useMemo} from 'react';
 import {View} from 'react-native';
-import {createNativeWrapper, GestureHandlerRootView} from 'react-native-gesture-handler';
-import PagerView from 'react-native-pager-view';
+import PropTypes from 'prop-types';
+import {GestureHandlerRootView, createNativeWrapper} from 'react-native-gesture-handler';
 import Animated, {runOnJS, useAnimatedProps, useAnimatedReaction, useEvent, useHandler, useSharedValue} from 'react-native-reanimated';
+import PagerView from 'react-native-pager-view';
 import _ from 'underscore';
-import refPropTypes from '@components/refPropTypes';
-import styles from '@styles/styles';
+import styles from '../../../../styles/styles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
+import refPropTypes from '../../../refPropTypes';
 
 const AnimatedPagerView = Animated.createAnimatedComponent(createNativeWrapper(PagerView));
 

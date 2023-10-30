@@ -1,14 +1,12 @@
-import _ from 'lodash';
-import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import FormHelpMessage from '@components/FormHelpMessage';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import refPropTypes from '@components/refPropTypes';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
+import PropTypes from 'prop-types';
+import _ from 'lodash';
+import styles from '../../styles/styles';
+import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import ValueSelectorModal from './ValueSelectorModal';
+import FormHelpMessage from '../FormHelpMessage';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Form Error description */
@@ -61,7 +59,7 @@ function ValuePicker({value, label, items, placeholder, errorText, onInputChange
         hidePickerModal();
     };
 
-    const descStyle = value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
+    const descStyle = value.length === 0 ? styles.textNormal : null;
     const selectedItem = _.find(items, {value});
     const selectedLabel = selectedItem ? selectedItem.label : '';
 

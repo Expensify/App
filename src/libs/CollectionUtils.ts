@@ -1,4 +1,4 @@
-import {OnyxCollectionKey} from '@src/ONYXKEYS';
+import {OnyxCollectionKey} from '../ONYXKEYS';
 
 /**
  * Return the highest item in a numbered collection

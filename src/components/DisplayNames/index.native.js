@@ -1,6 +1,6 @@
 import React from 'react';
-import Text from '@components/Text';
-import {defaultProps, propTypes} from './displayNamesPropTypes';
+import {propTypes, defaultProps} from './displayNamesPropTypes';
+import Text from '../Text';
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
 function DisplayNames(props) {

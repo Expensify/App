@@ -1,8 +1,8 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import ConfirmContent from './ConfirmContent';
+import PropTypes from 'prop-types';
 import Popover from './Popover';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import ConfirmContent from './ConfirmContent';
 
 const propTypes = {
     /** Title of the modal */

@@ -1,5 +1,5 @@
-import {useEffect, useRef} from 'react';
 import type {DraggableChildrenFn} from 'react-beautiful-dnd';
+import {useEffect, useRef} from 'react';
 import {createPortal} from 'react-dom';
 
 type DraggableInPortal = {

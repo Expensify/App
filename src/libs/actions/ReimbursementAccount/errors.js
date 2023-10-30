@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '../../../ONYXKEYS';
+import * as ErrorUtils from '../../ErrorUtils';
 
 /**
  * Set the current fields with errors.

@@ -1,5 +1,5 @@
 import {NativeSyntheticEvent, TextInputContentSizeChangeEventData} from 'react-native';
-import ComposerProps from '@libs/ComposerUtils/types';
+import ComposerProps from '../types';
 
 type UpdateNumberOfLines = (props: ComposerProps, event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => void;
 

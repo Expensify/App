@@ -1,13 +1,13 @@
-import PropTypes from 'prop-types';
 import React, {useState} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import ScreenWrapper from '../components/ScreenWrapper';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
+import Navigation from '../libs/Navigation/Navigation';
+import useLocalize from '../hooks/useLocalize';
 import ReceiptSelector from './iou/ReceiptSelector';
+import DragAndDropProvider from '../components/DragAndDrop/Provider';
+import styles from '../styles/styles';
 
 const propTypes = {
     /** React Navigation route */

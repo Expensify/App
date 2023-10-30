@@ -1,12 +1,12 @@
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import bankAccountPropTypes from '@components/bankAccountPropTypes';
-import cardPropTypes from '@components/cardPropTypes';
-import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
-import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
-import iouReportPropTypes from '@pages/iouReportPropTypes';
-import reimbursementAccountPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import CONST from '@src/CONST';
+import PropTypes from 'prop-types';
+import userWalletPropTypes from '../../pages/EnablePayments/userWalletPropTypes';
+import bankAccountPropTypes from '../bankAccountPropTypes';
+import cardPropTypes from '../cardPropTypes';
+import iouReportPropTypes from '../../pages/iouReportPropTypes';
+import reimbursementAccountPropTypes from '../../pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
+import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Route for the Add Bank Account screen for a given navigation stack */

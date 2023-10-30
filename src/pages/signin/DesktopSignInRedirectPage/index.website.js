@@ -1,5 +1,5 @@
 import React from 'react';
-import DesktopRedirectPage from '@pages/signin/DesktopRedirectPage';
+import DesktopRedirectPage from '../DesktopRedirectPage';
 
 function DesktopSignInRedirectPage() {
     return <DesktopRedirectPage />;

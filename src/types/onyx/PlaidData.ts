@@ -1,5 +1,5 @@
-import * as OnyxCommon from './OnyxCommon';
 import PlaidBankAccount from './PlaidBankAccount';
+import * as OnyxCommon from './OnyxCommon';
 
 type PlaidData = {
     /** Name of the bank */

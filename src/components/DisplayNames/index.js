@@ -1,7 +1,7 @@
 import React from 'react';
-import {defaultProps, propTypes} from './displayNamesPropTypes';
-import DisplayNamesWithoutTooltip from './DisplayNamesWithoutTooltip';
 import DisplayNamesWithToolTip from './DisplayNamesWithTooltip';
+import DisplayNamesWithoutTooltip from './DisplayNamesWithoutTooltip';
+import {defaultProps, propTypes} from './displayNamesPropTypes';
 
 function DisplayNames(props) {
     if (!props.tooltipEnabled) {

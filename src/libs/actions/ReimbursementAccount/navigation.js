@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ONYXKEYS from '../../../ONYXKEYS';
+import ROUTES from '../../../ROUTES';
+import Navigation from '../../Navigation/Navigation';
 
 /**
  * Navigate to a specific step in the VBA flow

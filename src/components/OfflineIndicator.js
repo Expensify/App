@@ -1,16 +1,16 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import compose from '@libs/compose';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
+import PropTypes from 'prop-types';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import networkPropTypes from './networkPropTypes';
-import {withNetwork} from './OnyxProvider';
+import variables from '../styles/variables';
 import Text from './Text';
+import styles from '../styles/styles';
+import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import * as StyleUtils from '../styles/StyleUtils';
 import withWindowDimensions from './withWindowDimensions';
 
 const propTypes = {

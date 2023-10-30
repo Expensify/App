@@ -1,6 +1,6 @@
 import {Animated} from 'react-native';
-import getCardStyles from '@styles/cardStyles';
-import variables from '@styles/variables';
+import variables from '../../../styles/variables';
+import getCardStyles from '../../../styles/cardStyles';
 
 export default (isSmallScreenWidth, isFullScreenModal, {current: {progress}, inverted, layouts: {screen}}) => {
     const translateX = Animated.multiply(

@@ -1,14 +1,14 @@
-import {uniqBy} from 'lodash';
-import PropTypes from 'prop-types';
 import React from 'react';
-import {Image, View} from 'react-native';
+import {View, Image} from 'react-native';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
-import variables from '@styles/variables';
+import {uniqBy} from 'lodash';
+import Text from '../../../components/Text';
+import TextLink from '../../../components/TextLink';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import styles from '../../../styles/styles';
+import variables from '../../../styles/variables';
+import themeColors from '../../../styles/themes/default';
 
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];
 const MAX_IMAGE_HEIGHT = 180;

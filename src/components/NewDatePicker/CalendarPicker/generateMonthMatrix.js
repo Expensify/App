@@ -1,4 +1,4 @@
-import {addDays, format, getDay, getDaysInMonth, startOfMonth} from 'date-fns';
+import {getDaysInMonth, startOfMonth, getDay, addDays, format} from 'date-fns';
 
 /**
  * Generates a matrix representation of a month's calendar given the year and month.

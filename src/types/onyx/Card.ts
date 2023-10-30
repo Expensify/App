@@ -1,5 +1,5 @@
 import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+import CONST from '../../CONST';
 import * as OnyxCommon from './OnyxCommon';
 
 type Card = {
@@ -19,19 +19,4 @@ type Card = {
     isLoading?: boolean;
 };
 
-type TCardDetails = {
-    pan: string;
-    expiration: string;
-    cvv: string;
-    address: {
-        street: string;
-        street2: string;
-        city: string;
-        state: string;
-        zip: string;
-        country: string;
-    };
-};
-
 export default Card;
-export type {TCardDetails};

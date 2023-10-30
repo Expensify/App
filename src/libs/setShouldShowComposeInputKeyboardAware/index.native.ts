@@ -1,5 +1,5 @@
 import {EmitterSubscription, Keyboard} from 'react-native';
-import * as Composer from '@userActions/Composer';
+import * as Composer from '../actions/Composer';
 import SetShouldShowComposeInputKeyboardAware from './types';
 
 let keyboardDidHideListener: EmitterSubscription | null = null;

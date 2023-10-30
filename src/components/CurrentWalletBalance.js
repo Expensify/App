@@ -1,12 +1,12 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import compose from '@libs/compose';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import styles from '@styles/styles';
-import ONYXKEYS from '@src/ONYXKEYS';
-import Text from './Text';
+import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
+import ONYXKEYS from '../ONYXKEYS';
+import Text from './Text';
+import * as CurrencyUtils from '../libs/CurrencyUtils';
 
 const propTypes = {
     /** The user's wallet account */

@@ -1,4 +1,4 @@
-import styles from '@styles/styles';
+import styles from '../styles';
 import CompactContentContainerStyles from './types';
 
 /**

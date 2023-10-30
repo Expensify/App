@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 import GitUtils from '../../.github/libs/GitUtils.js';
 
 const fromRef = process.argv[2];

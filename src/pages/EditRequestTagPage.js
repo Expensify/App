@@ -1,12 +1,12 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import TagPicker from '@components/TagPicker';
-import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import PropTypes from 'prop-types';
+import Navigation from '../libs/Navigation/Navigation';
+import useLocalize from '../hooks/useLocalize';
+import ScreenWrapper from '../components/ScreenWrapper';
+import Text from '../components/Text';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
+import styles from '../styles/styles';
+import TagPicker from '../components/TagPicker';
 
 const propTypes = {
     /** Transaction default tag value */

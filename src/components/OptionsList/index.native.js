@@ -1,7 +1,7 @@
 import React, {forwardRef} from 'react';
 import {Keyboard} from 'react-native';
 import BaseOptionsList from './BaseOptionsList';
-import {defaultProps, propTypes} from './optionsListPropTypes';
+import {propTypes, defaultProps} from './optionsListPropTypes';
 
 const OptionsList = forwardRef((props, ref) => (
     <BaseOptionsList

@@ -1,8 +1,8 @@
-import PropTypes from 'prop-types';
+import {StyleSheet, View, Animated} from 'react-native';
 import React from 'react';
-import {Animated, StyleSheet, View} from 'react-native';
-import Icon from '@components/Icon';
-import themeColors from '@styles/themes/default';
+import PropTypes from 'prop-types';
+import Icon from '../Icon';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /** Icon to display on tab */

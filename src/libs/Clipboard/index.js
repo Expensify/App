@@ -1,7 +1,7 @@
 import Clipboard from '@react-native-clipboard/clipboard';
 import lodashGet from 'lodash/get';
-import * as Browser from '@libs/Browser';
-import CONST from '@src/CONST';
+import CONST from '../../CONST';
+import * as Browser from '../Browser';
 
 const canSetHtml = () => lodashGet(navigator, 'clipboard.write');
 

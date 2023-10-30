@@ -1,9 +1,9 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {useEffect} from 'react';
-import Clipboard from '@libs/Clipboard';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
-import SelectionScraper from '@libs/SelectionScraper';
-import CONST from '@src/CONST';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import CONST from '../CONST';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
+import Clipboard from '../libs/Clipboard';
+import SelectionScraper from '../libs/SelectionScraper';
 
 function copySelectionToClipboard() {
     const selection = SelectionScraper.getCurrentSelection();

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import CONST from '@src/CONST';
+import CONST from '../CONST';
 
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.

@@ -57,42 +57,42 @@
 
 ### Screenshots/Videos
 <details>
-<summary>Android: Native</summary>
+<summary>Web</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Android: mWeb Chrome</summary>
+<summary>Mobile Web - Chrome</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>iOS: Native</summary>
+<summary>Mobile Web - Safari</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>iOS: mWeb Safari</summary>
+<summary>Desktop</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>MacOS: Chrome / Safari</summary>
+<summary>iOS</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>MacOS: Desktop</summary>
+<summary>Android</summary>
 
 <!-- add screenshots or videos here -->
 

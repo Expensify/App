@@ -1,5 +1,5 @@
-import {useContext, useEffect, useRef} from 'react';
-import {NetworkContext} from '@components/OnyxProvider';
+import {useRef, useContext, useEffect} from 'react';
+import {NetworkContext} from '../components/OnyxProvider';
 
 type UseNetworkProps = {
     onReconnect?: () => void;

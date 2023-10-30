@@ -1,9 +1,9 @@
 import React from 'react';
 import {SvgProps} from 'react-native-svg';
-import emojis, {localeEmojis} from '@assets/emojis';
-import CONST from '@src/CONST';
-import Timing from './actions/Timing';
+import emojis, {localeEmojis} from '../../assets/emojis';
 import Trie from './Trie';
+import Timing from './actions/Timing';
+import CONST from '../CONST';
 
 type Emoji = {
     code: string;

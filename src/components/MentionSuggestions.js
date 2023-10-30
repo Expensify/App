@@ -1,16 +1,16 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
-import getStyledTextArray from '@libs/GetStyledTextArray';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
-import CONST from '@src/CONST';
-import AutoCompleteSuggestions from './AutoCompleteSuggestions';
-import Avatar from './Avatar';
-import avatarPropTypes from './avatarPropTypes';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
+import * as StyleUtils from '../styles/StyleUtils';
 import Text from './Text';
+import CONST from '../CONST';
+import Avatar from './Avatar';
+import AutoCompleteSuggestions from './AutoCompleteSuggestions';
+import getStyledTextArray from '../libs/GetStyledTextArray';
+import avatarPropTypes from './avatarPropTypes';
 
 const propTypes = {
     /** The index of the highlighted mention */

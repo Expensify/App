@@ -1,6 +1,6 @@
-import getOperatingSystem from '@libs/getOperatingSystem';
-import CONST from '@src/CONST';
+import getOperatingSystem from '../getOperatingSystem';
 import getPermittedDecimalSeparatorIOS from './index.ios';
+import CONST from '../../CONST';
 
 export default (localizedSeparator) => {
     if (getOperatingSystem() === CONST.OS.IOS) {

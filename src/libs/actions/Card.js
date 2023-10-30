@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
-import * as API from '@libs/API';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as API from '../API';
 
 /**
  * @param {Number} cardID
@@ -147,29 +146,4 @@ function clearCardListErrors(cardID) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
 }
 
-/**
- * Makes an API call to get virtual card details (pan, cvv, expiration date, address)
- * This function purposefully uses `makeRequestWithSideEffects` method. For security reason
- * card details cannot be persisted in Onyx and have to be asked for each time a user want's to
- * reveal them.
- *
- * @param {String} cardID - virtual card ID
- *
- * @returns {Promise<Object>} - promise with card details object
- */
-function revealVirtualCardDetails(cardID) {
-    return new Promise((resolve, reject) => {
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('RevealVirtualCardDetails', {cardID})
-            .then((response) => {
-                if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    reject();
-                    return;
-                }
-                resolve(response);
-            })
-            .catch(reject);
-    });
-}
-
-export {requestReplacementExpensifyCard, activatePhysicalExpensifyCard, clearCardListErrors, reportVirtualExpensifyCardFraud, revealVirtualCardDetails};
+export {requestReplacementExpensifyCard, activatePhysicalExpensifyCard, clearCardListErrors, reportVirtualExpensifyCardFraud};

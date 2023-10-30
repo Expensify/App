@@ -1,5 +1,5 @@
-import Config from '../../../tests/e2e/config';
 import Routes from '../../../tests/e2e/server/routes';
+import Config from '../../../tests/e2e/config';
 
 const SERVER_ADDRESS = `http://localhost:${Config.SERVER_PORT}`;
 

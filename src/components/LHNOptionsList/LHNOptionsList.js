@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {FlatList, View} from 'react-native';
 import _ from 'underscore';
-import styles from '@styles/styles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
+import CONST from '../../CONST';
+import styles from '../../styles/styles';
+import variables from '../../styles/variables';
 import OptionRowLHNDataWithFocus from './OptionRowLHNDataWithFocus';
 
 const propTypes = {

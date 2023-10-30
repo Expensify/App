@@ -1,13 +1,13 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import getStyledTextArray from '@libs/GetStyledTextArray';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import AutoCompleteSuggestions from './AutoCompleteSuggestions';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
+import * as EmojiUtils from '../libs/EmojiUtils';
 import Text from './Text';
+import getStyledTextArray from '../libs/GetStyledTextArray';
+import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 
 const propTypes = {
     /** The index of the highlighted emoji */
