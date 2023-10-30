@@ -8,6 +8,7 @@ import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
 import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
 
 function AttachmentViewPdf(props) {
+    const {onScaleChanged, ...restProps} = props;
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const scaleRef = useSharedValue(1);
     const offsetX = useSharedValue(0);
@@ -49,8 +50,11 @@ function AttachmentViewPdf(props) {
                 >
                     <BaseAttachmentViewPdf
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
-                        updateScale={updateScale}
+                        {...restProps}
+                        onScaleChanged={(scale) => {
+                            updateScale(scale);
+                            onScaleChanged();
+                        }}
                     />
                 </Animated.View>
             </GestureDetector>
