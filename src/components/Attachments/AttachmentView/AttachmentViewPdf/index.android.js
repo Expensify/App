@@ -1,7 +1,7 @@
 import React, {memo, useCallback, useContext} from 'react';
+import {View, StyleSheet} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useSharedValue} from 'react-native-reanimated';
-import {View, StyleSheet} from 'react-native';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import styles from '@styles/styles';
 import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
