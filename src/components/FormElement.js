@@ -1,6 +1,6 @@
 import React, {forwardRef} from 'react';
 import {View} from 'react-native';
-import * as ComponentUtils from '../libs/ComponentUtils';
+import * as ComponentUtils from '@libs/ComponentUtils';
 
 const FormElement = forwardRef((props, ref) => (
     <View

@@ -1,15 +1,15 @@
-import _ from 'underscore';
-import React, {useRef, useEffect, forwardRef, memo} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
-import OptionRow from '../OptionRow';
-import SectionList from '../SectionList';
-import Text from '../Text';
-import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
-import OptionsListSkeletonView from '../OptionsListSkeletonView';
-import usePrevious from '../../hooks/usePrevious';
+import React, {forwardRef, memo, useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import OptionRow from '@components/OptionRow';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import SectionList from '@components/SectionList';
+import Text from '@components/Text';
+import usePrevious from '@hooks/usePrevious';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import {defaultProps as optionsListDefaultProps, propTypes as optionsListPropTypes} from './optionsListPropTypes';
 
 const propTypes = {
     /** Determines whether the keyboard gets dismissed in response to a drag */
