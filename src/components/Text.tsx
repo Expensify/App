@@ -2,9 +2,9 @@ import React, {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Text as RNText, TextProps as RNTextProps, StyleSheet} from 'react-native';
 import type {TextStyle} from 'react-native';
-import fontFamily from '../styles/fontFamily';
-import themeColors from '../styles/themes/default';
-import variables from '../styles/variables';
+import fontFamily from '@styles/fontFamily';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
 
 type TextProps = RNTextProps & {
     /** The color of the text */
@@ -12,10 +12,8 @@ type TextProps = RNTextProps & {
 
     /** The size of the text */
     fontSize?: number;
-
     /** The alignment of the text */
     textAlign?: 'left' | 'right' | 'auto' | 'center' | 'justify';
-
     /** Any children to display */
     children: React.ReactNode;
 
@@ -38,7 +36,6 @@ function Text(
     if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal) {
         componentStyle.lineHeight = variables.fontSizeNormalHeight;
     }
-
     return (
         <RNText
             allowFontScaling={false}

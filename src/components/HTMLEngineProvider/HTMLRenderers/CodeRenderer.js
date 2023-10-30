@@ -1,9 +1,9 @@
-import _ from 'underscore';
 import React from 'react';
 import {splitBoxModelStyle} from 'react-native-render-html';
+import _ from 'underscore';
+import InlineCodeBlock from '@components/InlineCodeBlock';
+import * as StyleUtils from '@styles/StyleUtils';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import InlineCodeBlock from '../../InlineCodeBlock';
 
 function CodeRenderer(props) {
     // We split wrapper and inner styles

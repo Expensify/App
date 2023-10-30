@@ -1,11 +1,11 @@
 import React from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import styles from '../styles/styles';
+import * as Localize from '@libs/Localize';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import themeColors from '../styles/themes/default';
 import Text from './Text';
-import * as Localize from '../libs/Localize';
 
 type DotIndicatorMessageProps = {
     messages: Record<string, string>;
