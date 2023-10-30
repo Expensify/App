@@ -1,19 +1,19 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import _ from 'underscore';
 import {TapGestureHandler} from 'react-native-gesture-handler';
+import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
+import * as Browser from '@libs/Browser';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
-import * as Browser from '@libs/Browser';
+import FormHelpMessage from './FormHelpMessage';
+import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 import Text from './Text';
 import TextInput from './TextInput';
-import FormHelpMessage from './FormHelpMessage';
-import {withNetwork} from './OnyxProvider';
-import networkPropTypes from './networkPropTypes';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 

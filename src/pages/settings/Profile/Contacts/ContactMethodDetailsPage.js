@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
-import {View, ScrollView, Keyboard, InteractionManager} from 'react-native';
+import {InteractionManager, Keyboard, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
