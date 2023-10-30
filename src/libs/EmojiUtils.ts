@@ -396,11 +396,11 @@ function suggestEmojis(text: string, lang: keyof typeof emojisTrie, limit = CONS
     const matching: Emoji[] = [];
     const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
     for (const node of nodes) {
-        if (node.metaData.code && !matching.find((obj) => obj.name === node.name)) {
+        if (node.metaData?.code && !matching.find((obj) => obj.name === node.name)) {
             if (matching.length === limit) {
                 return matching;
             }
-            matching.push({code: node.metaData?.code ?? '', name: node.name, types: node.metaData.types});
+            matching.push({code: node.metaData.code, name: node.name, types: node.metaData.types});
         }
         const suggestions = node.metaData.suggestions;
         if (!suggestions) {
