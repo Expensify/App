@@ -1,7 +1,7 @@
-import ROUTES from '../../ROUTES';
-import SCREENS from '../../SCREENS';
-import CONST from '../../CONST';
-import NAVIGATORS from '../../NAVIGATORS';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 export default {
     prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'http://localhost', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],

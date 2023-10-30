@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+
 /* eslint-disable @typescript-eslint/no-empty-interface */
+
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
 import 'react-native';
-import {BootSplashModule} from '../../libs/BootSplash/types';
+import {BootSplashModule} from '@libs/BootSplash/types';
 
 declare module 'react-native' {
     // <------ REACT NATIVE WEB (0.19.0) ------>

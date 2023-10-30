@@ -1,11 +1,11 @@
 import {getActionFromState} from '@react-navigation/core';
 import _ from 'lodash';
-import NAVIGATORS from '../../NAVIGATORS';
-import linkingConfig from './linkingConfig';
-import getTopmostReportId from './getTopmostReportId';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import getStateFromPath from './getStateFromPath';
-import CONST from '../../CONST';
 import getTopMostCentralPaneRouteName from './getTopMostCentralPaneRouteName';
+import getTopmostReportId from './getTopmostReportId';
+import linkingConfig from './linkingConfig';
 
 /**
  * Motivation for this function is described in NAVIGATION.md

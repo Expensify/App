@@ -1,25 +1,25 @@
 // Do not remove this import until moment package is fully removed.
 // Issue - https://github.com/Expensify/App/issues/26719
+import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import 'moment/locale/es';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import * as API from '../API';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import Log from '../Log';
-import Performance from '../Performance';
+import * as API from '@libs/API';
+import * as Browser from '@libs/Browser';
+import Log from '@libs/Log';
+import getCurrentUrl from '@libs/Navigation/currentUrl';
+import Navigation from '@libs/Navigation/Navigation';
+import Performance from '@libs/Performance';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as SessionUtils from '@libs/SessionUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import * as Policy from './Policy';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import * as SessionUtils from '../SessionUtils';
-import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
-import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
-import * as Browser from '../Browser';
 
 let currentUserAccountID;
 let currentUserEmail;

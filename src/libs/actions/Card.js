@@ -1,7 +1,8 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
-import CONST from '../../CONST';
+import * as API from '@libs/API';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 /**
  * @param {Number} cardID
  */
