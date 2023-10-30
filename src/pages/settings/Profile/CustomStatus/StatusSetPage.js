@@ -1,22 +1,23 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import Form from '../../../../components/Form';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import ROUTES from '../../../../ROUTES';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import compose from '../../../../libs/compose';
-import styles from '../../../../styles/styles';
-import useLocalize from '../../../../hooks/useLocalize';
-import CONST from '../../../../CONST';
-import EmojiPickerButtonDropdown from '../../../../components/EmojiPicker/EmojiPickerButtonDropdown';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import * as User from '../../../../libs/actions/User';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
-import TextInput from '../../../../components/TextInput';
+import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The draft status of the user */
@@ -52,7 +53,7 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
                 title={translate('statusPage.status')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}
                 style={[styles.flexGrow1, styles.ph5]}
                 submitButtonText={translate('statusPage.save')}
@@ -62,13 +63,15 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
                 <View>
                     <View style={[styles.mb4]}>
                         <View style={[styles.mt1]}>
-                            <EmojiPickerButtonDropdown
+                            <InputWrapper
+                                InputComponent={EmojiPickerButtonDropdown}
                                 inputID={INPUT_IDS.EMOJI_CODE}
                                 accessibilityLabel={INPUT_IDS.EMOJI_CODE}
                                 defaultValue={defaultEmoji}
                             />
                         </View>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID={INPUT_IDS.STATUS_TEXT}
                             label={translate('statusPage.message')}
                             accessibilityLabel={INPUT_IDS.STATUS_TEXT}
@@ -80,7 +83,7 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
                         />
                     </View>
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

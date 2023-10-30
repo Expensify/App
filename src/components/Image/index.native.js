@@ -1,9 +1,9 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import RNFastImage from 'react-native-fast-image';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
 
