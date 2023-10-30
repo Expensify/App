@@ -18,6 +18,7 @@ import Policy from '../types/onyx/Policy';
 import Report from '../types/onyx/Report';
 import {PersonalDetails} from '../types/onyx';
 import * as OnyxCommon from '../types/onyx/OnyxCommon';
+import type {Avatar} from './ReportUtils';
 
 const visibleReportActionItems: ReportActions = {};
 const lastReportActions: ReportActions = {};
@@ -146,7 +147,10 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, true));
+    const reportsToDisplay = allReportsDictValues.filter((report) =>
+        // TODO: Talk with Fabio about that
+        ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, allReportActions, true),
+    );
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
@@ -232,7 +236,7 @@ type OptionData = {
     pendingAction?: OnyxCommon.PendingAction | null;
     allReportErrors?: OnyxCommon.Errors | null;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
-    icons?: Icon[] | null;
+    icons?: Avatar[] | null;
     tooltipText?: string | null;
     ownerAccountID?: number | null;
     subtitle?: string | null;
@@ -270,28 +274,13 @@ type OptionData = {
     isWaitingForTaskCompleteFromAssignee?: boolean | null;
     parentReportID?: string | null;
     notificationPreference?: string | number | null;
-    displayNamesWithTooltips?: DisplayNamesWithTooltip[] | null;
+    displayNamesWithTooltips?: Array<Pick<PersonalDetails, 'displayName' | 'avatar' | 'login' | 'accountID' | 'pronouns'>> | null;
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | null;
-};
-
-type DisplayNamesWithTooltip = {
-    displayName?: string;
-    avatar?: string;
-    login?: string;
-    accountID?: number;
-    pronouns?: string;
 };
 
 type ActorDetails = {
     displayName?: string;
     accountID?: number;
-};
-
-type Icon = {
-    source?: string;
-    id?: number;
-    type?: string;
-    name?: string;
 };
 
 /**
@@ -396,7 +385,7 @@ function getOptionData(
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips: DisplayNamesWithTooltip[] = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
     const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report);
 
     // If the last actor's details are not currently saved in Onyx Collection,
@@ -489,8 +478,8 @@ function getOptionData(
         result.alternateText = lastMessageText || formattedLogin;
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
-    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
+    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result as Report);
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail.accountID;
@@ -523,3 +512,5 @@ export default {
     isSidebarLoadedReady,
     resetIsSidebarLoadedReadyPromise,
 };
+
+export type {OptionData};

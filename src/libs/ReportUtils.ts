@@ -3262,7 +3262,6 @@ function shouldReportBeInOptionList(
     ) {
         return false;
     }
-
     if (!canAccessReport(report, policies, betas, allReportActions)) {
         return false;
     }
@@ -4163,3 +4162,5 @@ export {
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
 };
+
+export type {Avatar};
