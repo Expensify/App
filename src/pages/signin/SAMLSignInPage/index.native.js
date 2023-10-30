@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import WebView from 'react-native-webview';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -27,6 +27,7 @@ const defaultProps = {
 
 function SAMLSignInPage({credentials}) {
     const samlLoginURL = `${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}&platform=${getPlatform()}`;
+    const [showNavigation, shouldShowNavigation] = useState(true);
 
     /**
      * Handles in-app navigation once we get a response back from Expensify
@@ -35,6 +36,11 @@ function SAMLSignInPage({credentials}) {
      */
     const handleNavigationStateChange = useCallback(
         ({url}) => {
+            // If we've gotten a callback then remove the option to navigate back to the sign in page
+            if (url.includes('loginCallback')) {
+                shouldShowNavigation(false);
+            }
+
             const searchParams = new URLSearchParams(new URL(url).search);
             if (searchParams.has('shortLivedAuthToken')) {
                 const shortLivedAuthToken = searchParams.get('shortLivedAuthToken');
@@ -47,14 +53,16 @@ function SAMLSignInPage({credentials}) {
                 Navigation.navigate(ROUTES.HOME);
             }
         },
-        [credentials.login],
+        [credentials.login, shouldShowNavigation],
     );
+
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom={false}
             testID={SAMLSignInPage.displayName}
         >
+        {showNavigation && (
             <HeaderWithBackButton
                 title=""
                 onBackButtonPress={() => {
@@ -62,6 +70,7 @@ function SAMLSignInPage({credentials}) {
                     Navigation.navigate(ROUTES.HOME);
                 }}
             />
+        )}
             <FullPageOfflineBlockingView>
                 <WebView
                     originWhitelist={['https://*']}
