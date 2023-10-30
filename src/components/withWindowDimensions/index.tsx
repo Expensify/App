@@ -1,13 +1,13 @@
-import React, {createContext, useState, useEffect, useMemo, RefAttributes, ComponentType, ForwardedRef} from 'react';
-import PropTypes from 'prop-types';
 import lodashDebounce from 'lodash/debounce';
+import PropTypes from 'prop-types';
+import React, {ComponentType, createContext, ForwardedRef, RefAttributes, useEffect, useMemo, useState} from 'react';
 import {Dimensions} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import getWindowHeightAdjustment from '@libs/getWindowHeightAdjustment';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import variables from '../../styles/variables';
 import ChildrenProps from '../../types/utils/ChildrenProps';
 import {NewDimensions, WindowDimensionsContextData, WindowDimensionsProps} from './types';
-import getWindowHeightAdjustment from '@libs/getWindowHeightAdjustment';
 
 const WindowDimensionsContext = createContext<WindowDimensionsContextData | null>(null);
 const windowDimensionsPropTypes = {
@@ -80,7 +80,9 @@ function WindowDimensionsProvider(props: ChildrenProps) {
 
 WindowDimensionsProvider.displayName = 'WindowDimensionsProvider';
 
-export default function withWindowDimensions<TProps extends WindowDimensionsProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+export default function withWindowDimensions<TProps extends WindowDimensionsProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): (props: Omit<TProps, keyof WindowDimensionsProps> & React.RefAttributes<TRef>) => React.ReactElement | null {
     function WithWindowDimensions(props: Omit<TProps, keyof WindowDimensionsProps>, ref: ForwardedRef<TRef>) {
         return (
             <WindowDimensionsContext.Consumer>

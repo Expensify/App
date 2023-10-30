@@ -3,18 +3,18 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react'
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import styles from '../../styles/styles';
-import * as Modal from '../../libs/actions/Modal';
-import * as StyleUtils from '../../styles/StyleUtils';
-import themeColors from '../../styles/themes/default';
-import getModalStyles from '../../styles/getModalStyles';
+import CONST from '../../CONST';
+import usePrevious from '../../hooks/usePrevious';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import variables from '../../styles/variables';
+import * as Modal from '../../libs/actions/Modal';
 import ComposerFocusManager from '../../libs/ComposerFocusManager';
 import useNativeDriver from '../../libs/useNativeDriver';
-import usePrevious from '../../hooks/usePrevious';
+import getModalStyles from '../../styles/getModalStyles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
+import themeColors from '../../styles/themes/default';
+import variables from '../../styles/variables';
 import BaseModalProps from './types';
-import CONST from '../../CONST';
 
 function BaseModal(
     {
