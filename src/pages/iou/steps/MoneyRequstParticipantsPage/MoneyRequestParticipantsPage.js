@@ -1,25 +1,25 @@
 import lodashGet from 'lodash/get';
+import lodashSize from 'lodash/size';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashSize from 'lodash/size';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import compose from '@libs/compose';
+import transactionPropTypes from '@components/transactionPropTypes';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import transactionPropTypes from '@components/transactionPropTypes';
 import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
 
 const propTypes = {
