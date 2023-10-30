@@ -11,6 +11,7 @@ import Icon from '@components/Icon';
 import {Info} from '@components/Icon/Expensicons';
 import OptionsList from '@components/OptionsList';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
