@@ -1,23 +1,23 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
-import Text from '../../components/Text';
-import Button from '../../components/Button';
-import * as Session from '../../libs/actions/Session';
+import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
-import CONST from '../../CONST';
-import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import useLocalize from '../../hooks/useLocalize';
-import useNetwork from '../../hooks/useNetwork';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import FormHelpMessage from '../../components/FormHelpMessage';
 
 const propTypes = {
     /* Onyx Props */

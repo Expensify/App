@@ -1,10 +1,10 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import Lottie from './Lottie';
-import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import React from 'react';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 import HeaderPageLayout from './HeaderPageLayout';
+import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
+import Lottie from './Lottie';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
