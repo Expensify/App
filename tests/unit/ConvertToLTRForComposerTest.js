@@ -1,4 +1,3 @@
-import {platform} from 'os';
 import convertToLTRForComposer from '../../src/libs/convertToLTRForComposer';
 import CONST from '../../src/CONST';
 
@@ -14,22 +13,14 @@ describe('convertToLTRForComposer', () => {
         // Test when input contains RTL characters
         const inputText = 'مثال';
         const result = convertToLTRForComposer(inputText);
-        if (platform === 'android') {
-            expect(result).toBe(inputText);
-        } else {
-            expect(result).toBe(`${CONST.UNICODE.LTR}${inputText}`);
-        }
+        expect(result).toBe(`${CONST.UNICODE.LTR}${inputText}`);
     });
 
     test('Input with mixed RTL and LTR characters is prefixed with LTR marker', () => {
         // Test when input contains mix of RTL and LTR characters
         const inputText = 'مثال test ';
         const result = convertToLTRForComposer(inputText);
-        if (platform === 'android') {
-            expect(result).toBe(inputText);
-        } else {
-            expect(result).toBe(`${CONST.UNICODE.LTR}${inputText}`);
-        }
+        expect(result).toBe(`${CONST.UNICODE.LTR}${inputText}`);
     });
 
     test('Input with only space remains unchanged', () => {
