@@ -136,7 +136,7 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
         },
     ];
 
-    const parameters: Required<PersonalDetails> = {
+    const requestParams: Required<PersonalDetails> = {
         legalFirstName: firstName,
         legalLastName: lastName,
         dob,
@@ -148,7 +148,7 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
         phoneNumber,
     };
 
-    API.write('UpdatePersonalDetailsForWallet', parameters, {
+    API.write('UpdatePersonalDetailsForWallet', requestParams, {
         optimisticData,
         successData,
         failureData,
@@ -336,12 +336,12 @@ function answerQuestionsForWallet(answers: unknown[], idNumber: string) {
         idNumber: string;
     };
 
-    const parameters: AnswerQuestionsForWallet = {
+    const requestParams: AnswerQuestionsForWallet = {
         idologyAnswers,
         idNumber,
     };
 
-    API.write('AnswerQuestionsForWallet', parameters, {
+    API.write('AnswerQuestionsForWallet', requestParams, {
         optimisticData,
         successData,
         failureData,
