@@ -1,5 +1,5 @@
 import React from 'react';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

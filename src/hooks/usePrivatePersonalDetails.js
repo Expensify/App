@@ -1,7 +1,7 @@
-import {useEffect, useContext} from 'react';
+import {useContext, useEffect} from 'react';
 import _ from 'underscore';
-import * as PersonalDetails from '../libs/actions/PersonalDetails';
-import {NetworkContext} from '../components/OnyxProvider';
+import {NetworkContext} from '@components/OnyxProvider';
+import * as PersonalDetails from '@userActions/PersonalDetails';
 
 /**
  * Hook for fetching private personal details

@@ -5,6 +5,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
+    paths: ['**.js', '**.ts', '**.tsx', '**.sh', 'package.json', 'package-lock.json']
 
 jobs:
   jest:

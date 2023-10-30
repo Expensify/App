@@ -1,3 +1,3 @@
-import styles from '../styles';
+import styles from '@styles/styles';
 
 export default () => [styles.popoverMenuItem];

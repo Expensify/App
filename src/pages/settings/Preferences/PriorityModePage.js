@@ -1,18 +1,18 @@
-import _, {compose} from 'underscore';
+import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import ONYXKEYS from '../../../ONYXKEYS';
-import * as User from '../../../libs/actions/User';
-import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import SelectionList from '../../../components/SelectionList';
+import _, {compose} from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The chat priority mode */

@@ -1,8 +1,8 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import styles from '@styles/styles';
 import refPropTypes from './refPropTypes';
 
 const toggleVisibilityViewPropTypes = {

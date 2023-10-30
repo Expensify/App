@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
 import * as IOUUtils from '../../src/libs/IOUUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
+import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import currencyList from './currencyList.json';
-import * as TransactionUtils from '../../src/libs/TransactionUtils';
 
 function initCurrencyList() {
     Onyx.init({

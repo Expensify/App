@@ -1,12 +1,11 @@
 import Onyx, {OnyxCollection} from 'react-native-onyx';
-import {format, isValid} from 'date-fns';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import DateUtils from './DateUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
+import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isExpensifyCard} from './CardUtils';
+import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
-import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
-import {Receipt, Comment, WaypointCollection, Waypoint} from '../types/onyx/Transaction';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
 
@@ -310,12 +309,8 @@ function getTag(transaction: Transaction): string {
  */
 function getCreated(transaction: Transaction, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
-    const createdDate = new Date(created);
-    if (isValid(createdDate)) {
-        return format(createdDate, dateFormat);
-    }
 
-    return '';
+    return DateUtils.formatWithUTCTimeZone(created, dateFormat);
 }
 
 function isDistanceRequest(transaction: Transaction): boolean {

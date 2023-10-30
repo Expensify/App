@@ -1,11 +1,11 @@
-import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../../ONYXKEYS';
-import asyncOpenURL from '../asyncOpenURL';
-import * as API from '../API';
-import * as Environment from '../Environment/Environment';
-import * as Url from '../Url';
+import * as API from '@libs/API';
+import asyncOpenURL from '@libs/asyncOpenURL';
+import * as Environment from '@libs/Environment/Environment';
+import * as Url from '@libs/Url';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 let isNetworkOffline = false;
 Onyx.connect({
