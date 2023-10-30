@@ -1,5 +1,4 @@
 import Account from './Account';
-import UserLocation from './UserLocation';
 import AccountData from './AccountData';
 import BankAccount from './BankAccount';
 import Beta from './Beta';
@@ -43,6 +42,7 @@ import Session from './Session';
 import Task from './Task';
 import Transaction from './Transaction';
 import User from './User';
+import UserLocation from './UserLocation';
 import UserWallet from './UserWallet';
 import WalletAdditionalDetails from './WalletAdditionalDetails';
 import WalletOnfido from './WalletOnfido';
