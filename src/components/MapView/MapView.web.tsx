@@ -2,37 +2,51 @@
 // This is why we have separate components for web and native to handle the specific implementations.
 // For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
 // we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
-import {View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
-import Map, {MapRef, Marker} from 'react-map-gl';
 import mapboxgl from 'mapbox-gl';
-import PendingMapView from '../MapView/PendingMapView';
-import Onyx, { OnyxEntry, withOnyx } from 'react-native-onyx';
-import responder from './responder';
-import utils from './utils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import * as OnyxTypes from '@src/types/onyx';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
+import Map, {MapRef, Marker} from 'react-map-gl';
+import {View} from 'react-native';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
+import setUserLocation from '@userActions/UserLocation';
+import CONST from '@src/CONST';
+import useLocalize from '@src/hooks/useLocalize';
+import useNetwork from '@src/hooks/useNetwork';
+import getCurrentPosition from '@src/libs/getCurrentPosition';
+import ONYXKEYS from '@src/ONYXKEYS';
+import styles from '@src/styles/styles';
+import * as OnyxTypes from '@src/types/onyx';
 import Direction from './Direction';
 import {MapViewHandle, MapViewProps} from './MapViewTypes';
-import getCurrentPosition from '@src/libs/getCurrentPosition';
-import useNetwork from '@src/hooks/useNetwork';
-import useLocalize from '@src/hooks/useLocalize';
-import styles from '@src/styles/styles';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import PendingMapView from './PendingMapView';
+import responder from './responder';
+import utils from './utils';
 
 type MapViewOnyxProps = {
     userLocation: OnyxEntry<OnyxTypes.UserLocation>;
-}
+};
 
-type ComponentProps = MapViewProps & MapViewOnyxProps
+type ComponentProps = MapViewProps & MapViewOnyxProps;
 
 const MapView = forwardRef<MapViewHandle, ComponentProps>(
-    ({style, styleURL, waypoints, mapPadding, accessToken, userLocation: cachedUserLocation, directionCoordinates, initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM}}, ref) => {
+    (
+        {
+            style,
+            styleURL,
+            waypoints,
+            mapPadding,
+            accessToken,
+            userLocation: cachedUserLocation,
+            directionCoordinates,
+            initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
+        },
+        ref,
+    ) => {
         const {isOffline} = useNetwork();
+        // @ts-ignore - useLocalize not migrated to TypeScript yet
         const {translate} = useLocalize();
 
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
@@ -42,15 +56,24 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
         useFocusEffect(
             useCallback(() => {
-                getCurrentPosition((params) => {
-                    setCurrentPosition({longitude: params.coords.longitude, latitude: params.coords.latitude})
-                    Onyx.merge(ONYXKEYS.USER_LOCATION, { longitude: params.coords.longitude, latitude: params.coords.latitude})
-                },
-                () => {
-                    setCurrentPosition({ longitude: initialState.location[0], latitude: initialState.location[1] })
-                })
-            }, [])
-        )
+                getCurrentPosition(
+                    (params) => {
+                        const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
+                        setCurrentPosition(currentCoords);
+                        setUserLocation(currentCoords);
+                    },
+                    () => {
+                        setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
+                    },
+                );
+            }, [initialState.location]),
+        );
+
+        // Determines if map can be panned to user's detected
+        // location without bothering the user. It will return
+        // false if user has already started dragging the map or
+        // if there are one or more waypoints present.
+        const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
 
         useEffect(() => {
             if (!currentPosition || !mapRef) {
@@ -65,13 +88,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 center: [currentPosition.longitude, currentPosition.latitude],
                 zoom: CONST.MAPBOX.DEFAULT_ZOOM,
             });
-        }, [currentPosition, userInteractedWithMap, mapRef])
-
-        // Determines if map can be panned to user's detected
-        // location without bothering the user. It will return
-        // false if user has already started dragging the map or
-        // if there are one or more waypoints present.
-        const shouldPanMapToCurrentPosition = () => !userInteractedWithMap && (!waypoints || waypoints.length === 0)
+        }, [currentPosition, userInteractedWithMap, mapRef, shouldPanMapToCurrentPosition]);
 
         useEffect(() => {
             if (!waypoints || waypoints.length === 0) {
@@ -133,6 +150,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 {!isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
                     <View
                         style={style}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...responder.panHandlers}
                     >
                         <Map
@@ -175,8 +193,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
     },
 );
 
-export default withOnyx<ComponentProps,MapViewOnyxProps >({
+export default withOnyx<ComponentProps, MapViewOnyxProps>({
     userLocation: {
         key: ONYXKEYS.USER_LOCATION,
-    }
-})(MapView)
+    },
+})(MapView);
