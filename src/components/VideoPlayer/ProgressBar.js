@@ -11,12 +11,14 @@ const propTypes = {
     position: PropTypes.number.isRequired,
 
     seekPosition: PropTypes.func.isRequired,
+
+    togglePlayCurrentVideo: PropTypes.func.isRequired,
 };
 
 const defaultProps = {};
 
-function ProgressBar({duration, position, seekPosition}) {
-    const {pauseVideo, playVideo} = usePlaybackContext();
+function ProgressBar({togglePlayCurrentVideo, duration, position, seekPosition}) {
+    const {pauseVideo} = usePlaybackContext();
     const [sliderWidth, setSliderWidth] = useState(1);
     const progressWidth = useSharedValue(0);
 
@@ -26,7 +28,6 @@ function ProgressBar({duration, position, seekPosition}) {
 
     const pan = Gesture.Pan()
         .onBegin(() => {
-            console.log('onStart');
             pauseVideo();
         })
         .onChange((event) => {
@@ -34,8 +35,7 @@ function ProgressBar({duration, position, seekPosition}) {
             runOnJS(seekPosition)((event.x / sliderWidth) * duration);
         })
         .onEnd(() => {
-            console.log('onEnd');
-            playVideo();
+            togglePlayCurrentVideo();
         });
 
     useEffect(() => {

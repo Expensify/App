@@ -27,6 +27,11 @@ function PlaybackContextProvider({children}) {
         currentVideoPlayerRef.current.setStatusAsync({shouldPlay: true});
     }, [currentVideoPlayerRef]);
 
+    const togglePlay = useCallback(() => {
+        currentVideoPlayerRef.current.setStatusAsync({shouldPlay: !isPlaying});
+        setIsPlaying(!isPlaying);
+    }, [currentVideoPlayerRef, isPlaying]);
+
     const updateCurrentlyPlayingURL = useCallback(
         (url) => {
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
@@ -50,22 +55,6 @@ function PlaybackContextProvider({children}) {
         setSharedElement(child);
     }, []);
 
-    const togglePlay = useCallback(() => {
-        currentVideoPlayerRef.current.setStatusAsync({shouldPlay: !isPlaying});
-        setIsPlaying(!isPlaying);
-    }, [currentVideoPlayerRef, isPlaying]);
-
-    const enterFullScreenMode = useCallback(() => {
-        currentVideoPlayerRef.current.presentFullscreenPlayer();
-    }, [currentVideoPlayerRef]);
-
-    const seekPosition = useCallback(
-        (newPosition) => {
-            currentVideoPlayerRef.current.setStatusAsync({positionMillis: newPosition});
-        },
-        [currentVideoPlayerRef],
-    );
-
     const updatePlaybackSpeed = useCallback((newPlaybackSpeed) => {
         currentVideoPlayerRef.current.setStatusAsync({rate: newPlaybackSpeed});
         setCurrentPlaybackSpeed(newPlaybackSpeed);
@@ -80,10 +69,8 @@ function PlaybackContextProvider({children}) {
             updateSharedElements,
             togglePlay,
             isPlaying,
-            enterFullScreenMode,
             currentVideoPlayerRef,
             updateCurrentVideoPlayerRef,
-            seekPosition,
             playVideo,
             pauseVideo,
             playbackSpeeds,
@@ -99,9 +86,7 @@ function PlaybackContextProvider({children}) {
             updateSharedElements,
             togglePlay,
             isPlaying,
-            enterFullScreenMode,
             updateCurrentVideoPlayerRef,
-            seekPosition,
             playVideo,
             pauseVideo,
             playbackSpeeds,

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Text, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,17 +17,41 @@ const propTypes = {
     position: PropTypes.number.isRequired,
 
     url: PropTypes.string.isRequired,
+
+    // eslint-disable-next-line react/forbid-prop-types
+    videoPlayerRef: PropTypes.object.isRequired,
 };
 
 const defaultProps = {};
 
-function VideoPlayerControls({duration, position, url}) {
-    const {togglePlay, isPlaying, seekPosition, enterFullScreenMode, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
+function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
+    const {togglePlay, isPlaying, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {showPopover} = useVideoPopoverMenuContext();
     const [durationFormatted, setDurationFormatted] = useState('0:00');
 
     const isCurrentlySet = currentlyPlayingURL === url;
     const isCurrentlyPlaying = isCurrentlySet && isPlaying;
+
+    const togglePlayCurrentVideo = useCallback(() => {
+        if (!isCurrentlySet) {
+            updateCurrentlyPlayingURL(url);
+        } else {
+            togglePlay();
+        }
+    }, [isCurrentlySet, togglePlay, updateCurrentlyPlayingURL, url]);
+
+    const enterFullScreenMode = useCallback(() => {
+        console.log('XXX');
+        updateCurrentlyPlayingURL(url);
+        videoPlayerRef.current.presentFullscreenPlayer();
+    }, [updateCurrentlyPlayingURL, url, videoPlayerRef]);
+
+    const seekPosition = useCallback(
+        (newPosition) => {
+            videoPlayerRef.current.setStatusAsync({positionMillis: newPosition});
+        },
+        [videoPlayerRef],
+    );
 
     useEffect(() => {
         setDurationFormatted(convertMillisecondsToTime(duration));
@@ -56,13 +80,7 @@ function VideoPlayerControls({duration, position, url}) {
                         src={isCurrentlyPlaying ? Expensicons.Pause : Expensicons.Play}
                         fill="white"
                         accessibilityLabel="play/pause"
-                        onPress={() => {
-                            if (!isCurrentlySet) {
-                                updateCurrentlyPlayingURL(url);
-                            } else {
-                                togglePlay();
-                            }
-                        }}
+                        onPress={togglePlayCurrentVideo}
                     />
                     <Text style={{color: 'white', width: 35, textAlign: 'center'}}>{convertMillisecondsToTime(position)}</Text>
                     <Text style={{color: 'white'}}>/</Text>
@@ -90,6 +108,7 @@ function VideoPlayerControls({duration, position, url}) {
                     duration={duration}
                     position={position}
                     seekPosition={seekPosition}
+                    togglePlayCurrentVideo={togglePlayCurrentVideo}
                 />
             </View>
         </Animated.View>

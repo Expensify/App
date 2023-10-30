@@ -43,15 +43,16 @@ const defaultProps = {
 function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, updateCurrentVideoPlayerRef, currentVideoPlayerRef, updateIsPlaying} = usePlaybackContext();
-    const [isVideoLoading, setIsVideoLoading] = useState(true);
+    const [duration, setDuration] = useState(0);
+    const [position, setPosition] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
     const videoPlayerRef = useRef(null);
     const videoPlayerElementParentRef = useRef(null);
     const videoPlayerElementRef = useRef(null);
     const sharedVideoPlayerParentRef = useRef(null);
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(url);
 
-    const [duration, setDuration] = useState(0);
-    const [position, setPosition] = useState(0);
+    console.log('X');
 
     const onReadyForDisplay = useCallback(
         (e) => {
@@ -63,7 +64,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const onPlaybackStatusUpdate = useCallback(
         (e) => {
             updateIsPlaying(e.isPlaying);
-            setIsVideoLoading(Number.isNaN(e.durationMillis));
+            setIsLoading(Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
             setDuration(e.durationMillis || 0);
             setPosition(e.positionMillis || 0);
         },
@@ -95,6 +96,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
         }
 
         const newParentRef = sharedVideoPlayerParentRef.current;
+        videoPlayerRef.current = currentVideoPlayerRef.current;
         if (currentlyPlayingURL === url) {
             newParentRef.appendChild(sharedElement);
             bindFunctions();
@@ -146,13 +148,16 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                 </View>
             )}
 
-            {isVideoLoading && <FullScreenLoadingIndicator />}
+            {isLoading && <FullScreenLoadingIndicator />}
 
-            <VideoPlayerControls
-                duration={duration}
-                position={position}
-                url={url}
-            />
+            {!isLoading && (
+                <VideoPlayerControls
+                    duration={duration}
+                    position={position}
+                    url={url}
+                    videoPlayerRef={videoPlayerRef}
+                />
+            )}
         </View>
     );
 }
