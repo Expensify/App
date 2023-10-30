@@ -90,7 +90,7 @@ test('should scroll and click some of the items', () => {
                 },
                 contentSize: {
                     // Dimensions of the scrollable content
-                    height: variables.optionRowHeight * 40,
+                    height: variables.optionRowHeight * 500,
                     width: 100,
                 },
                 layoutMeasurement: {
