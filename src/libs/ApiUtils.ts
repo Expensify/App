@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
-import CONFIG from '../CONFIG';
-import CONST from '../CONST';
-import * as Environment from './Environment/Environment';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {Request} from '@src/types/onyx';
 import proxyConfig from '../../config/proxyConfig';
-import {Request} from '../types/onyx';
+import * as Environment from './Environment/Environment';
 
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
