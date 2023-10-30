@@ -1,13 +1,13 @@
 import Onyx from 'react-native-onyx';
-import * as PersistedRequests from '../actions/PersistedRequests';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
+import * as Request from '@libs/Request';
+import * as RequestThrottle from '@libs/RequestThrottle';
+import * as PersistedRequests from '@userActions/PersistedRequests';
+import * as QueuedOnyxUpdates from '@userActions/QueuedOnyxUpdates';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import OnyxRequest from '@src/types/onyx/Request';
 import * as NetworkStore from './NetworkStore';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as ActiveClientManager from '../ActiveClientManager';
-import * as Request from '../Request';
-import * as RequestThrottle from '../RequestThrottle';
-import CONST from '../../CONST';
-import * as QueuedOnyxUpdates from '../actions/QueuedOnyxUpdates';
-import OnyxRequest from '../../types/onyx/Request';
 
 let resolveIsReadyPromise: ((args?: unknown[]) => void) | undefined;
 let isReadyPromise = new Promise((resolve) => {

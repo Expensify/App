@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import stylePropType from '../../../styles/stylePropTypes';
-import CONST from '../../../CONST';
+import stylePropType from '@styles/stylePropTypes';
+import CONST from '@src/CONST';
 
 const stylePropTypeWithFunction = PropTypes.oneOfType([stylePropType, PropTypes.func]);
 

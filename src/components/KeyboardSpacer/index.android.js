@@ -3,9 +3,9 @@
  * view up with the keyboard allowing the user to see what they are typing.
  */
 import React from 'react';
-import StatusBar from '../../libs/StatusBar';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import StatusBar from '@libs/StatusBar';
 import BaseKeyboardSpacer from './BaseKeyboardSpacer';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 function KeyboardSpacer() {
     return (
