@@ -63,7 +63,8 @@ function setHTMLSync(html, text) {
     if (isComposer) {
         firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
     } else if (originalSelection.anchorNode && originalSelection.focusNode) {
-        // We are adding a check for anchorNode and focusNode to prevent null values from being passed to setBaseAndExtent as per recent changes in Safari
+        // When copying to clipboard here, since there will be no user selection the original values of anchorNode and focusNode will be null
+        // We are adding a check to prevent null values from being passed to setBaseAndExtent as per the standards of the Selection api https://w3c.github.io/selection-api/#dom-selection-setbaseandextent
         selection.setBaseAndExtent(originalSelection.anchorNode, originalSelection.anchorOffset, originalSelection.focusNode, originalSelection.focusOffset);
     }
 
