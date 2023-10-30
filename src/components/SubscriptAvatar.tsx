@@ -1,11 +1,11 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
+import type {AvatarSource} from '@libs/UserUtils';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
-import type {AvatarSource} from '@libs/UserUtils';
 import Avatar from './Avatar';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
@@ -14,7 +14,7 @@ type SubAvatar = {
     source: AvatarSource;
 
     /** Denotes whether it is an avatar or a workspace avatar */
-    type: typeof CONST.ICON_TYPE_AVATAR  ;
+    type: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name: string;
