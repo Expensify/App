@@ -151,7 +151,7 @@ function subscribe(
         captureOnInputs,
         shouldPreventDefault,
         shouldBubble,
-        excludedNodes,
+        excludedNodes: [...excludedNodes],
     });
 
     if (descriptionKey) {
