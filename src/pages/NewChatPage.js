@@ -8,8 +8,10 @@ import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import OfflineIndicator from '@components/OfflineIndicator';
 import useDelayedInputFocus from '@hooks/useDelayedInputFocus';
 import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -22,8 +24,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
-import OfflineIndicator from '../components/OfflineIndicator';
-import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Beta features list */
