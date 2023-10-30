@@ -1,11 +1,11 @@
-import {measureFunction} from 'reassure';
 import Onyx from 'react-native-onyx';
+import {measureFunction} from 'reassure';
 import _ from 'underscore';
 import CONST from '../../src/CONST';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
+import ONYXKEYS from '../../src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.setTimeout(60000);
 
@@ -23,7 +23,7 @@ afterEach(() => {
 });
 
 const getMockedReportActionsMap = (reportsLength = 10, actionsPerReportLength = 100) => {
-    const mockReportActions = Array.from({length: actionsPerReportLength}, (__, i) => {
+    const mockReportActions = Array.from({length: actionsPerReportLength}, (_, i) => {
         const reportActionKey = i + 1;
         const email = `actor+${reportActionKey}@mail.com`;
         const reportAction = LHNTestUtils.getFakeReportAction(email);
