@@ -1,5 +1,6 @@
 import {format, isValid} from 'date-fns';
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
@@ -7,7 +8,6 @@ import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Tr
 import {isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
-import {ValueOf} from 'type-fest';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
 
