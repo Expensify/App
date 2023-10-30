@@ -14,6 +14,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
+import convertToLTR from '@libs/convertToLTR';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
@@ -524,6 +525,12 @@ function ComposerWithSuggestions({
         }),
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (value === '') {
+            setValue(convertToLTR(value));
+        }
+    }, [value]);
 
     return (
         <>
