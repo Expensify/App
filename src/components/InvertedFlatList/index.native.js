@@ -1,5 +1,5 @@
 import React, {forwardRef} from 'react';
-import styles from '../../styles/styles';
+import styles from '@styles/styles';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import CellRendererComponent from './CellRendererComponent';
 

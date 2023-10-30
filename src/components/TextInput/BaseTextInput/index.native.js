@@ -10,6 +10,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import RNTextInput from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
+import * as styleConst from '@components/TextInput/styleConst';
+import TextInputLabel from '@components/TextInput/TextInputLabel';
 import withLocalize from '@components/withLocalize';
 import getSecureEntryKeyboardType from '@libs/getSecureEntryKeyboardType';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
@@ -19,8 +21,6 @@ import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import * as styleConst from '../styleConst';
-import TextInputLabel from '../TextInputLabel';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 
 function BaseTextInput(props) {
