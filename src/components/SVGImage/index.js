@@ -1,6 +1,6 @@
 import React from 'react';
 import {Image} from 'react-native';
-import * as StyleUtils from '../../styles/StyleUtils';
+import * as StyleUtils from '@styles/StyleUtils';
 import propTypes from './propTypes';
 
 function SVGImage(props) {
