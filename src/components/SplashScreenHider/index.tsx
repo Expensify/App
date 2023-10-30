@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import BootSplash from '../../libs/BootSplash';
+import BootSplash from '@libs/BootSplash';
 import type SplashScreenHiderProps from './types';
 
 function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps) {

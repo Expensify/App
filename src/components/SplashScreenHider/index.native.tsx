@@ -1,9 +1,9 @@
 import {useCallback, useRef} from 'react';
 import {StyleSheet, ViewStyle} from 'react-native';
-import Reanimated, {useSharedValue, withTiming, Easing, useAnimatedStyle, runOnJS} from 'react-native-reanimated';
-import BootSplash from '../../libs/BootSplash';
-import Logo from '../../../assets/images/new-expensify-dark.svg';
-import styles from '../../styles/styles';
+import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Logo from '@assets/images/new-expensify-dark.svg';
+import BootSplash from '@libs/BootSplash';
+import styles from '@styles/styles';
 import type SplashScreenHiderProps from './types';
 
 function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps) {
