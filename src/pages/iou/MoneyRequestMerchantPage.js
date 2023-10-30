@@ -118,7 +118,7 @@ function MoneyRequestMerchantPage({iou, route}) {
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={(el) => inputRef.current = el}
+                        ref={(el) => (inputRef.current = el)}
                     />
                 </View>
             </FormProvider>
