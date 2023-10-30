@@ -1,16 +1,16 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import * as Expensicons from '../Icon/Expensicons';
-import Icon from '../Icon';
-import Tooltip from '../Tooltip';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
-import getButtonState from '../../libs/getButtonState';
-import * as StyleUtils from '../../styles/StyleUtils';
+import React from 'react';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import refPropTypes from '@components/refPropTypes';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import useThrottledButtonState from '@hooks/useThrottledButtonState';
+import getButtonState from '@libs/getButtonState';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import variables from '@styles/variables';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
-import useThrottledButtonState from '../../hooks/useThrottledButtonState';
-import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Ref passed to the component by React.forwardRef (do not pass from parent) */

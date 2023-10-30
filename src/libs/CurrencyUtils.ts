@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS, {OnyxValues} from '../ONYXKEYS';
-import CONST from '../CONST';
-import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
+import CONST from '@src/CONST';
+import ONYXKEYS, {OnyxValues} from '@src/ONYXKEYS';
 import * as Localize from './Localize';
+import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};

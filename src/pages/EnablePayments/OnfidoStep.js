@@ -1,18 +1,18 @@
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import Onfido from '../../components/Onfido';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import Navigation from '../../libs/Navigation/Navigation';
-import CONST from '../../CONST';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import * as Wallet from '../../libs/actions/Wallet';
-import useLocalize from '../../hooks/useLocalize';
-import Growl from '../../libs/Growl';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Onfido from '@components/Onfido';
+import useLocalize from '@hooks/useLocalize';
+import Growl from '@libs/Growl';
+import Navigation from '@libs/Navigation/Navigation';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as Wallet from '@userActions/Wallet';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import OnfidoPrivacy from './OnfidoPrivacy';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
-import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
-import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
