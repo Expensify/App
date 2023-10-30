@@ -1,8 +1,8 @@
-import Config from 'react-native-config';
 import lodashGet from 'lodash/get';
-import CONST from '../../CONST';
+import Config from 'react-native-config';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import getEnvironment from './getEnvironment';
-import CONFIG from '../../CONFIG';
 
 const ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.DEV]: CONST.DEV_NEW_EXPENSIFY_URL + CONFIG.DEV_PORT,

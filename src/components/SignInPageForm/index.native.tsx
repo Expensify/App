@@ -1,5 +1,5 @@
 import React from 'react';
-import FormElement from '../FormElement';
+import FormElement from '@components/FormElement';
 import SignInPageFormProps from './types';
 
 function SignInPageForm(props: SignInPageFormProps) {

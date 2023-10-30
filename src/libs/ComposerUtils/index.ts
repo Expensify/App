@@ -1,6 +1,6 @@
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getNumberOfLines from './getNumberOfLines';
 import updateNumberOfLines from './updateNumberOfLines';
-import * as DeviceCapabilities from '../DeviceCapabilities';
 
 type Selection = {
     start: number;
