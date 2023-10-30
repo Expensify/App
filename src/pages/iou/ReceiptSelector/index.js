@@ -84,30 +84,30 @@ function ReceiptSelector({route, transactionID, iou, report}) {
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(true);
     const cameraRef = useRef(null);
-    const [videoConstraints, setVideoConstraints] = useState({facingMode: {exact: 'environment'}});
+    const [videoConstraints, setVideoConstraints] = useState(null);
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
      * The last deviceId is of regular len camera.
      */
     useEffect(() => {
-        navigator.mediaDevices.getUserMedia({audio: true, video: true}).then(() => {
-            if (!navigator.mediaDevices.enumerateDevices) {
+        if (!navigator.mediaDevices.enumerateDevices) {
+            setVideoConstraints({facingMode: {exact: 'environment'}});
+            return;
+        }
+
+        navigator.mediaDevices.enumerateDevices().then((devices) => {
+            const lastBackDeviceId = _.chain(devices)
+                .filter((item) => item.label && item.label.endsWith('facing back'))
+                .last()
+                .get('deviceId', '')
+                .value();
+
+            if (!lastBackDeviceId) {
+                setVideoConstraints({facingMode: {exact: 'environment'}});
                 return;
             }
-
-            navigator.mediaDevices.enumerateDevices().then((devices) => {
-                const lastBackDeviceId = _.chain(devices)
-                    .reverse()
-                    .find((item) => item.label && item.label.endsWith('facing back'))
-                    .get('deviceId', '')
-                    .value();
-
-                if (!lastBackDeviceId) {
-                    return;
-                }
-                setVideoConstraints({deviceId: lastBackDeviceId});
-            });
+            setVideoConstraints({deviceId: lastBackDeviceId});
         });
     }, []);
 
@@ -217,17 +217,19 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                         <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
                     </View>
                 )}
-                <NavigationAwareCamera
-                    onUserMedia={() => setCameraPermissionState('granted')}
-                    onUserMediaError={() => setCameraPermissionState('denied')}
-                    style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
-                    ref={cameraRef}
-                    screenshotFormat="image/png"
-                    videoConstraints={videoConstraints}
-                    torchOn={isFlashLightOn}
-                    onTorchAvailability={setIsTorchAvailable}
-                    forceScreenshotSourceSize
-                />
+                {videoConstraints && (
+                    <NavigationAwareCamera
+                        onUserMedia={() => setCameraPermissionState('granted')}
+                        onUserMediaError={() => setCameraPermissionState('denied')}
+                        style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
+                        ref={cameraRef}
+                        screenshotFormat="image/png"
+                        videoConstraints={videoConstraints}
+                        torchOn={isFlashLightOn}
+                        onTorchAvailability={setIsTorchAvailable}
+                        forceScreenshotSourceSize
+                    />
+                )}
             </View>
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
