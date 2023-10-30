@@ -98,7 +98,7 @@ function LoginForm(props) {
     const [login, setLogin] = useState(() => Str.removeSMSDomain(props.credentials.login || ''));
     const [formError, setFormError] = useState(false);
     const prevIsVisible = usePrevious(props.isVisible);
-    const firstBlurred = useRef(!canFocusInputOnScreenFocus());
+    const firstBlurred = useRef(false);
 
     const {translate} = props;
 
@@ -172,6 +172,12 @@ function LoginForm(props) {
         // If account was closed and have success message in Onyx, we clear it here
         if (!_.isEmpty(props.closeAccount.success)) {
             CloseAccount.setDefaultData();
+        }
+
+        // For native, the single input doesn't lost focus when we click outside.
+        // So we need to change firstBlurred here to make the validate function is called whenever the text input is changed after the first validation.
+        if (!firstBlurred.current) {
+            firstBlurred.current = true;
         }
 
         if (!validate(login)) {
