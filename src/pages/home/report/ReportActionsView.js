@@ -1,26 +1,26 @@
-import React, {useRef, useEffect, useContext, useMemo} from 'react';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import {useIsFocused} from '@react-navigation/native';
-import * as Report from '../../../libs/actions/Report';
-import reportActionPropTypes from './reportActionPropTypes';
-import Timing from '../../../libs/actions/Timing';
-import CONST from '../../../CONST';
-import compose from '../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import useCopySelectionHelper from '../../../hooks/useCopySelectionHelper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Performance from '../../../libs/Performance';
-import {withNetwork} from '../../../components/OnyxProvider';
-import networkPropTypes from '../../../components/networkPropTypes';
-import ReportActionsList from './ReportActionsList';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import reportPropTypes from '../../reportPropTypes';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import _ from 'underscore';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useInitialValue from '@hooks/useInitialValue';
+import compose from '@libs/compose';
+import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import Performance from '@libs/Performance';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
-import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
-import {ReactionListContext} from '../ReportScreenContext';
-import useInitialValue from '../../../hooks/useInitialValue';
+import reportActionPropTypes from './reportActionPropTypes';
+import ReportActionsList from './ReportActionsList';
 
 const propTypes = {
     /** The report currently being looked at */

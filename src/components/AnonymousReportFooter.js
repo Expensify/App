@@ -1,13 +1,13 @@
-import React from 'react';
-import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
-import Button from './Button';
+import React from 'react';
+import {Text, View} from 'react-native';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as Session from '@userActions/Session';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
+import Button from './Button';
 import ExpensifyWordmark from './ExpensifyWordmark';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import reportPropTypes from '../pages/reportPropTypes';
-import styles from '../styles/styles';
-import * as Session from '../libs/actions/Session';
 
 const propTypes = {
     /** The report currently being looked at */

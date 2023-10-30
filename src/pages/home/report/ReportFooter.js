@@ -1,25 +1,25 @@
-import React, {memo, useCallback, useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {memo, useCallback, useEffect, useState} from 'react';
+import {Keyboard, View} from 'react-native';
 import Onyx from 'react-native-onyx';
-import {View, Keyboard} from 'react-native';
 import {isEqual} from 'underscore';
-import CONST from '../../../CONST';
+import AnonymousReportFooter from '@components/AnonymousReportFooter';
+import ArchivedReportFooter from '@components/ArchivedReportFooter';
+import OfflineIndicator from '@components/OfflineIndicator';
+import SwipeableView from '@components/SwipeableView';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useNetwork from '@hooks/useNetwork';
+import useReportScrollManager from '@hooks/useReportScrollManager';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
-import AnonymousReportFooter from '../../../components/AnonymousReportFooter';
-import SwipeableView from '../../../components/SwipeableView';
-import OfflineIndicator from '../../../components/OfflineIndicator';
-import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import useNetwork from '../../../hooks/useNetwork';
-import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
 import reportActionPropTypes from './reportActionPropTypes';
-import reportPropTypes from '../../reportPropTypes';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as Session from '../../../libs/actions/Session';
-import * as Report from '../../../libs/actions/Report';
-import useReportScrollManager from '../../../hooks/useReportScrollManager';
 
 const propTypes = {
     /** Report object for the current report */

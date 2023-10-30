@@ -1,45 +1,45 @@
-import React, {useRef, useState, useEffect, useMemo, useCallback, memo} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
-import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import lodashGet from 'lodash/get';
-import _, {isEqual} from 'underscore';
-import styles from '../../styles/styles';
-import ScreenWrapper from '../../components/ScreenWrapper';
+import PropTypes from 'prop-types';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import Banner from '@components/Banner';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import MoneyReportHeader from '@components/MoneyReportHeader';
+import MoneyRequestHeader from '@components/MoneyRequestHeader';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
+import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
+import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import Navigation from '@libs/Navigation/Navigation';
+import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import Visibility from '@libs/Visibility';
+import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as ComposerActions from '@userActions/Composer';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import HeaderView from './HeaderView';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import * as Report from '../../libs/actions/Report';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as ReportUtils from '../../libs/ReportUtils';
-import ReportActionsView from './report/ReportActionsView';
-import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
-import compose from '../../libs/compose';
-import Visibility from '../../libs/Visibility';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import useLocalize from '../../hooks/useLocalize';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
-import Banner from '../../components/Banner';
-import reportPropTypes from '../reportPropTypes';
-import reportMetadataPropTypes from '../reportMetadataPropTypes';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withViewportOffsetTop from '../../components/withViewportOffsetTop';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
-import MoneyRequestHeader from '../../components/MoneyRequestHeader';
-import MoneyReportHeader from '../../components/MoneyReportHeader';
-import * as ComposerActions from '../../libs/actions/Composer';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
-import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
-import DragAndDropProvider from '../../components/DragAndDrop/Provider';
-import usePrevious from '../../hooks/usePrevious';
-import CONST from '../../CONST';
-import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
-import reportWithoutHasDraftSelector from '../../libs/OnyxSelectors/reportWithoutHasDraftSelector';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -515,19 +515,19 @@ export default compose(
         ReportScreen,
         (prevProps, nextProps) =>
             prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
-            isEqual(prevProps.reportActions, nextProps.reportActions) &&
-            isEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
+            _.isEqual(prevProps.reportActions, nextProps.reportActions) &&
+            _.isEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
             prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
-            isEqual(prevProps.betas, nextProps.betas) &&
-            isEqual(prevProps.policies, nextProps.policies) &&
+            _.isEqual(prevProps.betas, nextProps.betas) &&
+            _.isEqual(prevProps.policies, nextProps.policies) &&
             prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
-            isEqual(prevProps.personalDetails, nextProps.personalDetails) &&
+            _.isEqual(prevProps.personalDetails, nextProps.personalDetails) &&
             prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
             prevProps.report.reportID === nextProps.report.reportID &&
             prevProps.report.policyID === nextProps.report.policyID &&
             prevProps.report.isOptimisticReport === nextProps.report.isOptimisticReport &&
             prevProps.report.statusNum === nextProps.report.statusNum &&
-            isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
+            _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
             prevProps.currentReportID === nextProps.currentReportID,
     ),
 );

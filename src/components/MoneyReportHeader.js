@@ -1,27 +1,27 @@
-import React, {useMemo} from 'react';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import useLocalize from '../hooks/useLocalize';
+import PropTypes from 'prop-types';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
+import nextStepPropTypes from '@pages/nextStepPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import iouReportPropTypes from '../pages/iouReportPropTypes';
-import * as ReportUtils from '../libs/ReportUtils';
-import styles from '../styles/styles';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import compose from '../libs/compose';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import SettlementButton from './SettlementButton';
-import Button from './Button';
-import * as IOU from '../libs/actions/IOU';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import reportPropTypes from '../pages/reportPropTypes';
-import nextStepPropTypes from '../pages/nextStepPropTypes';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     /** The report currently being looked at */

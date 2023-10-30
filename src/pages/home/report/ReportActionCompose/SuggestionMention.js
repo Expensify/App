@@ -1,16 +1,16 @@
-import React, {useState, useCallback, useRef, useImperativeHandle, useEffect} from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import Onyx from 'react-native-onyx';
-import CONST from '../../../../CONST';
-import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
-import MentionSuggestions from '../../../../components/MentionSuggestions';
-import * as UserUtils from '../../../../libs/UserUtils';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
-import useLocalize from '../../../../hooks/useLocalize';
-import usePrevious from '../../../../hooks/usePrevious';
-import ONYXKEYS from '../../../../ONYXKEYS';
+import _ from 'underscore';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MentionSuggestions from '@components/MentionSuggestions';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import * as SuggestionsUtils from '@libs/SuggestionUtils';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as SuggestionProps from './suggestionProps';
 
 /**
