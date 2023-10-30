@@ -1,4 +1,7 @@
-import {useFocusEffect} from '@react-navigation/native';
+import React, {useRef, useState, useEffect, useMemo, useCallback} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -37,8 +40,21 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import HeaderView from './HeaderView';
 import reportActionPropTypes from './report/reportActionPropTypes';
-import ReportActionsView from './report/ReportActionsView';
+import compose from '../../libs/compose';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
+import useLocalize from '../../hooks/useLocalize';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import ReportFooter from './report/ReportFooter';
+import Banner from '../../components/Banner';
+import reportPropTypes from '../reportPropTypes';
+import reportMetadataPropTypes from '../reportMetadataPropTypes';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import withViewportOffsetTop from '../../components/withViewportOffsetTop';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import personalDetailsPropType from '../personalDetailsPropType';
+import MoneyRequestHeader from '../../components/MoneyRequestHeader';
+import MoneyReportHeader from '../../components/MoneyReportHeader';
+import * as ComposerActions from '../../libs/actions/Composer';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 
 const propTypes = {
