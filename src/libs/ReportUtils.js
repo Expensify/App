@@ -515,6 +515,33 @@ function isExpensifyOnlyParticipantInReport(report) {
 }
 
 /**
+ * Checks if the policy that the report is on is owned by one of the special Expensify accounts
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function doExpensifyAccountsOwnPolicy(report) {
+    const policyID = lodashGet(report, 'policyID', '');
+    const policyOwnerAccountID = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'ownerAccountID'], 0);
+    return CONST.EXPENSIFY_ACCOUNT_IDS.includes(policyOwnerAccountID);
+}
+
+/**
+ * Returns whether a given report can have tasks created in it.
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function canCreateTaskInReport(report) {
+    // Tasks cannot be created in DMs with special Expensify accounts but they can be created in policy rooms that are owned by them.
+    // So we check if Expensify accounts are the only other participant and also whether or not we are in a room owned by them.
+    if (isExpensifyOnlyParticipantInReport(report) && !doExpensifyAccountsOwnPolicy(report)) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of accountIDs
  * by cross-referencing the accountIDs with personalDetails.
  *
@@ -3652,10 +3679,7 @@ function getMoneyRequestOptions(report, reportParticipants) {
 
     // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
     const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
-    const policyID = lodashGet(report, 'policyID', '');
-    const policyOwnerAccountID = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}.ownerAccountID`, 0);
-    const doExpensifyAccountsOwnPolicy = CONST.EXPENSIFY_ACCOUNT_IDS.includes(policyOwnerAccountID);
-    if (doParticipantsIncludeExpensifyAccounts && !doExpensifyAccountsOwnPolicy) {
+    if (doParticipantsIncludeExpensifyAccounts && !doExpensifyAccountsOwnPolicy(report)) {
         return [];
     }
 
@@ -4150,6 +4174,8 @@ export {
     getPolicyType,
     isArchivedRoom,
     isExpensifyOnlyParticipantInReport,
+    doExpensifyAccountsOwnPolicy,
+    canCreateTaskInReport,
     isPolicyExpenseChatAdmin,
     isPolicyAdmin,
     isPublicRoom,
