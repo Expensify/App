@@ -166,7 +166,7 @@ function WorkspaceNewRoomPage(props) {
             shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}
             shouldShowBackButton={false}
             linkKey="workspace.emptyWorkspace.title"
-            onLinkPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, false)}
+            onLinkPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}

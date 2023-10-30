@@ -92,7 +92,7 @@ function WorkspaceInitialPage(props) {
             return;
         }
 
-        App.savePolicyDraftByNewWorkspace(props.policyDraft.id, props.policyDraft.name, '', false);
+        App.savePolicyDraftByNewWorkspace(props.policyDraft.id, props.policyDraft.name, '', props.policyDraft.makeMeAdmin);
         // We only care when the component renders the first time
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
