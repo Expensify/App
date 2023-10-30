@@ -1,21 +1,21 @@
-import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import FormHelpMessage from './FormHelpMessage';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import DateUtils from '@libs/DateUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import AmountTextInput from './AmountTextInput';
 import BigNumberPad from './BigNumberPad';
-import refPropTypes from './refPropTypes';
 import Button from './Button';
+import FormHelpMessage from './FormHelpMessage';
+import refPropTypes from './refPropTypes';
 import Text from './Text';
-import * as DeviceCapabilities from '../libs/DeviceCapabilities';
-import DateUtils from '../libs/DateUtils';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import useKeyboardShortcut from '../hooks/useKeyboardShortcut';
-import useLocalize from '../hooks/useLocalize';
-import * as StyleUtils from '../styles/StyleUtils';
-import CONST from '../CONST';
 
 const propTypes = {
     /** Refs forwarded to the TextInputWithCurrencySymbol */

@@ -2,7 +2,7 @@
 import {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import {LineLayer} from 'react-map-gl';
-import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle, StyleSheet} from 'react-native';
+import {AnimatableNumericValue, Animated, ImageStyle, StyleSheet, TextStyle, ViewStyle} from 'react-native';
 import {CustomAnimation} from 'react-native-animatable';
 import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';

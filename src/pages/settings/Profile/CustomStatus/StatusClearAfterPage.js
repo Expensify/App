@@ -1,28 +1,28 @@
-import React, {useEffect, useState, useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import _ from 'lodash';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import Form from '../../../../components/Form';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import ROUTES from '../../../../ROUTES';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import styles from '../../../../styles/styles';
-import Text from '../../../../components/Text';
-import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import useLocalize from '../../../../hooks/useLocalize';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
-import * as User from '../../../../libs/actions/User';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import withLocalize from '../../../../components/withLocalize';
-import compose from '../../../../libs/compose';
-import DateUtils from '../../../../libs/DateUtils';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
-import personalDetailsPropType from '../../../personalDetailsPropType';
-import BaseListItem from '../../../../components/SelectionList/BaseListItem';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import FormProvider from '@components/Form/FormProvider';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import BaseListItem from '@components/SelectionList/BaseListItem';
+import Text from '@components/Text';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '@components/withCurrentUserPersonalDetails';
+import withLocalize from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import * as User from '@libs/actions/User';
+import compose from '@libs/compose';
+import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import styles from '@src/styles/styles';
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -181,7 +181,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
             />
             <Text style={[styles.textNormal, styles.mh5, styles.mv4]}>{localize.translate('statusPage.whenClearStatus')}</Text>
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM}
                 submitButtonText="Save"
                 onSubmit={onSubmit}
@@ -217,7 +217,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                         </>
                     )}
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

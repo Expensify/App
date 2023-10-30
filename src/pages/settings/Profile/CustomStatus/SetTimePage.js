@@ -1,24 +1,24 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import TimePicker from '../../../../components/TimePicker';
-import Form from '../../../../components/Form';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import useLocalize from '../../../../hooks/useLocalize';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import * as User from '../../../../libs/actions/User';
-import DateUtils from '../../../../libs/DateUtils';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import compose from '../../../../libs/compose';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import ROUTES from '../../../../ROUTES';
-import styles from '../../../../styles/styles';
+import ONYXKEYS from 'src/ONYXKEYS';
+import ROUTES from 'src/ROUTES';
+import Form from '@components/Form';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TimePicker from '@components/TimePicker';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as User from '@libs/actions/User';
+import compose from '@libs/compose';
+import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
 
 const propTypes = {
     ...withLocalizePropTypes,
