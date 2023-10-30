@@ -1,25 +1,25 @@
-import React, {useCallback} from 'react';
+import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Form from '../../components/Form';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import * as LoginUtils from '../../libs/LoginUtils';
-import TextInput from '../../components/TextInput';
-import Text from '../../components/Text';
-import styles from '../../styles/styles';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
-import TeachersUnite from '../../libs/actions/TeachersUnite';
-import useLocalize from '../../hooks/useLocalize';
-import * as ValidationUtils from '../../libs/ValidationUtils';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as LoginUtils from '@libs/LoginUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import TeachersUnite from '@userActions/TeachersUnite';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Login list for the user that is signed in */
