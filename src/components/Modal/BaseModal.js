@@ -1,20 +1,20 @@
+import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import styles from '../../styles/styles';
-import * as Modal from '../../libs/actions/Modal';
-import * as StyleUtils from '../../styles/StyleUtils';
-import themeColors from '../../styles/themes/default';
-import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './modalPropTypes';
-import getModalStyles from '../../styles/getModalStyles';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import variables from '../../styles/variables';
-import CONST from '../../CONST';
-import ComposerFocusManager from '../../libs/ComposerFocusManager';
-import useNativeDriver from '../../libs/useNativeDriver';
-import usePrevious from '../../hooks/usePrevious';
+import usePrevious from '@hooks/usePrevious';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+import useNativeDriver from '@libs/useNativeDriver';
+import getModalStyles from '@styles/getModalStyles';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import * as Modal from '@userActions/Modal';
+import CONST from '@src/CONST';
+import {defaultProps as modalDefaultProps, propTypes as modalPropTypes} from './modalPropTypes';
 
 const propTypes = {
     ...modalPropTypes,
@@ -219,10 +219,14 @@ BaseModal.propTypes = propTypes;
 BaseModal.defaultProps = defaultProps;
 BaseModal.displayName = 'BaseModal';
 
-export default forwardRef((props, ref) => (
+const BaseModalWithRef = forwardRef((props, ref) => (
     <BaseModal
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+BaseModalWithRef.displayName = 'BaseModalWithRef';
+
+export default BaseModalWithRef;

@@ -1,22 +1,22 @@
-import React from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import ROUTES from '../../../../ROUTES';
-import Text from '../../../../components/Text';
-import styles from '../../../../styles/styles';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import compose from '../../../../libs/compose';
-import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import {withNetwork} from '../../../../components/OnyxProvider';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
-import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {withNetwork} from '@components/OnyxProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import styles from '@styles/styles';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
