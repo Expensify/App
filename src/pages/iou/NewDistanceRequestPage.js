@@ -1,13 +1,13 @@
-import React, {useEffect} from 'react';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import * as IOU from '../../libs/actions/IOU';
-import ONYXKEYS from '../../ONYXKEYS';
-import DistanceRequest from '../../components/DistanceRequest';
-import reportPropTypes from '../reportPropTypes';
-import CONST from '../../CONST';
+import DistanceRequest from '@components/DistanceRequest';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {iouPropTypes} from './propTypes';
 
 const propTypes = {
@@ -22,7 +22,7 @@ const propTypes = {
         /** Parameters the route gets */
         params: PropTypes.shape({
             /** Type of IOU */
-            iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)),
+            iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)),
             /** Id of the report on which the distance request is being created */
             reportID: PropTypes.string,
         }),

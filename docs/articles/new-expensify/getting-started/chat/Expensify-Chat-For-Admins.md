@@ -4,16 +4,16 @@ description: Best Practices for Admins settings up Expensify Chat
 redirect_from: articles/other/Expensify-Chat-For-Admins/
 ---
 
-## Overview
+# Overview
 Expensify Chat is an incredible way to build a community and foster long-term relationships between event producers and attendees, or attendees with each other. Admins are a huge factor in the success of the connections built in Expensify Chat during the events, as they are generally the drivers of the conference schedule, and help ensure safety and respect is upheld by all attendees both on and offline.
 
-## Getting Started
+# Getting Started
 We’ve rounded up some resources to get you set up on Expensify Chat and ready to start connecting with your session attendees:
 - [How to get set up and start using Expensify Chat](https://help.expensify.com/articles/other/Everything-About-Chat#how-to-use-chat-in-expensify)
 - [How to format text in Expensify Chat](https://help.expensify.com/articles/other/Everything-About-Chat#how-to-format-text)
 - [How to flag content and/or users for moderation](https://help.expensify.com/articles/other/Everything-About-Chat#flagging-content-as-offensive)
 
-## Admin Best Practices
+# Admin Best Practices
 In order to get the most out of Expensify Chat, we created a list of best practices for admins to review in order to use the tool to its fullest capabilities.
 
 **During the conference:**
