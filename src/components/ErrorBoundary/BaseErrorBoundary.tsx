@@ -2,8 +2,7 @@ import React from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import BootSplash from '@libs/BootSplash';
 import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
-
-type LogError = (message: string, error: Error, errorInfo: string) => void;
+import LogError from './types';
 
 type BaseErrorBoundaryProps = {
     /* A message posted to `logError` (along with error data) when this component intercepts an error */
