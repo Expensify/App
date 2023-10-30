@@ -54,7 +54,8 @@
     "test:e2e:compare": "node tests/e2e/merge.js",
     "gh-actions-unused-styles": "./.github/scripts/findUnusedKeys.sh",
     "workflow-test": "./workflow_tests/scripts/runWorkflowTests.sh",
-    "workflow-test:generate": "node workflow_tests/utils/preGenerateTest.js"
+    "workflow-test:generate": "node workflow_tests/utils/preGenerateTest.js",
+    "setup-https": "mkcert -install && mkcert -cert-file config/webpack/certificate.pem -key-file config/webpack/key.pem dev.new.expensify.com localhost 127.0.0.1"
   },
   "dependencies": {
     "@expensify/react-native-web": "0.18.15",
