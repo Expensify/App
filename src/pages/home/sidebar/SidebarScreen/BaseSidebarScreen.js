@@ -9,6 +9,7 @@ import SubNavigation from '@pages/home/sidebar/SubNavigation/SubNavigation';
 import styles from '@styles/styles';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
+import getPlatform from '@libs/getPlatform';
 
 const propTypes = {
     /** Children to wrap (floating button). */

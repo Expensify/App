@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import styles from '@styles/styles';
 import stylePropTypes from '@styles/styles/stylePropTypes';
 

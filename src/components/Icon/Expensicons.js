@@ -126,6 +126,7 @@ import Users from '@assets/images/users.svg';
 import Wallet from '@assets/images/wallet.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Zoom from '@assets/images/zoom.svg';
+import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
 import LoungeAccess from './svgs/LoungeAccessIcon';
 
 export {
