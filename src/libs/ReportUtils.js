@@ -3526,7 +3526,7 @@ function parseReportRouteParams(route) {
         parsingRoute = parsingRoute.slice(1);
     }
 
-    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash('r'))) {
+    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash(ROUTES.REPORT))) {
         return {reportID: '', isSubReportPageRoute: false};
     }
 
@@ -3810,9 +3810,9 @@ function getAddWorkspaceRoomOrChatReportErrors(report) {
  * @param {Object} report
  * @returns {Boolean}
  */
-function shouldDisableWriteActions(report) {
+function canUserPerformWriteAction(report) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
-    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
+    return !isArchivedRoom(report) && _.isEmpty(reportErrors) && isAllowedToComment(report) && !isAnonymousUser;
 }
 
 /**
@@ -3866,7 +3866,7 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
  */
 function canCreateRequest(report, betas, iouType) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
-    if (shouldDisableWriteActions(report)) {
+    if (!canUserPerformWriteAction(report)) {
         return false;
     }
     return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
@@ -4249,7 +4249,7 @@ export {
     getRootParentReport,
     getReportPreviewMessage,
     getModifiedExpenseMessage,
-    shouldDisableWriteActions,
+    canUserPerformWriteAction,
     getOriginalReportID,
     canAccessReport,
     getAddWorkspaceRoomOrChatReportErrors,
