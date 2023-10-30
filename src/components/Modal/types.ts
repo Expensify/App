@@ -1,8 +1,8 @@
 import {ViewStyle} from 'react-native';
 import {ModalProps} from 'react-native-modal';
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
-import {WindowDimensionsProps} from '../withWindowDimensions/types';
+import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
+import CONST from '@src/CONST';
 
 type PopoverAnchorPosition = {
     top?: number;
