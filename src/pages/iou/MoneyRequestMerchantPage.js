@@ -48,7 +48,7 @@ const defaultProps = {
 
 function MoneyRequestMerchantPage({iou, route}) {
     const {translate} = useLocalize();
-    const inputRef = useRef({});
+    const inputRef = useRef(null);
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
 
@@ -118,7 +118,7 @@ function MoneyRequestMerchantPage({iou, route}) {
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={inputRef}
+                        ref={(el) => inputRef.current = el}
                     />
                 </View>
             </FormProvider>
