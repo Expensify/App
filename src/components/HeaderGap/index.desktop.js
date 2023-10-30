@@ -15,15 +15,15 @@ const propTypes = {
 
 class HeaderGap extends PureComponent {
     render() {
-        if (!this.props.isSidebar) {
-            return <View style={[styles.headerGap, ...this.props.styles]} />;
+        if (this.props.isSidebar) {
+            return (
+                <View style={[styles.headerGap, styles.globalAndSubNavigationContainer, styles.flexRow]}>
+                    <View style={styles.globalNavigation} />
+                    <View style={styles.headerGapLhnRight} />
+                </View>
+            );   
         }
-        return (
-            <View style={[styles.headerGap, styles.globalAndSubNavigationContainer, styles.flexRow]}>
-                <View style={styles.globalNavigation} />
-                <View style={styles.headerGapLhnRight} />
-            </View>
-        );
+        return <View style={[styles.headerGap, ...this.props.styles]} />;
     }
 }
 
