@@ -1,8 +1,8 @@
-import React, {ComponentType, RefAttributes, ReactNode, ForwardedRef, ReactElement, createContext, useState, useEffect, forwardRef, useContext, useMemo} from 'react';
+import React, {ComponentType, createContext, ForwardedRef, forwardRef, ReactElement, ReactNode, RefAttributes, useContext, useEffect, useMemo, useState} from 'react';
 import {ValueOf} from 'type-fest';
-import * as Environment from '../libs/Environment/Environment';
-import CONST from '../CONST';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
+import * as Environment from '@libs/Environment/Environment';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import CONST from '@src/CONST';
 
 type EnvironmentProviderProps = {
     /** Actual content wrapped by this component */

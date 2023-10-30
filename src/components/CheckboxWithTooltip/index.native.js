@@ -1,7 +1,7 @@
 import React from 'react';
-import {propTypes, defaultProps} from './checkboxWithTooltipPropTypes';
-import withWindowDimensions from '../withWindowDimensions';
+import withWindowDimensions from '@components/withWindowDimensions';
 import CheckboxWithTooltipForMobileWebAndNative from './CheckboxWithTooltipForMobileWebAndNative';
+import {defaultProps, propTypes} from './checkboxWithTooltipPropTypes';
 
 function CheckboxWithTooltip(props) {
     return (

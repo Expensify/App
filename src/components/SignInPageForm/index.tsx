@@ -1,14 +1,15 @@
 import React, {useEffect, useRef} from 'react';
-import FormElement from '../FormElement';
+import FormElement from '@components/FormElement';
+import SignInPageFormProps from './types';
 
-const preventFormDefault = (event) => {
+const preventFormDefault = (event: SubmitEvent) => {
     // When enter is pressed form is submitted to action url (POST /).
     // As we are using controlled component, we need to disable it here.
     event.preventDefault();
 };
 
-function Form(props) {
-    const form = useRef(null);
+function SignInPageForm(props: SignInPageFormProps) {
+    const form = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
         const formCurrent = form.current;
@@ -42,6 +43,6 @@ function Form(props) {
     );
 }
 
-Form.displayName = 'Form';
+SignInPageForm.displayName = 'SignInPageForm';
 
-export default Form;
+export default SignInPageForm;
