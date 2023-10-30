@@ -1,7 +1,7 @@
 import Clipboard from '@react-native-clipboard/clipboard';
-import CONST from '../../CONST';
-import * as Browser from '../Browser';
 import {SetString, SetHtml, CanSetHtml} from './types';
+import * as Browser from '@libs/Browser';
+import CONST from '@src/CONST';
 
 type ComposerSelection = {
     start: number;

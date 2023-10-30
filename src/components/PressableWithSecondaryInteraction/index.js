@@ -1,9 +1,9 @@
-import _ from 'underscore';
 import React, {forwardRef, useEffect, useRef} from 'react';
-import styles from '../../styles/styles';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import * as StyleUtils from '../../styles/StyleUtils';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import _ from 'underscore';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 
 /**

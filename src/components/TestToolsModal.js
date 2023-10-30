@@ -1,13 +1,13 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import React from 'react';
 import {View} from 'react-native';
-import ONYXKEYS from '../ONYXKEYS';
+import {withOnyx} from 'react-native-onyx';
+import styles from '@styles/styles';
+import toggleTestToolsModal from '@userActions/TestTool';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Modal from './Modal';
-import CONST from '../CONST';
-import toggleTestToolsModal from '../libs/actions/TestTool';
 import TestToolMenu from './TestToolMenu';
-import styles from '../styles/styles';
 
 const propTypes = {
     /** Details about modal */
