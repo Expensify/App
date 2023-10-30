@@ -44,6 +44,9 @@ module.exports = {
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
         type: 'distribution',
+        notarize: {
+            teamId: '368M544MTT',
+        },
     },
     dmg: {
         title: 'New Expensify',
@@ -58,7 +61,6 @@ module.exports = {
             path: s3Path[process.env.ELECTRON_ENV],
         },
     ],
-    afterSign: isPublishing ? './desktop/notarize.js' : undefined,
     files: ['dist', '!dist/www/{.well-known,favicon*}'],
     directories: {
         app: 'desktop',
