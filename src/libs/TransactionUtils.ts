@@ -3,9 +3,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
 import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
-import {isExpensifyCard} from '@libs/CardUtils';
-import DateUtils from '@libs/DateUtils';
-import * as NumberUtils from '@libs/NumberUtils';
+import {isExpensifyCard} from './CardUtils';
+import DateUtils from './DateUtils';
+import * as NumberUtils from './NumberUtils';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
 

@@ -1,5 +1,5 @@
-import type {Transaction} from '../../src/types/onyx';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
+import type {Transaction} from '../../src/types/onyx';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
