@@ -1,13 +1,13 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import Image from '../Image';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Image from '@components/Image';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether source url requires authentication */

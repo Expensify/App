@@ -1,17 +1,17 @@
-import _ from 'underscore';
-import React, {useState, useRef, useEffect, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
-import Button from '../Button';
-import Text from '../Text';
-import TextInput from '../TextInput';
-import styles from '../../styles/styles';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {ScrollView, View} from 'react-native';
+import _ from 'underscore';
+import Button from '@components/Button';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import shouldDelayFocus from '@libs/shouldDelayFocus';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import PDFInfoMessage from './PDFInfoMessage';
-import shouldDelayFocus from '../../libs/shouldDelayFocus';
-import * as Browser from '../../libs/Browser';
-import CONST from '../../CONST';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** If the submitted password is invalid (show an error message) */

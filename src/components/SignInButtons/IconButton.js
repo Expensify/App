@@ -1,11 +1,11 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import CONST from '../../CONST';
-import * as Expensicons from '../Icon/Expensicons';
-import Icon from '../Icon';
+import React from 'react';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The on press method */

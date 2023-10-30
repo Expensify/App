@@ -1,20 +1,20 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../../styles/styles';
-import Image from '../Image';
-import ThumbnailImage from '../ThumbnailImage';
-import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
-import ROUTES from '../../ROUTES';
-import CONST from '../../CONST';
-import {ShowContextMenuContext} from '../ShowContextMenuContext';
-import Navigation from '../../libs/Navigation/Navigation';
-import PressableWithoutFocus from '../Pressable/PressableWithoutFocus';
-import useLocalize from '../../hooks/useLocalize';
-import EReceiptThumbnail from '../EReceiptThumbnail';
-import transactionPropTypes from '../transactionPropTypes';
-import * as TransactionUtils from '../../libs/TransactionUtils';
+import EReceiptThumbnail from '@components/EReceiptThumbnail';
+import Image from '@components/Image';
+import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
+import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import ThumbnailImage from '@components/ThumbnailImage';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** thumbnail URI for the image */
