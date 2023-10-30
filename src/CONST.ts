@@ -170,6 +170,10 @@ const CONST = {
             ERROR: {
                 TOO_MANY_ATTEMPTS: 'Too many attempts',
             },
+            EVENTS_NAME: {
+                OPEN: 'OPEN',
+                EXIT: 'EXIT',
+            },
         },
         ERROR: {
             MISSING_ROUTING_NUMBER: '402 Missing routingNumber',
@@ -463,7 +467,7 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
-    DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
+    DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
 
     SIGN_IN_FORM_WIDTH: 300,
 

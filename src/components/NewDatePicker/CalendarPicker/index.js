@@ -1,21 +1,21 @@
-import _ from 'underscore';
+import {addMonths, endOfMonth, format, getYear, isSameDay, setDate, setYear, startOfDay, subMonths} from 'date-fns';
+import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {setYear, format, getYear, subMonths, addMonths, startOfDay, endOfMonth, setDate, isSameDay} from 'date-fns';
-import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
-import Text from '../../Text';
-import YearPickerModal from './YearPickerModal';
+import _ from 'underscore';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import DateUtils from '@libs/DateUtils';
+import getButtonState from '@libs/getButtonState';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import ArrowIcon from './ArrowIcon';
-import styles from '../../../styles/styles';
 import generateMonthMatrix from './generateMonthMatrix';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import CONST from '../../../CONST';
-import DateUtils from '../../../libs/DateUtils';
-import getButtonState from '../../../libs/getButtonState';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import PressableWithFeedback from '../../Pressable/PressableWithFeedback';
-import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
+import YearPickerModal from './YearPickerModal';
 
 const propTypes = {
     /** An initial value of date string */

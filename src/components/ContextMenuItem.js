@@ -1,14 +1,14 @@
-import React, {forwardRef, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
-import MenuItem from './MenuItem';
-import Icon from './Icon';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import getButtonState from '../libs/getButtonState';
-import useThrottledButtonState from '../hooks/useThrottledButtonState';
+import React, {forwardRef, useImperativeHandle} from 'react';
+import useThrottledButtonState from '@hooks/useThrottledButtonState';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import getButtonState from '@libs/getButtonState';
+import getContextMenuItemStyles from '@styles/getContextMenuItemStyles';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import getContextMenuItemStyles from '../styles/getContextMenuItemStyles';
+import Icon from './Icon';
+import MenuItem from './MenuItem';
 
 const propTypes = {
     /** Icon Component */

@@ -1,22 +1,22 @@
-import React, {useEffect, useMemo} from 'react';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
+import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import compose from '../libs/compose';
-import Permissions from '../libs/Permissions';
-import useNetwork from '../hooks/useNetwork';
-import useLocalize from '../hooks/useLocalize';
-import * as ReportUtils from '../libs/ReportUtils';
-import iouReportPropTypes from '../pages/iouReportPropTypes';
-import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import compose from '@libs/compose';
+import Permissions from '@libs/Permissions';
+import * as ReportUtils from '@libs/ReportUtils';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
-import * as Expensicons from './Icon/Expensicons';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import * as BankAccounts from '../libs/actions/BankAccounts';
-import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */

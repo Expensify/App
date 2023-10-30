@@ -1,14 +1,14 @@
-import _ from 'underscore';
-import React, {useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import {computeHorizontalShift, computeVerticalShift} from '@styles/getPopoverWithMeasuredContentStyles';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import Popover from './Popover';
-import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
-import useWindowDimensions from '../hooks/useWindowDimensions';
+import {defaultProps as defaultPopoverProps, propTypes as popoverPropTypes} from './Popover/popoverPropTypes';
 import {windowDimensionsPropTypes} from './withWindowDimensions';
-import CONST from '../CONST';
-import styles from '../styles/styles';
-import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
 
 const propTypes = {
     // All popover props except:
