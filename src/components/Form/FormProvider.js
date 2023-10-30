@@ -1,17 +1,17 @@
-import React, {createRef, useCallback, useMemo, useRef, useState} from 'react';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import Visibility from '../../libs/Visibility';
-import * as FormActions from '../../libs/actions/FormActions';
+import PropTypes from 'prop-types';
+import React, {createRef, useCallback, useMemo, useRef, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import compose from '@libs/compose';
+import Visibility from '@libs/Visibility';
+import stylePropTypes from '@styles/stylePropTypes';
+import * as FormActions from '@userActions/FormActions';
+import CONST from '@src/CONST';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import compose from '../../libs/compose';
-import {withNetwork} from '../OnyxProvider';
-import stylePropTypes from '../../styles/stylePropTypes';
-import networkPropTypes from '../networkPropTypes';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -231,7 +231,13 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
 
             return {
                 ...propsToParse,
-                ref: newRef,
+                ref:
+                    typeof propsToParse.ref === 'function'
+                        ? (node) => {
+                              propsToParse.ref(node);
+                              newRef.current = node;
+                          }
+                        : newRef,
                 inputID,
                 key: propsToParse.key || inputID,
                 errorText: errors[inputID] || fieldErrorMessage,

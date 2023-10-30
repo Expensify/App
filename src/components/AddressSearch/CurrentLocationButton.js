@@ -1,14 +1,14 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {Text} from 'react-native';
-import colors from '../../styles/colors';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import getButtonState from '../../libs/getButtonState';
-import * as StyleUtils from '../../styles/StyleUtils';
-import useLocalize from '../../hooks/useLocalize';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useLocalize from '@hooks/useLocalize';
+import getButtonState from '@libs/getButtonState';
+import colors from '@styles/colors';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
 
 const propTypes = {
     /** Callback that runs when location button is clicked */
