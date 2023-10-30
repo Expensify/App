@@ -1,6 +1,6 @@
-import {useEffect} from 'react';
 import appleAuth from '@invertase/react-native-apple-authentication';
-import * as Session from '../../../libs/actions/Session';
+import {useEffect} from 'react';
+import * as Session from '@userActions/Session';
 
 /**
  * Apple Sign In wrapper for iOS

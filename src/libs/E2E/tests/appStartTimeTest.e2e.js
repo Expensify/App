@@ -1,7 +1,7 @@
 import _ from 'underscore';
-import E2ELogin from '../actions/e2eLogin';
-import Performance from '../../Performance';
-import E2EClient from '../client';
+import E2ELogin from '@libs/E2E/actions/e2eLogin';
+import E2EClient from '@libs/E2E/client';
+import Performance from '@libs/Performance';
 
 const test = () => {
     // check for login (if already logged in the action will simply resolve)

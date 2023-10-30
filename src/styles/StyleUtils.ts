@@ -2,9 +2,10 @@ import {CSSProperties} from 'react';
 import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
-import * as Browser from '../libs/Browser';
-import * as UserUtils from '../libs/UserUtils';
+import * as Browser from '@libs/Browser';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
 import styles from './styles';
@@ -13,7 +14,6 @@ import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
 import variables from './variables';
-import {Transaction} from '../types/onyx';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
 type ParsableStyle = AllStyles | ((state: PressableStateCallbackType) => AllStyles);
@@ -882,17 +882,19 @@ function getErrorPageContainerStyle(safeAreaPaddingBottom = 0): ViewStyle {
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
+
     if (isSmallScreenWidth) {
         return {
-            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
+            height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
             width: '200%',
             position: 'absolute',
         };
     }
 
     return {
-        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
+        height: emptyStateBackground.WIDE_SCREEN.IMAGE_HEIGHT,
         width: '100%',
         position: 'absolute',
     };
@@ -901,15 +903,16 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): View
 /**
  * Gets the correct top margin size for the chat welcome message based on screen dimensions
  */
-function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
     if (isSmallScreenWidth) {
         return {
-            marginTop: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.VIEW_HEIGHT,
+            marginTop: emptyStateBackground.SMALL_SCREEN.VIEW_HEIGHT,
         };
     }
 
     return {
-        marginTop: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
+        marginTop: emptyStateBackground.WIDE_SCREEN.VIEW_HEIGHT,
     };
 }
 
@@ -934,17 +937,18 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
 /**
  * Gets the correct size for the empty state container based on screen dimensions
  */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
     if (isSmallScreenWidth) {
         return {
-            minHeight: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.CONTAINER_MINHEIGHT,
+            minHeight: emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT,
             display: 'flex',
             justifyContent: 'space-between',
         };
     }
 
     return {
-        minHeight: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.CONTAINER_MINHEIGHT,
+        minHeight: emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT,
         display: 'flex',
         justifyContent: 'space-between',
     };

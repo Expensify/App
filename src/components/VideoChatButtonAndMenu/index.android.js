@@ -1,7 +1,7 @@
 import React from 'react';
-import CONST from '../../CONST';
-import {propTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
+import CONST from '@src/CONST';
 import BaseVideoChatButtonAndMenu from './BaseVideoChatButtonAndMenu';
+import {defaultProps, propTypes} from './videoChatButtonAndMenuPropTypes';
 
 // On Android creating a new google meet meeting requires the CALL_PHONE permission in some cases
 // so we're just opening the google meet app instead, more details:

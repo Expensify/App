@@ -1,5 +1,5 @@
 import React from 'react';
-import Checkbox from '../components/Checkbox';
+import Checkbox from '@components/Checkbox';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
