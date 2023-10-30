@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
-import {propTypes, defaultProps} from './displayNamesPropTypes';
-import Text from '../Text';
-import RenderHTML from '../RenderHTML';
-import * as StringUtils from '../../libs/StringUtils';
-import * as StyleUtils from '../../styles/StyleUtils';
+import Text from '@components/Text';
+import * as StringUtils from '@libs/StringUtils';
+import * as StyleUtils from '@styles/StyleUtils';
+import RenderHTML from '@components/RenderHTML';
+import {defaultProps, propTypes} from './displayNamesPropTypes';
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
 function DisplayNames(props) {

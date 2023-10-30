@@ -1,25 +1,25 @@
-import React, {useEffect} from 'react';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import {format, getMonth, getYear} from 'date-fns';
 import Str from 'expensify-common/lib/str';
-import Navigation from '../../libs/Navigation/Navigation';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import ONYXKEYS from '../../ONYXKEYS';
-import compose from '../../libs/compose';
-import CONFIG from '../../CONFIG';
-import WalletStatementModal from '../../components/WalletStatementModal';
-import * as User from '../../libs/actions/User';
-import fileDownload from '../../libs/fileDownload';
-import Growl from '../../libs/Growl';
-import CONST from '../../CONST';
-import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
-import DateUtils from '../../libs/DateUtils';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import WalletStatementModal from '@components/WalletStatementModal';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import DateUtils from '@libs/DateUtils';
+import fileDownload from '@libs/fileDownload';
+import Growl from '@libs/Growl';
+import Navigation from '@libs/Navigation/Navigation';
+import * as User from '@userActions/User';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */

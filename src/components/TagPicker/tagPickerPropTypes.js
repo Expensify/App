@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import tagPropTypes from '../tagPropTypes';
+import tagPropTypes from '@components/tagPropTypes';
 
 const propTypes = {
     /** The policyID we are getting tags for */

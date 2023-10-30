@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 
 /**
  * Check if the text contains HTML

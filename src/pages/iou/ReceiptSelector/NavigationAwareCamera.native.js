@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react';
-import {Camera} from 'react-native-vision-camera';
 import {useTabAnimation} from '@react-navigation/material-top-tabs';
 import {useNavigation} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import CONST from '../../../CONST';
+import React, {useEffect, useState} from 'react';
+import {Camera} from 'react-native-vision-camera';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /* The index of the tab that contains this camera */
@@ -20,7 +20,7 @@ const propTypes = {
 const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigator, selectedTab, ...props}, ref) => {
     // Get navigation to get initial isFocused value (only needed once during init!)
     const navigation = useNavigation();
-    const [isCameraActive, setIsCameraActive] = useState(navigation.isFocused());
+    const [isCameraActive, setIsCameraActive] = useState(() => navigation.isFocused());
 
     // Retrieve the animation value from the tab navigator, which ranges from 0 to the total number of pages displayed.
     // Even a minimal scroll towards the camera page (e.g., a value of 0.001 at start) should activate the camera for immediate responsiveness.

@@ -1,7 +1,7 @@
+import * as Request from '@libs/Request';
+import OnyxRequest from '@src/types/onyx/Request';
 import * as NetworkStore from './NetworkStore';
 import * as SequentialQueue from './SequentialQueue';
-import * as Request from '../Request';
-import OnyxRequest from '../../types/onyx/Request';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue: OnyxRequest[] = [];
