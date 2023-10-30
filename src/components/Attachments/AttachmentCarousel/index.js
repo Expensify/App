@@ -3,6 +3,7 @@ import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
@@ -27,7 +28,7 @@ const viewabilityConfig = {
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate, isLoadingReportData, reportMetadata}) {
     const scrollRef = useRef(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -37,6 +38,9 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     const [attachments, setAttachments] = useState([]);
     const [activeSource, setActiveSource] = useState(source);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
+
+    const isLoadingReport = isLoadingReportData && (_.isEmpty(report) || !report.reportID);
+    const isLoadingReportAction = _.isEmpty(reportActions) || reportMetadata.isLoadingReportActions;
 
     const compareImage = useCallback(
         (attachment) => {
@@ -153,6 +157,10 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
         [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
 
+    if (isLoadingReport || isLoadingReportAction) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
@@ -225,6 +233,12 @@ export default compose(
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             canEvict: false,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        reportMetadata: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
         },
     }),
     withLocalize,

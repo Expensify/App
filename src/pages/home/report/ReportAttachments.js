@@ -1,10 +1,12 @@
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import reportPropTypes from '@pages/reportPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -17,11 +19,17 @@ const propTypes = {
             source: PropTypes.string.isRequired,
         }).isRequired,
     }).isRequired,
+
+    /** The report that has this attachment */
+    report: reportPropTypes,
+};
+
+const defaultProps = {
+    report: {},
 };
 
 function ReportAttachments(props) {
     const reportID = _.get(props, ['route', 'params', 'reportID']);
-    const report = ReportUtils.getReport(reportID);
     const source = decodeURI(_.get(props, ['route', 'params', 'source']));
 
     const onCarouselAttachmentChange = useCallback(
@@ -36,7 +44,7 @@ function ReportAttachments(props) {
         <AttachmentModal
             allowDownload
             defaultOpen
-            report={report}
+            report={props.report}
             source={source}
             onModalHide={() => Navigation.dismissModal()}
             onCarouselAttachmentChange={onCarouselAttachmentChange}
@@ -45,6 +53,11 @@ function ReportAttachments(props) {
 }
 
 ReportAttachments.propTypes = propTypes;
+ReportAttachments.defaultProps = defaultProps;
 ReportAttachments.displayName = 'ReportAttachments';
 
-export default ReportAttachments;
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${_.get(route, ['params', 'reportID'])}`,
+    },
+})(ReportAttachments);
