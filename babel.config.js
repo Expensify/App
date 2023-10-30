@@ -98,6 +98,7 @@ if (process.env.CAPTURE_METRICS === 'true') {
                 'scheduler/tracing': 'scheduler/tracing-profiling',
             },
         },
+        'extra-alias',
     ]);
 }
 
