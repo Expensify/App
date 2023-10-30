@@ -2,8 +2,8 @@ import React, {useState, useRef, useEffect} from 'react';
 import {View, ViewStyle, StyleProp} from 'react-native';
 import delay from 'lodash/delay';
 import {OnLoadEvent} from 'react-native-fast-image';
-import Log from '../libs/Log';
-import styles from '../styles/styles';
+import Log from '@libs/Log';
+import styles from '@styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image, {RESIZE_MODES} from './Image';
 
