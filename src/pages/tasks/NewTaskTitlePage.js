@@ -2,7 +2,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -88,7 +89,7 @@ function NewTaskTitlePage(props) {
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    <InputWrapper
+                    <InputWrapperWithRef
                         InputComponent={TextInput}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={props.task.title}
