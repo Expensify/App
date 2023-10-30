@@ -1,8 +1,8 @@
 import crashlytics from '@react-native-firebase/crashlytics';
-import CONFIG from '../../CONFIG';
-import PushNotification from '../../libs/Notification/PushNotification';
-import Performance from '../../libs/Performance';
-import subscribeToReportCommentPushNotifications from '../../libs/Notification/PushNotification/subscribeToReportCommentPushNotifications';
+import PushNotification from '@libs/Notification/PushNotification';
+import subscribeToReportCommentPushNotifications from '@libs/Notification/PushNotification/subscribeToReportCommentPushNotifications';
+import Performance from '@libs/Performance';
+import CONFIG from '@src/CONFIG';
 
 export default function () {
     // We do not want to send crash reports if we are on a locally built release version of the app.

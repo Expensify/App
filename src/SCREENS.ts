@@ -17,6 +17,8 @@ export default {
         WORKSPACES: 'Settings_Workspaces',
         SECURITY: 'Settings_Security',
         STATUS: 'Settings_Status',
+        WALLET: 'Settings_Wallet',
+        WALLET_DOMAIN_CARDS: 'Settings_Wallet_DomainCards',
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
@@ -24,6 +26,7 @@ export default {
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
+    SAML_SIGN_IN: 'SAMLSignIn',
 
     // Iframe screens from olddot
     HOME_OLDDOT: 'Home_OLDDOT',
