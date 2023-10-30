@@ -2,9 +2,9 @@ import React, {memo, useCallback, useContext} from 'react';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import {View, StyleSheet} from 'react-native';
-import styles from '../../../../styles/styles';
+import styles from '@styles/styles';
 import {attachmentViewPdfPropTypes, attachmentViewPdfDefaultProps} from './propTypes';
-import AttachmentCarouselPagerContext from '../../AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
 
 function AttachmentViewPdf(props) {
