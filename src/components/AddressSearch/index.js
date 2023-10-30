@@ -1,8 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import PropTypes from 'prop-types';
-import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
 import lodashGet from 'lodash/get';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
