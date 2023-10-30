@@ -20,7 +20,7 @@ const setShouldShowComposeInputKeyboardAware: SetShouldShowComposeInputKeyboardA
         return;
     }
 
-    keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+    keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', () => {
         Composer.setShouldShowComposeInput(true);
         keyboardDidHideListener?.remove();
     });
