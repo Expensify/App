@@ -664,18 +664,16 @@ function createDistanceRequest(report, participant, comment, created, transactio
 }
 
 /**
- * Edits an existing distance request
- *
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
  * @param {Object} transactionChanges
- * @param {String} [transactionChanges.created]
- * @param {Number} [transactionChanges.amount]
- * @param {Object} [transactionChanges.comment]
- * @param {Object} [transactionChanges.waypoints]
- *
+ * @param {String} [transactionChanges.created] // Present when updated the date field
+ * @param {Boolean} onlyIncludeChangedFieldsInAPIParams
+ *                      // When 'true', then the returned params will only include the transaction details for the fields that were changed.
+ *                      // When `false`, then the returned params will include all the transaction details, regardless of which fields were changed.
+ *                      // This setting is necessary while the UpdateDistanceRequest API is refactored to be fully 1:1:1 in https://github.com/Expensify/App/issues/28358
  */
-function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
+function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, onlyIncludeChangedFieldsInAPIParams) {
     const optimisticData = [];
     const successData = [];
     const failureData = [];
@@ -695,11 +693,14 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
 
+    // This needs to be a JSON string since we're sending this to the MapBox API
+    transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+
+    const dataToIncludeInParams = onlyIncludeChangedFieldsInAPIParams ? _.pick(transactionDetails, _.keys(transactionChanges)) : transactionDetails;
+
     const params = {
-        ...transactionDetails,
+        ...dataToIncludeInParams,
         transactionID,
-        // This needs to be a JSON string since we're sending this to the MapBox API
-        waypoints: JSON.stringify(transactionDetails.waypoints),
     };
 
     // Step 3: Build the modified expense report actions
@@ -808,7 +809,42 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
         value: iouReport,
     });
 
-    API.write('UpdateDistanceRequest', params, {optimisticData, successData, failureData});
+    return {
+        params,
+        onyxData: {optimisticData, successData, failureData},
+    };
+}
+
+/**
+ * Updates the created date of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} val
+ */
+function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
+    const transactionChanges = {
+        created: val,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestDate', params, onyxData);
+}
+
+/**
+ * Edits an existing distance request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {Object} transactionChanges
+ * @param {String} [transactionChanges.created]
+ * @param {Number} [transactionChanges.amount]
+ * @param {Object} [transactionChanges.comment]
+ * @param {Object} [transactionChanges.waypoints]
+ *
+ */
+function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, false);
+    API.write('UpdateDistanceRequest', params, onyxData);
 }
 
 /**
