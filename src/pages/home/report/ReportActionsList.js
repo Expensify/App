@@ -1,31 +1,31 @@
+import {useRoute} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
-import {useRoute} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
-import CONST from '../../../CONST';
-import InvertedFlatList from '../../../components/InvertedFlatList';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
-import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import useLocalize from '../../../hooks/useLocalize';
-import useNetwork from '../../../hooks/useNetwork';
-import useReportScrollManager from '../../../hooks/useReportScrollManager';
-import DateUtils from '../../../libs/DateUtils';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as Report from '../../../libs/actions/Report';
-import Performance from '../../../libs/Performance';
-import Timing from '../../../libs/actions/Timing';
-import compose from '../../../libs/compose';
-import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
-import reportPropTypes from '../../reportPropTypes';
+import Performance from '@libs/Performance';
+import Timing from '@libs/actions/Timing';
+import InvertedFlatList from '@components/InvertedFlatList';
+import {withPersonalDetails} from '@components/OnyxProvider';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useReportScrollManager from '@hooks/useReportScrollManager';
+import compose from '@libs/compose';
+import DateUtils from '@libs/DateUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
 import FloatingMessageCounter from './FloatingMessageCounter';
-import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
+import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 import reportActionPropTypes from './reportActionPropTypes';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -38,10 +38,13 @@ const propTypes = {
     mostRecentIOUReportActionID: PropTypes.string,
 
     /** The report metadata loading states */
-    isLoadingReportActions: PropTypes.bool,
+    isLoadingInitialReportActions: PropTypes.bool,
 
     /** Are we loading more report actions? */
-    isLoadingMoreReportActions: PropTypes.bool,
+    isLoadingOlderReportActions: PropTypes.bool,
+
+    /** Are we loading newer report actions? */
+    isLoadingNewerReportActions: PropTypes.bool,
 
     /** Callback executed on list layout */
     onLayout: PropTypes.func.isRequired,
@@ -50,7 +53,10 @@ const propTypes = {
     onScroll: PropTypes.func,
 
     /** Function to load more chats */
-    loadMoreChats: PropTypes.func.isRequired,
+    loadOlderChats: PropTypes.func.isRequired,
+
+    /** Function to load newer chats */
+    loadNewerChats: PropTypes.func.isRequired,
 
     /** The policy object for the current route */
     policy: PropTypes.shape({
@@ -69,8 +75,9 @@ const defaultProps = {
     personalDetails: {},
     onScroll: () => {},
     mostRecentIOUReportActionID: '',
-    isLoadingReportActions: false,
-    isLoadingMoreReportActions: false,
+    isLoadingInitialReportActions: false,
+    isLoadingOlderReportActions: false,
+    isLoadingNewerReportActions: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -109,8 +116,9 @@ function isMessageUnread(message, lastReadTime) {
 
 function ReportActionsList({
     report,
-    isLoadingReportActions,
-    isLoadingMoreReportActions,
+    isLoadingInitialReportActions,
+    isLoadingOlderReportActions,
+    isLoadingNewerReportActions,
     sortedReportActions,
     windowHeight,
     onScroll,
@@ -119,7 +127,8 @@ function ReportActionsList({
     personalDetailsList,
     currentUserPersonalDetails,
     hasOutstandingIOU,
-    loadMoreChats,
+    loadNewerChats,
+    loadOlderChats,
     onLayout,
     isComposerFullSize,
 }) {
@@ -132,8 +141,9 @@ function ReportActionsList({
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
+    const hasHeaderRendered = useRef(false);
+    const hasFooterRendered = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
-    const firstRenderRef = useRef(true);
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
     // This state is used to force a re-render when the user manually marks a message as unread
@@ -344,28 +354,30 @@ function ReportActionsList({
     const hideComposer = ReportUtils.shouldDisableWriteActions(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
-    const renderFooter = useCallback(() => {
+    const contentContainerStyle = useMemo(
+        () => [styles.chatContentScrollView, isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
+        [isLoadingNewerReportActions],
+    );
+
+    const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
+
+    const listFooterComponent = useCallback(() => {
         // Skip this hook on the first render, as we are not sure if more actions are going to be loaded
         // Therefore showing the skeleton on footer might be misleading
-        if (firstRenderRef.current) {
-            firstRenderRef.current = false;
+        if (!hasFooterRendered.current) {
+            hasFooterRendered.current = true;
             return null;
         }
 
-        if (isLoadingMoreReportActions) {
-            return <ReportActionsSkeletonView />;
-        }
-
-        // Make sure the oldest report action loaded is not the first. This is so we do not show the
-        // skeleton view above the created action in a newly generated optimistic chat or one with not
-        // that many comments.
-        const lastReportAction = _.last(sortedReportActions) || {};
-        if (isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return <ReportActionsSkeletonView animate={!isOffline} />;
-        }
-
-        return null;
-    }, [isLoadingMoreReportActions, isLoadingReportActions, sortedReportActions, isOffline]);
+        return (
+            <ListBoundaryLoader
+                type={CONST.LIST_COMPONENTS.FOOTER}
+                isLoadingOlderReportActions={isLoadingOlderReportActions}
+                isLoadingInitialReportActions={isLoadingInitialReportActions}
+                lastReportActionName={lastReportAction.actionName}
+            />
+        );
+    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName]);
 
     const onLayoutInner = useCallback(
         (event) => {
@@ -375,6 +387,19 @@ function ReportActionsList({
         },
         [onLayout],
     );
+
+    const listHeaderComponent = useCallback(() => {
+        if (!hasHeaderRendered.current) {
+            hasHeaderRendered.current = true;
+            return null;
+        }
+        return (
+            <ListBoundaryLoader
+                type={CONST.LIST_COMPONENTS.HEADER}
+                isLoadingNewerReportActions={isLoadingNewerReportActions}
+            />
+        );
+    }, [isLoadingNewerReportActions]);
 
     return (
         <>
@@ -389,13 +414,16 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={sortedReportActions}
                     renderItem={renderItem}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={initialNumToRender}
-                    onEndReached={loadMoreChats}
+                    onEndReached={loadOlderChats}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={renderFooter}
+                    onStartReached={loadNewerChats}
+                    onStartReachedThreshold={0.75}
+                    ListFooterComponent={listFooterComponent}
+                    ListHeaderComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}

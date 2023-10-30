@@ -1,7 +1,7 @@
-import React, {useEffect} from 'react';
 import _ from 'lodash';
+import React, {useEffect} from 'react';
+import E2EClient from '@libs/E2E/client';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import E2EClient from '../../../../../libs/E2E/client';
 
 let rerenderCount = 0;
 const getRerenderCount = () => rerenderCount;
@@ -14,7 +14,7 @@ function IncrementRenderCount() {
     return null;
 }
 
-export default React.forwardRef((props, ref) => {
+const ComposerWithSuggestionsE2e = React.forwardRef((props, ref) => {
     // Eventually Auto focus on e2e tests
     useEffect(() => {
         if (_.get(E2EClient.getCurrentActiveTestConfig(), 'reportScreen.autoFocus', false) === false) {
@@ -46,4 +46,7 @@ export default React.forwardRef((props, ref) => {
     );
 });
 
+ComposerWithSuggestionsE2e.displayName = 'ComposerWithSuggestionsE2e';
+
+export default ComposerWithSuggestionsE2e;
 export {getRerenderCount, resetRerenderCount};

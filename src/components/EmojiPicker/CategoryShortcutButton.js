@@ -1,15 +1,15 @@
-import React, {useState} from 'react';
 import PropTypes from 'prop-types';
-import Icon from '../Icon';
-import Tooltip from '../Tooltip';
-import useLocalize from '../../hooks/useLocalize';
-import variables from '../../styles/variables';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getButtonState from '../../libs/getButtonState';
-import themeColors from '../../styles/themes/default';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
+import React, {useState} from 'react';
+import Icon from '@components/Icon';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Tooltip from '@components/Tooltip';
+import useLocalize from '@hooks/useLocalize';
+import getButtonState from '@libs/getButtonState';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The emoji code of the category header */

@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
-import CONST from '../../../CONST';
+import CONST from '@src/CONST';
 
 /**
  * Returns a promise that resolves with the current environment string value

@@ -1,10 +1,11 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import _ from 'underscore';
-
-import ControlSelection from '../../../../libs/ControlSelection';
-import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
-import htmlRendererPropTypes from '../htmlRendererPropTypes';
+import htmlRendererPropTypes from '@components/HTMLEngineProvider/HTMLRenderers/htmlRendererPropTypes';
+import ControlSelection from '@libs/ControlSelection';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BasePreRenderer from './BasePreRenderer';
+
+const supportsPassive = DeviceCapabilities.hasPassiveEventListenerSupport();
 
 const isScrollingVertically = (event) =>
     // Mark as vertical scrolling only when absolute value of deltaY is more than the double of absolute
@@ -32,7 +33,6 @@ function PreRenderer(props) {
         const horizontalOverflow = node.scrollWidth > node.offsetWidth;
         if (event.currentTarget === node && horizontalOverflow && !debouncedIsScrollingVertically(event)) {
             node.scrollLeft += event.deltaX;
-            event.preventDefault();
             event.stopPropagation();
         }
     }, []);
@@ -42,7 +42,7 @@ function PreRenderer(props) {
         if (!eventListenerRefValue) {
             return;
         }
-        eventListenerRefValue.getScrollableNode().addEventListener('wheel', scrollNode);
+        eventListenerRefValue.getScrollableNode().addEventListener('wheel', scrollNode, supportsPassive ? {passive: true} : false);
 
         return () => {
             if (!eventListenerRefValue.getScrollableNode()) {

@@ -33,7 +33,7 @@ module.exports = {
     SERVER_PORT: 4723,
 
     // The amount of times a test should be executed for average performance metrics
-    RUNS: 60,
+    RUNS: 80,
 
     DEFAULT_BASELINE_BRANCH: 'main',
 
@@ -47,6 +47,9 @@ module.exports = {
 
     // The time in milliseconds after which an operation fails due to timeout
     INTERACTION_TIMEOUT: 300000,
+
+    // Period we wait between each test runs, to let the device cool down
+    COOL_DOWN: 90 * 1000,
 
     TEST_NAMES,
 
