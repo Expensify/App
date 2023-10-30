@@ -6,9 +6,9 @@ import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from
 import {CustomAnimation} from 'react-native-animatable';
 import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
+import DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
-import DotLottieAnimation from '@components/LottieAnimations/types';
 import addOutlineWidth from './addOutlineWidth';
 import codeStyles from './codeStyles';
 import colors from './colors';
