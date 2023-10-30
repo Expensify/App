@@ -233,7 +233,7 @@ If developing on MacOS, the development desktop app can't handle deeplinks corre
 1. Create a "real" build of the desktop app, which can handle deep links, open the build folder, and install the dmg there:
 
 ```
-npm run desktop-build --publish=never
+npm run desktop-build
 open desktop-build
 # Then double-click "NewExpensify.dmg" in Finder window
 ```
