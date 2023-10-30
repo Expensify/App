@@ -1,16 +1,16 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import CONST from '../../CONST';
-import colors from '../../styles/colors';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import Text from '../Text';
-import TextLink from '../TextLink';
-import Tooltip from '../Tooltip';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import Tooltip from '@components/Tooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import colors from '@styles/colors';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import * as locationErrorMessagePropTypes from './locationErrorMessagePropTypes';
 
 const propTypes = {

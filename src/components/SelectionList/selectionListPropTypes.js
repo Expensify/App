@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 
 const commonListItemPropTypes = {
     /** Whether this item is focused (for arrow key controls) */
@@ -173,6 +173,9 @@ const propTypes = {
 
     /** A ref to forward to the TextInput */
     inputRef: PropTypes.oneOfType([PropTypes.object]),
+
+    /** Custom content to display in the header */
+    headerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
     /** Custom content to display in the footer */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),

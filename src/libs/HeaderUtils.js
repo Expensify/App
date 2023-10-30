@@ -1,7 +1,7 @@
-import * as Localize from './Localize';
-import * as Session from './actions/Session';
+import * as Expensicons from '@components/Icon/Expensicons';
 import * as Report from './actions/Report';
-import * as Expensicons from '../components/Icon/Expensicons';
+import * as Session from './actions/Session';
+import * as Localize from './Localize';
 
 /**
  * @param {Object} report

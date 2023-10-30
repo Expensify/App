@@ -1,11 +1,11 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import PropTypes from 'prop-types';
-import ReportActionsSkeletonView from '../../../../components/ReportActionsSkeletonView';
-import CONST from '../../../../CONST';
-import useNetwork from '../../../../hooks/useNetwork';
-import styles, {stylesGenerator} from '../../../../styles/styles';
-import themeColors from '../../../../styles/themes/default';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import useNetwork from '@hooks/useNetwork';
+import styles, {stylesGenerator} from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** type of rendered loader. Can be 'header' or 'footer' */

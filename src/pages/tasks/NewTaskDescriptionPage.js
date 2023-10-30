@@ -1,23 +1,23 @@
-import React, {useRef, useCallback} from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {useFocusEffect} from '@react-navigation/native';
-import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
-import Form from '../../components/Form';
-import TextInput from '../../components/TextInput';
-import Permissions from '../../libs/Permissions';
-import ROUTES from '../../ROUTES';
-import * as Task from '../../libs/actions/Task';
-import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
-import CONST from '../../CONST';
-import * as Browser from '../../libs/Browser';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import styles from '@styles/styles';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Beta features list */
@@ -40,26 +40,7 @@ const defaultProps = {
 };
 
 function NewTaskDescriptionPage(props) {
-    const inputRef = useRef(null);
-    const focusTimeoutRef = useRef(null);
-    // On submit, we want to call the assignTask function and wait to validate
-    // the response
-
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                if (inputRef.current) {
-                    inputRef.current.focus();
-                }
-                return () => {
-                    if (!focusTimeoutRef.current) {
-                        return;
-                    }
-                    clearTimeout(focusTimeoutRef.current);
-                };
-            }, CONST.ANIMATED_TRANSITION);
-        }, []),
-    );
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const onSubmit = (values) => {
         Task.setDescriptionValue(values.taskDescription);
@@ -97,11 +78,8 @@ function NewTaskDescriptionPage(props) {
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             ref={(el) => {
-                                if (!el) {
-                                    return;
-                                }
-                                inputRef.current = el;
-                                updateMultilineInputRange(inputRef.current);
+                                inputCallbackRef(el);
+                                updateMultilineInputRange(el);
                             }}
                             autoGrowHeight
                             submitOnEnter={!Browser.isMobile()}
