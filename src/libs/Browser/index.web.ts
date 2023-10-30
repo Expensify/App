@@ -1,6 +1,6 @@
-import CONST from '../../CONST';
-import CONFIG from '../../CONFIG';
-import ROUTES from '../../ROUTES';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 /**
  * Fetch browser name from UA string

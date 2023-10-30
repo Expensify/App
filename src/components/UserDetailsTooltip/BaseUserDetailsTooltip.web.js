@@ -3,15 +3,15 @@ import {View, Text} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import Avatar from '../Avatar';
-import Tooltip from '../Tooltip';
-import {propTypes, defaultProps} from './userDetailsTooltipPropTypes';
-import styles from '../../styles/styles';
-import * as UserUtils from '../../libs/UserUtils';
-import CONST from '../../CONST';
-import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
-import useLocalize from '../../hooks/useLocalize';
-import {usePersonalDetails} from '../OnyxProvider';
+import Avatar from '@components/Avatar';
+import Tooltip from '@components/Tooltip';
+import useLocalize from '@hooks/useLocalize';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import * as UserUtils from '@libs/UserUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import {usePersonalDetails} from '@components/OnyxProvider';
+import {defaultProps, propTypes} from './userDetailsTooltipPropTypes';
 
 function BaseUserDetailsTooltip(props) {
     const {translate} = useLocalize();

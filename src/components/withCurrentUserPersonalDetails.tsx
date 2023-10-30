@@ -1,4 +1,4 @@
-import React, {ComponentType, RefAttributes, ForwardedRef, useMemo} from 'react';
+import React, {ComponentType, ForwardedRef, RefAttributes, useMemo} from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
