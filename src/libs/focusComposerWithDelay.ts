@@ -1,6 +1,6 @@
 import {InteractionManager, TextInput} from 'react-native';
-import ComposerFocusManager from './ComposerFocusManager';
 import * as EmojiPickerAction from './actions/EmojiPickerAction';
+import ComposerFocusManager from './ComposerFocusManager';
 
 type FocusComposerWithDelay = (shouldDelay?: boolean) => void;
 /**
