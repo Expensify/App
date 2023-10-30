@@ -2,13 +2,14 @@ import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, Onfido as Onfi
 import lodashGet from 'lodash/get';
 import React, {useEffect} from 'react';
 import {Alert, Linking} from 'react-native';
+import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import _ from 'underscore';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import onfidoPropTypes from './onfidoPropTypes';
-
+import getPlatform from '../../libs/getPlatform';
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
     const {translate} = useLocalize();
