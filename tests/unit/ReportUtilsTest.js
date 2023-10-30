@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../src/CONST';
-import ONYXKEYS from '../../src/ONYXKEYS';
 import * as ReportUtils from '../../src/libs/ReportUtils';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import ONYXKEYS from '../../src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -84,11 +84,8 @@ describe('ReportUtils', () => {
             const participants = ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false);
             expect(participants).toHaveLength(5);
 
-            expect(participants[0].avatar).toBeInstanceOf(Function);
-            expect(participants[0].displayName).toBe('Ragnar Lothbrok');
-            expect(participants[0].login).toBe('ragnar@vikings.net');
-            expect(participants[0].accountID).toBe(1);
-            expect(participants[0].pronouns).toBeUndefined();
+            expect(participants[0].displayName).toBe('(833) 240-3627');
+            expect(participants[0].login).toBe('+18332403627@expensify.sms');
 
             expect(participants[2].avatar).toBeInstanceOf(Function);
             expect(participants[2].displayName).toBe('Lagertha Lothbrok');
@@ -96,8 +93,11 @@ describe('ReportUtils', () => {
             expect(participants[2].accountID).toBe(3);
             expect(participants[2].pronouns).toBe('She/her');
 
-            expect(participants[3].displayName).toBe('(833) 240-3627');
-            expect(participants[3].login).toBe('+18332403627@expensify.sms');
+            expect(participants[4].avatar).toBeInstanceOf(Function);
+            expect(participants[4].displayName).toBe('Ragnar Lothbrok');
+            expect(participants[4].login).toBe('ragnar@vikings.net');
+            expect(participants[4].accountID).toBe(1);
+            expect(participants[4].pronouns).toBeUndefined();
         });
     });
 
@@ -519,8 +519,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.getReportIDFromLink('new-expensify://r/75431276')).toBe('75431276');
             expect(ReportUtils.getReportIDFromLink('https://www.expensify.cash/r/75431276')).toBe('75431276');
             expect(ReportUtils.getReportIDFromLink('https://staging.new.expensify.com/r/75431276')).toBe('75431276');
-            expect(ReportUtils.getReportIDFromLink('http://localhost/r/75431276')).toBe('75431276');
-            expect(ReportUtils.getReportIDFromLink('http://localhost:8080/r/75431276')).toBe('75431276');
+            expect(ReportUtils.getReportIDFromLink('https://dev.new.expensify.com/r/75431276')).toBe('75431276');
             expect(ReportUtils.getReportIDFromLink('https://staging.expensify.cash/r/75431276')).toBe('75431276');
             expect(ReportUtils.getReportIDFromLink('https://new.expensify.com/r/75431276')).toBe('75431276');
         });

@@ -1,16 +1,16 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+import _ from 'lodash';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import _ from 'lodash';
-import TextInput from '../TextInput';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import * as Expensicons from '../Icon/Expensicons';
-import {defaultProps as defaultBaseTextInputPropTypes, propTypes as baseTextInputPropTypes} from '../TextInput/baseTextInputPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+import InputWrapper from '@components/Form/InputWrapper';
+import * as Expensicons from '@components/Icon/Expensicons';
+import TextInput from '@components/TextInput';
+import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/baseTextInputPropTypes';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
-import InputWrapper from '../Form/InputWrapper';
 
 const propTypes = {
     /**

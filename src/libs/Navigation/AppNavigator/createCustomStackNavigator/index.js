@@ -1,13 +1,13 @@
-import React, {useRef, useMemo} from 'react';
-import PropTypes from 'prop-types';
-import {useNavigationBuilder, createNavigatorFactory} from '@react-navigation/native';
+import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
 import {StackView} from '@react-navigation/stack';
+import PropTypes from 'prop-types';
+import React, {useMemo, useRef} from 'react';
+import IFrame from '@components/IFrame';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import getTopMostCentralPaneRouteName from '@libs/Navigation/getTopMostCentralPaneRouteName';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 import CustomRouter from './CustomRouter';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import getTopMostCentralPaneRouteName from '../../getTopMostCentralPaneRouteName';
-import SCREENS from '../../../../SCREENS';
-import NAVIGATORS from '../../../../NAVIGATORS';
-import IFrame from '../../../../components/IFrame';
 
 const propTypes = {
     /* Determines if the navigator should render the StackView (narrow) or ThreePaneView (wide) */

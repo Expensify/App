@@ -1,11 +1,11 @@
-import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
+import React from 'react';
 import _ from 'underscore';
-import SCREENS from '../../../../SCREENS';
-import ReportScreenWrapper from '../ReportScreenWrapper';
-import getCurrentUrl from '../../currentUrl';
-import styles from '../../../../styles/styles';
-import FreezeWrapper from '../../FreezeWrapper';
+import ReportScreenWrapper from '@libs/Navigation/AppNavigator/ReportScreenWrapper';
+import getCurrentUrl from '@libs/Navigation/currentUrl';
+import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
+import styles from '@styles/styles';
+import SCREENS from '@src/SCREENS';
 
 const Stack = createStackNavigator();
 

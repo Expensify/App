@@ -1,20 +1,19 @@
 /* eslint-disable es/no-nullish-coalescing-operators */
-import React, {useEffect, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import {useNavigationState} from '@react-navigation/native';
-import {Text, View} from 'react-native';
 import lodashFindLast from 'lodash/findLast';
-import ONYXKEYS from '../ONYXKEYS';
-
-import getTopMostCentralPaneRouteName from '../libs/Navigation/getTopMostCentralPaneRouteName';
-import SCREENS from '../SCREENS';
-import ROUTES from '../ROUTES';
+import PropTypes from 'prop-types';
+import React, {useEffect, useState} from 'react';
+import {Text, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import getTopMostCentralPaneRouteName from '@libs/Navigation/getTopMostCentralPaneRouteName';
+import navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import FullPageBiggerScreenView from './BlockingViews/FullPageBiggerScreenView';
-import styles from '../styles/styles';
 import Button from './Button';
-import navigation from '../libs/Navigation/Navigation';
-import CONST from '../CONST';
 
 function addNewDotParams(url) {
     const urlObj = new URL(url);
