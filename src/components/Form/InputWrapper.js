@@ -8,13 +8,11 @@ const propTypes = {
     inputID: PropTypes.string.isRequired,
     valueType: PropTypes.string,
     forwardedRef: refPropTypes,
-    valueParser: PropTypes.func,
 };
 
 const defaultProps = {
     forwardedRef: undefined,
     valueType: 'string',
-    valueParser: () => {},
 };
 
 function InputWrapper(props) {
