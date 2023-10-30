@@ -8,7 +8,6 @@
 import {ValueOf} from 'type-fest';
 import * as Metrics from '@libs/Metrics';
 import Performance from '@libs/Performance';
-import '../../../index';
 import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
 
@@ -68,5 +67,5 @@ E2EClient.getTestConfig()
 
 // start the usual app
 Performance.markStart('regularAppStart');
-
+import '../../../index';
 Performance.markEnd('regularAppStart');
