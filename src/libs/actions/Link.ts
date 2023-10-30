@@ -48,9 +48,7 @@ function openOldDotLink(url: string) {
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects('OpenOldDotLink', {}, {})
-            .then((response) => {
-                return response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url);
-            })
+            .then((response) => (response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url)))
             .catch(() => buildOldDotURL(url)),
         (oldDotURL) => oldDotURL,
     );
