@@ -1,15 +1,15 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
-import Header from './Header';
-import styles from '../styles/styles';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
 import Button from './Button';
-import useLocalize from '../hooks/useLocalize';
-import useNetwork from '../hooks/useNetwork';
-import Text from './Text';
-import variables from '../styles/variables';
+import Header from './Header';
 import Icon from './Icon';
+import Text from './Text';
 
 const propTypes = {
     /** Title of the modal */

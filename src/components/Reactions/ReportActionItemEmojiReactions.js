@@ -1,21 +1,21 @@
-import React, {useRef, useContext} from 'react';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import EmojiReactionBubble from './EmojiReactionBubble';
+import React, {useContext, useRef} from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import Tooltip from '@components/Tooltip';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import styles from '@styles/styles';
 import AddReactionBubble from './AddReactionBubble';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
-import withLocalize from '../withLocalize';
-import compose from '../../libs/compose';
+import EmojiReactionBubble from './EmojiReactionBubble';
 import EmojiReactionsPropTypes from './EmojiReactionsPropTypes';
-import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
-import * as EmojiUtils from '../../libs/EmojiUtils';
-import {ReactionListContext} from '../../pages/home/ReportScreenContext';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 
 const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,

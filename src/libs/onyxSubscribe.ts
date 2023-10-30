@@ -1,5 +1,5 @@
 import Onyx, {ConnectOptions} from 'react-native-onyx';
-import {OnyxKey} from '../ONYXKEYS';
+import {OnyxKey} from '@src/ONYXKEYS';
 
 /**
  * Connect to onyx data. Same params as Onyx.connect(), but returns a function to unsubscribe.

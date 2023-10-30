@@ -1,18 +1,18 @@
-import React, {useState, useRef} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
-import Icon from '../Icon';
-import PopoverMenu from '../PopoverMenu';
-import styles from '../../styles/styles';
-import useLocalize from '../../hooks/useLocalize';
-import Tooltip from '../Tooltip/PopoverAnchorTooltip';
-import * as Expensicons from '../Icon/Expensicons';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PopoverMenu from '@components/PopoverMenu';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import useLocalize from '@hooks/useLocalize';
+import * as Browser from '@libs/Browser';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
-import CONST from '../../CONST';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import * as Browser from '../../libs/Browser';
-import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** Tooltip for the popup icon */
