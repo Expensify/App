@@ -1,23 +1,23 @@
-import React, {useEffect} from 'react';
-import _ from 'underscore';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import ROUTES from '../../../ROUTES';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import Navigation from '../../../libs/Navigation/Navigation';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import useLocalize from '../../../hooks/useLocalize';
-import * as Card from '../../../libs/actions/Card';
+import _ from 'underscore';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import * as CardUtils from '@libs/CardUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import styles from '@styles/styles';
+import * as Card from '@userActions/Card';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import assignedCardPropTypes from './assignedCardPropTypes';
-import * as CardUtils from '../../../libs/CardUtils';
-import ONYXKEYS from '../../../ONYXKEYS';
-import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import usePrevious from '../../../hooks/usePrevious';
-import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
-import * as ErrorUtils from '../../../libs/ErrorUtils';
 
 const propTypes = {
     /* Onyx Props */

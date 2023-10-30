@@ -1,13 +1,13 @@
 /* eslint-disable import/newline-after-import,import/first */
+
 /**
  * We are using a separate entry point for the E2E tests.
  * By doing this, we avoid bundling any E2E testing code
  * into the actual release app.
  */
-
-import Performance from '../Performance';
-import * as Metrics from '../Metrics';
-
+import * as Metrics from '@libs/Metrics';
+import Performance from '@libs/Performance';
+import '../../../index';
 import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
 
@@ -65,5 +65,5 @@ E2EClient.getTestConfig()
 
 // start the usual app
 Performance.markStart('regularAppStart');
-import '../../../index';
+
 Performance.markEnd('regularAppStart');

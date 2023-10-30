@@ -1,16 +1,16 @@
-import _ from 'underscore';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import compose from '@libs/compose';
+import Permissions from '@libs/Permissions';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as Expensicons from './Icon/Expensicons';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import compose from '../libs/compose';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
-import withWindowDimensions from './withWindowDimensions';
-import Permissions from '../libs/Permissions';
 import PopoverMenu from './PopoverMenu';
 import refPropTypes from './refPropTypes';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withWindowDimensions from './withWindowDimensions';
 
 const propTypes = {
     /** Should the component be visible? */
