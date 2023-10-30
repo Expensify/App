@@ -1,17 +1,17 @@
-import React, {useRef, useCallback} from 'react';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {useFocusEffect} from '@react-navigation/native';
-import TextInput from '../components/TextInput';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Form from '../components/Form';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import CONST from '../CONST';
-import useLocalize from '../hooks/useLocalize';
-import * as Browser from '../libs/Browser';
-import updateMultilineInputRange from '../libs/UpdateMultilineInputRange';
+import PropTypes from 'prop-types';
+import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import * as Browser from '@libs/Browser';
+import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Transaction default description value */

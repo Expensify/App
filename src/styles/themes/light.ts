@@ -1,5 +1,5 @@
-import SCREENS from '../../SCREENS';
-import colors from '../colors';
+import colors from '@styles/colors';
+import SCREENS from '@src/SCREENS';
 import type {ThemeDefault} from './types';
 
 const lightTheme = {

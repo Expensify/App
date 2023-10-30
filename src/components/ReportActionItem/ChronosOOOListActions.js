@@ -1,16 +1,16 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import Button from '../Button';
-import * as Chronos from '../../libs/actions/Chronos';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import DateUtils from '../../libs/DateUtils';
-import OfflineWithFeedback from '../OfflineWithFeedback';
+import Button from '@components/Button';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import DateUtils from '@libs/DateUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import styles from '@styles/styles';
+import * as Chronos from '@userActions/Chronos';
 
 const propTypes = {
     /** The ID of the report */
