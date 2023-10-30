@@ -1,7 +1,7 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, react/prop-types */
-
 import React from 'react';
 import {FlatList} from 'react-native';
+import PropTypes from 'prop-types';
 
 function mergeRefs(...args) {
     return function forwardRef(node) {
@@ -187,5 +187,19 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
         />
     );
 });
+
+MVCPFlatList.displayName = 'MVCPFlatList';
+MVCPFlatList.propTypes = {
+    maintainVisibleContentPosition: PropTypes.shape({
+        minIndexForVisible: PropTypes.number.isRequired,
+        autoscrollToTopThreshold: PropTypes.number,
+    }),
+    horizontal: PropTypes.bool,
+};
+
+MVCPFlatList.defaultProps = {
+    maintainVisibleContentPosition: null,
+    horizontal: false,
+};
 
 export default MVCPFlatList;
