@@ -1,23 +1,23 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
-import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import Onyx from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
-import ONYXKEYS from '../ONYXKEYS';
-import * as ReportUtils from './ReportUtils';
-import * as ReportActionsUtils from './ReportActionsUtils';
-import * as Localize from './Localize';
-import CONST from '../CONST';
-import * as OptionsListUtils from './OptionsListUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {PersonalDetails} from '@src/types/onyx';
+import Beta from '@src/types/onyx/Beta';
+import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import Policy from '@src/types/onyx/Policy';
+import Report from '@src/types/onyx/Report';
+import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
-import * as UserUtils from './UserUtils';
+import * as Localize from './Localize';
+import * as OptionsListUtils from './OptionsListUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import ReportAction, {ReportActions} from '../types/onyx/ReportAction';
-import Beta from '../types/onyx/Beta';
-import Policy from '../types/onyx/Policy';
-import Report from '../types/onyx/Report';
-import {PersonalDetails} from '../types/onyx';
-import * as OnyxCommon from '../types/onyx/OnyxCommon';
+import * as ReportActionsUtils from './ReportActionsUtils';
+import * as ReportUtils from './ReportUtils';
+import * as UserUtils from './UserUtils';
 
 const visibleReportActionItems: ReportActions = {};
 const lastReportActions: ReportActions = {};

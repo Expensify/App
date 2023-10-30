@@ -1,23 +1,23 @@
+import PropTypes from 'prop-types';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import * as StyleUtils from '../../styles/StyleUtils';
-import BaseMiniContextMenuItem from '../BaseMiniContextMenuItem';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import getButtonState from '../../libs/getButtonState';
-import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import {baseQuickEmojiReactionsPropTypes, baseQuickEmojiReactionsDefaultProps} from './QuickEmojiReactions/BaseQuickEmojiReactions';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as EmojiUtils from '../../libs/EmojiUtils';
-import * as Session from '../../libs/actions/Session';
+import _ from 'underscore';
+import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import getButtonState from '@libs/getButtonState';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {baseQuickEmojiReactionsDefaultProps, baseQuickEmojiReactionsPropTypes} from './QuickEmojiReactions/BaseQuickEmojiReactions';
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,

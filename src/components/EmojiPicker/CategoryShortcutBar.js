@@ -1,8 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../../styles/styles';
+import styles from '@styles/styles';
 import CategoryShortcutButton from './CategoryShortcutButton';
 
 const propTypes = {

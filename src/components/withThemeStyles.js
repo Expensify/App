@@ -1,7 +1,7 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import useThemeStyles from '../styles/useThemeStyles';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
+import React from 'react';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import useThemeStyles from '@styles/useThemeStyles';
 import refPropTypes from './refPropTypes';
 
 const withThemeStylesPropTypes = {

@@ -1,22 +1,22 @@
 import React from 'react';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import CONST from '../../../CONST';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Navigation from '../../../libs/Navigation/Navigation';
-import compose from '../../../libs/compose';
-import withReportOrNotFound from '../../home/report/withReportOrNotFound';
-import reportPropTypes from '../../reportPropTypes';
-import ROUTES from '../../../ROUTES';
-import * as Report from '../../../libs/actions/Report';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import * as PolicyUtils from '../../../libs/PolicyUtils';
-import {policyPropTypes, policyDefaultProps} from '../../workspace/withPolicy';
-import SelectionList from '../../../components/SelectionList';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
+import reportPropTypes from '@pages/reportPropTypes';
+import {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
