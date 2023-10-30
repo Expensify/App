@@ -422,7 +422,7 @@ function setUpPoliciesAndNavigate(session: OnyxTypes.Session, shouldNavigateToAd
         return;
     }
 
-    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const isLoggingInAsNewUser = !!session.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
     const url = new URL(currentUrl);
     const exitTo = url.searchParams.get('exitTo');
 

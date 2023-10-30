@@ -6,7 +6,7 @@ type AutoAuthState = ValueOf<typeof CONST.AUTO_AUTH_STATE>;
 
 type Session = {
     /** The user's email for the current session */
-    email: string;
+    email?: string;
 
     /** Currently logged in user authToken */
     authToken?: string;
