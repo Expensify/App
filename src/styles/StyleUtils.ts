@@ -545,24 +545,6 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
 }
 
 /**
- * Generate the styles for the ReportActionItem wrapper view.
- */
-function getReportActionItemStyle(isHovered = false): ViewStyle {
-    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        display: 'flex',
-        justifyContent: 'space-between',
-        backgroundColor: isHovered
-            ? themeColors.hoverComponentBG
-            : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
-              themeColors.transparent,
-        opacity: 1,
-        ...styles.cursorInitial,
-    };
-}
-
-/**
  * Generate the wrapper styles for the mini ReportActionContextMenu.
  */
 function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: boolean): ViewStyle {
@@ -1273,7 +1255,6 @@ export {
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,
-    getReportActionItemStyle,
     getSafeAreaMargins,
     getSafeAreaPadding,
     getSignInWordmarkWidthStyle,

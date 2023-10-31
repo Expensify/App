@@ -19,6 +19,7 @@ import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyl
 import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsNone from './pointerEventsNone';
+import themeColors from './themes/default';
 import {ThemeDefault} from './themes/types';
 import borders from './utilities/borders';
 import cursor from './utilities/cursor';
@@ -4107,6 +4108,18 @@ const styles = (theme: ThemeDefault) => {
         }
         return {};
     };
+
+    stylez.reportActionItemStyle = (isHovered = false): ViewStyle =>
+        ({
+            display: 'flex',
+            justifyContent: 'space-between',
+            backgroundColor: isHovered
+                ? themeColors.hoverComponentBG
+                : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
+                  themeColors.transparent,
+            opacity: 1,
+            ...stylez.cursorInitial,
+        } as ViewStyle);
 
     return stylez;
 };
