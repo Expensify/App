@@ -82,7 +82,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
 
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const isLoading = lodashGet(transaction, 'isLoading', false);
-    const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
+    const hasRouteError = TransactionUtils.hasRouteError(transaction);
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);

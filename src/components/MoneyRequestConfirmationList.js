@@ -250,7 +250,7 @@ function MoneyRequestConfirmationList(props) {
     const shouldShowBillable = canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
-    const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
+    const hasRouteError = TransactionUtils.hasRouteError(transaction);
     const isDistanceRequestWithoutRoute = props.isDistanceRequest && !hasRoute;
     const formattedAmount = isDistanceRequestWithoutRoute
         ? translate('common.tbd')

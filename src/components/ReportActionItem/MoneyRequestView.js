@@ -152,7 +152,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
     let hasErrors = false;
-    const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
+    const hasRouteError = TransactionUtils.hasRouteError(transaction);
 
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);

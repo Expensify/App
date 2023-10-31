@@ -353,9 +353,17 @@ function getAllReportErrors(report, reportActions) {
         if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
+
+        if (TransactionUtils.isDistanceRequest(transaction) && TransactionUtils.hasRouteError(transaction)) {
+            _.extend(reportActionErrors, {waypoint: ErrorUtils.getLatestErrorField(transaction, 'route')});
+        }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report.ownerAccountID === currentUserAccountID) {
         if (ReportUtils.hasMissingSmartscanFields(report.reportID)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
+        }
+
+        if (ReportUtils.hasDistanceTransactionRouteErrors(report.reportID)) {
+            _.extend(reportActionErrors, {waypoint: ErrorUtils.getMicroSecondOnyxError('iou.error.genericWaypointFailureMessage')});
         }
     }
 

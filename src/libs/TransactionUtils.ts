@@ -362,6 +362,13 @@ function hasMissingSmartscanFields(transaction: Transaction): boolean {
 }
 
 /**
+ * Check if the transaction has route error
+ */
+function hasRouteError(transaction: Transaction): boolean {
+    return !!transaction?.errorFields?.route;
+}
+
+/**
  * Check if the transaction has a defined route
  */
 function hasRoute(transaction: Transaction): boolean {
@@ -484,4 +491,5 @@ export {
     getWaypointIndex,
     waypointHasValidAddress,
     getRecentTransactions,
+    hasRouteError,
 };

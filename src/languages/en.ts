@@ -592,6 +592,7 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
+            genericWaypointFailureMessage: 'Distance request has route error',
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
         },
