@@ -52,28 +52,28 @@ This document explains how to manage employee expense reports and approval workf
   - *Final Approver (Finance/Accountant):* This is the person listed as the 'Approves to' in the Settings of the Second Approver.
 - This is what this setup looks like in the Workspace Members table.
   - Bryan submits his reports to Jim for 1st level approval.
-![Screenshot showing the People section of the workspace](docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_1.png){:width="100%"}
+![Screenshot showing the People section of the workspace](/docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_1.png){:width="100%"}
 
   - All of the reports Jim approves are submitted to Kevin. Kevin is the 'approves to' in Jim's Settings.
-![Screenshot of Policy Member Editor](docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_2.png){:width="100%"}
+![Screenshot of Policy Member Editor](/docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_2.png){:width="100%"}
 
   - All of the reports Kevin approves are submitted to Lucy. Lucy is the 'approves to' in Kevin's Settings.
-![Screenshot of Policy Member Editor Approves to](docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_3.png){:width="100%"}
+![Screenshot of Policy Member Editor Approves to](/docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_3.png){:width="100%"}
 
 
   - Lucy is the final approver, so she doesn't submit her reports to anyone for review.
-![Screenshot of Policy Member Editor Final Approver](docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_4.png){:width="100%"}
+![Screenshot of Policy Member Editor Final Approver](/docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_4.png){:width="100%"}
 
 
 - The final outcome: The member in the Submits To line is different than the person noted as the Approves To.
 ### Adding additional approver levels
 - You can also set a specific approver for Reports Totals in Settings.
-![Screenshot of Policy Member Editor Approves to](docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_5.png){:width="100%"}
+![Screenshot of Policy Member Editor Approves to](/docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_5.png){:width="100%"}
 
 - An example: The submitter's manager can approve any report up to a certain limit, let's say $500, and forward it to accounting. However, if a report is over that $500 limit, it has to be also approved by the department head before being forwarded to accounting.
 - To configure, click on Edit Settings next to the approving manager's email address and set the "If Report Total is Over" and "Then Approves to" fields.
-![Screenshot of Workspace Member Settings](docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_6.png){:width="100%"}
-![Screenshot of Policy Member Editor Configure](docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_7.png){:width="100%"}
+![Screenshot of Workspace Member Settings](/docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_6.png){:width="100%"}
+![Screenshot of Policy Member Editor Configure](/docs/assets/images/ManagingEmployeesAndReports_ApprovalWorkflows_7.png){:width="100%"}
 
 
 ### Setting category approvals
