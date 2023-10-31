@@ -1,25 +1,25 @@
+import {fireEvent, screen} from '@testing-library/react-native';
+import React from 'react';
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
-import React from 'react';
-import {fireEvent, screen} from '@testing-library/react-native';
-import ReportScreen from '../../src/pages/home/ReportScreen';
 import ComposeProviders from '../../src/components/ComposeProviders';
+import DragAndDropProvider from '../../src/components/DragAndDrop/Provider';
+import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
 import OnyxProvider from '../../src/components/OnyxProvider';
+import {CurrentReportIDContextProvider} from '../../src/components/withCurrentReportID';
 import {KeyboardStateProvider} from '../../src/components/withKeyboardState';
 import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
-import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
-import {CurrentReportIDContextProvider} from '../../src/components/withCurrentReportID';
-import DragAndDropProvider from '../../src/components/DragAndDrop/Provider';
-import {ReportAttachmentsProvider} from '../../src/pages/home/report/ReportAttachmentsContext';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
+import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import {ReportAttachmentsProvider} from '../../src/pages/home/report/ReportAttachmentsContext';
+import ReportScreen from '../../src/pages/home/ReportScreen';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
+import PusherHelper from '../utils/PusherHelper';
+import * as ReportTestUtils from '../utils/ReportTestUtils';
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-import PusherHelper from '../utils/PusherHelper';
-import * as TestHelper from '../utils/TestHelper';
-import * as ReportTestUtils from '../utils/ReportTestUtils';
-import * as Localize from '../../src/libs/Localize';
 
 jest.setTimeout(60000);
 
