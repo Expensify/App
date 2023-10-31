@@ -74,7 +74,7 @@ function DotIndicatorMessage(props) {
                 {_.map(sortedMessages, (message, i) => (
                     <Text
                         key={i}
-                        style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), ...props.textStyles]}
+                        style={[styles.dotIndicatorTextStyles(isErrorMessage), ...StyleUtils.parseStyleAsArray(props.textStyles)]}
                     >
                         {message}
                     </Text>

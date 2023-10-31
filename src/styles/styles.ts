@@ -210,8 +210,8 @@ const webViewStyles = (theme: ThemeDefault) =>
         },
     } satisfies WebViewStyle);
 
-const styles = (theme: ThemeDefault) =>
-    ({
+const styles = (theme: ThemeDefault) => {
+    const stylez: Styles = {
         // Add all of our utility and helper styles
         ...spacing,
         ...borders,
@@ -4026,7 +4026,18 @@ const styles = (theme: ThemeDefault) =>
         singleOptionSelectorCircle: {
             borderColor: theme.icon,
         },
-    } satisfies Styles);
+    };
+
+    stylez.dotIndicatorTextStyles = (isErrorText = true): TextStyle => {
+        const textStyles = (stylez.offlineFeedback as OfflineFeedbackStyle).text;
+        if (isErrorText) {
+            textStyles.color = theme.textError;
+        }
+        return textStyles as TextStyle;
+    };
+
+    return stylez;
+};
 
 export default styles;
 export type {Styles};

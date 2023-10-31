@@ -7,9 +7,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import Tooltip from '@components/Tooltip';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import colors from '@styles/colors';
-import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import * as locationErrorMessagePropTypes from './locationErrorMessagePropTypes';
@@ -20,12 +19,10 @@ const propTypes = {
 
     // eslint-disable-next-line react/forbid-foreign-prop-types
     ...locationErrorMessagePropTypes.propTypes,
-
-    /* Onyx Props */
-    ...withLocalizePropTypes,
 };
 
-function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationErrorCode, translate}) {
+function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationErrorCode}) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     if (!locationErrorCode) {
         return null;
@@ -44,14 +41,14 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
             <View style={styles.offlineFeedback.textContainer}>
                 {isPermissionDenied ? (
                     <Text>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles()]}>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
+                        <Text style={styles.dotIndicatorTextStyles()}>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
                         <TextLink
                             onPress={onAllowLocationLinkPress}
                             style={styles.locationErrorLinkText}
                         >
                             {` ${translate('location.allowPermission')} `}
                         </TextLink>
-                        <Text style={[StyleUtils.getDotIndicatorTextStyles()]}>{translate('location.tryAgain')}</Text>
+                        <Text style={styles.dotIndicatorTextStyles()}>{translate('location.tryAgain')}</Text>
                     </Text>
                 ) : (
                     <Text style={styles.offlineFeedback.text}>{translate('location.notFound')}</Text>
@@ -77,4 +74,5 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
 BaseLocationErrorMessage.displayName = 'BaseLocationErrorMessage';
 BaseLocationErrorMessage.propTypes = propTypes;
 BaseLocationErrorMessage.defaultProps = locationErrorMessagePropTypes.defaultProps;
-export default withLocalize(BaseLocationErrorMessage);
+
+export default BaseLocationErrorMessage;
