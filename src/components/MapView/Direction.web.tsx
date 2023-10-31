@@ -5,13 +5,15 @@
 import React from 'react';
 import {Layer, Source} from 'react-map-gl';
 import {View} from 'react-native';
+import {MapDirectionLayerStyle} from '@styles/styles';
 import useThemeStyles from '@styles/useThemeStyles';
 import {DirectionProps} from './MapViewTypes';
 
 function Direction({coordinates}: DirectionProps) {
     const styles = useThemeStyles();
-    const layerLayoutStyle: Record<string, string> = styles.mapDirectionLayer.layout;
-    const layerPointStyle: Record<string, string | number> = styles.mapDirectionLayer.paint;
+    const mapDirectionLayerStyle = styles.mapDirectionLayer as MapDirectionLayerStyle;
+    const layerLayoutStyle = mapDirectionLayerStyle.layout as Record<string, string>;
+    const layerPointStyle = mapDirectionLayerStyle.paint as Record<string, string | number>;
 
     if (coordinates.length < 1) {
         return null;

@@ -4160,4 +4160,4 @@ const styles = (theme: ThemeDefault) => {
 };
 
 export default styles;
-export type {Styles};
+export type {Styles, MapDirectionStyle, MapDirectionLayerStyle};
