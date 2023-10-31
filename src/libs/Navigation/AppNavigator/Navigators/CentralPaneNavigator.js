@@ -3,7 +3,7 @@ import React from 'react';
 import ReportScreenWrapper from '@libs/Navigation/AppNavigator/ReportScreenWrapper';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
 
 const Stack = createStackNavigator();
@@ -12,6 +12,7 @@ const url = getCurrentUrl();
 const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
 
 function CentralPaneNavigator() {
+    const styles = useThemeStyles();
     return (
         <FreezeWrapper>
             <Stack.Navigator>
@@ -32,5 +33,7 @@ function CentralPaneNavigator() {
         </FreezeWrapper>
     );
 }
+
+CentralPaneNavigator.displayName = 'CentralPaneNavigator';
 
 export default CentralPaneNavigator;
