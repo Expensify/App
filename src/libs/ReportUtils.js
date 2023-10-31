@@ -476,6 +476,16 @@ function isChatThread(report) {
 }
 
 /**
+ * Returns true if report is a DM/Group DM chat.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isDM(report) {
+    return !getChatType(report);
+}
+
+/**
  * Only returns true if this is our main 1:1 DM report with Concierge
  *
  * @param {Object} report
@@ -505,36 +515,16 @@ function shouldDisableDetailPage(report) {
 }
 
 /**
- * Returns true if this report has only one participant and it's an Expensify account.
- * @param {Object} report
- * @returns {Boolean}
- */
-function isExpensifyOnlyParticipantInReport(report) {
-    const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
-    return reportParticipants.length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
-}
-
-/**
- * Checks if the policy that the report is on is owned by one of the special Expensify accounts
+ * Returns whether a given report can have tasks created in it.
+ * We only prevent the task option if it's a DM/group-DM and the other users are all special Expensify accounts
  *
  * @param {Object} report
  * @returns {Boolean}
  */
-function doExpensifyAccountsOwnPolicy(report) {
-    const policyID = lodashGet(report, 'policyID', '');
-    const policyOwnerAccountID = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'ownerAccountID'], 0);
-    return CONST.EXPENSIFY_ACCOUNT_IDS.includes(policyOwnerAccountID);
-}
-
-/**
- * Returns whether a given report can have tasks created in it.
- * @param {Object} report
- * @returns {Boolean}
- */
 function canCreateTaskInReport(report) {
-    // Tasks cannot be created in DMs with special Expensify accounts but they can be created in policy rooms that are owned by them.
-    // So we check if Expensify accounts are the only other participant and also whether or not we are in a room owned by them.
-    if (isExpensifyOnlyParticipantInReport(report) && !doExpensifyAccountsOwnPolicy(report)) {
+    const otherReportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
+    const areExpensifyAccountsOnlyOtherParticipants = _.every(otherReportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
+    if (areExpensifyAccountsOnlyOtherParticipants && isDM(report)) {
         return false;
     }
 
@@ -671,16 +661,6 @@ function isPolicyAdmin(policyID, policies) {
     const policyRole = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'role']);
 
     return policyRole === CONST.POLICY.ROLE.ADMIN;
-}
-
-/**
- * Returns true if report is a DM/Group DM chat.
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-function isDM(report) {
-    return !getChatType(report);
 }
 
 /**
@@ -3679,7 +3659,10 @@ function getMoneyRequestOptions(report, reportParticipants) {
 
     // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
     const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
-    if (doParticipantsIncludeExpensifyAccounts && !doExpensifyAccountsOwnPolicy(report)) {
+    const policyID = lodashGet(report, 'policyID', '');
+    const policyOwnerAccountID = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'ownerAccountID'], 0);
+    const isPolicyOwnedByExpensifyAccounts = CONST.EXPENSIFY_ACCOUNT_IDS.includes(policyOwnerAccountID);
+    if (doParticipantsIncludeExpensifyAccounts && !isPolicyOwnedByExpensifyAccounts) {
         return [];
     }
 
@@ -4173,8 +4156,6 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
-    isExpensifyOnlyParticipantInReport,
-    doExpensifyAccountsOwnPolicy,
     canCreateTaskInReport,
     isPolicyExpenseChatAdmin,
     isPolicyAdmin,

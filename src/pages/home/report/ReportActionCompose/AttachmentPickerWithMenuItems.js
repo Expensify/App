@@ -151,7 +151,6 @@ function AttachmentPickerWithMenuItems({
      * @returns {Boolean}
      */
     const taskOption = useMemo(() => {
-        // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
         if (!Permissions.canUseTasks(betas) || !ReportUtils.canCreateTaskInReport(report)) {
             return [];
         }
