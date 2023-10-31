@@ -1,13 +1,13 @@
 import Str from 'expensify-common/lib/str';
 import {ImageSourcePropType} from 'react-native';
+import ReceiptDoc from '@assets/images/receipt-doc.png';
+import ReceiptGeneric from '@assets/images/receipt-generic.png';
+import ReceiptHTML from '@assets/images/receipt-html.png';
+import ReceiptSVG from '@assets/images/receipt-svg.png';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import {Transaction} from '@src/types/onyx';
 import * as FileUtils from './fileDownload/FileUtils';
-import CONST from '../CONST';
-import ReceiptHTML from '../../assets/images/receipt-html.png';
-import ReceiptDoc from '../../assets/images/receipt-doc.png';
-import ReceiptGeneric from '../../assets/images/receipt-generic.png';
-import ReceiptSVG from '../../assets/images/receipt-svg.png';
-import {Transaction} from '../types/onyx';
-import ROUTES from '../ROUTES';
 
 type ThumbnailAndImageURI = {
     image: ImageSourcePropType | string;

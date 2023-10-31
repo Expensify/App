@@ -1,7 +1,7 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import * as StyleUtils from '../styles/StyleUtils';
+import * as StyleUtils from '@styles/StyleUtils';
 
 const propTypes = {
     /** Children to render. */

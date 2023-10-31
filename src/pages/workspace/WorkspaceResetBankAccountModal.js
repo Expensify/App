@@ -1,15 +1,15 @@
 import lodashGet from 'lodash/get';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import ConfirmModal from '../../components/ConfirmModal';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
-import Text from '../../components/Text';
-import styles from '../../styles/styles';
-import BankAccount from '../../libs/models/BankAccount';
-import ONYXKEYS from '../../ONYXKEYS';
-import useLocalize from '../../hooks/useLocalize';
+import ConfirmModal from '@components/ConfirmModal';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import BankAccount from '@libs/models/BankAccount';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Reimbursement account data */
