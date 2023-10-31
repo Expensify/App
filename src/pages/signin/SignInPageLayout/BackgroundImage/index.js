@@ -1,8 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import MobileBackgroundImage from '../../../../../assets/images/home-background--mobile.svg';
-import DesktopBackgroundImage from '../../../../../assets/images/home-background--desktop.svg';
-import styles from '../../../../styles/styles';
+import React from 'react';
+import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
+import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
+import styles from '@styles/styles';
 import defaultPropTypes from './propTypes';
 
 const defaultProps = {

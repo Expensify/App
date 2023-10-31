@@ -183,7 +183,6 @@ Additionally if you want to discuss an idea with the open source community witho
 
 #### Important note about JavaScript Style
 - Read our official [JavaScript and React style guide](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md). Please refer to our Style Guide before asking for a review.
-- We have nothing against Prettier or any other automatic style fixers, but we generally don't use them here at Expensify. Do not use Prettier. The style changes these tools enforce don't always align with the ones we recommend and require in our eslint configs and can result in unnecessary changes for our reviewers. Ignoring this advice will ultimately make your changes take longer to review as we will ask you to undo any style changes that are not related to the important changes you are making.
 
 #### For external agencies that Expensify partners with
 Follow all the above above steps and processes. When you find a job you'd like to work on:
@@ -204,7 +203,6 @@ During communication with Expensify, you will come across a variety of acronyms 
 - **RBR:** Red Brick Road (UX Design Principle that utilizes red indicators on action items to encourage the user down the optimal path for handling and discovering errors) 
 - **VBA:** Verified Bank Account (Bank account that has been verified as real and belonging to the correct business/individual)
 - **NAB:** Not a Blocker (An issue that doesn't block progress, but would be nice to not have)
-- **LHN:** Left Hand Navigation
 - **IOU:** I owe you (used to describe payment requests between users)
 - **OTP:** One-time password, or magic sign-in
 - **RHP:** Right Hand Panel (on larger screens, pages are often displayed docked to the right side of the screen)

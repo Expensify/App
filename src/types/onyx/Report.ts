@@ -1,5 +1,5 @@
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 
 type Report = {
@@ -18,9 +18,6 @@ type Report = {
     /** Indicates if the report is pinned to the LHN or not */
     isPinned?: boolean;
 
-    /** The email of the last message's actor */
-    lastActorEmail?: string;
-
     /** The text of the last message on the report */
     lastMessageText?: string;
 
@@ -38,9 +35,6 @@ type Report = {
 
     /** The email address of the report owner */
     ownerEmail?: string;
-
-    /** List of primarylogins of participants of the report */
-    participants?: string[];
 
     /** Linked policy's ID */
     policyID?: string;
@@ -63,6 +57,7 @@ type Report = {
     /** The report type */
     type?: string;
 
+    lastMessageTranslationKey?: string;
     parentReportID?: string;
     parentReportActionID?: string;
     isOptimisticReport?: boolean;
@@ -77,7 +72,27 @@ type Report = {
     participantAccountIDs?: number[];
     total?: number;
     currency?: string;
+
+    /** Whether the report is waiting on a bank account */
+    isWaitingOnBankAccount?: boolean;
+
+    /** Whether the last message was deleted */
+    isLastMessageDeletedParentAction?: boolean;
+
+    /** The ID of the IOU report */
+    iouReportID?: string;
+
+    /** Total amount of money owed for IOU report */
+    iouReportAmount?: number;
+
+    /** Pending fields for the report */
+    pendingFields?: Record<string, OnyxCommon.PendingAction>;
+
+    /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
     preexistingReportID?: string;
+
+    /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
+    nonReimbursableTotal?: number;
 };
 
 export default Report;

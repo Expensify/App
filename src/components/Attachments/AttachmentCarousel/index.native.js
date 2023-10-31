@@ -1,22 +1,22 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View, Keyboard, PixelRatio} from 'react-native';
+import {Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import AttachmentCarouselPager from './Pager';
-import styles from '../../../styles/styles';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Illustrations from '@components/Icon/Illustrations';
+import withLocalize from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselButtons from './CarouselButtons';
-import ONYXKEYS from '../../../ONYXKEYS';
-import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
-import extractAttachmentsFromReport from './extractAttachmentsFromReport';
-import useCarouselArrows from './useCarouselArrows';
 import CarouselItem from './CarouselItem';
-import Navigation from '../../../libs/Navigation/Navigation';
-import BlockingView from '../../BlockingViews/BlockingView';
-import * as Illustrations from '../../Icon/Illustrations';
-import variables from '../../../styles/variables';
-import compose from '../../../libs/compose';
-import withLocalize from '../../withLocalize';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import AttachmentCarouselPager from './Pager';
+import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel({report, reportActions, source, onNavigate, onClose, setDownloadButtonVisibility, translate}) {
     const pagerRef = useRef(null);
@@ -106,10 +106,10 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item}) => (
+        ({item, isActive}) => (
             <CarouselItem
                 item={item}
-                isFocused={activeSource === item.source}
+                isFocused={isActive && activeSource === item.source}
                 onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),

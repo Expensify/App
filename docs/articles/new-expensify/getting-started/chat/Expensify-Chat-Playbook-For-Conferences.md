@@ -3,10 +3,10 @@ title: Expensify Chat Playbook for Conferences
 description: Best practices for how to deploy Expensify Chat for your conference
 redirect_from: articles/playbooks/Expensify-Chat-Playbook-for-Conferences/
 ---
-## Overview
+# Overview
 To help make setting up Expensify Chat for your event and your attendees super simple, we’ve created a guide for all of the technical setup details.
 
-## Who you are
+# Who you are
 As a conference organizer, you’re expected to amaze and inspire attendees. You want attendees to get to the right place on time, engage with the speakers, and create relationships with each other that last long after the conference is done. Enter Expensify Chat, a free feature that allows attendees to interact with organizers and other attendees in realtime. With Expensify Chat, you can:
 
 - Communicate logistics and key information
@@ -21,20 +21,20 @@ Sounds good? Great! In order to ensure your team, your speakers, and your attend
 *Let’s get started!*
 
 
-## Support
+# Support
 Connect with your dedicated account manager in any new.expensify.com #admins room. Your account manager is excited to brainstorm the best ways to make the most out of your event and work through any questions you have about the setup steps below.
 
 We also have a number of [moderation tools](https://help.expensify.com/articles/other/Everything-About-Chat#flagging-content-as-offensive) available to admins to help make sure your event is seamless, safe, and fun!
 
-## Step by step instructions for setting up your conference on Expensify Chat
+# Step by step instructions for setting up your conference on Expensify Chat
 Based on our experience running conferences atop Expensify Chat, we recommend the following simple steps:
 
-### Step 1: Create your event workspace in Expensify
+## Step 1: Create your event workspace in Expensify
 To create your event workspace in Expensify:
 1. In [new.expensify.com](https://new.expensify.com): “+” > “New workspace”
 1. Name the workspace (e.g. “ExpensiCon”)
 
-### Step 2: Set up all the Expensify Chat rooms you want to feature at your event
+## Step 2: Set up all the Expensify Chat rooms you want to feature at your event
 **Protip**: Your Expensify account manager can complete this step with you. Chat them in #admins on new.expensify.com to coordinate!
 
 To create a new chat room:
@@ -54,7 +54,7 @@ For an easy-to-follow event, we recommend creating these chat rooms:
 
 **Protip** Check out our [moderation tools](https://help.expensify.com/articles/other/Everything-About-Chat#flagging-content-as-offensive) to help flag comments deemed to be spam, inconsiderate, intimidating, bullying, harassment, assault. On any comment just click the flag icon to moderate conversation.
 
-### Step 3: Add chat room QR codes to the applicable session slide deck
+## Step 3: Add chat room QR codes to the applicable session slide deck
 Gather QR codes:
 1. Go to [new.expensify.com](https://new.expensify.com)
 1. Click into a room and click the room name or avatar in the top header
@@ -63,7 +63,7 @@ Gather QR codes:
 
 Add the QR code to every slide so that if folks forget to scan the QR code at the beginning of the presentation, they can still join the discussion.
 
-### Step 4: Plan out your messaging and cadence before the event begins
+## Step 4: Plan out your messaging and cadence before the event begins
 Expensify Chat is a great place to provide updates leading up to your event -- share news, get folks excited about speakers, and let attendees know of crucial event information like recommended attire, travel info, and more. For example, you might consider:
 
 **Prep your announcements:**
@@ -80,15 +80,15 @@ Expensify Chat is a great place to provide updates leading up to your event -- s
 
 **Protip**: Your account manager can help you create this document, and would be happy to send each message at the appointed time for you.
 
-### Step 5: Share Expensify Chat How-To Resources with Speakers, Attendees, Admins
+## Step 5: Share Expensify Chat How-To Resources with Speakers, Attendees, Admins
 We’ve created a few helpful best practice docs for your speakers, admins, and attendees to help navigate using Expensify Chat at your event. Feel free to share the links below with them!
 
 - [Expensify Chat for Conference Attendees](https://help.expensify.com/articles/other/Expensify-Chat-For-Conference-Attendees)
 - [Expensify Chat for Conference Speakers](https://help.expensify.com/articles/other/Expensify-Chat-For-Conference-Speakers)
 - [Expensify Chat for Admins](https://help.expensify.com/articles/other/Expensify-Chat-For-Admins)
 
-### Step 6: Follow up with attendees after the event
+## Step 6: Follow up with attendees after the event
 Continue the connections by using Expensify Chat to keep your conference community connected. Encourage attendees to share photos, their favorite memories, funny stories, and more.
 
-## Conclusion
+# Conclusion
 Once you have completed the above steps you are ready to host your conference on Expensify Chat! Let your account manager know any questions you have over in your [new.expensify.com](https://new.expensify.com) #admins room and start driving activity in your Expensify Chat rooms. Once you’ve reviewed this doc you should have the foundations in place, so a great next step is to start training your speakers on how to use Expensify Chat for their sessions. Coordinate with your account manager to make sure everything goes smoothly!

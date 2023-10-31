@@ -1,14 +1,14 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import React from 'react';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import {useNavigationState} from '@react-navigation/native';
-import CONST from '../../CONST';
-import getComponentDisplayName from '../../libs/getComponentDisplayName';
-import * as Policy from '../../libs/actions/Policy';
-import ONYXKEYS from '../../ONYXKEYS';
-import policyMemberPropType from '../policyMemberPropType';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import policyMemberPropType from '@pages/policyMemberPropType';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * @param {Object} route
@@ -105,13 +105,15 @@ export default function (WrappedComponent) {
     WithPolicy.propTypes = propTypes;
     WithPolicy.defaultProps = defaultProps;
     WithPolicy.displayName = `withPolicy(${getComponentDisplayName(WrappedComponent)})`;
-    const withPolicy = React.forwardRef((props, ref) => (
+    const WithPolicyWithRef = React.forwardRef((props, ref) => (
         <WithPolicy
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithPolicyWithRef.displayName = 'WithPolicyWithRef';
 
     return withOnyx({
         policy: {
@@ -120,7 +122,13 @@ export default function (WrappedComponent) {
         policyMembers: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${getPolicyIDFromRoute(props.route)}`,
         },
-    })(withPolicy);
+        policyDraft: {
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
+        },
+        policyMembersDraft: {
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
+        },
+    })(WithPolicyWithRef);
 }
 
 export {policyPropTypes, policyDefaultProps};

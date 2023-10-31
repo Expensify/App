@@ -1,5 +1,5 @@
-import CONST from '../CONST';
-import Beta from '../types/onyx/Beta';
+import CONST from '@src/CONST';
+import Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.ALL);
@@ -15,13 +15,6 @@ function canUsePayWithExpensify(betas: Beta[]): boolean {
 
 function canUseDefaultRooms(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
-}
-
-/**
- * IOU Send feature is temporarily disabled.
- */
-function canUseIOUSend(): boolean {
-    return false;
 }
 
 function canUseWallet(betas: Beta[]): boolean {
@@ -49,10 +42,6 @@ function canUseCustomStatus(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.CUSTOM_STATUS) || canUseAllBetas(betas);
 }
 
-function canUseCategories(betas: Beta[]): boolean {
-    return betas?.includes(CONST.BETAS.NEW_DOT_CATEGORIES) || canUseAllBetas(betas);
-}
-
 function canUseTags(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.NEW_DOT_TAGS) || canUseAllBetas(betas);
 }
@@ -68,13 +57,11 @@ export default {
     canUseChronos,
     canUsePayWithExpensify,
     canUseDefaultRooms,
-    canUseIOUSend,
     canUseWallet,
     canUseCommentLinking,
     canUsePolicyRooms,
     canUseTasks,
     canUseCustomStatus,
-    canUseCategories,
     canUseTags,
     canUseLinkPreviews,
 };

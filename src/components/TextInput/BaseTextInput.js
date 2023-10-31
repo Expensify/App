@@ -1,27 +1,28 @@
-import _ from 'underscore';
-import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
-import {Animated, View, StyleSheet} from 'react-native';
 import Str from 'expensify-common/lib/str';
-import RNTextInput from '../RNTextInput';
-import TextInputLabel from './TextInputLabel';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
+import _ from 'underscore';
+import Checkbox from '@components/Checkbox';
+import FormHelpMessage from '@components/FormHelpMessage';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RNTextInput from '@components/RNTextInput';
+import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
+import Text from '@components/Text';
+import withLocalize from '@components/withLocalize';
+import * as Browser from '@libs/Browser';
+import getSecureEntryKeyboardType from '@libs/getSecureEntryKeyboardType';
+import isInputAutoFilled from '@libs/isInputAutoFilled';
+import useNativeDriver from '@libs/useNativeDriver';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
-import themeColors from '../../styles/themes/default';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import Text from '../Text';
 import * as styleConst from './styleConst';
-import * as StyleUtils from '../../styles/StyleUtils';
-import variables from '../../styles/variables';
-import Checkbox from '../Checkbox';
-import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
-import CONST from '../../CONST';
-import FormHelpMessage from '../FormHelpMessage';
-import isInputAutoFilled from '../../libs/isInputAutoFilled';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import withLocalize from '../withLocalize';
-import useNativeDriver from '../../libs/useNativeDriver';
-import * as Browser from '../../libs/Browser';
+import TextInputLabel from './TextInputLabel';
 
 function BaseTextInput(props) {
     const initialValue = props.value || props.defaultValue || '';
@@ -46,19 +47,11 @@ function BaseTextInput(props) {
             return;
         }
 
-        let focusTimeout;
         if (props.shouldDelayFocus) {
-            focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
-            return;
+            const focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
+            return () => clearTimeout(focusTimeout);
         }
         input.current.focus();
-
-        return () => {
-            if (!focusTimeout) {
-                return;
-            }
-            clearTimeout(focusTimeout);
-        };
         // We only want this to run on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -242,21 +235,25 @@ function BaseTextInput(props) {
     For other platforms, explicitly remove `lineHeight` from single-line inputs
     to prevent long text from disappearing once it exceeds the input space.
     See https://github.com/Expensify/App/issues/13802 */
+
     const lineHeight = useMemo(() => {
-        if (Browser.isSafari() && _.isArray(props.inputStyle)) {
+        if ((Browser.isSafari() || Browser.isMobileChrome()) && _.isArray(props.inputStyle)) {
             const lineHeightValue = _.find(props.inputStyle, (f) => f.lineHeight !== undefined);
             if (lineHeightValue) {
                 return lineHeightValue.lineHeight;
             }
-        } else if (Browser.isSafari() || Browser.isMobileChrome()) {
-            return height;
         }
+
         return undefined;
-    }, [props.inputStyle, height]);
+    }, [props.inputStyle]);
 
     return (
         <>
-            <View style={styles.pointerEventsNone}>
+            <View
+                style={styles.pointerEventsNone}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(props.shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
+            >
                 <PressableWithoutFeedback
                     onPress={onPress}
                     focusable={false}
@@ -341,6 +338,10 @@ function BaseTextInput(props) {
                                     // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
                                     !isMultiline && {height, lineHeight},
 
+                                    // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
+                                    // for the issue mentioned here https://github.com/Expensify/App/issues/26735
+                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined},
+
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
                                     // Add disabled color theme when field is not editable.
@@ -363,6 +364,13 @@ function BaseTextInput(props) {
                                 // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
                                 dataSet={{submitOnEnter: isMultiline && props.submitOnEnter}}
                             />
+                            {props.isLoading && (
+                                <ActivityIndicator
+                                    size="small"
+                                    color={themeColors.iconSuccessFill}
+                                    style={[styles.mt4, styles.ml1]}
+                                />
+                            )}
                             {Boolean(props.secureTextEntry) && (
                                 <Checkbox
                                     style={[styles.flex1, styles.textInputIconContainer]}

@@ -1,7 +1,7 @@
 import React, {forwardRef} from 'react';
 import {SectionList} from 'react-native';
 
-export default forwardRef((props, ref) => (
+const SectionListWithRef = forwardRef((props, ref) => (
     <SectionList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
@@ -12,3 +12,7 @@ export default forwardRef((props, ref) => (
         removeClippedSubviews
     />
 ));
+
+SectionListWithRef.displayName = 'SectionListWithRef';
+
+export default SectionListWithRef;

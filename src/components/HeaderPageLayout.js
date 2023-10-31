@@ -1,17 +1,17 @@
-import _ from 'underscore';
-import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
+import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
-import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import ScreenWrapper from './ScreenWrapper';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import * as StyleUtils from '../styles/StyleUtils';
-import useWindowDimensions from '../hooks/useWindowDimensions';
+import _ from 'underscore';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
 import FixedFooter from './FixedFooter';
-import useNetwork from '../hooks/useNetwork';
-import * as Browser from '../libs/Browser';
+import HeaderWithBackButton from './HeaderWithBackButton';
+import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
+import ScreenWrapper from './ScreenWrapper';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -31,16 +31,26 @@ const propTypes = {
     /** Style to apply to the header image container */
     // eslint-disable-next-line react/forbid-prop-types
     headerContainerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Style to apply to the ScrollView container */
+    // eslint-disable-next-line react/forbid-prop-types
+    scrollViewContainerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Style to apply to the children container */
+    // eslint-disable-next-line react/forbid-prop-types
+    childrenContainerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     backgroundColor: themeColors.appBG,
     header: null,
     headerContainerStyles: [],
+    scrollViewContainerStyles: [],
+    childrenContainerStyles: [],
     footer: null,
 };
 
-function HeaderPageLayout({backgroundColor, children, footer, headerContainerStyles, style, headerContent, ...propsToPassToHeader}) {
+function HeaderPageLayout({backgroundColor, children, footer, headerContainerStyles, scrollViewContainerStyles, childrenContainerStyles, style, headerContent, ...propsToPassToHeader}) {
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const appBGColor = StyleUtils.getBackgroundColorStyle(themeColors.appBG);
@@ -77,15 +87,14 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
                             </View>
                         )}
                         <ScrollView
-                            contentContainerStyle={[safeAreaPaddingBottomStyle, style]}
-                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles]}
                             offlineIndicatorStyle={[appBGColor]}
                         >
                             {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />}
                             <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor), ...headerContainerStyles]}>
                                 {headerContent}
                             </View>
-                            <View style={[styles.pt5, appBGColor]}>{children}</View>
+                            <View style={[styles.pt5, appBGColor, childrenContainerStyles]}>{children}</View>
                         </ScrollView>
                         {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
                     </View>

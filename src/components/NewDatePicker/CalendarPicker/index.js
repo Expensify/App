@@ -1,20 +1,20 @@
-import _ from 'underscore';
-import React from 'react';
-import {View} from 'react-native';
+import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
-import Text from '../../Text';
-import YearPickerModal from './YearPickerModal';
+import React from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import getButtonState from '@libs/getButtonState';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import ArrowIcon from './ArrowIcon';
-import styles from '../../../styles/styles';
 import generateMonthMatrix from './generateMonthMatrix';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import CONST from '../../../CONST';
-import getButtonState from '../../../libs/getButtonState';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import PressableWithFeedback from '../../Pressable/PressableWithFeedback';
-import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
+import YearPickerModal from './YearPickerModal';
 
 const propTypes = {
     /** An initial value of date string */
@@ -125,8 +125,8 @@ class CalendarPicker extends React.PureComponent {
         const currentMonthView = this.state.currentDateView.getMonth();
         const currentYearView = this.state.currentDateView.getFullYear();
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-        const hasAvailableDatesNextMonth = moment(this.props.maxDate).endOf('month').startOf('day') > moment(this.state.currentDateView).add(1, 'months');
-        const hasAvailableDatesPrevMonth = moment(this.props.minDate).startOf('day') < moment(this.state.currentDateView).subtract(1, 'months').endOf('month');
+        const hasAvailableDatesNextMonth = moment(this.props.maxDate).endOf('month').endOf('day') >= moment(this.state.currentDateView).add(1, 'months');
+        const hasAvailableDatesPrevMonth = moment(this.props.minDate).startOf('month').startOf('day') <= moment(this.state.currentDateView).subtract(1, 'months');
 
         return (
             <View>
