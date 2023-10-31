@@ -39,7 +39,7 @@ type IconProps = {
     /** Is icon pressed */
     pressed?: boolean;
 
-    // eslint-disable-next-line react/forbid-prop-types
+    /** Additional styles to add to the Icon */
     additionalStyles?: ViewStyle[];
 };
 
