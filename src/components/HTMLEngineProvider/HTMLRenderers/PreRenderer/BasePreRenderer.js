@@ -7,8 +7,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import withLocalize from '@components/withLocalize';
 import * as ReportUtils from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Press in handler for the code block */
