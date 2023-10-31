@@ -1,14 +1,8 @@
 import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
-import React from 'react';
+import React, {useMemo} from 'react';
 import _ from 'underscore';
-import SCREENS from '@src/SCREENS';
 import useThemeStyles from '@styles/useThemeStyles';
-
-const defaultSubRouteOptions = {
-    cardStyle: styles.navigationScreenCardStyle,
-    headerShown: false,
-    cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-};
+import SCREENS from '@src/SCREENS';
 
 /**
  * Create a modal stack navigator with an array of sub-screens.
@@ -21,6 +15,14 @@ function createModalStackNavigator(screens) {
 
     function ModalStack() {
         const styles = useThemeStyles();
+        const defaultSubRouteOptions = useMemo(
+            () => ({
+                cardStyle: styles.navigationScreenCardStyle,
+                headerShown: false,
+                cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+            }),
+            [styles.navigationScreenCardStyle],
+        );
         return (
             <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
                 {_.map(screens, (getComponent, name) => (
