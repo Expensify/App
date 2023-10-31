@@ -12,6 +12,7 @@ import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
@@ -25,10 +26,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import NewDistanceRequestPage from './NewDistanceRequestPage';
 import ReceiptSelector from './ReceiptSelector';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
-import reportPropTypes from '@pages/reportPropTypes';
-import * as ReportUtils from '@libs/ReportUtils';
-import usePrevious from '@hooks/usePrevious';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 
 const propTypes = {
     /** React Navigation route */

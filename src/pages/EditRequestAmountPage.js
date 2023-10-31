@@ -4,9 +4,9 @@ import React, {useCallback, useRef} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
-import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 
 const propTypes = {
     /** Transaction default amount value */
