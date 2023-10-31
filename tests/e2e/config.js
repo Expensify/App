@@ -47,7 +47,10 @@ module.exports = {
     INTERACTION_TIMEOUT: 300000,
 
     // Period we wait between each test runs, to let the device cool down
-    COOL_DOWN: 90 * 1000,
+    BOOT_COOL_DOWN: 90 * 1000,
+
+    // Period we wait between each test runs, to let the device cool down
+    SUITE_COOL_DOWN: 5 * 1000,
 
     TEST_NAMES,
 

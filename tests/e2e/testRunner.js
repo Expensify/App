@@ -207,7 +207,7 @@ const runTests = async () => {
         coolDownLogs.updateText(`Cooling down for ${config.COOL_DOWN / 1000}s`);
 
         // eslint-disable-next-line no-loop-func
-        await sleep(config.COOL_DOWN);
+        await sleep(config.BOOT_COOL_DOWN);
         coolDownLogs.done();
 
         server.setTestConfig(testConfig);
@@ -236,6 +236,9 @@ const runTests = async () => {
         for (let i = 0; i < config.RUNS; i++) {
             progressText = `Suite '${testConfig.name}' [${testIndex + 1}/${numOfTests}], iteration [${i + 1}/${config.RUNS}]\n`;
             testLog.updateText(progressText);
+
+            testLog.updateText(`Coolin down phone 🧊 ${config.SUITE_COOL_DOWN / 1000}s`);
+            await sleep(config.SUITE_COOL_DOWN);
 
             await restartApp();
 
