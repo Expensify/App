@@ -8,6 +8,7 @@ import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigation from '@components/withNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
