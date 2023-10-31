@@ -186,7 +186,7 @@
     "@babel/preset-react": "^7.10.4",
     "@babel/preset-typescript": "^7.21.5",
     "@babel/runtime": "^7.20.0",
-    "@electron/notarize": "^1.2.3",
+    "@electron/notarize": "^2.1.0",
     "@jest/globals": "^29.5.0",
     "@octokit/core": "4.0.4",
     "@octokit/plugin-paginate-rest": "3.1.0",
