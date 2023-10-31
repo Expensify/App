@@ -42,7 +42,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    backgroundColor: theme.appBG,
+    backgroundColor: undefined,
     header: null,
     headerContainerStyles: [],
     scrollViewContainerStyles: [],
@@ -55,18 +55,19 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
     const styles = useThemeStyles();
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
+    const bgColor = backgroundColor || theme.appBG;
     const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
     const {titleColor, iconFill} = useMemo(() => {
-        const isColorfulBackground = backgroundColor !== theme.appBG;
+        const isColorfulBackground = bgColor !== theme.appBG;
         return {
             titleColor: isColorfulBackground ? theme.textColorfulBackground : undefined,
             iconFill: isColorfulBackground ? theme.iconColorfulBackground : undefined,
         };
-    }, [backgroundColor]);
+    }, [bgColor, theme.appBG, theme.iconColorfulBackground, theme.textColorfulBackground]);
 
     return (
         <ScreenWrapper
-            style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
+            style={[StyleUtils.getBackgroundColorStyle(bgColor)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
             offlineIndicatorStyle={[appBGColor]}
@@ -84,7 +85,7 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
                         {/** Safari on ios/mac has a bug where overscrolling the page scrollview shows green background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
                         {Browser.isSafari() && (
                             <View style={styles.dualColorOverscrollSpacer}>
-                                <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(backgroundColor)]} />
+                                <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(bgColor)]} />
                                 <View style={[isSmallScreenWidth ? styles.flex1 : styles.flex3, appBGColor]} />
                             </View>
                         )}
@@ -92,10 +93,8 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
                             contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles]}
                             offlineIndicatorStyle={[appBGColor]}
                         >
-                            {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />}
-                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor), ...headerContainerStyles]}>
-                                {headerContent}
-                            </View>
+                            {!Browser.isSafari() && <View style={styles.overscrollSpacer(bgColor, windowHeight)} />}
+                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(bgColor), ...headerContainerStyles]}>{headerContent}</View>
                             <View style={[styles.pt5, appBGColor, childrenContainerStyles]}>{children}</View>
                         </ScrollView>
                         {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
