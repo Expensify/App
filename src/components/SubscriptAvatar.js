@@ -45,7 +45,7 @@ function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, no
     const styles = useThemeStyles();
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
     const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
-    const containerStyle = StyleUtils.getContainerStyles(size);
+    const containerStyle = styles.avatarContainerStyles(size);
 
     return (
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
@@ -97,4 +97,5 @@ function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, no
 SubscriptAvatar.displayName = 'SubscriptAvatar';
 SubscriptAvatar.propTypes = propTypes;
 SubscriptAvatar.defaultProps = defaultProps;
+
 export default memo(SubscriptAvatar);

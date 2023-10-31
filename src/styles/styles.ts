@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
+import {CSSProperties} from 'react';
 import {LineLayer} from 'react-map-gl';
 import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {CustomAnimation} from 'react-native-animatable';
@@ -72,6 +73,8 @@ type Styles = Record<
     | MapDirectionLayerStyle
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     | ((...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomAnimation | CustomPickerStyle)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    | ((...args: any[]) => Array<ViewStyle | CSSProperties>)
 >;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
@@ -4034,6 +4037,32 @@ const styles = (theme: ThemeDefault) => {
             textStyles.color = theme.textError;
         }
         return textStyles as TextStyle;
+    };
+
+    /**
+     * Container styles for showing the icons in MultipleAvatars/SubscriptAvatar
+     */
+    stylez.avatarContainerStyles = (size: string, isInReportAction = false): Array<ViewStyle | CSSProperties> => {
+        let containerStyles: Array<ViewStyle | CSSProperties>;
+
+        switch (size) {
+            case CONST.AVATAR_SIZE.SMALL:
+                containerStyles = [stylez.emptyAvatarSmall as ViewStyle, stylez.emptyAvatarMarginSmall as ViewStyle];
+                break;
+            case CONST.AVATAR_SIZE.SMALLER:
+                containerStyles = [stylez.emptyAvatarSmaller as ViewStyle, stylez.emptyAvatarMarginSmaller as ViewStyle];
+                break;
+            case CONST.AVATAR_SIZE.MEDIUM:
+                containerStyles = [stylez.emptyAvatarMedium as ViewStyle, stylez.emptyAvatarMargin as ViewStyle];
+                break;
+            case CONST.AVATAR_SIZE.LARGE:
+                containerStyles = [stylez.emptyAvatarLarge as ViewStyle, stylez.mb2 as ViewStyle, stylez.mr2 as ViewStyle];
+                break;
+            default:
+                containerStyles = [stylez.emptyAvatar as ViewStyle, isInReportAction ? (stylez.emptyAvatarMarginChat as ViewStyle) : (stylez.emptyAvatarMargin as ViewStyle)];
+        }
+
+        return containerStyles;
     };
 
     return stylez;
