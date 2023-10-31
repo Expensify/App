@@ -48,8 +48,8 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
     const waypointMarkers = useMemo(() => {
         const numberOfWaypoints = _.size(waypoints);
         const lastWaypointIndex = numberOfWaypoints - 1;
-        return _.filter(
-            _.map(waypoints, (waypoint, key) => {
+        return _.chain(waypoints)
+            .map((waypoint, key) => {
                 if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
                     return;
                 }
@@ -75,9 +75,9 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
                         />
                     ),
                 };
-            }),
-            (waypointr) => waypoint,
-        );
+            })
+            .filter((waypoint) => waypoint)
+            .value();
     }, [theme.icon, waypoints]);
 
     useEffect(() => {
