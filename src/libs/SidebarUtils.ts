@@ -15,8 +15,8 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import type {Avatar} from './ReportUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
+import type {Avatar} from './ReportUtils';
 import * as ReportUtils from './ReportUtils';
 import * as UserUtils from './UserUtils';
 
