@@ -8,9 +8,9 @@ import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
@@ -19,6 +19,7 @@ import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel({report, reportActions, source, onNavigate, onClose, setDownloadButtonVisibility, translate}) {
+    const styles = useThemeStyles();
     const pagerRef = useRef(null);
 
     const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});

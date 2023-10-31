@@ -9,8 +9,8 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Attachment required information such as the source and file name */
@@ -49,6 +49,7 @@ const defaultProps = {
 };
 
 function CarouselItem({item, isFocused, onPress}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
     // eslint-disable-next-line es/no-nullish-coalescing-operators

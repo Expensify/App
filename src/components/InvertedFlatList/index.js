@@ -2,8 +2,8 @@ import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useRef} from 'react';
 import {DeviceEventEmitter, FlatList, StyleSheet} from 'react-native';
 import _ from 'underscore';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 
 const propTypes = {
@@ -23,6 +23,7 @@ const propTypes = {
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
 function InvertedFlatList(props) {
+    const styles = useThemeStyles();
     const {innerRef, contentContainerStyle} = props;
     const listRef = React.createRef();
 

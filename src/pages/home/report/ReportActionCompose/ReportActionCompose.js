@@ -29,12 +29,12 @@ import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import SendButton from './SendButton';
@@ -116,6 +116,7 @@ function ReportActionCompose({
     shouldShowComposeInput,
     isReportReadyForDisplay,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const animatedRef = useAnimatedRef();

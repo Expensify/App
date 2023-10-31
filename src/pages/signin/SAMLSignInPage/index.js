@@ -7,10 +7,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The credentials of the logged in person */
@@ -25,6 +25,8 @@ const defaultProps = {
 };
 
 function SAMLSignInPage({credentials}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     useEffect(() => {
@@ -50,7 +52,7 @@ function SAMLSignInPage({credentials}) {
                 <Icon
                     width={154}
                     height={34}
-                    fill={themeColors.success}
+                    fill={theme.success}
                     src={Expensicons.ExpensifyWordmark}
                 />
             </View>

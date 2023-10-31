@@ -12,9 +12,9 @@ import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
 
 const propTypes = {
@@ -36,6 +36,7 @@ const defaultProps = {
 };
 
 function OnfidoPrivacy({walletOnfidoData, translate, form}) {
+    const styles = useThemeStyles();
     const {isLoading = false, hasAcceptedPrivacyPolicy} = walletOnfidoData;
 
     const formRef = useRef(null);

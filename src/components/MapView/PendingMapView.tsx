@@ -4,11 +4,12 @@ import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
+import useThemeStyles from '@styles/useThemeStyles';
 import {PendingMapViewProps} from './MapViewTypes';
 
 function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps) {
+    const styles = useThemeStyles();
     const hasTextContent = !_.isEmpty(title) || !_.isEmpty(subtitle);
 
     return (

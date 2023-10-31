@@ -3,8 +3,8 @@ import ImageView from '@components/ImageView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import {attachmentViewImageDefaultProps, attachmentViewImagePropTypes} from './propTypes';
 
 const propTypes = {
@@ -13,6 +13,7 @@ const propTypes = {
 };
 
 function AttachmentViewImage({source, file, isAuthTokenRequired, loadComplete, onPress, isImage, onScaleChanged, translate, onError}) {
+    const styles = useThemeStyles();
     const children = (
         <ImageView
             onScaleChanged={onScaleChanged}

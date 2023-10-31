@@ -7,14 +7,15 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@styles/useThemeStyles';
 import {walletStatementDefaultProps, walletStatementPropTypes} from './WalletStatementModalPropTypes';
 
 function WalletStatementModal({statementPageURL, session}) {
+    const styles = useThemeStyles();
     const [isLoading, setIsLoading] = useState(true);
     const authToken = lodashGet(session, 'authToken', null);
 

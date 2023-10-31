@@ -10,9 +10,9 @@ import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemeStyles from '@styles/useThemeStyles';
 import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselActions from './CarouselActions';
@@ -28,6 +28,7 @@ const viewabilityConfig = {
 };
 
 function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
+    const styles = useThemeStyles();
     const scrollRef = useRef(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();

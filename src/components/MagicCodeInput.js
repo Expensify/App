@@ -4,8 +4,8 @@ import {StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import FormHelpMessage from './FormHelpMessage';
 import networkPropTypes from './networkPropTypes';
 import {withNetwork} from './OnyxProvider';
@@ -98,6 +98,7 @@ const composeToString = (value) => _.map(value, (v) => (v === undefined || v ===
 const getInputPlaceholderSlots = (length) => Array.from(Array(length).keys());
 
 function MagicCodeInput(props) {
+    const styles = useThemeStyles();
     const inputRefs = useRef([]);
     const [input, setInput] = useState('');
     const [focusedIndex, setFocusedIndex] = useState(0);

@@ -16,12 +16,12 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -71,6 +71,8 @@ const defaultProps = {
 };
 
 function BaseValidateCodeForm(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState('');
     const loginData = props.loginList[props.contactMethod];
@@ -188,7 +190,7 @@ function BaseValidateCodeForm(props) {
                         disabled={shouldDisableResendValidateCode}
                         style={[styles.mr1]}
                         onPress={resendValidateCode}
-                        underlayColor={themeColors.componentBG}
+                        underlayColor={theme.componentBG}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
