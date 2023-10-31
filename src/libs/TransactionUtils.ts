@@ -1,4 +1,3 @@
-import {format, isValid} from 'date-fns';
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
