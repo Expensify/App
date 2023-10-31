@@ -1253,7 +1253,7 @@ function getIcons(
  * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
  * then a default object is constructed.
  */
-function getPersonalDetailsForAccountID(accountID: number): PersonalDetails | Partial<Pick<PersonalDetails, 'accountID' | 'displayName' | 'login' | 'avatar' | 'firstName'>> {
+function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDetails> {
     if (!accountID) {
         return {};
     }
