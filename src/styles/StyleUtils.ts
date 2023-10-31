@@ -285,17 +285,6 @@ function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
     return {marginBottom: (insets?.bottom ?? 0) * variables.safeInsertPercentage};
 }
 
-function getZoomCursorStyle(isZoomed: boolean, isDragging: boolean): ViewStyle {
-    if (!isZoomed) {
-        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return styles.cursorZoomIn;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
-}
-
 // NOTE: asserting some web style properties to a valid type, because it isn't possible to augment them.
 function getZoomSizingStyle(
     isZoomed: boolean,
@@ -1342,7 +1331,6 @@ export {
     getWidthAndHeightStyle,
     getWidthStyle,
     getWrappingStyle,
-    getZoomCursorStyle,
     getZoomSizingStyle,
     parseStyleAsArray,
     parseStyleFromFunction,

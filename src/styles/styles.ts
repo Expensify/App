@@ -4067,6 +4067,13 @@ const styles = (theme: ThemeDefault) => {
 
     stylez.heightOfMagicCodeInput = {height: ((stylez.magicCodeInputContainer as ViewStyle).minHeight as number) - ((stylez.textInputContainer as ViewStyle).borderBottomWidth ?? 0)};
 
+    stylez.getZoomCursorStyle = (isZoomed: boolean, isDragging: boolean): ViewStyle => {
+        if (!isZoomed) {
+            return stylez.cursorZoomIn as ViewStyle;
+        }
+        return (isDragging ? stylez.cursorGrabbing : stylez.cursorZoomOut) as ViewStyle;
+    };
+
     return stylez;
 };
 

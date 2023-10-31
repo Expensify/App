@@ -257,7 +257,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
             <PressableWithoutFeedback
                 style={{
                     ...StyleUtils.getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, isLoading),
-                    ...StyleUtils.getZoomCursorStyle(isZoomed, isDragging),
+                    ...styles.getZoomCursorStyle(isZoomed, isDragging),
                     ...(isZoomed && zoomScale >= 1 ? styles.pRelative : styles.pAbsolute),
                     ...styles.flex1,
                 }}
