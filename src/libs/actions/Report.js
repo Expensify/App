@@ -1042,6 +1042,11 @@ function broadcastUserIsLeavingRoom(reportID) {
 }
 
 /**
+ * Debounce the prompt to promote focus mode as many reports updates could happen in a short burst
+ */
+const promoteFocusModeUpgrade = _.debounce(tryFocusModeUpgrade, 300, true);
+
+/**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
  *
  * @param {Object} report
@@ -1078,6 +1083,9 @@ function handleReportChanged(report) {
     if (report.reportID && report.reportName === undefined) {
         reconnect(report.reportID);
     }
+
+    // Check if we should show a prompt and offer the user to switch to focus mode
+    promoteFocusModeUpgrade();
 }
 
 Onyx.connect({
@@ -1555,7 +1563,7 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
     }
 }
 
-function promoteFocusModeUpgrade() {
+function tryFocusModeUpgrade() {
     Welcome.serverDataIsReadyPromise().then(() => {
         // Check to see if the user is using #focus mode or if we have already asked them to upgrade on any devices.
         if (isInFocusMode || lastOfferedFocusMode !== '') {
@@ -1572,7 +1580,7 @@ function promoteFocusModeUpgrade() {
         Log.info('Offering to promote user to focus mode', false, {reportCount});
 
         // Record that we asked them to upgrade so we don't ask them again later.
-        const newLastOfferedTime = DateUtils.getDBTime();
+        lastOfferedFocusMode = DateUtils.getDBTime();
         API.write(
             'SetLastOfferedFocusMode',
             {value: newLastOfferedTime},
@@ -1581,7 +1589,7 @@ function promoteFocusModeUpgrade() {
                     {
                         onyxMethod: Onyx.METHOD.SET,
                         key: ONYXKEYS.NVP_LAST_OFFERED_FOCUS_MODE,
-                        value: newLastOfferedTime,
+                        value: lastOfferedFocusMode,
                     },
                 ],
             },
