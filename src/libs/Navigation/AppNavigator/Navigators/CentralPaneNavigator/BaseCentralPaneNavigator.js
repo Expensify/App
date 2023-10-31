@@ -16,7 +16,7 @@ function BaseCentralPaneNavigator() {
             <Stack.Screen
                 name={SCREENS.REPORT}
                 // We do it this way to avoid adding the url params to url
-                initialParams={{openOnAdminRoom: openOnAdminRoom ? 'true' : undefined}}
+                initialParams={{openOnAdminRoom: openOnAdminRoom === 'true' || undefined}}
                 options={{
                     headerShown: false,
                     title: 'New Expensify',

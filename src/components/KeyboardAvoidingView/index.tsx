@@ -3,13 +3,13 @@
  */
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
+import KeyboardAvoidingViewProps from './types';
 
-function KeyboardAvoidingView(props) {
-    const viewProps = _.omit(props, ['behavior', 'contentContainerStyle', 'enabled', 'keyboardVerticalOffset']);
+function KeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
+    const {behavior, contentContainerStyle, enabled, keyboardVerticalOffset, ...rest} = props;
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <View {...viewProps} />
+        <View {...rest} />
     );
 }
 
