@@ -31,17 +31,14 @@ function CodesStep({account = defaultAccount}) {
     const [error, setError] = useState('');
 
     useEffect(() => {
+        TwoFactorAuthActions.setCodesAreCopied(false);
+
         if (account.requiresTwoFactorAuth) {
             Navigation.navigate(ROUTES.SETTINGS_2FA.ENABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
             return;
         }
 
-        TwoFactorAuthActions.setCodesAreCopied(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, []);
-
-    useEffect(() => {
-        if (account.requiresTwoFactorAuth || account.recoveryCodes) {
+        if (account.recoveryCodes) {
             return;
         }
 
