@@ -1,32 +1,32 @@
-import React from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import {View, Keyboard} from 'react-native';
+import React from 'react';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Policy from '../../libs/actions/Policy';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import TextInput from '../../components/TextInput';
-import MultipleAvatars from '../../components/MultipleAvatars';
-import CONST from '../../CONST';
-import * as Link from '../../libs/actions/Link';
-import Text from '../../components/Text';
-import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MultipleAvatars from '@components/MultipleAvatars';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigationFocus from '@components/withNavigationFocus';
+import compose from '@libs/compose';
+import * as Localize from '@libs/Localize';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import styles from '@styles/styles';
+import * as Link from '@userActions/Link';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import ROUTES from '../../ROUTES';
-import * as Localize from '../../libs/Localize';
-import Form from '../../components/Form';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withNavigationFocus from '../../components/withNavigationFocus';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The accountID of the person */
@@ -239,6 +239,7 @@ class WorkspaceInviteMessagePage extends React.Component {
 
 WorkspaceInviteMessagePage.propTypes = propTypes;
 WorkspaceInviteMessagePage.defaultProps = defaultProps;
+WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
 
 export default compose(
     withLocalize,

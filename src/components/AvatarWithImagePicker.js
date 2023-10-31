@@ -1,31 +1,31 @@
-import _ from 'underscore';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import Avatar from './Avatar';
-import Icon from './Icon';
-import PopoverMenu from './PopoverMenu';
-import * as Expensicons from './Icon/Expensicons';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import AttachmentPicker from './AttachmentPicker';
-import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
-import OfflineWithFeedback from './OfflineWithFeedback';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import variables from '../styles/variables';
-import CONST from '../CONST';
-import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
-import Tooltip from './Tooltip';
-import stylePropTypes from '../styles/stylePropTypes';
-import * as FileUtils from '../libs/fileDownload/FileUtils';
-import getImageResolution from '../libs/fileDownload/getImageResolution';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import _ from 'underscore';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getImageResolution from '@libs/fileDownload/getImageResolution';
+import SpinningIndicatorAnimation from '@styles/animation/SpinningIndicatorAnimation';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';
+import AttachmentPicker from './AttachmentPicker';
+import Avatar from './Avatar';
+import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import * as Browser from '../libs/Browser';
-import withNavigationFocus, {withNavigationFocusPropTypes} from './withNavigationFocus';
-import compose from '../libs/compose';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import OfflineWithFeedback from './OfflineWithFeedback';
+import PopoverMenu from './PopoverMenu';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
     /** Avatar source to display */
@@ -91,8 +91,10 @@ const propTypes = {
     /** File name of the avatar */
     originalFileName: PropTypes.string,
 
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
-    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {

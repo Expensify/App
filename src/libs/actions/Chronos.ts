@@ -1,8 +1,8 @@
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
-import {ChronosOOOEvent} from '../../types/onyx/OriginalMessage';
+import * as API from '@libs/API';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {ChronosOOOEvent} from '@src/types/onyx/OriginalMessage';
 
 const removeEvent = (reportID: string, reportActionID: string, eventID: string, events: ChronosOOOEvent[]) => {
     const optimisticData: OnyxUpdate[] = [
