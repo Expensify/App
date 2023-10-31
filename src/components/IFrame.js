@@ -206,23 +206,25 @@ function getIframeRouteNameAndParams(state) {
         const topMostCentralPane = lodashFindLast(state.routes, (route) => route.name === 'CentralPaneNavigator');
         if (topMostCentralPane && topMostCentralPane.state) {
             const params = topMostCentralPane.state.routes[topMostCentralPane.state.index || 0].params;
-            return {routeName, params, index: state.index};
+            return {routeName, params};
         }
 
         const params = topMostCentralPane.params;
         if (params) {
-            return {routeName, params: params.params, index: state.index};
+            return {routeName, params: params.params};
         }
     }
-    return {routeName: undefined, params: undefined, index: state.index};
+    return {routeName: undefined, params: undefined};
 }
 
 // TODO: use proper URL
 const BASE_IFRAME_URL = 'https://staging.expensify.com';
 
 function IFrame({session}) {
+    // TODO: This is not necessary anymore but I'm leaving it here for now so we can see what URL is currently loaded in the iframe.
     const [oldDotURL, setOldDotURL] = useState(undefined);
-    const {routeName, params, index} = useNavigationState((state) => getIframeRouteNameAndParams(state));
+    const {routeName, params} = useNavigationState((state) => getIframeRouteNameAndParams(state));
+    const iframeElement = React.useRef(null);
 
     useEffect(() => {
         window.addEventListener('message', (event) => {
@@ -255,6 +257,11 @@ function IFrame({session}) {
             return;
         }
 
+        // TODO: We probably should check if current URL is the same as the new one to avoid unnecessary reloads.
+        // especialy in the case of navigation triggered by the olddot.
+        // We use replace to avoid excess history entries after changing src.
+        iframeElement.current.contentWindow.location.replace(addNewDotParams(`${BASE_IFRAME_URL}/${newOldDotURL}`));
+        // TODO: remove this after removing the text with information about current olddot url
         setOldDotURL(addNewDotParams(`${BASE_IFRAME_URL}/${newOldDotURL}`));
     }, [routeName, params]);
 
@@ -284,9 +291,8 @@ function IFrame({session}) {
                     />
                     <iframe
                         // If we don't remount iframe it will mess up with the browser history.
-                        key={`${routeName}-${index}`}
+                        ref={iframeElement}
                         style={styles.iframe}
-                        src={oldDotURL}
                         title="OldDot"
                     />
                 </View>
