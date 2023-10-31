@@ -35,7 +35,7 @@ To set up your auto-reconciliation account with the Expensify Card, follow these
 5. Head to the "Settings" tab.
 6. Select the account in your accounting solution that you want to use for reconciliation. Make sure this account matches the settlement business bank account.
 
-![Image showing overview of the Company Card Settings section](https://help.expensify.com/assets/images/Auto-Reconciliaton_Image1.png){:width="100%"}
+![Company Card Settings section](https://help.expensify.com/assets/images/Auto-Reconciliaton_Image1.png){:width="100%"}
 
 That's it! You've successfully set up your auto-reconciliation account.
 
@@ -46,7 +46,7 @@ Once Auto-Reconciliation is enabled, there are a few things that happen. Let’s
 **What happens**: When an Expensify Card is used to make purchases, the amount spent is automatically deducted from your company’s 'Settlement Account' (your business checking account). This deduction happens on a daily or monthly basis, depending on your chosen settlement frequency. Don't worry; this settlement account is pre-defined when you apply for the Expensify Card, and you can't accidentally change it.
 **Accounting treatment**: After your card balance is settled each day, we update your accounting system with a journal entry. This entry credits your bank account (referred to as the GL account) and debits the Expensify Card Clearing Account. To ensure accuracy, please make sure that the 'bank account' in your Expensify Card settings matches your real-life settlement account. You can easily verify this by navigating to **Settings > Account > Payments**, where you'll see 'Settlement Account' next to your business bank account. To keep track of settlement figures by date, use the Company Card Reconciliation Dashboard's Settlements tab:
 
-![Image showing overview of the Company Card Reconciliation Dashboard](https://help.expensify.com/assets/images/Auto-Reconciliation_Image2.png){:width="100%"}
+![Company Card Reconciliation Dashboard](https://help.expensify.com/assets/images/Auto-Reconciliation_Image2.png){:width="100%"}
 
 ### Submitting, Approving, and Exporting Expenses
 **What happens**: Users submit their expenses on a report, which might occur after some time has passed since the initial purchase. Once the report is approved, it's then exported to your accounting software.
