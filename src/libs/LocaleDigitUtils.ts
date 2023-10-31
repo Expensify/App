@@ -3,13 +3,15 @@ import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
+type Locale = ValueOf<typeof CONST.LOCALES>;
+
 const STANDARD_DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-', ','];
 
 const INDEX_DECIMAL = 10;
 const INDEX_MINUS_SIGN = 11;
 const INDEX_GROUP = 12;
 
-const getLocaleDigits = _.memoize((locale: ValueOf<typeof CONST.LOCALES>): string[] => {
+const getLocaleDigits = _.memoize((locale: Locale): string[] => {
     const localeDigits = [...STANDARD_DIGITS];
     for (let i = 0; i <= 9; i++) {
         localeDigits[i] = NumberFormatUtils.format(locale, i);
@@ -40,7 +42,7 @@ const getLocaleDigits = _.memoize((locale: ValueOf<typeof CONST.LOCALES>): strin
  *
  * @throws If `digit` is not a valid standard digit.
  */
-function toLocaleDigit(locale: ValueOf<typeof CONST.LOCALES>, digit: string): string {
+function toLocaleDigit(locale: Locale, digit: string): string {
     const index = STANDARD_DIGITS.indexOf(digit);
     if (index < 0) {
         throw new Error(`"${digit}" must be in ${JSON.stringify(STANDARD_DIGITS)}`);
@@ -56,7 +58,7 @@ function toLocaleDigit(locale: ValueOf<typeof CONST.LOCALES>, digit: string): st
  *
  * @throws If `localeDigit` is not a valid locale digit.
  */
-function fromLocaleDigit(locale: ValueOf<typeof CONST.LOCALES>, localeDigit: string): string {
+function fromLocaleDigit(locale: Locale, localeDigit: string): string {
     const index = getLocaleDigits(locale).indexOf(localeDigit);
     if (index < 0) {
         throw new Error(`"${localeDigit}" must be in ${JSON.stringify(getLocaleDigits(locale))}`);

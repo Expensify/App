@@ -243,7 +243,6 @@ type TranslationFlatObject = {
 
 export type {
     TranslationBase,
-    TranslateType,
     TranslationPaths,
     EnglishTranslation,
     TranslationFlatObject,

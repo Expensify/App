@@ -54,7 +54,7 @@ function init() {
  *
  * @param {String} [desiredLanguage] eg 'en', 'es-ES'
  * @param {String} phraseKey
- * @param {Object} [phraseParameters] Parameters to supply if the phrase is a template literal.
+ * @param {Any} [phraseParameters] Parameters to supply if the phrase is a template literal.
  * @returns {String}
  */
 function translate(desiredLanguage = CONST.LOCALES.DEFAULT, phraseKey, phraseParameters = {}) {
