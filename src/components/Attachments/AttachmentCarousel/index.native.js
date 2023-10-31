@@ -3,6 +3,7 @@ import {Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
@@ -10,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselButtons from './CarouselButtons';
@@ -18,7 +20,7 @@ import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, source, onNavigate, onClose, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportActions, source, onNavigate, onClose, setDownloadButtonVisibility, translate, isLoadingReportData, reportMetadata}) {
     const pagerRef = useRef(null);
 
     const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
@@ -27,6 +29,19 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
     const [activeSource, setActiveSource] = useState(source);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
+
+    const isLoadingReport = isLoadingReportData && (_.isEmpty(report) || !report.reportID);
+    const isLoadingReportAction = _.isEmpty(reportActions) && reportMetadata.isLoadingReportActions;
+
+    // For small screen, we don't call openReport API when we go to a sub report page by deeplink
+    // So we need to call openReport here for small screen
+    useEffect(() => {
+        if (!_.isEmpty(report) && !_.isEmpty(reportActions)) {
+            return;
+        }
+        Report.openReport(report.reportID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [report.reportID]);
 
     const compareImage = useCallback(
         (attachment) => {
@@ -114,6 +129,10 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
         [activeSource, setShouldShowArrows, shouldShowArrows],
     );
 
+    if (isLoadingReport || isLoadingReportAction) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
@@ -173,6 +192,12 @@ export default compose(
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             canEvict: false,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        reportMetadata: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
         },
     }),
     withLocalize,

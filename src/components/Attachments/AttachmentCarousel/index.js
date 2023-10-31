@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import styles from '@styles/styles';
 import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
@@ -28,7 +29,7 @@ const viewabilityConfig = {
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate, isLoadingReportData, reportMetadata}) {
+function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate, isLoadingReportData, reportMetadata, isSmallScreenWidth}) {
     const scrollRef = useRef(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -40,7 +41,17 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
 
     const isLoadingReport = isLoadingReportData && (_.isEmpty(report) || !report.reportID);
-    const isLoadingReportAction = _.isEmpty(reportActions) || reportMetadata.isLoadingReportActions;
+    const isLoadingReportAction = _.isEmpty(reportActions) && reportMetadata.isLoadingReportActions;
+
+    // For small screen, we don't call openReport API when we go to a sub report page by deeplink
+    // So we need to call openReport here for small screen
+    useEffect(() => {
+        if (!isSmallScreenWidth || (!_.isEmpty(report) && !_.isEmpty(reportActions))) {
+            return;
+        }
+        Report.openReport(report.reportID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSmallScreenWidth, report.reportID]);
 
     const compareImage = useCallback(
         (attachment) => {

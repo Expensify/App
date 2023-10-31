@@ -28,6 +28,10 @@ const defaultProps = {
     onNavigate: () => {},
     onClose: () => {},
     setDownloadButtonVisibility: () => {},
+    reportMetadata: {
+        isLoadingReportActions: true,
+    },
+    isLoadingReportData: true,
 };
 
 export {propTypes, defaultProps};
