@@ -1,11 +1,11 @@
 import React from 'react';
-import * as Animatable from 'react-native-animatable';
 import {StyleProp, ViewStyle} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import CONST from '../../CONST';
-import styles from '../../styles/styles';
 import useNativeDriver from '../../libs/useNativeDriver';
-import {AnimationDirection} from './AnimatedStepContext';
+import styles from '../../styles/styles';
 import ChildrenProps from '../../types/utils/ChildrenProps';
+import {AnimationDirection} from './AnimatedStepContext';
 
 type AnimatedStepProps = ChildrenProps & {
     /** Styles to be assigned to Container */
