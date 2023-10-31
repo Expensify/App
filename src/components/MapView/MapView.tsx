@@ -4,15 +4,76 @@ import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, u
 import {View} from 'react-native';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useLocalize from '@src/hooks/useLocalize';
+import useNetwork from '@src/hooks/useNetwork';
+import { withOnyx } from 'react-native-onyx';
+import compose from '@libs/compose';
+import ONYXKEYS from '@src/ONYXKEYS';
+import PendingMapView from './PendingMapView';
 import Direction from './Direction';
-import {MapViewHandle, MapViewProps} from './MapViewTypes';
+import {MapViewHandle} from './MapViewTypes';
 import responder from './responder';
 import utils from './utils';
+import { ComponentProps, MapViewOnyxProps } from './types';
+import getCurrentPosition from '@libs/getCurrentPosition';
+import setUserLocation from '@libs/actions/UserLocation';
+import Text from '@components/Text';
 
-const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady}, ref) => {
+const MapView = forwardRef<MapViewHandle, ComponentProps>(({accessToken, style, mapPadding, userLocation: cachedUserLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady}, ref) => {
+    const navigation = useNavigation();
+    const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
+
+    const [logger, setLogger] = useState('');
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
-    const navigation = useNavigation();
+    const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
+    const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (isOffline) {
+                return;
+            }
+
+            getCurrentPosition(
+                (params) => {
+                    const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
+                    setCurrentPosition(currentCoords);
+                    setUserLocation(currentCoords);
+                },
+                () => {
+                    if (cachedUserLocation || !initialState) {
+                        return;
+                    }
+
+                    setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
+                }
+            )
+        }, [])
+    )
+
+    // Determines if map can be panned to user's detected
+    // location without bothering the user. It will return
+    // false if user has already started dragging the map or
+    // if there are one or more waypoints present.
+    const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
+
+    useEffect(() => {
+        if (!currentPosition || !cameraRef.current) {
+            return;
+        }
+
+        if (!shouldPanMapToCurrentPosition()) {
+            return;
+        }
+
+        cameraRef.current.setCamera({
+            zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
+            animationDuration: 1500,
+            centerCoordinate: [currentPosition.longitude, currentPosition.latitude],
+        });
+    }, [currentPosition, cameraRef.current, shouldPanMapToCurrentPosition]);
 
     useImperativeHandle(
         ref,
@@ -29,22 +90,23 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
     // When the page regains focus, the onIdled method of the map will set the actual "idled" state,
     // which in turn triggers the callback.
     useFocusEffect(
-        // eslint-disable-next-line rulesdir/prefer-early-return
         useCallback(() => {
-            if (waypoints?.length && isIdle) {
-                if (waypoints.length === 1) {
-                    cameraRef.current?.setCamera({
-                        zoomLevel: 15,
-                        animationDuration: 1500,
-                        centerCoordinate: waypoints[0].coordinate,
-                    });
-                } else {
-                    const {southWest, northEast} = utils.getBounds(
-                        waypoints.map((waypoint) => waypoint.coordinate),
-                        directionCoordinates,
-                    );
-                    cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
-                }
+            if (!waypoints || waypoints.length === 0 || !isIdle) {
+                return;
+            }
+
+            if (waypoints.length === 1) {
+                cameraRef.current?.setCamera({
+                    zoomLevel: 15,
+                    animationDuration: 1500,
+                    centerCoordinate: waypoints[0].coordinate,
+                });
+            } else {
+                const {southWest, northEast} = utils.getBounds(
+                    waypoints.map((waypoint) => waypoint.coordinate),
+                    directionCoordinates,
+                );
+                cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
             }
         }, [mapPadding, waypoints, isIdle, directionCoordinates]),
     );
@@ -71,43 +133,66 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
     };
 
     return (
-        <View style={style}>
-            <Mapbox.MapView
-                style={{flex: 1}}
-                styleURL={styleURL}
-                onMapIdle={setMapIdle}
-                pitchEnabled={pitchEnabled}
-                attributionPosition={{...styles.r2, ...styles.b2}}
-                scaleBarEnabled={false}
-                logoPosition={{...styles.l2, ...styles.b2}}
-                // eslint-disable-next-line
-                {...responder.panHandlers}
-            >
-                <Mapbox.Camera
-                    ref={cameraRef}
-                    defaultSettings={{
-                        centerCoordinate: initialState?.location,
-                        zoomLevel: initialState?.zoom,
-                    }}
-                />
-
-                {waypoints?.map(({coordinate, markerComponent, id}) => {
-                    const MarkerComponent = markerComponent;
-                    return (
-                        <MarkerView
-                            id={id}
-                            key={id}
-                            coordinate={coordinate}
+        <>
+            {!isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
+                <>
+                    <View style={style}>
+                        <Mapbox.MapView
+                            style={{flex: 1}}
+                            styleURL={styleURL}
+                            onMapIdle={setMapIdle}
+                            onTouchStart={() => setUserInteractedWithMap(true)}
+                            pitchEnabled={pitchEnabled}
+                            attributionPosition={{...styles.r2, ...styles.b2}}
+                            scaleBarEnabled={false}
+                            logoPosition={{...styles.l2, ...styles.b2}}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...responder.panHandlers}
                         >
-                            <MarkerComponent />
-                        </MarkerView>
-                    );
-                })}
+                            <Mapbox.Camera
+                                ref={cameraRef}
+                                defaultSettings={{
+                                    centerCoordinate: currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location,
+                                    zoomLevel: initialState?.zoom,
+                                }}
+                            />
 
-                {directionCoordinates && <Direction coordinates={directionCoordinates} />}
-            </Mapbox.MapView>
-        </View>
+                            {waypoints?.map(({coordinate, markerComponent, id}) => {
+                                const MarkerComponent = markerComponent;
+                                return (
+                                    <MarkerView
+                                        id={id}
+                                        key={id}
+                                        coordinate={coordinate}
+                                    >
+                                        <MarkerComponent />
+                                    </MarkerView>
+                                );
+                            })}
+
+                            {directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                        </Mapbox.MapView>
+                    </View>
+                    <Text>
+                        {logger}
+                    </Text>
+                </>
+            ): (
+                <PendingMapView
+                    title={translate('distance.mapPending.title')}
+                    subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                    style={styles.mapEditView}
+                />
+            )}
+        </>
     );
 });
 
-export default memo(MapView);
+export default compose(
+    withOnyx<ComponentProps, MapViewOnyxProps>({
+        userLocation: {
+            key: ONYXKEYS.USER_LOCATION,
+        },
+    }),
+    memo,
+)(MapView);

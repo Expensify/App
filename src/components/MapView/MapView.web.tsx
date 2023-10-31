@@ -8,7 +8,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
 import Map, {MapRef, Marker} from 'react-map-gl';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import setUserLocation from '@userActions/UserLocation';
@@ -18,18 +18,12 @@ import useNetwork from '@src/hooks/useNetwork';
 import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
 import styles from '@src/styles/styles';
-import * as OnyxTypes from '@src/types/onyx';
 import Direction from './Direction';
-import {MapViewHandle, MapViewProps} from './MapViewTypes';
+import {MapViewHandle} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import utils from './utils';
-
-type MapViewOnyxProps = {
-    userLocation: OnyxEntry<OnyxTypes.UserLocation>;
-};
-
-type ComponentProps = MapViewProps & MapViewOnyxProps;
+import { ComponentProps, MapViewOnyxProps } from './types';
 
 const MapView = forwardRef<MapViewHandle, ComponentProps>(
     (
@@ -46,7 +40,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         ref,
     ) => {
         const {isOffline} = useNetwork();
-        const {translate} = useLocalize()
+        const {translate} = useLocalize();
 
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
