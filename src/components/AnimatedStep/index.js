@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import * as Animatable from 'react-native-animatable';
 import useNativeDriver from '@libs/useNativeDriver';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Children to wrap in AnimatedStep. */
@@ -26,19 +26,18 @@ const defaultProps = {
     onAnimationEnd: () => {},
 };
 
-function getAnimationStyle(direction) {
-    let transitionValue;
-
-    if (direction === 'in') {
-        transitionValue = CONST.ANIMATED_TRANSITION_FROM_VALUE;
-    } else if (direction === 'out') {
-        transitionValue = -CONST.ANIMATED_TRANSITION_FROM_VALUE;
-    }
-    return styles.makeSlideInTranslation('translateX', transitionValue);
-}
-
 function AnimatedStep(props) {
     const styles = useThemeStyles();
+    const animation = useMemo(() => {
+        let transitionValue;
+
+        if (props.direction === 'in') {
+            transitionValue = CONST.ANIMATED_TRANSITION_FROM_VALUE;
+        } else if (props.direction === 'out') {
+            transitionValue = -CONST.ANIMATED_TRANSITION_FROM_VALUE;
+        }
+        return styles.makeSlideInTranslation('translateX', transitionValue);
+    }, [props.direction, styles]);
     return (
         <Animatable.View
             onAnimationEnd={() => {
@@ -48,7 +47,7 @@ function AnimatedStep(props) {
                 props.onAnimationEnd();
             }}
             duration={CONST.ANIMATED_TRANSITION}
-            animation={getAnimationStyle(props.direction)}
+            animation={animation}
             useNativeDriver={useNativeDriver}
             style={props.style}
         >
@@ -60,4 +59,5 @@ function AnimatedStep(props) {
 AnimatedStep.propTypes = propTypes;
 AnimatedStep.defaultProps = defaultProps;
 AnimatedStep.displayName = 'AnimatedStep';
+
 export default AnimatedStep;
