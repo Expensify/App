@@ -700,6 +700,7 @@ function MoneyRequestConfirmationList(props) {
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouCategory}
                             description={translate('common.category')}
+                            numberOfLinesTitle={2}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID))}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
@@ -712,6 +713,7 @@ function MoneyRequestConfirmationList(props) {
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouTag}
                             description={policyTagListName}
+                            numberOfLinesTitle={2}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID))}
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
