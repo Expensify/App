@@ -318,7 +318,10 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
     return (
         <>
             {shouldShowEmptyState ? (
-                <WalletEmptyState onAddPaymentMethod={paymentMethodPressed} />
+                <WalletEmptyState
+                    onAddPaymentMethod={paymentMethodPressed}
+                    buttonRef={addPaymentMethodAnchorRef}
+                />
             ) : (
                 <ScreenWrapper testID={WalletPage.displayName}>
                     <HeaderWithBackButton
