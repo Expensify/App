@@ -246,9 +246,9 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('isWaitingForIOUActionFromCurrentUser', () => {
+    describe('requiresAttentionFromCurrentUser', () => {
         it('returns false when there is no report', () => {
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser()).toBe(false);
+            expect(ReportUtils.requiresAttentionFromCurrentUser()).toBe(false);
         });
         it('returns false when the matched IOU report does not have an owner accountID', () => {
             const report = {
@@ -256,7 +256,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: undefined,
                 hasOutstandingIOU: true,
             };
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
         it('returns false when the linked iou report has an oustanding IOU', () => {
             const report = {
@@ -268,17 +268,17 @@ describe('ReportUtils', () => {
                 ownerAccountID: 99,
                 hasOutstandingIOU: true,
             }).then(() => {
-                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+                expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
             });
         });
-        it('returns true when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
+        it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 hasOutstandingIOU: false,
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: true,
             };
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
         it('returns false when the report has outstanding IOU and is not waiting for a bank account and the logged user is the report owner', () => {
             const report = {
@@ -287,7 +287,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: false,
             };
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
         it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
             const report = {
@@ -296,16 +296,34 @@ describe('ReportUtils', () => {
                 ownerAccountID: 97,
                 isWaitingOnBankAccount: true,
             };
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
-        it('returns true when the report has oustanding IOU', () => {
+        it('returns true when the report has an unread mention', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                isUnreadWithMention: true,
+            };
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+        it('returns true when the report is an outstanding task', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.TASK,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS.OPEN,
+            };
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+        it('returns true when the report has oustanding child request', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: 99,
                 hasOutstandingIOU: true,
+                hasOutstandingChildRequest: true,
                 isWaitingOnBankAccount: false,
             };
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
     });
 
