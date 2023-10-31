@@ -108,7 +108,11 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction) && !isExpensifyCardTransaction;
+    const canEdit = ReportUtils.canEditMoneyRequestReport(moneyRequestReport) && !isExpensifyCardTransaction;
+
+    // Whether we can still edit the amount, date, receipt, or distance
+    // only allowed by an admin, approver or submitter if the report is OPEN or PROCESSING
+    const canEditRestrictedField = useMemo(() => ReportUtils.canEditRestrictedField(moneyRequestReport));
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -182,8 +186,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.newKansasLarge}
-                        interactive={canEdit && !isSettled}
-                        shouldShowRightIcon={canEdit && !isSettled}
+                        interactive={canEditRestrictedField}
+                        shouldShowRightIcon={canEditRestrictedField}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                         brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
@@ -207,8 +211,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                         <MenuItemWithTopDescription
                             description={translate('common.distance')}
                             title={transactionMerchant}
-                            interactive={canEdit && !isSettled}
-                            shouldShowRightIcon={canEdit && !isSettled}
+                            interactive={canEditRestrictedField}
+                            shouldShowRightIcon={canEditRestrictedField}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
                         />
@@ -231,8 +235,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                     <MenuItemWithTopDescription
                         description={translate('common.date')}
                         title={transactionDate}
-                        interactive={canEdit && !isSettled}
-                        shouldShowRightIcon={canEdit && !isSettled}
+                        interactive={canEditRestrictedField}
+                        shouldShowRightIcon={canEditRestrictedField}
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                         brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}

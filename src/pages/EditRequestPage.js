@@ -111,8 +111,17 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
+        // A list of fields that cannot be edited by anyone, once a money request has been approved or settled
+        const restrictedFields = [
+            CONST.EDIT_REQUEST_FIELD.AMOUNT,
+            CONST.EDIT_REQUEST_FIELD.CURRENCY,
+            CONST.EDIT_REQUEST_FIELD.DATE,
+            CONST.EDIT_REQUEST_FIELD.RECEIPT,
+            CONST.EDIT_REQUEST_FIELD.DISTANCE,
+        ];
+
         // Do not dismiss the modal, when a current user can edit this property of the money request.
-        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit)) {
+        if (restrictedFields.includes(fieldToEdit) && !ReportUtils.canEditRestrictedField(parentReport)) {
             return;
         }
 
@@ -120,7 +129,7 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [parentReportAction, parentReport.reportID, fieldToEdit]);
+    }, [parentReport, fieldToEdit]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {

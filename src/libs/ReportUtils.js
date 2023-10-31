@@ -1550,13 +1550,39 @@ function getTransactionDetails(transaction, createdDateFormat = CONST.DATE.FNS_F
  * - in case of IOU report
  *    - the current user is the requestor and is not settled yet
  * - in case of expense report
- *    - the current user is the requestor and is not settled yet
+ *    - the current user is the requestor and is not settled or approved yet
  *    - or the user is an admin on the policy the expense report is tied to
  *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function canEditMoneyRequestReport(report) {
+    const isReportSettled = isSettled(moneyRequestReport);
+    const isRequestor = currentUserAccountID === reportAction.actorAccountID;
+
+    if (isIOUReport(moneyRequestReport)) {
+        return isRequestor && !isReportSettled;
+    }
+
+    const policy = getPolicy(moneyRequestReport.policyID);
+    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+    if (isAdmin) {
+        return true;
+    }
+
+    if (policy.type === CONST.POLICY.TYPE.FREE) {
+        return isRequestor && !isReportSettled;
+    }
+
+    const isManager = currentUserAccountID === moneyRequestReport.managerID;
+    return (isRequestor || isManager) && !isReportApproved(moneyRequestReport) && !isReportSettled;
+}
+
+/**
  * @param {Object} reportAction
  * @returns {Boolean}
  */
-function canEditMoneyRequest(reportAction) {
+function canEditMoneyRequestAction(reportAction) {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -1569,49 +1595,27 @@ function canEditMoneyRequest(reportAction) {
     }
 
     const moneyRequestReportID = lodashGet(reportAction, 'originalMessage.IOUReportID', 0);
-
     if (!moneyRequestReportID) {
         return false;
     }
-
     const moneyRequestReport = getReport(moneyRequestReportID);
-    const isReportSettled = isSettled(moneyRequestReport.reportID);
-    const isAdmin = isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
-    const isRequestor = currentUserAccountID === reportAction.actorAccountID;
 
-    if (isAdmin) {
-        return true;
-    }
-
-    return !isReportSettled && isRequestor;
+    return canEditMoneyRequestReport(moneyRequestReport);
 }
 
 /**
- * Checks if the current user can edit the provided property of a money request
+ * Checks if the current user can edit the amount, date, receipt, or distance.
  *
- * @param {Object} reportAction
- * @param {String} reportID
- * @param {String} fieldToEdit
+ * @param {Object} report
  * @returns {Boolean}
  */
-function canEditFieldOfMoneyRequest(reportAction, reportID, fieldToEdit) {
-    // A list of fields that cannot be edited by anyone, once a money request has been settled
-    const nonEditableFieldsWhenSettled = [
-        CONST.EDIT_REQUEST_FIELD.AMOUNT,
-        CONST.EDIT_REQUEST_FIELD.CURRENCY,
-        CONST.EDIT_REQUEST_FIELD.DATE,
-        CONST.EDIT_REQUEST_FIELD.RECEIPT,
-        CONST.EDIT_REQUEST_FIELD.DISTANCE,
-    ];
-
+function canEditRestrictedField(report) {
     // Checks if this user has permissions to edit this money request
-    if (!canEditMoneyRequest(reportAction)) {
+    if (!canEditMoneyRequestReport(reportAction)) {
         return false; // User doesn't have permission to edit
     }
 
-    // Checks if the report is settled
-    // Checks if the provided property is a restricted one
-    return !isSettled(reportID) || !nonEditableFieldsWhenSettled.includes(fieldToEdit);
+    return !isSettled(reportID) && !isReportApproved(reportID);
 }
 
 /**
@@ -1630,7 +1634,7 @@ function canEditReportAction(reportAction) {
     return (
         reportAction.actorAccountID === currentUserAccountID &&
         isCommentOrIOU &&
-        canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
+        canEditMoneyRequestAction(reportAction) && // Returns true for non-IOU actions
         !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
@@ -4266,8 +4270,9 @@ export {
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
     getParticipantsIDs,
-    canEditMoneyRequest,
-    canEditFieldOfMoneyRequest,
+    canEditMoneyRequestAction,
+    canEditMoneyRequestReport,
+    canEditRestrictedField,
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getTransactionsWithReceipts,
