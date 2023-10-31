@@ -1,8 +1,8 @@
-import React, {useEffect, useRef} from 'react';
-import Webcam from 'react-webcam';
 import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import Webcam from 'react-webcam';
 
 const propTypes = {
     /* Flag to turn on/off the torch/flashlight - if available */
@@ -13,9 +13,6 @@ const propTypes = {
 
     /* Callback function passing torch/flashlight capability as bool param of the browser */
     onTorchAvailability: PropTypes.func,
-
-    /* Whether we're in a tab navigator */
-    isInTabNavigator: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -25,7 +22,7 @@ const defaultProps = {
 };
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
-function NavigationAwareCamera({torchOn, onTorchAvailability, ...props}, ref) {
+const NavigationAwareCamera = React.forwardRef(({torchOn, onTorchAvailability, ...props}, ref) => {
     const trackRef = useRef(null);
     const isCameraActive = useIsFocused();
 
@@ -69,10 +66,10 @@ function NavigationAwareCamera({torchOn, onTorchAvailability, ...props}, ref) {
             />
         </View>
     );
-}
+});
 
 NavigationAwareCamera.propTypes = propTypes;
 NavigationAwareCamera.displayName = 'NavigationAwareCamera';
 NavigationAwareCamera.defaultProps = defaultProps;
 
-export default React.forwardRef(NavigationAwareCamera);
+export default NavigationAwareCamera;

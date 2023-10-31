@@ -1,21 +1,21 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import ONYXKEYS from '../ONYXKEYS';
-import * as StyleUtils from '../styles/StyleUtils';
-import transactionPropTypes from './transactionPropTypes';
-import styles from '../styles/styles';
-import * as Expensicons from './Icon/Expensicons';
-import Icon from './Icon';
-import Text from './Text';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import * as CardUtils from '../libs/CardUtils';
-import variables from '../styles/variables';
-import useLocalize from '../hooks/useLocalize';
+import useLocalize from '@hooks/useLocalize';
+import * as CardUtils from '@libs/CardUtils';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import EReceiptThumbnail from './EReceiptThumbnail';
-import CONST from '../CONST';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import Text from './Text';
+import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {
     /* TransactionID of the transaction this EReceipt corresponds to */
@@ -59,7 +59,7 @@ function EReceipt({transaction, transactionID}) {
             </View>
             <View style={[styles.flexColumn, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph9, styles.flex1]}>
                 <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2, styles.mb8]}>
-                    <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                    <View style={[styles.flexRow, styles.justifyContentCenter, StyleUtils.getWidthStyle(variables.eReceiptTextContainerWidth)]}>
                         <View style={[styles.flexColumn, styles.pt1]}>
                             <Text style={[styles.eReceiptCurrency, secondaryTextColorStyle]}>{currency}</Text>
                         </View>

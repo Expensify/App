@@ -24,6 +24,21 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Check if gpg encrypted private key is present
+      id: key_check
+      shell: bash
+      run: |
+        if [[ -f .github/workflows/OSBotify-private-key.asc.gpg ]]; then
+          echo "::set-output name=key_exists::true"
+        fi
+  
+    - name: Checkout
+      uses: actions/checkout@v3
+      if: steps.key_check.outputs.key_exists != 'true'
+      with:
+        sparse-checkout: |
+          .github
+
     - name: Decrypt OSBotify GPG key
       run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase=${{ inputs.GPG_PASSPHRASE }} --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
       shell: bash
@@ -47,7 +62,7 @@ runs:
 
     - name: Generate a token
       id: generateToken
-      uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a
+      uses: actions/create-github-app-token@9d97a4282b2c51a2f4f0465b9326399f53c890d4
       with:
-        app_id: ${{ inputs.OS_BOTIFY_APP_ID }}
-        private_key: ${{ inputs.OS_BOTIFY_PRIVATE_KEY }}
+        app-id: ${{ inputs.OS_BOTIFY_APP_ID }}
+        private-key: ${{ inputs.OS_BOTIFY_PRIVATE_KEY }}

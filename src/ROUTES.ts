@@ -5,6 +5,17 @@ import CONST from './CONST';
  * This is a file containing constants for all of the routes we want to be able to go to
  */
 
+/**
+ * This is a file containing constants for all of the routes we want to be able to go to
+ * Returns the URL with an encoded URI component for the backTo param which can be added to the end of URLs
+ * @param backTo
+ * @returns
+ */
+function getUrlWithBackToParam(url: string, backTo?: string): string {
+    const backToParam = backTo ? `${url.includes('?') ? '&' : '?'}backTo=${encodeURIComponent(backTo)}` : '';
+    return url + backToParam;
+}
+
 export default {
     HOME: '',
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
@@ -20,10 +31,7 @@ export default {
     },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID: string | number, backTo = '') => {
-            const backToParam = backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
-            return `a/${accountID}${backToParam}`;
-        },
+        getRoute: (accountID: string | number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}`, backTo),
     },
 
     TRANSITION_BETWEEN_APPS: 'transition',
@@ -36,6 +44,8 @@ export default {
     APPLE_SIGN_IN: 'sign-in-with-apple',
     GOOGLE_SIGN_IN: 'sign-in-with-google',
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
+    SAML_SIGN_IN: 'sign-in-with-saml',
+
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
     ENABLE_PAYMENTS: 'enable-payments',
@@ -47,10 +57,7 @@ export default {
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
-        getRoute: (stepToOpen = '', policyID = '', backTo = ''): string => {
-            const backToParam = backTo ? `&backTo=${encodeURIComponent(backTo)}` : '';
-            return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
-        },
+        getRoute: (stepToOpen = '', policyID = '', backTo?: string): string => getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo),
     },
 
     SETTINGS: 'settings',
@@ -71,22 +78,30 @@ export default {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_WALLET_DOMAINCARDS: {
+    SETTINGS_WALLET_DOMAINCARD: {
         route: '/settings/wallet/card/:domain',
         getRoute: (domain: string) => `/settings/wallet/card/${domain}`,
     },
     SETTINGS_REPORT_FRAUD: {
-        route: '/settings/wallet/cards/:domain/report-virtual-fraud',
-        getRoute: (domain: string) => `/settings/wallet/cards/${domain}/report-virtual-fraud`,
+        route: '/settings/wallet/card/:domain/report-virtual-fraud',
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-virtual-fraud`,
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
+        route: 'settings/wallet/card/:domain/digital-details/update-address',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address`,
+    },
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
+    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
+        route: '/settings/wallet/card/:domain/report-card-lost-or-damaged',
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-card-lost-or-damaged`,
+    },
     SETTINGS_WALLET_CARD_ACTIVATE: {
-        route: 'settings/wallet/cards/:domain/activate',
-        getRoute: (domain: string) => `settings/wallet/cards/${domain}/activate`,
+        route: 'settings/wallet/card/:domain/activate',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/activate`,
     },
     SETTINGS_PERSONAL_DETAILS: 'settings/profile/personal-details',
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: 'settings/profile/personal-details/legal-name',
@@ -94,13 +109,7 @@ export default {
     SETTINGS_PERSONAL_DETAILS_ADDRESS: 'settings/profile/personal-details/address',
     SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY: {
         route: 'settings/profile/personal-details/address/country',
-        getRoute: (country: string, backTo?: string) => {
-            let route = `settings/profile/personal-details/address/country?country=${country}`;
-            if (backTo) {
-                route += `&backTo=${encodeURIComponent(backTo)}`;
-            }
-            return route;
-        },
+        getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/personal-details/address/country?country=${country}`, backTo),
     },
     SETTINGS_CONTACT_METHODS: 'settings/profile/contact-methods',
     SETTINGS_CONTACT_METHOD_DETAILS: {
@@ -203,8 +212,16 @@ export default {
         route: 'r/:reportID/notes/:accountID/edit',
         getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`,
     },
+    ROOM_MEMBERS: {
+        route: 'r/:reportID/members',
+        getRoute: (reportID: string) => `r/${reportID}/members`,
+    },
+    ROOM_INVITE: {
+        route: 'r/:reportID/invite',
+        getRoute: (reportID: string) => `r/${reportID}/invite`,
+    },
 
-    // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
+    // To see the available iouType, please refer to CONST.IOU.TYPE
     MONEY_REQUEST: {
         route: ':iouType/new/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}`,
@@ -286,6 +303,11 @@ export default {
     I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',
     INTRO_SCHOOL_PRINCIPAL: 'teachersunite/intro-school-principal',
 
+    ERECEIPT: {
+        route: 'eReceipt/:transactionID',
+        getRoute: (transactionID: string) => `eReceipt/${transactionID}`,
+    },
+
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
@@ -337,9 +359,10 @@ export default {
         getRoute: (policyID: string) => `workspace/${policyID}/members`,
     },
 
-    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
+    // These are some one-off routes that will be removed once they're no longer needed (see GH issues for details)
     SAASTR: 'saastr',
     SBE: 'sbe',
+    MONEY2020: 'money2020',
 
     // Iframe screens from olddot
     HOME_OLDDOT: 'home',
