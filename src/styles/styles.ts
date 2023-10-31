@@ -18,7 +18,6 @@ import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyl
 import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsNone from './pointerEventsNone';
-import defaultTheme from './themes/default';
 import {ThemeDefault} from './themes/types';
 import borders from './utilities/borders';
 import cursor from './utilities/cursor';
@@ -4029,12 +4028,5 @@ const styles = (theme: ThemeDefault) =>
         },
     } satisfies Styles);
 
-// For now we need to export the styles function that takes the theme as an argument
-// as something named different than "styles", because a lot of files import the "defaultStyles"
-// as "styles", which causes ESLint to throw an error.
-// TODO: Remove "stylesGenerator" and instead only return "styles" once the app is migrated to theme switching hooks and HOCs and "styles/theme/default.js" is not used anywhere anymore (GH issue: https://github.com/Expensify/App/issues/27337)
-const stylesGenerator = styles;
-const defaultStyles = styles(defaultTheme);
-
-export default defaultStyles;
-export {stylesGenerator};
+export default styles;
+export type {Styles};
