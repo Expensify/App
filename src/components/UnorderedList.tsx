@@ -5,23 +5,19 @@ import Text from './Text';
 
 type UnorderedListProps = {
     /** An array of strings to display as an unordered list */
-    items: string[];
+    items?: string[];
 };
 
 function UnorderedList({items = []}: UnorderedListProps) {
-    return (
-        <>
-            {items.map((itemText) => (
-                <View
-                    key={itemText}
-                    style={[styles.flexRow, styles.alignItemsStart, styles.ml2]}
-                >
-                    <Text style={[styles.mr2]}>{'\u2022'}</Text>
-                    <Text>{itemText}</Text>
-                </View>
-            ))}
-        </>
-    );
+    return items.map((itemText) => (
+        <View
+            key={itemText}
+            style={[styles.flexRow, styles.alignItemsStart, styles.ml2]}
+        >
+            <Text style={[styles.mr2]}>{'\u2022'}</Text>
+            <Text>{itemText}</Text>
+        </View>
+    ));
 }
 
 UnorderedList.displayName = 'UnorderedList';
