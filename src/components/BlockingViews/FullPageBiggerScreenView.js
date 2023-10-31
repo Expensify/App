@@ -1,10 +1,10 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import * as Illustrations from '../Icon/Illustrations';
-import Navigation from '../../libs/Navigation/Navigation';
+import React from 'react';
+import * as Illustrations from '@components/Icon/Illustrations';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
 import BlockingView from './BlockingView';
-import useLocalize from '../../hooks/useLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
     /** Child elements */

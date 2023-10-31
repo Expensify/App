@@ -1,3 +1,4 @@
+import BiggerScreen from '@assets/images/empty-state__biggerscreen.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BankArrowPink from '@assets/images/product-illustrations/bank-arrow--pink.svg';
 import BankMouseGreen from '@assets/images/product-illustrations/bank-mouse--green.svg';
@@ -53,6 +54,7 @@ export {
     BankArrowPink,
     BankMouseGreen,
     BankUserGreen,
+    BiggerScreen,
     ChatBubbles,
     CoffeeMug,
     ConciergeBlue,
