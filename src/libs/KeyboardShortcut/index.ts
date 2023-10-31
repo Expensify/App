@@ -13,6 +13,7 @@ type EventHandler = {
     shouldPreventDefault: boolean;
     shouldBubble: boolean | (() => void);
     excludedNodes: string[];
+    shouldStopPropagation: boolean;
 };
 
 // Handlers for the various keyboard listeners we set up
@@ -137,6 +138,7 @@ function subscribe(
     priority = 0,
     shouldPreventDefault = true,
     excludedNodes: string[] | readonly never[] = [],
+    shouldStopPropagation = false,
 ) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
@@ -152,6 +154,7 @@ function subscribe(
         shouldPreventDefault,
         shouldBubble,
         excludedNodes: [...excludedNodes],
+        shouldStopPropagation,
     });
 
     if (descriptionKey) {
