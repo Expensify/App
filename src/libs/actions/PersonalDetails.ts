@@ -4,11 +4,11 @@ import * as API from '@libs/API';
 import {CustomRNImageManipulatorResult, FileWithUri} from '@libs/cropOrRotateImage/types';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {DateOfBirthForm, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
 import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 
