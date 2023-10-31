@@ -18,6 +18,10 @@ function clear() {
     return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 
+/**
+ * Method to merge two arrays of OnyxUpdate elements.
+ * Elements from the old array which keys are not present in the new array are merged with the data of the new array.
+ */
 function mergeOnyxUpdateData(oldData: OnyxUpdate[] = [], newData: OnyxUpdate[] = []): OnyxUpdate[] {
     const mergedData = [...newData];
 
@@ -33,6 +37,9 @@ function mergeOnyxUpdateData(oldData: OnyxUpdate[] = [], newData: OnyxUpdate[] =
 }
 
 function createUpdatedRequest(oldRequest: Request, newRequest: Request): Request {
+    /**
+     * In order to create updated request, properties: data, failureData, successData and optimisticData have to be merged
+     */
     const updatedRequest = {
         data: merge({...oldRequest.data}, newRequest.data),
         failureData: mergeOnyxUpdateData(oldRequest.failureData, newRequest.failureData),
@@ -54,6 +61,10 @@ function save(requestsToPersist: Request[]) {
 
     if (persistedRequests.length) {
         requests = [...persistedRequests];
+        /**
+         * When we add a new request to the persistedRequests array, firstly we should check if the array already contains a request with the same idempotency key as the new request.
+         * If we find a matching request, we should update it, otherwise the new request will be added to the array.
+         */
         requestsToPersist.forEach((requestToPersist) => {
             const index = persistedRequests.findIndex((persistedRequest) => !!requestToPersist.idempotencyKey && requestToPersist.idempotencyKey === persistedRequest.idempotencyKey);
             if (index > -1) {
