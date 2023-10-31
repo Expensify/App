@@ -1,13 +1,13 @@
-import _ from 'underscore';
 import React from 'react';
-import CONST from '../../../CONST';
+import _ from 'underscore';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import editedLabelStyles from '@styles/editedLabelStyles';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import Text from '../../Text';
-import variables from '../../../styles/variables';
-import themeColors from '../../../styles/themes/default';
-import styles from '../../../styles/styles';
-import editedLabelStyles from '../../../styles/editedLabelStyles';
 
 const propTypes = {
     ...htmlRendererPropTypes,

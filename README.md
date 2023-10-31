@@ -11,6 +11,7 @@
 
 #### Table of Contents
 * [Local Development](#local-development)
+* [Testing on browsers on simulators and emulators](#testing-on-browsers-on-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
@@ -34,11 +35,21 @@ These instructions should get you set up ready to work on New Expensify 🙌
 1. Install `nvm` then `node` & `npm`: `brew install nvm && nvm install`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
+4. Install `mkcert`: `brew install mkcert` followed by `npm run setup-https`. If you are not using macOS, follow the instructions [here](https://github.com/FiloSottile/mkcert?tab=readme-ov-file#installation). 
+5. Create a host entry in your local hosts file, `/etc/hosts` for dev.new.expensify.com pointing to localhost:
+```
+127.0.0.1 dev.new.expensify.com
+```
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
 ## Recommended `node` setup
 In order to have more consistent builds, we use a strict `node` and `npm` version as defined in the `package.json` `engines` field and `.nvmrc` file. `npm install` will fail if you do not use the version defined, so it is recommended to install `node` via `nvm` for easy node version management. Automatic `node` version switching can be installed for [`zsh`](https://github.com/nvm-sh/nvm#zsh) or [`bash`](https://github.com/nvm-sh/nvm#bash) using `nvm`.
+
+## Configuring HTTPS
+The webpack development server now uses https. If you're using a mac, you can simply run `npm run setup-https`.
+
+If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `new.expesify.com.dev` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/webpack`.
 
 ## Running the web app 🕸
 * To run the **development web app**: `npm run web`
@@ -59,8 +70,7 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-t
 
 ## Running the Android app 🤖
 * Before installing Android dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions. If you already did this step for iOS, there is no need to repeat this step.
-* Go through the instructions on [this SO post](https://stackoverflow.com/c/expensify/questions/13283/13284#13284) to start running the app on android.
-* For more information, go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup#development-os) for "React Native CLI Quickstart" > Mac OS > Android
+* Go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup?guide=native&platform=android) to start running the app on android.
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
@@ -101,6 +111,43 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
 - `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing. 
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
+
+----
+
+# Testing on browsers in simulators and emulators
+
+The development server is reached through the HTTPS protocol, and any client that access the development server needs a certificate.
+
+You create this certificate by following the instructions in [`Configuring HTTPS`](#configuring-https) of this readme. When accessing the website served from the development server on browsers in iOS simulator or Android emulator, these virtual devices need to have the same certificate installed. Follow the steps below to install them.
+
+#### Pre-requisite for Android flow
+1. Open any emulator using Android Studio
+2. Use `adb push "$(mkcert -CAROOT)/rootCA.pem" /storage/emulated/0/Download/` to push certificate to install in Download folder.
+3. Install the certificate as CA certificate from the settings. On the Android emulator, this option can be found in Settings > Security > Encryption & Credentials > Install a certificate > CA certificate.  
+4. Close the emulator.
+
+Note - If you want to run app on `https://127.0.0.1:8082`, then just install the certificate and use `adb reverse tcp:8082 tcp:8082` on every startup.
+
+#### Android Flow
+1. Run `npm run setupNewDotWebForEmulators android`
+2. Select the emulator you want to run if prompted. (If single emulator is available, then it will open automatically)
+3. Let the script execute till the message `🎉 Done!`.
+
+Note - If you want to run app on `https://dev.new.expensify.com:8082`, then just do the Android flow and use `npm run startAndroidEmulator` to start the Android Emulator every time (It will configure the emulator).
+
+
+Possible Scenario:
+The flow may fail to root with error `adbd cannot run as root in production builds`. In this case, please refer to https://stackoverflow.com/a/45668555. Or use `https://127.0.0.1:8082` for less hassle.
+
+#### iOS Flow
+1. Run `npm run setupNewDotWebForEmulators ios`
+2. Select the emulator you want to run if prompted. (If single emulator is available, then it will open automatically)
+3. Let the script execute till the message `🎉 Done!`.
+
+#### All Flow
+1. Run `npm run setupNewDotWebForEmulators all` or `npm run setupNewDotWebForEmulators`
+2. Check if the iOS flow runs first and then Android flow runs.
+3. Let the script execute till the message `🎉 Done!`.
 
 ----
 

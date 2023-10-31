@@ -1,6 +1,6 @@
 import React from 'react';
-import ReportActionItemImages from '../components/ReportActionItem/ReportActionItemImages';
-import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

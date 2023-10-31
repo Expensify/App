@@ -1,32 +1,40 @@
-import {measurePerformance} from 'reassure';
+import {fireEvent, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {screen, fireEvent} from '@testing-library/react-native';
-import ReportActionsList from '../../src/pages/home/report/ReportActionsList';
+import {measurePerformance} from 'reassure';
 import ComposeProviders from '../../src/components/ComposeProviders';
-import OnyxProvider from '../../src/components/OnyxProvider';
-import {ReportAttachmentsProvider} from '../../src/pages/home/report/ReportAttachmentsContext';
-import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
 import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
+import OnyxProvider from '../../src/components/OnyxProvider';
+import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
+import * as Localize from '../../src/libs/Localize';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import ReportActionsList from '../../src/pages/home/report/ReportActionsList';
+import {ReportAttachmentsProvider} from '../../src/pages/home/report/ReportAttachmentsContext';
+import {ActionListContext, ReactionListContext} from '../../src/pages/home/ReportScreenContext';
+import variables from '../../src/styles/variables';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import PusherHelper from '../utils/PusherHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-import PusherHelper from '../utils/PusherHelper';
-import variables from '../../src/styles/variables';
-import {ActionListContext, ReactionListContext} from '../../src/pages/home/ReportScreenContext';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import * as Localize from '../../src/libs/Localize';
 
 jest.setTimeout(60000);
 
 const mockedNavigate = jest.fn();
 
-jest.mock('../../src/components/withNavigationFocus', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        isFocused={false}
-    />
-));
+jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
+    function WithNavigationFocus(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                isFocused={false}
+            />
+        );
+    }
+
+    WithNavigationFocus.displayName = 'WithNavigationFocus';
+
+    return WithNavigationFocus;
+});
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');

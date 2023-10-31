@@ -1,6 +1,6 @@
-import {SvgProps} from 'react-native-svg';
 import {CSSProperties} from 'react';
 import {ViewStyle} from 'react-native';
+import {SvgProps} from 'react-native-svg';
 import BankAccount from './BankAccount';
 import Fund from './Fund';
 

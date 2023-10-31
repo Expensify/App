@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
-import CONST from '../../CONST';
-import stylePropTypes from '../../styles/stylePropTypes';
+import {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import stylePropTypes from '@styles/stylePropTypes';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the checkbox is checked */

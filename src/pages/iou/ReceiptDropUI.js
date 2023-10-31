@@ -1,11 +1,11 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Text, View} from 'react-native';
-import PropTypes from 'prop-types';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import ReceiptUpload from '../../../assets/images/receipt-upload.svg';
-import useLocalize from '../../hooks/useLocalize';
-import DragAndDropConsumer from '../../components/DragAndDrop/Consumer';
+import ReceiptUpload from '@assets/images/receipt-upload.svg';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
+import useLocalize from '@hooks/useLocalize';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Callback to execute when a file is dropped. */

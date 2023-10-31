@@ -1,4 +1,4 @@
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 import GetPopOverVerticalOffset from './types';
 
 /** Adds the header padding with vertical offset on desktop */
