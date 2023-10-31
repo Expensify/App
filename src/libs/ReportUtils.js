@@ -1335,6 +1335,21 @@ function isWaitingForAssigneeToCompleteTask(report, parentReportAction = {}) {
 }
 
 /**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isUnreadWithMention(report) {
+    if (!report) {
+        return false;
+    }
+
+    // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
+    const lastMentionedTime = report.lastMentionedTime || '';
+    const lastReadTime = report.lastReadTime || '';
+    return lastReadTime < lastMentionedTime;
+}
+
+/**
  * Determines if the option requires action from the current user. This can happen when it:
     - is unread and the user was mentioned in one of the unread comments
     - is for an outstanding task waiting on the user
@@ -1353,7 +1368,7 @@ function requiresAttentionFromCurrentUser(option, parentReportAction = {}) {
         return false;
     }
 
-    if (option.isUnreadWithMention) {
+    if (option.isUnreadWithMention || isUnreadWithMention(option)) {
         return true;
     }
 
@@ -3103,21 +3118,6 @@ function isUnread(report) {
     const lastVisibleActionCreated = report.lastVisibleActionCreated || '';
     const lastReadTime = report.lastReadTime || '';
     return lastReadTime < lastVisibleActionCreated;
-}
-
-/**
- * @param {Object} report
- * @returns {Boolean}
- */
-function isUnreadWithMention(report) {
-    if (!report) {
-        return false;
-    }
-
-    // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
-    const lastMentionedTime = report.lastMentionedTime || '';
-    const lastReadTime = report.lastReadTime || '';
-    return lastReadTime < lastMentionedTime;
 }
 
 /**
