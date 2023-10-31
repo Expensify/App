@@ -22,7 +22,7 @@ import Onyx from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Timezone, SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
 
