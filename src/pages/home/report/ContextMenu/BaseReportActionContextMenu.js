@@ -11,7 +11,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,6 +52,7 @@ function BaseReportActionContextMenu(props) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const betas = useContext(BetasContext);
+    const styles = useThemeStyles();
 
     const wrapperStyle = useMemo(() => {
         if (props.isMini) {
@@ -63,7 +64,7 @@ function BaseReportActionContextMenu(props) {
             // Small screens use a bottom-docked modal that already has vertical padding.
             isSmallScreenWidth ? {} : styles.pv3,
         ];
-    }, [isSmallScreenWidth, props.isMini]);
+    }, [isSmallScreenWidth, props.isMini, styles.pv3, styles.reportActionContextMenuBigWrapper, styles.reportActionContextMenuMiniWrapper]);
 
     const reportAction = useMemo(() => {
         if (_.isEmpty(props.reportActions) || props.reportActionID === '0') {
