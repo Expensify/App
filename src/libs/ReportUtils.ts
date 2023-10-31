@@ -2578,7 +2578,7 @@ function buildOptimisticIOUReportAction(
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatar(currentUserAccountID),
+        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
@@ -2611,7 +2611,7 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatar(currentUserAccountID),
+        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
@@ -2716,7 +2716,7 @@ function buildOptimisticModifiedExpenseReportAction(
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatar(currentUserAccountID),
+        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
         created: DateUtils.getDBTime(),
         isAttachment: false,
         message: [
@@ -2809,7 +2809,7 @@ function buildOptimisticTaskReportAction(taskReportID: string, actionName: Origi
         actionName,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatar(currentUserAccountID),
+        avatar: currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
         isAttachment: false,
         originalMessage,
         message: [
@@ -2912,7 +2912,7 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatar(currentUserAccountID),
+        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
         created,
         shouldShow: true,
     };
@@ -2947,7 +2947,7 @@ function buildOptimisticEditedTaskReportAction(emailEditingTask: string): Optimi
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatar(currentUserAccountID),
+        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -2965,7 +2965,7 @@ function buildOptimisticClosedReportAction(emailClosingReport: string, policyNam
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatar(currentUserAccountID),
+        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -3483,7 +3483,7 @@ function parseReportRouteParams(route: string): ReportRouteParams {
         parsingRoute = parsingRoute.slice(1);
     }
 
-    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash('r'))) {
+    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash(ROUTES.REPORT))) {
         return {reportID: '', isSubReportPageRoute: false};
     }
 
@@ -3727,12 +3727,9 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Recor
     return report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat;
 }
 
-/**
- * Returns true if write actions like assign task, money request, send message should be disabled on a report
- */
-function shouldDisableWriteActions(report: OnyxEntry<Report>): boolean {
+function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
-    return isArchivedRoom(report) || Object.keys(reportErrors ?? {}).length !== 0 || !isAllowedToComment(report) || isAnonymousUser;
+    return !isArchivedRoom(report) && Object.keys(reportErrors ?? {}).length === 0 && isAllowedToComment(report) && !isAnonymousUser;
 }
 
 /**
@@ -3769,9 +3766,12 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner: string): string | null
     return expenseChat.reportID;
 }
 
+/**
+ * Check if the report can create the request with type is iouType
+ */
 function canCreateRequest(report: OnyxEntry<Report>, iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
-    if (shouldDisableWriteActions(report)) {
+    if (!canUserPerformWriteAction(report)) {
         return false;
     }
     return getMoneyRequestOptions(report, participantAccountIDs).includes(iouType);
@@ -4143,7 +4143,7 @@ export {
     getRootParentReport,
     getReportPreviewMessage,
     getModifiedExpenseMessage,
-    shouldDisableWriteActions,
+    canUserPerformWriteAction,
     getOriginalReportID,
     canAccessReport,
     getAddWorkspaceRoomOrChatReportErrors,

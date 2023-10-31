@@ -374,7 +374,7 @@ function getOptionData(
     result.parentReportID = report.parentReportID ?? null;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference ?? null;
-    result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
+    result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
