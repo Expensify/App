@@ -59,7 +59,7 @@ function VerifyStep({account, session}) {
     }, []);
 
     useEffect(() => {
-        if (!account.requiresTwoFactorAuth) {
+        if (!account.requiresTwoFactorAuth || account.twoFactorAuthStep !== CONST.TWO_FACTOR_AUTH_STEPS.VERIFY) {
             return;
         }
 
@@ -71,7 +71,7 @@ function VerifyStep({account, session}) {
         });
 
         Navigation.navigate(ROUTES.SETTINGS_2FA.SUCCESS, CONST.NAVIGATION.TYPE.FORCED_UP);
-    }, [account.requiresTwoFactorAuth, navigation]);
+    }, [account.requiresTwoFactorAuth, account.twoFactorAuthStep, navigation]);
 
     /**
      * Splits the two-factor auth secret key in 4 chunks

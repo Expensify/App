@@ -131,6 +131,7 @@ function CodesStep({account = defaultAccount}) {
                                 setError('twoFactorAuth.errorStepCodes');
                                 return;
                             }
+                            TwoFactorAuthActions.setTwoFactorAuthStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY);
                             Navigation.navigate(ROUTES.SETTINGS_2FA.VERIFY);
                         }}
                     />
