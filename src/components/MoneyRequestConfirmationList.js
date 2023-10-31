@@ -320,6 +320,9 @@ function MoneyRequestConfirmationList(props) {
             text = translate('iou.split');
         } else if ((props.receiptPath && isTypeRequest) || isDistanceRequestWithoutRoute) {
             text = translate('iou.request');
+            if (props.iouAmount !== 0) {
+                text = translate('iou.requestAmount', {amount: formattedAmount});
+            }
         } else {
             const translationKey = isSplitBill ? 'iou.splitAmount' : 'iou.requestAmount';
             text = translate(translationKey, {amount: formattedAmount});
