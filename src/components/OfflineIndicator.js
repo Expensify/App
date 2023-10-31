@@ -1,57 +1,55 @@
-import PropTypes from 'prop-types';
-import React from 'react';
+import _ from 'lodash';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import compose from '@libs/compose';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import stylePropTypes from '@styles/stylePropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import networkPropTypes from './networkPropTypes';
-import {withNetwork} from './OnyxProvider';
 import Text from './Text';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withWindowDimensions from './withWindowDimensions';
 
 const propTypes = {
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
+    /** Optional style for container element that will be merged into the default styling for the offline indicator */
+    style: stylePropTypes,
 
     /** Optional styles for container element that will override the default styling for the offline indicator */
-    // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** Is the window width narrow, like on a mobile device */
-    isSmallScreenWidth: PropTypes.bool.isRequired,
-
-    ...withLocalizePropTypes,
+    containerStyles: stylePropTypes,
 };
 
 const defaultProps = {
+    style: [],
     containerStyles: [],
 };
 
-const setStyles = (containerStyles, isSmallScreenWidth) => {
-    if (containerStyles.length) {
-        return containerStyles;
-    }
-    return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
-};
-
 function OfflineIndicator(props) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    if (!props.network.isOffline) {
+    const {isSmallScreenWidth} = useWindowDimensions();
+
+    const containerStyles = useMemo(() => {
+        if (!_.isEmpty(props.containerStyles)) {
+            return containerStyles;
+        }
+        return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
+    }, [isSmallScreenWidth, props.containerStyles, styles.offlineIndicator, styles.offlineIndicatorMobile]);
+
+    if (!isOffline) {
         return null;
     }
 
     return (
-        <View style={[setStyles(props.containerStyles, props.isSmallScreenWidth), styles.flexRow, styles.alignItemsCenter, ...StyleUtils.parseStyleAsArray(props.style)]}>
+        <View style={[containerStyles, styles.flexRow, styles.alignItemsCenter, ...StyleUtils.parseStyleAsArray(props.style)]}>
             <Icon
                 src={Expensicons.OfflineCloud}
                 width={variables.iconSizeSmall}
                 height={variables.iconSizeSmall}
             />
-            <Text style={[styles.ml3, styles.chatItemComposeSecondaryRowSubText]}>{props.translate('common.youAppearToBeOffline')}</Text>
+            <Text style={[styles.ml3, styles.chatItemComposeSecondaryRowSubText]}>{translate('common.youAppearToBeOffline')}</Text>
         </View>
     );
 }
@@ -60,4 +58,4 @@ OfflineIndicator.propTypes = propTypes;
 OfflineIndicator.defaultProps = defaultProps;
 OfflineIndicator.displayName = 'OfflineIndicator';
 
-export default compose(withWindowDimensions, withLocalize, withNetwork())(OfflineIndicator);
+export default OfflineIndicator;
