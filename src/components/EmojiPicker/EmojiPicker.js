@@ -175,4 +175,5 @@ const EmojiPicker = forwardRef((props, ref) => {
 
 EmojiPicker.propTypes = propTypes;
 EmojiPicker.displayName = 'EmojiPicker';
+
 export default withViewportOffsetTop(EmojiPicker);

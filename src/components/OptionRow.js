@@ -292,6 +292,7 @@ function OptionRow(props) {
 
 OptionRow.propTypes = propTypes;
 OptionRow.defaultProps = defaultProps;
+OptionRow.displayName = 'OptionRow';
 
 export default React.memo(
     withLocalize(OptionRow),

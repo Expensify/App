@@ -64,8 +64,8 @@ const BasePreRenderer = forwardRef((props, ref) => {
     );
 });
 
-BasePreRenderer.displayName = 'BasePreRenderer';
 BasePreRenderer.propTypes = propTypes;
 BasePreRenderer.defaultProps = defaultProps;
+BasePreRenderer.displayName = 'BasePreRenderer';
 
 export default withLocalize(BasePreRenderer);

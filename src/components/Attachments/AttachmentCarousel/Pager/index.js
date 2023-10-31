@@ -168,8 +168,10 @@ function AttachmentCarouselPager({
         </GestureHandlerRootView>
     );
 }
+
 AttachmentCarouselPager.propTypes = pagerPropTypes;
 AttachmentCarouselPager.defaultProps = pagerDefaultProps;
+AttachmentCarouselPager.displayName = 'AttachmentCarouselPager';
 
 const AttachmentCarouselPagerWithRef = React.forwardRef((props, ref) => (
     <AttachmentCarouselPager
