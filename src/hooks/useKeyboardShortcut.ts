@@ -5,11 +5,17 @@ import CONST from '@src/CONST';
 
 type Shortcut = ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>;
 type KeyboardShortcutConfig = {
+    /* Should we capture the event on inputs too? */
     captureOnInputs?: boolean;
+    /* Should we bubble the event? */
     shouldBubble?: boolean;
+    /* The position the callback should take in the stack. 0 means top priority, and 1 means less priority than the most recently added. */
     priority?: number;
+    /* Should call event.preventDefault after callback? */
     shouldPreventDefault?: boolean;
+    /* Do not capture key events targeting excluded nodes (i.e. do not prevent default and let the event bubble) */
     excludedNodes?: string[];
+    /* Is keyboard shortcut is already active */
     isActive?: boolean;
 };
 
