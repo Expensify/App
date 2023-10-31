@@ -1,118 +1,16 @@
 import lodashGet from 'lodash/get';
 import * as OnfidoSDK from 'onfido-sdk-ui';
-import React, {forwardRef, useEffect} from 'react';
+import React, {forwardRef, useCallback, useEffect} from 'react';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
 import fontFamily from '@styles/fontFamily';
 import fontWeightBold from '@styles/fontWeight/bold';
+import useTheme from '@styles/themes/useTheme';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import useTheme from '@styles/themes/useTheme';
 import './index.css';
 import onfidoPropTypes from './onfidoPropTypes';
-
-function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate}) {
-    OnfidoSDK.init({
-        token: sdkToken,
-        containerId: CONST.ONFIDO.CONTAINER_ID,
-        useMemoryHistory: true,
-        customUI: {
-            fontFamilyTitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
-            fontFamilySubtitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
-            fontFamilyBody: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
-            fontSizeTitle: `${variables.fontSizeLarge}px`,
-            fontWeightTitle: fontWeightBold,
-            fontWeightSubtitle: 400,
-            fontSizeSubtitle: `${variables.fontSizeNormal}px`,
-            colorContentTitle: theme.text,
-            colorContentSubtitle: theme.text,
-            colorContentBody: theme.text,
-            borderRadiusButton: `${variables.buttonBorderRadius}px`,
-            colorBackgroundSurfaceModal: theme.appBG,
-            colorBorderDocTypeButton: theme.border,
-            colorBorderDocTypeButtonHover: theme.transparent,
-            colorBorderButtonPrimaryHover: theme.transparent,
-            colorBackgroundButtonPrimary: theme.success,
-            colorBackgroundButtonPrimaryHover: theme.successHover,
-            colorBackgroundButtonPrimaryActive: theme.successHover,
-            colorBorderButtonPrimary: theme.success,
-            colorContentButtonSecondaryText: theme.text,
-            colorBackgroundButtonSecondary: theme.border,
-            colorBackgroundButtonSecondaryHover: theme.icon,
-            colorBackgroundButtonSecondaryActive: theme.icon,
-            colorBorderButtonSecondary: theme.border,
-            colorBackgroundIcon: theme.transparent,
-            colorContentLinkTextHover: theme.appBG,
-            colorBorderLinkUnderline: theme.link,
-            colorBackgroundLinkHover: theme.link,
-            colorBackgroundLinkActive: theme.link,
-            authAccentColor: theme.link,
-            colorBackgroundInfoPill: theme.link,
-            colorBackgroundSelector: theme.appBG,
-            colorBackgroundDocTypeButton: theme.success,
-            colorBackgroundDocTypeButtonHover: theme.successHover,
-            colorBackgroundButtonIconHover: theme.transparent,
-            colorBackgroundButtonIconActive: theme.transparent,
-        },
-        steps: [
-            {
-                type: CONST.ONFIDO.TYPE.DOCUMENT,
-                options: {
-                    useLiveDocumentCapture: true,
-                    forceCrossDevice: true,
-                    hideCountrySelection: true,
-                    country: 'USA',
-                    documentTypes: {
-                        driving_licence: {
-                            country: 'USA',
-                        },
-                        passport: true,
-                    },
-                },
-            },
-            {
-                type: CONST.ONFIDO.TYPE.FACE,
-                options: {
-                    requestedVariant: CONST.ONFIDO.VARIANT.VIDEO,
-                },
-            },
-        ],
-        smsNumberCountryCode: CONST.ONFIDO.SMS_NUMBER_COUNTRY_CODE.US,
-        showCountrySelection: false,
-        onComplete: (data) => {
-            if (_.isEmpty(data)) {
-                Log.warn('Onfido completed with no data');
-            }
-            onSuccess(data);
-        },
-        onError: (error) => {
-            const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
-            const errorType = lodashGet(error, 'type');
-            Log.hmmm('Onfido error', {errorType, errorMessage});
-            onError(errorMessage);
-        },
-        onUserExit: (userExitCode) => {
-            Log.hmmm('Onfido user exits the flow', {userExitCode});
-            onUserExit(userExitCode);
-        },
-        onModalRequestClose: () => {
-            Log.hmmm('Onfido user closed the modal');
-        },
-        language: {
-            // We need to use ES_ES as locale key because the key `ES` is not a valid config key for Onfido
-            locale: preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : preferredLocale,
-
-            // Provide a custom phrase for the back button so that the first letter is capitalized,
-            // and translate the phrase while we're at it. See the issue and documentation for more context.
-            // https://github.com/Expensify/App/issues/17244
-            // https://documentation.onfido.com/sdk/web/#custom-languages
-            phrases: {
-                'generic.back': translate('common.back'),
-            },
-        },
-    });
-}
 
 function logOnFidoEvent(event) {
     Log.hmmm('Receiving Onfido analytic event', event.detail);
@@ -121,6 +19,111 @@ function logOnFidoEvent(event) {
 const Onfido = forwardRef((props, ref) => {
     const theme = useTheme();
     const {preferredLocale, translate} = useLocalize();
+
+    const initializeOnfido = useCallback(
+        ({sdkToken, onSuccess, onError, onUserExit}) => {
+            OnfidoSDK.init({
+                token: sdkToken,
+                containerId: CONST.ONFIDO.CONTAINER_ID,
+                useMemoryHistory: true,
+                customUI: {
+                    fontFamilyTitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
+                    fontFamilySubtitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
+                    fontFamilyBody: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
+                    fontSizeTitle: `${variables.fontSizeLarge}px`,
+                    fontWeightTitle: fontWeightBold,
+                    fontWeightSubtitle: 400,
+                    fontSizeSubtitle: `${variables.fontSizeNormal}px`,
+                    colorContentTitle: theme.text,
+                    colorContentSubtitle: theme.text,
+                    colorContentBody: theme.text,
+                    borderRadiusButton: `${variables.buttonBorderRadius}px`,
+                    colorBackgroundSurfaceModal: theme.appBG,
+                    colorBorderDocTypeButton: theme.border,
+                    colorBorderDocTypeButtonHover: theme.transparent,
+                    colorBorderButtonPrimaryHover: theme.transparent,
+                    colorBackgroundButtonPrimary: theme.success,
+                    colorBackgroundButtonPrimaryHover: theme.successHover,
+                    colorBackgroundButtonPrimaryActive: theme.successHover,
+                    colorBorderButtonPrimary: theme.success,
+                    colorContentButtonSecondaryText: theme.text,
+                    colorBackgroundButtonSecondary: theme.border,
+                    colorBackgroundButtonSecondaryHover: theme.icon,
+                    colorBackgroundButtonSecondaryActive: theme.icon,
+                    colorBorderButtonSecondary: theme.border,
+                    colorBackgroundIcon: theme.transparent,
+                    colorContentLinkTextHover: theme.appBG,
+                    colorBorderLinkUnderline: theme.link,
+                    colorBackgroundLinkHover: theme.link,
+                    colorBackgroundLinkActive: theme.link,
+                    authAccentColor: theme.link,
+                    colorBackgroundInfoPill: theme.link,
+                    colorBackgroundSelector: theme.appBG,
+                    colorBackgroundDocTypeButton: theme.success,
+                    colorBackgroundDocTypeButtonHover: theme.successHover,
+                    colorBackgroundButtonIconHover: theme.transparent,
+                    colorBackgroundButtonIconActive: theme.transparent,
+                },
+                steps: [
+                    {
+                        type: CONST.ONFIDO.TYPE.DOCUMENT,
+                        options: {
+                            useLiveDocumentCapture: true,
+                            forceCrossDevice: true,
+                            hideCountrySelection: true,
+                            country: 'USA',
+                            documentTypes: {
+                                driving_licence: {
+                                    country: 'USA',
+                                },
+                                passport: true,
+                            },
+                        },
+                    },
+                    {
+                        type: CONST.ONFIDO.TYPE.FACE,
+                        options: {
+                            requestedVariant: CONST.ONFIDO.VARIANT.VIDEO,
+                        },
+                    },
+                ],
+                smsNumberCountryCode: CONST.ONFIDO.SMS_NUMBER_COUNTRY_CODE.US,
+                showCountrySelection: false,
+                onComplete: (data) => {
+                    if (_.isEmpty(data)) {
+                        Log.warn('Onfido completed with no data');
+                    }
+                    onSuccess(data);
+                },
+                onError: (error) => {
+                    const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
+                    const errorType = lodashGet(error, 'type');
+                    Log.hmmm('Onfido error', {errorType, errorMessage});
+                    onError(errorMessage);
+                },
+                onUserExit: (userExitCode) => {
+                    Log.hmmm('Onfido user exits the flow', {userExitCode});
+                    onUserExit(userExitCode);
+                },
+                onModalRequestClose: () => {
+                    Log.hmmm('Onfido user closed the modal');
+                },
+                language: {
+                    // We need to use ES_ES as locale key because the key `ES` is not a valid config key for Onfido
+                    locale: preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : preferredLocale,
+
+                    // Provide a custom phrase for the back button so that the first letter is capitalized,
+                    // and translate the phrase while we're at it. See the issue and documentation for more context.
+                    // https://github.com/Expensify/App/issues/17244
+                    // https://documentation.onfido.com/sdk/web/#custom-languages
+                    phrases: {
+                        'generic.back': translate('common.back'),
+                    },
+                },
+            });
+        },
+        [preferredLocale, theme.appBG, theme.border, theme.icon, theme.link, theme.success, theme.successHover, theme.text, theme.transparent, translate],
+    );
 
     useEffect(() => {
         initializeOnfido({
@@ -148,4 +151,5 @@ const Onfido = forwardRef((props, ref) => {
 
 Onfido.displayName = 'Onfido';
 Onfido.propTypes = onfidoPropTypes;
+
 export default Onfido;
