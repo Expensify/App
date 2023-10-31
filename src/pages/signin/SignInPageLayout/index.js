@@ -14,8 +14,8 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import BackgroundImage from './BackgroundImage';
 import Footer from './Footer';
+import getScrollViewContentContainerStyles from './getSignInPageStyles';
 import SignInPageContent from './SignInPageContent';
-import scrollViewContentContainerStyles from './signInPageStyles';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -152,7 +152,7 @@ function SignInPageLayout(props) {
                 </View>
             ) : (
                 <ScrollView
-                    contentContainerStyle={scrollViewContentContainerStyles}
+                    contentContainerStyle={getScrollViewContentContainerStyles(styles)}
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
