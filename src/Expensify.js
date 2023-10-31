@@ -7,7 +7,6 @@ import _ from 'underscore';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
-import FocusModeUpgradeRequestModal from './components/FocusModeUpgradeRequestModal';
 import GrowlNotification from './components/GrowlNotification';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
@@ -212,7 +211,16 @@ function Expensify(props) {
                             isVisible
                         />
                     ) : null}
-                    {props.focusModeRequest ? <FocusModeUpgradeRequestModal /> : null}
+                    {props.focusModeRequest ? (
+                        <ConfirmModal
+                            title={translate('focusModeUpgradeModal.title')}
+                            prompt={translate('focusModeUpgradeModal.prompt')}
+                            confirmText={translate('common.buttonConfirm')}
+                            onConfirm={User.clearFocusModeNotification}
+                            shouldShowCancelButton={false}
+                            isVisible
+                        />
+                    ) : null}
                 </>
             )}
 
@@ -251,8 +259,8 @@ export default compose(
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
         },
-        focusModeRequest: {
-            key: ONYXKEYS.FOCUS_MODE_UPGRADE_REQUEST,
+        focusModeNotification: {
+            key: ONYXKEYS.FOCUS_MODE_NOTIFICATION,
             initWithStoredValues: false,
         },
     }),

@@ -1099,15 +1099,9 @@ export default {
         year: 'Year',
         selectYear: 'Please select a year',
     },
-    focusModeUpgradeModal: {
-        title: 'Upgrade to #focus mode',
-        prompt: 'Do you want to hide your read messages so you can focus?',
-        enable: 'Enable #focus mode',
-        noEnable: 'Not now',
-        enabled: "Read messages will be hidden, unless they have a green dot, which means it's waiting on you.  You can change this in your account settings.",
-        notEnabled: 'If you ever change your mind and want to hide your read messages, enable #focus mode in account settings.',
-        ok: 'Ok!',
-        gotItThanks: 'Got it, thanks!',
+    focusModeUpdateModal: {
+        title: 'Welcome to #focus mode!',
+        prompt: 'Read messages will be hidden, unless they have a green dot, which means it\'s waiting on you. You can change this in your account settings.',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',

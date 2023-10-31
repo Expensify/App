@@ -594,6 +594,15 @@ function updateChatPriorityMode(mode, shouldNavigate = true) {
             value: mode,
         },
     ];
+
+    if (mode === CONST.PRIORITY_MODE.GSD) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD_MERGE,
+            key: ONYXKEYS.NVP_HAS_TRIED_FOCUS_MODE,
+            value: true,
+        });
+    }
+
     API.write(
         'UpdateChatPriorityMode',
         {
@@ -607,8 +616,8 @@ function updateChatPriorityMode(mode, shouldNavigate = true) {
     }
 }
 
-function clearOfferFocusModeUpgrade() {
-    Onyx.set(ONYXKEYS.FOCUS_MODE_UPGRADE_REQUEST, false);
+function clearFocusModeNotification() {
+    Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, false);
 }
 
 /**
@@ -852,7 +861,7 @@ function clearDraftCustomStatus() {
 }
 
 export {
-    clearOfferFocusModeUpgrade,
+    clearFocusModeNotification,
     closeAccount,
     resendValidateCode,
     requestContactMethodValidateCode,

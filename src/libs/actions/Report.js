@@ -21,6 +21,7 @@ import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
+import * as User from '@libs/actions/User';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -122,10 +123,10 @@ Onyx.connect({
 });
 
 // In order to tell if the user has been asked to upgrade for their current device we will set an Onyx key with the current device login
-let lastOfferedFocusMode = '';
+let hasTriedFocusMode = '';
 Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_OFFERED_FOCUS_MODE,
-    callback: (val) => (lastOfferedFocusMode = val),
+    key: ONYXKEYS.NVP_HAS_TRIED_FOCUS_MODE,
+    callback: (val) => (hasTriedFocusMode = val),
 });
 
 const allReports = {};
@@ -1566,37 +1567,23 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
 function tryFocusModeUpgrade() {
     Welcome.serverDataIsReadyPromise().then(() => {
         // Check to see if the user is using #focus mode or if we have already asked them to upgrade on any devices.
-        if (isInFocusMode || lastOfferedFocusMode !== '') {
-            Log.info('Not offering to promote user to optimized focus mode.', false, {isInFocusMode, lastOfferedFocusMode});
+        if (isInFocusMode || hasTriedFocusMode) {
+            Log.info('Not switching user to optimized focus mode.', false, {isInFocusMode, hasTriedFocusMode});
             return;
         }
 
-        const reportCount = Object.keys(allReports).length;
+        const reportCount = _.keys(allReports).length;
         if (reportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_PROMOTION) {
-            Log.info('Not offering to promote user to optimized focus mode as they do not have many reports', false, {reportCount});
+            Log.info('Not switching user to optimized focus mode as they do not have enough reports', false, {reportCount});
             return;
         }
 
-        Log.info('Offering to promote user to focus mode', false, {reportCount});
+        Log.info('Switching user to optimized focus mode', false, {reportCount});
 
         // Record that we asked them to upgrade so we don't ask them again later.
-        lastOfferedFocusMode = DateUtils.getDBTime();
-        API.write(
-            'SetLastOfferedFocusMode',
-            {value: lastOfferedFocusMode},
-            {
-                optimisticData: [
-                    {
-                        onyxMethod: Onyx.METHOD.SET,
-                        key: ONYXKEYS.NVP_LAST_OFFERED_FOCUS_MODE,
-                        value: lastOfferedFocusMode,
-                    },
-                ],
-            },
-        );
-
-        // Trigger modal to display
-        Onyx.set(ONYXKEYS.FOCUS_MODE_UPGRADE_REQUEST, true);
+        hasTriedFocusMode = true;
+        User.updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, false);
+        Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, true);
     });
 }
 
