@@ -6,9 +6,9 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 import genericPressablePropTypes from './PropTypes';
 
 /**
@@ -30,6 +30,7 @@ const getCursorStyle = (isDisabled, isText) => {
 };
 
 const GenericPressable = forwardRef((props, ref) => {
+    const styles = useThemeStyles();
     const {
         children,
         onPress,

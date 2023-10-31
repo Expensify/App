@@ -9,8 +9,8 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Attachment required information such as the source and file name */

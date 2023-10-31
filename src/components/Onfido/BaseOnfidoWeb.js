@@ -6,9 +6,9 @@ import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
 import fontFamily from '@styles/fontFamily';
 import fontWeightBold from '@styles/fontWeight/bold';
-import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import useTheme from '@styles/themes/useTheme';
 import './index.css';
 import onfidoPropTypes from './onfidoPropTypes';
 
@@ -25,35 +25,35 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             fontWeightTitle: fontWeightBold,
             fontWeightSubtitle: 400,
             fontSizeSubtitle: `${variables.fontSizeNormal}px`,
-            colorContentTitle: themeColors.text,
-            colorContentSubtitle: themeColors.text,
-            colorContentBody: themeColors.text,
+            colorContentTitle: theme.text,
+            colorContentSubtitle: theme.text,
+            colorContentBody: theme.text,
             borderRadiusButton: `${variables.buttonBorderRadius}px`,
-            colorBackgroundSurfaceModal: themeColors.appBG,
-            colorBorderDocTypeButton: themeColors.border,
-            colorBorderDocTypeButtonHover: themeColors.transparent,
-            colorBorderButtonPrimaryHover: themeColors.transparent,
-            colorBackgroundButtonPrimary: themeColors.success,
-            colorBackgroundButtonPrimaryHover: themeColors.successHover,
-            colorBackgroundButtonPrimaryActive: themeColors.successHover,
-            colorBorderButtonPrimary: themeColors.success,
-            colorContentButtonSecondaryText: themeColors.text,
-            colorBackgroundButtonSecondary: themeColors.border,
-            colorBackgroundButtonSecondaryHover: themeColors.icon,
-            colorBackgroundButtonSecondaryActive: themeColors.icon,
-            colorBorderButtonSecondary: themeColors.border,
-            colorBackgroundIcon: themeColors.transparent,
-            colorContentLinkTextHover: themeColors.appBG,
-            colorBorderLinkUnderline: themeColors.link,
-            colorBackgroundLinkHover: themeColors.link,
-            colorBackgroundLinkActive: themeColors.link,
-            authAccentColor: themeColors.link,
-            colorBackgroundInfoPill: themeColors.link,
-            colorBackgroundSelector: themeColors.appBG,
-            colorBackgroundDocTypeButton: themeColors.success,
-            colorBackgroundDocTypeButtonHover: themeColors.successHover,
-            colorBackgroundButtonIconHover: themeColors.transparent,
-            colorBackgroundButtonIconActive: themeColors.transparent,
+            colorBackgroundSurfaceModal: theme.appBG,
+            colorBorderDocTypeButton: theme.border,
+            colorBorderDocTypeButtonHover: theme.transparent,
+            colorBorderButtonPrimaryHover: theme.transparent,
+            colorBackgroundButtonPrimary: theme.success,
+            colorBackgroundButtonPrimaryHover: theme.successHover,
+            colorBackgroundButtonPrimaryActive: theme.successHover,
+            colorBorderButtonPrimary: theme.success,
+            colorContentButtonSecondaryText: theme.text,
+            colorBackgroundButtonSecondary: theme.border,
+            colorBackgroundButtonSecondaryHover: theme.icon,
+            colorBackgroundButtonSecondaryActive: theme.icon,
+            colorBorderButtonSecondary: theme.border,
+            colorBackgroundIcon: theme.transparent,
+            colorContentLinkTextHover: theme.appBG,
+            colorBorderLinkUnderline: theme.link,
+            colorBackgroundLinkHover: theme.link,
+            colorBackgroundLinkActive: theme.link,
+            authAccentColor: theme.link,
+            colorBackgroundInfoPill: theme.link,
+            colorBackgroundSelector: theme.appBG,
+            colorBackgroundDocTypeButton: theme.success,
+            colorBackgroundDocTypeButtonHover: theme.successHover,
+            colorBackgroundButtonIconHover: theme.transparent,
+            colorBackgroundButtonIconActive: theme.transparent,
         },
         steps: [
             {
@@ -119,6 +119,7 @@ function logOnFidoEvent(event) {
 }
 
 const Onfido = forwardRef((props, ref) => {
+    const theme = useTheme();
     const {preferredLocale, translate} = useLocalize();
 
     useEffect(() => {

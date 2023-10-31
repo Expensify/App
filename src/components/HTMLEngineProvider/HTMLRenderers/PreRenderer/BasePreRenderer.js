@@ -7,8 +7,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import withLocalize from '@components/withLocalize';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Press in handler for the code block */
@@ -32,6 +32,7 @@ const defaultProps = {
 };
 
 const BasePreRenderer = forwardRef((props, ref) => {
+    const styles = useThemeStyles();
     const TDefaultRenderer = props.TDefaultRenderer;
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'onPressIn', 'onPressOut', 'onLongPress']);
     const isLast = props.renderIndex === props.renderLength - 1;

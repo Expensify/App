@@ -57,7 +57,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** Set focus to this component the first time it renders.
-    Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
+  Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
     autoFocus: PropTypes.bool,
 
     /** Update selection position on change */

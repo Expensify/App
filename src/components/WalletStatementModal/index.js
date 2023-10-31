@@ -7,11 +7,11 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import {walletStatementDefaultProps, walletStatementPropTypes} from './WalletStatementModalPropTypes';
 
 function WalletStatementModal({statementPageURL, session}) {

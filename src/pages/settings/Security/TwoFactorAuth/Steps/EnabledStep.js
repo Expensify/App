@@ -7,10 +7,10 @@ import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
-import * as Session from '@userActions/Session';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 
 function EnabledStep() {
     const theme = useTheme();

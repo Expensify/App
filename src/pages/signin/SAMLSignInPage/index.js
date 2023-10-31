@@ -7,10 +7,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import CONFIG from '@src/CONFIG';
-import ONYXKEYS from '@src/ONYXKEYS';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** The credentials of the logged in person */

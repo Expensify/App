@@ -5,9 +5,9 @@ import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
-import useThemeStyles from '@styles/useThemeStyles';
 
 function DisabledStep() {
     const styles = useThemeStyles();

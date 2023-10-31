@@ -2,8 +2,8 @@ import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useRef} from 'react';
 import {DeviceEventEmitter, FlatList, StyleSheet} from 'react-native';
 import _ from 'underscore';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 
 const propTypes = {
