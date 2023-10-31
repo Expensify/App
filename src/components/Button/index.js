@@ -8,13 +8,13 @@ import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import withNavigationFocus from '@components/withNavigationFocus';
+import withTheme, {withThemePropTypes} from '@components/withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
-import withTheme, {withThemePropTypes} from '@components/withTheme';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 const propTypes = {
@@ -133,7 +133,7 @@ const defaultProps = {
     shouldShowRightIcon: false,
     icon: null,
     iconRight: Expensicons.ArrowRight,
-    iconFill: this.props.theme.textLight,
+    iconFill: undefined,
     iconStyles: [],
     iconRightStyles: [],
     isLoading: false,
@@ -238,7 +238,7 @@ class Button extends Component {
                             <View style={[this.props.themeStyles.mr1, ...this.props.iconStyles]}>
                                 <Icon
                                     src={this.props.icon}
-                                    fill={this.props.iconFill}
+                                    fill={this.props.iconFill || this.props.theme.textLight}
                                     small={this.props.small}
                                 />
                             </View>
@@ -249,7 +249,7 @@ class Button extends Component {
                         <View style={[this.props.themeStyles.justifyContentCenter, this.props.themeStyles.ml1, ...this.props.iconRightStyles]}>
                             <Icon
                                 src={this.props.iconRight}
-                                fill={this.props.iconFill}
+                                fill={this.props.iconFill || this.props.theme.textLight}
                                 small={this.props.small}
                             />
                         </View>
