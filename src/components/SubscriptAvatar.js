@@ -4,9 +4,9 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as StyleUtils from '@styles/StyleUtils';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import Avatar from './Avatar';
 import avatarPropTypes from './avatarPropTypes';
 import UserDetailsTooltip from './UserDetailsTooltip';
@@ -33,7 +33,7 @@ const propTypes = {
 
 const defaultProps = {
     size: CONST.AVATAR_SIZE.DEFAULT,
-    backgroundColor: theme.componentBG,
+    backgroundColor: undefined,
     mainAvatar: {},
     secondaryAvatar: {},
     noMargin: false,
@@ -79,7 +79,7 @@ function SubscriptAvatar({size, backgroundColor, mainAvatar, secondaryAvatar, no
                     <Avatar
                         iconAdditionalStyles={[
                             StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
-                            StyleUtils.getBorderColorStyle(backgroundColor),
+                            StyleUtils.getBorderColorStyle(backgroundColor || theme.componentBG),
                         ]}
                         source={secondaryAvatar.source}
                         size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
