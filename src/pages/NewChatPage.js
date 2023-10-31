@@ -262,7 +262,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             isLoadingNewOptions={isSearchingForReports}
                         />
                     </View>
-                    {isSmallScreenWidth && <OfflineIndicator style={[]} />}
+                    {isSmallScreenWidth && <OfflineIndicator />}
                 </KeyboardAvoidingView>
             )}
         </ScreenWrapper>

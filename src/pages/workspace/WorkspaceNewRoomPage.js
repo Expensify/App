@@ -249,7 +249,7 @@ function WorkspaceNewRoomPage(props) {
                             </View>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
                         </Form>
-                        {isSmallScreenWidth && <OfflineIndicator style={[]} />}
+                        {isSmallScreenWidth && <OfflineIndicator />}
                     </KeyboardAvoidingView>
                 )}
             </ScreenWrapper>

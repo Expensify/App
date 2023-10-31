@@ -5,6 +5,7 @@ import compose from '@libs/compose';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
+import stylePropTypes from '@styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import networkPropTypes from './networkPropTypes';
@@ -21,6 +22,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Optional styles for the container */
+    style: stylePropTypes,
+
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -29,6 +33,7 @@ const propTypes = {
 
 const defaultProps = {
     containerStyles: [],
+    style: [],
 };
 
 const setStyles = (containerStyles, isSmallScreenWidth) => {
