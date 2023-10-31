@@ -1,5 +1,5 @@
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 import PaymentMethod from './PaymentMethod';
 

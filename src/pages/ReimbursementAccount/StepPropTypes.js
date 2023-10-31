@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
+import {withLocalizePropTypes} from '@components/withLocalize';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
-import {withLocalizePropTypes} from '../../components/withLocalize';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 
 export default {
     /** The bank account currently in setup */
