@@ -149,7 +149,7 @@ function ReportActionItem(props) {
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
 
-    const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.highlightBG) : {}), [isReportActionLinked]);
+    const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.highlightBG) : {}), [isReportActionLinked, theme.highlightBG]);
     const originalMessage = lodashGet(props.action, 'originalMessage', {});
 
     // IOUDetails only exists when we are sending money
