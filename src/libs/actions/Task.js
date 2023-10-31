@@ -14,6 +14,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import * as Localize from '../Localize';
+import * as Report from './Report';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -922,9 +923,7 @@ function clearTaskErrors(reportID) {
             [report.parentReportActionID]: null,
         });
 
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID));
+        Report.navigateToConciergeChatAndDeleteReport(reportID);
         return;
     }
 

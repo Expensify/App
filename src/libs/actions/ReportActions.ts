@@ -3,6 +3,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as ReportActionUtils from '../ReportActionsUtils';
 import * as ReportUtils from '../ReportUtils';
+import * as Report from './Report';
+
 import ReportAction from '../../types/onyx/ReportAction';
 
 function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
@@ -25,8 +27,8 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
         }
 
         // Delete the failed task report too
-        if (ReportUtils.isThreadParent(reportAction)) {
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`, null);
+        if (reportAction.childReportID) {
+            Report.deleteReport(reportAction.childReportID)
         }
         return;
     }
