@@ -1,33 +1,33 @@
-import {InteractionManager} from 'react-native';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import lodashDebounce from 'lodash/debounce';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Pusher from '../Pusher/pusher';
-import LocalNotification from '../Notification/LocalNotification';
-import Navigation from '../Navigation/Navigation';
-import * as ActiveClientManager from '../ActiveClientManager';
-import Visibility from '../Visibility';
-import ROUTES from '../../ROUTES';
-import * as API from '../API';
-import CONFIG from '../../CONFIG';
-import CONST from '../../CONST';
-import Log from '../Log';
-import * as ReportUtils from '../ReportUtils';
-import DateUtils from '../DateUtils';
-import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as CollectionUtils from '../CollectionUtils';
-import * as EmojiUtils from '../EmojiUtils';
-import * as ErrorUtils from '../ErrorUtils';
-import * as UserUtils from '../UserUtils';
-import * as Welcome from './Welcome';
-import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import * as Environment from '../Environment/Environment';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
+import lodashDebounce from 'lodash/debounce';
+import lodashGet from 'lodash/get';
+import {InteractionManager} from 'react-native';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
+import * as API from '@libs/API';
+import * as CollectionUtils from '@libs/CollectionUtils';
+import DateUtils from '@libs/DateUtils';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import * as Environment from '@libs/Environment/Environment';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import LocalNotification from '@libs/Notification/LocalNotification';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as Pusher from '@libs/Pusher/pusher';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
+import Visibility from '@libs/Visibility';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import * as Session from './Session';
+import * as Welcome from './Welcome';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -2420,7 +2420,7 @@ function clearPrivateNotesError(reportID, accountID) {
 }
 
 function getDraftPrivateNote(reportID) {
-    return draftNoteMap[reportID];
+    return draftNoteMap[reportID] || '';
 }
 
 /**

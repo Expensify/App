@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
+import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
 
 describe('ReportActionsUtils', () => {
     beforeAll(() =>

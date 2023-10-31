@@ -1,11 +1,11 @@
 import React from 'react';
-import {View} from 'react-native';
 import ReactDOM from 'react-dom';
-import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import {View} from 'react-native';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as StyleUtils from '@styles/StyleUtils';
 import {propTypes} from './autoCompleteSuggestionsPropTypes';
-import * as StyleUtils from '../../styles/StyleUtils';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
+import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,

@@ -1,14 +1,14 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import CONST from '../CONST';
-import stylePropTypes from '../styles/stylePropTypes';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
+import _ from 'underscore';
+import useNetwork from '@hooks/useNetwork';
+import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import MessagesRow from './MessagesRow';
-import useNetwork from '../hooks/useNetwork';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).

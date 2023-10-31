@@ -1,24 +1,24 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useMemo, useCallback, useRef} from 'react';
-import _ from 'underscore';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import OptionsSelector from '../../components/OptionsSelector';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import CONST from '../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import personalDetailsPropType from '../personalDetailsPropType';
-import reportPropTypes from '../reportPropTypes';
-import * as Task from '../../libs/actions/Task';
-import * as ReportUtils from '../../libs/ReportUtils';
-import ROUTES from '../../ROUTES';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OptionsSelector from '@components/OptionsSelector';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -52,7 +52,7 @@ function TaskShareDestinationSelectorModal(props) {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
             if (
-                ReportUtils.shouldDisableWriteActions(props.reports[reportKey]) ||
+                !ReportUtils.canUserPerformWriteAction(props.reports[reportKey]) ||
                 ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey]) ||
                 ReportUtils.isCanceledTaskReport(props.reports[reportKey])
             ) {

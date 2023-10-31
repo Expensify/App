@@ -1,25 +1,25 @@
-import React, {useRef, useCallback, useState, useEffect} from 'react';
-import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import styles from '../../../styles/styles';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Illustrations from '@components/Icon/Illustrations';
+import withLocalize from '@components/withLocalize';
+import withWindowDimensions from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
+import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselActions from './CarouselActions';
-import withWindowDimensions from '../../withWindowDimensions';
 import CarouselButtons from './CarouselButtons';
-import extractAttachmentsFromReport from './extractAttachmentsFromReport';
-import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withLocalize from '../../withLocalize';
-import compose from '../../../libs/compose';
-import useCarouselArrows from './useCarouselArrows';
 import CarouselItem from './CarouselItem';
-import Navigation from '../../../libs/Navigation/Navigation';
-import BlockingView from '../../BlockingViews/BlockingView';
-import * as Illustrations from '../../Icon/Illustrations';
-import variables from '../../../styles/variables';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import useCarouselArrows from './useCarouselArrows';
 
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
