@@ -1,16 +1,16 @@
 import lodashGet from 'lodash/get';
 import lodashIsNil from 'lodash/isNil';
 import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as MapboxToken from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
 import PendingMapView from './MapView/PendingMapView';
@@ -37,41 +37,6 @@ const defaultProps = {
     },
 };
 
-const getWaypointMarkers = (waypoints) => {
-    const numberOfWaypoints = _.size(waypoints);
-    const lastWaypointIndex = numberOfWaypoints - 1;
-    return _.filter(
-        _.map(waypoints, (waypoint, key) => {
-            if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
-                return;
-            }
-
-            const index = TransactionUtils.getWaypointIndex(key);
-            let MarkerComponent;
-            if (index === 0) {
-                MarkerComponent = Expensicons.DotIndicatorUnfilled;
-            } else if (index === lastWaypointIndex) {
-                MarkerComponent = Expensicons.Location;
-            } else {
-                MarkerComponent = Expensicons.DotIndicator;
-            }
-
-            return {
-                id: `${waypoint.lng},${waypoint.lat},${index}`,
-                coordinate: [waypoint.lng, waypoint.lat],
-                markerComponent: () => (
-                    <MarkerComponent
-                        width={CONST.MAP_MARKER_SIZE}
-                        height={CONST.MAP_MARKER_SIZE}
-                        fill={theme.icon}
-                    />
-                ),
-            };
-        }),
-        (waypoint) => waypoint,
-    );
-};
-
 function ConfirmedRoute({mapboxAccessToken, transaction}) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -79,7 +44,41 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
     const {route0: route} = transaction.routes || {};
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const coordinates = lodashGet(route, 'geometry.coordinates', []);
-    const waypointMarkers = getWaypointMarkers(waypoints);
+
+    const waypointMarkers = useMemo(() => {
+        const numberOfWaypoints = _.size(waypoints);
+        const lastWaypointIndex = numberOfWaypoints - 1;
+        return _.filter(
+            _.map(waypoints, (waypoint, key) => {
+                if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
+                    return;
+                }
+
+                const index = TransactionUtils.getWaypointIndex(key);
+                let MarkerComponent;
+                if (index === 0) {
+                    MarkerComponent = Expensicons.DotIndicatorUnfilled;
+                } else if (index === lastWaypointIndex) {
+                    MarkerComponent = Expensicons.Location;
+                } else {
+                    MarkerComponent = Expensicons.DotIndicator;
+                }
+
+                return {
+                    id: `${waypoint.lng},${waypoint.lat},${index}`,
+                    coordinate: [waypoint.lng, waypoint.lat],
+                    markerComponent: () => (
+                        <MarkerComponent
+                            width={CONST.MAP_MARKER_SIZE}
+                            height={CONST.MAP_MARKER_SIZE}
+                            fill={theme.icon}
+                        />
+                    ),
+                };
+            }),
+            (waypointr) => waypoint,
+        );
+    }, [theme.icon, waypoints]);
 
     useEffect(() => {
         MapboxToken.init();
