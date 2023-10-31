@@ -1,3 +1,4 @@
+import {merge} from 'lodash';
 import isEqual from 'lodash/isEqual';
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +34,7 @@ function mergeOnyxUpdateData(oldData: OnyxUpdate[] = [], newData: OnyxUpdate[] =
 
 function createUpdatedRequest(oldRequest: Request, newRequest: Request): Request {
     const updatedRequest = {
+        data: merge({...oldRequest.data}, newRequest.data),
         failureData: mergeOnyxUpdateData(oldRequest.failureData, newRequest.failureData),
         successData: mergeOnyxUpdateData(oldRequest.successData, newRequest.successData),
         ...newRequest,
