@@ -63,7 +63,7 @@ const defaultProps = {
     value: '',
     name: '',
     autoFocus: true,
-    shouldDelayFocus: false,
+    shouldDelayFocus: true,
     errorText: '',
     shouldSubmitOnComplete: true,
     innerRef: null,
