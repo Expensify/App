@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
 import Icon from '@components/Icon';
@@ -7,25 +7,10 @@ import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
 import * as Growl from '@libs/Growl';
 import useNativeDriver from '@libs/useNativeDriver';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
-
-const types = {
-    [CONST.GROWL.SUCCESS]: {
-        icon: Expensicons.Checkmark,
-        iconColor: theme.success,
-    },
-    [CONST.GROWL.ERROR]: {
-        icon: Expensicons.Exclamation,
-        iconColor: theme.danger,
-    },
-    [CONST.GROWL.WARNING]: {
-        icon: Expensicons.Exclamation,
-        iconColor: theme.warning,
-    },
-};
 
 const INACTIVE_POSITION_Y = -255;
 
@@ -34,6 +19,25 @@ const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 function GrowlNotification(_, ref) {
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    const types = useMemo(
+        () => ({
+            [CONST.GROWL.SUCCESS]: {
+                icon: Expensicons.Checkmark,
+                iconColor: theme.success,
+            },
+            [CONST.GROWL.ERROR]: {
+                icon: Expensicons.Exclamation,
+                iconColor: theme.danger,
+            },
+            [CONST.GROWL.WARNING]: {
+                icon: Expensicons.Exclamation,
+                iconColor: theme.warning,
+            },
+        }),
+        [theme.danger, theme.success, theme.warning],
+    );
+
     const translateY = useRef(new Animated.Value(INACTIVE_POSITION_Y)).current;
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
