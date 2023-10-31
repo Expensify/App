@@ -2,13 +2,13 @@ import React, {useContext} from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import SubNavigationMenuItem from './SubNavigationMenuItem';
+import styles from '@styles/styles';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 
-import CONST from '../../../../CONST';
-import Header from '../../../../components/Header';
-import {SidebarNavigationContext} from '../SidebarNavigationContext';
+import CONST from '@src/CONST';
+import Header from '@components/Header';
+import {SidebarNavigationContext} from '@pages/home/sidebar/SidebarNavigationContext';
+import SubNavigationMenuItem from './SubNavigationMenuItem';
 
 const propTypes = {
     /** Header title for menu */

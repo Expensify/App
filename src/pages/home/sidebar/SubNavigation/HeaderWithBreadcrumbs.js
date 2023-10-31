@@ -2,14 +2,14 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
-import Text from '../../../../components/Text';
-import styles from '../../../../styles/styles';
-import Icon from '../../../../components/Icon';
-import CONST from '../../../../CONST';
-import variables from '../../../../styles/variables';
-import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
-import Header from '../../../../components/Header';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
+import Text from '@components/Text';
+import styles from '@styles/styles';
+import Icon from '@components/Icon';
+import CONST from '@src/CONST';
+import variables from '@styles/variables';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Header from '@components/Header';
+import * as Expensicons from '@components/Icon/Expensicons';
 
 const propTypes = {
     /** Text to display for the item */

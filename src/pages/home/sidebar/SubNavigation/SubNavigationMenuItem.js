@@ -1,13 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../../../components/Text';
-import styles from '../../../../styles/styles';
-import * as StyleUtils from '../../../../styles/StyleUtils';
-import Icon from '../../../../components/Icon';
-import CONST from '../../../../CONST';
-import variables from '../../../../styles/variables';
-import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import Icon from '@components/Icon';
+import CONST from '@src/CONST';
+import variables from '@styles/variables';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Icon to display */
