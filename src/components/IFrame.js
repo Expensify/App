@@ -218,7 +218,7 @@ function getIframeRouteNameAndParams(state) {
 }
 
 // TODO: use proper URL
-const BASE_IFRAME_URL = 'https://expensify.com.dev';
+const BASE_IFRAME_URL = 'https://staging.expensify.com';
 
 function IFrame({session}) {
     const [oldDotURL, setOldDotURL] = useState(undefined);
@@ -259,8 +259,8 @@ function IFrame({session}) {
     }, [routeName, params]);
 
     useEffect(() => {
-        document.cookie = `authToken=${session.authToken}; domain=expensify.com.dev; path=/;secure;`;
-        document.cookie = `email=${session.email}; domain=expensify.com.dev; path=/;secure;`;
+        document.cookie = `authToken=${session.authToken}; domain=staging.expensify.com; path=/;secure;`;
+        document.cookie = `email=${session.email}; domain=staging.expensify.com; path=/;secure;`;
     }, [session.authToken, session.email]);
 
     const [time] = useState(new Date().getSeconds());
