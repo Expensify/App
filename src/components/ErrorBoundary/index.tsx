@@ -1,6 +1,6 @@
 import Log from '@libs//Log';
-import BaseErrorBoundary, {BaseErrorBoundaryProps} from './BaseErrorBoundary';
-import LogError from './types';
+import BaseErrorBoundary from './BaseErrorBoundary';
+import {BaseErrorBoundaryProps, LogError} from './types';
 
 const logError: LogError = (errorMessage, error, errorInfo) => {
     // Log the error to the server

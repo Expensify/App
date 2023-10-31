@@ -2,18 +2,8 @@ import React from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import BootSplash from '@libs/BootSplash';
 import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
-import LogError from './types';
+import {BaseErrorBoundaryProps, LogError} from './types';
 
-type BaseErrorBoundaryProps = {
-    /* A message posted to `logError` (along with error data) when this component intercepts an error */
-    errorMessage: string;
-
-    /* A function to perform the actual logging since different platforms support different tools */
-    logError?: LogError;
-
-    /* Actual content wrapped by this error boundary */
-    children: React.ReactNode;
-};
 /**
  * This component captures an error in the child component tree and logs it to the server
  * It can be used to wrap the entire app as well as to wrap specific parts for more granularity
