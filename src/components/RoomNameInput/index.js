@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import _ from 'underscore';
-import CONST from '../../CONST';
-import TextInput from '../TextInput';
-import useLocalize from '../../hooks/useLocalize';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
+import CONST from '@src/CONST';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
-import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
 
 function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
     const {translate} = useLocalize();

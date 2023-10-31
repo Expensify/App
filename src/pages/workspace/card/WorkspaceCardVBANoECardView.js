@@ -1,19 +1,19 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Text from '../../../components/Text';
-import Button from '../../../components/Button';
-import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import * as Illustrations from '../../../components/Icon/Illustrations';
-import UnorderedList from '../../../components/UnorderedList';
-import Section from '../../../components/Section';
-import * as Link from '../../../libs/actions/Link';
-import ONYXKEYS from '../../../ONYXKEYS';
-import compose from '../../../libs/compose';
-import CONST from '../../../CONST';
-import userPropTypes from '../../settings/userPropTypes';
+import Button from '@components/Button';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Section from '@components/Section';
+import Text from '@components/Text';
+import UnorderedList from '@components/UnorderedList';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import userPropTypes from '@pages/settings/userPropTypes';
+import styles from '@styles/styles';
+import * as Link from '@userActions/Link';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Information about the logged in user's account */

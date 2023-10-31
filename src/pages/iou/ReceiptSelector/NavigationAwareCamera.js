@@ -1,8 +1,8 @@
-import React, {useEffect, useRef} from 'react';
-import Webcam from 'react-webcam';
 import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import Webcam from 'react-webcam';
 
 const propTypes = {
     /* Flag to turn on/off the torch/flashlight - if available */
@@ -72,14 +72,4 @@ NavigationAwareCamera.propTypes = propTypes;
 NavigationAwareCamera.displayName = 'NavigationAwareCamera';
 NavigationAwareCamera.defaultProps = defaultProps;
 
-const NavigationAwareCameraWithRef = React.forwardRef((props, ref) => (
-    <NavigationAwareCamera
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-NavigationAwareCameraWithRef.displayName = 'NavigationAwareCameraWithRef';
-
-export default NavigationAwareCameraWithRef;
+export default NavigationAwareCamera;
