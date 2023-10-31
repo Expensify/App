@@ -55,7 +55,7 @@ Onyx.connect({
     },
 });
 
-let networkTimeSkew: number = 0;
+let networkTimeSkew = 0;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (value) => (networkTimeSkew = value?.timeSkew),
@@ -312,10 +312,8 @@ function getDateStringFromISOTimestamp(isoTimestamp: string): string {
 
 /**
  * Returns the current time plus skew in milliseconds in the format expected by the database
- *
- * @returns {String}
  */
-function getDBTimeWithSkew() {
+function getDBTimeWithSkew(): string {
     return getDBTime(new Date().valueOf() + networkTimeSkew);
 }
 
