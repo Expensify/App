@@ -6,13 +6,13 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Avatar from '@components/Avatar';
 import Tooltip from '@components/Tooltip';
+import {defaultProps, propTypes} from '@components/UserDetailsTooltip/userDetailsTooltipPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as UserUtils from '@libs/UserUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
-import {defaultProps, propTypes} from './userDetailsTooltipPropTypes';
 
 function BaseUserDetailsTooltip(props) {
     const styles = useThemeStyles();
@@ -56,7 +56,26 @@ function BaseUserDetailsTooltip(props) {
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel, styles.breakWord, styles.textAlignCenter]}>{subtitle}</Text>
             </View>
         ),
-        [props.icon, userAvatar, userAccountID, userLogin, title, subtitle],
+        [
+            styles.alignItemsCenter,
+            styles.ph2,
+            styles.pv2,
+            styles.emptyAvatar,
+            styles.actionAvatar,
+            styles.mt2,
+            styles.textMicroBold,
+            styles.textReactionSenders,
+            styles.textAlignCenter,
+            styles.textMicro,
+            styles.fontColorReactionLabel,
+            styles.breakWord,
+            props.icon,
+            userAvatar,
+            userAccountID,
+            userLogin,
+            title,
+            subtitle,
+        ],
     );
 
     if (!props.icon && !userDisplayName && !userLogin) {
