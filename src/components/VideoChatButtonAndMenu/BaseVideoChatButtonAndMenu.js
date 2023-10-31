@@ -1,24 +1,24 @@
-import _ from 'underscore';
-import React, {useState, useRef, useEffect, useCallback} from 'react';
-import {View, Dimensions} from 'react-native';
 import PropTypes from 'prop-types';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import Popover from '../Popover';
-import MenuItem from '../MenuItem';
-import ZoomIcon from '../../../assets/images/zoom-icon.svg';
-import GoogleMeetIcon from '../../../assets/images/google-meet.svg';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
-import Tooltip from '../Tooltip';
-import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
-import * as Session from '../../libs/actions/Session';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import * as Link from '../../libs/actions/Link';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Dimensions, View} from 'react-native';
+import _ from 'underscore';
+import GoogleMeetIcon from '@assets/images/google-meet.svg';
+import ZoomIcon from '@assets/images/zoom-icon.svg';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import Popover from '@components/Popover';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as Link from '@userActions/Link';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes as videoChatButtonAndMenuPropTypes} from './videoChatButtonAndMenuPropTypes';
 
 const propTypes = {
     /** Link to open when user wants to create a new google meet meeting */

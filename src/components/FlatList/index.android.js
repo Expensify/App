@@ -1,7 +1,7 @@
+import {useFocusEffect} from '@react-navigation/native';
+import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useState} from 'react';
 import {FlatList} from 'react-native';
-import PropTypes from 'prop-types';
-import {useFocusEffect} from '@react-navigation/native';
 
 const propTypes = {
     /** Same as for FlatList */
@@ -65,10 +65,14 @@ function CustomFlatList(props) {
 CustomFlatList.propTypes = propTypes;
 CustomFlatList.defaultProps = defaultProps;
 
-export default forwardRef((props, ref) => (
+const CustomFlatListWithRef = forwardRef((props, ref) => (
     <CustomFlatList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+CustomFlatListWithRef.displayName = 'CustomFlatListWithRef';
+
+export default CustomFlatListWithRef;

@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Log from '../../Log';
+import Log from '@libs/Log';
+import ONYXKEYS from '@src/ONYXKEYS';
 import generateDeviceID from './generateDeviceID';
 import getDeviceInfo from './getDeviceInfo';
 
