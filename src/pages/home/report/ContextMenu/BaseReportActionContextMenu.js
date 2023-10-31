@@ -59,7 +59,7 @@ function BaseReportActionContextMenu(props) {
             return styles.reportActionContextMenuMiniWrapper;
         }
         return [
-            ...styles.reportActionContextMenuBigWrapper,
+            styles.reportActionContextMenuBigWrapper,
 
             // Small screens use a bottom-docked modal that already has vertical padding.
             isSmallScreenWidth ? {} : styles.pv3,
