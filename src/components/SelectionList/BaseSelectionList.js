@@ -1,29 +1,29 @@
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import SectionList from '../SectionList';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import TextInput from '../TextInput';
-import CONST from '../../CONST';
-import variables from '../../styles/variables';
-import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
-import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
-import SafeAreaConsumer from '../SafeAreaConsumer';
-import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
-import Checkbox from '../Checkbox';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import FixedFooter from '../FixedFooter';
-import Button from '../Button';
-import useLocalize from '../../hooks/useLocalize';
-import Log from '../../libs/Log';
-import OptionsListSkeletonView from '../OptionsListSkeletonView';
-import useActiveElement from '../../hooks/useActiveElement';
+import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
+import Button from '@components/Button';
+import Checkbox from '@components/Checkbox';
+import FixedFooter from '@components/FixedFooter';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import SectionList from '@components/SectionList';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
+import useActiveElement from '@hooks/useActiveElement';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useLocalize from '@hooks/useLocalize';
+import Log from '@libs/Log';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
-import themeColors from '../../styles/themes/default';
+import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -48,6 +48,7 @@ function BaseSelectionList({
     headerMessage = '',
     confirmButtonText = '',
     onConfirm,
+    headerContent,
     footerContent,
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
@@ -57,6 +58,7 @@ function BaseSelectionList({
     inputRef = null,
     disableKeyboardShortcuts = false,
     children,
+    shouldStopPropagation = false,
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -341,6 +343,7 @@ function BaseSelectionList({
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+        shouldStopPropagation,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
     });
 
@@ -391,6 +394,7 @@ function BaseSelectionList({
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}
+                        {Boolean(headerContent) && headerContent}
                         {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
                             <OptionsListSkeletonView shouldAnimate />
                         ) : (

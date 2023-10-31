@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.3.92-1",
+  "version": "1.3.93-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -54,7 +54,8 @@
     "test:e2e:compare": "node tests/e2e/merge.js",
     "gh-actions-unused-styles": "./.github/scripts/findUnusedKeys.sh",
     "workflow-test": "./workflow_tests/scripts/runWorkflowTests.sh",
-    "workflow-test:generate": "node workflow_tests/utils/preGenerateTest.js"
+    "workflow-test:generate": "node workflow_tests/utils/preGenerateTest.js",
+    "setup-https": "mkcert -install && mkcert -cert-file config/webpack/certificate.pem -key-file config/webpack/key.pem dev.new.expensify.com localhost 127.0.0.1"
   },
   "dependencies": {
     "@expensify/react-native-web": "0.18.15",
@@ -132,7 +133,7 @@
     "react-native-fast-image": "^8.6.3",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "2.12.0",
-    "react-native-google-places-autocomplete": "2.5.5",
+    "react-native-google-places-autocomplete": "2.5.6",
     "react-native-haptic-feedback": "^1.13.0",
     "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^5.1.0",
@@ -173,6 +174,8 @@
     "underscore": "^1.13.1"
   },
   "devDependencies": {
+    "@dword-design/eslint-plugin-import-alias": "^4.0.8",
+    "@trivago/prettier-plugin-sort-imports": "^4.2.0",
     "@actions/core": "1.10.0",
     "@actions/github": "5.1.1",
     "@babel/core": "^7.20.0",
@@ -221,7 +224,7 @@
     "@types/underscore": "^1.11.5",
     "@typescript-eslint/eslint-plugin": "^6.2.1",
     "@typescript-eslint/parser": "^6.2.1",
-    "@vercel/ncc": "^0.27.0",
+    "@vercel/ncc": "0.38.1",
     "@welldone-software/why-did-you-render": "7.0.1",
     "ajv-cli": "^5.0.0",
     "babel-eslint": "^10.1.0",
