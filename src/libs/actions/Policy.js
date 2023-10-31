@@ -214,6 +214,69 @@ function hasActiveFreePolicy(policies) {
 }
 
 /**
+ *
+ * @param {String} policyID
+ * @param {Object} invitedEmailsToAccountIDs
+ * @returns {Object}
+ */
+function createOptimisticAnnounceRoomMembers(policyID, invitedEmailsToAccountIDs) {
+    const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
+    const announceRoomMembers = {
+        onyxOptimisticData: [],
+        onyxFailureData: [],
+    };
+
+    announceRoomMembers.onyxOptimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            participantAccountIDs: [...announceReport.participantAccountIDs, ..._.values(invitedEmailsToAccountIDs)],
+        },
+    });
+
+    announceRoomMembers.onyxFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            participantAccountIDs: announceReport.participantAccountIDs,
+        },
+    });
+    return announceRoomMembers;
+}
+
+/**
+ *
+ * @param {String} policyID
+ * @param {Array} accountIDs
+ * @returns {Object}
+ */
+function removeOptimisticAnnounceRoomMembers(policyID, accountIDs) {
+    const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
+    const announceRoomMembers = {
+        onyxOptimisticData: [],
+        onyxFailureData: [],
+    };
+
+    const remainUsers = _.difference(announceReport.participantAccountIDs, accountIDs);
+    announceRoomMembers.onyxOptimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            participantAccountIDs: [...remainUsers],
+        },
+    });
+
+    announceRoomMembers.onyxFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            participantAccountIDs: announceReport.participantAccountIDs,
+        },
+    });
+    return announceRoomMembers;
+}
+
+/**
  * Remove the passed members from the policy employeeList
  *
  * @param {Array} accountIDs
@@ -232,6 +295,8 @@ function removeMembers(accountIDs, policyID) {
     const optimisticClosedReportActions = _.map(workspaceChats, () =>
         ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY),
     );
+
+    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policyID, accountIDs);
 
     const optimisticData = [
         {
@@ -254,6 +319,7 @@ function removeMembers(accountIDs, policyID) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats[index].reportID}`,
             value: {[reportAction.reportActionID]: reportAction},
         })),
+        ...announceRoomMembers.onyxOptimisticData,
     ];
 
     // If the policy has primaryLoginsInvited, then it displays informative messages on the members page about which primary logins were added by secondary logins.
@@ -305,6 +371,7 @@ function removeMembers(accountIDs, policyID) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats[index].reportID}`,
             value: {[reportAction.reportActionID]: null},
         })),
+        ...announceRoomMembers.onyxFailureData,
     ];
     API.write(
         'DeleteMembersFromWorkspace',
@@ -420,6 +487,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID)
     const accountIDs = _.values(invitedEmailsToAccountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
+    const announceRoomMembers = createOptimisticAnnounceRoomMembers(policyID, invitedEmailsToAccountIDs);
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
@@ -433,6 +501,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID)
         },
         ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
+        ...announceRoomMembers.onyxOptimisticData,
     ];
 
     const successData = [
@@ -480,6 +549,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID)
         },
         ...newPersonalDetailsOnyxData.failureData,
         ...membersChats.onyxFailureData,
+        ...announceRoomMembers.onyxFailureData,
     ];
 
     const params = {
