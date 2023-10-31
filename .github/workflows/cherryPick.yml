@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout staging branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
