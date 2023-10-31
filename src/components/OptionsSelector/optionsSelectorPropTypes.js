@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import optionPropTypes from '@components/optionPropTypes';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -158,7 +157,7 @@ const defaultProps = {
     onConfirmSelection: () => {},
     shouldTextInputAppearBelowOptions: false,
     footerContent: undefined,
-    optionHoveredStyle: styles.hoveredComponentBG,
+    optionHoveredStyle: undefined,
     shouldShowOptions: true,
     disableArrowKeysActions: false,
     isDisabled: false,
