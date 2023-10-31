@@ -275,7 +275,7 @@ function MoneyRequestParticipantsSelector({
                 <FormHelpMessage
                     style={[styles.ph1, styles.mb2]}
                     isError
-                    message="iou.error.splitBillMultipleParticipantsIncludingWorkspace"
+                    message="iou.error.splitBillMultipleParticipantsErrorMessage"
                 />
             )}
             <Button
