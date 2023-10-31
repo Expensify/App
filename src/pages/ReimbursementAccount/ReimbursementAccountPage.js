@@ -34,7 +34,6 @@ import withPolicy from '../workspace/withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import shouldReopenOnfido from '../../libs/shouldReopenOnfido';
-import FullNamePersonalStep from './PersonalInfo/substeps/FullName';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */

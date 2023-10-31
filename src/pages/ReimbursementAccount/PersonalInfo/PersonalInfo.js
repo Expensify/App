@@ -27,6 +27,10 @@ const propTypes = {
 };
 
 const STEPS_HEADER_HEIGHT = 40;
+// TODO Will most likely come from different place
+const STEP_NAMES = ['1', '2', '3', '4', '5'];
+
+const bodyContent = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 
 function PersonalInfo({reimbursementAccount}) {
     const {translate} = useLocalize();
@@ -50,9 +54,7 @@ function PersonalInfo({reimbursementAccount}) {
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
     }, [reimbursementAccount]);
-
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(lodashGet(reimbursementAccount, ['achData'], {})), [reimbursementAccount]);
-    const bodyContent = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
@@ -73,8 +75,9 @@ function PersonalInfo({reimbursementAccount}) {
             <View style={[styles.ph5, styles.mv3, {height: STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     onStepSelected={() => {}}
+                    // TODO Will be replaced with proper values
                     startStep={1}
-                    stepNames={['1', '2', '3', '4', '5']}
+                    stepNames={STEP_NAMES}
                 />
             </View>
             <SubStep

@@ -1347,10 +1347,8 @@ export default {
             OTHER: 'Other',
         },
     },
-    //TODO will be removed
     requestorStep: {
         headerTitle: 'Personal information',
-        subtitle: 'Please provide your personal information.',
         learnMore: 'Learn more',
         isMyDataSafe: 'Is my data safe?',
         onFidoConditions: 'By continuing with the request to add this bank account, you confirm that you have read, understand and accept ',
