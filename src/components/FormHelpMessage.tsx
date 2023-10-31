@@ -1,12 +1,12 @@
-import React from 'react';
-import {View, ViewStyle, StyleProp} from 'react-native';
 import isEmpty from 'lodash/isEmpty';
+import React from 'react';
+import {StyleProp, View, ViewStyle} from 'react-native';
+import * as Localize from '@libs/Localize';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
-import themeColors from '../styles/themes/default';
-import styles from '../styles/styles';
-import * as Localize from '../libs/Localize';
 
 type FormHelpMessageProps = {
     /** Error or hint text. Ignored when children is not empty */
