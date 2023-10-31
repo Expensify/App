@@ -1,32 +1,32 @@
-import '../wdyr';
+import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
 import Onyx from 'react-native-onyx';
-import {PortalProvider} from '@gorhom/portal';
 import {PickerStateProvider} from 'react-native-picker-select';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import '../wdyr';
+import ComposeProviders from './components/ComposeProviders';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
-import Expensify from './Expensify';
+import HTMLEngineProvider from './components/HTMLEngineProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
-import HTMLEngineProvider from './components/HTMLEngineProvider';
 import PopoverContextProvider from './components/PopoverProvider';
-import ComposeProviders from './components/ComposeProviders';
 import SafeArea from './components/SafeArea';
-import * as Environment from './libs/Environment/Environment';
-import {WindowDimensionsProvider} from './components/withWindowDimensions';
-import {KeyboardStateProvider} from './components/withKeyboardState';
-import ThemeProvider from './styles/themes/ThemeProvider';
-import ThemeStylesProvider from './styles/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
-import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
-import * as Session from './libs/actions/Session';
+import {KeyboardStateProvider} from './components/withKeyboardState';
+import {WindowDimensionsProvider} from './components/withWindowDimensions';
+import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
+import * as Session from './libs/actions/Session';
+import * as Environment from './libs/Environment/Environment';
+import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import {SidebarNavigationContextProvider} from './pages/home/sidebar/SidebarNavigationContext';
+import ThemeProvider from './styles/themes/ThemeProvider';
+import ThemeStylesProvider from './styles/ThemeStylesProvider';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
