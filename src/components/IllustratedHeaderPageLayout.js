@@ -26,7 +26,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    backgroundColor: theme.appBG,
+    backgroundColor: undefined,
     footer: null,
     overlayContent: null,
 };
@@ -36,7 +36,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
     const styles = useThemeStyles();
     return (
         <HeaderPageLayout
-            backgroundColor={backgroundColor}
+            backgroundColor={backgroundColor || theme.appBG}
             title={propsToPassToHeader.title}
             headerContent={
                 <>
