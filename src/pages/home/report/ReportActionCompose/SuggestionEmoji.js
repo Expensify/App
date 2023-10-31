@@ -201,6 +201,10 @@ function SuggestionEmoji({
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
 
+    const resetEmojiSuggestions = useCallback(() => {
+        setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
+    }, []);
+
     useImperativeHandle(
         forwardedRef,
         () => ({
@@ -220,11 +224,11 @@ function SuggestionEmoji({
 
     return (
         <EmojiSuggestions
-            onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}))}
+            onClose={resetEmojiSuggestions}
             highlightedEmojiIndex={highlightedEmojiIndex}
             emojis={suggestionValues.suggestedEmojis}
             comment={value}
-            updateComment={(newComment) => setValue(newComment)}
+            updateComment={setValue}
             colonIndex={suggestionValues.colonIndex}
             prefix={value.slice(suggestionValues.colonIndex + 1, selection.start)}
             onSelect={insertSelectedEmoji}
