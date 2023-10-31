@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
-import CONST from '../../CONST';
-import ChildrenProps from '../../types/utils/ChildrenProps';
+import CONST from '@src/CONST';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import AnimatedStepContext, {AnimationDirection} from './AnimatedStepContext';
 
 function AnimatedStepProvider({children}: ChildrenProps): React.ReactNode {
