@@ -246,9 +246,9 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('shouldShowGBR', () => {
+    describe('requiresAttentionFromCurrentUser', () => {
         it('returns false when there is no report', () => {
-            expect(ReportUtils.shouldShowGBR()).toBe(false);
+            expect(ReportUtils.requiresAttentionFromCurrentUser()).toBe(false);
         });
         it('returns false when the matched IOU report does not have an owner accountID', () => {
             const report = {
@@ -256,7 +256,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: undefined,
                 hasOutstandingIOU: true,
             };
-            expect(ReportUtils.shouldShowGBR(report)).toBe(false);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
         it('returns false when the linked iou report has an oustanding IOU', () => {
             const report = {
@@ -268,7 +268,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: 99,
                 hasOutstandingIOU: true,
             }).then(() => {
-                expect(ReportUtils.shouldShowGBR(report)).toBe(false);
+                expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
             });
         });
         it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
@@ -278,7 +278,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: true,
             };
-            expect(ReportUtils.shouldShowGBR(report)).toBe(false);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
         it('returns false when the report has outstanding IOU and is not waiting for a bank account and the logged user is the report owner', () => {
             const report = {
@@ -287,7 +287,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: false,
             };
-            expect(ReportUtils.shouldShowGBR(report)).toBe(false);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
         it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
             const report = {
@@ -296,14 +296,14 @@ describe('ReportUtils', () => {
                 ownerAccountID: 97,
                 isWaitingOnBankAccount: true,
             };
-            expect(ReportUtils.shouldShowGBR(report)).toBe(false);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
         it('returns true when the report has an unread mention', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 isUnreadWithMention: true,
             };
-            expect(ReportUtils.shouldShowGBR(report)).toBe(true);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
         it('returns true when the report is an outstanding task', () => {
             const report = {
@@ -313,7 +313,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS.OPEN,
             };
-            expect(ReportUtils.shouldShowGBR(report)).toBe(true);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
         it('returns true when the report has oustanding child request', () => {
             const report = {
@@ -323,7 +323,7 @@ describe('ReportUtils', () => {
                 hasOutstandingChildRequest: true,
                 isWaitingOnBankAccount: false,
             };
-            expect(ReportUtils.shouldShowGBR(report)).toBe(true);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
     });
 
