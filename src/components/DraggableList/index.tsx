@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {DragDropContext, Draggable, Droppable, type OnDragEndResponder} from 'react-beautiful-dnd';
-import {ScrollView} from 'react-native';
+import {ScrollView, ViewStyle} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 import type {DraggableListProps} from './types';
 import useDraggableInPortal from './useDraggableInPortal';
@@ -73,8 +73,8 @@ function DraggableList<T>(
     return (
         <ScrollView
             ref={ref}
-            style={styles.flex1}
-            contentContainerStyle={styles.flex1}
+            style={styles.flex1 as ViewStyle}
+            contentContainerStyle={styles.flex1 as ViewStyle}
         >
             <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable

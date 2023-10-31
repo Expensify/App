@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {TextStyle, View, ViewStyle} from 'react-native';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
@@ -19,12 +19,14 @@ function InlineSystemMessage({message = ''}: InlineSystemMessageProps) {
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+        <View style={[styles.flexRow as ViewStyle, styles.alignItemsCenter as ViewStyle]}>
             <Icon
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 src={Expensicons.Exclamation}
                 fill={theme.danger}
             />
-            <Text style={styles.inlineSystemMessage}>{message}</Text>
+            <Text style={styles.inlineSystemMessage as TextStyle}>{message}</Text>
         </View>
     );
 }

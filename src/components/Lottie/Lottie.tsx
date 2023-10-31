@@ -1,5 +1,6 @@
 import LottieView, {LottieViewProps} from 'lottie-react-native';
 import React, {forwardRef} from 'react';
+import {ViewStyle} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 
 const Lottie = forwardRef<LottieView, LottieViewProps>((props: LottieViewProps, ref) => {
@@ -9,7 +10,7 @@ const Lottie = forwardRef<LottieView, LottieViewProps>((props: LottieViewProps, 
             // eslint-disable-next-line
             {...props}
             ref={ref}
-            style={[styles.aspectRatioLottie(props.source), props.style]}
+            style={[(styles.aspectRatioLottie as (src: LottieViewProps['source']) => ViewStyle)(props.source), props.style]}
         />
     );
 });

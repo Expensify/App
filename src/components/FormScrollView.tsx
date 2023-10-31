@@ -1,5 +1,5 @@
 import React, {ForwardedRef} from 'react';
-import {ScrollView, ScrollViewProps} from 'react-native';
+import {ScrollView, ScrollViewProps, ViewStyle} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 
 type FormScrollViewProps = ScrollViewProps & {
@@ -11,9 +11,9 @@ function FormScrollView({children, ...rest}: FormScrollViewProps, ref: Forwarded
     const styles = useThemeStyles();
     return (
         <ScrollView
-            style={[styles.w100, styles.flex1]}
+            style={[styles.w100 as ViewStyle, styles.flex1 as ViewStyle]}
             ref={ref}
-            contentContainerStyle={styles.flexGrow1}
+            contentContainerStyle={styles.flexGrow1 as ViewStyle}
             keyboardShouldPersistTaps="handled"
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}

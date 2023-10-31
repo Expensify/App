@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, ViewStyle} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 import Text from './Text';
 
@@ -14,11 +14,11 @@ type TestToolRowProps = {
 function TestToolRow({title, children}: TestToolRowProps) {
     const styles = useThemeStyles();
     return (
-        <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween, styles.alignItemsCenter, styles.mnw120]}>
-            <View style={styles.flex2}>
+        <View style={[styles.flexRow as ViewStyle, styles.mb6 as ViewStyle, styles.justifyContentBetween as ViewStyle, styles.alignItemsCenter as ViewStyle, styles.mnw120 as ViewStyle]}>
+            <View style={styles.flex2 as ViewStyle}>
                 <Text>{title}</Text>
             </View>
-            <View style={[styles.flex1, styles.alignItemsEnd]}>{children}</View>
+            <View style={[styles.flex1 as ViewStyle, styles.alignItemsEnd as ViewStyle]}>{children}</View>
         </View>
     );
 }

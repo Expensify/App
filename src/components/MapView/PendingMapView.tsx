@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import React from 'react';
-import {View} from 'react-native';
+import {View, ViewStyle} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,7 +13,7 @@ function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps)
     const hasTextContent = !_.isEmpty(title) || !_.isEmpty(subtitle);
 
     return (
-        <View style={[styles.mapPendingView, style]}>
+        <View style={[styles.mapPendingView as ViewStyle, style]}>
             {hasTextContent ? (
                 <BlockingView
                     icon={Expensicons.EmptyStateRoutePending}
@@ -22,8 +22,10 @@ function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps)
                     shouldShowLink={false}
                 />
             ) : (
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
+                <View style={[styles.flex1 as ViewStyle, styles.alignItemsCenter as ViewStyle, styles.justifyContentCenter as ViewStyle, styles.ph10 as ViewStyle]}>
                     <Icon
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignoreg
                         src={Expensicons.EmptyStateRoutePending}
                         width={variables.iconSizeUltraLarge}
                         height={variables.iconSizeUltraLarge}

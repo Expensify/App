@@ -12,7 +12,7 @@ type FixedFooterProps = {
 
 function FixedFooter({style = [], children}: FixedFooterProps) {
     const styles = useThemeStyles();
-    return <View style={[styles.ph5, styles.pb5, styles.flexShrink0, ...style]}>{children}</View>;
+    return <View style={[styles.ph5 as ViewStyle, styles.pb5 as ViewStyle, styles.flexShrink0 as ViewStyle, ...style]}>{children}</View>;
 }
 
 FixedFooter.displayName = 'FixedFooter';

@@ -53,7 +53,7 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps) {
             onLayout={hide}
             style={[
                 StyleSheet.absoluteFill,
-                styles.splashScreenHider,
+                styles.splashScreenHider as ViewStyle,
                 opacityStyle,
                 {
                     // Apply negative margins to center the logo on window (instead of screen)
