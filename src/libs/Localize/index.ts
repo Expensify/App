@@ -99,7 +99,7 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
 /**
  * Return translated string for given error.
  */
-function translateIfPhraseKey<TKey extends TranslationPaths>(message: TKey | [TKey, PhraseParameters<Phrase<TKey>> & {isTranslated?: true}]): string {
+function translateIfPhraseKey(message: string | [string, Record<string, unknown> & {isTranslated?: true}]): string {
     if (!message || (Array.isArray(message) && message.length > 0)) {
         return '';
     }
@@ -110,10 +110,10 @@ function translateIfPhraseKey<TKey extends TranslationPaths>(message: TKey | [TK
 
         // This condition checks if the error is already translated. For example, if there are multiple errors per input, we handle translation in ErrorUtils.addErrorMessage due to the inability to concatenate error keys.
         if (variables?.isTranslated) {
-            return phrase as string;
+            return phrase;
         }
 
-        return translateLocal(phrase, ...(variables as PhraseParameters<Phrase<TKey>>));
+        return translateLocal(phrase as TranslationPaths, ...(variables as PhraseParameters<Phrase<TranslationPaths>>));
     } catch (error) {
         return Array.isArray(message) ? message[0] : message;
     }
