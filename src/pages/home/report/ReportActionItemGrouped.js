@@ -13,13 +13,13 @@ const propTypes = {
 };
 
 const defaultProps = {
-    wrapperStyles: [styles.chatItem],
+    wrapperStyles: undefined,
 };
 
 function ReportActionItemGrouped(props) {
     const styles = useThemeStyles();
     return (
-        <View style={props.wrapperStyles}>
+        <View style={props.wrapperStyles || styles.chatItem}>
             <View style={[styles.chatItemRightGrouped]}>{props.children}</View>
         </View>
     );
@@ -28,4 +28,5 @@ function ReportActionItemGrouped(props) {
 ReportActionItemGrouped.propTypes = propTypes;
 ReportActionItemGrouped.defaultProps = defaultProps;
 ReportActionItemGrouped.displayName = 'ReportActionItemGrouped';
+
 export default ReportActionItemGrouped;
