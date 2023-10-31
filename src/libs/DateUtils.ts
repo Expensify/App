@@ -1,31 +1,31 @@
-import {zonedTimeToUtc, utcToZonedTime, formatInTimeZone} from 'date-fns-tz';
-import {es, enGB} from 'date-fns/locale';
 import {
-    formatDistanceToNow,
-    subMinutes,
     addDays,
-    subDays,
-    isBefore,
-    subMilliseconds,
-    startOfWeek,
+    endOfDay,
     endOfWeek,
     format,
-    setDefaultOptions,
-    endOfDay,
-    isSameDay,
+    formatDistanceToNow,
     isAfter,
+    isBefore,
+    isSameDay,
     isSameYear,
+    isValid,
+    setDefaultOptions,
+    startOfWeek,
+    subDays,
+    subMilliseconds,
+    subMinutes,
 } from 'date-fns';
-
-import Onyx from 'react-native-onyx';
+import {formatInTimeZone, format as tzFormat, utcToZonedTime, zonedTimeToUtc} from 'date-fns-tz';
+import {enGB, es} from 'date-fns/locale';
 import throttle from 'lodash/throttle';
+import Onyx from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
-import * as Localize from './Localize';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import TIMEZONES from '@src/TIMEZONES';
+import {Timezone} from '@src/types/onyx/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
-import {Timezone} from '../types/onyx/PersonalDetails';
-import TIMEZONES from '../TIMEZONES';
+import * as Localize from './Localize';
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({
@@ -344,6 +344,22 @@ function getStatusUntilDate(inputDate: string): string {
     return translateLocal('statusPage.untilTime', {time: format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
 }
 
+/**
+ * Get a date and format this date using the UTC timezone.
+ * @param datetime
+ * @param dateFormat
+ * @returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
+ */
+function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
+    const date = new Date(datetime);
+
+    if (isValid(date)) {
+        return tzFormat(utcToZonedTime(date, 'UTC'), dateFormat);
+    }
+
+    return '';
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -365,6 +381,7 @@ const DateUtils = {
     isToday,
     isTomorrow,
     isYesterday,
+    formatWithUTCTimeZone,
 };
 
 export default DateUtils;

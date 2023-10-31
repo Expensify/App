@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
-
+import CONST from '@src/CONST';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
 const STANDARD_DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-', ','];

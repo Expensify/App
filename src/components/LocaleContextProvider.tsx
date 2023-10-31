@@ -1,17 +1,17 @@
 import React, {createContext, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
-import ONYXKEYS from '../ONYXKEYS';
-import * as Localize from '../libs/Localize';
-import DateUtils from '../libs/DateUtils';
-import * as NumberFormatUtils from '../libs/NumberFormatUtils';
-import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
-import CONST from '../CONST';
-import compose from '../libs/compose';
+import ONYXKEYS from '@src/ONYXKEYS';
+import * as Localize from '@libs/Localize';
+import DateUtils from '@libs/DateUtils';
+import * as NumberFormatUtils from '@libs/NumberFormatUtils';
+import * as LocaleDigitUtils from '@libs/LocaleDigitUtils';
+import CONST from '@src/CONST';
+import compose from '@libs/compose';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import {PersonalDetails} from '@src/types/onyx';
+import {TranslationPaths, TranslationFlatObject} from '@src/languages/types';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
-import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
-import {PersonalDetails} from '../types/onyx';
-import {TranslationPaths, TranslationFlatObject} from '../languages/types';
 
 type CurrentUserPersonalDetails = Pick<PersonalDetails, 'timezone'>;
 

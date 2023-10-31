@@ -1,13 +1,13 @@
-import React, {useState, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
-import {View, PanResponder} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {PanResponder, View} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
-import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import Image from '../Image';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Image from '@components/Image';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
