@@ -1,16 +1,15 @@
+import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
-import _ from 'underscore';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import FormSubmit from '../FormSubmit';
-import FormAlertWithSubmitButton from '../FormAlertWithSubmitButton';
-import styles from '../../styles/styles';
-import SafeAreaConsumer from '../SafeAreaConsumer';
-import ScrollViewWithContext from '../ScrollViewWithContext';
-
-import stylePropTypes from '../../styles/stylePropTypes';
+import _ from 'underscore';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormSubmit from '@components/FormSubmit';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
 import errorsPropType from './errorsPropType';
 
 const propTypes = {
@@ -82,7 +81,21 @@ const defaultProps = {
 };
 
 function FormWrapper(props) {
-    const {onSubmit, children, formState, errors, inputRefs, submitButtonText, footerContent, isSubmitButtonVisible, style, submitButtonStyles, enabledWhenOffline, isSubmitActionDangerous, formID} = props;
+    const {
+        onSubmit,
+        children,
+        formState,
+        errors,
+        inputRefs,
+        submitButtonText,
+        footerContent,
+        isSubmitButtonVisible,
+        style,
+        submitButtonStyles,
+        enabledWhenOffline,
+        isSubmitActionDangerous,
+        formID,
+    } = props;
     const formRef = useRef(null);
     const formContentRef = useRef(null);
     const errorMessage = useMemo(() => {
@@ -156,6 +169,7 @@ function FormWrapper(props) {
             isSubmitButtonVisible,
             onSubmit,
             style,
+            submitButtonStyles,
             submitButtonText,
         ],
     );
