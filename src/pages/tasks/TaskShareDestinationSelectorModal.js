@@ -1,15 +1,15 @@
 /* eslint-disable es/no-optional-chaining */
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import * as Report from '@libs/actions/Report';
-import useNetwork from '@hooks/useNetwork';
+import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as Report from '@libs/actions/Report';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
