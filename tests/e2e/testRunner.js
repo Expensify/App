@@ -237,10 +237,14 @@ const runTests = async () => {
             progressText = `Suite '${testConfig.name}' [${testIndex + 1}/${numOfTests}], iteration [${i + 1}/${config.RUNS}]\n`;
             testLog.updateText(progressText);
 
+            Logger.log('Killing app...');
+            await killApp('android', config.APP_PACKAGE);
+
             testLog.updateText(`Coolin down phone 🧊 ${config.SUITE_COOL_DOWN / 1000}s`);
             await sleep(config.SUITE_COOL_DOWN);
 
-            await restartApp();
+            Logger.log('Starting app...');
+            await launchApp('android', config.APP_PACKAGE);
 
             // Wait for a test to finish by waiting on its done call to the http server
             try {
