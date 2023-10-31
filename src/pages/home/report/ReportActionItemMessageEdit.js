@@ -27,7 +27,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import reportPropTypes from '@pages/reportPropTypes';
-import containerComposeStyles from '@styles/containerComposeStyles';
+import getContainerComposeStyles from '@styles/containerComposeStyles';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -391,7 +391,7 @@ function ReportActionItemMessageEdit(props) {
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>
-                    <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
+                    <View style={[getContainerComposeStyles(styles), styles.textInputComposeBorder]}>
                         <Composer
                             multiline
                             ref={(el) => {
