@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import FormProvider from '@components/Form/FormProvider';
+import Form from '@components/Form';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -59,7 +59,7 @@ function SetTimePage({translate, privatePersonalDetails, customStatus}) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
             />
             <View style={styles.flex1}>
-                <FormProvider
+                <Form
                     style={[styles.flexGrow1]}
                     formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_TIME_FORM}
                     onSubmit={onSubmit}
@@ -76,7 +76,7 @@ function SetTimePage({translate, privatePersonalDetails, customStatus}) {
                         defaultValue={DateUtils.extractTime12Hour(clearAfter)}
                         style={styles.flexGrow1}
                     />
-                </FormProvider>
+                </Form>
             </View>
         </ScreenWrapper>
     );
