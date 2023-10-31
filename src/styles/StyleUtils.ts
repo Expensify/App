@@ -40,7 +40,6 @@ type AvatarSizeValue = ValueOf<
     >
 >;
 type ButtonSizeValue = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
-type EmptyAvatarSizeName = ValueOf<Pick<typeof CONST.AVATAR_SIZE, 'SMALL' | 'MEDIUM' | 'LARGE'>>;
 type ButtonStateName = ValueOf<typeof CONST.BUTTON_STATES>;
 type AvatarSize = {width: number};
 
@@ -146,12 +145,6 @@ const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
 };
 
-const emptyAvatarStyles: Record<EmptyAvatarSizeName, ViewStyle> = {
-    [CONST.AVATAR_SIZE.SMALL]: styles.emptyAvatarSmall,
-    [CONST.AVATAR_SIZE.MEDIUM]: styles.emptyAvatarMedium,
-    [CONST.AVATAR_SIZE.LARGE]: styles.emptyAvatarLarge,
-};
-
 const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
     [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.fontSizeExtraSmall,
@@ -188,13 +181,6 @@ function getAvatarSize(size: AvatarSizeName): number {
  */
 function getHeightOfMagicCodeInput(): ViewStyle {
     return {height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth};
-}
-
-/**
- * Return the style from an empty avatar size constant
- */
-function getEmptyAvatarStyle(size: EmptyAvatarSizeName): ViewStyle | undefined {
-    return emptyAvatarStyles[size];
 }
 
 /**
@@ -1340,7 +1326,6 @@ export {
     getEmojiReactionBubbleStyle,
     getEmojiReactionBubbleTextStyle,
     getEmojiReactionCounterTextStyle,
-    getEmptyAvatarStyle,
     getErrorPageContainerStyle,
     getFontFamilyMonospace,
     getFontSizeStyle,
