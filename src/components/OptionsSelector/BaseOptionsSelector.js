@@ -11,12 +11,12 @@ import OptionsList from '@components/OptionsList';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import setSelection from '@libs/setSelection';
 import CONST from '@src/CONST';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
@@ -44,7 +44,7 @@ const defaultProps = {
     shouldDelayFocus: false,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
-    listContainerStyles: [this.props.themeStyles.flex1],
+    listContainerStyles: undefined,
     listStyles: [],
     ...optionsSelectorDefaultProps,
 };
@@ -428,7 +428,7 @@ class BaseOptionsSelector extends Component {
                     }
                 }}
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
-                listContainerStyles={this.props.listContainerStyles}
+                listContainerStyles={this.props.listContainerStyles || [this.props.themeStyles.flex1]}
                 listStyles={this.props.listStyles}
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
