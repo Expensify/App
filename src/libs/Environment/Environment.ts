@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -20,28 +19,22 @@ const OLDDOT_ENVIRONMENT_URLS = {
 
 /**
  * Are we running the app in development?
- *
- * @return {boolean}
  */
-function isDevelopment() {
-    return lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV;
+function isDevelopment(): boolean {
+    return (Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV;
 }
 
 /**
  * Are we running an internal test build?
- *
- * @return {boolean}
  */
-function isInternalTestBuild() {
-    return lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.ADHOC && lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
+function isInternalTestBuild(): boolean {
+    return !!((Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.ADHOC && (Config?.PULL_REQUEST_NUMBER ?? ''));
 }
 
 /**
  * Get the URL based on the environment we are in
- *
- * @returns {Promise}
  */
-function getEnvironmentURL() {
+function getEnvironmentURL(): Promise<string> {
     return new Promise((resolve) => {
         getEnvironment().then((environment) => resolve(ENVIRONMENT_URLS[environment]));
     });
@@ -49,10 +42,8 @@ function getEnvironmentURL() {
 
 /**
  * Get the corresponding oldDot URL based on the environment we are in
- *
- * @returns {Promise<string>}
  */
-function getOldDotEnvironmentURL() {
+function getOldDotEnvironmentURL(): Promise<string> {
     return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
