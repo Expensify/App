@@ -140,6 +140,7 @@ function BaseModal({
     } = useMemo(
         () =>
             getModalStyles(
+                styles,
                 type,
                 {
                     windowWidth,

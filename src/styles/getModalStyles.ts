@@ -2,16 +2,17 @@ import {ViewStyle} from 'react-native';
 import {ModalProps} from 'react-native-modal';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import styles from './styles';
+import {Styles} from './styles';
 import themeColors from './themes/default';
 import variables from './variables';
 
-function getCenteredModalStyles(windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
-    const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall);
-
+function getCenteredModalStyles(styles: Styles, windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const centeredModalStyles = styles.centeredModalStyles as (...args: any[]) => ViewStyle;
+    const modalStyles = centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall);
     return {
         borderWidth: modalStyles.borderWidth,
-        width: isSmallScreenWidth ? '100%' : windowWidth - modalStyles.marginHorizontal * 2,
+        width: isSmallScreenWidth ? '100%' : windowWidth - (modalStyles.marginHorizontal as number) * 2,
     };
 }
 
@@ -39,6 +40,7 @@ type GetModalStyles = {
 };
 
 export default function getModalStyles(
+    styles: Styles,
     type: ModalType,
     windowDimensions: WindowDimensions,
     popoverAnchorPosition: ViewStyle = {},
@@ -119,7 +121,7 @@ export default function getModalStyles(
                 marginBottom: isSmallScreenWidth ? 0 : 20,
                 borderRadius: isSmallScreenWidth ? 0 : 12,
                 overflow: 'hidden',
-                ...getCenteredModalStyles(windowWidth, isSmallScreenWidth),
+                ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth),
             };
 
             // Allow this modal to be dismissed with a swipe down or swipe right
@@ -154,7 +156,7 @@ export default function getModalStyles(
                 marginBottom: isSmallScreenWidth ? 0 : 20,
                 borderRadius: isSmallScreenWidth ? 0 : 12,
                 overflow: 'hidden',
-                ...getCenteredModalStyles(windowWidth, isSmallScreenWidth, true),
+                ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth, true),
             };
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
