@@ -15,7 +15,7 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as Report from '@libs/actions/Report';
+import * as Report from './Report';
 
 let currentUserEmail;
 let currentUserAccountID;
