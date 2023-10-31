@@ -244,7 +244,7 @@ function BaseOptionsList({
     };
 
     return (
-        <View style={listContainerStyles}>
+        <View style={listContainerStyles || [styles.flex1]}>
             {isLoading ? (
                 <OptionsListSkeletonView shouldAnimate />
             ) : (
