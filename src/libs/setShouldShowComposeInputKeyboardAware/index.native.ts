@@ -1,4 +1,4 @@
-import {EmitterSubscription, Keyboard} from 'react-native';
+import {EmitterSubscription, Keyboard, Platform} from 'react-native';
 import * as Composer from '@userActions/Composer';
 import SetShouldShowComposeInputKeyboardAware from './types';
 
@@ -20,7 +20,7 @@ const setShouldShowComposeInputKeyboardAware: SetShouldShowComposeInputKeyboardA
         return;
     }
 
-    keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', () => {
+    keyboardDidHideListener = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => {
         Composer.setShouldShowComposeInput(true);
         keyboardDidHideListener?.remove();
     });
