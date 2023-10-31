@@ -3,12 +3,12 @@ import React from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import _ from 'underscore';
-import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 const propTypes = {
     /** Whether to animate the skeleton view */
@@ -27,8 +27,8 @@ const propTypes = {
 const defaultProps = {
     shouldAnimate: true,
     avatarSize: CONST.AVATAR_SIZE.LARGE,
-    backgroundColor: theme.highlightBG,
-    foregroundColor: theme.border,
+    backgroundColor: undefined,
+    foregroundColor: undefined,
 };
 
 function CurrentUserPersonalDetailsSkeletonView(props) {
@@ -44,8 +44,8 @@ function CurrentUserPersonalDetailsSkeletonView(props) {
         <View style={styles.avatarSectionWrapperSkeleton}>
             <SkeletonViewContentLoader
                 animate={props.shouldAnimate}
-                backgroundColor={props.backgroundColor}
-                foregroundColor={props.foregroundColor}
+                backgroundColor={props.backgroundColor || theme.highlightBG}
+                foregroundColor={props.foregroundColor || theme.border}
                 height={avatarPlaceholderSize + spaceBetweenAvatarAndHeadline + headlineSize + spaceBetweenHeadlineAndLabel + labelSize}
             >
                 <Circle
@@ -73,4 +73,5 @@ function CurrentUserPersonalDetailsSkeletonView(props) {
 CurrentUserPersonalDetailsSkeletonView.displayName = 'CurrentUserPersonalDetailsSkeletonView';
 CurrentUserPersonalDetailsSkeletonView.propTypes = propTypes;
 CurrentUserPersonalDetailsSkeletonView.defaultProps = defaultProps;
+
 export default CurrentUserPersonalDetailsSkeletonView;
