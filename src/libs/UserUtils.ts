@@ -6,6 +6,8 @@ import CONST from '@src/CONST';
 import Login from '@src/types/onyx/Login';
 import hashCode from './hashCode';
 
+type AvatarSource = React.FC<SvgProps> | string;
+
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '';
@@ -202,3 +204,5 @@ export {
     getFullSizeAvatar,
     generateAccountID,
 };
+
+export type {AvatarSource};

@@ -14,8 +14,8 @@ function canUsePayWithExpensify(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.PAY_WITH_EXPENSIFY) || canUseAllBetas(betas);
 }
 
-function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
-    return betas?.includes(CONST.BETAS.DEFAULT_ROOMS) ?? canUseAllBetas(betas);
+function canUseDefaultRooms(betas: Beta[]): boolean {
+    return betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
 
 function canUseWallet(betas: Beta[]): boolean {
