@@ -1326,6 +1326,13 @@ function getAvatarBackgroundColor(isFocused: boolean, hovered: boolean, focusedB
     return defaultBackgroundColor;
 }
 
+/**
+ * Get the styles of the text next to dot indicators
+ */
+function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
+    return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
+}
+
 export {
     combineStyles,
     displayIfTrue,
@@ -1371,6 +1378,7 @@ export {
     getDirectionStyle,
     getDisabledLinkStyles,
     getDropDownButtonHeight,
+    getDotIndicatorTextStyles,
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
     getEmojiReactionBubbleStyle,
