@@ -1,12 +1,13 @@
 // eslint-disable-next-line no-restricted-imports
-import {useState, useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import {Dimensions} from 'react-native';
-import {initialWindowMetrics} from "react-native-safe-area-context";
+import {initialWindowMetrics} from 'react-native-safe-area-context';
 
 /**
  * A convenience hook that provides initial size (width and height).
  * An initial height allows to know the real height of window,
  * while the standard useWindowDimensions hook return the height minus Virtual keyboard height
+ * @returns {Object} with information about initial width and height
  */
 export default function () {
     const [dimensions, setDimensions] = useState(() => {
@@ -49,7 +50,7 @@ export default function () {
         };
     }, []);
 
-    const bottomInset = initialWindowMetrics?.insets?.bottom ?? 0;
+    const bottomInset = initialWindowMetrics && initialWindowMetrics.insets && initialWindowMetrics.insets.bottom ? initialWindowMetrics.insets.bottom : 0;
 
     return {
         initialWidth: dimensions.initialWidth,
