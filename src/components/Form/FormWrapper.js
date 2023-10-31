@@ -152,6 +152,9 @@ function FormWrapper(props) {
             isSubmitButtonVisible,
             onSubmit,
             style,
+            styles.flex1,
+            styles.mh0,
+            styles.mt5,
             submitButtonText,
         ],
     );
