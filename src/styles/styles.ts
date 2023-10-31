@@ -4074,6 +4074,27 @@ const styles = (theme: ThemeDefault) => {
         return (isDragging ? stylez.cursorGrabbing : stylez.cursorZoomOut) as ViewStyle;
     };
 
+    /**
+     * Returns auto grow height text input style
+     */
+    stylez.getAutoGrowHeightInputStyle = (textInputHeight: number, maxHeight: number): ViewStyle => {
+        if (textInputHeight > maxHeight) {
+            return {
+                ...stylez.pr0,
+                ...stylez.overflowAuto,
+            } as ViewStyle;
+        }
+
+        return {
+            ...stylez.pr0,
+            ...stylez.overflowHidden,
+
+            // maxHeight is not of the input only but the of the whole input container
+            // which also includes the top padding and bottom border
+            height: maxHeight - ((stylez.textInputMultilineContainer as ViewStyle).paddingTop as number) - ((stylez.textInputContainer as ViewStyle).borderBottomWidth ?? 0),
+        } as ViewStyle;
+    };
+
     return stylez;
 };
 

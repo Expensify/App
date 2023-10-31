@@ -353,30 +353,6 @@ function getWidthStyle(width: number): ViewStyle {
 }
 
 /**
- * Returns auto grow height text input style
- */
-function getAutoGrowHeightInputStyle(textInputHeight: number, maxHeight: number): ViewStyle {
-    if (textInputHeight > maxHeight) {
-        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return {
-            ...styles.pr0,
-            ...styles.overflowAuto,
-        };
-    }
-
-    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...styles.pr0,
-        ...styles.overflowHidden,
-        // maxHeight is not of the input only but the of the whole input container
-        // which also includes the top padding and bottom border
-        height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
-    };
-}
-
-/**
  * Returns a style with backgroundColor and borderColor set to the same color
  */
 function getBackgroundAndBorderStyle(backgroundColor: string): ViewStyle {
