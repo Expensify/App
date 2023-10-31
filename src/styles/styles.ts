@@ -4130,6 +4130,17 @@ const styles = (theme: ThemeDefault) => {
             zIndex: 1,
         } as ViewStyle);
 
+    stylez.disabledLinkStyles = (isDisabled = false): ViewStyle =>
+        ({
+            ...stylez.link,
+            ...(isDisabled
+                ? {
+                      color: themeColors.textSupporting,
+                      ...cursor.cursorDisabled,
+                  }
+                : {}),
+        } as ViewStyle);
+
     return stylez;
 };
 

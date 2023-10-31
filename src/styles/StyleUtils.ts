@@ -1076,23 +1076,6 @@ function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): Vie
 }
 
 /**
- * Returns link styles based on whether the link is disabled or not
- */
-function getDisabledLinkStyles(isDisabled = false): ViewStyle {
-    const disabledLinkStyles = {
-        color: themeColors.textSupporting,
-        ...cursor.cursorDisabled,
-    };
-
-    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...styles.link,
-        ...(isDisabled ? disabledLinkStyles : {}),
-    };
-}
-
-/**
  * Returns color style
  */
 function getColorStyle(color: string): ViewStyle | CSSProperties {
@@ -1220,7 +1203,6 @@ export {
     getColorStyle,
     getDefaultWorkspaceAvatarColor,
     getDirectionStyle,
-    getDisabledLinkStyles,
     getDropDownButtonHeight,
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
