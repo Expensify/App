@@ -1,0 +1,210 @@
+import {Picker} from '@react-native-picker/picker';
+import lodashDefer from 'lodash/defer';
+import React, {useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
+import FormHelpMessage from '@components/FormHelpMessage';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import {ScrollContext} from '@components/ScrollViewWithContext';
+import Text from '@components/Text';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import type {BasePickerHandle, BasePickerProps} from './types';
+
+function BasePicker({
+    items,
+    forwardedRef,
+    backgroundColor,
+    inputID,
+    value,
+    onInputChange,
+    label = '',
+    isDisabled = false,
+    errorText = '',
+    hintText = '',
+    containerStyles = [],
+    placeholder = {},
+    size = 'normal',
+    icon = (iconSize) => (
+        <Icon
+            src={Expensicons.DownArrow}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...(iconSize === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
+        />
+    ),
+    shouldFocusPicker = false,
+    onBlur = () => {},
+    additionalPickerEvents = () => {},
+}: BasePickerProps) {
+    const [isHighlighted, setIsHighlighted] = useState(false);
+
+    // reference to the root View
+    const root = useRef<View>(null);
+
+    // reference to @react-native-picker/picker
+    const picker = useRef<Picker<BasePickerProps>>(null);
+
+    // Windows will reuse the text color of the select for each one of the options
+    // so we might need to color accordingly so it doesn't blend with the background.
+    const pickerPlaceholder = Object.keys(placeholder).length ? {...placeholder, color: themeColors.pickerOptionsTextColor} : {};
+
+    useEffect(() => {
+        if (!!value || !items || items.length !== 1 || !onInputChange) {
+            return;
+        }
+
+        // When there is only 1 element in the selector, we do the user a favor and automatically select it for them
+        // so they don't have to spend extra time selecting the only possible value.
+        onInputChange(items[0].value, 0);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [items]);
+
+    const context = useContext(ScrollContext);
+
+    /**
+     * Forms use inputID to set values. But BasePicker passes an index as the second parameter to onValueChange
+     * We are overriding this behavior to make BasePicker work with Form
+     */
+    const onValueChange = (inputValue: string, index: number) => {
+        if (inputID) {
+            onInputChange(inputValue);
+            return;
+        }
+
+        onInputChange(inputValue, index);
+    };
+
+    const enableHighlight = () => {
+        setIsHighlighted(true);
+    };
+
+    const disableHighlight = () => {
+        setIsHighlighted(false);
+    };
+
+    useImperativeHandle(forwardedRef, () => ({
+        /**
+         * Focuses the picker (if configured to do so)
+         *
+         * This method is used by Form
+         */
+        focus() {
+            if (!shouldFocusPicker) {
+                return;
+            }
+
+            // Defer the focusing to work around a bug on Mobile Safari, where focusing the `select` element in the
+            // same task when we scrolled to it left that element in a glitched state, where the dropdown list can't
+            // be opened until the element gets re-focused
+            lodashDefer(() => {
+                picker.current?.focus();
+            });
+        },
+
+        /**
+         * Like measure(), but measures the view relative to an ancestor
+         *
+         * This method is used by Form when scrolling to the input
+         *
+         * @param relativeToNativeComponentRef - reference to an ancestor
+         * @param onSuccess - callback called on success
+         * @param onFail - callback called on failure
+         */
+        measureLayout(relativeToNativeComponentRef, onSuccess, onFail) {
+            if (!root.current) {
+                return;
+            }
+
+            root.current.measureLayout(relativeToNativeComponentRef, onSuccess, onFail);
+        },
+    }));
+
+    const hasError = !!errorText;
+
+    if (isDisabled) {
+        return (
+            <View>
+                {Boolean(label) && (
+                    <Text
+                        style={[styles.textLabelSupporting, styles.mb1]}
+                        numberOfLines={1}
+                    >
+                        {label}
+                    </Text>
+                )}
+                <Text numberOfLines={1}>{value}</Text>
+                {Boolean(hintText) && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{hintText}</Text>}
+            </View>
+        );
+    }
+
+    return (
+        <>
+            <View
+                ref={root}
+                style={[styles.pickerContainer, isDisabled && styles.inputDisabled, ...containerStyles, isHighlighted && styles.borderColorFocus, hasError && styles.borderColorDanger]}
+            >
+                {label && (
+                    <Text
+                        pointerEvents="none"
+                        style={[styles.pickerLabel, styles.textLabelSupporting]}
+                    >
+                        {label}
+                    </Text>
+                )}
+                <RNPickerSelect
+                    onValueChange={onValueChange}
+                    // We add a text color to prevent white text on white background dropdown items on Windows
+                    items={items.map((item) => ({...item, color: themeColors.pickerOptionsTextColor}))}
+                    style={size === 'normal' ? styles.picker(isDisabled, backgroundColor) : styles.pickerSmall(backgroundColor)}
+                    useNativeAndroidPickerStyle={false}
+                    placeholder={pickerPlaceholder}
+                    value={value}
+                    // TODO: update the icon logic to escape ts error
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    Icon={() => icon(size)}
+                    disabled={isDisabled}
+                    fixAndroidTouchableBug
+                    onOpen={enableHighlight}
+                    onClose={disableHighlight}
+                    textInputProps={{
+                        allowFontScaling: false,
+                    }}
+                    pickerProps={{
+                        // TODO: resolve 'ref does not exist in type CustomPickerProps' ts error
+                        // ref: picker,
+                        tabIndex: -1,
+                        onFocus: enableHighlight,
+                        onBlur: () => {
+                            disableHighlight();
+                            onBlur();
+                        },
+                        ...additionalPickerEvents(enableHighlight, (inputValue, index) => {
+                            onValueChange(inputValue, index);
+                            disableHighlight();
+                        }),
+                    }}
+                    scrollViewRef={context?.scrollViewRef}
+                    scrollViewContentOffsetY={context?.contentOffsetY}
+                />
+            </View>
+            <FormHelpMessage message={errorText} />
+            {Boolean(hintText) && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{hintText}</Text>}
+        </>
+    );
+}
+
+BasePicker.displayName = 'BasePicker';
+
+export default React.forwardRef<BasePickerHandle, BasePickerProps>((props, ref) => (
+    <BasePicker
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        // Forward the ref to BasePicker, as we implement imperative methods there
+        forwardedRef={ref}
+        key={props.inputID}
+    />
+));

@@ -12,13 +12,18 @@ type TextProps = RNTextProps & {
 
     /** The size of the text */
     fontSize?: number;
+
     /** The alignment of the text */
     textAlign?: 'left' | 'right' | 'auto' | 'center' | 'justify';
+
     /** Any children to display */
     children: React.ReactNode;
 
     /** The family of the font to use */
     family?: keyof typeof fontFamily;
+
+    /** Pointer events property to the Text element */
+    pointerEvents?: 'box-none' | 'none' | 'box-only' | 'auto';
 };
 
 function Text(

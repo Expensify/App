@@ -1,7 +1,8 @@
 import React, {forwardRef} from 'react';
 import BasePicker from './BasePicker';
+import type {AdditionalPickerEvents, BasePickerHandle, BasePickerProps, OnChange, OnMouseDown} from './types';
 
-const additionalPickerEvents = (onMouseDown, onChange) => ({
+const additionalPickerEvents = (onMouseDown: OnMouseDown, onChange: OnChange): AdditionalPickerEvents => ({
     onMouseDown,
     onChange: (e) => {
         if (e.target.selectedIndex === undefined) {
@@ -13,7 +14,7 @@ const additionalPickerEvents = (onMouseDown, onChange) => ({
     },
 });
 
-const BasePickerWithRef = forwardRef((props, ref) => (
+export default forwardRef<BasePickerHandle, BasePickerProps>((props, ref) => (
     <BasePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
@@ -26,7 +27,3 @@ const BasePickerWithRef = forwardRef((props, ref) => (
         additionalPickerEvents={additionalPickerEvents}
     />
 ));
-
-BasePickerWithRef.displayName = 'BasePickerWithRef';
-
-export default BasePickerWithRef;
