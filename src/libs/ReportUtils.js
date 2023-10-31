@@ -1330,12 +1330,12 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
  * @param {Object} parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  * @returns {Boolean}
  */
-function isWaitingForTaskCompleteFromAssignee(report, parentReportAction = {}) {
+function isWaitingForAssigneeToCompleteTask(report, parentReportAction = {}) {
     return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
 }
 
 /**
- * Determines if a report should show a GBR (green dot) in the LHN. This can happen when the report: 
+ * Determines if a report requires action from the current user. This can happen when the report:
     - is unread and the user was mentioned in one of the unread comments
     - is for an outstanding task waiting on the user
     - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
@@ -1344,7 +1344,7 @@ function isWaitingForTaskCompleteFromAssignee(report, parentReportAction = {}) {
  * @param {Object} parentReportAction (the report action the current report is a thread of)
  * @returns {boolean}
  */
-function shouldShowGBR(report, parentReportAction = {}) {
+function requiresAttentionFromCurrentUser(report, parentReportAction = {}) {
     if (!report) {
         return false;
     }
@@ -1357,7 +1357,7 @@ function shouldShowGBR(report, parentReportAction = {}) {
         return true;
     }
 
-    if (isWaitingForTaskCompleteFromAssignee(report, parentReportAction)) {
+    if (isWaitingForAssigneeToCompleteTask(report, parentReportAction)) {
         return true;
     }
 
@@ -3287,7 +3287,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     }
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
-    if (report.hasDraft || shouldShowGBR(report)) {
+    if (report.hasDraft || requiresAttentionFromCurrentUser(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
@@ -4145,7 +4145,7 @@ export {
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
-    shouldShowGBR,
+    requiresAttentionFromCurrentUser,
     isIOUOwnedByCurrentUser,
     getMoneyRequestReimbursableTotal,
     getMoneyRequestSpendBreakdown,
@@ -4265,7 +4265,7 @@ export {
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
-    isWaitingForTaskCompleteFromAssignee,
+    isWaitingForAssigneeToCompleteTask,
     isGroupChat,
     isReportDraft,
     shouldUseFullTitleToDisplay,

@@ -183,7 +183,7 @@ function getOrderedReportIDs(
     const archivedReports: Report[] = [];
     reportsToDisplay.forEach((report) => {
         const isPinned = report.isPinned ?? false;
-        if (isPinned || ReportUtils.shouldShowGBR(report)) {
+        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report)) {
             pinnedAndGBRReports.push(report);
         } else if (report.hasDraft) {
             draftReports.push(report);
@@ -260,7 +260,6 @@ type OptionData = {
     isAllowedToComment?: boolean | null;
     isThread?: boolean | null;
     isTaskReport?: boolean | null;
-    isWaitingForTaskCompleteFromAssignee?: boolean | null;
     parentReportID?: string | null;
     parentReportAction?: ReportAction;
     notificationPreference?: string | number | null;
