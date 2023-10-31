@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import _ from 'underscore';
@@ -97,13 +97,7 @@ const defaultProps = {
     value: undefined,
     placeholder: {},
     size: 'normal',
-    icon: (size) => (
-        <Icon
-            src={Expensicons.DownArrow}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
-        />
-    ),
+    icon: undefined,
     shouldFocusPicker: false,
     onBlur: () => {},
     additionalPickerEvents: () => {},
@@ -142,6 +136,17 @@ function BasePicker(props) {
     }, [props.items]);
 
     const context = useContext(ScrollContext);
+
+    const renderIcon = useCallback(
+        (size) => (
+            <Icon
+                src={Expensicons.DownArrow}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
+            />
+        ),
+        [styles],
+    );
 
     /**
      * Forms use inputID to set values. But BasePicker passes an index as the second parameter to onInputChange
@@ -250,7 +255,7 @@ function BasePicker(props) {
                     useNativeAndroidPickerStyle={false}
                     placeholder={placeholder}
                     value={props.value}
-                    Icon={() => props.icon(props.size)}
+                    Icon={renderIcon}
                     disabled={props.isDisabled}
                     fixAndroidTouchableBug
                     onOpen={enableHighlight}
