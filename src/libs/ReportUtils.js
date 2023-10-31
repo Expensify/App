@@ -2549,7 +2549,7 @@ function buildOptimisticIOUReportAction(
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
@@ -2587,7 +2587,7 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
@@ -2700,7 +2700,7 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         isAttachment: false,
         message: [
@@ -2780,7 +2780,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
         actionName,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: [
@@ -2900,7 +2900,7 @@ function buildOptimisticCreatedReportAction(emailCreatingAction, created = DateU
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         created,
         shouldShow: true,
     };
@@ -2939,7 +2939,7 @@ function buildOptimisticEditedTaskReportAction(emailEditingTask) {
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -2958,7 +2958,7 @@ function buildOptimisticClosedReportAction(emailClosingReport, policyName, reaso
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -3536,7 +3536,7 @@ function parseReportRouteParams(route) {
         parsingRoute = parsingRoute.slice(1);
     }
 
-    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash('r'))) {
+    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash(ROUTES.REPORT))) {
         return {reportID: '', isSubReportPageRoute: false};
     }
 
@@ -3820,9 +3820,9 @@ function getAddWorkspaceRoomOrChatReportErrors(report) {
  * @param {Object} report
  * @returns {Boolean}
  */
-function shouldDisableWriteActions(report) {
+function canUserPerformWriteAction(report) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
-    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
+    return !isArchivedRoom(report) && _.isEmpty(reportErrors) && isAllowedToComment(report) && !isAnonymousUser;
 }
 
 /**
@@ -3876,7 +3876,7 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
  */
 function canCreateRequest(report, betas, iouType) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
-    if (shouldDisableWriteActions(report)) {
+    if (!canUserPerformWriteAction(report)) {
         return false;
     }
     return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
@@ -4260,7 +4260,7 @@ export {
     getRootParentReport,
     getReportPreviewMessage,
     getModifiedExpenseMessage,
-    shouldDisableWriteActions,
+    canUserPerformWriteAction,
     getOriginalReportID,
     canAccessReport,
     getAddWorkspaceRoomOrChatReportErrors,
