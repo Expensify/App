@@ -1,18 +1,17 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {memo, useMemo, useRef, useState} from 'react';
+import React, {memo, useContext, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ContextMenuItem from '@components/ContextMenuItem';
-import {withBetas} from '@components/OnyxProvider';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import {BetasContext} from '@components/OnyxProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import compose from '@libs/compose';
-import getReportActionContextMenuStyles from '@styles/getReportActionContextMenuStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import styles from '@styles/styles';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,8 +35,6 @@ const propTypes = {
     contentRef: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.func]),
 
     ...genericReportActionContextMenuPropTypes,
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -51,8 +48,22 @@ const defaultProps = {
 function BaseReportActionContextMenu(props) {
     const menuItemRefs = useRef({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
-    const wrapperStyle = getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth);
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const betas = useContext(BetasContext);
+
+    const wrapperStyle = useMemo(() => {
+        if (props.isMini) {
+            return styles.reportActionContextMenuMiniWrapper;
+        }
+        return [
+            ...styles.reportActionContextMenuBigWrapper,
+
+            // Small screens use a bottom-docked modal that already has vertical padding.
+            isSmallScreenWidth ? {} : styles.pv3,
+        ];
+    }, [isSmallScreenWidth, props.isMini]);
 
     const reportAction = useMemo(() => {
         if (_.isEmpty(props.reportActions) || props.reportActionID === '0') {
@@ -66,7 +77,7 @@ function BaseReportActionContextMenu(props) {
             props.type,
             reportAction,
             props.isArchivedRoom,
-            props.betas,
+            betas,
             props.anchor,
             props.isChronosReport,
             props.reportID,
@@ -159,13 +170,13 @@ function BaseReportActionContextMenu(props) {
                                 menuItemRefs.current[index] = ref;
                             }}
                             icon={contextAction.icon}
-                            text={props.translate(contextAction.textTranslateKey, {action: reportAction})}
+                            text={translate(contextAction.textTranslateKey, {action: reportAction})}
                             successIcon={contextAction.successIcon}
-                            successText={contextAction.successTextTranslateKey ? props.translate(contextAction.successTextTranslateKey) : undefined}
+                            successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
                             isMini={props.isMini}
                             key={contextAction.textTranslateKey}
                             onPress={() => interceptAnonymousUser(() => contextAction.onPress(closePopup, payload), contextAction.isAnonymousAction)}
-                            description={contextAction.getDescription(props.selection, props.isSmallScreenWidth)}
+                            description={contextAction.getDescription(props.selection, isSmallScreenWidth)}
                             isAnonymousAction={contextAction.isAnonymousAction}
                             isFocused={focusedIndex === index}
                         />
@@ -179,17 +190,12 @@ function BaseReportActionContextMenu(props) {
 BaseReportActionContextMenu.propTypes = propTypes;
 BaseReportActionContextMenu.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withBetas(),
-    withWindowDimensions,
-    withOnyx({
-        reportActions: {
-            key: ({originalReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
-            canEvict: false,
-        },
-    }),
-)(
+export default withOnyx({
+    reportActions: {
+        key: ({originalReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
+        canEvict: false,
+    },
+})(
     memo(BaseReportActionContextMenu, (prevProps, nextProps) => {
         const prevReportAction = lodashGet(prevProps.reportActions, prevProps.reportActionID, '');
         const nextReportAction = lodashGet(nextProps.reportActions, nextProps.reportActionID, '');
