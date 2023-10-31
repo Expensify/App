@@ -76,7 +76,7 @@ function Address({reimbursementAccount, onNext, isEditing}) {
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
             onSubmit={handleSubmit}
-            submitButtonStyles={[styles.mb0]}
+            submitButtonStyles={[styles.mb0, styles.pb5]}
             style={[styles.mh5, styles.flexGrow1]}
         >
             <View>

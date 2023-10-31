@@ -57,7 +57,7 @@ function DateOfBirth({reimbursementAccount, onNext, isEditing}) {
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
-            submitButtonStyles={[styles.mb0]}
+            submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
             <NewDatePicker
