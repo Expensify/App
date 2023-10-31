@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import DisplayNames from '@components/DisplayNames';
@@ -26,9 +26,9 @@ import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuA
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as optionRowStyles from '@styles/optionRowStyles';
 import * as StyleUtils from '@styles/StyleUtils';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Style for hovered state */
@@ -58,7 +58,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    hoverStyle: styles.sidebarLinkHoverLHN,
+    hoverStyle: undefined,
     viewMode: 'default',
     onSelectRow: () => {},
     style: null,
@@ -70,10 +70,11 @@ const defaultProps = {
 function OptionRowLHN(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const hoverStyle = useMemo(() => props.hoverStyle || styles.sidebarLinkHoverLHN, [props.hoverStyle, styles.sidebarLinkHoverLHN]);
+
     const popoverAnchor = useRef(null);
     const isFocusedRef = useRef(true);
     const {isSmallScreenWidth} = useWindowDimensions();
-
     const {translate} = useLocalize();
 
     const optionItem = props.optionItem;
@@ -113,7 +114,7 @@ function OptionRowLHN(props) {
             ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
-    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : theme.sidebar;
+    const hoveredBackgroundColor = hoverStyle && hoverStyle.backgroundColor ? hoverStyle.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActiveLHN.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -206,7 +207,7 @@ function OptionRowLHN(props) {
                             styles.sidebarLinkInnerLHN,
                             StyleUtils.getBackgroundColorStyle(theme.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
-                            (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
+                            (hovered || isContextMenuActive) && !props.isFocused ? hoverStyle : null,
                         ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
