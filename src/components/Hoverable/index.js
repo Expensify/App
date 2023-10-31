@@ -1,9 +1,9 @@
-import _ from 'underscore';
-import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import {propTypes, defaultProps} from './hoverablePropTypes';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import CONST from '../../CONST';
+import _ from 'underscore';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes} from './hoverablePropTypes';
 
 /**
  * Maps the children of a Hoverable component to
@@ -194,15 +194,21 @@ const Hoverable = React.forwardRef(({disabled, onHoverIn, onHoverOut, onMouseEnt
         [child.props],
     );
 
+    // We need to access the ref of a children from both parent and current component
+    // So we pass it to current ref and assign it once again to the child ref prop
+    const hijackRef = (el) => {
+        ref.current = el;
+        assignRef(child.ref, el);
+    };
+
     if (!DeviceCapabilities.hasHoverSupport()) {
-        return child;
+        return React.cloneElement(child, {
+            ref: hijackRef,
+        });
     }
 
     return React.cloneElement(child, {
-        ref: (el) => {
-            ref.current = el;
-            assignRef(child.ref, el);
-        },
+        ref: hijackRef,
         onMouseEnter: enableHoveredOnMouseEnter,
         onMouseLeave: disableHoveredOnMouseLeave,
         onBlur: disableHoveredOnBlur,

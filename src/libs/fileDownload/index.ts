@@ -1,5 +1,5 @@
 import * as FileUtils from './FileUtils';
-import * as Link from '../actions/Link';
+import * as Link from '@userActions/Link';
 import type {FileDownload} from './types';
 
 /**

@@ -1,5 +1,5 @@
-import CONST from '../../CONST';
-import tryResolveUrlFromApiRoot from '../tryResolveUrlFromApiRoot';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
 import type {GetAttachmentDetails} from './types';
 
 /**
