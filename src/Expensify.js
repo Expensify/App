@@ -36,7 +36,6 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as TwoFactorAuthActions from './libs/actions/TwoFactorAuthActions';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -104,10 +103,6 @@ function Expensify(props) {
         }
         setAttemptedToOpenPublicRoom(true);
     }, [props.isCheckingPublicRoom]);
-
-    useEffect(() => {
-        TwoFactorAuthActions.setCodesAreCopied(false);
-    }, []);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
     const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded) && hasAttemptedToOpenPublicRoom;
