@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import ConfirmContent from './ConfirmContent';
 import Popover from './Popover';

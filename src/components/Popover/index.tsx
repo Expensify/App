@@ -1,5 +1,7 @@
 import React, {useRef} from 'react';
 import {createPortal} from 'react-dom';
+import {ViewStyle} from 'react-native';
+import {ModalProps} from 'react-native-modal';
 import Modal from '@components/Modal';
 import {PopoverContext} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
@@ -20,8 +22,8 @@ type PopoverProps = {
         bottom: number;
         right: number;
     };
+    anchorAlignment: {horizontal: string; vertical: string};
     anchorRef: React.RefObject<HTMLElement>;
-    animationInTiming: number;
     disableAnimation: boolean;
     withoutOverlay: boolean;
     fullscreen?: boolean;
@@ -32,15 +34,29 @@ type PopoverProps = {
     onSubmit?: () => void;
     onModalHide?: () => void;
     onModalShow?: () => void;
-    animationIn?: string | object;
-    animationOut?: string | object;
-    innerContainerStyle?: any[];
+    animationIn?: ModalProps['animationIn'];
+    animationInTiming?: number;
+    animationOut?: ModalProps['animationOut'];
+    animationOutTiming?: number;
+    innerContainerStyle?: ViewStyle;
     statusBarTranslucent?: boolean;
     avoidKeyboard?: boolean;
     hideModalContentWhileAnimating?: boolean;
+    isExtraSmallScreenWidth?: boolean;
+    isSmallScreenWidth?: boolean;
+    isMediumScreenWidth?: boolean;
+    isLargeScreenWidth?: boolean;
+    popoverDimensions?: {
+        width: number;
+        height: number;
+    };
+    windowHeight?: number;
+    windowWidth?: number;
+    withoutOverlayRef?: React.RefObject<HTMLElement>;
+    outerStyle?: ViewStyle | Record<string, never>;
+    onLayout?: () => void;
 };
 function Popover(props: PopoverProps) {
-    console.log('Popover', props);
     const {isVisible, onClose, isSmallScreenWidth, fullscreen, animationInTiming, onLayout, animationOutTiming, disableAnimation, withoutOverlay, anchorPosition, anchorRef} = props;
     const withoutOverlayRef = useRef(null);
     const {close, popover} = React.useContext(PopoverContext);
