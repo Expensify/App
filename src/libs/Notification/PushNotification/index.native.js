@@ -1,12 +1,12 @@
-import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import Airship, {EventType} from '@ua/react-native-airship';
 import lodashGet from 'lodash/get';
-import Log from '../../Log';
-import NotificationType from './NotificationType';
-import * as PushNotification from '../../actions/PushNotification';
-import ONYXKEYS from '../../../ONYXKEYS';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import Log from '@libs/Log';
+import * as PushNotification from '@userActions/PushNotification';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ForegroundNotifications from './ForegroundNotifications';
+import NotificationType from './NotificationType';
 
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({

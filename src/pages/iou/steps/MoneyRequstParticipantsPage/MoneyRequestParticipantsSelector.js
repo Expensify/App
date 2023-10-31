@@ -1,23 +1,23 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import styles from '../../../../styles/styles';
-import OptionsSelector from '../../../../components/OptionsSelector';
-import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import * as Browser from '../../../../libs/Browser';
-import compose from '../../../../libs/compose';
-import CONST from '../../../../CONST';
-import personalDetailsPropType from '../../../personalDetailsPropType';
-import reportPropTypes from '../../../reportPropTypes';
-import refPropTypes from '../../../../components/refPropTypes';
-import * as Report from '../../../../libs/actions/Report';
-import useNetwork from '../../../../hooks/useNetwork';
+import * as Report from '@libs/actions/Report';
+import useNetwork from '@hooks/useNetwork';
+import OptionsSelector from '@components/OptionsSelector';
+import refPropTypes from '@components/refPropTypes';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Beta features list */
@@ -165,9 +165,10 @@ function MoneyRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = (option) => {
-        onAddParticipants([
-            {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText},
-        ]);
+        onAddParticipants(
+            [{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText}],
+            false,
+        );
         navigateToRequest();
     };
 
@@ -206,8 +207,7 @@ function MoneyRequestParticipantsSelector({
                     },
                 ];
             }
-
-            onAddParticipants(newSelectedOptions);
+            onAddParticipants(newSelectedOptions, newSelectedOptions.length !== 0);
         },
         [participants, onAddParticipants],
     );
