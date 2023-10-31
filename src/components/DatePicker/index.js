@@ -1,10 +1,10 @@
-import React, {useEffect, useRef} from 'react';
 import moment from 'moment';
+import React, {useEffect, useRef} from 'react';
 import _ from 'underscore';
-import TextInput from '../TextInput';
-import CONST from '../../CONST';
-import * as Browser from '../../libs/Browser';
-import {propTypes, defaultProps} from './datepickerPropTypes';
+import TextInput from '@components/TextInput';
+import * as Browser from '@libs/Browser';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes} from './datepickerPropTypes';
 import './styles.css';
 
 function DatePicker({maxDate, minDate, onInputChange, innerRef, label, value, placeholder, errorText, containerStyles, disabled, onBlur}) {

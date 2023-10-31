@@ -1,12 +1,12 @@
+import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
-import styles from '../styles/styles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import ControlSelection from '@libs/ControlSelection';
+import styles from '@styles/styles';
 import Button from './Button';
-import ControlSelection from '../libs/ControlSelection';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Callback to inform parent modal with key pressed */

@@ -1,27 +1,27 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
-import _ from 'underscore';
 import {format} from 'date-fns';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
+import _ from 'underscore';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import * as CurrencyUtils from './CurrencyUtils';
+import DateUtils from './DateUtils';
+import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
-import * as Expensicons from '../components/Icon/Expensicons';
+import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
+import Permissions from './Permissions';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
-import Permissions from './Permissions';
-import DateUtils from './DateUtils';
-import linkingConfig from './Navigation/linkingConfig';
-import isReportMessageAttachment from './isReportMessageAttachment';
-import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
-import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
 
 let currentUserEmail;
@@ -108,9 +108,9 @@ function getPolicyType(report, policies) {
 /**
  * Get the policy name from a given report
  * @param {Object} report
- * @param {String} report.policyID
- * @param {String} report.oldPolicyName
- * @param {String} report.policyName
+ * @param {String} [report.policyID]
+ * @param {String} [report.oldPolicyName]
+ * @param {String} [report.policyName]
  * @param {Boolean} [returnEmptyIfNotFound]
  * @param {Object} [policy]
  * @returns {String}
@@ -369,7 +369,7 @@ function isUserCreatedPolicyRoom(report) {
 /**
  * Whether the provided report is a Policy Expense chat.
  * @param {Object} report
- * @param {String} report.chatType
+ * @param {String} [report.chatType]
  * @returns {Boolean}
  */
 function isPolicyExpenseChat(report) {
@@ -395,7 +395,7 @@ function isControlPolicyExpenseReport(report) {
 /**
  * Whether the provided report is a chat room
  * @param {Object} report
- * @param {String} report.chatType
+ * @param {String} [report.chatType]
  * @returns {Boolean}
  */
 function isChatRoom(report) {
@@ -584,8 +584,8 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
 /**
  * Whether the provided report is an archived room
  * @param {Object} report
- * @param {Number} report.stateNum
- * @param {Number} report.statusNum
+ * @param {Number} [report.stateNum]
+ * @param {Number} [report.statusNum]
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
@@ -804,6 +804,16 @@ function isOneOnOneChat(report) {
 function getReport(reportID) {
     // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
     return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
+}
+
+/**
+ * Returns whether or not the author of the action is this user
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isActionCreator(reportAction) {
+    return reportAction.actorAccountID === currentUserAccountID;
 }
 
 /**
@@ -2491,6 +2501,7 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
  * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
  * @param {Object} [receipt]
  * @param {Boolean} [isOwnPolicyExpenseChat] - Whether this is an expense report create from the current user's policy expense chat
+ * @param {String} [created] - Action created time
  * @returns {Object}
  */
 function buildOptimisticIOUReportAction(
@@ -2506,6 +2517,7 @@ function buildOptimisticIOUReportAction(
     isSendMoneyFlow = false,
     receipt = {},
     isOwnPolicyExpenseChat = false,
+    created = DateUtils.getDBTime(),
 ) {
     const IOUReportID = iouReportID || generateReportID();
 
@@ -2550,7 +2562,7 @@ function buildOptimisticIOUReportAction(
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
@@ -2563,7 +2575,7 @@ function buildOptimisticIOUReportAction(
         ],
         reportActionID: NumberUtils.rand64(),
         shouldShow: true,
-        created: DateUtils.getDBTime(),
+        created,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         whisperedToAccountIDs: _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], receipt.state) ? [currentUserAccountID] : [],
     };
@@ -2588,7 +2600,7 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
@@ -2701,7 +2713,7 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         isAttachment: false,
         message: [
@@ -2781,7 +2793,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
         actionName,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: [
@@ -2872,9 +2884,10 @@ function buildOptimisticChatReport(
 /**
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
  * @param {String} emailCreatingAction
+ * @param {String} [created] - Action created time
  * @returns {Object}
  */
-function buildOptimisticCreatedReportAction(emailCreatingAction) {
+function buildOptimisticCreatedReportAction(emailCreatingAction, created = DateUtils.getDBTime()) {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -2900,8 +2913,8 @@ function buildOptimisticCreatedReportAction(emailCreatingAction) {
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
-        created: DateUtils.getDBTime(),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
+        created,
         shouldShow: true,
     };
 }
@@ -2939,7 +2952,7 @@ function buildOptimisticEditedTaskReportAction(emailEditingTask) {
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -2958,7 +2971,7 @@ function buildOptimisticClosedReportAction(emailClosingReport, policyName, reaso
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -3241,7 +3254,7 @@ function shouldHideReport(report, currentReportId) {
  * filter out the majority of reports before filtering out very specific minority of reports.
  *
  * @param {Object} report
- * @param {String} currentReportId
+ * @param {String | Null | Undefined} currentReportId
  * @param {Boolean} isInGSDMode
  * @param {String[]} betas
  * @param {Object} policies
@@ -3513,7 +3526,7 @@ function parseReportRouteParams(route) {
         parsingRoute = parsingRoute.slice(1);
     }
 
-    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash('r'))) {
+    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash(ROUTES.REPORT))) {
         return {reportID: '', isSubReportPageRoute: false};
     }
 
@@ -3797,9 +3810,9 @@ function getAddWorkspaceRoomOrChatReportErrors(report) {
  * @param {Object} report
  * @returns {Boolean}
  */
-function shouldDisableWriteActions(report) {
+function canUserPerformWriteAction(report) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
-    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
+    return !isArchivedRoom(report) && _.isEmpty(reportErrors) && isAllowedToComment(report) && !isAnonymousUser;
 }
 
 /**
@@ -3853,7 +3866,7 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
  */
 function canCreateRequest(report, betas, iouType) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
-    if (shouldDisableWriteActions(report)) {
+    if (!canUserPerformWriteAction(report)) {
         return false;
     }
     return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
@@ -4118,6 +4131,7 @@ export {
     canEditReportAction,
     canFlagReportAction,
     shouldShowFlagComment,
+    isActionCreator,
     canDeleteReportAction,
     canLeaveRoom,
     sortReportsByLastRead,
@@ -4235,7 +4249,7 @@ export {
     getRootParentReport,
     getReportPreviewMessage,
     getModifiedExpenseMessage,
-    shouldDisableWriteActions,
+    canUserPerformWriteAction,
     getOriginalReportID,
     canAccessReport,
     getAddWorkspaceRoomOrChatReportErrors,

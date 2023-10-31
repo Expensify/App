@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
-import CONST from '../CONST';
-import styles from '../styles/styles';
+import useNativeDriver from '@libs/useNativeDriver';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import useNativeDriver from '../libs/useNativeDriver';
 
 const propTypes = {
     /** Whether the switch is toggled to the on position */
