@@ -11,6 +11,17 @@ function getBackToParam(backTo = '') {
     return backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
 }
 
+/**
+ * This is a file containing constants for all of the routes we want to be able to go to
+ * Returns the URL with an encoded URI component for the backTo param which can be added to the end of URLs
+ * @param backTo
+ * @returns
+ */
+function getUrlWithBackToParam(url: string, backTo?: string): string {
+    const backToParam = backTo ? `${url.includes('?') ? '&' : '?'}backTo=${encodeURIComponent(backTo)}` : '';
+    return url + backToParam;
+}
+
 export default {
     HOME: '',
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
@@ -26,7 +37,7 @@ export default {
     },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID: string | number, backTo = '') => `a/${accountID}${getBackToParam(backTo)}`,
+        getRoute: (accountID: string | number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}`, backTo),
     },
 
     TRANSITION_BETWEEN_APPS: 'transition',
@@ -52,7 +63,7 @@ export default {
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
-        getRoute: (stepToOpen = '', policyID = '', backTo = ''): string => `bank-account/${stepToOpen}?policyID=${policyID}${getBackToParam(backTo)}`,
+        getRoute: (stepToOpen = '', policyID = '', backTo?: string): string => getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo),
     },
 
     SETTINGS: 'settings',
@@ -90,6 +101,10 @@ export default {
     },
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
+    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
+        route: '/settings/wallet/card/:domain/report-card-lost-or-damaged',
+        getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-card-lost-or-damaged`,
+    },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:domain/activate',
         getRoute: (domain: string) => `settings/wallet/card/${domain}/activate`,
@@ -100,7 +115,7 @@ export default {
     SETTINGS_PERSONAL_DETAILS_ADDRESS: 'settings/profile/personal-details/address',
     SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY: {
         route: 'settings/profile/personal-details/address/country',
-        getRoute: (country: string, backTo?: string) => `settings/profile/personal-details/address/country?country=${country}${getBackToParam(backTo)}`,
+        getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/personal-details/address/country?country=${country}`, backTo),
     },
     SETTINGS_CONTACT_METHODS: 'settings/profile/contact-methods',
     SETTINGS_CONTACT_METHOD_DETAILS: {
@@ -202,6 +217,14 @@ export default {
     PRIVATE_NOTES_EDIT: {
         route: 'r/:reportID/notes/:accountID/edit',
         getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}/edit`,
+    },
+    ROOM_MEMBERS: {
+        route: 'r/:reportID/members',
+        getRoute: (reportID: string) => `r/${reportID}/members`,
+    },
+    ROOM_INVITE: {
+        route: 'r/:reportID/invite',
+        getRoute: (reportID: string) => `r/${reportID}/invite`,
     },
 
     // To see the available iouType, please refer to CONST.IOU.TYPE

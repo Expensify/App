@@ -1,26 +1,26 @@
+import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../../../../styles/styles';
-import Icon from '../../../../components/Icon';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import AttachmentPicker from '../../../../components/AttachmentPicker';
-import * as Report from '../../../../libs/actions/Report';
-import PopoverMenu from '../../../../components/PopoverMenu';
-import CONST from '../../../../CONST';
-import Tooltip from '../../../../components/Tooltip';
-import * as Browser from '../../../../libs/Browser';
-import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
-import useLocalize from '../../../../hooks/useLocalize';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import * as Task from '../../../../libs/actions/Task';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import Permissions from '../../../../libs/Permissions';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
+import * as Browser from '@libs/Browser';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Report from '@userActions/Report';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as Task from '@userActions/Task';
+import AttachmentPicker from '@components/AttachmentPicker';
+import CONST from '@src/CONST';
+import Icon from '@components/Icon';
+import Navigation from '@libs/Navigation/Navigation';
+import ONYXKEYS from '@src/ONYXKEYS';
+import Permissions from '@libs/Permissions';
+import PopoverMenu from '@components/PopoverMenu';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ROUTES from '@src/ROUTES';
+import styles from '@styles/styles';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 const propTypes = {
     /** Beta features list */

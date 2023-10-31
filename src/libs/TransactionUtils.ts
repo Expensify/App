@@ -1,14 +1,13 @@
 import Onyx, {OnyxCollection} from 'react-native-onyx';
-import {format, parseISO, isValid} from 'date-fns';
 import {ValueOf} from 'type-fest';
 import lodashHas from 'lodash/has';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
+import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
 import {isExpensifyCard} from './CardUtils';
 import * as NumberUtils from './NumberUtils';
-import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
-import {Receipt, Comment, WaypointCollection, Waypoint} from '../types/onyx/Transaction';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
 
@@ -243,7 +242,8 @@ function getTransaction(transactionID: string): Transaction | Record<string, nev
  * The comment does not have its modifiedComment counterpart.
  */
 function getDescription(transaction: Transaction): string {
-    return transaction?.comment?.comment ?? '';
+    // Casting the description to string to avoid wrong data types (e.g. number) being returned from the API
+    return transaction?.comment?.comment?.toString() ?? '';
 }
 
 /**
@@ -356,12 +356,8 @@ function getTag(transaction: Transaction): string {
  */
 function getCreated(transaction: Transaction, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
-    const createdDate = parseISO(created);
-    if (isValid(createdDate)) {
-        return format(createdDate, dateFormat);
-    }
 
-    return '';
+    return DateUtils.formatWithUTCTimeZone(created, dateFormat);
 }
 
 /**
@@ -448,9 +444,6 @@ function getAllReportTransactions(reportID?: string): Transaction[] {
     return transactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
-/**
- * Checks if a waypoint has a valid address
- */
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
@@ -466,7 +459,9 @@ function getWaypointIndex(key: string): number {
  * Filters the waypoints which are valid and returns those
  */
 function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = false): WaypointCollection {
-    const sortedIndexes = Object.keys(waypoints).map(getWaypointIndex).sort();
+    const sortedIndexes = Object.keys(waypoints)
+        .map(getWaypointIndex)
+        .sort((a, b) => a - b);
     const waypointValues = sortedIndexes.map((index) => waypoints[`waypoint${index}`]);
     // Ensure the number of waypoints is between 2 and 25
     if (waypointValues.length < 2 || waypointValues.length > 25) {

@@ -1,21 +1,23 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import styles from '../../../../styles/styles';
-import OptionsSelector from '../../../../components/OptionsSelector';
-import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import * as Browser from '../../../../libs/Browser';
-import compose from '../../../../libs/compose';
-import CONST from '../../../../CONST';
-import personalDetailsPropType from '../../../personalDetailsPropType';
-import reportPropTypes from '../../../reportPropTypes';
-import refPropTypes from '../../../../components/refPropTypes';
+import OptionsSelector from '@components/OptionsSelector';
+import refPropTypes from '@components/refPropTypes';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as Report from '@libs/actions/Report';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Beta features list */
@@ -59,6 +61,9 @@ const propTypes = {
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
 
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -70,6 +75,7 @@ const defaultProps = {
     reports: {},
     betas: [],
     isDistanceRequest: false,
+    isSearchingForReports: false,
 };
 
 function MoneyRequestParticipantsSelector({
@@ -85,6 +91,7 @@ function MoneyRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
+    isSearchingForReports,
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
@@ -92,6 +99,7 @@ function MoneyRequestParticipantsSelector({
         personalDetails: [],
         userToInvite: null,
     });
+    const {isOffline} = useNetwork();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
@@ -104,16 +112,17 @@ function MoneyRequestParticipantsSelector({
         const newSections = [];
         let indexOffset = 0;
 
-        newSections.push({
-            title: undefined,
-            data: _.map(participants, (participant) => {
-                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
-            }),
-            shouldShow: true,
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
+            searchTerm,
+            participants,
+            newChatOptions.recentReports,
+            newChatOptions.personalDetails,
+            personalDetails,
+            true,
             indexOffset,
-        });
-        indexOffset += participants.length;
+        );
+        newSections.push(formatResults.section);
+        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return newSections;
@@ -148,7 +157,7 @@ function MoneyRequestParticipantsSelector({
         }
 
         return newSections;
-    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate]);
+    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate, searchTerm]);
 
     /**
      * Adds a single participant to the request
@@ -156,9 +165,10 @@ function MoneyRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = (option) => {
-        onAddParticipants([
-            {accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText},
-        ]);
+        onAddParticipants(
+            [{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText}],
+            false,
+        );
         navigateToRequest();
     };
 
@@ -197,8 +207,7 @@ function MoneyRequestParticipantsSelector({
                     },
                 ];
             }
-
-            onAddParticipants(newSelectedOptions);
+            onAddParticipants(newSelectedOptions, newSelectedOptions.length !== 0);
         },
         [participants, onAddParticipants],
     );
@@ -227,6 +236,14 @@ function MoneyRequestParticipantsSelector({
 
             // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
             !isDistanceRequest,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            true,
         );
         setNewChatOptions({
             recentReports: chatOptions.recentReports,
@@ -234,6 +251,14 @@ function MoneyRequestParticipantsSelector({
             userToInvite: chatOptions.userToInvite,
         });
     }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, isDistanceRequest]);
+
+    // When search term updates we will fetch any reports
+    const setSearchTermAndSearchInServer = useCallback((text = '') => {
+        if (text.length) {
+            Report.searchInServer(text);
+        }
+        setSearchTerm(text);
+    }, []);
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
@@ -253,7 +278,7 @@ function MoneyRequestParticipantsSelector({
                 selectedOptions={participants}
                 value={searchTerm}
                 onSelectRow={addSingleParticipant}
-                onChangeText={setSearchTerm}
+                onChangeText={setSearchTermAndSearchInServer}
                 ref={forwardedRef}
                 headerMessage={headerMessage}
                 boldStyle
@@ -261,10 +286,12 @@ function MoneyRequestParticipantsSelector({
                 confirmButtonText={translate('iou.addToSplit')}
                 onConfirmSelection={navigateToSplit}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 shouldDelayFocus
+                isLoadingNewOptions={isSearchingForReports}
             />
         </View>
     );
@@ -273,6 +300,16 @@ function MoneyRequestParticipantsSelector({
 MoneyRequestParticipantsSelector.propTypes = propTypes;
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
+
+const MoneyRequestParticipantsSelectorWithRef = React.forwardRef((props, ref) => (
+    <MoneyRequestParticipantsSelector
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+MoneyRequestParticipantsSelectorWithRef.displayName = 'MoneyRequestParticipantsSelectorWithRef';
 
 export default compose(
     withLocalize,
@@ -286,13 +323,9 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
+        isSearchingForReports: {
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            initWithStoredValues: false,
+        },
     }),
-)(
-    React.forwardRef((props, ref) => (
-        <MoneyRequestParticipantsSelector
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(MoneyRequestParticipantsSelectorWithRef);
