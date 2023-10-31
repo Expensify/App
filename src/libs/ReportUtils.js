@@ -773,6 +773,27 @@ function isMoneyRequestReport(reportOrID) {
 }
 
 /**
+ * Should return true only for personal 1:1 report
+ *
+ * @param {Object} report (chatReport or iouReport)
+ * @returns {boolean}
+ */
+function isOneOnOneChat(report) {
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+    return (
+        !isThread(report) &&
+        !isChatRoom(report) &&
+        !isExpenseRequest(report) &&
+        !isMoneyRequestReport(report) &&
+        !isPolicyExpenseChat(report) &&
+        !isTaskReport(report) &&
+        isDM(report) &&
+        !isIOUReport(report) &&
+        participantAccountIDs.length === 1
+    );
+}
+
+/**
  * Get the report given a reportID
  *
  * @param {String} reportID
@@ -2135,7 +2156,7 @@ function getParentNavigationSubtitle(report) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isDM(report) && participantAccountIDs.length === 1) {
+    if (isOneOnOneChat(report)) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
         return;
     }
@@ -3153,29 +3174,6 @@ function isIOUOwnedByCurrentUser(report, allReportsDict = null) {
 }
 
 /**
- * Should return true only for personal 1:1 report
- *
- * @param {Object} report (chatReport or iouReport)
- * @returns {boolean}
- */
-function isOneOnOneChat(report) {
-    const isChatRoomValue = lodashGet(report, 'isChatRoom', false);
-    const participantsListValue = lodashGet(report, 'participantsList', []);
-    return (
-        !isThread(report) &&
-        !isChatRoom(report) &&
-        !isChatRoomValue &&
-        !isExpenseRequest(report) &&
-        !isMoneyRequestReport(report) &&
-        !isPolicyExpenseChat(report) &&
-        !isTaskReport(report) &&
-        isDM(report) &&
-        !isIOUReport(report) &&
-        participantsListValue.length === 1
-    );
-}
-
-/**
  * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
  * the various subsets of users we've allowed to use default rooms.
  *
@@ -3526,7 +3524,7 @@ function parseReportRouteParams(route) {
         parsingRoute = parsingRoute.slice(1);
     }
 
-    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash('r'))) {
+    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash(ROUTES.REPORT))) {
         return {reportID: '', isSubReportPageRoute: false};
     }
 
@@ -3810,9 +3808,9 @@ function getAddWorkspaceRoomOrChatReportErrors(report) {
  * @param {Object} report
  * @returns {Boolean}
  */
-function shouldDisableWriteActions(report) {
+function canUserPerformWriteAction(report) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
-    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
+    return !isArchivedRoom(report) && _.isEmpty(reportErrors) && isAllowedToComment(report) && !isAnonymousUser;
 }
 
 /**
@@ -3866,7 +3864,7 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
  */
 function canCreateRequest(report, betas, iouType) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
-    if (shouldDisableWriteActions(report)) {
+    if (!canUserPerformWriteAction(report)) {
         return false;
     }
     return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
@@ -4249,7 +4247,7 @@ export {
     getRootParentReport,
     getReportPreviewMessage,
     getModifiedExpenseMessage,
-    shouldDisableWriteActions,
+    canUserPerformWriteAction,
     getOriginalReportID,
     canAccessReport,
     getAddWorkspaceRoomOrChatReportErrors,
