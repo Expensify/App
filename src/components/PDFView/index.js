@@ -10,6 +10,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withLocalize from '@components/withLocalize';
+import withThemeStyles from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import Log from '@libs/Log';
@@ -17,7 +18,6 @@ import variables from '@styles/variables';
 import * as CanvasSize from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
 

@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import stylePropTypes from '@styles/stylePropTypes';
 
@@ -31,6 +32,7 @@ const propTypes = {
     errorLabelStyles: stylePropTypes,
 
     ...windowDimensionsPropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
