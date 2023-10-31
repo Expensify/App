@@ -9,6 +9,7 @@ import {withNetwork} from '@components/OnyxProvider';
 import Picker from '@components/Picker';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,7 +23,6 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import withThemeStyles, {withThemeStylesPropTypes} from '../../../components/withThemeStyles';
 
 const propTypes = {
     /** Bank account attached to free plan */

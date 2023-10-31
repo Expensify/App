@@ -24,8 +24,8 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withNavigationFocus from './withNavigationFocus';
-import withTheme, {withThemePropTypes} from '/withTheme';
-import withThemeStyles, {withThemeStylesPropTypes} from '/withThemeStyles';
+import withTheme, {withThemePropTypes} from './withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from './withThemeStyles';
 
 const propTypes = {
     /** Avatar source to display */

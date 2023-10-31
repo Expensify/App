@@ -9,8 +9,8 @@ import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withTheme, {withThemePropTypes} from '/withTheme';
-import withThemeStyles, {withThemeStylesPropTypes} from '/withThemeStyles';
+import withTheme, {withThemePropTypes} from './withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from './withThemeStyles';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';

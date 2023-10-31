@@ -5,8 +5,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import CONST from '@src/CONST';
-import withThemeStyles, {withThemeStylesPropTypes} from '../withThemeStyles';
 import Collapsible from './Collapsible';
 
 const propTypes = {

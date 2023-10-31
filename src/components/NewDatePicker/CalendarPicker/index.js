@@ -8,16 +8,14 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import compose from '@libs/compose';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
-import compose from '../../../libs/compose';
-import withThemeStyles, {withThemeStylesPropTypes} from '../../withThemeStyles';
 import ArrowIcon from './ArrowIcon';
 import generateMonthMatrix from './generateMonthMatrix';
 import YearPickerModal from './YearPickerModal';
-
-import compose from '../../../libs/compose';
 
 const propTypes = {
     /** An initial value of date string */

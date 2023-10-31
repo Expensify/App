@@ -13,6 +13,7 @@ import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccou
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
@@ -24,7 +25,6 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import withThemeStyles, {withThemeStylesPropTypes} from '../../components/withThemeStyles';
 import ACHContractStep from './ACHContractStep';
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';

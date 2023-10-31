@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withEnvironment from '@components/withEnvironment';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
@@ -21,7 +22,6 @@ import * as Url from '@libs/Url';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import withThemeStyles, {withThemeStylesPropTypes} from '../components/withThemeStyles';
 import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
