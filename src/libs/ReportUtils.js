@@ -4052,7 +4052,7 @@ function getIOUReportActionDisplayMessage(reportAction) {
     const originalMessage = _.get(reportAction, 'originalMessage', {});
     let displayMessage;
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        const {amount, currency, IOUReportID} = originalMessage;
+        const {amount, currency, IOUReportID} = originalMessage.IOUDetails;
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
         const iouReport = getReport(IOUReportID);
         const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport.managerID, true);
