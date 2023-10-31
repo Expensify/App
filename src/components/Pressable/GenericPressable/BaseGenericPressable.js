@@ -119,7 +119,7 @@ const GenericPressable = forwardRef((props, ref) => {
      */
     const getCursorStyle = useCallback(
         (isText) => {
-            if (isDisabled) {
+            if (shouldUseDisabledCursor) {
                 return styles.cursorDisabled;
             }
 
@@ -129,7 +129,7 @@ const GenericPressable = forwardRef((props, ref) => {
 
             return styles.cursorPointer;
         },
-        [isDisabled, styles.cursorDisabled, styles.cursorPointer, styles.cursorText],
+        [shouldUseDisabledCursor, styles.cursorDisabled, styles.cursorPointer, styles.cursorText],
     );
 
     return (

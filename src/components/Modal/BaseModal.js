@@ -151,7 +151,7 @@ function BaseModal({
                 innerContainerStyle,
                 outerStyle,
             ),
-        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, type, windowHeight, windowWidth],
+        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, styles, type, windowHeight, windowWidth],
     );
 
     const {

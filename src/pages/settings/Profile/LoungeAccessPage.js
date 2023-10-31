@@ -9,7 +9,6 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import userPropTypes from '@pages/settings/userPropTypes';
-import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,7 +26,6 @@ const defaultProps = {
 };
 
 function LoungeAccessPage(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
