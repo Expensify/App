@@ -6,6 +6,6 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 export default function useGeographicalStateFromRoute(stateParamName = 'state') {
     const route = useRoute();
     const stateFromUrlTemp = lodashGet(route, `params.${stateParamName}`) as unknown as string;
-    // check if state is valid
+    // Check if state is valid
     return lodashGet(COMMON_CONST.STATES, stateFromUrlTemp) ? stateFromUrlTemp : '';
 }
