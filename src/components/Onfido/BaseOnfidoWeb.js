@@ -131,8 +131,6 @@ const Onfido = forwardRef((props, ref) => {
             onSuccess: props.onSuccess,
             onError: props.onError,
             onUserExit: props.onUserExit,
-            preferredLocale,
-            translate,
         });
 
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);

@@ -7,27 +7,9 @@ import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import * as StyleUtils from '@styles/StyleUtils';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import genericPressablePropTypes from './PropTypes';
-
-/**
- * Returns the cursor style based on the state of Pressable
- * @param {Boolean} isDisabled
- * @param {Boolean} isText
- * @returns {Object}
- */
-const getCursorStyle = (isDisabled, isText) => {
-    if (isDisabled) {
-        return styles.cursorDisabled;
-    }
-
-    if (isText) {
-        return styles.cursorText;
-    }
-
-    return styles.cursorPointer;
-};
 
 const GenericPressable = forwardRef((props, ref) => {
     const styles = useThemeStyles();
@@ -129,6 +111,27 @@ const GenericPressable = forwardRef((props, ref) => {
         return KeyboardShortcut.subscribe(shortcutKey, onPressHandler, descriptionKey, modifiers, true, false, 0, false);
     }, [keyboardShortcut, onPressHandler]);
 
+    /**
+     * Returns the cursor style based on the state of Pressable
+     * @param {Boolean} isDisabled
+     * @param {Boolean} isText
+     * @returns {Object}
+     */
+    const getCursorStyle = useCallback(
+        (isText) => {
+            if (isDisabled) {
+                return styles.cursorDisabled;
+            }
+
+            if (isText) {
+                return styles.cursorText;
+            }
+
+            return styles.cursorPointer;
+        },
+        [isDisabled, styles.cursorDisabled, styles.cursorPointer, styles.cursorText],
+    );
+
     return (
         <Pressable
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
@@ -141,7 +144,7 @@ const GenericPressable = forwardRef((props, ref) => {
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [
-                getCursorStyle(shouldUseDisabledCursor, [props.accessibilityRole, props.role].includes('text')),
+                getCursorStyle([props.accessibilityRole, props.role].includes('text')),
                 StyleUtils.parseStyleFromFunction(props.style, state),
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(props.screenReaderActiveStyle, state),
                 state.focused && StyleUtils.parseStyleFromFunction(props.focusStyle, state),
