@@ -1,8 +1,8 @@
-import {Animated, StyleSheet} from 'react-native';
-import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import React from 'react';
+import {Animated, StyleSheet} from 'react-native';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import styles from '@styles/styles';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 
