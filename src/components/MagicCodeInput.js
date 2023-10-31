@@ -5,7 +5,6 @@ import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 import FormHelpMessage from './FormHelpMessage';
 import networkPropTypes from './networkPropTypes';

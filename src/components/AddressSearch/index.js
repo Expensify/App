@@ -14,7 +14,6 @@ import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';

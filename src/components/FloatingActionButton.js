@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {Animated, Easing, View} from 'react-native';
+import compose from '@libs/compose';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
-import compose from '../libs/compose';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -11,8 +11,6 @@ import Tooltip from './Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withTheme, {withThemePropTypes} from '/withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from '/withThemeStyles';
-
-import compose from '../libs/compose';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';

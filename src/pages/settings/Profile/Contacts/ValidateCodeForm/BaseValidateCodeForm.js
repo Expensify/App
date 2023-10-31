@@ -17,7 +17,6 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
