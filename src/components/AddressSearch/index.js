@@ -15,10 +15,10 @@ import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
 import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 
@@ -372,7 +372,7 @@ function AddressSearch({
             network.isOffline || !isTyping ? null : (
                 <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>
             ),
-        [isTyping, translate, network.isOffline],
+        [isTyping, translate, network.isOffline, styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto],
     );
 
     const listLoader = useCallback(
@@ -384,7 +384,7 @@ function AddressSearch({
                 />
             </View>
         ),
-        [],
+        [styles.pv4, theme.spinner],
     );
 
     return (
