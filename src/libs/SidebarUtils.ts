@@ -182,7 +182,7 @@ function getOrderedReportIDs(
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
     reportsToDisplay.forEach((report) => {
-        if (report.isPinned ?? ReportUtils.shouldShowGBR(report)) {
+        if (report.isPinned || ReportUtils.shouldShowGBR(report)) {
             pinnedReports.push(report);
         } else if (report.hasDraft) {
             draftReports.push(report);
