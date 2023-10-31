@@ -23,11 +23,11 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -65,7 +65,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    wrapperStyles: [styles.chatItem],
+    wrapperStyles: undefined,
     showHeader: true,
     shouldShowSubscriptAvatar: false,
     hasBeenFlagged: false,
@@ -210,7 +210,7 @@ function ReportActionItemSingle(props) {
     const statusTooltipText = formattedDate ? `${statusText} (${formattedDate})` : statusText;
 
     return (
-        <View style={props.wrapperStyles}>
+        <View style={props.wrapperStyles || styles.chatItem}>
             <PressableWithoutFeedback
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
