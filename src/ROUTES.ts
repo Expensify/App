@@ -1,12 +1,8 @@
 import {ValueOf} from 'type-fest';
-
 import CONST from './CONST';
 
 /**
- * This is a file containing constants for all of the routes we want to be able to go to
  * Returns the URL with an encoded URI component for the backTo param which can be added to the end of URLs
- * @param backTo
- * @returns
  */
 function getUrlWithBackToParam(url: string, backTo?: string): string {
     const backToParam = backTo ? `${url.includes('?') ? '&' : '?'}backTo=${encodeURIComponent(backTo)}` : '';
@@ -15,7 +11,8 @@ function getUrlWithBackToParam(url: string, backTo?: string): string {
 
 export default {
     HOME: '',
-    /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
+
+    // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {
         route: 'flag/:reportID/:reportActionID',
