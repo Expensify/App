@@ -5,7 +5,6 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import Form from '@components/Form';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -19,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import IdentityForm from './IdentityForm';
 import StepPropTypes from './StepPropTypes';
+import FormProvider from '@components/Form/FormProvider';
 
 const propTypes = {
     ...StepPropTypes,
@@ -156,7 +156,7 @@ function ACHContractStep(props) {
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
                 onSubmit={submit}
@@ -278,7 +278,7 @@ function ACHContractStep(props) {
                         />
                     </>
                 )}
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
