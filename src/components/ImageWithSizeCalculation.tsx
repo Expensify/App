@@ -5,7 +5,8 @@ import {OnLoadEvent} from 'react-native-fast-image';
 import Log from '@libs/Log';
 import styles from '@styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
-import Image, {RESIZE_MODES} from './Image';
+import Image from './Image';
+import RESIZE_MODES from './Image/resizeModes';
 
 type OnMeasure = (args: {width: number; height: number}) => void;
 
