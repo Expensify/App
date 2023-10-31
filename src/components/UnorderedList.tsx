@@ -1,22 +1,17 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import styles from '@styles/styles';
 import Text from './Text';
 
-const propTypes = {
+type UnorderedListProps = {
     /** An array of strings to display as an unordered list */
-    items: PropTypes.arrayOf(PropTypes.string),
-};
-const defaultProps = {
-    items: [],
+    items: string[];
 };
 
-function UnorderedList(props) {
+function UnorderedList({items = []}: UnorderedListProps) {
     return (
         <>
-            {_.map(props.items, (itemText) => (
+            {items.map((itemText) => (
                 <View
                     key={itemText}
                     style={[styles.flexRow, styles.alignItemsStart, styles.ml2]}
@@ -30,7 +25,4 @@ function UnorderedList(props) {
 }
 
 UnorderedList.displayName = 'UnorderedList';
-UnorderedList.propTypes = propTypes;
-UnorderedList.defaultProps = defaultProps;
-
 export default UnorderedList;
