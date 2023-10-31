@@ -779,19 +779,17 @@ function isMoneyRequestReport(reportOrID) {
  * @returns {boolean}
  */
 function isOneOnOneChat(report) {
-    const isChatRoomValue = lodashGet(report, 'isChatRoom', false);
-    const participantsListValue = lodashGet(report, 'participantsList', []);
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
     return (
         !isThread(report) &&
         !isChatRoom(report) &&
-        !isChatRoomValue &&
         !isExpenseRequest(report) &&
         !isMoneyRequestReport(report) &&
         !isPolicyExpenseChat(report) &&
         !isTaskReport(report) &&
         isDM(report) &&
         !isIOUReport(report) &&
-        participantsListValue.length === 1
+        participantAccountIDs.length === 1
     );
 }
 
@@ -2158,6 +2156,7 @@ function getParentNavigationSubtitle(report) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
+    console.log('report', report)
     if (isOneOnOneChat(report)) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
         return;
