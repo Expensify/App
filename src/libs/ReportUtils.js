@@ -1327,7 +1327,7 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
  * Checks if a report is an open task report assigned to current user.
  *
  * @param {Object} report
- * @param {Object} parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
+ * @param {Object} [parentReportAction] - The parent report action of the report (Used to check if the task has been canceled)
  * @returns {Boolean}
  */
 function isWaitingForAssigneeToCompleteTask(report, parentReportAction = {}) {
