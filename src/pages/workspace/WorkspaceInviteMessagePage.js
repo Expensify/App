@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {Component} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -68,7 +68,7 @@ const defaultProps = {
     invitedEmailsToAccountIDsDraft: {},
 };
 
-class WorkspaceInviteMessagePage extends React.Component {
+class WorkspaceInviteMessagePage extends Component {
     constructor(props) {
         super(props);
 

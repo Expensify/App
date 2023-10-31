@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {Component} from 'react';
 import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
@@ -41,7 +41,7 @@ const defaultProps = {
 };
 
 // eslint-disable-next-line react/prefer-stateless-function
-class ShareCodePage extends React.Component {
+class ShareCodePage extends Component {
     qrCodeRef = React.createRef();
 
     /**

@@ -1,11 +1,11 @@
-import React from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import withWindowDimensions from '@components/withWindowDimensions';
 import Growl from '@libs/Growl';
 import {defaultProps, propTypes} from './checkboxWithTooltipPropTypes';
 
-class CheckboxWithTooltipForMobileWebAndNative extends React.Component {
+class CheckboxWithTooltipForMobileWebAndNative extends Component {
     constructor(props) {
         super(props);
         this.showGrowlOrTriggerOnPress = this.showGrowlOrTriggerOnPress.bind(this);

@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {Component} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -37,7 +37,7 @@ const defaultProps = {
     ...policyDefaultProps,
 };
 
-class WorkspaceRateAndUnitPage extends React.Component {
+class WorkspaceRateAndUnitPage extends Component {
     constructor(props) {
         super(props);
         this.submit = this.submit.bind(this);

@@ -2,11 +2,11 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import * as Browser from '@libs/Browser';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 
 const propTypes = {
     /** The unicode that is used to display the emoji */

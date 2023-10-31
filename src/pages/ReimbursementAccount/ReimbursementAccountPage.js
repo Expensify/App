@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -97,7 +97,7 @@ const defaultProps = {
     },
 };
 
-class ReimbursementAccountPage extends React.Component {
+class ReimbursementAccountPage extends Component {
     constructor(props) {
         super(props);
         this.continue = this.continue.bind(this);

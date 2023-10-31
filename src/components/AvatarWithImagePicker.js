@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as Browser from '@libs/Browser';
@@ -118,7 +118,7 @@ const defaultProps = {
     originalFileName: '',
 };
 
-class AvatarWithImagePicker extends React.Component {
+class AvatarWithImagePicker extends Component {
     constructor(props) {
         super(props);
         this.animation = new SpinningIndicatorAnimation();

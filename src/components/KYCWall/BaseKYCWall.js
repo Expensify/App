@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {Component} from 'react';
 import {Dimensions} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -18,7 +18,7 @@ import {defaultProps, propTypes} from './kycWallPropTypes';
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
 // to render the AddPaymentMethodMenu in the correct location.
-class KYCWall extends React.Component {
+class KYCWall extends Component {
     constructor(props) {
         super(props);
 

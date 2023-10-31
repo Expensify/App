@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {Component} from 'react';
 import _ from 'underscore';
 import StylePropType from '@styles/stylePropTypes';
 import GenericPressable from './GenericPressable';
@@ -34,7 +34,7 @@ const defaultProps = {
  * Therefore it shifts the element to bring it back to focus.
  * https://github.com/Expensify/App/issues/6806
  */
-class PressableWithoutFocus extends React.Component {
+class PressableWithoutFocus extends Component {
     constructor(props) {
         super(props);
         this.pressAndBlur = this.pressAndBlur.bind(this);

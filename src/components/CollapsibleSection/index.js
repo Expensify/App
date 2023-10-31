@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,7 +17,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-class CollapsibleSection extends React.Component {
+class CollapsibleSection extends Component {
     constructor(props) {
         super(props);
         this.toggleSection = this.toggleSection.bind(this);

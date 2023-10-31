@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -39,7 +39,7 @@ const defaultProps = {
     onSelected: () => {},
 };
 
-class CalendarPicker extends React.PureComponent {
+class CalendarPicker extends PureComponent {
     constructor(props) {
         super(props);
 

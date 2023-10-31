@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import styles from '@styles/styles';
@@ -16,7 +16,7 @@ const defaultTypes = {
     shouldAnimate: true,
 };
 
-class OptionsListSkeletonView extends React.Component {
+class OptionsListSkeletonView extends Component {
     constructor(props) {
         super(props);
         this.state = {
