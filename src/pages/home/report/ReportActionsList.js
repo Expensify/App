@@ -4,8 +4,6 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
-import Performance from '@libs/Performance';
-import Timing from '@libs/actions/Timing';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {withPersonalDetails} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
@@ -387,8 +385,6 @@ function ReportActionsList({
     const onLayoutInner = useCallback(
         (event) => {
             onLayout(event);
-            Timing.end(CONST.TIMING.CHAT_RENDER);
-            Performance.markEnd(CONST.TIMING.CHAT_RENDER);
         },
         [onLayout],
     );

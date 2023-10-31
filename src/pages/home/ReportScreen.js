@@ -19,10 +19,12 @@ import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Timing from '@libs/actions/Timing';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Navigation from '@libs/Navigation/Navigation';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
@@ -36,8 +38,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import HeaderView from './HeaderView';
-import Timing from '@libs/actions/Timing';
-import Performance from '@libs/Performance';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
@@ -303,6 +303,9 @@ function ReportScreen({
     );
 
     useEffect(() => {
+        Timing.end(CONST.TIMING.CHAT_RENDER);
+        Performance.markEnd(CONST.TIMING.CHAT_RENDER);
+
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
         return () => {
