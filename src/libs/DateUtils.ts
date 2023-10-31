@@ -55,7 +55,7 @@ Onyx.connect({
     },
 });
 
-let networkTimeSkew = 0;
+let networkTimeSkew: number | undefined = 0;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (value) => (networkTimeSkew = value?.timeSkew),
