@@ -18,7 +18,7 @@ function CustomStatusBar() {
             StatusBar.setBarStyle('light-content', true);
             StatusBar.setBackgroundColor(currentScreenBackgroundColor);
         });
-    }, []);
+    }, [theme.PAGE_BACKGROUND_COLORS, theme.appBG]);
     return <StatusBar />;
 }
 
