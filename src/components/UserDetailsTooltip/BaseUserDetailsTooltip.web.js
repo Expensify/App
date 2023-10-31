@@ -8,12 +8,12 @@ import Avatar from '@components/Avatar';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './userDetailsTooltipPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
 
 function BaseUserDetailsTooltip(props) {
     const {translate} = useLocalize();
@@ -28,7 +28,7 @@ function BaseUserDetailsTooltip(props) {
     // the Copilot feature is implemented.
     if (props.delegateAccountID) {
         const delegateUserDetails = lodashGet(props.personalDetailsList, props.delegateAccountID, {});
-        const delegateUserDisplayName = delegateUserDetails.displayName ? delegateUserDetails.displayName.trim() : '';
+        const delegateUserDisplayName = ReportUtils.getDisplayNameForParticipant(props.delegateAccountID);
         userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
         userLogin = delegateUserDetails.login;
         userAvatar = delegateUserDetails.avatar;
