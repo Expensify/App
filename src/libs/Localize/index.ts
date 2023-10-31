@@ -113,7 +113,7 @@ function translateIfPhraseKey(message: string | [string, Record<string, unknown>
             return phrase;
         }
 
-        return translateLocal(phrase as TranslationPaths, ...(variables as PhraseParameters<Phrase<TranslationPaths>>));
+        return translateLocal(phrase as TranslationPaths, variables as never);
     } catch (error) {
         return Array.isArray(message) ? message[0] : message;
     }
