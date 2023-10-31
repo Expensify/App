@@ -1,21 +1,21 @@
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import Navigation from '../../../libs/Navigation/Navigation';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import CONST from '../../../CONST';
+import {withOnyx} from 'react-native-onyx';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import PaymentMethodList from './PaymentMethodList';
-import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
-import ROUTES from '../../../ROUTES';
-import MenuItem from '../../../components/MenuItem';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import compose from '../../../libs/compose';
-import ONYXKEYS from '../../../ONYXKEYS';
 import walletTransferPropTypes from './walletTransferPropTypes';
-import styles from '../../../styles/styles';
-import * as BankAccounts from '../../../libs/actions/BankAccounts';
 
 const propTypes = {
     /** Wallet transfer propTypes */

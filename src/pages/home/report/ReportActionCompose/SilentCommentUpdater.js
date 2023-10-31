@@ -1,9 +1,9 @@
+import PropTypes from 'prop-types';
 import {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import usePrevious from '../../../../hooks/usePrevious';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import useLocalize from '../../../../hooks/useLocalize';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** The comment of the report */
@@ -43,6 +43,11 @@ function SilentCommentUpdater({comment, commentRef, report, value, updateComment
     const prevReportId = usePrevious(report.reportID);
     const {preferredLocale} = useLocalize();
     const prevPreferredLocale = usePrevious(preferredLocale);
+
+    useEffect(() => {
+        updateComment(comment);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
+    }, []);
 
     useEffect(() => {
         // Value state does not have the same value as comment props when the comment gets changed from another tab.

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import styles from '@styles/styles';
 import Section from './Section';
-import styles from '../styles/styles';
 
 const propTypes = {
     /** Contents to display inside the section */

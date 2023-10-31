@@ -1,10 +1,10 @@
-import React, {forwardRef, createContext, useState, useEffect, useMemo} from 'react';
 import PropTypes from 'prop-types';
+import React, {createContext, forwardRef, useEffect, useMemo, useState} from 'react';
 import {Dimensions} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import getComponentDisplayName from '../../libs/getComponentDisplayName';
-import variables from '../../styles/variables';
-import getWindowHeightAdjustment from '../../libs/getWindowHeightAdjustment';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import getWindowHeightAdjustment from '@libs/getWindowHeightAdjustment';
+import variables from '@styles/variables';
 
 const WindowDimensionsContext = createContext(null);
 const windowDimensionsPropTypes = {
