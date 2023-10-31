@@ -1,10 +1,10 @@
 import React from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import CONST from '../../CONST';
-import useNativeDriver from '../../libs/useNativeDriver';
-import styles from '../../styles/styles';
-import ChildrenProps from '../../types/utils/ChildrenProps';
+import useNativeDriver from '@libs/useNativeDriver';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import {AnimationDirection} from './AnimatedStepContext';
 
 type AnimatedStepProps = ChildrenProps & {

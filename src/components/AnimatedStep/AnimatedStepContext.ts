@@ -1,6 +1,6 @@
 import React, {createContext} from 'react';
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 
 type AnimationDirection = ValueOf<typeof CONST.ANIMATION_DIRECTION>;
 
