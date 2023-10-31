@@ -240,7 +240,7 @@ const runTests = async () => {
             Logger.log('Killing app...');
             await killApp('android', config.APP_PACKAGE);
 
-            testLog.updateText(`Coolin down phone 🧊 ${config.SUITE_COOL_DOWN / 1000}s`);
+            testLog.updateText(`Coolin down phone 🧊 ${config.SUITE_COOL_DOWN / 1000}s\n`);
             await sleep(config.SUITE_COOL_DOWN);
 
             Logger.log('Starting app...');

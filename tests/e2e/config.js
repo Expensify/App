@@ -31,7 +31,7 @@ module.exports = {
     SERVER_PORT: 4723,
 
     // The amount of times a test should be executed for average performance metrics
-    RUNS: 80,
+    RUNS: 60,
 
     DEFAULT_BASELINE_BRANCH: 'main',
 
@@ -50,7 +50,7 @@ module.exports = {
     BOOT_COOL_DOWN: 90 * 1000,
 
     // Period we wait between each test runs, to let the device cool down
-    SUITE_COOL_DOWN: 5 * 1000,
+    SUITE_COOL_DOWN: 10 * 1000,
 
     TEST_NAMES,
 
