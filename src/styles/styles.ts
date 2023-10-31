@@ -4141,6 +4141,21 @@ const styles = (theme: ThemeDefault) => {
                 : {}),
         } as ViewStyle);
 
+    stylez.googleListViewStyle = (shouldDisplayBorder: boolean): ViewStyle => {
+        if (shouldDisplayBorder) {
+            return {
+                ...stylez.borderTopRounded,
+                ...stylez.borderBottomRounded,
+                marginTop: 4,
+                paddingVertical: 6,
+            } as ViewStyle;
+        }
+
+        return {
+            transform: [{scale: 0}],
+        };
+    };
+
     return stylez;
 };
 
