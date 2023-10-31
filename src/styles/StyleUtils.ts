@@ -1324,6 +1324,13 @@ function getApprovedOrSubmittedReportTextStyles(isApprovedOrSubmittedReport = fa
     return isApprovedOrSubmittedReport ? {color: themeColors.textSupporting, fontFamily: fontFamily.EXP_NEUE, fontWeight: 'normal'} : {};
 }
 
+/**
+ * Get the styles of the text next to dot indicators
+ */
+function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
+    return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
+}
+
 export {
     combineStyles,
     displayIfTrue,
@@ -1370,6 +1377,7 @@ export {
     getDirectionStyle,
     getDisabledLinkStyles,
     getDropDownButtonHeight,
+    getDotIndicatorTextStyles,
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
     getEmojiReactionBubbleStyle,

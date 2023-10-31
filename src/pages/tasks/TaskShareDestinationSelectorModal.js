@@ -52,7 +52,7 @@ function TaskShareDestinationSelectorModal(props) {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
             if (
-                ReportUtils.shouldDisableWriteActions(props.reports[reportKey]) ||
+                !ReportUtils.canUserPerformWriteAction(props.reports[reportKey]) ||
                 ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey]) ||
                 ReportUtils.isCanceledTaskReport(props.reports[reportKey])
             ) {
