@@ -8,9 +8,7 @@ import CONST from '@src/CONST';
 import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
-import styles from './styles';
 import themeColors from './themes/default';
-import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
 import variables from './variables';
@@ -544,11 +542,6 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
     };
 }
 
-function getPaymentMethodMenuWidth(isSmallScreenWidth: boolean): ViewStyle {
-    const margin = 20;
-    return {width: !isSmallScreenWidth ? variables.sideBarWidth - margin * 2 : undefined};
-}
-
 /**
  * Converts a color in RGBA notation to an equivalent color in RGB notation.
  *
@@ -685,24 +678,6 @@ function getHeight(height: number): ViewStyle {
 function getMinimumHeight(minHeight: number): ViewStyle {
     return {
         minHeight,
-    };
-}
-
-/**
- * Get minimum width as style
- */
-function getMinimumWidth(minWidth: number): ViewStyle | CSSProperties {
-    return {
-        minWidth,
-    };
-}
-
-/**
- * Get maximum height as style
- */
-function getMaximumHeight(maxHeight: number): ViewStyle {
-    return {
-        maxHeight,
     };
 }
 
@@ -967,13 +942,6 @@ function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyl
 }
 
 /**
- * Returns a style object with display flex or none basing on the condition value.
- */
-function displayIfTrue(condition: boolean): ViewStyle {
-    return {display: condition ? 'flex' : 'none'};
-}
-
-/**
  * Gets the correct height for emoji picker list based on screen dimensions
  */
 function getEmojiPickerListHeight(hasAdditionalSpace: boolean, windowHeight: number): ViewStyle {
@@ -1038,15 +1006,6 @@ function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: bo
  */
 function getOuterModalStyle(windowHeight: number, viewportOffsetTop: number): ViewStyle {
     return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
-}
-
-/**
- * Returns style object for flexWrap depending on the screen size
- */
-function getWrappingStyle(isExtraSmallScreenWidth: boolean): ViewStyle {
-    return {
-        flexWrap: isExtraSmallScreenWidth ? 'wrap' : 'nowrap',
-    };
 }
 
 /**
@@ -1138,16 +1097,8 @@ function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: nu
     };
 }
 
-/**
- * Get transparent color by setting alpha value 0 of the passed hex(#xxxxxx) color code
- */
-function getTransparentColor(color: string) {
-    return `${color}00`;
-}
-
 export {
     combineStyles,
-    displayIfTrue,
     getAmountFontSizeAndLineHeight,
     getAnimatedFABStyle,
     getAutoCompleteSuggestionContainerStyle,
@@ -1167,8 +1118,6 @@ export {
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
-    getMinimumWidth,
-    getMaximumHeight,
     getMaximumWidth,
     fade,
     getHorizontalStackedAvatarBorderStyle,
@@ -1202,16 +1151,13 @@ export {
     getMenuItemTextContainerStyle,
     getModalPaddingStyles,
     getOuterModalStyle,
-    getPaymentMethodMenuWidth,
     getSafeAreaMargins,
     getSafeAreaPadding,
     getSignInWordmarkWidthStyle,
     getTextColorStyle,
     getThemeBackgroundColor,
-    getTransparentColor,
     getWidthAndHeightStyle,
     getWidthStyle,
-    getWrappingStyle,
     getZoomSizingStyle,
     parseStyleAsArray,
     parseStyleFromFunction,
