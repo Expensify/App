@@ -1,10 +1,10 @@
+import propTypes from 'prop-types';
 import React, {forwardRef, useState} from 'react';
 import _ from 'underscore';
-import propTypes from 'prop-types';
+import OpacityView from '@components/OpacityView';
+import variables from '@styles/variables';
 import GenericPressable from './GenericPressable';
 import GenericPressablePropTypes from './GenericPressable/PropTypes';
-import OpacityView from '../OpacityView';
-import variables from '../../styles/variables';
 
 const omittedProps = ['wrapperStyle', 'needsOffscreenAlphaCompositing'];
 

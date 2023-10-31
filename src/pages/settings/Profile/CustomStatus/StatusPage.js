@@ -1,25 +1,25 @@
-import React, {useMemo, useCallback, useEffect} from 'react';
+import lodashGet from 'lodash/get';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
-import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import HeaderPageLayout from '../../../../components/HeaderPageLayout';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import withLocalize from '../../../../components/withLocalize';
-import Button from '../../../../components/Button';
-import Text from '../../../../components/Text';
-import MenuItem from '../../../../components/MenuItem';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import * as User from '../../../../libs/actions/User';
-import MobileBackgroundImage from '../../../../../assets/images/money-stack.svg';
-import themeColors from '../../../../styles/themes/default';
-import useLocalize from '../../../../hooks/useLocalize';
-import styles from '../../../../styles/styles';
-import compose from '../../../../libs/compose';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import ROUTES from '../../../../ROUTES';
-import SCREENS from '../../../../SCREENS';
+import MobileBackgroundImage from '@assets/images/money-stack.svg';
+import Button from '@components/Button';
+import HeaderPageLayout from '@components/HeaderPageLayout';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Text from '@components/Text';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as User from '@userActions/User';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,

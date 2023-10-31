@@ -1,7 +1,7 @@
-import React, {useEffect, useState, useRef} from 'react';
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashFindIndex from 'lodash/findIndex';
 import PropTypes from 'prop-types';
-import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import React, {useEffect, useRef, useState} from 'react';
 import {Freeze} from 'react-freeze';
 
 const propTypes = {

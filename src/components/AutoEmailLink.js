@@ -1,10 +1,10 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {CONST} from 'expensify-common/lib/CONST';
+import PropTypes from 'prop-types';
+import React from 'react';
+import _ from 'underscore';
+import styles from '@styles/styles';
 import Text from './Text';
 import TextLink from './TextLink';
-import styles from '../styles/styles';
 
 const propTypes = {
     text: PropTypes.string.isRequired,
