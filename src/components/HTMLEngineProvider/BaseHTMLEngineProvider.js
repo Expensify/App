@@ -24,37 +24,6 @@ const defaultProps = {
     enableExperimentalBRCollapsing: false,
 };
 
-// Declare nonstandard tags and their content model here
-const customHTMLElementModels = {
-    edited: defaultHTMLElementModels.span.extend({
-        tagName: 'edited',
-    }),
-    'alert-text': defaultHTMLElementModels.div.extend({
-        tagName: 'alert-text',
-        mixedUAStyles: {...styles.formError, ...styles.mb0},
-    }),
-    'muted-text': defaultHTMLElementModels.div.extend({
-        tagName: 'muted-text',
-        mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
-    }),
-    comment: defaultHTMLElementModels.div.extend({
-        tagName: 'comment',
-        mixedUAStyles: {whiteSpace: 'pre'},
-    }),
-    'email-comment': defaultHTMLElementModels.div.extend({
-        tagName: 'email-comment',
-        mixedUAStyles: {whiteSpace: 'normal'},
-    }),
-    strong: defaultHTMLElementModels.span.extend({
-        tagName: 'strong',
-        mixedUAStyles: {whiteSpace: 'pre'},
-    }),
-    'mention-user': defaultHTMLElementModels.span.extend({tagName: 'mention-user'}),
-    'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
-};
-
-const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
-
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
@@ -62,8 +31,42 @@ const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]
 // costly invalidations and commits.
 function BaseHTMLEngineProvider(props) {
     const styles = useThemeStyles();
+
+    // Declare nonstandard tags and their content model here
+    const customHTMLElementModels = useMemo(
+        () => ({
+            edited: defaultHTMLElementModels.span.extend({
+                tagName: 'edited',
+            }),
+            'alert-text': defaultHTMLElementModels.div.extend({
+                tagName: 'alert-text',
+                mixedUAStyles: {...styles.formError, ...styles.mb0},
+            }),
+            'muted-text': defaultHTMLElementModels.div.extend({
+                tagName: 'muted-text',
+                mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
+            }),
+            comment: defaultHTMLElementModels.div.extend({
+                tagName: 'comment',
+                mixedUAStyles: {whiteSpace: 'pre'},
+            }),
+            'email-comment': defaultHTMLElementModels.div.extend({
+                tagName: 'email-comment',
+                mixedUAStyles: {whiteSpace: 'normal'},
+            }),
+            strong: defaultHTMLElementModels.span.extend({
+                tagName: 'strong',
+                mixedUAStyles: {whiteSpace: 'pre'},
+            }),
+            'mention-user': defaultHTMLElementModels.span.extend({tagName: 'mention-user'}),
+            'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
+        }),
+        [styles.colorMuted, styles.formError, styles.mb0],
+    );
+
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [props.textSelectable]);
+    const defaultViewProps = useMemo(() => ({style: [styles.alignItemsStart, styles.userSelectText]}), [styles.alignItemsStart, styles.userSelectText]);
 
     return (
         <TRenderEngineProvider
