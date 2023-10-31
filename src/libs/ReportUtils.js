@@ -3669,9 +3669,7 @@ function getMoneyRequestOptions(report, reportParticipants) {
 
     // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
     const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
-    const policyID = lodashGet(report, 'policyID', '');
-    const policyOwnerAccountID = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'ownerAccountID'], 0);
-    const isPolicyOwnedByExpensifyAccounts = CONST.EXPENSIFY_ACCOUNT_IDS.includes(policyOwnerAccountID);
+    const isPolicyOwnedByExpensifyAccounts = report.policyID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(getPolicy(report.policyID).ownerAccountID || 0) : false;
     if (doParticipantsIncludeExpensifyAccounts && !isPolicyOwnedByExpensifyAccounts) {
         return [];
     }
