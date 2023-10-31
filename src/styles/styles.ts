@@ -326,10 +326,6 @@ const styles = (theme: ThemeDefault) =>
             textAlign: 'left',
         },
 
-        textUnderline: {
-            textDecorationLine: 'underline',
-        },
-
         label: {
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,
@@ -382,10 +378,6 @@ const styles = (theme: ThemeDefault) =>
             fontSize: variables.fontSizeLarge,
         },
 
-        textXLarge: {
-            fontSize: variables.fontSizeXLarge,
-        },
-
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },
@@ -405,11 +397,6 @@ const styles = (theme: ThemeDefault) =>
             fontWeight: fontWeightBold,
         },
 
-        textItalic: {
-            fontFamily: fontFamily.EXP_NEUE_ITALIC,
-            fontStyle: 'italic',
-        },
-
         textHeadline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -426,20 +413,12 @@ const styles = (theme: ThemeDefault) =>
             lineHeight: variables.lineHeightSizeh1,
         },
 
-        textDecorationNoLine: {
-            textDecorationLine: 'none',
-        },
-
         textWhite: {
             color: theme.textLight,
         },
 
         textBlue: {
             color: theme.link,
-        },
-
-        textUppercase: {
-            textTransform: 'uppercase',
         },
 
         textNoWrap: {
