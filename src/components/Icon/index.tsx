@@ -1,9 +1,9 @@
 import React, {PureComponent} from 'react';
 import {View, ViewStyle} from 'react-native';
-import themeColors from '../../styles/themes/default';
-import variables from '../../styles/variables';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
 import IconWrapperStyles from './IconWrapperStyles';
 
 type SrcProps = {

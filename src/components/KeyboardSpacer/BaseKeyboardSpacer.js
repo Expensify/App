@@ -1,7 +1,7 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Dimensions, Keyboard, View} from 'react-native';
-import * as StyleUtils from '../../styles/StyleUtils';
-import {propTypes, defaultProps} from './BaseKeyboardSpacerPropTypes';
+import * as StyleUtils from '@styles/StyleUtils';
+import {defaultProps, propTypes} from './BaseKeyboardSpacerPropTypes';
 
 function BaseKeyboardSpacer(props) {
     const [keyboardSpace, setKeyboardSpace] = useState(0);
