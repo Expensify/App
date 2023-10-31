@@ -30,7 +30,7 @@ const propTypes = {
     forwardedRef: refPropTypes,
 
     /** Label of state in the url */
-    paramName: PropTypes.string,
+    queryParam: PropTypes.string,
 
     /** Label to display on field */
     label: PropTypes.string,
@@ -44,14 +44,14 @@ const defaultProps = {
     value: undefined,
     forwardedRef: () => {},
     label: undefined,
-    paramName: 'state',
+    queryParam: 'state',
     shouldUseStateFromUrl: true,
 };
 
-function StateSelector({errorText, shouldUseStateFromUrl, value: stateCode, label, paramName, onInputChange, forwardedRef}) {
+function StateSelector({errorText, shouldUseStateFromUrl, value: stateCode, label, queryParam, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
 
-    const stateFromUrl = useGeographicalStateFromRoute(paramName);
+    const stateFromUrl = useGeographicalStateFromRoute(queryParam);
 
     const [stateToDisplay, setStateToDisplay] = useState('');
 
@@ -92,7 +92,7 @@ function StateSelector({errorText, shouldUseStateFromUrl, value: stateCode, labe
                 description={label || translate('common.state')}
                 onPress={() => {
                     const activeRoute = Navigation.getActiveRoute();
-                    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_STATE.getRoute(stateCode, activeRoute, label, paramName));
+                    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_STATE.getRoute(stateCode, activeRoute, label, queryParam));
                 }}
             />
             <View style={styles.ml5}>

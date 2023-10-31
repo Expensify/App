@@ -248,7 +248,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                         label={translate('companyStep.incorporationState')}
                         defaultValue={getDefaultStateForField('incorporationState')}
                         shouldSaveDraft
-                        paramName="incorporationState"
+                        queryParam="incorporationState"
                     />
                 </View>
                 <CheckboxWithLabel
