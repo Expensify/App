@@ -5,7 +5,7 @@ import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import themeColors from '@styles/themes/default';
-import useThemeStyles from '@styles/themes/useThemeStyles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */

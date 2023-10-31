@@ -373,7 +373,7 @@ describe('Unread Indicators', () => {
                 expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
             }));
 
-    xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
+    it('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread report
             .then(() => navigateToSidebarOption(0))
