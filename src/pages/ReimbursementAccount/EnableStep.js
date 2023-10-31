@@ -50,7 +50,7 @@ function EnableStep(props) {
     const styles = useThemeStyles();
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
-    const {icon, iconSize} = getBankIcon(achData.bankName);
+    const {icon, iconSize} = getBankIcon(styles, achData.bankName);
     const formattedBankAccountNumber = achData.accountNumber ? `${props.translate('paymentMethodList.accountLastFour')} ${achData.accountNumber.slice(-4)}` : '';
     const bankName = achData.addressName;
 
