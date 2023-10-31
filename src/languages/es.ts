@@ -255,7 +255,6 @@ export default {
         all: 'Todo',
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
-        allCurrencies: 'Todas las monedas',
         card: 'Tarjeta',
     },
     location: {

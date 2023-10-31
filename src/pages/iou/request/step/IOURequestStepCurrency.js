@@ -100,7 +100,6 @@ function IOURequestStepCurrency({
                 ? []
                 : [
                       {
-                          title: translate('common.allCurrencies'),
                           data: filteredCurrencies,
                           shouldShow: true,
                           indexOffset: 0,
