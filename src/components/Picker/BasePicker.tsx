@@ -144,7 +144,7 @@ function BasePicker({
         <>
             <View
                 ref={root}
-                style={[styles.pickerContainer, isDisabled && styles.inputDisabled, ...containerStyles, isHighlighted && styles.borderColorFocus, hasError && styles.borderColorDanger]}
+                style={[styles.pickerContainer, isDisabled && styles.inputDisabled, containerStyles, isHighlighted && styles.borderColorFocus, hasError && styles.borderColorDanger]}
             >
                 {label && (
                     <Text

@@ -44,7 +44,7 @@ function LocalePicker({preferredLocale = CONST.LOCALES.DEFAULT, size = 'normal',
             items={localesToLanguages}
             size={size}
             value={preferredLocale}
-            containerStyles={size === 'small' ? [styles.pickerContainerSmall] : []}
+            containerStyles={size === 'small' ? styles.pickerContainerSmall : {}}
             backgroundColor={themeColors.signInPage}
         />
     );

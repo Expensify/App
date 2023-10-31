@@ -1,5 +1,5 @@
 import {ChangeEvent, Component, ForwardedRef, ReactElement} from 'react';
-import {MeasureLayoutOnSuccessCallback, NativeMethods, ViewStyle} from 'react-native';
+import {MeasureLayoutOnSuccessCallback, NativeMethods, StyleProp, ViewStyle} from 'react-native';
 
 type MeasureLayoutOnFailCallback = () => void;
 
@@ -63,7 +63,7 @@ type BasePickerProps = {
     errorText?: string;
 
     /** Customize the BasePicker container */
-    containerStyles?: ViewStyle[];
+    containerStyles?: StyleProp<ViewStyle>;
 
     /** Customize the BasePicker background color */
     backgroundColor?: string;
