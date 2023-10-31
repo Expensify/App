@@ -1341,7 +1341,7 @@ function clearErrors(policyID) {
  *
  * @param {String} policyID
  */
-function dismissAddedWithPrimaryMessages(policyID) {
+function dismissAddedWithPrimaryLoginMessages(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
 }
 
@@ -1388,7 +1388,7 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     clearErrors,
-    dismissAddedWithPrimaryMessages,
+    dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
     createDraftInitialWorkspace,
