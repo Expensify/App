@@ -544,21 +544,6 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
     };
 }
 
-/**
- * Generate the wrapper styles for the mini ReportActionContextMenu.
- */
-function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: boolean): ViewStyle {
-    // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
-        ...positioning.r4,
-        ...styles.cursorDefault,
-        position: 'absolute',
-        zIndex: 1,
-    };
-}
-
 function getPaymentMethodMenuWidth(isSmallScreenWidth: boolean): ViewStyle {
     const margin = 20;
     return {width: !isSmallScreenWidth ? variables.sideBarWidth - margin * 2 : undefined};
@@ -1251,7 +1236,6 @@ export {
     getMentionStyle,
     getMentionTextColor,
     getMenuItemTextContainerStyle,
-    getMiniReportActionContextMenuWrapperStyle,
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,

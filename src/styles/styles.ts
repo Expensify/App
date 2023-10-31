@@ -4121,6 +4121,15 @@ const styles = (theme: ThemeDefault) => {
             ...stylez.cursorInitial,
         } as ViewStyle);
 
+    stylez.miniReportActionContextMenuWrapperStyle = (isReportActionItemGrouped: boolean): ViewStyle =>
+        ({
+            ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
+            ...positioning.r4,
+            ...stylez.cursorDefault,
+            position: 'absolute',
+            zIndex: 1,
+        } as ViewStyle);
+
     return stylez;
 };
 
