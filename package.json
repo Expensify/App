@@ -49,7 +49,7 @@
     "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.common.js --env envFile=.env.production",
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
-    "test:e2e:main": "node tests/e2e/testRunner.js --development --branch main --skipCheckout --skipInstallDeps",
+    "test:e2e:main": "node tests/e2e/testRunner.js --development --branch main --skipCheckout",
     "test:e2e:delta": "node tests/e2e/testRunner.js --development --branch main --label delta --skipCheckout",
     "test:e2e:compare": "node tests/e2e/merge.js",
     "gh-actions-unused-styles": "./.github/scripts/findUnusedKeys.sh",
