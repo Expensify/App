@@ -94,7 +94,7 @@ function MultipleAvatars(props) {
     );
 
     let avatarContainerStyles = StyleUtils.getContainerStyles(props.size, props.isInReportAction);
-    const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[props.size] || avatarSizeToStylesMap.default, [props.size]);
+    const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[props.size] || avatarSizeToStylesMap.default, [avatarSizeToStylesMap, props.size]);
 
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
     const avatarSize = useMemo(() => {
