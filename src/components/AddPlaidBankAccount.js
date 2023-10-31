@@ -239,7 +239,7 @@ function AddPlaidBankAccount({
                 />
                 <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
             </View>
-            <View style={[styles.mb5]}>
+            <View>
                 <Picker
                     label={translate('addPersonalBankAccountPage.chooseAccountLabel')}
                     onInputChange={onSelect}
