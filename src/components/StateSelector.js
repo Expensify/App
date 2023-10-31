@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import FormHelpMessage from './FormHelpMessage';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Form error text. e.g when no country is selected */
@@ -26,7 +27,7 @@ const propTypes = {
     inputID: PropTypes.string.isRequired,
 
     /** React ref being forwarded to the MenuItemWithTopDescription */
-    forwardedRef: PropTypes.func,
+    forwardedRef: refPropTypes,
 
     /** Label of state in the url */
     paramName: PropTypes.string,
