@@ -1319,14 +1319,21 @@ function getTransparentColor(color: string) {
 /**
  * Get the style for the AM and PM buttons in the TimePicker
  */
-function getStatusAMandPMButtonStyle(amPmValue: string): {styleForAM: ViewStyle | CSSProperties; styleForPM: ViewStyle | CSSProperties} {
+function getStatusAMandPMButtonStyle(amPmValue: string): {styleForAM: ViewStyle; styleForPM: ViewStyle} {
     const computedStyleForAM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.AM ? {backgroundColor: themeColors.componentBG} : {};
     const computedStyleForPM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.PM ? {backgroundColor: themeColors.componentBG} : {};
 
     return {
-        styleForAM: [styles.timePickerWidth100, computedStyleForAM] as ViewStyle,
-        styleForPM: [styles.timePickerWidth100, computedStyleForPM] as ViewStyle,
+        styleForAM: [styles.timePickerWidth100, computedStyleForAM] as unknown as ViewStyle,
+        styleForPM: [styles.timePickerWidth100, computedStyleForPM] as unknown as ViewStyle,
     };
+}
+
+/**
+ * Get the styles of the text next to dot indicators
+ */
+function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
+    return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
 }
 
 export {
@@ -1374,6 +1381,7 @@ export {
     getDirectionStyle,
     getDisabledLinkStyles,
     getDropDownButtonHeight,
+    getDotIndicatorTextStyles,
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
     getEmojiReactionBubbleStyle,

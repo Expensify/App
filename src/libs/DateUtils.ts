@@ -21,7 +21,7 @@ import {
     subMilliseconds,
     subMinutes,
 } from 'date-fns';
-import {formatInTimeZone, utcToZonedTime, zonedTimeToUtc} from 'date-fns-tz';
+import {formatInTimeZone, format as tzFormat, utcToZonedTime, zonedTimeToUtc} from 'date-fns-tz';
 import {enGB, es} from 'date-fns/locale';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
@@ -454,7 +454,7 @@ function getStatusUntilDate(inputDate: string): string {
     return translateLocal('statusPage.untilTime', {time: format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
 }
 
-/**
+/*
  * Update the time for a given date.
  *
  * param {string} updatedTime - Time in "hh:mm A" or "HH:mm:ss" or "yyyy-MM-dd HH:mm:ss" format.
@@ -599,8 +599,21 @@ const getTimeValidationErrorKey = (inputTime: Date): string => {
 };
 
 /**
- * @namespace DateUtils
+ *
+ * Get a date and format this date using the UTC timezone.
+ * param datetime
+ * param dateFormat
+ * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
+function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
+    const date = new Date(datetime);
+
+    if (isValid(date)) {
+        return tzFormat(utcToZonedTime(date, 'UTC'), dateFormat);
+    }
+
+    return '';
+}
 
 const DateUtils = {
     formatToDayOfWeek,
@@ -639,6 +652,7 @@ const DateUtils = {
     isToday,
     isTomorrow,
     isYesterday,
+    formatWithUTCTimeZone,
 };
 
 export default DateUtils;
