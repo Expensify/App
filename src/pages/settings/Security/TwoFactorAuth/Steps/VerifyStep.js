@@ -11,6 +11,7 @@ import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayTo
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,8 +37,7 @@ const defaultProps = {
 function VerifyStep({account, session}) {
     const {translate} = useLocalize();
     const navigation = useNavigation();
-
-    const formRef = React.useRef(null);
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
     useEffect(() => {
         Session.clearAccountMessages();
@@ -52,8 +52,6 @@ function VerifyStep({account, session}) {
             return;
         }
 
-        formRef.current.focus();
-
         return () => {
             Session.clearAccountMessages();
         };
@@ -61,7 +59,7 @@ function VerifyStep({account, session}) {
     }, []);
 
     useEffect(() => {
-        if (!account.requiresTwoFactorAuth || account.twoFactorAuthStep !== 'VERIFY') {
+        if (!account.requiresTwoFactorAuth) {
             return;
         }
 
@@ -73,7 +71,7 @@ function VerifyStep({account, session}) {
         });
 
         Navigation.navigate(ROUTES.SETTINGS_2FA.SUCCESS, CONST.NAVIGATION.TYPE.FORCED_UP);
-    }, [account.requiresTwoFactorAuth, account.twoFactorAuthStep, navigation]);
+    }, [account.requiresTwoFactorAuth, navigation]);
 
     /**
      * Splits the two-factor auth secret key in 4 chunks
@@ -144,17 +142,17 @@ function VerifyStep({account, session}) {
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
                 <View style={[styles.mh5, styles.mb4]}>
-                    <TwoFactorAuthForm innerRef={formRef} />
+                    <TwoFactorAuthForm innerRef={inputCallbackRef} />
                 </View>
                 <Button
                     success
                     text={translate('common.next')}
                     isLoading={account.isLoading}
                     onPress={() => {
-                        if (!formRef.current) {
+                        if (!inputRef.current) {
                             return;
                         }
-                        formRef.current.validateAndSubmitForm();
+                        inputRef.current.validateAndSubmitForm();
                     }}
                 />
             </FixedFooter>

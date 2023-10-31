@@ -37,10 +37,6 @@ function CodesStep({account = defaultAccount}) {
         }
 
         TwoFactorAuthActions.setCodesAreCopied(false);
-
-        return () => {
-            TwoFactorAuthActions.setCodesAreCopied(false);
-        };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, []);
 
@@ -48,6 +44,7 @@ function CodesStep({account = defaultAccount}) {
         if (account.requiresTwoFactorAuth || account.recoveryCodes) {
             return;
         }
+
         Session.toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, []);
@@ -137,7 +134,6 @@ function CodesStep({account = defaultAccount}) {
                                 setError('twoFactorAuth.errorStepCodes');
                                 return;
                             }
-                            TwoFactorAuthActions.setTwoFactorAuthStep('VERIFY');
                             Navigation.navigate(ROUTES.SETTINGS_2FA.VERIFY);
                         }}
                     />

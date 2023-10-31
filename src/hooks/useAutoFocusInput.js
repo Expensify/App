@@ -36,5 +36,5 @@ export default function useAutoFocusInput() {
         setIsInputInitialized(true);
     };
 
-    return {inputCallbackRef};
+    return {inputCallbackRef, inputRef};
 }
