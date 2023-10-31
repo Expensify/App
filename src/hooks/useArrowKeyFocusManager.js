@@ -1,6 +1,6 @@
-import {useState, useEffect, useCallback, useMemo} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import CONST from '@src/CONST';
 import useKeyboardShortcut from './useKeyboardShortcut';
-import CONST from '../CONST';
 
 /**
  * A hook that makes it easy to use the arrow keys to manage focus of items in a list

@@ -3,11 +3,11 @@ import SkeletonViewContentLoader from 'react-content-loader/native';
 import {Circle, Rect} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import {View} from 'react-native';
-import * as StyleUtils from '../../styles/StyleUtils';
-import CONST from '../../CONST';
-import themeColors from '../../styles/themes/default';
-import variables from '../../styles/variables';
-import styles from '../../styles/styles';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 type CurrentUserPersonalDetailsSkeletonViewProps = {
     /** Whether to animate the skeleton view */

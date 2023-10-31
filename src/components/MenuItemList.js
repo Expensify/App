@@ -1,11 +1,11 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
-import useSingleExecution from '../hooks/useSingleExecution';
+import useSingleExecution from '@hooks/useSingleExecution';
+import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
+import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import MenuItem from './MenuItem';
 import menuItemPropTypes from './menuItemPropTypes';
-import * as ReportActionContextMenu from '../pages/home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../pages/home/report/ContextMenu/ContextMenuActions';
 
 const propTypes = {
     /** An array of props that are pass to individual MenuItem components */
