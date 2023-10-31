@@ -1,7 +1,7 @@
+import {useFocusEffect} from '@react-navigation/native';
+import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useState} from 'react';
 import {FlatList} from 'react-native';
-import PropTypes from 'prop-types';
-import {useFocusEffect} from '@react-navigation/native';
 
 const propTypes = {
     /** Same as for FlatList */

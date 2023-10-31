@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import AddressSearch from '../components/AddressSearch';
+import AddressSearch from '@components/AddressSearch';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
