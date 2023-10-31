@@ -8,9 +8,9 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
-import useThemeStyles from '@styles/useThemeStyles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import FormSubmit from './FormSubmit';
 import networkPropTypes from './networkPropTypes';
@@ -462,23 +462,24 @@ function Form(props) {
             </FormSubmit>
         ),
         [
-            childrenWrapperWithProps,
-            errors,
-            formContentRef,
-            formRef,
-            errorMessage,
-            inputRefs,
-            inputValues,
-            submit,
             props.style,
-            children,
-            props.formState,
-            props.footerContent,
-            props.enabledWhenOffline,
-            props.isSubmitActionDangerous,
             props.isSubmitButtonVisible,
             props.submitButtonText,
+            props.formState.errorFields,
+            props.formState.isLoading,
+            props.footerContent,
             props.submitButtonStyles,
+            props.enabledWhenOffline,
+            props.isSubmitActionDangerous,
+            submit,
+            childrenWrapperWithProps,
+            children,
+            inputValues,
+            errors,
+            errorMessage,
+            styles.mh0,
+            styles.mt5,
+            styles.flex1,
         ],
     );
 
