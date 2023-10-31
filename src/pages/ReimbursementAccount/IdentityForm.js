@@ -3,11 +3,12 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import DatePicker from '@components/DatePicker';
 import TextInput from '@components/TextInput';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import AddressForm from './AddressForm';
+import InputWrapper from '@components/Form/InputWrapper';
+import NewDatePicker from '@components/NewDatePicker';
 
 const propTypes = {
     /** Style for wrapping View */
@@ -141,7 +142,8 @@ function IdentityForm(props) {
         <View style={props.style}>
             <View style={[styles.flexRow]}>
                 <View style={[styles.flex2, styles.mr2]}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID={props.inputKeys.firstName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.firstName')}`}
@@ -154,7 +156,8 @@ function IdentityForm(props) {
                     />
                 </View>
                 <View style={[styles.flex2]}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID={props.inputKeys.lastName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.lastName')}`}
@@ -167,7 +170,7 @@ function IdentityForm(props) {
                     />
                 </View>
             </View>
-            <DatePicker
+            <NewDatePicker
                 inputID={props.inputKeys.dob}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.dob')}`}
@@ -179,7 +182,8 @@ function IdentityForm(props) {
                 minDate={minDate}
                 maxDate={maxDate}
             />
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 inputID={props.inputKeys.ssnLast4}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.ssnLast4')}`}
