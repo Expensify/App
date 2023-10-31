@@ -206,7 +206,6 @@ const runTests = async () => {
         const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.COOL_DOWN / 1000}s`);
         coolDownLogs.updateText(`Cooling down for ${config.COOL_DOWN / 1000}s`);
 
-        // eslint-disable-next-line no-loop-func
         await sleep(config.BOOT_COOL_DOWN);
         coolDownLogs.done();
 
