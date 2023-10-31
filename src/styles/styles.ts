@@ -1327,6 +1327,10 @@ const styles = (theme: ThemeDefault) =>
             width: variables.componentSizeNormal,
         },
 
+        skeletonAvatar: {
+            backgroundColor: theme.skeletonLHNIn,
+        },
+
         statusIndicator: (backgroundColor = theme.danger) =>
             ({
                 borderColor: theme.sidebar,

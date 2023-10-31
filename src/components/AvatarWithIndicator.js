@@ -17,22 +17,30 @@ const propTypes = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+
+    /** Indicates whether the avatar is loaded or not  */
+    isLoading: PropTypes.bool,
 };
 
 const defaultProps = {
     tooltipText: '',
     fallbackIcon: Expensicons.FallbackAvatar,
+    isLoading: true,
 };
 
 function AvatarWithIndicator(props) {
     return (
         <Tooltip text={props.tooltipText}>
-            <View style={[styles.sidebarAvatar]}>
-                <Avatar
-                    source={UserUtils.getSmallSizeAvatar(props.source)}
-                    fallbackIcon={props.fallbackIcon}
-                />
-                <Indicator />
+            <View style={[styles.sidebarAvatar, props.isLoading && styles.skeletonAvatar]}>
+                {!props.isLoading && (
+                    <>
+                        <Avatar
+                            source={UserUtils.getSmallSizeAvatar(props.source)}
+                            fallbackIcon={props.fallbackIcon}
+                        />
+                        <Indicator />
+                    </>
+                )}
             </View>
         </Tooltip>
     );
