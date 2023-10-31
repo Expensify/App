@@ -1,13 +1,12 @@
 import {NativeModules} from 'react-native';
+import IsBetaBuild from './types';
 
 /**
  * Check to see if the build is staging (TestFlight) or production
- *
- * @returns {Promise}
  */
-function isBetaBuild() {
+function isBetaBuild(): IsBetaBuild {
     return new Promise((resolve) => {
-        NativeModules.EnvironmentChecker.isBeta().then((isBeta) => {
+        NativeModules.EnvironmentChecker.isBeta().then((isBeta: boolean) => {
             resolve(isBeta);
         });
     });
