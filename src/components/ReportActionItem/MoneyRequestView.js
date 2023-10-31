@@ -19,6 +19,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
@@ -151,9 +152,15 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
     let hasErrors = false;
+    const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
+
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
         hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
+    }
+
+    if (isDistanceRequest) {
+        hasErrors = canEdit && hasRouteError;
     }
 
     const pendingAction = lodashGet(transaction, 'pendingAction');
@@ -211,6 +218,8 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                             shouldShowRightIcon={canEdit && !isSettled}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
+                            brickRoadIndicator={hasErrors && hasRouteError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={hasErrors && hasRouteError ? lodashValues(ErrorUtils.getLatestErrorField(transaction, 'route')) : ''}
                         />
                     </OfflineWithFeedback>
                 ) : (

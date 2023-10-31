@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
@@ -249,6 +250,7 @@ function MoneyRequestConfirmationList(props) {
     const shouldShowBillable = canUseTags && !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
+    const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
     const isDistanceRequestWithoutRoute = props.isDistanceRequest && !hasRoute;
     const formattedAmount = isDistanceRequestWithoutRoute
         ? translate('common.tbd')
@@ -264,12 +266,16 @@ function MoneyRequestConfirmationList(props) {
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     const shouldDisplayFieldError = useMemo(() => {
-        if (!props.isEditingSplitBill) {
+        if (!props.isEditingSplitBill && !props.isDistanceRequest) {
             return false;
         }
 
-        return (props.hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
-    }, [props.isEditingSplitBill, props.hasSmartScanFailed, transaction, didConfirmSplit]);
+        return (
+            (props.hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) ||
+            (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction)) ||
+            (props.isDistanceRequest && hasRouteError)
+        );
+    }, [props.isEditingSplitBill, props.hasSmartScanFailed, transaction, didConfirmSplit, hasRouteError, props.isDistanceRequest]);
 
     useEffect(() => {
         if (shouldDisplayFieldError && props.hasSmartScanFailed) {
@@ -280,9 +286,14 @@ function MoneyRequestConfirmationList(props) {
             setFormError('iou.error.genericSmartscanFailureMessage');
             return;
         }
+
+        if (shouldDisplayFieldError && hasRouteError) {
+            setFormError(_.values(ErrorUtils.getLatestErrorField(transaction, 'route')));
+            return;
+        }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
-    }, [isFocused, transaction, shouldDisplayFieldError, props.hasSmartScanFailed, didConfirmSplit]);
+    }, [isFocused, transaction, shouldDisplayFieldError, props.hasSmartScanFailed, didConfirmSplit, hasRouteError]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -540,13 +551,25 @@ function MoneyRequestConfirmationList(props) {
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={translate(formError)}
+                        message={props.isDistanceRequest ? formError : translate(formError)}
                     />
                 )}
                 {button}
             </>
         );
-    }, [confirm, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions, translate, formError]);
+    }, [
+        confirm,
+        props.bankAccountRoute,
+        props.iouCurrencyCode,
+        props.iouType,
+        props.isReadOnly,
+        props.policyID,
+        selectedParticipants,
+        splitOrRequestOptions,
+        translate,
+        formError,
+        props.isDistanceRequest,
+    ]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =
         props.receiptPath && props.receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, props.receiptPath, props.receiptFilename) : {};
@@ -672,6 +695,7 @@ function MoneyRequestConfirmationList(props) {
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(props.iouType, props.reportID))}
                             disabled={didConfirm || !isTypeRequest}
+                            brickRoadIndicator={shouldDisplayFieldError && hasRouteError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             interactive={!props.isReadOnly}
                         />
                     )}
