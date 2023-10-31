@@ -11,7 +11,36 @@ import {defaultProps, propTypes} from './popoverPropTypes';
  * This is a convenience wrapper around the Modal component for a responsive Popover.
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
-function Popover(props) {
+
+type PopoverProps = {
+    isVisible: boolean;
+    anchorPosition: {
+        top: number;
+        left: number;
+        bottom: number;
+        right: number;
+    };
+    anchorRef: React.RefObject<HTMLElement>;
+    animationInTiming: number;
+    disableAnimation: boolean;
+    withoutOverlay: boolean;
+    fullscreen?: boolean;
+    shouldCloseOnOutsideClick?: boolean;
+    shouldSetModalVisibility?: boolean;
+    onClose: () => void;
+    children: React.ReactNode;
+    onSubmit?: () => void;
+    onModalHide?: () => void;
+    onModalShow?: () => void;
+    animationIn?: string | object;
+    animationOut?: string | object;
+    innerContainerStyle?: any[];
+    statusBarTranslucent?: boolean;
+    avoidKeyboard?: boolean;
+    hideModalContentWhileAnimating?: boolean;
+};
+function Popover(props: PopoverProps) {
+    console.log('Popover', props);
     const {isVisible, onClose, isSmallScreenWidth, fullscreen, animationInTiming, onLayout, animationOutTiming, disableAnimation, withoutOverlay, anchorPosition, anchorRef} = props;
     const withoutOverlayRef = useRef(null);
     const {close, popover} = React.useContext(PopoverContext);
