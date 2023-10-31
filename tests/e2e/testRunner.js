@@ -206,6 +206,9 @@ const runTests = async () => {
         const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.COOL_DOWN / 1000}s`);
         coolDownLogs.updateText(`Cooling down for ${config.COOL_DOWN / 1000}s`);
 
+        // Having the cooldown right at the beginning should hopefully lower the chances of heat
+        // throttling from the previous run (which we have no control over and will be a
+        //  completely different AWS DF customer/app). It also gives the time to cool down between test suites.
         await sleep(config.BOOT_COOL_DOWN);
         coolDownLogs.done();
 
@@ -240,6 +243,9 @@ const runTests = async () => {
             await killApp('android', config.APP_PACKAGE);
 
             testLog.updateText(`Coolin down phone 🧊 ${config.SUITE_COOL_DOWN / 1000}s\n`);
+
+            // Adding the cool down between booting the app again, had the side-effect of actually causing a cold boot,
+            // which increased TTI/bundle load JS times significantly but also stabilized standard deviation.
             await sleep(config.SUITE_COOL_DOWN);
 
             Logger.log('Starting app...');
