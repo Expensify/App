@@ -8,8 +8,8 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import onfidoPropTypes from './onfidoPropTypes';
 import getPlatform from '@libs/getPlatform';
+import onfidoPropTypes from './onfidoPropTypes';
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
     const {translate} = useLocalize();
