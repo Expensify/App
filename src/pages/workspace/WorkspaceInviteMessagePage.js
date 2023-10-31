@@ -19,12 +19,12 @@ import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import styles from '@styles/styles';
 import * as Link from '@userActions/Link';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import withThemeStyles, {withThemeStylesPropTypes} from '../../components/withThemeStyles';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -36,7 +36,7 @@ const personalDetailsPropTypes = PropTypes.shape({
     login: PropTypes.string,
 
     /** The URL of the person's avatar (there should already be a default avatar if
-    the person doesn't have their own avatar uploaded yet, except for anon users) */
+  the person doesn't have their own avatar uploaded yet, except for anon users) */
     avatar: PropTypes.string,
 
     /** This is either the user's full name, or their login if full name is an empty string */
@@ -60,6 +60,7 @@ const propTypes = {
 
     ...policyPropTypes,
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -176,8 +177,9 @@ class WorkspaceInviteMessagePage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(this.props.route.params.policyID))}
                     />
+
                     <Form
-                        style={[styles.flexGrow1, styles.ph5]}
+                        style={[this.props.themeStyles.flexGrow1, this.props.themeStyles.ph5]}
                         formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
                         validate={this.validate}
                         onSubmit={this.sendInvitation}
@@ -189,15 +191,15 @@ class WorkspaceInviteMessagePage extends Component {
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                                 accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
-                                style={[styles.mv2, styles.alignSelfStart]}
+                                style={[this.props.themeStyles.mv2, this.props.themeStyles.alignSelfStart]}
                             >
-                                <View style={[styles.flexRow]}>
-                                    <Text style={[styles.mr1, styles.label, styles.link]}>{this.props.translate('common.privacy')}</Text>
+                                <View style={[this.props.themeStyles.flexRow]}>
+                                    <Text style={[this.props.themeStyles.mr1, this.props.themeStyles.label, this.props.themeStyles.link]}>{this.props.translate('common.privacy')}</Text>
                                 </View>
                             </PressableWithoutFeedback>
                         }
                     >
-                        <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <View style={[this.props.themeStyles.mv4, this.props.themeStyles.justifyContentCenter, this.props.themeStyles.alignItemsCenter]}>
                             <MultipleAvatars
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 icons={OptionsListUtils.getAvatarsForAccountIDs(
@@ -207,13 +209,13 @@ class WorkspaceInviteMessagePage extends Component {
                                 )}
                                 shouldStackHorizontally
                                 shouldDisplayAvatarsInRows
-                                secondAvatarStyle={[styles.secondAvatarInline]}
+                                secondAvatarStyle={[this.props.themeStyles.secondAvatarInline]}
                             />
                         </View>
-                        <View style={[styles.mb5]}>
+                        <View style={[this.props.themeStyles.mb5]}>
                             <Text>{this.props.translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                         </View>
-                        <View style={[styles.mb3]}>
+                        <View style={[this.props.themeStyles.mb3]}>
                             <TextInput
                                 ref={(el) => (this.welcomeMessageInputRef = el)}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -224,7 +226,7 @@ class WorkspaceInviteMessagePage extends Component {
                                 autoCorrect={false}
                                 autoGrowHeight
                                 textAlignVertical="top"
-                                containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                containerStyles={[this.props.themeStyles.autoGrowHeightMultilineInput]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
                                 onChangeText={(text) => this.setState({welcomeNote: text})}
@@ -253,4 +255,5 @@ export default compose(
         },
     }),
     withNavigationFocus,
+    withThemeStyles,
 )(WorkspaceInviteMessagePage);

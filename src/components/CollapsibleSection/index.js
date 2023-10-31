@@ -5,8 +5,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import withThemeStyles, {withThemeStylesPropTypes} from '../withThemeStyles';
 import Collapsible from './Collapsible';
 
 const propTypes = {
@@ -15,6 +15,7 @@ const propTypes = {
 
     /** Children to display inside the Collapsible component */
     children: PropTypes.node.isRequired,
+    ...withThemeStylesPropTypes,
 };
 
 class CollapsibleSection extends Component {
@@ -39,10 +40,10 @@ class CollapsibleSection extends Component {
         const src = this.state.isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow;
 
         return (
-            <View style={styles.mt4}>
+            <View style={this.props.themeStyles.mt4}>
                 <PressableWithFeedback
                     onPress={this.toggleSection}
-                    style={[styles.pb4, styles.flexRow]}
+                    style={[this.props.themeStyles.pb4, this.props.themeStyles.flexRow]}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={this.props.title}
                     hoverDimmingValue={1}
@@ -50,14 +51,14 @@ class CollapsibleSection extends Component {
                 >
                     <Text
                         selectable={false}
-                        style={[styles.flex1, styles.textStrong]}
+                        style={[this.props.themeStyles.flex1, this.props.themeStyles.textStrong]}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         {this.props.title}
                     </Text>
                     <Icon src={src} />
                 </PressableWithFeedback>
-                <View style={styles.collapsibleSectionBorder} />
+                <View style={this.props.themeStyles.collapsibleSectionBorder} />
 
                 <Collapsible isOpened={this.state.isExpanded}>
                     <View>{this.props.children}</View>
@@ -68,4 +69,4 @@ class CollapsibleSection extends Component {
 }
 
 CollapsibleSection.propTypes = propTypes;
-export default CollapsibleSection;
+export default withThemeStyles(CollapsibleSection);

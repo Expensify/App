@@ -17,12 +17,12 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import withPolicy, {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import withThemeStyles, {withThemeStylesPropTypes} from '../../../components/withThemeStyles';
 
 const propTypes = {
     /** Bank account attached to free plan */
@@ -30,6 +30,7 @@ const propTypes = {
 
     ...policyPropTypes,
     ...withLocalizePropTypes,
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -159,7 +160,7 @@ class WorkspaceRateAndUnitPage extends Component {
                     <Form
                         formID={ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM}
                         submitButtonText={this.props.translate('common.save')}
-                        style={[styles.mh5, styles.flexGrow1]}
+                        style={[this.props.themeStyles.mh5, this.props.themeStyles.flexGrow1]}
                         scrollContextEnabled
                         validate={this.validate}
                         onSubmit={this.submit}
@@ -178,7 +179,7 @@ class WorkspaceRateAndUnitPage extends Component {
                             <TextInput
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="rate"
-                                containerStyles={[styles.mt4]}
+                                containerStyles={[this.props.themeStyles.mt4]}
                                 defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, this.props.toLocaleDigit)}
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                 accessibilityLabel={this.props.translate('workspace.reimburse.trackDistanceRate')}
@@ -190,7 +191,8 @@ class WorkspaceRateAndUnitPage extends Component {
                                 value={this.state.rate}
                                 onChangeText={(value) => this.setState({rate: value})}
                             />
-                            <View style={[styles.mt4]}>
+
+                            <View style={[this.props.themeStyles.mt4]}>
                                 <Picker
                                     value={this.state.unit}
                                     label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
@@ -218,4 +220,5 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
+    withThemeStyles,
 )(WorkspaceRateAndUnitPage);
