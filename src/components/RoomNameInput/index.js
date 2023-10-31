@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import _ from 'underscore';
-import CONST from '../../CONST';
-import TextInput from '../TextInput';
-import useLocalize from '../../hooks/useLocalize';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
+import CONST from '@src/CONST';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
-import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
 
 function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
     const {translate} = useLocalize();
@@ -71,10 +71,14 @@ RoomNameInput.propTypes = roomNameInputPropTypes.propTypes;
 RoomNameInput.defaultProps = roomNameInputPropTypes.defaultProps;
 RoomNameInput.displayName = 'RoomNameInput';
 
-export default React.forwardRef((props, ref) => (
+const RoomNameInputWithRef = React.forwardRef((props, ref) => (
     <RoomNameInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+RoomNameInputWithRef.displayName = 'RoomNameInputWithRef';
+
+export default RoomNameInputWithRef;

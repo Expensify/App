@@ -1,9 +1,9 @@
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import globalStyles from '../styles/styles';
+import themeColors from '@styles/themes/default';
+import globalStyles from '@styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import themeColors from '../styles/themes/default';
 
 type SelectCircleProps = {
     /** Should we show the checkmark inside the circle */

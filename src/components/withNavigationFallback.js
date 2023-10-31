@@ -1,6 +1,6 @@
-import React, {forwardRef, useContext, useMemo} from 'react';
 import {NavigationContext} from '@react-navigation/core';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
+import React, {forwardRef, useContext, useMemo} from 'react';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
 import refPropTypes from './refPropTypes';
 
 export default function (WrappedComponent) {
@@ -33,11 +33,15 @@ export default function (WrappedComponent) {
         forwardedRef: undefined,
     };
 
-    return forwardRef((props, ref) => (
+    const WithNavigationFallbackWithRef = forwardRef((props, ref) => (
         <WithNavigationFallback
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithNavigationFallbackWithRef.displayName = `WithNavigationFallbackWithRef`;
+
+    return WithNavigationFallbackWithRef;
 }

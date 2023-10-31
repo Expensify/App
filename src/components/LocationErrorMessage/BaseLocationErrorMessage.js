@@ -1,16 +1,17 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import CONST from '../../CONST';
-import colors from '../../styles/colors';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import Text from '../Text';
-import TextLink from '../TextLink';
-import Tooltip from '../Tooltip';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import Tooltip from '@components/Tooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import colors from '@styles/colors';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import * as locationErrorMessagePropTypes from './locationErrorMessagePropTypes';
 
 const propTypes = {
@@ -42,14 +43,14 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
             <View style={styles.offlineFeedback.textContainer}>
                 {isPermissionDenied ? (
                     <Text>
-                        <Text style={[styles.offlineFeedback.text]}>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles()]}>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
                         <TextLink
                             onPress={onAllowLocationLinkPress}
                             style={styles.locationErrorLinkText}
                         >
                             {` ${translate('location.allowPermission')} `}
                         </TextLink>
-                        <Text style={[styles.offlineFeedback.text]}>{translate('location.tryAgain')}</Text>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles()]}>{translate('location.tryAgain')}</Text>
                     </Text>
                 ) : (
                     <Text style={styles.offlineFeedback.text}>{translate('location.notFound')}</Text>
@@ -59,6 +60,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                 <Tooltip text={translate('common.close')}>
                     <PressableWithoutFeedback
                         onPress={onClose}
+                        onMouseDown={(e) => e.preventDefault()}
                         style={[styles.touchableButtonImage]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
