@@ -152,11 +152,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
         }
 
         const isDuplicatedWaypoints = numberOfNoneEmptyWaypoints > _.size(validatedWaypoints) && _.size(validatedWaypoints) === 1;
-        if (isDuplicatedWaypoints) {
-            return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
-        }
-
-        if (_.size(validatedWaypoints) < 2) {
+        if (_.size(validatedWaypoints) < 2 || isDuplicatedWaypoints) {
             return {0: translate('iou.error.emptyWaypointsErrorMessage')};
         }
     };
