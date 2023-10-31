@@ -2041,7 +2041,7 @@ function getThreadReportName(parentReportAction, shouldRenderAsHTML, shouldRende
     }
 
     // <body></body> is to prevent the redundant body div which causes text overflown
-    return StringUtils.containsHtml(threadReportNameHtml) ? `<body></body><thread-title>${threadReportNameHtml}</thread-title>` : threadReportNameHtml;
+    return StringUtils.containsHtml(threadReportNameHtml) ? `<body></body><thread-title>${threadReportNameHtml}</thread-title>` : _.unescape(threadReportNameHtml);
 }
 
 /**
