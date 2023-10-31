@@ -1,11 +1,14 @@
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
+import compose from '../../libs/compose';
+import withTheme, {withThemePropTypes} from '../withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from '../withThemeStyles';
 import IconWrapperStyles from './IconWrapperStyles';
+
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** The asset to render. */
@@ -34,12 +37,14 @@ const propTypes = {
 
     // eslint-disable-next-line react/forbid-prop-types
     additionalStyles: PropTypes.arrayOf(PropTypes.object),
+    ...withThemeStylesPropTypes,
+    ...withThemePropTypes,
 };
 
 const defaultProps = {
     width: variables.iconSizeNormal,
     height: variables.iconSizeNormal,
-    fill: themeColors.icon,
+    fill: this.props.theme.icon,
     small: false,
     inline: false,
     additionalStyles: [],
@@ -53,13 +58,13 @@ class Icon extends PureComponent {
     render() {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
-        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute, ...this.props.additionalStyles];
+        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, this.props.themeStyles.pAbsolute, ...this.props.additionalStyles];
 
         if (this.props.inline) {
             return (
                 <View
                     testID={`${this.props.src.name} Icon`}
-                    style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
+                    style={[StyleUtils.getWidthAndHeightStyle(width, height), this.props.themeStyles.bgTransparent, this.props.themeStyles.overflowVisible]}
                 >
                     <View style={iconStyles}>
                         <this.props.src
@@ -94,4 +99,4 @@ class Icon extends PureComponent {
 Icon.propTypes = propTypes;
 Icon.defaultProps = defaultProps;
 
-export default Icon;
+export default compose(withThemeStyles, withTheme)(Icon);
