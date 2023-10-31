@@ -219,7 +219,7 @@ function MoneyRequestView({report, betas, parentReport, policyCategories, should
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
                             brickRoadIndicator={hasErrors && hasRouteError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={hasErrors && hasRouteError ? lodashValues(ErrorUtils.getLatestErrorField(transaction, 'route')) : ''}
+                            error={hasErrors && hasRouteError ? lodashValues(ErrorUtils.getLatestErrorField(transaction, 'route'))[0] : ''}
                         />
                     </OfflineWithFeedback>
                 ) : (
