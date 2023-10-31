@@ -10,7 +10,7 @@ import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import NetworkConnection from '@libs/NetworkConnection';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 
@@ -34,6 +34,8 @@ const story = {
 };
 
 function Template(args) {
+    const styles = useThemeStyles();
+
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
     FormActions.setIsLoading(args.formID, args.formState.isLoading);

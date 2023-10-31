@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 /**
@@ -210,6 +210,7 @@ WithAlternateText.args = {
 };
 
 function MultipleSelection(args) {
+    const styles = useThemeStyles();
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {
@@ -239,7 +240,7 @@ function MultipleSelection(args) {
         });
 
         return {sections, allIds};
-    }, [args.sections, selectedIds]);
+    }, [args.sections, selectedIds, styles.badge, styles.peopleBadge, styles.peopleBadgeText]);
 
     const onSelectRow = (item) => {
         const newSelectedIds = _.contains(selectedIds, item.keyForList) ? _.without(selectedIds, item.keyForList) : [...selectedIds, item.keyForList];
@@ -272,6 +273,7 @@ MultipleSelection.args = {
 };
 
 function WithSectionHeader(args) {
+    const styles = useThemeStyles();
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {
@@ -301,7 +303,7 @@ function WithSectionHeader(args) {
         });
 
         return {sections, allIds};
-    }, [args.sections, selectedIds]);
+    }, [args.sections, selectedIds, styles.badge, styles.peopleBadge, styles.peopleBadgeText]);
 
     const onSelectRow = (item) => {
         const newSelectedIds = _.contains(selectedIds, item.keyForList) ? _.without(selectedIds, item.keyForList) : [...selectedIds, item.keyForList];
@@ -332,6 +334,7 @@ WithSectionHeader.args = {
 };
 
 function WithConfirmButton(args) {
+    const styles = useThemeStyles();
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {
@@ -361,7 +364,7 @@ function WithConfirmButton(args) {
         });
 
         return {sections, allIds};
-    }, [args.sections, selectedIds]);
+    }, [args.sections, selectedIds, styles.badge, styles.peopleBadge, styles.peopleBadgeText]);
 
     const onSelectRow = (item) => {
         const newSelectedIds = _.contains(selectedIds, item.keyForList) ? _.without(selectedIds, item.keyForList) : [...selectedIds, item.keyForList];

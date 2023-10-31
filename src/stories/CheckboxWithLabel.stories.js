@@ -1,7 +1,7 @@
 import React from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import Text from '@components/Text';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -32,13 +32,16 @@ Default.args = {
 WithLabelComponent.args = {
     isChecked: true,
     onInputChange: () => {},
-    LabelComponent: () => (
-        <>
-            <Text style={[styles.textLarge]}>Test</Text>
-            <Text style={[styles.textMicroBold]}> Test </Text>
-            <Text style={[styles.textMicroSupporting]}>Test</Text>
-        </>
-    ),
+    LabelComponent: () => {
+        const styles = useThemeStyles();
+        return (
+            <>
+                <Text style={[styles.textLarge]}>Test</Text>
+                <Text style={[styles.textMicroBold]}> Test </Text>
+                <Text style={[styles.textMicroSupporting]}>Test</Text>
+            </>
+        );
+    },
 };
 
 WithErrors.args = {
