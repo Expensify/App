@@ -27,6 +27,7 @@ const math = require('./measure/math');
 const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
 const reversePort = require('./utils/androidReversePort');
+const sleep = require('./utils/sleep');
 
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
@@ -202,6 +203,13 @@ const runTests = async () => {
             }
         }
 
+        const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.COOL_DOWN / 1000}s`);
+        coolDownLogs.updateText(`Cooling down for ${config.COOL_DOWN / 1000}s`);
+
+        // eslint-disable-next-line no-loop-func
+        await sleep(config.COOL_DOWN);
+        coolDownLogs.done();
+
         server.setTestConfig(testConfig);
 
         const warmupLogs = Logger.progressInfo(`Running warmup '${testConfig.name}'`);
@@ -250,15 +258,6 @@ const runTests = async () => {
             }
         }
         testLog.done();
-
-        // If we still have tests add a cool down period
-        if (testIndex < numOfTests - 1) {
-            const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.COOL_DOWN / 1000}s`);
-            coolDownLogs.updateText(`Cooling down for ${config.COOL_DOWN / 1000}s`);
-            // eslint-disable-next-line no-loop-func
-            await new Promise((resolve) => setTimeout(resolve, config.COOL_DOWN));
-            coolDownLogs.done();
-        }
     }
 
     // Calculate statistics and write them to our work file
