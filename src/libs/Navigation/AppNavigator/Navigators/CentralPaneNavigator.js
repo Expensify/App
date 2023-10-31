@@ -65,7 +65,7 @@ function CentralPaneNavigator() {
                 <Stack.Screen
                     name={SCREENS.REPORT}
                     // We do it this way to avoid adding the url params to url
-                    initialParams={{openOnAdminRoom: openOnAdminRoom ? 'true' : undefined}}
+                    initialParams={{openOnAdminRoom: openOnAdminRoom === 'true' || undefined}}
                     component={ReportScreenWrapper}
                 />
                 {_.map(iframeScreens, (screen) => (

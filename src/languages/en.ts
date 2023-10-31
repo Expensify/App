@@ -877,7 +877,7 @@ export default {
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
-        availableSpend: 'Remaining spending power',
+        availableSpend: 'Remaining limit',
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
         reportFraud: 'Report virtual card fraud',

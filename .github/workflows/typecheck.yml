@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['**.ts', '**.tsx', 'package.json', 'package-lock.json']
+    paths: ['**.ts', '**.tsx', 'package.json', 'package-lock.json', 'tsconfig.json']
 
 jobs:
   typecheck:

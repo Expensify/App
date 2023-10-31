@@ -1,29 +1,26 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {RenderHTMLSource} from 'react-native-render-html';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-const propTypes = {
+type RenderHTMLProps = {
     /** HTML string to render */
-    html: PropTypes.string.isRequired,
+    html: string;
 };
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // The provider is available at src/components/HTMLEngineProvider/
-function RenderHTML(props) {
+function RenderHTML({html}: RenderHTMLProps) {
     const {windowWidth} = useWindowDimensions();
     return (
         <RenderHTMLSource
             contentWidth={windowWidth * 0.8}
-            source={{html: props.html}}
+            source={{html}}
         />
     );
 }
 
 RenderHTML.displayName = 'RenderHTML';
-RenderHTML.propTypes = propTypes;
-RenderHTML.defaultProps = {};
 
 export default RenderHTML;
