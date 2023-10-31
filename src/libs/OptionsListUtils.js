@@ -1,24 +1,25 @@
 /* eslint-disable no-continue */
-import _ from 'underscore';
-import Onyx from 'react-native-onyx';
-import lodashOrderBy from 'lodash/orderBy';
-import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import {parsePhoneNumber} from 'awesome-phonenumber';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
-import * as ReportUtils from './ReportUtils';
-import * as Localize from './Localize';
-import Permissions from './Permissions';
+import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
+import lodashOrderBy from 'lodash/orderBy';
+import lodashSet from 'lodash/set';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as CollectionUtils from './CollectionUtils';
-import Navigation from './Navigation/Navigation';
-import * as LoginUtils from './LoginUtils';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
-import * as UserUtils from './UserUtils';
-import * as ReportActionUtils from './ReportActionsUtils';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ErrorUtils from './ErrorUtils';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
+import * as Localize from './Localize';
+import * as LoginUtils from './LoginUtils';
+import Navigation from './Navigation/Navigation';
+import Permissions from './Permissions';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as ReportActionUtils from './ReportActionsUtils';
+import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
+import * as UserUtils from './UserUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -398,7 +399,9 @@ function getLastMessageTextForReport(report) {
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true);
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true, ReportUtils.isChatReport(report));
+    } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
@@ -662,7 +665,87 @@ function hasEnabledOptions(options) {
 }
 
 /**
- * Build the options for the category tree hierarchy via indents
+ * Sorts categories using a simple object.
+ * It builds an hierarchy (based on an object), where each category has a name and other keys as subcategories.
+ * Via the hierarchy we avoid duplicating and sort categories one by one. Subcategories are being sorted alphabetically.
+ *
+ * @param {Object<String, {name: String, enabled: Boolean}>} categories
+ * @returns {Array<Object>}
+ */
+function sortCategories(categories) {
+    // Sorts categories alphabetically by name.
+    const sortedCategories = _.chain(categories)
+        .values()
+        .sortBy((category) => category.name)
+        .value();
+
+    // An object that respects nesting of categories. Also, can contain only uniq categories.
+    const hierarchy = {};
+
+    /**
+     * Iterates over all categories to set each category in a proper place in hierarchy
+     * It gets a path based on a category name e.g. "Parent: Child: Subcategory" -> "Parent.Child.Subcategory".
+     * {
+     *   Parent: {
+     *     name: "Parent",
+     *     Child: {
+     *       name: "Child"
+     *       Subcategory: {
+     *         name: "Subcategory"
+     *       }
+     *     }
+     *   }
+     * }
+     */
+    _.each(sortedCategories, (category) => {
+        const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
+        const existedValue = lodashGet(hierarchy, path, {});
+
+        lodashSet(hierarchy, path, {
+            ...existedValue,
+            name: category.name,
+        });
+    });
+
+    /**
+     * A recursive function to convert hierarchy into an array of category objects.
+     * The category object contains base 2 properties: "name" and "enabled".
+     * It iterates each key one by one. When a category has subcategories, goes deeper into them. Also, sorts subcategories alphabetically.
+     *
+     * @param {Object} initialHierarchy
+     * @returns {Array<Object>}
+     */
+    const flatHierarchy = (initialHierarchy) =>
+        _.reduce(
+            initialHierarchy,
+            (acc, category) => {
+                const {name, ...subcategories} = category;
+
+                if (!_.isEmpty(name)) {
+                    const categoryObject = {
+                        name,
+                        enabled: lodashGet(categories, [name, 'enabled'], false),
+                    };
+
+                    acc.push(categoryObject);
+                }
+
+                if (!_.isEmpty(subcategories)) {
+                    const nestedCategories = flatHierarchy(subcategories);
+
+                    acc.push(..._.sortBy(nestedCategories, 'name'));
+                }
+
+                return acc;
+            },
+            [],
+        );
+
+    return flatHierarchy(hierarchy);
+}
+
+/**
+ * Builds the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
@@ -671,25 +754,21 @@ function hasEnabledOptions(options) {
  * @returns {Array<Object>}
  */
 function getCategoryOptionTree(options, isOneLine = false) {
-    const optionCollection = {};
+    const optionCollection = new Map();
 
     _.each(options, (option) => {
-        if (!option.enabled) {
-            return;
-        }
-
         if (isOneLine) {
-            if (_.has(optionCollection, option.name)) {
+            if (optionCollection.has(option.name)) {
                 return;
             }
 
-            optionCollection[option.name] = {
+            optionCollection.set(option.name, {
                 text: option.name,
                 keyForList: option.name,
                 searchText: option.name,
                 tooltipText: option.name,
                 isDisabled: !option.enabled,
-            };
+            });
 
             return;
         }
@@ -697,26 +776,27 @@ function getCategoryOptionTree(options, isOneLine = false) {
         option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
             const indents = _.times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
+            const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
 
-            if (_.has(optionCollection, optionName)) {
+            if (optionCollection.has(searchText)) {
                 return;
             }
 
-            optionCollection[optionName] = {
+            optionCollection.set(searchText, {
                 text: `${indents}${optionName}`,
-                keyForList: optionName,
-                searchText: array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR),
+                keyForList: searchText,
+                searchText,
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled : true,
-            };
+            });
         });
     });
 
-    return _.values(optionCollection);
+    return Array.from(optionCollection.values());
 }
 
 /**
- * Build the section list for categories
+ * Builds the section list for categories
  *
  * @param {Object<String, {name: String, enabled: Boolean}>} categories
  * @param {String[]} recentlyUsedCategories
@@ -727,13 +807,12 @@ function getCategoryOptionTree(options, isOneLine = false) {
  * @returns {Array<Object>}
  */
 function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
-    const categorySections = [];
-    const categoriesValues = _.chain(categories)
-        .values()
-        .filter((category) => category.enabled)
-        .value();
+    const sortedCategories = sortCategories(categories);
+    const enabledCategories = _.filter(sortedCategories, (category) => category.enabled);
 
-    const numberOfCategories = _.size(categoriesValues);
+    const categorySections = [];
+    const numberOfCategories = _.size(enabledCategories);
+
     let indexOffset = 0;
 
     if (numberOfCategories === 0 && selectedOptions.length > 0) {
@@ -749,12 +828,12 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
     }
 
     if (!_.isEmpty(searchInputValue)) {
-        const searchCategories = _.filter(categoriesValues, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchCategories = _.filter(enabledCategories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         categorySections.push({
             // "Search" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getCategoryOptionTree(searchCategories, true),
         });
@@ -768,33 +847,32 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(categoriesValues),
+            data: getCategoryOptionTree(enabledCategories),
         });
 
         return categorySections;
     }
 
-    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-    const filteredRecentlyUsedCategories = _.map(
-        _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category)),
-        (category) => ({
-            name: category,
-            enabled: lodashGet(categories, `${category}.enabled`, false),
-        }),
-    );
-    const filteredCategories = _.filter(categoriesValues, (category) => !_.includes(selectedOptionNames, category.name));
-
     if (!_.isEmpty(selectedOptions)) {
         categorySections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
 
         indexOffset += selectedOptions.length;
     }
+
+    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredRecentlyUsedCategories = _.chain(recentlyUsedCategories)
+        .filter((categoryName) => !_.includes(selectedOptionNames, categoryName) && lodashGet(categories, [categoryName, 'enabled'], false))
+        .map((categoryName) => ({
+            name: categoryName,
+            enabled: lodashGet(categories, [categoryName, 'enabled'], false),
+        }))
+        .value();
 
     if (!_.isEmpty(filteredRecentlyUsedCategories)) {
         const cutRecentlyUsedCategories = filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow);
@@ -809,6 +887,8 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 
         indexOffset += filteredRecentlyUsedCategories.length;
     }
+
+    const filteredCategories = _.filter(enabledCategories, (category) => !_.includes(selectedOptionNames, category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
@@ -882,7 +962,7 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
         tagSections.push({
             // "Search" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getTagsOptions(searchTags),
         });
@@ -924,7 +1004,7 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
         tagSections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getTagsOptions(selectedTagOptions),
         });
@@ -1666,6 +1746,7 @@ export {
     getLastMessageTextForReport,
     getEnabledCategoriesCount,
     hasEnabledOptions,
+    sortCategories,
     getCategoryOptionTree,
     formatMemberForList,
     formatSectionsFromSearchTerm,

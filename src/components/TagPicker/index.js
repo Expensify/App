@@ -1,15 +1,15 @@
-import React, {useMemo, useState} from 'react';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import useLocalize from '../../hooks/useLocalize';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import OptionsSelector from '../OptionsSelector';
-import {propTypes, defaultProps} from './tagPickerPropTypes';
+import _ from 'underscore';
+import OptionsSelector from '@components/OptionsSelector';
+import useLocalize from '@hooks/useLocalize';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps, propTypes} from './tagPickerPropTypes';
 
 function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubmit}) {
     const {translate} = useLocalize();
@@ -58,6 +58,7 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
     return (
         <OptionsSelector
             optionHoveredStyle={styles.hoveredComponentBG}
+            sectionHeaderStyle={styles.mt5}
             sections={sections}
             selectedOptions={selectedOptions}
             headerMessage={headerMessage}

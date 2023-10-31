@@ -1,5 +1,5 @@
 import React from 'react';
-import DatePicker from '../components/DatePicker';
+import DatePicker from '@components/DatePicker';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
