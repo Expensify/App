@@ -1583,7 +1583,7 @@ function tryFocusModeUpgrade() {
         lastOfferedFocusMode = DateUtils.getDBTime();
         API.write(
             'SetLastOfferedFocusMode',
-            {value: newLastOfferedTime},
+            {value: lastOfferedFocusMode},
             {
                 optimisticData: [
                     {
