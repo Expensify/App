@@ -35,7 +35,7 @@ const propTypes = {
     label: PropTypes.string,
 
     /** whether to use state from url, for cases when url value is passed from parent */
-    useStateFromUrl: PropTypes.bool,
+    shouldUseStateFromUrl: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -44,10 +44,10 @@ const defaultProps = {
     forwardedRef: () => {},
     label: undefined,
     paramName: 'state',
-    useStateFromUrl: true,
+    shouldUseStateFromUrl: true,
 };
 
-function StateSelector({errorText, useStateFromUrl, value: stateCode, label, paramName, onInputChange, forwardedRef}) {
+function StateSelector({errorText, shouldUseStateFromUrl, value: stateCode, label, paramName, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
 
     const stateFromUrl = useGeographicalStateFromRoute(paramName);
@@ -55,7 +55,7 @@ function StateSelector({errorText, useStateFromUrl, value: stateCode, label, par
     const [stateToDisplay, setStateToDisplay] = useState('');
 
     useEffect(() => {
-        if (!useStateFromUrl || !stateFromUrl) {
+        if (!shouldUseStateFromUrl || !stateFromUrl) {
             return;
         }
 
@@ -64,7 +64,7 @@ function StateSelector({errorText, useStateFromUrl, value: stateCode, label, par
         setStateToDisplay(stateFromUrl);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [stateFromUrl, useStateFromUrl]);
+    }, [stateFromUrl, shouldUseStateFromUrl]);
 
     useEffect(() => {
         if (!stateCode) {

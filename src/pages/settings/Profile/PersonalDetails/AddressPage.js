@@ -232,7 +232,7 @@ function AddressPage({privatePersonalDetails, route}) {
                     {isUSAForm ? (
                         <View style={styles.mhn5}>
                             <StateSelector
-                                useStateFromUrl={false}
+                                shouldUseStateFromUrl={false}
                                 inputID="state"
                                 value={state}
                             />
