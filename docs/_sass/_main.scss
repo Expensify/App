@@ -35,10 +35,15 @@ html {
 }
 
 table {
-    border-collapse: separate;
     margin-bottom: 20px;
     border-spacing: 0;
+    border-collapse: collapse;
     border-radius: 8px;
+
+    // Box shadow is used here because border-radius and border-collapse don't work together. It leads to double borders.
+    // https://stackoverflow.com/questions/628301/the-border-radius-property-and-border-collapsecollapse-dont-mix-how-can-i-use
+    border-style: hidden;
+    box-shadow: 0 0 0 1px $color-green-borders;
 }
 
 th:first-child {
