@@ -1,5 +1,5 @@
-import {merge} from 'lodash';
 import isEqual from 'lodash/isEqual';
+import lodashMerge from 'lodash/merge';
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Request} from '@src/types/onyx';
@@ -41,7 +41,7 @@ function createUpdatedRequest(oldRequest: Request, newRequest: Request): Request
      * In order to create updated request, properties: data, failureData, successData and optimisticData have to be merged
      */
     const updatedRequest = {
-        data: merge({...oldRequest.data}, newRequest.data),
+        data: lodashMerge({...oldRequest.data}, newRequest.data),
         failureData: mergeOnyxUpdateData(oldRequest.failureData, newRequest.failureData),
         successData: mergeOnyxUpdateData(oldRequest.successData, newRequest.successData),
         ...newRequest,
