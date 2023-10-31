@@ -1,14 +1,12 @@
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
+import withTheme, {withThemePropTypes} from '@components/withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import compose from '@libs/compose';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
-import compose from '../../libs/compose';
-import withTheme, {withThemePropTypes} from '../withTheme';
-import withThemeStyles, {withThemeStylesPropTypes} from '../withThemeStyles';
 import IconWrapperStyles from './IconWrapperStyles';
-
-import compose from '../../libs/compose';
 
 const propTypes = {
     /** The asset to render. */
@@ -44,7 +42,7 @@ const propTypes = {
 const defaultProps = {
     width: variables.iconSizeNormal,
     height: variables.iconSizeNormal,
-    fill: this.props.theme.icon,
+    fill: undefined,
     small: false,
     inline: false,
     additionalStyles: [],
@@ -70,7 +68,7 @@ class Icon extends PureComponent {
                         <this.props.src
                             width={width}
                             height={height}
-                            fill={this.props.fill}
+                            fill={this.props.fill || this.props.theme.icon}
                             hovered={this.props.hovered.toString()}
                             pressed={this.props.pressed.toString()}
                         />
@@ -87,7 +85,7 @@ class Icon extends PureComponent {
                 <this.props.src
                     width={width}
                     height={height}
-                    fill={this.props.fill}
+                    fill={this.props.fill || this.props.theme.icon}
                     hovered={this.props.hovered.toString()}
                     pressed={this.props.pressed.toString()}
                 />
