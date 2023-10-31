@@ -515,6 +515,16 @@ function shouldDisableDetailPage(report) {
 }
 
 /**
+ * Returns true if this report has only one participant and it's an Expensify account.
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isExpensifyOnlyParticipantInReport(report) {
+    const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
+    return reportParticipants.length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
+}
+
+/**
  * Returns whether a given report can have tasks created in it.
  * We only prevent the task option if it's a DM/group-DM and the other users are all special Expensify accounts
  *
@@ -4156,6 +4166,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isExpensifyOnlyParticipantInReport,
     canCreateTaskInReport,
     isPolicyExpenseChatAdmin,
     isPolicyAdmin,
