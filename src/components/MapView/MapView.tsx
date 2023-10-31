@@ -1,8 +1,9 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Mapbox, {MapState, MarkerView, setAccessToken} from '@rnmapbox/maps';
+import {OrnamentPositonProp} from '@rnmapbox/maps/lib/typescript/utils';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Direction from './Direction';
 import {MapViewHandle, MapViewProps} from './MapViewTypes';
@@ -13,6 +14,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
     const navigation = useNavigation();
+    const styles = useThemeStyles();
 
     useImperativeHandle(
         ref,
@@ -77,9 +79,9 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                 styleURL={styleURL}
                 onMapIdle={setMapIdle}
                 pitchEnabled={pitchEnabled}
-                attributionPosition={{...styles.r2, ...styles.b2}}
+                attributionPosition={{...styles.r2, ...styles.b2} as OrnamentPositonProp}
                 scaleBarEnabled={false}
-                logoPosition={{...styles.l2, ...styles.b2}}
+                logoPosition={{...styles.l2, ...styles.b2} as OrnamentPositonProp}
                 // eslint-disable-next-line
                 {...responder.panHandlers}
             >
