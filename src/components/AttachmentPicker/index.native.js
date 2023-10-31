@@ -1,23 +1,23 @@
-import _ from 'underscore';
-import React, {useState, useRef, useCallback, useMemo} from 'react';
-import PropTypes from 'prop-types';
-import {View, Alert} from 'react-native';
-import RNDocumentPicker from 'react-native-document-picker';
-import RNFetchBlob from 'react-native-blob-util';
 import lodashCompact from 'lodash/compact';
+import PropTypes from 'prop-types';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {Alert, View} from 'react-native';
+import RNFetchBlob from 'react-native-blob-util';
+import RNDocumentPicker from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './attachmentPickerPropTypes';
-import CONST from '../../CONST';
-import * as FileUtils from '../../libs/fileDownload/FileUtils';
-import * as Expensicons from '../Icon/Expensicons';
+import _ from 'underscore';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import Popover from '@components/Popover';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './attachmentPickerPropTypes';
 import launchCamera from './launchCamera';
-import Popover from '../Popover';
-import MenuItem from '../MenuItem';
-import styles from '../../styles/styles';
-import useLocalize from '../../hooks/useLocalize';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
-import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
 
 const propTypes = {
     ...basePropTypes,

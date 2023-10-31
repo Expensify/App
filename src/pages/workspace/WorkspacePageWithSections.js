@@ -1,25 +1,25 @@
-import React, {useEffect} from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import styles from '../../styles/styles';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import Navigation from '../../libs/Navigation/Navigation';
-import compose from '../../libs/compose';
-import ROUTES from '../../ROUTES';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import BankAccount from '../../libs/models/BankAccount';
-import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
-import userPropTypes from '../settings/userPropTypes';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import useNetwork from '@hooks/useNetwork';
+import compose from '@libs/compose';
+import BankAccount from '@libs/models/BankAccount';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import userPropTypes from '@pages/settings/userPropTypes';
+import styles from '@styles/styles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import ScrollViewWithContext from '../../components/ScrollViewWithContext';
-import useNetwork from '../../hooks/useNetwork';
 
 const propTypes = {
     shouldSkipVBBACall: PropTypes.bool,

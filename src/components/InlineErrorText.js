@@ -1,7 +1,7 @@
-import _ from 'underscore';
-import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../styles/styles';
+import React from 'react';
+import _ from 'underscore';
+import styles from '@styles/styles';
 import Text from './Text';
 
 const propTypes = {
