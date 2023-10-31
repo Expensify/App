@@ -3,10 +3,10 @@ import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import Avatar from './Avatar';
 import avatarPropTypes from './avatarPropTypes';
 import Text from './Text';
@@ -58,7 +58,7 @@ const propTypes = {
 const defaultProps = {
     icons: [],
     size: CONST.AVATAR_SIZE.DEFAULT,
-    secondAvatarStyle: [StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)],
+    secondAvatarStyle: undefined,
     fallbackIcon: undefined,
     shouldStackHorizontally: false,
     shouldDisplayAvatarsInRows: false,
@@ -71,23 +71,28 @@ const defaultProps = {
     maxAvatarsInRow: CONST.AVATAR_ROW_SIZE.DEFAULT,
 };
 
-const avatarSizeToStylesMap = {
-    [CONST.AVATAR_SIZE.SMALL]: {
-        singleAvatarStyle: styles.singleAvatarSmall,
-        secondAvatarStyles: styles.secondAvatarSmall,
-    },
-    [CONST.AVATAR_SIZE.LARGE]: {
-        singleAvatarStyle: styles.singleAvatarMedium,
-        secondAvatarStyles: styles.secondAvatarMedium,
-    },
-    default: {
-        singleAvatarStyle: styles.singleAvatar,
-        secondAvatarStyles: styles.secondAvatar,
-    },
-};
 function MultipleAvatars(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    const avatarSizeToStylesMap = useMemo(
+        () => ({
+            [CONST.AVATAR_SIZE.SMALL]: {
+                singleAvatarStyle: styles.singleAvatarSmall,
+                secondAvatarStyles: styles.secondAvatarSmall,
+            },
+            [CONST.AVATAR_SIZE.LARGE]: {
+                singleAvatarStyle: styles.singleAvatarMedium,
+                secondAvatarStyles: styles.secondAvatarMedium,
+            },
+            default: {
+                singleAvatarStyle: styles.singleAvatar,
+                secondAvatarStyles: styles.secondAvatar,
+            },
+        }),
+        [styles.secondAvatar, styles.secondAvatarMedium, styles.secondAvatarSmall, styles.singleAvatar, styles.singleAvatarMedium, styles.singleAvatarSmall],
+    );
+
     let avatarContainerStyles = StyleUtils.getContainerStyles(props.size, props.isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[props.size] || avatarSizeToStylesMap.default, [props.size]);
 
@@ -268,7 +273,7 @@ function MultipleAvatars(props) {
                         <View
                             style={[
                                 secondAvatarStyles,
-                                ...props.secondAvatarStyle,
+                                ...(props.secondAvatarStyle || StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)),
                                 props.icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[1].type) : {},
                             ]}
                         >
