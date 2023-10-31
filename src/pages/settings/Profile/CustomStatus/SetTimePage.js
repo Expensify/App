@@ -2,23 +2,23 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import FormProvider from '@components/Form/FormProvider';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TimePicker from '@components/TimePicker';
-import Form from '@components/Form';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import useLocalize from '@hooks/useLocalize';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@libs/actions/User';
-import DateUtils from '@libs/DateUtils';
 import compose from '@libs/compose';
+import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import styles from '@styles/styles';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -59,7 +59,7 @@ function SetTimePage({translate, privatePersonalDetails, customStatus}) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
             />
             <View style={styles.flex1}>
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1]}
                     formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_TIME_FORM}
                     onSubmit={onSubmit}
@@ -76,7 +76,7 @@ function SetTimePage({translate, privatePersonalDetails, customStatus}) {
                         defaultValue={DateUtils.extractTime12Hour(clearAfter)}
                         style={styles.flexGrow1}
                     />
-                </Form>
+                </FormProvider>
             </View>
         </ScreenWrapper>
     );
