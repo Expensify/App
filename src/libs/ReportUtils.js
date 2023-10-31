@@ -1335,34 +1335,34 @@ function isWaitingForAssigneeToCompleteTask(report, parentReportAction = {}) {
 }
 
 /**
- * Determines if a report requires action from the current user. This can happen when the report:
+ * Determines if the option requires action from the current user. This can happen when it:
     - is unread and the user was mentioned in one of the unread comments
     - is for an outstanding task waiting on the user
     - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
  *
- * @param {Object} report (chatReport or iouReport)
+ * @param {Object} option (report or optionItem)
  * @param {Object} parentReportAction (the report action the current report is a thread of)
  * @returns {boolean}
  */
-function requiresAttentionFromCurrentUser(report, parentReportAction = {}) {
-    if (!report) {
+function requiresAttentionFromCurrentUser(option, parentReportAction = {}) {
+    if (!option) {
         return false;
     }
 
-    if (isArchivedRoom(getReport(report.parentReportID))) {
+    if (isArchivedRoom(getReport(option.parentReportID))) {
         return false;
     }
 
-    if (report.isUnreadWithMention) {
+    if (option.isUnreadWithMention) {
         return true;
     }
 
-    if (isWaitingForAssigneeToCompleteTask(report, parentReportAction)) {
+    if (isWaitingForAssigneeToCompleteTask(option, parentReportAction)) {
         return true;
     }
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
-    if (report.hasOutstandingChildRequest) {
+    if (option.hasOutstandingChildRequest) {
         return true;
     }
 
