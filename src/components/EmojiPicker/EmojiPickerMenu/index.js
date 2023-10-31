@@ -10,16 +10,15 @@ import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,8 +35,6 @@ const propTypes = {
     /** Stores user's frequently used emojis */
     // eslint-disable-next-line react/forbid-prop-types
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.object),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -49,9 +46,11 @@ const defaultProps = {
 const throttleTime = Browser.isMobile() ? 200 : 50;
 
 function EmojiPickerMenu(props) {
-    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, translate} = props;
+    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected} = props;
 
+    const {translate, preferredLocale} = useLocalize();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const styles = useThemeStyles();
 
     // Ref for the emoji search input
     const searchInputRef = useRef(null);
@@ -462,7 +461,7 @@ function EmojiPickerMenu(props) {
                 />
             );
         },
-        [isUsingKeyboardMovement, highlightedIndex, onEmojiSelected, preferredSkinTone, translate, highlightFirstEmoji],
+        [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, styles.emojiHeaderContainer, styles.textLabelSupporting, translate, onEmojiSelected],
     );
 
     const isFiltered = emojis.current.length !== filteredEmojis.length;
@@ -532,6 +531,7 @@ function EmojiPickerMenu(props) {
 
 EmojiPickerMenu.propTypes = propTypes;
 EmojiPickerMenu.defaultProps = defaultProps;
+EmojiPickerMenu.displayName = 'EmojiPickerMenu';
 
 const EmojiPickerMenuWithRef = React.forwardRef((props, ref) => (
     <EmojiPickerMenu
@@ -543,14 +543,11 @@ const EmojiPickerMenuWithRef = React.forwardRef((props, ref) => (
 
 EmojiPickerMenuWithRef.displayName = 'EmojiPickerMenuWithRef';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        preferredSkinTone: {
-            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
-        frequentlyUsedEmojis: {
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-        },
-    }),
-)(EmojiPickerMenuWithRef);
+export default withOnyx({
+    preferredSkinTone: {
+        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+    },
+    frequentlyUsedEmojis: {
+        key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+    },
+})(EmojiPickerMenuWithRef);
