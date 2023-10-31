@@ -1045,7 +1045,8 @@ function broadcastUserIsLeavingRoom(reportID) {
 /**
  * Debounce the prompt to promote focus mode as many reports updates could happen in a short burst
  */
-const promoteFocusModeUpgrade = _.debounce(tryFocusModeUpgrade, 300, true);
+// eslint-disable-next-line no-use-before-define
+const tryFocusMode = _.debounce(tryFocusModeUpdate, 300, true);
 
 /**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
@@ -1085,8 +1086,8 @@ function handleReportChanged(report) {
         reconnect(report.reportID);
     }
 
-    // Check if we should show a prompt and offer the user to switch to focus mode
-    promoteFocusModeUpgrade();
+    // Try to switch the user to focus mode
+    tryFocusMode();
 }
 
 Onyx.connect({
@@ -1564,7 +1565,7 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
     }
 }
 
-function tryFocusModeUpgrade() {
+function tryFocusModeUpdate() {
     Welcome.serverDataIsReadyPromise().then(() => {
         // Check to see if the user is using #focus mode or if we have already asked them to upgrade on any devices.
         if (isInFocusMode || hasTriedFocusMode) {
@@ -1573,7 +1574,7 @@ function tryFocusModeUpgrade() {
         }
 
         const reportCount = _.keys(allReports).length;
-        if (reportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_PROMOTION) {
+        if (reportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_UPDATE) {
             Log.info('Not switching user to optimized focus mode as they do not have enough reports', false, {reportCount});
             return;
         }
@@ -1720,7 +1721,7 @@ function deleteReport(reportID) {
  * @param {string[]} lhnReportIDs
  */
 function deleteUnusedReports(lhnReportIDs) {
-    let reportIDsToDelete = _.filter(allReports, (report) => report.reportID).map((report) => report.reportID);
+    let reportIDsToDelete = _.chain(allReports).filter(allReports, (report) => report.reportID).map((report) => report.reportID).value();
 
     // We won't ever delete anything currently in the LHN list of reports
     reportIDsToDelete = _.difference(reportIDsToDelete, lhnReportIDs);
@@ -2621,7 +2622,7 @@ export {
     getCurrentUserAccountID,
     setLastOpenedPublicRoom,
     flagComment,
-    promoteFocusModeUpgrade,
+    tryFocusMode,
     openLastOpenedPublicRoom,
     updatePrivateNotes,
     getReportPrivateNote,
