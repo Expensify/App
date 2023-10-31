@@ -164,7 +164,7 @@ function ReportActionItemFragment(props) {
                     style={[
                         styles.chatItemMessageHeaderSender,
                         props.isSingleLine ? styles.pre : styles.preWrap,
-                        StyleUtils.getApprovedOrSubmittedReportTextStyles(props.isApprovedOrSubmittedReportAction),
+                        props.isApprovedOrSubmittedReportAction && StyleUtils.getApprovedOrSubmittedReportTextStyles(),
                     ]}
                 >
                     {props.fragment.text}
