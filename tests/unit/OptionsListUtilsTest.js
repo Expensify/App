@@ -590,7 +590,7 @@ describe('OptionsListUtils', () => {
         // Filter current REPORTS as we do in the component, before getting share destination options
         const filteredReports = {};
         _.keys(REPORTS).forEach((reportKey) => {
-            if (ReportUtils.shouldDisableWriteActions(REPORTS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS[reportKey])) {
+            if (!ReportUtils.canUserPerformWriteAction(REPORTS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS[reportKey])) {
                 return;
             }
             filteredReports[reportKey] = REPORTS[reportKey];
@@ -617,7 +617,7 @@ describe('OptionsListUtils', () => {
         // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
         const filteredReportsWithWorkspaceRooms = {};
         _.keys(REPORTS_WITH_WORKSPACE_ROOMS).forEach((reportKey) => {
-            if (ReportUtils.shouldDisableWriteActions(REPORTS_WITH_WORKSPACE_ROOMS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS_WITH_WORKSPACE_ROOMS[reportKey])) {
+            if (!ReportUtils.canUserPerformWriteAction(REPORTS_WITH_WORKSPACE_ROOMS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS_WITH_WORKSPACE_ROOMS[reportKey])) {
                 return;
             }
             filteredReportsWithWorkspaceRooms[reportKey] = REPORTS_WITH_WORKSPACE_ROOMS[reportKey];

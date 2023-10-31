@@ -320,6 +320,9 @@ function MoneyRequestConfirmationList(props) {
             text = translate('iou.split');
         } else if ((props.receiptPath && isTypeRequest) || isDistanceRequestWithoutRoute) {
             text = translate('iou.request');
+            if (props.iouAmount !== 0) {
+                text = translate('iou.requestAmount', {amount: formattedAmount});
+            }
         } else {
             const translationKey = isSplitBill ? 'iou.splitAmount' : 'iou.requestAmount';
             text = translate(translationKey, {amount: formattedAmount});
@@ -700,6 +703,7 @@ function MoneyRequestConfirmationList(props) {
                             numberOfLinesTitle={2}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID))}
                             style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
                         />
