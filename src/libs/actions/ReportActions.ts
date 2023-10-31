@@ -4,7 +4,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportAction from '@src/types/onyx/ReportAction';
-import * as Report from '@libs/actions/Report';
+import * as Report from './Report';
 
 function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
