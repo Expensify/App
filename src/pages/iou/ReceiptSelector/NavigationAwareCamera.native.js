@@ -35,7 +35,7 @@ const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, isInTabNavigato
         }
 
         const listenerId = tabPositionAnimation.addListener(({value}) => {
-            if (selectedTab !== CONST.TAB.SCAN) {
+            if (selectedTab !== CONST.TAB_REQUEST.SCAN) {
                 return;
             }
             // Activate camera as soon the index is animating towards the `cameraTabIndex`
