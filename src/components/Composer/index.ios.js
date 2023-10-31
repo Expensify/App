@@ -5,6 +5,7 @@ import _ from 'underscore';
 import RNTextInput from '@components/RNTextInput';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import themeColors from '@styles/themes/default';
+import useThemeStyles from '@styles/themes/useThemeStyles';
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
@@ -64,6 +65,7 @@ const defaultProps = {
 };
 
 function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isComposerFullSize, setIsFullComposerAvailable, ...props}) {
+    const themeStyles = useThemeStyles();
     const textInput = useRef(null);
 
     /**
@@ -116,7 +118,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             autoComplete="off"
             placeholderTextColor={themeColors.placeholderText}
             ref={setTextInputRef}
-            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
+            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines(themeStyles, {maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
             textAlignVertical="center"
             smartInsertDelete={false}
