@@ -19,17 +19,17 @@ type FormHelpMessageProps = {
     isError?: boolean;
 
     /** Container style props */
-    style?: Array<StyleProp<ViewStyle>>;
+    style?: StyleProp<ViewStyle>;
 };
 
-function FormHelpMessage({message = '', children, isError = true, style = []}: FormHelpMessageProps) {
+function FormHelpMessage({message = '', children, isError = true, style}: FormHelpMessageProps) {
     if (isEmpty(message) && isEmpty(children)) {
         return null;
     }
 
     const translatedMessage = Localize.translateIfPhraseKey(message);
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...style]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
             {isError && (
                 <Icon
                     src={Expensicons.DotIndicator}
