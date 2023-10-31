@@ -1104,7 +1104,7 @@ export default {
         prompt: 'Do you want to hide your read messages so you can focus?',
         enable: 'Enable #focus mode',
         noEnable: 'Not now',
-        enabled: 'Read messages will be hidden, unless they have a green dot, which means it\'s waiting on you.  You can change this in your account settings.',
+        enabled: "Read messages will be hidden, unless they have a green dot, which means it's waiting on you.  You can change this in your account settings.",
         notEnabled: 'If you ever change your mind and want to hide your read messages, enable #focus mode in account settings.',
         ok: 'Ok!',
         gotItThanks: 'Got it, thanks!',

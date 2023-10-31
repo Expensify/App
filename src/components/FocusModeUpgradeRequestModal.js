@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
-import ConfirmModal from './ConfirmModal';
+import useLocalize from '@hooks/useLocalize';
 import CONST from '../CONST';
 import * as User from '../libs/actions/User';
-import useLocalize from '@hooks/useLocalize';
+import ConfirmModal from './ConfirmModal';
 
 const FocusModeUpgradeModal = () => {
     const {translate} = useLocalize();
@@ -25,7 +25,7 @@ const FocusModeUpgradeModal = () => {
                     isVisible
                 />
             )}
-            {(response !== null) && (
+            {response !== null && (
                 <ConfirmModal
                     title={translate('focusModeUpgradeModal.title')}
                     prompt={response ? translate('focusModeUpgradeModal.enabled') : translate('focusModeUpgradeModal.notEnabled')}
@@ -37,8 +37,8 @@ const FocusModeUpgradeModal = () => {
                 />
             )}
         </>
-    )
-}
+    );
+};
 
 FocusModeUpgradeModal.displayName = 'FocusModeUpgradeModal';
 export default FocusModeUpgradeModal;

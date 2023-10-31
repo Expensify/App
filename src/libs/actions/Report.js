@@ -88,6 +88,20 @@ Onyx.connect({
     },
 });
 
+let activePolicyID = '';
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        const activePolicy = _.find(val, (policy) => policy.active);
+        if (!activePolicy) {
+            return;
+        }
+
+        activePolicyID = activePolicy.id;
+    },
+});
+
 const draftNoteMap = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT,
@@ -104,14 +118,14 @@ Onyx.connect({
 let isInFocusMode = false;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: (priorityMode) => isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD,
+    callback: (priorityMode) => (isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD),
 });
 
 // In order to tell if the user has been asked to upgrade for their current device we will set an Onyx key with the current device login
 let lastOfferedFocusMode = '';
 Onyx.connect({
     key: ONYXKEYS.NVP_LAST_OFFERED_FOCUS_MODE,
-    callback: val => focusModeUpgradeRequestLogin = val,
+    callback: (val) => (lastOfferedFocusMode = val),
 });
 
 const allReports = {};
@@ -1559,15 +1573,19 @@ function promoteFocusModeUpgrade() {
 
         // Record that we asked them to upgrade so we don't ask them again later.
         const newLastOfferedTime = DateUtils.getDBTime();
-        API.write('SetLastOfferedFocusMode', {value: newLastOfferedTime}, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: ONYXKEYS.NVP_LAST_OFFERED_FOCUS_MODE,
-                    value: newLastOfferedTime,
-                },
-            ],
-        });
+        API.write(
+            'SetLastOfferedFocusMode',
+            {value: newLastOfferedTime},
+            {
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: ONYXKEYS.NVP_LAST_OFFERED_FOCUS_MODE,
+                        value: newLastOfferedTime,
+                    },
+                ],
+            },
+        );
 
         // Trigger modal to display
         Onyx.set(ONYXKEYS.FOCUS_MODE_UPGRADE_REQUEST, true);
@@ -1701,6 +1719,28 @@ function deleteReport(reportID) {
     if (report && report.iouReportID) {
         deleteReport(report.iouReportID);
     }
+}
+
+/**
+ * @param {string[]} lhnReportIDs
+ */
+function deleteUnusedReports(lhnReportIDs) {
+    let reportIDsToDelete = _.filter(allReports, (report) => report.reportID).map((report) => report.reportID);
+
+    // We won't ever delete anything currently in the LHN list of reports
+    reportIDsToDelete = _.difference(reportIDsToDelete, lhnReportIDs);
+
+    // We also should avoid deleting anything in the navigation stack if we can
+    reportIDsToDelete = _.difference(reportIDsToDelete, Navigation.getAllReportIDsInNavigationStack());
+
+    // And we don't want to mess with the workspace chats related to a user's primary policy
+    const ownWorkspaceChatOnPrimaryPolicy = _.find(allReports, (report) => report.isOwnPolicyExpenseChat && report.policyID === activePolicyID);
+    if (ownWorkspaceChatOnPrimaryPolicy && ownWorkspaceChatOnPrimaryPolicy.reportID) {
+        reportIDsToDelete = _.difference(reportIDsToDelete, [ownWorkspaceChatOnPrimaryPolicy.reportID]);
+    }
+
+    Log.info(`Deleting ${reportIDsToDelete.length} cached reports because we switched to focus mode.`);
+    reportIDsToDelete.forEach(reportID => deleteReport(reportID));
 }
 
 /**
@@ -2597,4 +2637,5 @@ export {
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
+    deleteUnusedReports,
 };
