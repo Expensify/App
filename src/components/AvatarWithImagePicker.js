@@ -1,28 +1,28 @@
-import _ from 'underscore';
-import React, {useState, useRef, useEffect} from 'react';
-import {View, StyleSheet} from 'react-native';
-import * as Browser from '@libs/Browser';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import PropTypes from 'prop-types';
+import React, {useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import stylePropTypes from '@styles/stylePropTypes';
+import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
-import Avatar from './Avatar';
-import Icon from './Icon';
-import PopoverMenu from './PopoverMenu';
-import * as Expensicons from './Icon/Expensicons';
-import AttachmentPicker from './AttachmentPicker';
-import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
-import OfflineWithFeedback from './OfflineWithFeedback';
-import Tooltip from './Tooltip';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';
+import AttachmentPicker from './AttachmentPicker';
+import Avatar from './Avatar';
+import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import OfflineWithFeedback from './OfflineWithFeedback';
+import PopoverMenu from './PopoverMenu';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import Tooltip from './Tooltip';
 import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
@@ -115,7 +115,7 @@ const defaultProps = {
     previewSource: '',
     originalFileName: '',
     anchorAlignment: {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, 
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
 };
