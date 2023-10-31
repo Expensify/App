@@ -177,13 +177,6 @@ function getAvatarSize(size: AvatarSizeName): number {
 }
 
 /**
- * Return the height of magic code input container
- */
-function getHeightOfMagicCodeInput(): ViewStyle {
-    return {height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth};
-}
-
-/**
  * Return the width style from an avatar size constant
  */
 function getAvatarWidthStyle(size: AvatarSizeName): ViewStyle {
@@ -1330,7 +1323,6 @@ export {
     getFontFamilyMonospace,
     getFontSizeStyle,
     getGoogleListViewStyle,
-    getHeightOfMagicCodeInput,
     getIconFillColor,
     getLineHeightStyle,
     getMentionStyle,

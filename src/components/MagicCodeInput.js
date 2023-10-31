@@ -293,7 +293,7 @@ function MagicCodeInput(props) {
                         <View
                             style={[
                                 styles.textInputContainer,
-                                StyleUtils.getHeightOfMagicCodeInput(),
+                                styles.heightOfMagicCodeInput,
                                 props.hasError || props.errorText ? styles.borderColorDanger : {},
                                 focusedIndex === index ? styles.borderColorFocus : {},
                             ]}

@@ -4065,6 +4065,8 @@ const styles = (theme: ThemeDefault) => {
         return containerStyles;
     };
 
+    stylez.heightOfMagicCodeInput = {height: ((stylez.magicCodeInputContainer as ViewStyle).minHeight as number) - ((stylez.textInputContainer as ViewStyle).borderBottomWidth ?? 0)};
+
     return stylez;
 };
 
