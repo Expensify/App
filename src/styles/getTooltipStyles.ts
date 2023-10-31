@@ -1,7 +1,7 @@
 import {TextStyle, View, ViewStyle} from 'react-native';
 import fontFamily from './fontFamily';
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
-import styles from './styles';
+import {Styles} from './styles';
 import themeColors from './themes/default';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
@@ -104,6 +104,7 @@ type TooltipStyles = {
 /**
  * Generate styles for the tooltip component.
  *
+ * @param styles – theme styles
  * @param tooltip - The reference to the tooltip's root element
  * @param currentSize - The current size of the tooltip used in the scaling animation.
  * @param windowWidth - The width of the window.
@@ -123,6 +124,7 @@ type TooltipStyles = {
  *                                       A positive value shifts it down, and a negative value shifts it up.
  */
 export default function getTooltipStyles(
+    styles: Styles,
     tooltip: View | HTMLDivElement,
     currentSize: number,
     windowWidth: number,
@@ -249,7 +251,7 @@ export default function getTooltipStyles(
             left: rootWrapperLeft,
 
             // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
-            ...styles.userSelectNone,
+            ...(styles.userSelectNone as ViewStyle),
         },
         textStyle: {
             color: themeColors.textReversed,

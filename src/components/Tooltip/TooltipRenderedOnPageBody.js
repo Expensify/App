@@ -5,6 +5,7 @@ import {Animated, View} from 'react-native';
 import Text from '@components/Text';
 import Log from '@libs/Log';
 import getTooltipStyles from '@styles/getTooltipStyles';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Window width */
@@ -68,6 +69,7 @@ function TooltipRenderedOnPageBody(props) {
     const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState(undefined);
     const contentRef = useRef();
     const rootWrapper = useRef();
+    const styles = useThemeStyles();
 
     useEffect(() => {
         if (!props.renderTooltipContent || !props.text) {
@@ -86,6 +88,7 @@ function TooltipRenderedOnPageBody(props) {
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             getTooltipStyles(
+                styles,
                 rootWrapper.current,
                 props.animation,
                 props.windowWidth,
@@ -100,6 +103,7 @@ function TooltipRenderedOnPageBody(props) {
                 props.shiftVertical,
             ),
         [
+            styles,
             props.animation,
             props.windowWidth,
             props.xOffset,
@@ -107,10 +111,10 @@ function TooltipRenderedOnPageBody(props) {
             props.targetWidth,
             props.targetHeight,
             props.maxWidth,
-            contentMeasuredWidth,
-            wrapperMeasuredHeight,
             props.shiftHorizontal,
             props.shiftVertical,
+            contentMeasuredWidth,
+            wrapperMeasuredHeight,
         ],
     );
 
