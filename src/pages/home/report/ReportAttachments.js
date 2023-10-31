@@ -4,9 +4,9 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
+import reportPropTypes from '@pages/reportPropTypes';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import reportPropTypes from '@pages/reportPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
