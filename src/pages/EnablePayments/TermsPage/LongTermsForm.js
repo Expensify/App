@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import CollapsibleSection from '@components/CollapsibleSection';
@@ -7,8 +7,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import * as Localize from '@libs/Localize';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const termsData = [
     {
@@ -58,26 +58,39 @@ const termsData = [
     },
 ];
 
-const getLongTermsSections = () =>
-    _.map(termsData, (section, index) => (
-        // eslint-disable-next-line react/no-array-index-key
-        <View key={section.title + index}>
-            <View style={[styles.longTermsRow]}>
-                <View style={[styles.flex4]}>
-                    <Text>{section.title}</Text>
-                    {Boolean(section.subTitle) && <Text style={[styles.textMicroSupporting, styles.mt1]}>{section.subTitle}</Text>}
-                </View>
-                <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={[styles.textStrong, styles.textAlignRight]}>{section.rightText}</Text>
-                    {Boolean(section.subRightText) && <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>{section.subRightText}</Text>}
-                </View>
-            </View>
-            <Text style={[styles.textLabelSupporting, styles.mt2]}>{section.details}</Text>
-        </View>
-    ));
-
 function LongTermsForm() {
     const styles = useThemeStyles();
+    const getLongTermsSections = useCallback(
+        () =>
+            _.map(termsData, (section, index) => (
+                // eslint-disable-next-line react/no-array-index-key
+                <View key={section.title + index}>
+                    <View style={[styles.longTermsRow]}>
+                        <View style={[styles.flex4]}>
+                            <Text>{section.title}</Text>
+                            {Boolean(section.subTitle) && <Text style={[styles.textMicroSupporting, styles.mt1]}>{section.subTitle}</Text>}
+                        </View>
+                        <View style={[styles.flex1, styles.termsCenterRight]}>
+                            <Text style={[styles.textStrong, styles.textAlignRight]}>{section.rightText}</Text>
+                            {Boolean(section.subRightText) && <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>{section.subRightText}</Text>}
+                        </View>
+                    </View>
+                    <Text style={[styles.textLabelSupporting, styles.mt2]}>{section.details}</Text>
+                </View>
+            )),
+        [
+            styles.flex1,
+            styles.flex4,
+            styles.longTermsRow,
+            styles.mt1,
+            styles.mt2,
+            styles.termsCenterRight,
+            styles.textAlignRight,
+            styles.textLabelSupporting,
+            styles.textMicroSupporting,
+            styles.textStrong,
+        ],
+    );
     return (
         <>
             <CollapsibleSection title={Localize.translateLocal('termsStep.longTermsForm.listOfAllFees')}>{getLongTermsSections()}</CollapsibleSection>
