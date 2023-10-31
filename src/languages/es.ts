@@ -586,7 +586,7 @@ export default {
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
             duplicateWaypointsErrorMessage: 'Por favor elimina los puntos de ruta duplicados',
             emptyWaypointsErrorMessage: 'Por favor introduce al menos dos puntos de ruta',
-            splitBillMultipleParticipantsIncludingWorkspace: 'No se permite dividir la factura entre espacios de trabajo o entre un espacio de trabajo y usuarios individuales.',
+            splitBillMultipleParticipantsIncludingWorkspace: 'Solo puedes dividir una cuenta entre un único espacio de trabajo o con usuarios individuales. Por favor actualiza tu selección.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `nicio el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
         enableWallet: 'Habilitar Billetera',
