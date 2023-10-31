@@ -435,28 +435,6 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
 }
 
 /**
- * Generate a style for the background color of the Badge
- */
-function getBadgeColorStyle(isSuccess: boolean, isError: boolean, isPressed = false, isAdHoc = false): ViewStyle {
-    if (isSuccess) {
-        if (isAdHoc) {
-            // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            return isPressed ? styles.badgeAdHocSuccessPressed : styles.badgeAdHocSuccess;
-        }
-        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
-    }
-    if (isError) {
-        // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
-    }
-    return {};
-}
-
-/**
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param buttonState - One of {'default', 'hovered', 'pressed'}
@@ -1241,7 +1219,6 @@ export {
     getAnimatedFABStyle,
     getAutoCompleteSuggestionContainerStyle,
     getAutoCompleteSuggestionItemStyle,
-    getAutoGrowHeightInputStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
     getAvatarBorderWidth,
@@ -1252,7 +1229,6 @@ export {
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
-    getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getPaddingLeft,
     hasSafeAreas,

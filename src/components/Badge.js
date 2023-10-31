@@ -52,7 +52,7 @@ function Badge(props) {
     const wrapperStyles = ({pressed}) => [
         styles.badge,
         styles.ml2,
-        StyleUtils.getBadgeColorStyle(props.success, props.error, pressed, props.environment === CONST.ENVIRONMENT.ADHOC),
+        styles.getBadgeColorStyle(props.success, props.error, pressed, props.environment === CONST.ENVIRONMENT.ADHOC),
         ...props.badgeStyles,
     ];
 

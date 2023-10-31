@@ -4095,6 +4095,19 @@ const styles = (theme: ThemeDefault) => {
         } as ViewStyle;
     };
 
+    stylez.getBadgeColorStyle = (isSuccess: boolean, isError: boolean, isPressed = false, isAdHoc = false): ViewStyle => {
+        if (isSuccess) {
+            if (isAdHoc) {
+                return (isPressed ? stylez.badgeAdHocSuccessPressed : stylez.badgeAdHocSuccess) as ViewStyle;
+            }
+            return (isPressed ? stylez.badgeSuccessPressed : stylez.badgeSuccess) as ViewStyle;
+        }
+        if (isError) {
+            return (isPressed ? stylez.badgeDangerPressed : stylez.badgeDanger) as ViewStyle;
+        }
+        return {};
+    };
+
     return stylez;
 };
 
