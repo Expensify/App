@@ -1,11 +1,10 @@
-import {createStackNavigator} from '@react-navigation/stack';
+import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
 import useThemeStyles from '@styles/useThemeStyles';
 import Overlay from './Overlay';
 
@@ -21,6 +20,17 @@ const propTypes = {
 function RightModalNavigator(props) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
+
+    const RHPScreenOptions = useMemo(
+        () => ({
+            headerShown: false,
+            animationEnabled: true,
+            gestureDirection: 'horizontal',
+            cardStyle: styles.navigationScreenCardStyle,
+            cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }),
+        [styles.navigationScreenCardStyle],
+    );
 
     return (
         <NoDropZone>
