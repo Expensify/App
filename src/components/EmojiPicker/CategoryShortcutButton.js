@@ -6,10 +6,10 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The emoji code of the category header */

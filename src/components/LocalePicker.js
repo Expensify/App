@@ -3,11 +3,11 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import compose from '@libs/compose';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import Picker from './Picker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 

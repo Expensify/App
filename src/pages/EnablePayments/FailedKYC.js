@@ -3,8 +3,8 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,

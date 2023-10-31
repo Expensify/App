@@ -4,8 +4,8 @@ import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepCont
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import useThemeStyles from '@styles/useThemeStyles';
+import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import StepWrapperPropTypes from './StepWrapperPropTypes';
 
 function StepWrapper({

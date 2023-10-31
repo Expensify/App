@@ -2,8 +2,8 @@ import React from 'react';
 import Lottie from '@components/Lottie';
 import * as LottieAnimations from '@components/LottieAnimations';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import variables from '@styles/variables';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 
 const propTypes = {
     ...windowDimensionsPropTypes,

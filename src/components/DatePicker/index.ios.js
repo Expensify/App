@@ -7,9 +7,9 @@ import Popover from '@components/Popover';
 import TextInput from '@components/TextInput';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './datepickerPropTypes';
 
 function DatePicker({value, defaultValue, innerRef, onInputChange, preferredLocale, minDate, maxDate, label, disabled, onBlur, placeholder, containerStyles, errorText}) {

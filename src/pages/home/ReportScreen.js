@@ -29,12 +29,12 @@ import Visibility from '@libs/Visibility';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import HeaderView from './HeaderView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ReportActionsView from './report/ReportActionsView';
@@ -450,8 +450,8 @@ function ReportScreen({
                                 )}
 
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
-                     If we prevent rendering the report while they are loading then
-                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                  If we prevent rendering the report while they are loading then
+                  we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                                 {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
                                 {isReportReadyForDisplay ? (

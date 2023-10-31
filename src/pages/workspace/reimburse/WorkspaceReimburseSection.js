@@ -11,10 +11,10 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import BankAccount from '@libs/models/BankAccount';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as Link from '@userActions/Link';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import * as Link from '@userActions/Link';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Policy values needed in the component */

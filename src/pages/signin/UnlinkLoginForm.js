@@ -12,11 +12,11 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /* Onyx Props */

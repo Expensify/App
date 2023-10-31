@@ -7,9 +7,9 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** List of participant icons for the thread */

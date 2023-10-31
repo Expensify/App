@@ -12,9 +12,9 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';

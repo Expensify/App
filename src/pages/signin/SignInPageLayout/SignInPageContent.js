@@ -11,8 +11,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import compose from '@libs/compose';
 import SignInHeroImage from '@pages/signin/SignInHeroImage';
 import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 
 const propTypes = {
     /** The children to show inside the layout */

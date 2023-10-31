@@ -16,11 +16,11 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /* Onyx Props */

@@ -5,9 +5,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import BlockingView from './BlockingView';
 
 const propTypes = {

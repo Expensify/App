@@ -9,8 +9,8 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import DateUtils from '@libs/DateUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import * as Chronos from '@userActions/Chronos';
 import useThemeStyles from '@styles/useThemeStyles';
+import * as Chronos from '@userActions/Chronos';
 
 const propTypes = {
     /** The ID of the report */

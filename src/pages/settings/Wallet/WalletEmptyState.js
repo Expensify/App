@@ -7,9 +7,9 @@ import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout
 import * as LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import useTheme from '@styles/themes/useTheme';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import useTheme from '@styles/themes/useTheme';
 
 const propTypes = {
     /** The function that is called when a menu item is pressed */

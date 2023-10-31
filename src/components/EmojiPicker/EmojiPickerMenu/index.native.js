@@ -16,10 +16,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */

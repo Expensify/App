@@ -7,9 +7,9 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the button is disabled */

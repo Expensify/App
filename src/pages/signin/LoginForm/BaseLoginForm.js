@@ -26,13 +26,13 @@ import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */

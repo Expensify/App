@@ -4,8 +4,8 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import * as Localize from '@libs/Localize';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The user's wallet */

@@ -6,8 +6,8 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 
 const propTypes = {
     /** Override the green headline copy */

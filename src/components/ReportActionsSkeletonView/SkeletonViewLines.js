@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Number of rows to show in Skeleton UI block */

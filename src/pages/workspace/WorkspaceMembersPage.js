@@ -27,11 +27,11 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 

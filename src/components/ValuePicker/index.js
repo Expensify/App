@@ -6,8 +6,8 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import refPropTypes from '@components/refPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import ValueSelectorModal from './ValueSelectorModal';
 
 const propTypes = {

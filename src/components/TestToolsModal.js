@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import useThemeStyles from '@styles/useThemeStyles';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 import Modal from './Modal';
 import TestToolMenu from './TestToolMenu';
 

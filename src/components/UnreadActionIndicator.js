@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 

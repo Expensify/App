@@ -6,8 +6,8 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import * as Link from '@userActions/Link';
 import useThemeStyles from '@styles/useThemeStyles';
+import * as Link from '@userActions/Link';
 
 const propTypes = {
     /** The policy ID currently being configured */

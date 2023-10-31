@@ -13,10 +13,10 @@ import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Card from '@userActions/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import assignedCardPropTypes from './assignedCardPropTypes';
 
 const propTypes = {

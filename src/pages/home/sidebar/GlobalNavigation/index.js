@@ -6,9 +6,9 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {SidebarNavigationContext} from '@pages/home/sidebar/SidebarNavigationContext';
 import SignInOrAvatarWithOptionalStatus from '@pages/home/sidebar/SignInOrAvatarWithOptionalStatus';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import GlobalNavigationMenuItem from './GlobalNavigationMenuItem';
 
 function GlobalNavigation() {

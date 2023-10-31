@@ -3,8 +3,8 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
 import useThemeStyles from '@styles/useThemeStyles';
+import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 

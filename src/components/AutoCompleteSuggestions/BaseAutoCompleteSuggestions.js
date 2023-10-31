@@ -4,8 +4,8 @@ import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import * as StyleUtils from '@styles/StyleUtils';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import {propTypes} from './autoCompleteSuggestionsPropTypes';
 
 /**

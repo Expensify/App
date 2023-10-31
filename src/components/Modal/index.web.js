@@ -2,8 +2,8 @@ import React, {useState} from 'react';
 import withWindowDimensions from '@components/withWindowDimensions';
 import StatusBar from '@libs/StatusBar';
 import * as StyleUtils from '@styles/StyleUtils';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
+import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
 import {defaultProps, propTypes} from './modalPropTypes';
 

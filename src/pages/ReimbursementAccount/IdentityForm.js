@@ -5,8 +5,8 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import DatePicker from '@components/DatePicker';
 import TextInput from '@components/TextInput';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import AddressForm from './AddressForm';
 
 const propTypes = {

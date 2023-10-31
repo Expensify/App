@@ -9,11 +9,11 @@ import useEnvironment from '@hooks/useEnvironment';
 import Navigation from '@libs/Navigation/Navigation';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Url from '@libs/Url';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
 function AnchorRenderer(props) {

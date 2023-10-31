@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
 import stylePropTypes from '@styles/stylePropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import useThemeStyles from '@styles/useThemeStyles';
 import refPropTypes from './refPropTypes';
 import Text from './Text';
 

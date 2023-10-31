@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import StatePicker from '@components/StatePicker';
 import TextInput from '@components/TextInput';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Translate key for Street name */

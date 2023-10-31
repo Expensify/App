@@ -6,8 +6,8 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import DateUtils from '@libs/DateUtils';
 import Timers from '@libs/Timers';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Personal details of the participant */

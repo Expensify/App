@@ -9,8 +9,8 @@ import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import searchCountryOptions from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the modal is visible */

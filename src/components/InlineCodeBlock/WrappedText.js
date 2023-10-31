@@ -3,8 +3,8 @@ import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import Text from '@components/Text';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 /**
  * Breaks the text into matrix

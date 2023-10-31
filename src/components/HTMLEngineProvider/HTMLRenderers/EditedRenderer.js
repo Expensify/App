@@ -3,10 +3,10 @@ import _ from 'underscore';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import editedLabelStyles from '@styles/editedLabelStyles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
 const propTypes = {

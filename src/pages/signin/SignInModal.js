@@ -2,8 +2,8 @@ import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Session from '@userActions/Session';
 import useThemeStyles from '@styles/useThemeStyles';
+import * as Session from '@userActions/Session';
 import SignInPage from './SignInPage';
 
 const propTypes = {};

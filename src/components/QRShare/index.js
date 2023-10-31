@@ -5,11 +5,11 @@ import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withTheme, {withThemePropTypes} from '@components/withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import variables from '@styles/variables';
-import withTheme, {withThemePropTypes} from '@components/withTheme';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import {qrShareDefaultProps, qrSharePropTypes} from './propTypes';
 
 const propTypes = {

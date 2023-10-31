@@ -7,8 +7,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import {radioListItemPropTypes} from '@components/SelectionList/selectionListPropTypes';
 import useLocalize from '@hooks/useLocalize';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the modal is visible */

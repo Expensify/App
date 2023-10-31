@@ -5,8 +5,8 @@ import _ from 'underscore';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import ReportActionItemImage from './ReportActionItemImage';
 
 const propTypes = {

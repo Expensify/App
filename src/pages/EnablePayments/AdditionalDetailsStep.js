@@ -17,11 +17,11 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 import IdologyQuestions from './IdologyQuestions';
 
 const propTypes = {

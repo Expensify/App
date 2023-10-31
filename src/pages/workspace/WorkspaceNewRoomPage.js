@@ -21,12 +21,12 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import policyMemberPropType from '@pages/policyMemberPropType';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** All reports shared with the user */

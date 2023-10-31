@@ -3,8 +3,8 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import useThemeStyles from '@styles/useThemeStyles';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 

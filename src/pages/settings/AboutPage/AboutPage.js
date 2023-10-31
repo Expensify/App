@@ -17,11 +17,11 @@ import * as Environment from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import pkg from '../../../../package.json';
 
 const propTypes = {

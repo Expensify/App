@@ -9,6 +9,7 @@ import {withNetwork} from '@components/OnyxProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,7 +20,6 @@ import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 

@@ -25,13 +25,13 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -271,8 +271,8 @@ function WorkspaceInitialPage(props) {
                                     </View>
                                 </View>
                                 {/*
-                   Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
-                   In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
+                Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
+                In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                 */}
                                 {_.map(menuItems, (item) => (
                                     <MenuItem

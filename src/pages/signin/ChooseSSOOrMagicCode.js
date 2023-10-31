@@ -11,11 +11,11 @@ import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 

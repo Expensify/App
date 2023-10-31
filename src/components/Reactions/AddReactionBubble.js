@@ -9,11 +9,11 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Whether it is for context menu so we can modify its style */
@@ -107,8 +107,8 @@ function AddReactionBubble(props) {
                 {({hovered, pressed}) => (
                     <>
                         {/* This (invisible) text will make the view have the same size as a regular
-               emoji reaction. We make the text invisible and put the
-               icon on top of it. */}
+            emoji reaction. We make the text invisible and put the
+            icon on top of it. */}
                         <Text style={[styles.opacity0, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{'\u2800\u2800'}</Text>
                         <View style={styles.pAbsolute}>
                             <Icon

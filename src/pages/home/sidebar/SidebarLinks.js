@@ -20,12 +20,12 @@ import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const basePropTypes = {
     /** Safe area insets required for mobile devices margins */

@@ -10,8 +10,8 @@ import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import colors from '@styles/colors';
 import * as StyleUtils from '@styles/StyleUtils';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import * as locationErrorMessagePropTypes from './locationErrorMessagePropTypes';
 
 const propTypes = {

@@ -9,9 +9,9 @@ import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */

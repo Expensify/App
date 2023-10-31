@@ -8,10 +8,10 @@ import participantPropTypes from '@components/participantPropTypes';
 import withWindowDimensions from '@components/withWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import HeaderReactionList from './HeaderReactionList';
 import reactionPropTypes from './reactionPropTypes';
 

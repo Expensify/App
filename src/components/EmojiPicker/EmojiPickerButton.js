@@ -7,8 +7,8 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
-import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import useThemeStyles from '@styles/useThemeStyles';
+import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */

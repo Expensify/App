@@ -19,11 +19,11 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 

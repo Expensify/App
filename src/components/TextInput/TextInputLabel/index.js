@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './TextInputLabelPropTypes';
 
 function TextInputLabel({for: inputId, label, labelTranslateY, labelScale}) {

@@ -6,9 +6,9 @@ import * as Browser from '@libs/Browser';
 import Performance from '@libs/Performance';
 import GlobalNavigation from '@pages/home/sidebar/GlobalNavigation';
 import SubNavigation from '@pages/home/sidebar/SubNavigation/SubNavigation';
+import useThemeStyles from '@styles/useThemeStyles';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Children to wrap (floating button). */

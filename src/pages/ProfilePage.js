@@ -29,6 +29,7 @@ import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
@@ -36,7 +37,6 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import personalDetailsPropType from './personalDetailsPropType';
 
 const matchType = PropTypes.shape({

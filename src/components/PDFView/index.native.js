@@ -7,11 +7,11 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
 import withLocalize from '@components/withLocalize';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import PDFPasswordForm from './PDFPasswordForm';
 import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
 

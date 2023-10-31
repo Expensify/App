@@ -15,8 +15,8 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** IOU amount saved in Onyx */

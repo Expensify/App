@@ -14,9 +14,9 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 
 const propTypes = {

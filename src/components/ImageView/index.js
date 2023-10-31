@@ -6,8 +6,8 @@ import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as StyleUtils from '@styles/StyleUtils';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether source url requires authentication */

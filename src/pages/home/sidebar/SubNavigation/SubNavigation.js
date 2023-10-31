@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import Performance from '@libs/Performance';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Function called when a pinned chat is selected. */

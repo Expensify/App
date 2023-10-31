@@ -9,8 +9,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import * as Browser from '@libs/Browser';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 
 const propTypes = {

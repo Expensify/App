@@ -6,8 +6,8 @@ import _ from 'underscore';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import variables from '@styles/variables';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
@@ -225,10 +225,10 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
                     />
 
                     {/**
-            Create an invisible view on top of the image so we can capture and set the amount of touches before
-           the ImageZoom's PanResponder does. Children will be triggered first, so this needs to be inside the
-           ImageZoom to work
-           */}
+          Create an invisible view on top of the image so we can capture and set the amount of touches before
+          the ImageZoom's PanResponder does. Children will be triggered first, so this needs to be inside the
+          ImageZoom to work
+          */}
                     <View
                         /* eslint-disable-next-line react/jsx-props-no-spreading */
                         {...panResponder.panHandlers}

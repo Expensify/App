@@ -16,6 +16,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withTheme, {withThemePropTypes} from '@components/withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,8 +25,6 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import withTheme, {withThemePropTypes} from '@components/withTheme';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import ValidateCodeForm from './ValidateCodeForm';
 
 const propTypes = {

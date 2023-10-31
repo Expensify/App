@@ -14,11 +14,11 @@ import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Login list for the user that is signed in */

@@ -9,10 +9,10 @@ import Onfido from '@components/Onfido';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import Growl from '@libs/Growl';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 
 const propTypes = {

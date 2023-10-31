@@ -13,10 +13,10 @@ import {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 import exampleCheckImage from './exampleCheckImage';
 import StepPropTypes from './StepPropTypes';
 

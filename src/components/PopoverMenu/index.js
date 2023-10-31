@@ -10,8 +10,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import {defaultProps as createMenuDefaultProps, propTypes as createMenuPropTypes} from './popoverMenuPropTypes';
 
 const propTypes = {

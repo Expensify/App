@@ -18,11 +18,11 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import reportPropTypes from '@pages/reportPropTypes';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 

@@ -7,8 +7,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 function KeyboardShortcutsPage() {
     const styles = useThemeStyles();

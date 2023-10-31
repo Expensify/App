@@ -2,8 +2,8 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
 import useNativeDriver from '@libs/useNativeDriver';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {

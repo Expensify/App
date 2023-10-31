@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Whether we're rendering in the Desktop Flow, if so show a different button. */

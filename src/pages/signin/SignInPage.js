@@ -14,12 +14,12 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import LoginForm from './LoginForm';
@@ -244,7 +244,7 @@ function SignInPage({credentials, account, isInModal, activeClients, preferredLo
                 isInModal={isInModal}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
-             so that password managers can access the values. Conditionally rendering this component will break this feature. */}
+          so that password managers can access the values. Conditionally rendering this component will break this feature. */}
                 <LoginForm
                     isInModal={isInModal}
                     isVisible={shouldShowLoginForm}

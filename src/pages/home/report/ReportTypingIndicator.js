@@ -8,9 +8,9 @@ import Text from '@components/Text';
 import TextWithEllipsis from '@components/TextWithEllipsis';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Key-value pairs of user accountIDs/logins and whether or not they are typing. Keys are accountIDs or logins. */

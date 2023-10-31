@@ -6,8 +6,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import variables from '@styles/variables';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 
 const propTypes = {
     /** Callback function to indicate that PDF password form should be shown */

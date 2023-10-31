@@ -12,9 +12,9 @@ import compose from '@libs/compose';
 import * as SessionUtils from '@libs/SessionUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 import SidebarLinks, {basePropTypes} from './SidebarLinks';
 
 const propTypes = {

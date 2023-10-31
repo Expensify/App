@@ -5,9 +5,9 @@ import {withOnyx} from 'react-native-onyx';
 import compose from '@libs/compose';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 

@@ -21,12 +21,12 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /* Onyx Props */

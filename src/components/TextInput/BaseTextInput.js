@@ -16,10 +16,10 @@ import getSecureEntryKeyboardType from '@libs/getSecureEntryKeyboardType';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
 import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import * as styleConst from './styleConst';
 import TextInputLabel from './TextInputLabel';
@@ -233,7 +233,7 @@ function BaseTextInput(props) {
     /* To prevent text jumping caused by virtual DOM calculations on Safari and mobile Chrome,
   make sure to include the `lineHeight`.
   Reference: https://github.com/Expensify/App/issues/26735
-   For other platforms, explicitly remove `lineHeight` from single-line inputs
+  For other platforms, explicitly remove `lineHeight` from single-line inputs
   to prevent long text from disappearing once it exceeds the input space.
   See https://github.com/Expensify/App/issues/13802 */
 
@@ -404,10 +404,10 @@ function BaseTextInput(props) {
                 )}
             </View>
             {/*
-           Text input component doesn't support auto grow by default.
-           We're using a hidden text input to achieve that.
-           This text view is used to calculate width or height of the input value given textStyle in this component.
-           This Text component is intentionally positioned out of the screen.
+        Text input component doesn't support auto grow by default.
+        We're using a hidden text input to achieve that.
+        This text view is used to calculate width or height of the input value given textStyle in this component.
+        This Text component is intentionally positioned out of the screen.
         */}
             {(props.autoGrow || props.autoGrowHeight) && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value

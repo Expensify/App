@@ -19,10 +19,10 @@ import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 import AddressForm from './AddressForm';
 import StepPropTypes from './StepPropTypes';
 

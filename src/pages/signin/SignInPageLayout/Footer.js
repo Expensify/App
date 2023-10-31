@@ -11,11 +11,11 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     ...withLocalizePropTypes,

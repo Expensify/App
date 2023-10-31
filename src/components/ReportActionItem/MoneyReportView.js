@@ -12,9 +12,9 @@ import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 
 const propTypes = {
     /** The report currently being looked at */

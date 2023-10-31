@@ -15,9 +15,9 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import useThemeStyles from '@styles/useThemeStyles';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
-import useThemeStyles from '@styles/useThemeStyles';
 import {defaultProps, propTypes} from './propTypes';
 
 function ScreenWrapper({

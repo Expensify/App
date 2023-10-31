@@ -6,8 +6,8 @@ import * as Emojis from '@assets/emojis';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
 

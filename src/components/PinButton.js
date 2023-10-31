@@ -1,10 +1,10 @@
 import React from 'react';
 import reportPropTypes from '@pages/reportPropTypes';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';

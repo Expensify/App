@@ -19,12 +19,12 @@ import * as ReportUtils from '@libs/ReportUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** All personal details asssociated with user */

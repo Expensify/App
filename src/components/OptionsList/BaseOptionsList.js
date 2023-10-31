@@ -7,8 +7,8 @@ import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
-import variables from '@styles/variables';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import {defaultProps as optionsListDefaultProps, propTypes as optionsListPropTypes} from './optionsListPropTypes';
 
 const propTypes = {

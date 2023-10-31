@@ -13,11 +13,11 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import {defaultProps, propTypes as videoChatButtonAndMenuPropTypes} from './videoChatButtonAndMenuPropTypes';
 
 const propTypes = {

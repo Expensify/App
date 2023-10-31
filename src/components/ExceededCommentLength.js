@@ -4,9 +4,9 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportUtils from '@libs/ReportUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 import Text from './Text';
 
 const propTypes = {

@@ -1,8 +1,8 @@
 import React from 'react';
 import {Rect} from 'react-native-svg';
-import variables from '@styles/variables';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 function MoneyRequestSkeletonView() {

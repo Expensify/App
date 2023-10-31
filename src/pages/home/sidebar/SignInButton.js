@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import useThemeStyles from '@styles/useThemeStyles';
 
 function SignInButton() {
     const styles = useThemeStyles();

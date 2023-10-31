@@ -11,11 +11,11 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     ...withLocalizePropTypes,

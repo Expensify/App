@@ -9,8 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import PDFInfoMessage from './PDFInfoMessage';
 
 const propTypes = {

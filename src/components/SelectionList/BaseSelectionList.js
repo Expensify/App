@@ -18,10 +18,10 @@ import useActiveElement from '@hooks/useActiveElement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
 

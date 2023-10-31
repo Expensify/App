@@ -3,8 +3,8 @@ import moment from 'moment';
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import TextInput from '@components/TextInput';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './datepickerPropTypes';
 
 function DatePicker({value, defaultValue, label, placeholder, errorText, containerStyles, disabled, onBlur, onInputChange, maxDate, minDate}, outerRef) {

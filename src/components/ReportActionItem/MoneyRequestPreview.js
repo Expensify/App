@@ -29,13 +29,13 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import ReportActionItemImages from './ReportActionItemImages';
 
 const propTypes = {

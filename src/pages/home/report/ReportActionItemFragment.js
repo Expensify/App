@@ -14,10 +14,10 @@ import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import editedLabelStyles from '@styles/editedLabelStyles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 
 const propTypes = {

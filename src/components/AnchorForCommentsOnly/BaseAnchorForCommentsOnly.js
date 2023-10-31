@@ -12,8 +12,8 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as StyleUtils from '@styles/StyleUtils';
-import CONST from '@src/CONST';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import {propTypes as anchorForCommentsOnlyPropTypes} from './anchorForCommentsOnlyPropTypes';
 
 const propTypes = {

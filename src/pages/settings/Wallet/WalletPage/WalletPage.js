@@ -28,14 +28,14 @@ import * as PaymentUtils from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import {defaultProps, propTypes} from './walletPagePropTypes';
 
 function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {

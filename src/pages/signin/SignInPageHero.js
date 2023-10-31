@@ -3,8 +3,8 @@ import React from 'react';
 import {View} from 'react-native';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import * as StyleUtils from '@styles/StyleUtils';
-import variables from '@styles/variables';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import SignInHeroCopy from './SignInHeroCopy';
 import SignInHeroImage from './SignInHeroImage';
 

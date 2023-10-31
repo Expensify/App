@@ -12,11 +12,11 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 import IdentityForm from './IdentityForm';
 import StepPropTypes from './StepPropTypes';
 

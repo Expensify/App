@@ -17,11 +17,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import userPropTypes from '@pages/settings/userPropTypes';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The session of the logged in person */

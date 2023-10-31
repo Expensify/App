@@ -8,10 +8,10 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /* Onyx Props */

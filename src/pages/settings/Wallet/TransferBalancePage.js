@@ -20,12 +20,12 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 import walletTransferPropTypes from './walletTransferPropTypes';
 
 const propTypes = {

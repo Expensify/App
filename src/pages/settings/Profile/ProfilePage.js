@@ -18,12 +18,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as UserUtils from '@libs/UserUtils';
 import userPropTypes from '@pages/settings/userPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /* Onyx Props */

@@ -6,8 +6,8 @@ import {PopoverContext} from '@components/PopoverProvider';
 import withWindowDimensions from '@components/withWindowDimensions';
 import getModalStyles from '@styles/getModalStyles';
 import * as StyleUtils from '@styles/StyleUtils';
-import * as Modal from '@userActions/Modal';
 import useThemeStyles from '@styles/useThemeStyles';
+import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
     const styles = useThemeStyles();
