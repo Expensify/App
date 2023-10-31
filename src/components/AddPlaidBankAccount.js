@@ -168,7 +168,7 @@ function AddPlaidBankAccount({
         value: account.plaidAccountID,
         label: `${account.addressName} ${account.mask}`,
     }));
-    const {icon, iconSize} = getBankIcon(styles);
+    const {icon, iconSize, iconStyles} = getBankIcon(styles);
     const plaidErrors = lodashGet(plaidData, 'errors');
     const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
     const bankName = lodashGet(plaidData, 'bankName');
@@ -238,6 +238,7 @@ function AddPlaidBankAccount({
                     src={icon}
                     height={iconSize}
                     width={iconSize}
+                    additionalStyles={iconStyles}
                 />
                 <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
             </View>

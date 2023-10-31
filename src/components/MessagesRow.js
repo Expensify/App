@@ -14,10 +14,10 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
 
 const propTypes = {
-    /* The messages to display */
+    /** The messages to display */
     messages: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))])),
 
-    /* The type of message, 'error' shows a red dot, 'success' shows a green dot */
+    /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: PropTypes.oneOf(['error', 'success']).isRequired,
 
     /** A function to run when the X button next to the message is clicked */

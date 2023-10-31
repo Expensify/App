@@ -773,6 +773,27 @@ function isMoneyRequestReport(reportOrID) {
 }
 
 /**
+ * Should return true only for personal 1:1 report
+ *
+ * @param {Object} report (chatReport or iouReport)
+ * @returns {boolean}
+ */
+function isOneOnOneChat(report) {
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+    return (
+        !isThread(report) &&
+        !isChatRoom(report) &&
+        !isExpenseRequest(report) &&
+        !isMoneyRequestReport(report) &&
+        !isPolicyExpenseChat(report) &&
+        !isTaskReport(report) &&
+        isDM(report) &&
+        !isIOUReport(report) &&
+        participantAccountIDs.length === 1
+    );
+}
+
+/**
  * Get the report given a reportID
  *
  * @param {String} reportID
@@ -2135,7 +2156,7 @@ function getParentNavigationSubtitle(report) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isDM(report) && participantAccountIDs.length === 1) {
+    if (isOneOnOneChat(report)) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
         return;
     }
@@ -3150,29 +3171,6 @@ function isIOUOwnedByCurrentUser(report, allReportsDict = null) {
     }
 
     return reportToLook.ownerAccountID === currentUserAccountID;
-}
-
-/**
- * Should return true only for personal 1:1 report
- *
- * @param {Object} report (chatReport or iouReport)
- * @returns {boolean}
- */
-function isOneOnOneChat(report) {
-    const isChatRoomValue = lodashGet(report, 'isChatRoom', false);
-    const participantsListValue = lodashGet(report, 'participantsList', []);
-    return (
-        !isThread(report) &&
-        !isChatRoom(report) &&
-        !isChatRoomValue &&
-        !isExpenseRequest(report) &&
-        !isMoneyRequestReport(report) &&
-        !isPolicyExpenseChat(report) &&
-        !isTaskReport(report) &&
-        isDM(report) &&
-        !isIOUReport(report) &&
-        participantsListValue.length === 1
-    );
 }
 
 /**

@@ -8,6 +8,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as Report from '@libs/actions/Report';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -32,6 +34,9 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -39,6 +44,7 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    isSearchingForReports: false,
 };
 
 function TaskShareDestinationSelectorModal(props) {
@@ -46,8 +52,9 @@ function TaskShareDestinationSelectorModal(props) {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
-
+    const {isSearchingForReports} = props;
     const optionRef = useRef();
+    const {isOffline} = useNetwork();
 
     const filteredReports = useMemo(() => {
         const reports = {};
@@ -79,10 +86,6 @@ function TaskShareDestinationSelectorModal(props) {
         };
     }, [updateOptions]);
 
-    const onChangeText = (newSearchTerm = '') => {
-        setSearchValue(newSearchTerm);
-    };
-
     const getSections = () => {
         const sections = [];
         let indexOffset = 0;
@@ -112,7 +115,16 @@ function TaskShareDestinationSelectorModal(props) {
         }
     };
 
+    // When search term updates we will fetch any reports
+    const setSearchTermAndSearchInServer = useCallback((text = '') => {
+        if (text.length) {
+            Report.searchInServer(text);
+        }
+        setSearchValue(text);
+    }, []);
+
     const sections = getSections();
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -130,16 +142,18 @@ function TaskShareDestinationSelectorModal(props) {
                             sections={sections}
                             value={searchValue}
                             onSelectRow={selectReport}
-                            onChangeText={onChangeText}
+                            onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             hideSection
                             Headers
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputAlert={isOffline ? `${props.translate('common.youAppearToBeOffline')} ${props.translate('search.resultsAreLimited')}` : ''}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
                             ref={optionRef}
+                            isLoadingNewOptions={isSearchingForReports}
                         />
                     </View>
                 </>
@@ -163,6 +177,10 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isSearchingForReports: {
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            initWithStoredValues: false,
         },
     }),
 )(TaskShareDestinationSelectorModal);

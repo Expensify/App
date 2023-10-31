@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import optionPropTypes from '@components/optionPropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -107,6 +108,9 @@ const propTypes = {
     /** Hover style for options in the OptionsList */
     optionHoveredStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Style for section headers */
+    sectionHeaderStyle: stylePropTypes,
+
     /** Whether to show options list */
     shouldShowOptions: PropTypes.bool,
 
@@ -158,6 +162,7 @@ const defaultProps = {
     shouldTextInputAppearBelowOptions: false,
     footerContent: undefined,
     optionHoveredStyle: undefined,
+    sectionHeaderStyle: undefined,
     shouldShowOptions: true,
     disableArrowKeysActions: false,
     isDisabled: false,

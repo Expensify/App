@@ -398,7 +398,7 @@ function WorkspaceMembersPage(props) {
                 type="success"
                 messages={{0: props.translate('workspace.people.addedWithPrimary')}}
                 containerStyles={[styles.pb5, styles.ph5]}
-                onClose={() => Policy.dismissAddedWithPrimaryMessages(policyID)}
+                onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
             />
         );
     };
