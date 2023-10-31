@@ -63,7 +63,7 @@ function VerifyStep({account, session}) {
             return;
         }
 
-        TwoFactorAuthActions.setTwoFactorAuthStep('SUCCESS');
+        TwoFactorAuthActions.setTwoFactorAuthStep(CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS);
 
         navigation.dispatch({
             ...CommonActions.goBack(),

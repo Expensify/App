@@ -57,7 +57,7 @@ function EnabledStep({account}) {
                     title={translate('twoFactorAuth.disableTwoFactorAuth')}
                     onConfirm={() => {
                         setIsConfirmModalVisible(false);
-                        TwoFactorAuthActions.setTwoFactorAuthStep('DISABLED');
+                        TwoFactorAuthActions.setTwoFactorAuthStep(CONST.TWO_FACTOR_AUTH_STEPS.DISABLED);
                         Navigation.navigate(ROUTES.SETTINGS_2FA.DISABLED, CONST.NAVIGATION.TYPE.FORCED_UP);
                         Session.toggleTwoFactorAuth(false);
                     }}
