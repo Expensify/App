@@ -261,6 +261,7 @@ type OptionData = {
     isTaskReport?: boolean | null;
     isWaitingForTaskCompleteFromAssignee?: boolean | null;
     parentReportID?: string | null;
+    parentReportAction?: ReportAction;
     notificationPreference?: string | number | null;
     displayNamesWithTooltips?: DisplayNamesWithTooltip[] | null;
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | null;
@@ -350,9 +351,7 @@ function getOptionData(
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
-    if (result.isTaskReport) {
-        result.isWaitingForTaskCompleteFromAssignee = ReportUtils.isWaitingForTaskCompleteFromAssignee(report, parentReportAction);
-    }
+    result.parentReportAction = parentReportAction;
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);

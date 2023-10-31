@@ -1324,15 +1324,27 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
 }
 
 /**
+ * Checks if a report is an open task report assigned to current user.
+ *
+ * @param {Object} report
+ * @param {Object} parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
+ * @returns {Boolean}
+ */
+function isWaitingForTaskCompleteFromAssignee(report, parentReportAction = {}) {
+    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
+}
+
+/**
  * Determines if a report should show a GBR (green dot) in the LHN. This can happen when the report: 
     - is unread and the user was mentioned in one of the unread comments
     - is for an outstanding task waiting on the user
     - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
  *
  * @param {Object} report (chatReport or iouReport)
+ * @param {Object} parentReportAction (the report action the current report is a thread of)
  * @returns {boolean}
  */
-function shouldShowGBR(report) {
+function shouldShowGBR(report, parentReportAction = {}) {
     if (!report) {
         return false;
     }
@@ -1345,9 +1357,7 @@ function shouldShowGBR(report) {
         return true;
     }
 
-    // Money request waiting for current user to add their credit bank account
-    // hasOutstandingIOU will be false if the user paid, but isWaitingOnBankAccount will be true if user don't have a wallet or bank account setup
-    if (!report.hasOutstandingIOU && report.isWaitingOnBankAccount && report.ownerAccountID === currentUserAccountID) {
+    if (isWaitingForTaskCompleteFromAssignee(report, parentReportAction)) {
         return true;
     }
 
@@ -1357,17 +1367,6 @@ function shouldShowGBR(report) {
     }
 
     return false;
-}
-
-/**
- * Checks if a report is an open task report assigned to current user.
- *
- * @param {Object} report
- * @param {Object} parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
- * @returns {Boolean}
- */
-function isWaitingForTaskCompleteFromAssignee(report, parentReportAction = {}) {
-    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
 }
 
 /**
@@ -3287,8 +3286,8 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return true;
     }
 
-    // Include reports that are relevant to the user in any view mode. Criteria include having a draft, having an outstanding IOU, or being assigned to an open task.
-    if (report.hasDraft || shouldShowGBR(report) || isWaitingForTaskCompleteFromAssignee(report)) {
+    // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
+    if (report.hasDraft || shouldShowGBR(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
