@@ -3,9 +3,9 @@ import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useNetwork from '@hooks/useNetwork';
-import CONST from '@src/CONST';
 import useTheme from '@styles/themes/useTheme';
-import useThemeStyles, {stylesGenerator} from '@styles/useThemeStyles';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** type of rendered loader. Can be 'header' or 'footer' */
@@ -58,7 +58,7 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
         // applied for a header of the list, i.e. when you scroll to the bottom of the list
         // the styles for android and the rest components are different that's why we use two different components
         return (
-            <View style={[stylesGenerator.alignItemsCenter, styles.justifyContentCenter, styles.chatBottomLoader]}>
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.chatBottomLoader]}>
                 <ActivityIndicator
                     color={theme.spinner}
                     size="small"
