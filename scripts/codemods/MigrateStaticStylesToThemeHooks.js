@@ -20,6 +20,7 @@
 /* eslint-disable es/no-optional-chaining */
 /* eslint-disable no-console */
 /* eslint-disable no-param-reassign */
+/* eslint-disable rulesdir/prefer-underscore-method */
 
 const fs = require('fs').promises;
 const path = require('path');
@@ -36,6 +37,12 @@ function getComponentInfo(ast) {
         FunctionDeclaration({node}) {
             functionNames.add(node.id?.name);
         },
+        VariableDeclaration({node}) {
+            if (node.declarations[0].init?.callee?.name !== 'forwardRef' && node.declarations[0].init?.property?.name !== 'forwardRef') {
+                return;
+            }
+            functionNames.add(node.declarations[0].id.name);
+        },
         ExpressionStatement({node}) {
             const expression = node.expression;
             if (expression.type === 'AssignmentExpression' && functionNames.has(expression.left.object?.name) && expression.left.property?.name === 'displayName') {
@@ -46,7 +53,7 @@ function getComponentInfo(ast) {
             }
         },
         ClassDeclaration({node}) {
-            if (!node.superClass || (node.superClass.name !== 'Component' && node.superClass.name !== 'React.Component')) {
+            if (!node.superClass || !['Component', 'React.Component', 'PureComponent', 'React.PureComponent'].includes(node.superClass.name)) {
                 return;
             }
             componentInfo = {
@@ -68,6 +75,11 @@ async function writeASTToFile(filePath, fileContents, ast) {
 
 function addComposeImport(filePath, ast) {
     const relativePathToLibsDir = path.relative(path.dirname(filePath), '/Users/roryabraham/Expensidev/App/src/libs');
+    const hasComposeImport = ast.program.body.find((node) => node.type === 'ImportDeclaration' && node.specifiers[0].local.name === 'compose');
+    if (hasComposeImport) {
+        return;
+    }
+
     const lastImportIndex = ast.program.body.findLastIndex((node) => node.type === 'ImportDeclaration');
     ast.program.body.splice(lastImportIndex + 1, 0, {
         type: 'ImportDeclaration',
@@ -293,6 +305,56 @@ async function migrateStylesForFunctionComponent(filePath, fileContents, ast, co
                 node.source.value = `${relativePathToStylesDir}/themes/useTheme`;
             }
         },
+        VariableDeclaration({node}) {
+            if (node.declarations[0].init?.callee?.property?.name === 'forwardRef' || node.declarations[0].init?.callee?.name === 'forwardRef') {
+                if (styleIdentifier) {
+                    node.declarations[0].init.arguments[0].body.body.unshift({
+                        type: 'VariableDeclaration',
+                        kind: 'const',
+                        declarations: [
+                            {
+                                type: 'VariableDeclarator',
+                                id: {
+                                    type: 'Identifier',
+                                    name: 'styles',
+                                },
+                                init: {
+                                    type: 'CallExpression',
+                                    callee: {
+                                        type: 'Identifier',
+                                        name: 'useThemeStyles',
+                                    },
+                                    arguments: [],
+                                },
+                            },
+                        ],
+                    });
+                }
+                if (themeColorsIdentifier) {
+                    node.declarations[0].init.arguments[0].body.body.unshift({
+                        type: 'VariableDeclaration',
+                        kind: 'const',
+                        declarations: [
+                            {
+                                type: 'VariableDeclarator',
+                                id: {
+                                    type: 'Identifier',
+                                    name: 'theme',
+                                },
+                                init: {
+                                    type: 'CallExpression',
+                                    callee: {
+                                        type: 'Identifier',
+                                        name: 'useTheme',
+                                    },
+                                    arguments: [],
+                                },
+                            },
+                        ],
+                    });
+                }
+            }
+        },
         FunctionDeclaration({node}) {
             if (node.id?.name !== componentName) {
                 return;
@@ -422,8 +484,10 @@ async function run() {
     } else {
         try {
             await migrateStaticStylesForDirectory(directoryPath);
+            // await migrateStaticStylesForFile('/Users/roryabraham/Expensidev/App/src/components/AnchorForCommentsOnly/BaseAnchorForCommentsOnly.js');
             console.log('Running prettier...');
             await exec("npx prettier --write $(git diff --name-only --diff-filter d | grep -E '\\.js|\\.tsx$' | xargs)");
+            // await exec('npm run lint-changed');
             await stripBlankLinesFromDiff(directoryPath);
         } catch (error) {
             console.error('Error:', error);
