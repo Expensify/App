@@ -5,6 +5,7 @@ import * as ReportUtils from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import DateUtils from '../../src/libs/DateUtils';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -271,14 +272,14 @@ describe('ReportUtils', () => {
                 expect(ReportUtils.shouldShowGBR(report)).toBe(false);
             });
         });
-        it('returns true when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
+        it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 hasOutstandingIOU: false,
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: true,
             };
-            expect(ReportUtils.shouldShowGBR(report)).toBe(true);
+            expect(ReportUtils.shouldShowGBR(report)).toBe(false);
         });
         it('returns false when the report has outstanding IOU and is not waiting for a bank account and the logged user is the report owner', () => {
             const report = {
@@ -297,6 +298,23 @@ describe('ReportUtils', () => {
                 isWaitingOnBankAccount: true,
             };
             expect(ReportUtils.shouldShowGBR(report)).toBe(false);
+        });
+        it('returns true when the report has an unread mention', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                isUnreadWithMention: true,
+            };
+            expect(ReportUtils.shouldShowGBR(report)).toBe(true);
+        });
+        it('returns true when the report is an outstanding task', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.TASK,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS.OPEN,
+            };
+            expect(ReportUtils.shouldShowGBR(report)).toBe(true);
         });
         it('returns true when the report has oustanding child request', () => {
             const report = {
