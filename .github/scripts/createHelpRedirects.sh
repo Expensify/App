@@ -2,7 +2,7 @@
 #
 # Adds new routes to the Cloudflare Bulk Redirects list for communityDot to helpDot
 # pages. Does some basic sanity checking.
-# set -x
+
 source ../../scripts/shellUtils.sh
 
 info "Adding any new redirects from communityDot to helpDot"
@@ -22,14 +22,6 @@ function checkCloudflareResult {
     fi
 }
 
-LIST_RESULT=$(curl -s --request GET --url "https://api.cloudflare.com/client/v4/accounts/$ZONE_ID/rules/lists/$LIST_ID/items" \
-    --header 'Content-Type: application/json' \
-    --header "Authorization: Bearer $CLOUDFLARE_LIST_TOKEN")
-
-checkCloudflareResult "$LIST_RESULT"
-
-# Build an array of all of the current directs, each line is a csv of source,destination
-read -r -a CURRENT_REDIRECTS < <(echo "$LIST_RESULT" | jq -r '.result[].redirect | "\(.source_url),\(.target_url)"' | tr '\n' ' ')
 declare -a ITEMS_TO_ADD
 
 while read -r line; do
@@ -38,7 +30,6 @@ while read -r line; do
     read -r -a LINE_PARTS < <(echo "$line" | tr ',' ' ')
     SOURCE_URL=${LINE_PARTS[0]}
     DEST_URL=${LINE_PARTS[1]}
-    FOUND=false
 
     # Make sure the format of the line is as execpted.
     if [[ "${#LINE_PARTS[@]}" -gt 2 ]]; then
@@ -60,34 +51,13 @@ while read -r line; do
 
     info "Source: $SOURCE_URL and destination: $DEST_URL appear to be formatted correctly."
 
-    # This will get slow if we get to a ton of entries but there's no better way to do this in bash v3
-    # because associative arrays do not exist.
-    for entry in "${CURRENT_REDIRECTS[@]}"; do
-        read -r -a ENTRY_PARTS < <(echo "$entry" | tr ',' ' ')
-        CURRENT_SOURCE_URL=${ENTRY_PARTS[0]}
-        CURRENT_DEST_URL=${ENTRY_PARTS[1]}
-
-        # If the current csv line matches an existing rule, skip.
-        if [[ "$SOURCE_URL" == "$CURRENT_SOURCE_URL" ]] && [[ "$DEST_URL" == "$CURRENT_DEST_URL" ]]; then
-            echo "$SOURCE_URL is already mapped to $DEST_URL, skipping."
-            FOUND=true
-            break
-        fi
-    done
-
-    if [[ $FOUND == true ]]; then
-        continue
-    fi
-
-    # If we've made it this far, this csv line doesn't match any existing rules
-    # so we need to do add it.
-    info "$SOURCE_URL was not found in the existing list mapped to $DEST_URL, adding it."
     ITEMS_TO_ADD+=("$line")
 
 # This line skips the first line in the csv because the first line is a header row.
 done <<< "$(tail +2 $REDIRECTS_FILE)"
 
-# Sanity check that we should actually be running this.
+# Sanity check that we should actually be running this and we aren't about to delete
+# every single redirect.
 if [[ "${#ITEMS_TO_ADD[@]}" -lt 1 ]]; then
     error "No items found to add, why are we running?"
     exit 1
@@ -98,20 +68,52 @@ fi
 # that prints to std out to this block or it will break. We capture all of the std out
 # from this loop and pass it to jq to build the json object. Any non-json will break the
 # jq call at the end.
-POST_JSON=$(for new in "${ITEMS_TO_ADD[@]}"; do
+PUT_JSON=$(for new in "${ITEMS_TO_ADD[@]}"; do
     read -r -a LINE_PARTS < <(echo "$new" | tr ',' ' ')
     SOURCE_URL=${LINE_PARTS[0]}
     DEST_URL=${LINE_PARTS[1]}
     jq -n --arg source "$SOURCE_URL" --arg dest "$DEST_URL" '{"redirect": {source_url: $source, target_url: $dest}}'
 done | jq -n '. |= [inputs]')
 
-info "Adding redirects for $POST_JSON"
+info "Adding redirects for $PUT_JSON"
 
-POST_RESULT=$(curl -s --request POST --url "https://api.cloudflare.com/client/v4/accounts/$ZONE_ID/rules/lists/$LIST_ID/items" \
+# We use PUT here instead of POST so that we replace the entire list in place. This has many benefits:
+# 1. We don't have to check if items are already in the list, allowing this script to run faster
+# 2. We can support deleting redirects this way by simply removing them from the list
+# 3. We can support updating redirects this way, in the case of typos or moved destinations.
+#
+# Additionally this API call is async, so after we finish it, we must poll to wait for it to finish to
+# to know that it was actually completed.
+PUT_RESULT=$(curl -s --request PUT --url "https://api.cloudflare.com/client/v4/accounts/$ZONE_ID/rules/lists/$LIST_ID/items" \
     --header 'Content-Type: application/json' \
     --header "Authorization: Bearer $CLOUDFLARE_LIST_TOKEN" \
-    --data "$POST_JSON")
+    --data "$PUT_JSON")
 
-checkCloudflareResult "$POST_RESULT"
+checkCloudflareResult "$PUT_RESULT"
+OPERATION_ID=$(echo "$PUT_RESULT" | jq -r .result.operation_id)
+
+DONE=false
+
+# Poll for completition
+while [[ $DONE == false ]]; do
+    CHECK_RESULT=$(curl -s --request GET --url "https://api.cloudflare.com/client/v4/accounts/$ZONE_ID/rules/lists/bulk_operations/$OPERATION_ID" \
+        --header 'Content-Type: application/json' \
+        --header "Authorization: Bearer $CLOUDFLARE_LIST_TOKEN")
+    checkCloudflareResult "$CHECK_RESULT"
+
+    STATUS=$(echo "$CHECK_RESULT" | jq -r .result.status)
+
+    # Exit on completed or failed, other options are pending or running, in both cases
+    # we want to keep polling.
+    if [[ $STATUS == "completed" ]]; then
+        DONE=true
+    fi
+
+    if [[ $STATUS == "failed" ]]; then
+        ERROR_MESSAGE=$(echo "$CHECK_RESULT" | jq .result.error)
+        error "List update failed with error: $ERROR_MESSAGE"
+        exit 1
+    fi
+done
 
 success "Updated lists successfully"
