@@ -107,7 +107,7 @@ Onyx.connect({
     callback: (priorityMode) => (isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD),
 });
 
-// In order to tell if the user has been asked to upgrade for their current device we will set an Onyx key with the current device login
+// We use this NVP to track whether the user has already tested out #focus mode. If so, we won't switch them automatically.
 let hasTriedFocusMode = '';
 Onyx.connect({
     key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
@@ -1552,7 +1552,7 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
 
 function tryFocusModeUpdate() {
     Welcome.serverDataIsReadyPromise().then(() => {
-        // Check to see if the user is using #focus mode or if we have already asked them to upgrade on any devices.
+        // Check to see if the user is using #focus mode, has tried it before, or we have already switched them over automatically.
         if (isInFocusMode || hasTriedFocusMode) {
             Log.info('Not switching user to optimized focus mode.', false, {isInFocusMode, hasTriedFocusMode});
             return;
@@ -1566,8 +1566,10 @@ function tryFocusModeUpdate() {
 
         Log.info('Switching user to optimized focus mode', false, {reportCount});
 
-        // Record that we asked them to upgrade so we don't ask them again later.
+        // Record that we automatically switched them so we don't ask again.
         hasTriedFocusMode = true;
+
+        // Setting this triggers a modal to open and notify the user.
         Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, true);
     });
 }
