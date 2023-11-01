@@ -3,10 +3,12 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -14,19 +16,17 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import policyMemberPropType from '@pages/policyMemberPropType';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
 import styles from '@styles/styles';
+import variables from '@styles/variables';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import BlockingView from '../../../components/BlockingViews/BlockingView';
-import * as Illustrations from '../../../components/Icon/Illustrations';
-import * as PolicyUtils from '../../../libs/PolicyUtils';
-import variables from '../../../styles/variables';
-import policyMemberPropType from '../../policyMemberPropType';
-import {policyPropTypes} from '../../workspace/withPolicy';
 
 const propTypes = {
     /** Session of currently logged in user */
