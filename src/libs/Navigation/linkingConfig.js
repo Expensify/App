@@ -4,7 +4,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 export default {
-    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'http://localhost', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
+    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'https://dev.new.expensify.com', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {
@@ -199,6 +199,9 @@ export default {
                             },
                             Workspace_Settings_Currency: {
                                 path: ROUTES.WORKSPACE_SETTINGS_CURRENCY.route,
+                            },
+                            Workspace_Settings_Name: {
+                                path: ROUTES.WORKSPACE_SETTINGS_NAME.route,
                             },
                             Workspace_Card: {
                                 path: ROUTES.WORKSPACE_CARD.route,

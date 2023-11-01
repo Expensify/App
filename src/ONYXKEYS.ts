@@ -305,6 +305,7 @@ const ONYXKEYS = {
         INTRO_SCHOOL_PRINCIPAL_FORM: 'introSchoolPrincipalForm',
         REPORT_PHYSICAL_CARD_FORM: 'requestPhysicalCardForm',
         REPORT_VIRTUAL_CARD_FRAUD: 'reportVirtualCardFraudForm',
+        WORKSPACE_EDIT_NAME: "workspaceEditName"
     },
 } as const;
 
@@ -386,9 +387,11 @@ type OnyxValues = {
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
+    [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategory;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTags;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMember;
+    [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;

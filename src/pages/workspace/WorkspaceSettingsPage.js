@@ -1,18 +1,16 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
-import {Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
-import Form from '@components/Form';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
 import Text from '@components/Text';
-import TextInput from '@components/TextInput';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -59,35 +57,9 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
 
     const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
 
-    const submit = useCallback(
-        (values) => {
-            if (policy.isPolicyUpdating) {
-                return;
-            }
-
-            Policy.updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
-            Keyboard.dismiss();
-            Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id));
-        },
-        [policy.id, policy.isPolicyUpdating, policy.outputCurrency],
-    );
-
-    const validate = useCallback((values) => {
-        const errors = {};
-        const name = values.name.trim();
-
-        if (!name || !name.length) {
-            errors.name = 'workspace.editor.nameIsRequiredError';
-        } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
-            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
-            // code units.
-            errors.name = 'workspace.editor.nameIsTooLongError';
-        }
-
-        return errors;
-    }, []);
-
     const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS_CURRENCY.getRoute(policy.id)), [policy.id]);
+
+    const onPressPolicyName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS_NAME.getRoute(policy.id)), [policy.id]);
 
     const policyName = lodashGet(policy, 'name', '');
 
@@ -98,16 +70,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
         >
             {(hasVBA) => (
-                <Form
-                    formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
-                    submitButtonText={translate('workspace.editor.save')}
-                    style={styles.flexGrow1}
-                    submitButtonStyles={[styles.mh5]}
-                    scrollContextEnabled
-                    validate={validate}
-                    onSubmit={submit}
-                    enabledWhenOffline
-                >
+                <>
                     <AvatarWithImagePicker
                         isUploading={policy.isAvatarUploading}
                         source={lodashGet(policy, 'avatar')}
@@ -140,7 +103,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                         originalFileName={policy.originalFileName}
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
-                        <TextInput
+                        {/* <TextInput
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             inputID="name"
                             label={translate('workspace.editor.nameInputLabel')}
@@ -149,6 +112,12 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                             defaultValue={policy.name}
                             maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                             spellCheck={false}
+                        /> */}
+                        <MenuItemWithTopDescription
+                            title={policy.name}
+                            description={translate('workspace.editor.nameInputLabel')}
+                            shouldShowRightIcon
+                            onPress={onPressPolicyName}
                         />
                         <View style={[styles.mt4]}>
                             <MenuItemWithTopDescription
@@ -163,7 +132,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                             </Text>
                         </View>
                     </OfflineWithFeedback>
-                </Form>
+                </>
             )}
         </WorkspacePageWithSections>
     );

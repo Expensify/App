@@ -172,6 +172,7 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     Workspace_Initial: () => require('../../../pages/workspace/WorkspaceInitialPage').default,
     Workspace_Settings: () => require('../../../pages/workspace/WorkspaceSettingsPage').default,
     Workspace_Settings_Currency: () => require('../../../pages/workspace/WorkspaceSettingsCurrencyPage').default,
+    Workspace_Settings_Name: () => require('../../../pages/workspace/WorkspaceSettingsNamePage').default,
     Workspace_Card: () => require('../../../pages/workspace/card/WorkspaceCardPage').default,
     Workspace_Reimburse: () => require('../../../pages/workspace/reimburse/WorkspaceReimbursePage').default,
     Workspace_RateAndUnit: () => require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default,
