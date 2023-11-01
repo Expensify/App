@@ -139,7 +139,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
             value: {
                 errorFields: {
-                    createChat: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
+                    createTask: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
                 },
             },
         },

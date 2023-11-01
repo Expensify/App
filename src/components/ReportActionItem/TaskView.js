@@ -58,7 +58,7 @@ function TaskView(props) {
         <View>
             <OfflineWithFeedback
                 shouldShowErrorMessages
-                errors={lodashGet(props, 'report.errorFields.editTask') || lodashGet(props, 'report.errorFields.createChat')}
+                errors={lodashGet(props, 'report.errorFields.editTask') || lodashGet(props, 'report.errorFields.createTask')}
                 onClose={() => Task.clearTaskErrors(props.report.reportID)}
                 errorRowStyles={styles.ph5}
             >
