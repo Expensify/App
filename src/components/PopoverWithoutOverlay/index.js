@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
@@ -11,6 +11,8 @@ import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
     const {onOpen, close} = React.useContext(PopoverContext);
+    const onCloseKey = useRef(Modal.getAvailableKey());
+
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
         'popover',
         {
@@ -30,8 +32,8 @@ function Popover(props) {
                 ref: props.withoutOverlayRef,
                 close: props.onClose,
                 anchorRef: props.anchorRef,
-                onCloseCallback: () => Modal.setCloseModal(null),
-                onOpenCallback: () => Modal.setCloseModal(() => props.onClose(props.anchorRef)),
+                onCloseCallback: () => Modal.setCloseModal(onCloseKey, null),
+                onOpenCallback: () => Modal.setCloseModal(onCloseKey, () => props.onClose(props.anchorRef)),
             });
         } else {
             props.onModalHide();

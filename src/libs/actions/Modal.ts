@@ -4,7 +4,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 const closeModals: Record<number, null | ((isNavigating: boolean) => void)> = {};
 let count = 0;
 
-// let closeModal: (isNavigating: boolean) => void;
 let onModalClose: null | (() => void);
 
 /**
@@ -26,13 +25,14 @@ function setCloseModal(key: number, onClose: () => void) {
  */
 function close(onModalCloseCallback: () => void, isNavigating = true) {
     onModalClose = onModalCloseCallback;
-    const reversalOnCloses = Object.values(closeModals).reverse();
-    reversalOnCloses.forEach((onClose) => {
-        if (typeof onClose !== 'function') {
-            return;
-        }
-        onClose(isNavigating);
-    });
+    Object.values(closeModals)
+        .reverse()
+        .forEach((onClose) => {
+            if (typeof onClose !== 'function') {
+                return;
+            }
+            onClose(isNavigating);
+        });
 }
 
 function onModalDidClose() {
