@@ -6,8 +6,8 @@ import _ from 'underscore';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import styles from '@styles/styles';
-import theme from '@styles/themes/default';
 import * as StyleUtils from '@styles/StyleUtils';
+import theme from '@styles/themes/default';
 import variables from '@styles/variables';
 import ReportActionItemImage from './ReportActionItemImage';
 
