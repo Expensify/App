@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import FocusModeNotification from '@components/FocusModeNotification';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -36,7 +37,6 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
-import FocusModeNotification from '@components/FocusModeNotification';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -212,9 +212,7 @@ function Expensify(props) {
                             isVisible
                         />
                     ) : null}
-                    {props.focusModeNotification ? (
-                        <FocusModeNotification />
-                    ) : null}
+                    {props.focusModeNotification ? <FocusModeNotification /> : null}
                 </>
             )}
 

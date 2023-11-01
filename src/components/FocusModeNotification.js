@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
-import CONST from '@src/CONST';
 import useLocalize from '@hooks/useLocalize';
 import * as User from '@userActions/User';
+import CONST from '@src/CONST';
 import ConfirmModal from './ConfirmModal';
 
 function FocusModeNotification() {
