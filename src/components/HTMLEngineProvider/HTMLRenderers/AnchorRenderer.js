@@ -20,6 +20,8 @@ function AnchorRenderer(props) {
     const displayName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
+    const internalNewExpensifyPath = Link.getInternalNewExpensifyPath(attrHref);
+    const internalExpensifyPath = Link.getInternalExpensifyPath(attrHref);
 
     if (!HTMLEngineUtils.isInsideComment(props.tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
@@ -59,7 +61,7 @@ function AnchorRenderer(props) {
             key={props.key}
             displayName={displayName}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
-            onPress={internalNewExpensifyPath || internalExpensifyPath ? navigateToLink : undefined}
+            onPress={internalNewExpensifyPath || internalExpensifyPath ? Link.openLink : undefined}
         >
             <TNodeChildrenRenderer tnode={props.tnode} />
         </AnchorForCommentsOnly>

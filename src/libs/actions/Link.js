@@ -75,20 +75,36 @@ function openOldDotLink(url) {
 
 /**
  * @param {string} href
+ * @returns {string}
+ */
+function getInternalNewExpensifyPath(href) {
+    const attrPath = Url.getPathFromURL(href);
+    return (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
+        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.includes(attrPath)
+        ? attrPath
+        : '';
+}
+
+/**
+ * @param {string} href
+ * @returns {string}
+ */
+function getInternalExpensifyPath(href) {
+    const attrPath = Url.getPathFromURL(href);
+    const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
+    return hasExpensifyOrigin && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME) && !attrPath.startsWith(CONFIG.EXPENSIFY.DEVPORTAL_URL_PATHNAME) && attrPath;
+}
+
+/**
+ * @param {string} href
  * @param {string} environmentURL
  * @param {boolean} [isAttachment]
  */
 function openLink(href, environmentURL, isAttachment = false) {
-    const attrPath = Url.getPathFromURL(href);
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
-    const internalNewExpensifyPath =
-        (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
-        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.includes(attrPath)
-            ? attrPath
-            : '';
-    const internalExpensifyPath =
-        hasExpensifyOrigin && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME) && !attrPath.startsWith(CONFIG.EXPENSIFY.DEVPORTAL_URL_PATHNAME) && attrPath;
+    const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
+    const internalExpensifyPath = getInternalExpensifyPath(href);
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
     // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
@@ -119,4 +135,4 @@ function openLink(href, environmentURL, isAttachment = false) {
     openExternalLink(href);
 }
 
-export {buildOldDotURL, openOldDotLink, openExternalLink, openLink};
+export {buildOldDotURL, openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath};
