@@ -4111,6 +4111,15 @@ function isReportDraft(report) {
 function shouldUseFullTitleToDisplay(report) {
     return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report);
 }
+/**
+ * We want policy owners and admins to be able to modify the welcome message only when the report is not a thread chat
+ * @param {Object} report
+ * @param {Object} policy
+ * @return {Boolean}
+ */
+function checkShouldDisableWelcomeMessage(report, policy) {
+    return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || _.isEmpty(policy) || policy.role !== CONST.POLICY.ROLE.ADMIN || isChatThread(report);
+}
 
 export {
     getReportParticipantsTitle,
@@ -4269,4 +4278,5 @@ export {
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
+    checkShouldDisableWelcomeMessage,
 };
