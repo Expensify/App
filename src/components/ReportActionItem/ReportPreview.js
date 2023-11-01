@@ -24,8 +24,8 @@ import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
 import nextStepPropTypes from '@pages/nextStepPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 import * as IOU from '@userActions/IOU';
@@ -200,7 +200,14 @@ function ReportPreview(props) {
     const shouldShowApproveButton = !!lodashGet(props.nextStep, 'buttons.approve', null);
     const shouldShowPayButtonForGroupPolicies = !!lodashGet(props.nextStep, 'buttons.reimburse', null);
     const shouldShowPayButtonForFreePlan =
-        !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && policyType === CONST.POLICY.TYPE.PERSONAL;
+        !_.isEmpty(props.iouReport) &&
+        isCurrentUserManager &&
+        !isReportDraft &&
+        !iouSettled &&
+        !iouCanceled &&
+        !props.iouReport.isWaitingOnBankAccount &&
+        reimbursableSpend !== 0 &&
+        policyType === CONST.POLICY.TYPE.PERSONAL;
     const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || shouldShowApproveButton || shouldShowPayButtonForGroupPolicies;
     const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || shouldShowPayButtonForGroupPolicies;
     return (
