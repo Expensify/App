@@ -43,6 +43,8 @@ const propTypes = {
         /** If user has two-factor authentication enabled */
         requiresTwoFactorAuth: PropTypes.bool,
     }),
+
+    policyID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -73,7 +75,9 @@ const filterInput = (amount) => {
     return value;
 };
 
-function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account}) {
+function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account, policyID}) {
+    console.debug(`~~Monil policyID ${policyID}`);
+
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
@@ -179,7 +183,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                     </View>
                     {!requiresTwoFactorAuth && (
                         <View style={[styles.mln5, styles.mrn5]}>
-                            <Enable2FAPrompt />
+                            <Enable2FAPrompt policyID={policyID} />
                         </View>
                     )}
                 </Form>
@@ -210,7 +214,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                         />
                     </Section>
                     {reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
-                    {!requiresTwoFactorAuth && <Enable2FAPrompt />}
+                    {!requiresTwoFactorAuth && <Enable2FAPrompt policyID={policyID} />}
                 </ScrollView>
             )}
         </ScreenWrapper>

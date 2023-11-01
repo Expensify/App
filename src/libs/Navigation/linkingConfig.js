@@ -176,7 +176,7 @@ export default {
                                 exact: true,
                             },
                             Settings_TwoFactorAuth: {
-                                path: ROUTES.SETTINGS_2FA,
+                                path: ROUTES.SETTINGS_2FA.route,
                                 exact: true,
                             },
                             Settings_Share_Code: {

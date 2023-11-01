@@ -518,6 +518,7 @@ class ReimbursementAccountPage extends React.Component {
                 <ValidationStep
                     reimbursementAccount={this.props.reimbursementAccount}
                     onBackButtonPress={this.goBack}
+                    policyID={policyID}
                 />
             );
         }

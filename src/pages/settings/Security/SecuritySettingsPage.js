@@ -42,7 +42,7 @@ function SecuritySettingsPage(props) {
             {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: Expensicons.Shield,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA)),
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute())),
             },
             {
                 translationKey: 'closeAccountPage.closeAccount',
