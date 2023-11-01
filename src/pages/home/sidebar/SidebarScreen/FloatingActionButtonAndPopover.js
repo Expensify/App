@@ -200,7 +200,7 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.MoneyCircle,
                         text: props.translate('iou.requestMoney'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, NumberUtils.rand64())),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, NumberUtils.rand64()))),
                     },
                     {
                         icon: Expensicons.Send,
