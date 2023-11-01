@@ -307,7 +307,7 @@ function AddressSearch(props) {
                     lng: successData.coords.longitude,
                     address: CONST.YOUR_LOCATION_TEXT,
                 };
-                onPress(location);
+                props.onPress(location);
             },
             (errorData) => {
                 if (!shouldTriggerGeolocationCallbacks.current) {
