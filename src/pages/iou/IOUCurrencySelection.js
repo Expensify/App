@@ -126,8 +126,11 @@ function IOUCurrencySelection(props) {
             };
         });
 
-        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
-        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text) || searchRegex.test(currencyOption.currencyName));
+        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.replace(/\s/g, ' ')), 'i');
+        const filteredCurrencies = _.filter(
+            currencyOptions,
+            (currencyOption) => searchRegex.test(currencyOption.text.replace(/\s/g, ' ')) || searchRegex.test(currencyOption.currencyName.replace(/\s/g, ' ')),
+        );
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
         return {
