@@ -71,14 +71,17 @@ function MoneyRequestConfirmPage(props) {
     const [receiptFile, setReceiptFile] = useState();
     const participants = useMemo(
         () =>
-            _.map(props.iou.participants, (participant) => {
-                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
-            }),
+            _.chain(props.iou.participants)
+                .map((participant) => {
+                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
+                })
+                .filter((participant) => !!participant.login || !!participant.text)
+                .value(),
         [props.iou.participants, props.personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
-    const isManualRequestDM = props.selectedTab === CONST.TAB_REQUEST.MANUAL && iouType.current === CONST.IOU.TYPE.REQUEST;
+    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType === CONST.IOU.TYPE.REQUEST;
 
     useEffect(() => {
         IOU.resetMoneyRequestCategory();
