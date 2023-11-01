@@ -1,8 +1,8 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import compose from '@libs/compose';
@@ -11,13 +11,13 @@ import * as ReportUtils from '@libs/ReportUtils';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import nextStepPropTypes from '@pages/nextStepPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
+import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as Expensicons from './Icon/Expensicons';
-import * as IOU from '@userActions/IOU';
 import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
 
