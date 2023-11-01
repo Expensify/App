@@ -362,7 +362,7 @@ function getAllReportErrors(report, reportActions) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
 
-        if (ReportUtils.hasDistanceTransactionRouteErrors(report.reportID)) {
+        if (ReportUtils.hasRouteError(report.reportID)) {
             _.extend(reportActionErrors, {waypoint: ErrorUtils.getMicroSecondOnyxError('iou.error.genericWaypointFailureMessage')});
         }
     }

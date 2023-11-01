@@ -1709,10 +1709,10 @@ function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
 /**
  * Check if any of the distance transactions in the report has invalid route
  *
- * @param {Object|null} iouReportID
+ * @param {String} iouReportID
  * @returns {Boolean}
  */
-function hasDistanceTransactionRouteErrors(iouReportID) {
+function hasRouteError(iouReportID) {
     const distanceTransactions = getDistanceTransactions(iouReportID);
     return _.some(distanceTransactions, (transaction) => TransactionUtils.hasRouteError(transaction));
 }
@@ -1720,7 +1720,7 @@ function hasDistanceTransactionRouteErrors(iouReportID) {
 /**
  * Check if any of the transactions in the report has required missing fields
  *
- * @param {Object|null} iouReportID
+ * @param {String} iouReportID
  * @returns {Boolean}
  */
 function hasMissingSmartscanFields(iouReportID) {
@@ -4284,7 +4284,7 @@ export {
     hasOnlyDistanceRequestTransactions,
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
-    hasDistanceTransactionRouteErrors,
+    hasRouteError,
     getIOUReportActionDisplayMessage,
     isWaitingForAssigneeToCompleteTask,
     isGroupChat,
