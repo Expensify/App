@@ -71,7 +71,6 @@ This is the most common scenario for contributors. The Expensify team posts new 
 #### Raising bugs
 While working on fixing a bug, it's possible that you could find a new bug that we haven’t posted as a job to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to raise it and claim the bug bounty by notifying an Expensify team member or a Contributer+ assigned to the issue. If it's a valid bug that we choose to resolve by deploying it to production — either internally or via an external contributor — then we will compensate you $50 for identifying the bug (we do not compensate for reporting new feature requests). If the bug is fixed by a PR that is not associated with your bug report, then you will not be eligible for the corresponding compensation unless you can find the PR that fixed it and prove your bug report came first.
 - Note: If you get assigned the job you proposed **and** you complete the job, this $50 for identifying the improvement is *in addition to* the reward you will be paid for completing the job.
-- Note about proposed bugs: Expensify has the right not to pay the $50 reward if the suggested bug has already been reported.
 - Note: Solutions are ultimately reviewed in GitHub. The onus is on you to propose the solution on GitHub, rather than Slack.
 
 Please follow these steps to propose a job or raise a bug:
