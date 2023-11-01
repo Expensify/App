@@ -4,27 +4,27 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import styles from '@styles/styles';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import TabSelector from '@components/TabSelector/TabSelector';
+import transactionPropTypes from '@components/transactionPropTypes';
+import * as IOU from '@userActions/IOU';
+import usePrevious from '@hooks/usePrevious';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import reportPropTypes from '@pages/reportPropTypes';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import useLocalize from '../../../hooks/useLocalize';
-import styles from '../../../styles/styles';
-import DragAndDropProvider from '../../../components/DragAndDrop/Provider';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import OnyxTabNavigator, {TopTab} from '../../../libs/Navigation/OnyxTabNavigator';
-import TabSelector from '../../../components/TabSelector/TabSelector';
-import transactionPropTypes from '../../../components/transactionPropTypes';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepScan from './step/IOURequestStepScan';
-import * as IOU from '../../../libs/actions/IOU';
-import usePrevious from '../../../hooks/usePrevious';
-import * as TransactionUtils from '../../../libs/TransactionUtils';
 import IOURequestStepRoutePropTypes from './step/IOURequestStepRoutePropTypes';
-import reportPropTypes from '../../reportPropTypes';
-import * as ReportUtils from '../../../libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */

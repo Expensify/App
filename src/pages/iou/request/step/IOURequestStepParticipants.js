@@ -1,15 +1,15 @@
 import React, {useRef, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import CONST from '../../../../CONST';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import ROUTES from '../../../../ROUTES';
-import MoneyRequestParticipantsSelector from '../MoneeRequestParticipantsSelector';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import * as IOU from '../../../../libs/actions/IOU';
-import useLocalize from '../../../../hooks/useLocalize';
-import transactionPropTypes from '../../../../components/transactionPropTypes';
-import * as TransactionUtils from '../../../../libs/TransactionUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneeRequestParticipantsSelector';
+import Navigation from '@libs/Navigation/Navigation';
+import * as IOU from '@userActions/IOU';
+import useLocalize from '@hooks/useLocalize';
+import transactionPropTypes from '@components/transactionPropTypes';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import StepScreenWrapper from './StepScreenWrapper';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 

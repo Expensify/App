@@ -3,10 +3,11 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 
-import * as ReportUtils from '../../../libs/ReportUtils';
-import ONYXKEYS from '../../../ONYXKEYS';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import CONST from '../../../CONST';
+import * as ReportUtils from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import CONST from '@src/CONST';
+import reportPropTypes from '@pages/reportPropTypes';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepCategory from './step/IOURequestStepCategory';
 import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
@@ -20,7 +21,6 @@ import IOURequestStepRoutePropTypes from './step/IOURequestStepRoutePropTypes';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import IOURequestStepTag from './step/IOURequestStepTag';
 import IOURequestStepWaypoint from './step/IOURequestStepWaypoint';
-import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */

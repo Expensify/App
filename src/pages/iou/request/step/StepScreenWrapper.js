@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../../../styles/styles';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
+import styles from '@styles/styles';
+import ScreenWrapper from '@components/ScreenWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 
 const propTypes = {
     /** The things to display inside the screenwrapper */

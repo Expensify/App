@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import CONST from '../../../../CONST';
+import CONST from '@src/CONST';
 
 export default PropTypes.shape({
     /** Route specific parameters used on this screen via route :iouType/new/category/:reportID? */

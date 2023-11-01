@@ -4,18 +4,18 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import OptionsSelector from '../../../components/OptionsSelector';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Browser from '../../../libs/Browser';
-import compose from '../../../libs/compose';
-import CONST from '../../../CONST';
-import personalDetailsPropType from '../../personalDetailsPropType';
-import reportPropTypes from '../../reportPropTypes';
-import refPropTypes from '../../../components/refPropTypes';
+import styles from '@styles/styles';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import CONST from '@src/CONST';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import refPropTypes from '@components/refPropTypes';
+import OptionsSelector from '@components/OptionsSelector';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Beta features list */

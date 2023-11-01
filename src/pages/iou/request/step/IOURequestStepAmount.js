@@ -3,17 +3,17 @@ import {useFocusEffect} from '@react-navigation/native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
-import * as IOU from '../../../../libs/actions/IOU';
-import useLocalize from '../../../../hooks/useLocalize';
-import MoneyRequestAmountForm from '../../steps/MoneyRequestAmountForm';
-import CONST from '../../../../CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as IOU from '@userActions/IOU';
+import useLocalize from '@hooks/useLocalize';
+import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
+import CONST from '@src/CONST';
+import reportPropTypes from '@pages/reportPropTypes';
+import transactionPropTypes from '@components/transactionPropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
-import reportPropTypes from '../../../reportPropTypes';
-import transactionPropTypes from '../../../../components/transactionPropTypes';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
