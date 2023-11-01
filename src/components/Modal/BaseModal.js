@@ -1,19 +1,20 @@
-import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import styles from '../../styles/styles';
-import * as Modal from '../../libs/actions/Modal';
-import * as StyleUtils from '../../styles/StyleUtils';
-import themeColors from '../../styles/themes/default';
-import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './modalPropTypes';
-import getModalStyles from '../../styles/getModalStyles';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import variables from '../../styles/variables';
-import CONST from '../../CONST';
-import ComposerFocusManager from '../../libs/ComposerFocusManager';
-import useNativeDriver from '../../libs/useNativeDriver';
+import usePrevious from '@hooks/usePrevious';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+import useNativeDriver from '@libs/useNativeDriver';
+import getModalStyles from '@styles/getModalStyles';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import * as Modal from '@userActions/Modal';
+import CONST from '@src/CONST';
+import {defaultProps as modalDefaultProps, propTypes as modalPropTypes} from './modalPropTypes';
 
 const propTypes = {
     ...modalPropTypes,
@@ -55,6 +56,9 @@ function BaseModal({
 
     const safeAreaInsets = useSafeAreaInsets();
 
+    const isVisibleRef = useRef(isVisible);
+    const wasVisible = usePrevious(isVisible);
+
     /**
      * Hides modal
      * @param {Boolean} [callHideCallback=true] Should we call the onModalHide callback
@@ -76,20 +80,25 @@ function BaseModal({
     );
 
     useEffect(() => {
-        Modal.willAlertModalBecomeVisible(isVisible);
-
-        // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-        Modal.setCloseModal(isVisible ? onClose : null);
-    }, [isVisible, onClose]);
+        isVisibleRef.current = isVisible;
+        if (isVisible) {
+            Modal.willAlertModalBecomeVisible(true);
+            // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
+            Modal.setCloseModal(onClose);
+        } else if (wasVisible && !isVisible) {
+            Modal.willAlertModalBecomeVisible(false);
+            Modal.setCloseModal(null);
+        }
+    }, [isVisible, wasVisible, onClose]);
 
     useEffect(
         () => () => {
             // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
-            if (isVisible) {
-                hideModal(true);
-                Modal.willAlertModalBecomeVisible(false);
+            if (!isVisibleRef.current) {
+                return;
             }
-
+            hideModal(true);
+            Modal.willAlertModalBecomeVisible(false);
             // To prevent closing any modal already unmounted when this modal still remains as visible state
             Modal.setCloseModal(null);
         },
@@ -210,10 +219,14 @@ BaseModal.propTypes = propTypes;
 BaseModal.defaultProps = defaultProps;
 BaseModal.displayName = 'BaseModal';
 
-export default forwardRef((props, ref) => (
+const BaseModalWithRef = forwardRef((props, ref) => (
     <BaseModal
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+BaseModalWithRef.displayName = 'BaseModalWithRef';
+
+export default BaseModalWithRef;

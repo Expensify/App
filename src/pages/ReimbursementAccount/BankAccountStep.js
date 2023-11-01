@@ -1,33 +1,33 @@
-import React from 'react';
-import {View, ScrollView} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize from '@components/withLocalize';
+import compose from '@libs/compose';
+import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as Link from '@userActions/Link';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import BankAccountManualStep from './BankAccountManualStep';
 import BankAccountPlaidStep from './BankAccountPlaidStep';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import MenuItem from '../../components/MenuItem';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import styles from '../../styles/styles';
-import TextLink from '../../components/TextLink';
-import Icon from '../../components/Icon';
-import themeColors from '../../styles/themes/default';
-import CONST from '../../CONST';
-import withLocalize from '../../components/withLocalize';
-import Text from '../../components/Text';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import ONYXKEYS from '../../ONYXKEYS';
-import compose from '../../libs/compose';
-import Section from '../../components/Section';
-import * as Illustrations from '../../components/Icon/Illustrations';
-import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
-import CONFIG from '../../CONFIG';
-import ROUTES from '../../ROUTES';
-import Button from '../../components/Button';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
-import * as Link from '../../libs/actions/Link';
 
 const propTypes = {
     ...StepPropTypes,
@@ -49,6 +49,9 @@ const propTypes = {
 
     /* The workspace name */
     policyName: PropTypes.string,
+
+    /* The workspace ID */
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -57,6 +60,7 @@ const defaultProps = {
     user: {},
     isPlaidDisabled: false,
     policyName: '',
+    policyID: '',
 };
 
 function BankAccountStep(props) {
@@ -66,7 +70,11 @@ function BankAccountStep(props) {
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
-    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
+    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(
+        'new',
+        props.policyID,
+        ROUTES.WORKSPACE_INITIAL.getRoute(props.policyID),
+    )}`;
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
         return (
@@ -91,7 +99,10 @@ function BankAccountStep(props) {
     }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={BankAccountStep.displayName}
+        >
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.connectBankAccount')}

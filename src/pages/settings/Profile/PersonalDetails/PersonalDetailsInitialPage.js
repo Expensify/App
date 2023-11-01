@@ -1,21 +1,22 @@
-import React from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import ROUTES from '../../../../ROUTES';
-import Text from '../../../../components/Text';
-import styles from '../../../../styles/styles';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import compose from '../../../../libs/compose';
-import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import {withNetwork} from '../../../../components/OnyxProvider';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
-import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {withNetwork} from '@components/OnyxProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import styles from '@styles/styles';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -58,34 +59,11 @@ const defaultProps = {
 function PersonalDetailsInitialPage(props) {
     usePrivatePersonalDetails();
     const privateDetails = props.privatePersonalDetails || {};
-    const address = privateDetails.address || {};
     const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
     const isLoadingPersonalDetails = lodashGet(props.privatePersonalDetails, 'isLoading', true);
 
-    /**
-     * Applies common formatting to each piece of an address
-     *
-     * @param {String} piece
-     * @returns {String}
-     */
-    const formatPiece = (piece) => (piece ? `${piece}, ` : '');
-
-    /**
-     * Formats an address object into an easily readable string
-     *
-     * @returns {String}
-     */
-    const getFormattedAddress = () => {
-        const [street1, street2] = (address.street || '').split('\n');
-        const formattedAddress =
-            formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
-
-        // Remove the last comma of the address
-        return formattedAddress.trim().replace(/,$/, '');
-    };
-
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={PersonalDetailsInitialPage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.personalDetails')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
@@ -112,8 +90,8 @@ function PersonalDetailsInitialPage(props) {
                             titleStyle={[styles.flex1]}
                         />
                         <MenuItemWithTopDescription
-                            title={getFormattedAddress()}
-                            description={props.translate('privatePersonalDetails.homeAddress')}
+                            title={PersonalDetailsUtils.getFormattedAddress(props.privatePersonalDetails)}
+                            description={props.translate('privatePersonalDetails.address')}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
                         />

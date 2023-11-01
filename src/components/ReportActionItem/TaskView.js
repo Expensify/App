@@ -1,32 +1,33 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import reportPropTypes from '../../pages/reportPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withWindowDimensions from '../withWindowDimensions';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
-import compose from '../../libs/compose';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
-import Hoverable from '../Hoverable';
-import MenuItem from '../MenuItem';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import styles from '../../styles/styles';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as StyleUtils from '../../styles/StyleUtils';
-import * as Task from '../../libs/actions/Task';
-import CONST from '../../CONST';
-import Checkbox from '../Checkbox';
-import convertToLTR from '../../libs/convertToLTR';
-import Text from '../Text';
-import Icon from '../Icon';
-import getButtonState from '../../libs/getButtonState';
-import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
-import * as Session from '../../libs/actions/Session';
-import * as Expensicons from '../Icon/Expensicons';
+import Checkbox from '@components/Checkbox';
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import SpacerView from '@components/SpacerView';
+import Text from '@components/Text';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import convertToLTR from '@libs/convertToLTR';
+import getButtonState from '@libs/getButtonState';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -46,11 +47,13 @@ function TaskView(props) {
     }, [props.report]);
 
     const taskTitle = convertToLTR(props.report.reportName || '');
+    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.managerID], props.personalDetails), false);
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
-    const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
-    const disableState = !canModifyTask || !isOpen;
+    const disableState = !canModifyTask;
+    const isDisableInteractive = !canModifyTask || !isOpen;
+
     return (
         <View>
             <OfflineWithFeedback
@@ -63,13 +66,21 @@ function TaskView(props) {
                     {(hovered) => (
                         <PressableWithSecondaryInteraction
                             onPress={Session.checkIfActionIsAllowed((e) => {
+                                if (isDisableInteractive) {
+                                    return;
+                                }
                                 if (e && e.type === 'click') {
                                     e.currentTarget.blur();
                                 }
 
-                                Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
+                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(props.report.reportID));
                             })}
-                            style={({pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState), true)]}
+                            style={({pressed}) => [
+                                styles.ph5,
+                                styles.pv2,
+                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
+                                isDisableInteractive && !disableState && styles.cursorDefault,
+                            ]}
                             ref={props.forwardedRef}
                             disabled={disableState}
                             accessibilityLabel={taskTitle || props.translate('task.task')}
@@ -81,9 +92,9 @@ function TaskView(props) {
                                         <Checkbox
                                             onPress={Session.checkIfActionIsAllowed(() => {
                                                 if (isCompleted) {
-                                                    Task.reopenTask(props.report, taskTitle);
+                                                    Task.reopenTask(props.report);
                                                 } else {
-                                                    Task.completeTask(props.report, taskTitle);
+                                                    Task.completeTask(props.report);
                                                 }
                                             })}
                                             isChecked={isCompleted}
@@ -92,7 +103,7 @@ function TaskView(props) {
                                             containerBorderRadius={8}
                                             caretSize={16}
                                             accessibilityLabel={taskTitle || props.translate('task.task')}
-                                            disabled={isCanceled || !canModifyTask}
+                                            disabled={!canModifyTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
                                             <Text
@@ -122,12 +133,13 @@ function TaskView(props) {
                         shouldParseTitle
                         description={props.translate('task.description')}
                         title={props.report.description || ''}
-                        onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.TASK_DESCRIPTION.getRoute(props.report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         shouldGreyOutWhenDisabled={false}
                         numberOfLinesTitle={0}
+                        interactive={!isDisableInteractive}
                     />
                 </OfflineWithFeedback>
                 {props.report.managerID ? (
@@ -139,26 +151,32 @@ function TaskView(props) {
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
-                            onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(props.report.reportID))}
                             shouldShowRightIcon={isOpen}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}
                             isSmallAvatarSubscriptMenu
                             shouldGreyOutWhenDisabled={false}
+                            interactive={!isDisableInteractive}
+                            titleWithTooltips={assigneeTooltipDetails}
                         />
                     </OfflineWithFeedback>
                 ) : (
                     <MenuItemWithTopDescription
                         description={props.translate('task.assignee')}
-                        onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(props.report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2]}
                         shouldGreyOutWhenDisabled={false}
+                        interactive={!isDisableInteractive}
                     />
                 )}
             </OfflineWithFeedback>
-            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
+            <SpacerView
+                shouldShow={props.shouldShowHorizontalRule}
+                style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+            />
         </View>
     );
 }

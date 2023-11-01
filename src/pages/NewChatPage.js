@@ -1,25 +1,29 @@
-import _ from 'underscore';
-import React, {useState, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import OptionsSelector from '../components/OptionsSelector';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import Permissions from '../libs/Permissions';
-import * as ReportUtils from '../libs/ReportUtils';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import * as Report from '../libs/actions/Report';
-import CONST from '../CONST';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import ScreenWrapper from '../components/ScreenWrapper';
-import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import * as Browser from '../libs/Browser';
-import compose from '../libs/compose';
+import _ from 'underscore';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import OfflineIndicator from '@components/OfflineIndicator';
+import OptionsSelector from '@components/OptionsSelector';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useDelayedInputFocus from '@hooks/useDelayedInputFocus';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
+import * as ReportUtils from '@libs/ReportUtils';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
-import variables from '../styles/variables';
 
 const propTypes = {
     /** Beta features list */
@@ -34,29 +38,37 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    isSearchingForReports: false,
 };
 
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) {
+function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports}) {
+    const optionSelectorRef = React.createRef(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState();
     const [selectedOptions, setSelectedOptions] = useState([]);
+    const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
         filteredPersonalDetails.length + filteredRecentReports.length !== 0,
         Boolean(filteredUserToInvite),
-        searchTerm,
+        searchTerm.trim(),
         maxParticipantsReached,
+        _.some(selectedOptions, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
@@ -64,13 +76,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
         const sectionsList = [];
         let indexOffset = 0;
 
-        sectionsList.push({
-            title: undefined,
-            data: selectedOptions,
-            shouldShow: !_.isEmpty(selectedOptions),
-            indexOffset,
-        });
-        indexOffset += selectedOptions.length;
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, {}, false, indexOffset);
+        sectionsList.push(formatResults.section);
+        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return sectionsList;
@@ -102,7 +110,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
         }
 
         return sectionsList;
-    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions]);
+    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions, searchTerm]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -123,7 +131,24 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
             recentReports,
             personalDetails: newChatPersonalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(reports, personalDetails, betas, searchTerm, newSelectedOptions, excludedGroupEmails);
+        } = OptionsListUtils.getFilteredOptions(
+            reports,
+            personalDetails,
+            betas,
+            searchTerm,
+            newSelectedOptions,
+            isGroupChat ? excludedGroupEmails : [],
+            false,
+            true,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            true,
+        );
 
         setSelectedOptions(newSelectedOptions);
         setFilteredRecentReports(recentReports);
@@ -158,7 +183,24 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
             recentReports,
             personalDetails: newChatPersonalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(reports, personalDetails, betas, searchTerm, selectedOptions, isGroupChat ? excludedGroupEmails : []);
+        } = OptionsListUtils.getFilteredOptions(
+            reports,
+            personalDetails,
+            betas,
+            searchTerm,
+            selectedOptions,
+            isGroupChat ? excludedGroupEmails : [],
+            false,
+            true,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            true,
+        );
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
@@ -166,12 +208,24 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports, personalDetails, searchTerm]);
 
+    // When search term updates we will fetch any reports
+    const setSearchTermAndSearchInServer = useCallback((text = '') => {
+        if (text.length) {
+            Report.searchInServer(text);
+        }
+        setSearchTerm(text);
+    }, []);
+
+    useDelayedInputFocus(optionSelectorRef, 600);
+
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom={isOffline}
+            shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnableMaxHeight
+            testID={NewChatPage.displayName}
         >
             {({safeAreaPaddingBottomStyle, insets}) => (
                 <KeyboardAvoidingView
@@ -185,6 +239,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
                 >
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                         <OptionsSelector
+                            ref={optionSelectorRef}
                             canSelectMultipleOptions
                             shouldShowMultipleOptionSelectorAsButton
                             multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
@@ -193,18 +248,21 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
                             selectedOptions={selectedOptions}
                             value={searchTerm}
                             onSelectRow={(option) => createChat(option)}
-                            onChangeText={setSearchTerm}
+                            onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             boldStyle
-                            shouldFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                             shouldShowOptions={isOptionsDataReady}
                             shouldShowConfirmButton
                             confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
+                            textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             onConfirmSelection={createGroup}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            isLoadingNewOptions={isSearchingForReports}
                         />
                     </View>
+                    {isSmallScreenWidth && <OfflineIndicator />}
                 </KeyboardAvoidingView>
             )}
         </ScreenWrapper>
@@ -227,6 +285,10 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isSearchingForReports: {
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            initWithStoredValues: false,
         },
     }),
 )(NewChatPage);

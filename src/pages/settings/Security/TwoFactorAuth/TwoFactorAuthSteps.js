@@ -1,16 +1,16 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
+import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import CodesStep from './Steps/CodesStep';
 import DisabledStep from './Steps/DisabledStep';
 import EnabledStep from './Steps/EnabledStep';
-import VerifyStep from './Steps/VerifyStep';
 import SuccessStep from './Steps/SuccessStep';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
-import * as TwoFactorAuthActions from '../../../../libs/actions/TwoFactorAuthActions';
+import VerifyStep from './Steps/VerifyStep';
 import TwoFactorAuthContext from './TwoFactorAuthContext';
 import {defaultAccount, TwoFactorAuthPropTypes} from './TwoFactorAuthPropTypes';
-import useAnimatedStepContext from '../../../../components/AnimatedStep/useAnimatedStepContext';
 
 function TwoFactorAuthSteps({account = defaultAccount}) {
     const [currentStep, setCurrentStep] = useState(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
@@ -24,14 +24,13 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
             setCurrentStep(account.twoFactorAuthStep);
             return;
         }
+
         if (account.requiresTwoFactorAuth) {
             setCurrentStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED);
         } else {
             setCurrentStep(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
         }
-        // we don't want to trigger the hook every time the step changes, only when the requiresTwoFactorAuth changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [account.requiresTwoFactorAuth]);
+    }, [account.requiresTwoFactorAuth, account.twoFactorAuthStep]);
 
     const handleSetStep = useCallback(
         (step, animationDirection = CONST.ANIMATION_DIRECTION.IN) => {
@@ -41,6 +40,7 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
         },
         [setAnimationDirection],
     );
+    const contextValue = useMemo(() => ({setStep: handleSetStep}), [handleSetStep]);
 
     const renderStep = () => {
         switch (currentStep) {
@@ -59,15 +59,7 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
         }
     };
 
-    return (
-        <TwoFactorAuthContext.Provider
-            value={{
-                setStep: handleSetStep,
-            }}
-        >
-            {renderStep()}
-        </TwoFactorAuthContext.Provider>
-    );
+    return <TwoFactorAuthContext.Provider value={contextValue}>{renderStep()}</TwoFactorAuthContext.Provider>;
 }
 
 TwoFactorAuthSteps.propTypes = TwoFactorAuthPropTypes;

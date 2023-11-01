@@ -1,11 +1,11 @@
 import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {Merge} from 'type-fest';
-import PusherUtils from '../PusherUtils';
-import ONYXKEYS from '../../ONYXKEYS';
+import PusherUtils from '@libs/PusherUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
+import Response from '@src/types/onyx/Response';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
-import CONST from '../../CONST';
-import {OnyxUpdatesFromServer, OnyxUpdateEvent, Request} from '../../types/onyx';
-import Response from '../../types/onyx/Response';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -65,7 +65,7 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
         console.debug('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates');
         return Promise.resolve();
     }
-    if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) > lastUpdateIDAppliedToClient) {
+    if (lastUpdateID && (lastUpdateIDAppliedToClient === null || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {

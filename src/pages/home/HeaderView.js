@@ -1,35 +1,40 @@
-import _ from 'underscore';
-import React from 'react';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {memo} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../styles/styles';
-import Icon from '../../components/Icon';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import compose from '../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import MultipleAvatars from '../../components/MultipleAvatars';
-import SubscriptAvatar from '../../components/SubscriptAvatar';
-import DisplayNames from '../../components/DisplayNames';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import participantPropTypes from '../../components/participantPropTypes';
-import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import CONST from '../../CONST';
-import * as ReportUtils from '../../libs/ReportUtils';
-import Text from '../../components/Text';
-import Tooltip from '../../components/Tooltip';
-import themeColors from '../../styles/themes/default';
-import reportPropTypes from '../reportPropTypes';
-import ONYXKEYS from '../../ONYXKEYS';
-import ThreeDotsMenu from '../../components/ThreeDotsMenu';
-import * as Task from '../../libs/actions/Task';
-import reportActionPropTypes from './report/reportActionPropTypes';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
-import PinButton from '../../components/PinButton';
-import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
-import ParentNavigationSubtitle from '../../components/ParentNavigationSubtitle';
+import _ from 'underscore';
+import GoogleMeetIcon from '@assets/images/google-meet.svg';
+import ZoomIcon from '@assets/images/zoom-icon.svg';
+import DisplayNames from '@components/DisplayNames';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MultipleAvatars from '@components/MultipleAvatars';
+import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
+import participantPropTypes from '@components/participantPropTypes';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SubscriptAvatar from '@components/SubscriptAvatar';
+import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
+import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import Tooltip from '@components/Tooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import * as HeaderUtils from '@libs/HeaderUtils';
+import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as Link from '@userActions/Link';
+import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -44,21 +49,13 @@ const propTypes = {
     /** Onyx Props */
     parentReport: reportPropTypes,
 
-    /** The details about the account that the user is signing in with */
-    account: PropTypes.shape({
-        /** URL to the assigned guide's appointment booking calendar */
-        guideCalendarLink: PropTypes.string,
-    }),
+    /** URL to the assigned guide's appointment booking calendar */
+    guideCalendarLink: PropTypes.string,
 
     /** Current user session */
     session: PropTypes.shape({
         accountID: PropTypes.number,
     }),
-
-    /** The report actions from the parent report */
-    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
-    // eslint-disable-next-line react/no-unused-prop-types
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -66,11 +63,8 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
-    parentReportActions: {},
     report: null,
-    account: {
-        guideCalendarLink: null,
-    },
+    guideCalendarLink: null,
     parentReport: {},
     session: {
         accountID: 0,
@@ -87,33 +81,30 @@ function HeaderView(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
-    const title = ReportUtils.getReportName(reportHeaderData);
+    // Use sorted display names for the title for group chats on native small screen widths
+    const title = ReportUtils.isGroupChat(props.report) ? ReportUtils.getDisplayNamesStringFromTooltips(displayNamesWithTooltips) : ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
     const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
-    const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
+    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+    const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
+    const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
-    const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
-    if (isTaskReport) {
+    if (isTaskReport && !isCanceledTaskReport) {
         const canModifyTask = Task.canModifyTask(props.report, props.session.accountID);
-        if (ReportUtils.isOpenTaskReport(props.report) && canModifyTask) {
-            threeDotMenuItems.push({
-                icon: Expensicons.Checkmark,
-                text: props.translate('task.markAsDone'),
-                onSelected: () => Task.completeTask(props.report, title),
-            });
-        }
 
         // Task is marked as completed
         if (ReportUtils.isCompletedTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('task.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report, title),
+                onSelected: Session.checkIfActionIsAllowed(() => Task.reopenTask(props.report)),
             });
         }
 
@@ -122,10 +113,56 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-                onSelected: () => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
+                onSelected: Session.checkIfActionIsAllowed(() => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
             });
         }
     }
+
+    if (isChatThread && !isEmptyChat) {
+        if (props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+            threeDotMenuItems.push({
+                icon: Expensicons.ChatBubbles,
+                text: props.translate('common.joinThread'),
+                onSelected: Session.checkIfActionIsAllowed(() =>
+                    Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
+                ),
+            });
+        } else if (props.report.notificationPreference.length) {
+            threeDotMenuItems.push({
+                icon: Expensicons.ChatBubbles,
+                text: props.translate('common.leaveThread'),
+                onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.report.reportID)),
+            });
+        }
+    }
+
+    threeDotMenuItems.push(HeaderUtils.getPinMenuItem(props.report));
+
+    if (isConcierge && props.guideCalendarLink) {
+        threeDotMenuItems.push({
+            icon: Expensicons.Phone,
+            text: props.translate('videoChatButtonAndMenu.tooltip'),
+            onSelected: Session.checkIfActionIsAllowed(() => {
+                Link.openExternalLink(props.guideCalendarLink);
+            }),
+        });
+    } else if (!isAutomatedExpensifyAccount && !isTaskReport && !isArchivedRoom) {
+        threeDotMenuItems.push({
+            icon: ZoomIcon,
+            text: props.translate('videoChatButtonAndMenu.zoom'),
+            onSelected: Session.checkIfActionIsAllowed(() => {
+                Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
+            }),
+        });
+        threeDotMenuItems.push({
+            icon: GoogleMeetIcon,
+            text: props.translate('videoChatButtonAndMenu.googleMeet'),
+            onSelected: Session.checkIfActionIsAllowed(() => {
+                Link.openExternalLink(CONST.NEW_GOOGLE_MEET_MEETING_URL);
+            }),
+        });
+    }
+
     const shouldShowThreeDotsButton = !!threeDotMenuItems.length;
 
     const shouldShowSubscript = ReportUtils.shouldReportShowSubscript(props.report);
@@ -216,17 +253,11 @@ function HeaderView(props) {
                         </PressableWithoutFeedback>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                             {isTaskReport && !props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(props.report) && <TaskHeaderActionButton report={props.report} />}
-                            {shouldShowCallButton && (
-                                <VideoChatButtonAndMenu
-                                    isConcierge={isConcierge}
-                                    guideCalendarLink={guideCalendarLink}
-                                />
-                            )}
-                            <PinButton report={props.report} />
                             {shouldShowThreeDotsButton && (
                                 <ThreeDotsMenu
                                     anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                                     menuItems={threeDotMenuItems}
+                                    shouldSetModalVisibility={false}
                                 />
                             )}
                         </View>
@@ -240,27 +271,23 @@ HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withOnyx({
-        account: {
-            key: ONYXKEYS.ACCOUNT,
-            selector: (account) =>
-                account && {
-                    guideCalendarLink: account.guideCalendarLink,
-                    primaryLogin: account.primaryLogin,
-                },
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            canEvict: false,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(HeaderView);
+export default memo(
+    compose(
+        withWindowDimensions,
+        withLocalize,
+        withOnyx({
+            guideCalendarLink: {
+                key: ONYXKEYS.ACCOUNT,
+                selector: (account) => (account && account.guideCalendarLink) || null,
+                initialValue: null,
+            },
+            parentReport: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
+                selector: reportWithoutHasDraftSelector,
+            },
+            session: {
+                key: ONYXKEYS.SESSION,
+            },
+        }),
+    )(HeaderView),
+);

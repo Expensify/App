@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 const core = require('@actions/core');
-const moment = require('moment');
+const fns = require('date-fns');
 const CONST = require('../../.github/libs/CONST');
 const GitUtils = require('../../.github/libs/GitUtils');
 const GithubUtils = require('../../.github/libs/GithubUtils');
@@ -168,7 +168,7 @@ describe('createOrUpdateStagingDeployCash', () => {
         expect(result).toStrictEqual({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
+            title: `Deploy Checklist: New Expensify ${fns.format(new Date(), 'yyyy-MM-dd')}`,
             labels: [CONST.LABELS.STAGING_DEPLOY],
             html_url: 'https://github.com/Expensify/App/issues/29',
             assignees: [CONST.APPLAUSE_BOT],

@@ -1,15 +1,15 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
+import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
-import Text from '../../../components/Text';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
-import Navigation from '../../../libs/Navigation/Navigation';
-import useLocalize from '../../../hooks/useLocalize';
-import styles from '../../../styles/styles';
-import ROUTES from '../../../ROUTES';
-import CONST from '../../../CONST';
 
 const propTypes = {
     /** Whether the create menu is open or not */

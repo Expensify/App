@@ -1,20 +1,23 @@
-import React from 'react';
-import _ from 'underscore';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import compose from '../../libs/compose';
-import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
-import useLocalize from '../../hooks/useLocalize';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import TagPicker from '../../components/TagPicker';
-import Text from '../../components/Text';
-import tagPropTypes from '../../components/tagPropTypes';
-import ONYXKEYS from '../../ONYXKEYS';
-import reportPropTypes from '../reportPropTypes';
-import styles from '../../styles/styles';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TagPicker from '@components/TagPicker';
+import tagPropTypes from '@components/tagPropTypes';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -34,48 +37,56 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Collection of tags attached to a policy */
-    policyTags: PropTypes.objectOf(
-        PropTypes.shape({
-            name: PropTypes.string,
-            tags: PropTypes.objectOf(tagPropTypes),
-        }),
-    ),
+    policyTags: tagPropTypes,
+
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
     report: {},
     policyTags: {},
+    iou: iouDefaultProps,
 };
 
-function MoneyRequestTagPage({route, report, policyTags}) {
+function MoneyRequestTagPage({route, report, policyTags, iou}) {
     const {translate} = useLocalize();
 
     const iouType = lodashGet(route, 'params.iouType', '');
 
     // Fetches the first tag list of the policy
     const tagListKey = _.first(_.keys(policyTags));
-    const tagList = lodashGet(policyTags, tagListKey, {});
-    const tagListName = lodashGet(tagList, 'name', '');
+    const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, lodashGet(report, 'reportID', '')));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
+    };
+
+    const updateTag = (selectedTag) => {
+        if (selectedTag.searchText === iou.tag) {
+            IOU.resetMoneyRequestTag();
+        } else {
+            IOU.setMoneyRequestTag(selectedTag.searchText);
+        }
+        navigateBack();
     };
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={MoneyRequestTagPage.displayName}
         >
             <HeaderWithBackButton
-                title={tagListName || translate('common.tag')}
+                title={policyTagListName}
                 onBackButtonPress={navigateBack}
             />
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagListName} || translate('common.tag'))}</Text>
+            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
             <TagPicker
                 policyID={report.policyID}
-                reportID={report.reportID}
                 tag={tagListKey}
-                iouType={iouType}
+                selectedTag={iou.tag}
+                onSubmit={updateTag}
             />
         </ScreenWrapper>
     );
@@ -91,12 +102,17 @@ export default compose(
             key: ONYXKEYS.IOU,
         },
     }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         report: {
-            // Fetch report ID from IOU participants if no report ID is set in route
-            key: ({route, iou}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '') || lodashGet(iou, 'participants.0.reportID', '')}`,
+            key: ({route, iou}) => {
+                const reportID = IOU.getIOUReportID(iou, route);
+
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            },
         },
     }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,

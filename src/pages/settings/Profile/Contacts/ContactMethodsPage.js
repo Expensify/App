@@ -2,25 +2,24 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Button from '../../../../components/Button';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import CONST from '../../../../CONST';
-import compose from '../../../../libs/compose';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import ROUTES from '../../../../ROUTES';
-import styles from '../../../../styles/styles';
-import MenuItem from '../../../../components/MenuItem';
-import Text from '../../../../components/Text';
-import CopyTextToClipboard from '../../../../components/CopyTextToClipboard';
-import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
-import FixedFooter from '../../../../components/FixedFooter';
+import Button from '@components/Button';
+import CopyTextToClipboard from '@components/CopyTextToClipboard';
+import FixedFooter from '@components/FixedFooter';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -100,7 +99,7 @@ function ContactMethodsPage(props) {
                 <MenuItem
                     title={menuItemTitle}
                     description={description}
-                    onPress={() => Navigation.navigate(ROUTES.getEditContactMethodRoute(partnerUserID))}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID))}
                     brickRoadIndicator={indicator}
                     shouldShowBasicTitle
                     shouldShowRightIcon
@@ -111,12 +110,15 @@ function ContactMethodsPage(props) {
     });
 
     return (
-        <ScreenWrapper shouldEnableKeyboardAvoidingView={false}>
+        <ScreenWrapper
+            shouldEnableKeyboardAvoidingView={false}
+            testID={ContactMethodsPage.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('contacts.contactMethods')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
                     <Text>
                         {props.translate('contacts.helpTextBeforeEmail')}
@@ -128,15 +130,15 @@ function ContactMethodsPage(props) {
                     </Text>
                 </View>
                 {loginMenuItems}
+                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                    <Button
+                        success
+                        text={props.translate('contacts.newContactMethod')}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
+                        pressOnEnter
+                    />
+                </FixedFooter>
             </ScrollView>
-            <FixedFooter style={[styles.flexGrow0, styles.pt5]}>
-                <Button
-                    success
-                    text={props.translate('contacts.newContactMethod')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
-                    pressOnEnter
-                />
-            </FixedFooter>
         </ScreenWrapper>
     );
 }

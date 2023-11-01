@@ -2,7 +2,7 @@
 Welcome! Thanks for checking out the New Expensify app and taking the time to contribute!
 
 ## Getting Started
-If you would like to become an Expensify contributor, the first step is to read this document in its entirety. The second step is to review the README guidelines [here](https://github.com/Expensify/App/blob/main/README.md) to understand our coding philosophy and for a general overview of the code repository (i.e. how to run the app locally, testing, storage, our app philosophy, etc). Please read both documents before asking questions, as it may be covered within the documentation.
+If you would like to become an Expensify contributor, the first step is to read this document in its **entirety**. The second step is to review the README guidelines [here](https://github.com/Expensify/App/blob/main/README.md) to understand our coding philosophy and for a general overview of the code repository (i.e. how to run the app locally, testing, storage, our app philosophy, etc). Please read both documents before asking questions, as it may be covered within the documentation.
 
 #### Test Accounts
 You can create as many accounts as needed in order to test your changes directly from [the app](https://new.expensify.com/). An initial account can be created when logging in for the first time, and additional accounts can be created by opening the "New Chat" or "Group Chat" pages via the Global Create menu, inputting a valid email or phone number, and tapping the user's avatar.
@@ -47,7 +47,7 @@ Note: if you are hired for an Upwork job and have any job-specific questions, pl
 If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Payment for Contributions
-We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing or reporting a bug, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. 
+We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing or reporting a bug, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. Please make sure your Upwork profile is **fully verified** before applying, otherwise you run the risk of not being paid. If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. 
 
 Payment for your contributions and bug reports will be made no less than 7 days after the pull request is deployed to production to allow for [regression](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions) testing. If you have not received payment after 8 days of the PR being deployed to production, and there are no [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions), please add a comment to the issue mentioning the BugZero team member (Look for the melvin-bot "Triggered auto assignment to... (`Bug`)" to see who this is).
 
@@ -89,13 +89,13 @@ It’s possible that you found a new bug that we haven’t posted as a job to th
 Please follow these steps to propose a job or raise a bug:
 
 1. Check to ensure a GH issue does not already exist for this job in the [New Expensify Issue list](https://github.com/Expensify/App/issues).
-2. Check to ensure the `Bug:` or `Feature Request:` was not already posted in Slack (specifically the #expensify-bugs or #expensify-open-source [Slack channels](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#slack-channels)). Use your best judgement by searching for similar titles and issue descriptions.
+2. Check to ensure the `Bug:` or `Feature Request:` was not already posted in Slack (specifically the #expensify-bugs or #expensify-open-source [Slack channels](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#slack-channels)). Use your best judgement by searching for similar titles, words and issue descriptions.
 3. If your bug or new feature matches with an existing issue, please comment on that Slack thread or GitHub issue with your findings if you think it will help solve the issue.
 4. If there is no existing GitHub issue or Upwork job, check if the issue is happening on prod (as opposed to only happening on dev)
 5. If the issue is just in dev then it means it's a new issue and has not been deployed to production. In this case, you should try to find the offending PR and comment in the issue tied to the PR and ask the assigned users to add the `DeployBlockerCash` label. If you can't find it, follow the reporting instructions in the next item, but note that the issue is a regression only found in dev and not in prod.
-6. If the issue happens in main, staging, or production then report the issue(s) in the #expensify-bugs Slack channel, using the report bug workflow. You can do this by clicking 'Workflow > report Bug', or typing `/Report bug`. View [this guide](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_CREATE_A_PLAN.md) for help creating a plan when proposing a feature request.
+6. If the issue happens in main, staging, or production then report the issue(s) in the #expensify-bugs Slack channel, using the report bug workflow. You can do this by clicking 'Workflow > report Bug', or typing `/Report bug`. View [this guide](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_CREATE_A_PLAN.md) for help creating a plan when proposing a feature request. Please verify the bug's presence on **every** platform mentioned in the bug report template, and confirm this with a screen recording.. 
     - **Important note/reminder**: never share any information pertaining to a customer of Expensify when describing the bug. This includes, and is not limited to, a customer's name, email, and contact information. 
-7. The Expensify team will review your job proposal in the appropriate slack channel. If you've provided a quality proposal that we choose to implement, a GitHub issue will be created and your Slack handle will be included in the original post after `Issue reported by:`
+7. The Applause team will review your job proposal in the appropriate slack channel. If you've provided a quality proposal that we choose to implement, a GitHub issue will be created and your Slack handle will be included in the original post after `Issue reported by:`
 8. If an external contributor other than yourself is hired to work on the issue, you will also be hired for the same job in Upwork to receive your payout. No additional work is required. If the issue is fixed internally, a dedicated job will be created to hire and pay you after the issue is fixed. 
 9. Payment will be made 7 days after code is deployed to production if there are no regressions. If a regression is discovered, payment will be issued 7 days after all regressions are fixed. 
 
@@ -183,7 +183,6 @@ Additionally if you want to discuss an idea with the open source community witho
 
 #### Important note about JavaScript Style
 - Read our official [JavaScript and React style guide](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md). Please refer to our Style Guide before asking for a review.
-- We have nothing against Prettier or any other automatic style fixers, but we generally don't use them here at Expensify. Do not use Prettier. The style changes these tools enforce don't always align with the ones we recommend and require in our eslint configs and can result in unnecessary changes for our reviewers. Ignoring this advice will ultimately make your changes take longer to review as we will ask you to undo any style changes that are not related to the important changes you are making.
 
 #### For external agencies that Expensify partners with
 Follow all the above above steps and processes. When you find a job you'd like to work on:
@@ -204,7 +203,6 @@ During communication with Expensify, you will come across a variety of acronyms 
 - **RBR:** Red Brick Road (UX Design Principle that utilizes red indicators on action items to encourage the user down the optimal path for handling and discovering errors) 
 - **VBA:** Verified Bank Account (Bank account that has been verified as real and belonging to the correct business/individual)
 - **NAB:** Not a Blocker (An issue that doesn't block progress, but would be nice to not have)
-- **LHN:** Left Hand Navigation
 - **IOU:** I owe you (used to describe payment requests between users)
 - **OTP:** One-time password, or magic sign-in
 - **RHP:** Right Hand Panel (on larger screens, pages are often displayed docked to the right side of the screen)

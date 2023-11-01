@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import CONST from '../../../CONST';
-import participantPropTypes from '../../../components/participantPropTypes';
+import participantPropTypes from '@components/participantPropTypes';
+import CONST from '@src/CONST';
 
 const iouPropTypes = PropTypes.shape({
     /** ID (iouType + reportID) of the request */
@@ -17,6 +17,12 @@ const iouPropTypes = PropTypes.shape({
 
     /** The merchant name */
     merchant: PropTypes.string,
+
+    /** The category name */
+    category: PropTypes.string,
+
+    /** Whether the request is billable */
+    billable: PropTypes.bool,
 
     /** The tag */
     tag: PropTypes.string,
@@ -37,7 +43,9 @@ const iouDefaultProps = {
     currency: CONST.CURRENCY.USD,
     comment: '',
     merchant: '',
+    category: '',
     tag: '',
+    billable: false,
     created: '',
     participants: [],
     receiptPath: '',
