@@ -2,4 +2,4 @@
 * @Expensify/pullerbear
 
 # Every PR that touches redirects gets reviewed by ring0
-docs/redirects.csv @Expensify/ring0
+docs/redirects.csv @Expensify/infra
