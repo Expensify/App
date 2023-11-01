@@ -26,9 +26,9 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as PriorityMode from './PriorityMode';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
-import * as PriorityMode from './PriorityMode';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -1014,8 +1014,6 @@ function broadcastUserIsLeavingRoom(reportID) {
     leavingStatus[currentUserAccountID] = true;
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
-
-
 
 /**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name

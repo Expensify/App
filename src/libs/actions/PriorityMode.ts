@@ -1,10 +1,10 @@
+import debounce from 'lodash/debounce';
+import Onyx, {OnyxCollection} from 'react-native-onyx';
+import * as CollectionUtils from '@libs/CollectionUtils';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import debounce from 'lodash/debounce';
-import Onyx, { OnyxCollection } from 'react-native-onyx';
-import * as CollectionUtils from '@libs/CollectionUtils';
-import { Report } from '@src/types/onyx';
-import Log from '@libs/Log';
+import {Report} from '@src/types/onyx';
 
 let resolveIsReadyPromise: (args?: unknown[]) => void;
 let isReadyPromise = new Promise((resolve) => {
@@ -42,6 +42,7 @@ Onyx.connect({
     initWithStoredValues: false,
     callback: (value) => {
         isLoadingReportData = value ?? false;
+
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         checkRequiredData();
     },
@@ -50,7 +51,12 @@ Onyx.connect({
 let isInFocusMode: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: (priorityMode) => (isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD),
+    callback: (priorityMode) => {
+        isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        checkRequiredData();
+    },
 });
 
 let hasTriedFocusMode: boolean | undefined | null;
@@ -114,7 +120,4 @@ function tryFocusModeUpdate() {
  */
 const autoSwitchToFocusMode = debounce(tryFocusModeUpdate, 300, {leading: true});
 
-export {
-    resetHasReadRequiredDataFromStorage,
-    autoSwitchToFocusMode,
-};
+export {resetHasReadRequiredDataFromStorage, autoSwitchToFocusMode};
