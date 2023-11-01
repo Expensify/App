@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
-      - name: Create docs routes file
+      - name: Create help dot redirect
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_LIST_TOKEN: ${{ secrets.CLOUDFLARE_LIST_TOKEN }}
