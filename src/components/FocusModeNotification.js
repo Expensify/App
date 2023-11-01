@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import styles from '@styles/styles';
+import * as Link from '@userActions/Link';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ConfirmModal from './ConfirmModal';
@@ -14,7 +15,7 @@ function FocusModeNotification() {
     useEffect(() => {
         User.updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
     }, []);
-
+    const href = `${environmentURL}/settings/preferences/priority-mode`;
     return (
         <ConfirmModal
             title={translate('focusModeUpdateModal.title')}
@@ -25,8 +26,12 @@ function FocusModeNotification() {
                 <Text>
                     {translate('focusModeUpdateModal.prompt')}
                     <TextLinkWithRef
-                        href={`${environmentURL}/settings/preferences/priority-mode`}
+                        href={href}
                         style={styles.link}
+                        onPress={() => {
+                            User.clearFocusModeNotification();
+                            Link.openLink(href, environmentURL);
+                        }}
                     >
                         {translate('common.here')}
                     </TextLinkWithRef>
