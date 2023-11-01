@@ -384,7 +384,7 @@ function ReportActionsList({
                 lastReportActionName={lastReportAction.actionName}
             />
         );
-    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName]);
+    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName, isOffline]);
 
     const onLayoutInner = useCallback(
         (event) => {
@@ -405,7 +405,7 @@ function ReportActionsList({
                 isLoadingNewerReportActions={isLoadingNewerReportActions}
             />
         );
-    }, [isLoadingNewerReportActions]);
+    }, [isLoadingNewerReportActions, isOffline]);
 
     return (
         <>
