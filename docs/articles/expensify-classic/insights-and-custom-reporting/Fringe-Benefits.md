@@ -40,4 +40,4 @@ Your expenses may have multiple levels of coding, i.e.:
 
 In the above case, you’ll want to use `{expense:tag:ntag-3}` and `{expense:tag:ntag-4}` as formulas to report on the number of internal and external attendees.
 
-Our article on [Custom Templates](https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Custom-Templates#gsc.tab=0) shows you how to create a custom CSV. 
+Our article on [Custom Templates](https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Custom-Templates#gsc.tab=0) shows how to create a custom CSV. 
