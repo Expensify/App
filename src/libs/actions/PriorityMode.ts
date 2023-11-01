@@ -12,7 +12,7 @@ import {Report} from '@src/types/onyx';
  *
  *     - NVP that tracks whether they have already been switched over. We only do this once.
  *     - Priority mode NVP (that dictates the ordering/filtering logic of the LHN)
- *     - We are not waiting for reports to load. We check the count of the reports to determine whether the user is eligible to be automatically switched.
+ *     - Reports to load (in ReconnectApp or OpenApp). As we check the count of the reports to determine whether the user is eligible to be automatically switched.
  */
 
 let resolveIsReadyPromise: (args?: unknown[]) => void;
