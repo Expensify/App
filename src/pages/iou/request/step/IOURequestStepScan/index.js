@@ -225,9 +225,7 @@ function IOURequestStepScan({
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: (file) => {
-                                        setReceiptAndNavigate(file, iou, report);
-                                    },
+                                    onPicked: setReceiptAndNavigate,
                                 });
                             }}
                         >
@@ -304,9 +302,7 @@ function IOURequestStepScan({
                         style={[styles.p9]}
                         onPress={() => {
                             openPicker({
-                                onPicked: (file) => {
-                                    setReceiptAndNavigate(file, iou, report);
-                                },
+                                onPicked: setReceiptAndNavigate,
                             });
                         }}
                     />
