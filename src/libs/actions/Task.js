@@ -483,7 +483,7 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
         if (!participants.includes(assigneeAccountID)) {
             optimisticData[1].value.participantAccountIDs = [...participants, assigneeAccountID];
         }
-        
+
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,
             assigneeEmail,
