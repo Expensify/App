@@ -1,15 +1,26 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import Image from '../Image';
-import ThumbnailImage from '../ThumbnailImage';
-import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
-import ROUTES from '../../ROUTES';
-import CONST from '../../CONST';
-import {ShowContextMenuContext} from '../ShowContextMenuContext';
-import Navigation from '../../libs/Navigation/Navigation';
-import PressableWithoutFocus from '../Pressable/PressableWithoutFocus';
-import useLocalize from '../../hooks/useLocalize';
+import React from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import EReceiptThumbnail from '@components/EReceiptThumbnail';
+import Image from '@components/Image';
+import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
+import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import ThumbnailImage from '@components/ThumbnailImage';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import Icon from '../../components/Icon';
+import * as StyleUtils from '@styles/StyleUtils';
+import variables from '@styles/variables';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import colors from '../../styles/colors'; 
+import useNetwork from '@hooks/useNetwork';
 
 const propTypes = {
     /** thumbnail URI for the image */
@@ -20,11 +31,23 @@ const propTypes = {
 
     /** whether or not to enable the image preview modal */
     enablePreviewModal: PropTypes.bool,
+
+    /* The transaction associated with this image, if any. Passed for handling eReceipts. */
+    transaction: transactionPropTypes,
+
+    /** Icon to use as a fallback when offline */
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+
+    /** The fill color to pass into the icon. */
+    iconFill: PropTypes.string,
 };
 
 const defaultProps = {
     thumbnail: null,
+    transaction: {},
     enablePreviewModal: false,
+    iconFill: colors.green700,
+    fallbackIcon: Expensicons.ReceiptPlaceholderImage, // Default fallback icon
 };
 
 /**
@@ -33,24 +56,50 @@ const defaultProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction}) {
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
+    const isEReceipt = !_.isEmpty(transaction) && TransactionUtils.hasEReceipt(transaction);
+    const {isOffline} = useNetwork();
+    let heightStyle = StyleUtils.getHeight(variables.iconImageHeight);
 
-    const receiptImageComponent = thumbnail ? (
-        <ThumbnailImage
-            previewSourceURL={thumbnailSource}
-            style={[styles.w100, styles.h100]}
-            isAuthTokenRequired
-            shouldDynamicallyResize={false}
-        />
-    ) : (
-        <Image
-            source={{uri: image}}
-            style={[styles.w100, styles.h100]}
-        />
-    );
+    let receiptImageComponent;
+
+    if (isEReceipt) {
+        if (isOffline) {
+            receiptImageComponent = (
+                <Icon
+                    src={props.fallbackIcon}
+                    fill={props.iconFill}
+                    height={heightStyle.height}
+                    width={heightStyle.height}
+                />
+            );
+        } else {
+            receiptImageComponent = (
+                <View style={[styles.w100, styles.h100]}>
+                    <EReceiptThumbnail transactionID={transaction.transactionID} />
+                </View>
+            );
+        }
+    } else if (thumbnail) {
+        receiptImageComponent = (
+            <ThumbnailImage
+                previewSourceURL={thumbnailSource}
+                style={[styles.w100, styles.h100]}
+                isAuthTokenRequired
+                shouldDynamicallyResize={false}
+            />
+        );
+    } else {
+        receiptImageComponent = (
+            <Image
+                source={{uri: image}}
+                style={[styles.w100, styles.h100]}
+            />
+        );
+    }
 
     if (enablePreviewModal) {
         return (

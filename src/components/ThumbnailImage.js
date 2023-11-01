@@ -7,10 +7,6 @@ import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import useNetwork from '../hooks/useNetwork';
-import Icon from '../../src/components/Icon';
-import * as Expensicons from '../../src/components/Icon/Expensicons';
-import colors from '../styles/colors'; 
 
 const propTypes = {
     /** Source URL for the preview image */
@@ -31,25 +27,13 @@ const propTypes = {
 
     /** Should the image be resized on load or just fit container */
     shouldDynamicallyResize: PropTypes.bool,
-
-    /** Icon to use as a fallback when offline */
-    fallbackIcon: PropTypes.string,
-
-    /** The fill color to pass into the icon. */
-    iconFill: PropTypes.string,
 };
 
-const screenDimensions = Dimensions.get('window');
-const iconSize = Math.min(screenDimensions.width, screenDimensions.height) * 0.12; // Adjust the factor (0.2) as needed
-
 const defaultProps = {
-    iconFill: colors.green700,
     style: {},
     imageWidth: 200,
     imageHeight: 200,
     shouldDynamicallyResize: true,
-    fallbackIcon: Expensicons.ReceiptPlaceholderImage, // Default fallback icon
-    iconSize, // Default icon size
 };
 
 /**
@@ -107,25 +91,15 @@ function ThumbnailImage(props) {
     );
 
     const sizeStyles = props.shouldDynamicallyResize ? [StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight)] : [styles.w100, styles.h100];
-    const {isOffline} = useNetwork();
-
+    
     return (
         <View style={[props.style, styles.overflowHidden,styles.thumbnailBgColor]}>
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                {isOffline ? (
-                    <Icon
-                        src={props.fallbackIcon}
-                        width={props.iconSize}
-                        height={props.iconSize}
-                        fill={props.iconFill}
-                    />
-                ) : (
-                    <ImageWithSizeCalculation
-                        url={props.previewSourceURL}
-                        onMeasure={updateImageSize}
-                        isAuthTokenRequired={props.isAuthTokenRequired}
-                    />
-                )} 
+                <ImageWithSizeCalculation
+                    url={props.previewSourceURL}
+                    onMeasure={updateImageSize}
+                    isAuthTokenRequired={props.isAuthTokenRequired}
+                />
             </View>
         </View>
     );
