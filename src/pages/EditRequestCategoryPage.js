@@ -4,6 +4,8 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Navigation from '../libs/Navigation/Navigation';
 import useLocalize from '../hooks/useLocalize';
+import styles from '../styles/styles';
+import Text from '../components/Text';
 import CategoryPicker from '../components/CategoryPicker';
 
 const propTypes = {
@@ -36,7 +38,7 @@ function EditRequestCategoryPage({defaultCategory, policyID, onSubmit}) {
                 title={translate('common.category')}
                 onBackButtonPress={Navigation.goBack}
             />
-
+            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
             <CategoryPicker
                 selectedCategory={defaultCategory}
                 policyID={policyID}

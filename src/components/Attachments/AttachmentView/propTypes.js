@@ -22,6 +22,9 @@ const attachmentViewPropTypes = {
 
     /** Handles scale changed event */
     onScaleChanged: PropTypes.func,
+
+    /** Whether this AttachmentView is shown as part of an AttachmentModal */
+    isUsedInAttachmentModal: PropTypes.bool,
 };
 
 const attachmentViewDefaultProps = {
@@ -33,6 +36,7 @@ const attachmentViewDefaultProps = {
     isUsedInCarousel: false,
     onPress: undefined,
     onScaleChanged: () => {},
+    isUsedInAttachmentModal: false,
 };
 
 export {attachmentViewPropTypes, attachmentViewDefaultProps};

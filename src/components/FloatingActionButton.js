@@ -6,7 +6,7 @@ import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import themeColors from '../styles/themes/default';
-import Tooltip from './Tooltip';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import variables from '../styles/variables';
@@ -118,10 +118,14 @@ FloatingActionButton.defaultProps = defaultProps;
 
 const FloatingActionButtonWithLocalize = withLocalize(FloatingActionButton);
 
-export default React.forwardRef((props, ref) => (
+const FloatingActionButtonWithLocalizeWithRef = React.forwardRef((props, ref) => (
     <FloatingActionButtonWithLocalize
         // eslint-disable-next-line
         {...props}
         buttonRef={ref}
     />
 ));
+
+FloatingActionButtonWithLocalizeWithRef.displayName = 'FloatingActionButtonWithLocalizeWithRef';
+
+export default FloatingActionButtonWithLocalizeWithRef;

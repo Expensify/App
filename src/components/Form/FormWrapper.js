@@ -105,8 +105,8 @@ function FormWrapper(props) {
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={() => {
                             const errorFields = !_.isEmpty(errors) ? errors : formState.errorFields;
-                            const focusKey = _.find(_.keys(inputRefs), (key) => _.keys(errorFields).includes(key));
-                            const focusInput = inputRefs[focusKey].current;
+                            const focusKey = _.find(_.keys(inputRefs.current), (key) => _.keys(errorFields).includes(key));
+                            const focusInput = inputRefs.current[focusKey].current;
 
                             // Dismiss the keyboard for non-text fields by checking if the component has the isFocused method, as only TextInput has this method.
                             if (typeof focusInput.isFocused !== 'function') {

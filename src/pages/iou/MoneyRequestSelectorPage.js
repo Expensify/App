@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -19,6 +20,8 @@ import NewDistanceRequestPage from './NewDistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
+import withReportOrNotFound from '../home/report/withReportOrNotFound';
+import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import usePrevious from '../../hooks/usePrevious';
@@ -41,11 +44,15 @@ const propTypes = {
 
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     selectedTab: CONST.TAB.SCAN,
     report: {},
+    betas: [],
 };
 
 function MoneyRequestSelectorPage(props) {
@@ -69,6 +76,8 @@ function MoneyRequestSelectorPage(props) {
         IOU.resetMoneyRequestInfo(moneyRequestID);
     };
 
+    // Allow the user to create the request if we are creating the request in global menu or the report can create the request
+    const isAllowedToCreateRequest = _.isEmpty(props.report.reportID) || ReportUtils.canCreateRequest(props.report, props.betas, iouType);
     const prevSelectedTab = usePrevious(props.selectedTab);
 
     useEffect(() => {
@@ -89,7 +98,7 @@ function MoneyRequestSelectorPage(props) {
             testID={MoneyRequestSelectorPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType) || !isAllowedToCreateRequest}>
                     <DragAndDropProvider
                         isDisabled={props.selectedTab !== CONST.TAB.SCAN}
                         setIsDraggingOver={setIsDraggingOver}
@@ -144,11 +153,11 @@ MoneyRequestSelectorPage.propTypes = propTypes;
 MoneyRequestSelectorPage.defaultProps = defaultProps;
 MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
-export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-    },
-    selectedTab: {
-        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
-    },
-})(MoneyRequestSelectorPage);
+export default compose(
+    withReportOrNotFound(false),
+    withOnyx({
+        selectedTab: {
+            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+    }),
+)(MoneyRequestSelectorPage);

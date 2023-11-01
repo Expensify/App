@@ -9,6 +9,8 @@ import Icon from '../Icon';
 import CONST from '../../CONST';
 import * as StyleUtils from '../../styles/StyleUtils';
 import HapticFeedback from '../../libs/HapticFeedback';
+import withNavigationFallback from '../withNavigationFallback';
+import compose from '../../libs/compose';
 import * as Expensicons from '../Icon/Expensicons';
 import withNavigationFocus from '../withNavigationFocus';
 import validateSubmitShortcut from './validateSubmitShortcut';
@@ -299,6 +301,7 @@ class Button extends Component {
                     this.props.isDisabled && !this.props.danger && !this.props.success ? styles.buttonDisabled : undefined,
                     this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                    this.props.icon || this.props.shouldShowRightIcon ? styles.alignItemsStretch : undefined,
                     ...this.props.innerStyles,
                 ]}
                 hoverStyle={[
@@ -326,7 +329,10 @@ class Button extends Component {
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
 
-export default withNavigationFocus(
+export default compose(
+    withNavigationFallback,
+    withNavigationFocus,
+)(
     React.forwardRef((props, ref) => (
         <Button
             // eslint-disable-next-line react/jsx-props-no-spreading

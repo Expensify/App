@@ -12,6 +12,8 @@ import UserListItem from './UserListItem';
 import RadioListItem from './RadioListItem';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import CONST from '../../CONST';
+import useLocalize from '../../hooks/useLocalize';
+import Text from '../Text';
 
 function BaseListItem({
     item,
@@ -23,6 +25,7 @@ function BaseListItem({
     onSelectRow,
     onDismissError = () => {},
 }) {
+    const {translate} = useLocalize();
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
 
@@ -76,7 +79,6 @@ function BaseListItem({
                             </View>
                         </View>
                     )}
-
                     <ListItem
                         item={item}
                         isFocused={isFocused}
@@ -84,7 +86,6 @@ function BaseListItem({
                         onSelectRow={onSelectRow}
                         showTooltip={showTooltip}
                     />
-
                     {!canSelectMultiple && item.isSelected && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
@@ -99,6 +100,11 @@ function BaseListItem({
                         </View>
                     )}
                 </View>
+                {Boolean(item.invitedSecondaryLogin) && (
+                    <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
+                        {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
+                    </Text>
+                )}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );

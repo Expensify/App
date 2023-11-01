@@ -16,7 +16,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
-import Tooltip from './Tooltip';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
 import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import getImageResolution from '../libs/fileDownload/getImageResolution';
@@ -24,7 +24,7 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import AttachmentModal from './AttachmentModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as Browser from '../libs/Browser';
-import withNavigationFocus, {withNavigationFocusPropTypes} from './withNavigationFocus';
+import withNavigationFocus from './withNavigationFocus';
 import compose from '../libs/compose';
 
 const propTypes = {
@@ -91,8 +91,10 @@ const propTypes = {
     /** File name of the avatar */
     originalFileName: PropTypes.string,
 
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
-    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {

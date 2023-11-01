@@ -15,18 +15,17 @@ const PopoverContext = React.createContext({
 });
 
 function PopoverContextProvider(props) {
-    return (
-        <PopoverContext.Provider
-            value={{
-                onOpen: () => {},
-                close: () => {},
-                popover: {},
-                isOpen: false,
-            }}
-        >
-            {props.children}
-        </PopoverContext.Provider>
+    const contextValue = React.useMemo(
+        () => ({
+            onOpen: () => {},
+            close: () => {},
+            popover: {},
+            isOpen: false,
+        }),
+        [],
     );
+
+    return <PopoverContext.Provider value={contextValue}>{props.children}</PopoverContext.Provider>;
 }
 
 PopoverContextProvider.defaultProps = defaultProps;

@@ -341,7 +341,8 @@ function InitialSettingsPage(props) {
                     <Tooltip text={translate('common.profile')}>
                         <PressableWithoutFeedback
                             style={styles.mb3}
-                            onPress={openProfileSettings}
+                            disabled={isExecuting}
+                            onPress={singleExecution(openProfileSettings)}
                             accessibilityLabel={translate('common.profile')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
@@ -357,7 +358,8 @@ function InitialSettingsPage(props) {
                     </Tooltip>
                     <PressableWithoutFeedback
                         style={[styles.mt1, styles.mw100]}
-                        onPress={openProfileSettings}
+                        disabled={isExecuting}
+                        onPress={singleExecution(openProfileSettings)}
                         accessibilityLabel={translate('common.profile')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                     >

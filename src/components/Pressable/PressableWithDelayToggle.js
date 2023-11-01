@@ -141,10 +141,14 @@ function PressableWithDelayToggle(props) {
 PressableWithDelayToggle.propTypes = propTypes;
 PressableWithDelayToggle.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const PressableWithDelayToggleWithRef = React.forwardRef((props, ref) => (
     <PressableWithDelayToggle
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+PressableWithDelayToggleWithRef.displayName = 'PressableWithDelayToggleWithRef';
+
+export default PressableWithDelayToggleWithRef;

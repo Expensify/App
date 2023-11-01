@@ -882,17 +882,19 @@ function getErrorPageContainerStyle(safeAreaPaddingBottom = 0): ViewStyle {
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
+
     if (isSmallScreenWidth) {
         return {
-            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
+            height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
             width: '200%',
             position: 'absolute',
         };
     }
 
     return {
-        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
+        height: emptyStateBackground.WIDE_SCREEN.IMAGE_HEIGHT,
         width: '100%',
         position: 'absolute',
     };
@@ -901,15 +903,16 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): View
 /**
  * Gets the correct top margin size for the chat welcome message based on screen dimensions
  */
-function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
     if (isSmallScreenWidth) {
         return {
-            marginTop: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.VIEW_HEIGHT,
+            marginTop: emptyStateBackground.SMALL_SCREEN.VIEW_HEIGHT,
         };
     }
 
     return {
-        marginTop: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.VIEW_HEIGHT,
+        marginTop: emptyStateBackground.WIDE_SCREEN.VIEW_HEIGHT,
     };
 }
 
@@ -934,17 +937,18 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
 /**
  * Gets the correct size for the empty state container based on screen dimensions
  */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
     if (isSmallScreenWidth) {
         return {
-            minHeight: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.CONTAINER_MINHEIGHT,
+            minHeight: emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT,
             display: 'flex',
             justifyContent: 'space-between',
         };
     }
 
     return {
-        minHeight: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.CONTAINER_MINHEIGHT,
+        minHeight: emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT,
         display: 'flex',
         justifyContent: 'space-between',
     };

@@ -143,7 +143,7 @@ class PDFView extends Component {
             <View style={containerStyles}>
                 {this.state.failedToLoadPDF && (
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>
+                        <Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>
                     </View>
                 )}
                 {this.state.shouldAttemptPDFLoad && (

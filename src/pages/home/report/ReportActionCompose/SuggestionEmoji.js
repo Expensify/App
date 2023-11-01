@@ -248,6 +248,8 @@ const SuggestionEmojiWithRef = React.forwardRef((props, ref) => (
     />
 ));
 
+SuggestionEmojiWithRef.displayName = 'SuggestionEmojiWithRef';
+
 export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,

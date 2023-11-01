@@ -8,16 +8,13 @@ import ONYXKEYS from '../ONYXKEYS';
 import ROUTES from '../ROUTES';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as TransactionUtils from '../libs/TransactionUtils';
-import * as Policy from '../libs/actions/Policy';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Permissions from '../libs/Permissions';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
 import tagPropTypes from '../components/tagPropTypes';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
@@ -31,6 +28,7 @@ import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import categoryPropTypes from '../components/categoryPropTypes';
 import ScreenWrapper from '../components/ScreenWrapper';
+import reportActionPropTypes from './home/report/reportActionPropTypes';
 import transactionPropTypes from '../components/transactionPropTypes';
 
 const propTypes = {
@@ -56,21 +54,6 @@ const propTypes = {
     /** The parent report object for the thread report */
     parentReport: reportPropTypes,
 
-    /** The policy object for the current route */
-    policy: PropTypes.shape({
-        /** The name of the policy */
-        name: PropTypes.string,
-
-        /** The URL for the policy avatar */
-        avatar: PropTypes.string,
-    }),
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
-
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 
@@ -80,27 +63,27 @@ const propTypes = {
     isLoadingReportData: PropTypes.boolean,
     /** The original transaction that is being edited */
     transaction: transactionPropTypes,
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
-    ...withCurrentUserPersonalDetailsPropTypes,
+    /** Transaction that stores the request data */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     betas: [],
     report: {},
     parentReport: {},
-    policy: null,
-    session: {
-        email: null,
-    },
     policyCategories: {},
     policyTags: {},
+    parentReportActions: {},
     transaction: {},
     isLoadingReportData: true,
 };
 
 function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags, parentReportActions, transaction, isLoadingReportData}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
-    const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
+    const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
@@ -116,13 +99,6 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
     const transactionCreated = TransactionUtils.getCreated(transaction);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
-    const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
-    const isSettled = ReportUtils.isSettled(parentReport.reportID);
-
-    const isAdmin = Policy.isAdminOfFreePolicy([policy]) && ReportUtils.isExpenseReport(parentReport);
-    const isRequestor = ReportUtils.isMoneyRequestReport(parentReport) && lodashGet(session, 'accountID', null) === parentReportAction.actorAccountID;
-    const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
-
     // For now, it always defaults to the first tag of the policy
     const policyTag = PolicyUtils.getTag(policyTags);
     const policyTagList = lodashGet(policyTag, 'tags', {});
@@ -132,20 +108,23 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
 
     // A flag for showing the categories page
-    const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
+    const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
     const shouldShowTags = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
 
-    // Dismiss the modal when the request is paid or deleted
+    // Decides whether to allow or disallow editing a money request
     useEffect(() => {
-        if (isLoadingReportData || canEdit) {
+        // Do not dismiss the modal, when a current user can edit this property of the money request.
+        if (isLoadingReportData && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit)) {
             return;
         }
+
+        // Dismiss the modal when a current user cannot edit a money request.
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [canEdit, isLoadingReportData]);
+    }, [isLoadingReportData, parentReportAction, parentReport.reportID, fieldToEdit]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
@@ -302,7 +281,6 @@ EditRequestPage.displayName = 'EditRequestPage';
 EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
 export default compose(
-    withCurrentUserPersonalDetails,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
@@ -316,9 +294,6 @@ export default compose(
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-        },
         policyCategories: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
         },

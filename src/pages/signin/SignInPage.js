@@ -70,6 +70,9 @@ const propTypes = {
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
+
+    /** The user's preferred locale */
+    preferredLocale: PropTypes.string,
 };
 
 const defaultProps = {
@@ -77,6 +80,7 @@ const defaultProps = {
     credentials: {},
     isInModal: false,
     activeClients: [],
+    preferredLocale: '',
 };
 
 /**
@@ -131,7 +135,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     };
 }
 
-function SignInPage({credentials, account, isInModal, activeClients}) {
+function SignInPage({credentials, account, isInModal, activeClients, preferredLocale}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
@@ -153,8 +157,11 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
+        if (preferredLocale) {
+            return;
+        }
         App.setLocale(Localize.getDevicePreferredLocale());
-    }, []);
+    }, [preferredLocale]);
 
     const {
         shouldShowLoginForm,
@@ -243,16 +250,20 @@ function SignInPage({credentials, account, isInModal, activeClients}) {
                     blurOnSubmit={account.validated === false}
                     scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}
                 />
-                {shouldShowValidateCodeForm && (
-                    <ValidateCodeForm
-                        isUsingRecoveryCode={isUsingRecoveryCode}
-                        setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                        setIsUsingMagicCode={setIsUsingMagicCode}
-                    />
+                {isClientTheLeader && (
+                    <>
+                        {shouldShowValidateCodeForm && (
+                            <ValidateCodeForm
+                                isUsingRecoveryCode={isUsingRecoveryCode}
+                                setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                                setIsUsingMagicCode={setIsUsingMagicCode}
+                            />
+                        )}
+                        {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
+                        {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
+                        {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
+                    </>
                 )}
-                {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
-                {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
         </View>
     );
@@ -273,4 +284,7 @@ export default withOnyx({
     We use that function to prevent repeating code that checks which client is the leader.
     */
     activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS},
+    preferredLocale: {
+        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    },
 })(SignInPage);

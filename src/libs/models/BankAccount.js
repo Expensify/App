@@ -139,6 +139,10 @@ class BankAccount {
         return this.json.accountData.allowDebit === true;
     }
 
+    getType() {
+        return this.json.accountData.type;
+    }
+
     /**
      * Return the client ID of this bank account
      *
@@ -147,14 +151,14 @@ class BankAccount {
      */
     getClientID() {
         // eslint-disable-next-line max-len
-        return `${Str.makeID(this.getMaskedAccountNumber())}${Str.makeID(this.getAddressName())}${Str.makeID(this.getRoutingNumber())}${this.getType()}`;
+        return `${Str.makeID(this.getMaskedAccountNumber())}${Str.makeID(this.getAddressName())}${Str.makeID(this.getRoutingNumber())}${this.getTransactionType()}`;
     }
 
     /**
      * @returns {String}
      * @private
      */
-    getType() {
+    getTransactionType() {
         return this.isWithdrawal() ? 'withdrawal' : 'direct-deposit';
     }
 
@@ -220,6 +224,14 @@ class BankAccount {
      */
     getAdditionalData() {
         return this.json.accountData.additionalData || {};
+    }
+
+    /**
+     * Get the pending action of the bank account
+     * @returns {String}
+     */
+    getPendingAction() {
+        return lodashGet(this.json, 'pendingAction', '');
     }
 
     /**

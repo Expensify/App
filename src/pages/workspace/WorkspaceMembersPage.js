@@ -18,7 +18,7 @@ import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
+import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import CONST from '../../CONST';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -29,9 +29,11 @@ import * as PolicyUtils from '../../libs/PolicyUtils';
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
+import MessagesRow from '../../components/MessagesRow';
 import SelectionList from '../../components/SelectionList';
 import Text from '../../components/Text';
 import * as Browser from '../../libs/Browser';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -289,6 +291,7 @@ function WorkspaceMembersPage(props) {
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
+    const invitedPrimaryToSecondaryLogins = _.invert(props.policy.primaryLoginsInvited);
 
     const getMemberOptions = () => {
         let result = [];
@@ -360,12 +363,15 @@ function WorkspaceMembersPage(props) {
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
-                        name: details.login,
+                        name: props.formatPhoneNumber(details.login),
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
                 errors: policyMember.errors,
                 pendingAction: policyMember.pendingAction,
+
+                // Note which secondary login was used to invite this primary login
+                invitedSecondaryLogin: invitedPrimaryToSecondaryLogins[details.login] || '',
             });
         });
 
@@ -382,6 +388,20 @@ function WorkspaceMembersPage(props) {
         return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
     };
 
+    const getHeaderContent = () => {
+        if (_.isEmpty(invitedPrimaryToSecondaryLogins)) {
+            return null;
+        }
+        return (
+            <MessagesRow
+                type="success"
+                messages={{0: props.translate('workspace.people.addedWithPrimary')}}
+                containerStyles={[styles.pb5, styles.ph5]}
+                onClose={() => Policy.dismissAddedWithPrimaryMessages(policyID)}
+            />
+        );
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -389,7 +409,7 @@ function WorkspaceMembersPage(props) {
             testID={WorkspaceMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={((_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(props.policy)}
+                shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                 subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
@@ -446,6 +466,7 @@ function WorkspaceMembersPage(props) {
                             textInputValue={searchValue}
                             onChangeText={setSearchValue}
                             headerMessage={getHeaderMessage()}
+                            headerContent={getHeaderContent()}
                             onSelectRow={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
@@ -468,7 +489,7 @@ WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
         personalDetails: {

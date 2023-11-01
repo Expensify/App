@@ -1,4 +1,4 @@
-import React, {forwardRef, createContext, useEffect, useState} from 'react';
+import React, {forwardRef, createContext, useEffect, useState, useMemo} from 'react';
 import {Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
@@ -31,7 +31,13 @@ function KeyboardStateProvider(props) {
         };
     }, []);
 
-    return <KeyboardStateContext.Provider value={{isKeyboardShown}}>{children}</KeyboardStateContext.Provider>;
+    const contextValue = useMemo(
+        () => ({
+            isKeyboardShown,
+        }),
+        [isKeyboardShown],
+    );
+    return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
 
 KeyboardStateProvider.propTypes = keyboardStateProviderPropTypes;

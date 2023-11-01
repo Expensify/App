@@ -14,7 +14,7 @@ import themeColors from '../../styles/themes/default';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
-import Tooltip from '../Tooltip';
+import Tooltip from '../Tooltip/PopoverAnchorTooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
 import * as Session from '../../libs/actions/Session';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
@@ -118,7 +118,6 @@ function BaseVideoChatButtonAndMenu(props) {
                     left: videoChatIconPosition.x - 150,
                     top: videoChatIconPosition.y + 40,
                 }}
-                shouldSetModalVisibility={false}
                 withoutOverlay
                 anchorRef={videoChatButtonRef}
             >

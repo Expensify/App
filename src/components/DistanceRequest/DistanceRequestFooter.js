@@ -27,6 +27,7 @@ const propTypes = {
             lat: PropTypes.number,
             lng: PropTypes.number,
             address: PropTypes.string,
+            name: PropTypes.string,
         }),
     ),
 
@@ -118,15 +119,16 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                             location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
                         }}
                         directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
-                        style={styles.mapView}
+                        style={[styles.mapView, styles.mapEditView]}
                         waypoints={waypointMarkers}
                         styleURL={CONST.MAPBOX.STYLE_URL}
-                        overlayStyle={styles.m4}
+                        overlayStyle={styles.mapEditView}
                     />
                 ) : (
                     <PendingMapView
                         title={translate('distance.mapPending.title')}
                         subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                        style={styles.mapEditView}
                     />
                 )}
             </View>

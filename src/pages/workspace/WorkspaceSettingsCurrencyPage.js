@@ -10,10 +10,11 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
+import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
     /** Constant, list of available currencies */
@@ -23,17 +24,19 @@ const propTypes = {
             symbol: PropTypes.string.isRequired,
         }),
     ),
+    isLoadingReportData: PropTypes.bool,
     ...policyPropTypes,
 };
 
 const defaultProps = {
     currencyList: {},
+    isLoadingReportData: true,
     ...policyDefaultProps,
 };
 
 const getDisplayText = (currencyCode, currencySymbol) => `${currencyCode} - ${currencySymbol}`;
 
-function WorkspaceSettingsCurrencyPage({currencyList, policy}) {
+function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportData}) {
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const trimmedText = searchText.trim().toLowerCase();
@@ -79,7 +82,7 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy}) {
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                shouldShow={(_.isEmpty(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
                 subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
                 <HeaderWithBackButton
@@ -107,7 +110,7 @@ WorkspaceSettingsCurrencyPage.propTypes = propTypes;
 WorkspaceSettingsCurrencyPage.defaultProps = defaultProps;
 
 export default compose(
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),

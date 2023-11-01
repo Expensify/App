@@ -32,6 +32,8 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import * as ReportUtils from '../../libs/ReportUtils';
 import withWindowDimensions from '../../components/withWindowDimensions';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
+import useSingleExecution from '../../hooks/useSingleExecution';
+import useWaitForNavigation from '../../hooks/useWaitForNavigation';
 
 const propTypes = {
     ...policyPropTypes,
@@ -70,6 +72,8 @@ function WorkspaceInitialPage(props) {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
+    const waitForNavigate = useWaitForNavigation();
+    const {singleExecution, isExecuting} = useSingleExecution();
 
     /**
      * Call the delete policy and hide the modal
@@ -129,39 +133,39 @@ function WorkspaceInitialPage(props) {
         {
             translationKey: 'workspace.common.settings',
             icon: Expensicons.Gear,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id)),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policy.id)),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policy.id)))),
         },
         {
             translationKey: 'workspace.common.reimburse',
             icon: Expensicons.Receipt,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policy.id)),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policy.id)))),
             error: hasCustomUnitsError,
         },
         {
             translationKey: 'workspace.common.bills',
             icon: Expensicons.Bill,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policy.id)),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policy.id)))),
         },
         {
             translationKey: 'workspace.common.invoices',
             icon: Expensicons.Invoice,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policy.id)),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policy.id)))),
         },
         {
             translationKey: 'workspace.common.travel',
             icon: Expensicons.Luggage,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policy.id)),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policy.id)))),
         },
         {
             translationKey: 'workspace.common.members',
             icon: Expensicons.Users,
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id)),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id)))),
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
         {
@@ -169,7 +173,7 @@ function WorkspaceInitialPage(props) {
             icon: Expensicons.Bank,
             action: () =>
                 policy.outputCurrency === CONST.CURRENCY.USD
-                    ? ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, ''))
+                    ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, ''))))()
                     : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
@@ -208,6 +212,9 @@ function WorkspaceInitialPage(props) {
                         title={props.translate('workspace.common.workspace')}
                         shouldShowThreeDotsButton
                         shouldShowGetAssistanceButton
+                        singleExecution={singleExecution}
+                        shouldDisableGetAssistanceButton={isExecuting}
+                        shouldDisableThreeDotsButton={isExecuting}
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
                         threeDotsMenuItems={threeDotsMenuItems}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
@@ -225,9 +232,9 @@ function WorkspaceInitialPage(props) {
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                         <Tooltip text={props.translate('workspace.common.settings')}>
                                             <PressableWithoutFeedback
-                                                disabled={hasPolicyCreationError}
+                                                disabled={hasPolicyCreationError || isExecuting}
                                                 style={[styles.pRelative, styles.avatarLarge]}
-                                                onPress={() => openEditor(policy.id)}
+                                                onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
                                                 accessibilityLabel={props.translate('workspace.common.settings')}
                                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                             >
@@ -245,9 +252,9 @@ function WorkspaceInitialPage(props) {
                                         {!_.isEmpty(policy.name) && (
                                             <Tooltip text={props.translate('workspace.common.settings')}>
                                                 <PressableWithoutFeedback
-                                                    disabled={hasPolicyCreationError}
+                                                    disabled={hasPolicyCreationError || isExecuting}
                                                     style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
-                                                    onPress={() => openEditor(policy.id)}
+                                                    onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
                                                     accessibilityLabel={props.translate('workspace.common.settings')}
                                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                 >
@@ -262,15 +269,19 @@ function WorkspaceInitialPage(props) {
                                         )}
                                     </View>
                                 </View>
+                                {/*
+                                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
+                                    In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
+                                */}
                                 {_.map(menuItems, (item) => (
                                     <MenuItem
                                         key={item.translationKey}
-                                        disabled={hasPolicyCreationError}
+                                        disabled={hasPolicyCreationError || isExecuting}
                                         interactive={!hasPolicyCreationError}
                                         title={props.translate(item.translationKey)}
                                         icon={item.icon}
                                         iconRight={item.iconRight}
-                                        onPress={() => item.action()}
+                                        onPress={item.action}
                                         shouldShowRightIcon
                                         brickRoadIndicator={item.brickRoadIndicator}
                                     />

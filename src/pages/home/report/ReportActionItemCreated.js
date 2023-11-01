@@ -19,6 +19,7 @@ import PressableWithoutFeedback from '../../../components/Pressable/PressableWit
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import CONST from '../../../CONST';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
+import reportWithoutHasDraftSelector from '../../../libs/OnyxSelectors/reportWithoutHasDraftSelector';
 
 const propTypes = {
     /** The id of the report */
@@ -106,6 +107,7 @@ export default compose(
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            selector: reportWithoutHasDraftSelector,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

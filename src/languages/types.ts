@@ -1,3 +1,4 @@
+import {ReportAction} from '../types/onyx';
 import en from './en';
 
 type AddressLineParams = {
@@ -42,15 +43,15 @@ type LocalTimeParams = {
 };
 
 type EditActionParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type DeleteActionParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type DeleteConfirmationParams = {
-    action: NonNullable<unknown>;
+    action: ReportAction | null;
 };
 
 type BeginningOfChatHistoryDomainRoomPartOneParams = {
@@ -168,7 +169,7 @@ type UntilTimeParams = {time: string};
 
 type StepCounterParams = {step: number; total?: number; text?: string};
 
-type UserIsAlreadyMemberOfWorkspaceParams = {login: string; workspace: string};
+type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
 
@@ -302,7 +303,7 @@ export type {
     ConfirmThatParams,
     UntilTimeParams,
     StepCounterParams,
-    UserIsAlreadyMemberOfWorkspaceParams,
+    UserIsAlreadyMemberParams,
     GoToRoomParams,
     WelcomeNoteParams,
     RoomNameReservedErrorParams,

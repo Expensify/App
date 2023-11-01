@@ -335,6 +335,7 @@ class ContactMethodDetailsPage extends Component {
 
 ContactMethodDetailsPage.propTypes = propTypes;
 ContactMethodDetailsPage.defaultProps = defaultProps;
+ContactMethodDetailsPage.displayName = 'ContactMethodDetailsPage';
 
 export default compose(
     withLocalize,

@@ -7,7 +7,6 @@ import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
@@ -19,6 +18,9 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
+import * as ErrorUtils from '../../../../libs/ErrorUtils';
+import FormProvider from '../../../../components/Form/FormProvider';
+import InputWrapper from '../../../../components/Form/InputWrapper';
 
 const propTypes = {
     /* Onyx Props */
@@ -53,15 +55,21 @@ function LegalNamePage(props) {
         const errors = {};
 
         if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-            errors.legalFirstName = 'privatePersonalDetails.error.hasInvalidCharacter';
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
             errors.legalFirstName = 'common.error.fieldRequired';
         }
+        if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', ['common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}]);
+        }
 
         if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-            errors.legalLastName = 'privatePersonalDetails.error.hasInvalidCharacter';
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
             errors.legalLastName = 'common.error.fieldRequired';
+        }
+        if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}]);
         }
 
         return errors;
@@ -80,7 +88,7 @@ function LegalNamePage(props) {
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                     validate={validate}
@@ -89,30 +97,32 @@ function LegalNamePage(props) {
                     enabledWhenOffline
                 >
                     <View style={[styles.mb4]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="legalFirstName"
                             name="lfname"
                             label={props.translate('privatePersonalDetails.legalFirstName')}
                             accessibilityLabel={props.translate('privatePersonalDetails.legalFirstName')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={legalFirstName}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                            maxLength={CONST.LEGAL_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
                             spellCheck={false}
                         />
                     </View>
                     <View>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="legalLastName"
                             name="llname"
                             label={props.translate('privatePersonalDetails.legalLastName')}
                             accessibilityLabel={props.translate('privatePersonalDetails.legalLastName')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={legalLastName}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                            maxLength={CONST.LEGAL_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
                             spellCheck={false}
                         />
                     </View>
-                </Form>
+                </FormProvider>
             )}
         </ScreenWrapper>
     );

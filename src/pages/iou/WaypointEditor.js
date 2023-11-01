@@ -45,6 +45,9 @@ const propTypes = {
 
     recentWaypoints: PropTypes.arrayOf(
         PropTypes.shape({
+            /** The name of the location */
+            name: PropTypes.string,
+
             /** A description of the location (usually the address) */
             description: PropTypes.string,
 
@@ -163,6 +166,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             lat: values.lat,
             lng: values.lng,
             address: values.address,
+            name: values.name,
         };
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
 
@@ -264,6 +268,7 @@ export default withOnyx({
         // that the google autocomplete component expects for it's "predefined places" feature.
         selector: (waypoints) =>
             _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
+                name: waypoint.name,
                 description: waypoint.address,
                 geometry: {
                     location: {

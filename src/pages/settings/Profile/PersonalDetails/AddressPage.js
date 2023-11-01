@@ -154,11 +154,11 @@ function AddressPage({privatePersonalDetails, route}) {
     }, []);
 
     useEffect(() => {
-        if (!countryFromUrl || countryFromUrl === currentCountry) {
+        if (!countryFromUrl) {
             return;
         }
         handleAddressChange(countryFromUrl, 'country');
-    }, [countryFromUrl, handleAddressChange, currentCountry]);
+    }, [countryFromUrl, handleAddressChange]);
 
     return (
         <ScreenWrapper

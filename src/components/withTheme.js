@@ -28,13 +28,18 @@ export default function withTheme(WrappedComponent) {
     WithTheme.defaultProps = {
         forwardedRef: () => {},
     };
-    return React.forwardRef((props, ref) => (
+
+    const WithThemeWithRef = React.forwardRef((props, ref) => (
         <WithTheme
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithThemeWithRef.displayName = `WithThemeWithRef`;
+
+    return WithThemeWithRef;
 }
 
 export {withThemePropTypes};

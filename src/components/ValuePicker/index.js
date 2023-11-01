@@ -7,6 +7,8 @@ import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import ValueSelectorModal from './ValueSelectorModal';
 import FormHelpMessage from '../FormHelpMessage';
 import refPropTypes from '../refPropTypes';
+import * as StyleUtils from '../../styles/StyleUtils';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /** Form Error description */
@@ -59,7 +61,7 @@ function ValuePicker({value, label, items, placeholder, errorText, onInputChange
         hidePickerModal();
     };
 
-    const descStyle = value.length === 0 ? styles.textNormal : null;
+    const descStyle = value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
     const selectedItem = _.find(items, {value});
     const selectedLabel = selectedItem ? selectedItem.label : '';
 
@@ -93,10 +95,14 @@ ValuePicker.propTypes = propTypes;
 ValuePicker.defaultProps = defaultProps;
 ValuePicker.displayName = 'ValuePicker';
 
-export default React.forwardRef((props, ref) => (
+const ValuePickerWithRef = React.forwardRef((props, ref) => (
     <ValuePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+ValuePickerWithRef.displayName = 'ValuePickerWithRef';
+
+export default ValuePickerWithRef;

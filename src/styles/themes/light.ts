@@ -33,6 +33,7 @@ const lightTheme = {
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
     signInPage: colors.green800,
+    dangerSection: colors.tangerine800,
 
     // Additional keys
     overlay: colors.lightBorders,
@@ -90,7 +91,7 @@ lightTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: lightTheme.sidebar,
     [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
     [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
-    [SCREENS.SETTINGS.WALLET]: colors.green700,
+    [SCREENS.SETTINGS.WALLET]: colors.darkAppBackground,
     [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
     [SCREENS.SETTINGS.SECURITY]: colors.ice500,
     [SCREENS.SETTINGS.STATUS]: colors.green700,

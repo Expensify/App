@@ -63,10 +63,14 @@ BaseTextInputWithCurrencySymbol.propTypes = textInputWithCurrencySymbolPropTypes
 BaseTextInputWithCurrencySymbol.defaultProps = textInputWithCurrencySymbolPropTypes.defaultProps;
 BaseTextInputWithCurrencySymbol.displayName = 'BaseTextInputWithCurrencySymbol';
 
-export default React.forwardRef((props, ref) => (
+const BaseTextInputWithCurrencySymbolWithRef = React.forwardRef((props, ref) => (
     <BaseTextInputWithCurrencySymbol
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+BaseTextInputWithCurrencySymbolWithRef.displayName = 'BaseTextInputWithCurrencySymbolWithRef';
+
+export default BaseTextInputWithCurrencySymbolWithRef;

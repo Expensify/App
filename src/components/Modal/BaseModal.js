@@ -219,10 +219,14 @@ BaseModal.propTypes = propTypes;
 BaseModal.defaultProps = defaultProps;
 BaseModal.displayName = 'BaseModal';
 
-export default forwardRef((props, ref) => (
+const BaseModalWithRef = forwardRef((props, ref) => (
     <BaseModal
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+BaseModalWithRef.displayName = 'BaseModalWithRef';
+
+export default BaseModalWithRef;

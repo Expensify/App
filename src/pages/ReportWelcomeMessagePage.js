@@ -46,7 +46,7 @@ const defaultProps = {
 
 function ReportWelcomeMessagePage(props) {
     const parser = new ExpensiMark();
-    const [welcomeMessage, setWelcomeMessage] = useState(parser.htmlToMarkdown(props.report.welcomeMessage));
+    const [welcomeMessage, setWelcomeMessage] = useState(() => parser.htmlToMarkdown(props.report.welcomeMessage));
     const welcomeMessageInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
 
@@ -123,7 +123,7 @@ ReportWelcomeMessagePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,

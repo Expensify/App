@@ -131,7 +131,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 autoCorrect={false}
                 textContentType="password"
                 onChangeText={updatePassword}
-                returnKeyType="done"
+                returnKeyType="go"
                 onSubmitEditing={submitPassword}
                 errorText={errorText}
                 onFocus={() => onPasswordFieldFocused(true)}

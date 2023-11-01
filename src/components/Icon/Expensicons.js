@@ -9,6 +9,8 @@ import ArrowRightLong from '../../../assets/images/arrow-right-long.svg';
 import ArrowsUpDown from '../../../assets/images/arrows-updown.svg';
 import BackArrow from '../../../assets/images/back-left.svg';
 import Bank from '../../../assets/images/bank.svg';
+import Bell from '../../../assets/images/bell.svg';
+import BellSlash from '../../../assets/images/bellSlash.svg';
 import Bill from '../../../assets/images/bill.svg';
 import Bolt from '../../../assets/images/bolt.svg';
 import Briefcase from '../../../assets/images/briefcase.svg';
@@ -140,6 +142,8 @@ export {
     BackArrow,
     Bank,
     Bill,
+    Bell,
+    BellSlash,
     Bolt,
     Briefcase,
     Bug,

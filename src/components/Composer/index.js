@@ -19,6 +19,7 @@ import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileCom
 import CONST from '../../CONST';
 import withNavigation from '../withNavigation';
 import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -139,6 +140,8 @@ const getNextChars = (str, cursorPos) => {
     // If there is a space or new line, return the substring up to the space or new line
     return substr.substring(0, spaceIndex);
 };
+
+const supportsPassive = DeviceCapabilities.hasPassiveEventListenerSupport();
 
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -339,7 +342,6 @@ function Composer({
         }
 
         textInput.current.scrollTop += event.deltaY;
-        event.preventDefault();
         event.stopPropagation();
     }, []);
 
@@ -384,7 +386,7 @@ function Composer({
 
         if (textInput.current) {
             document.addEventListener('paste', handlePaste);
-            textInput.current.addEventListener('wheel', handleWheel);
+            textInput.current.addEventListener('wheel', handleWheel, supportsPassive ? {passive: true} : false);
         }
 
         return () => {
@@ -445,6 +447,7 @@ function Composer({
 
             StyleSheet.flatten([style, {outline: 'none'}]),
             StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
+            Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
         ],
         [style, maxLines, numberOfLines, isComposerFullSize],
     );
@@ -489,16 +492,14 @@ function Composer({
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withNavigation,
-)(
-    React.forwardRef((props, ref) => (
-        <Composer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+const ComposerWithRef = React.forwardRef((props, ref) => (
+    <Composer
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+ComposerWithRef.displayName = 'ComposerWithRef';
+
+export default compose(withLocalize, withWindowDimensions, withNavigation)(ComposerWithRef);

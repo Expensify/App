@@ -9,18 +9,19 @@ import PaymentMethod from '../types/onyx/PaymentMethod';
 type AccountType = BankAccount['accountType'] | Fund['accountType'];
 
 /**
- * Check to see if user has either a debit card or personal bank account added
+ * Check to see if user has either a debit card or personal bank account added that can be used with a wallet.
  */
-function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountList: Record<string, BankAccount>): boolean {
+function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountList: Record<string, BankAccount>, shouldIncludeDebitCard = true): boolean {
     const validBankAccount = Object.values(bankAccountList).some((bankAccountJSON) => {
         const bankAccount = new BankAccountModel(bankAccountJSON);
-        return bankAccount.isDefaultCredit();
+
+        return bankAccount.getPendingAction() !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount.isOpen() && bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL;
     });
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
     const validDebitCard = Object.values(fundList).some((card) => card?.accountData?.additionalData?.isP2PDebitCard ?? false);
 
-    return validBankAccount || validDebitCard;
+    return validBankAccount || (shouldIncludeDebitCard && validDebitCard);
 }
 
 function getPaymentMethodDescription(accountType: AccountType, account: BankAccount['accountData'] | Fund['accountData']): string {
@@ -47,22 +48,28 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
             return;
         }
 
-        const {icon, iconSize} = getBankIcon(bankAccount?.accountData?.additionalData?.bankName ?? '', false);
+        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon(bankAccount?.accountData?.additionalData?.bankName ?? '', false);
         combinedPaymentMethods.push({
             ...bankAccount,
             description: getPaymentMethodDescription(bankAccount?.accountType, bankAccount.accountData),
             icon,
             iconSize,
+            iconHeight,
+            iconWidth,
+            iconStyles,
         });
     });
 
     Object.values(fundList).forEach((card) => {
-        const {icon, iconSize} = getBankIcon(card?.accountData?.bank ?? '', true);
+        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon(card?.accountData?.bank ?? '', true);
         combinedPaymentMethods.push({
             ...card,
             description: getPaymentMethodDescription(card?.accountType, card.accountData),
             icon,
             iconSize,
+            iconHeight,
+            iconWidth,
+            iconStyles,
         });
     });
 

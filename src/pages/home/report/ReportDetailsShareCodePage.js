@@ -28,4 +28,4 @@ function ReportDetailsShareCodePage(props) {
 ReportDetailsShareCodePage.propTypes = propTypes;
 ReportDetailsShareCodePage.defaultProps = defaultProps;
 
-export default withReportOrNotFound(ReportDetailsShareCodePage);
+export default withReportOrNotFound()(ReportDetailsShareCodePage);

@@ -64,10 +64,14 @@ AmountTextInput.propTypes = propTypes;
 AmountTextInput.defaultProps = defaultProps;
 AmountTextInput.displayName = 'AmountTextInput';
 
-export default React.forwardRef((props, ref) => (
+const AmountTextInputWithRef = React.forwardRef((props, ref) => (
     <AmountTextInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+AmountTextInputWithRef.displayName = 'AmountTextInputWithRef';
+
+export default AmountTextInputWithRef;

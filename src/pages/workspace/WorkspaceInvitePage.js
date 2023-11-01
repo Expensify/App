@@ -14,7 +14,7 @@ import * as Policy from '../../libs/actions/Policy';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
-import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
+import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ROUTES from '../../ROUTES';
 import * as PolicyUtils from '../../libs/PolicyUtils';
@@ -22,6 +22,7 @@ import * as Browser from '../../libs/Browser';
 import useNetwork from '../../hooks/useNetwork';
 import useLocalize from '../../hooks/useLocalize';
 import SelectionList from '../../components/SelectionList';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -232,10 +233,10 @@ function WorkspaceInvitePage(props) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (usersToInvite.length === 0 && excludedUsers.includes(searchValue)) {
-            return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
+            return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, searchTerm, policyName, usersToInvite, personalDetails]);
+    }, [excludedUsers, translate, searchTerm, policyName, usersToInvite, personalDetails.length]);
 
     return (
         <ScreenWrapper
@@ -247,7 +248,7 @@ function WorkspaceInvitePage(props) {
 
                 return (
                     <FullPageNotFoundView
-                        shouldShow={((_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(props.policy)}
+                        shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                         subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     >
@@ -298,7 +299,7 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
 export default compose(
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

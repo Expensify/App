@@ -22,14 +22,14 @@ const kycWallRef = createRef<KYCWallRef>();
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
  */
-function continueSetup() {
+function continueSetup(fallbackRoute = ROUTES.HOME) {
     if (!kycWallRef.current?.continue) {
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack(fallbackRoute);
         return;
     }
 
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
-    Navigation.goBack(ROUTES.HOME);
+    Navigation.goBack(fallbackRoute);
     kycWallRef.current.continue();
 }
 

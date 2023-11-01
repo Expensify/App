@@ -108,6 +108,7 @@ function TermsStep(props) {
                     }}
                     message={errorMessage}
                     isAlertVisible={error || Boolean(errorMessage)}
+                    isLoading={!!props.walletTerms.isLoading}
                     containerStyles={[styles.mh0, styles.mv4]}
                 />
             </ScrollView>

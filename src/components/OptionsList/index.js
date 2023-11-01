@@ -54,12 +54,14 @@ OptionsList.displayName = 'OptionsList';
 OptionsList.propTypes = propTypes;
 OptionsList.defaultProps = defaultProps;
 
-export default withWindowDimensions(
-    forwardRef((props, ref) => (
-        <OptionsList
-            forwardedRef={ref}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        />
-    )),
-);
+const OptionsListWithRef = forwardRef((props, ref) => (
+    <OptionsList
+        forwardedRef={ref}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+    />
+));
+
+OptionsListWithRef.displayName = 'OptionsListWithRef';
+
+export default withWindowDimensions(OptionsListWithRef);
