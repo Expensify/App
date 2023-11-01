@@ -13,6 +13,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import StateSelector from '@components/StateSelector';
 import TextInput from '@components/TextInput';
+import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,7 +23,6 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 
 const propTypes = {
     /* Onyx Props */

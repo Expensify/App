@@ -1,15 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import PropTypes from 'prop-types';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import styles from '@styles/styles';
-import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
-import useLocalize from '@hooks/useLocalize';
 import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import refPropTypes from './refPropTypes';
 
 const propTypes = {
