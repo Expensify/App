@@ -1095,6 +1095,10 @@ export default {
         year: 'Año',
         selectYear: 'Por favor, selecciona un año',
     },
+    focusModeUpdateModal: {
+        title: 'Welcome to #focus mode!',
+        prompt: "Read messages will be hidden, unless they have a green dot, which means it's waiting on you. You can change this in your account settings.",
+    },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',
         getMeOutOfHere: 'Sácame de aquí',
