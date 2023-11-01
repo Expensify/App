@@ -1,15 +1,16 @@
-import React, {useState, useMemo, useCallback} from 'react';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import lodashGet from 'lodash/get';
-import Navigation from '@libs/Navigation/Navigation';
-import ScreenWrapper from '@components/ScreenWrapper';
+import PropTypes from 'prop-types';
+import React, {useCallback, useMemo, useState} from 'react';
+import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
 import searchCountryOptions from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
-import useLocalize from '@hooks/useLocalize';
+import {appendParam} from '@libs/Url';
 import styles from '@styles/styles';
 
 const propTypes = {
@@ -31,25 +32,6 @@ const propTypes = {
         getState: PropTypes.func.isRequired,
     }).isRequired,
 };
-
-/**
- * Appends or updates a query parameter in a given URL.
- *
- * @param {string} url - The original URL.
- * @param {string} paramName - The name of the query parameter to append or update.
- * @param {string} paramValue - The value of the query parameter to append or update.
- * @returns {string} The updated URL with the appended or updated query parameter.
- */
-function appendParam(url, paramName, paramValue) {
-    if (url.includes(`${paramName}=`)) {
-        // If parameter exists, replace it
-        const regex = new RegExp(`${paramName}=([^&]*)`);
-        return url.replace(regex, `${paramName}=${paramValue}`);
-    }
-    // If parameter doesn't exist, append it
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}${paramName}=${paramValue}`;
-}
 
 function StateSelectionPage({route, navigation}) {
     const [searchValue, setSearchValue] = useState('');
