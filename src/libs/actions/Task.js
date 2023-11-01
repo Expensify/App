@@ -479,6 +479,11 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     // Check if the assignee actually changed
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
+        const participants = lodashGet(report, 'participantAccountIDs', []);
+        if (!participants.includes(assigneeAccountID)) {
+            optimisticData[1].value.participantAccountIDs = [...participants, assigneeAccountID];
+        }
+        
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,
             assigneeEmail,
