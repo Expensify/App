@@ -1229,6 +1229,7 @@ function getPersonalDetailsForAccountID(accountID) {
     return (
         (allPersonalDetails && allPersonalDetails[accountID]) || {
             avatar: UserUtils.getDefaultAvatar(accountID),
+            isOptimisticPersonalDetail: true,
         }
     );
 }
@@ -1238,28 +1239,39 @@ function getPersonalDetailsForAccountID(accountID) {
  *
  * @param {Number} accountID
  * @param {Boolean} [shouldUseShortForm]
+ * @param {Boolean} shouldFallbackToHidden
  * @returns {String}
  */
-function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
+function getDisplayNameForParticipant(accountID, shouldUseShortForm = false, shouldFallbackToHidden = true) {
     if (!accountID) {
         return '';
     }
     const personalDetails = getPersonalDetailsForAccountID(accountID);
+    // this is to check if account is an invite/optimistically created one
+    // and prevent from falling back to 'Hidden', so a correct value is shown
+    // when searching for a new user
+    if (lodashGet(personalDetails, 'isOptimisticPersonalDetail') === true) {
+        return personalDetails.login || '';
+    }
     const longName = personalDetails.displayName;
     const shortName = personalDetails.firstName || longName;
+    if (!longName && !personalDetails.login && shouldFallbackToHidden) {
+        return Localize.translateLocal('common.hidden');
+    }
     return shouldUseShortForm ? shortName : longName;
 }
 
 /**
  * @param {Object} personalDetailsList
  * @param {Boolean} isMultipleParticipantReport
+ * @param {Boolean} shouldFallbackToHidden
  * @returns {Array}
  */
-function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
+function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport, shouldFallbackToHidden) {
     return _.chain(personalDetailsList)
         .map((user) => {
             const accountID = Number(user.accountID);
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user.login || '';
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
             let pronouns = user.pronouns;
