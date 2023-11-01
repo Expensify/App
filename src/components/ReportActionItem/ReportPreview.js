@@ -47,6 +47,18 @@ const propTypes = {
     /** The report's policyID, used for Onyx subscription */
     policyID: PropTypes.string.isRequired,
 
+    /** The policy tied to the money request report */
+    policy: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+
+        /** Type of the policy */
+        type: PropTypes.string,
+
+        /** The role of the current user in the policy */
+        role: PropTypes.string,
+    }),
+
     /* Onyx Props */
     /** chatReport associated with iouReport */
     chatReport: reportPropTypes,
@@ -121,6 +133,7 @@ function ReportPreview(props) {
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
+    const policyType = lodashGet(props.policy, 'type');
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
@@ -189,7 +202,7 @@ function ReportPreview(props) {
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPayButtonForFreePlan =
-        !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
+        !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && policyType === CONST.POLICY.TYPE.PERSONAL;
     const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || props.nextStepButtons.approve || props.nextStepButtons.reimburse;
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
