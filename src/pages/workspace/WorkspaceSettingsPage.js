@@ -103,16 +103,6 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                         originalFileName={policy.originalFileName}
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
-                        {/* <TextInput
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            inputID="name"
-                            label={translate('workspace.editor.nameInputLabel')}
-                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                            containerStyles={[styles.mt4, styles.mh5]}
-                            defaultValue={policy.name}
-                            maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
-                            spellCheck={false}
-                        /> */}
                         <MenuItemWithTopDescription
                             title={policy.name}
                             description={translate('workspace.editor.nameInputLabel')}
