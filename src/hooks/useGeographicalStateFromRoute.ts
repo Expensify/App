@@ -1,11 +1,14 @@
-import {useRoute} from '@react-navigation/native';
-// eslint-disable-next-line you-dont-need-lodash-underscore/get
-import lodashGet from 'lodash/get';
+import {ParamListBase, RouteProp, useRoute} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 
+type CustomParamList = ParamListBase & Record<string, Record<string, string>>;
+
 export default function useGeographicalStateFromRoute(stateParamName = 'state') {
-    const route = useRoute();
-    const stateFromUrlTemp = lodashGet(route, `params.${stateParamName}`) as unknown as string;
-    // Check if state is valid
-    return lodashGet(COMMON_CONST.STATES, stateFromUrlTemp) ? stateFromUrlTemp : '';
+    const route = useRoute<RouteProp<CustomParamList, string>>();
+    const stateFromUrlTemp = route.params?.[stateParamName] as string | undefined;
+
+    if (!stateFromUrlTemp) {
+        return '';
+    }
+    return COMMON_CONST.STATES[stateFromUrlTemp as keyof typeof COMMON_CONST.STATES] ? stateFromUrlTemp : '';
 }
