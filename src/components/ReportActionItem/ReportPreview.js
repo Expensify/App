@@ -121,6 +121,7 @@ const defaultProps = {
     },
     isWhisper: false,
     nextStep: {},
+    policy: {},
 };
 
 function ReportPreview(props) {
