@@ -76,6 +76,7 @@ function resetHasReadRequiredDataFromStorage() {
         resolveIsReadyPromise = resolve;
     });
     isLoadingReportData = true;
+    allReports = {};
 }
 
 function checkRequiredData() {
