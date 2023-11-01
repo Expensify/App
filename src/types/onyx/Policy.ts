@@ -3,9 +3,6 @@ import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 
 type Policy = {
-    /** Whether this is the user's active/primary policy */
-    active: boolean;
-
     /** The ID of the policy */
     id: string;
 
