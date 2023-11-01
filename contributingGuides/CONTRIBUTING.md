@@ -68,22 +68,6 @@ A job could be fixing a bug or working on a new feature. There are two ways you 
 #### Finding a job that Expensify posted
 This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) (you must be signed in to Upwork to view jobs). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow. You can also view all open jobs in the Expensify/App GH repository by searching for GH issues with the [`Help Wanted` label](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22). Lastly, you can follow the [@ExpensifyOSS](https://twitter.com/ExpensifyOSS) Twitter account to see a live feed of jobs that are posted.
 
-#### Raising bugs
-While working on fixing a bug, it's possible that you could find a new bug that we haven’t posted as a job to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to raise it and claim the bug bounty by notifying an Expensify team member or a Contributer+ assigned to the issue. If it's a valid bug that we choose to resolve by deploying it to production — either internally or via an external contributor — then we will compensate you $50 for identifying the bug (we do not compensate for reporting new feature requests). If the bug is fixed by a PR that is not associated with your bug report, then you will not be eligible for the corresponding compensation unless you can find the PR that fixed it and prove your bug report came first.
-- Note: If you get assigned the job you proposed **and** you complete the job, this $50 for identifying the improvement is *in addition to* the reward you will be paid for completing the job.
-- Note: Solutions are ultimately reviewed in GitHub. The onus is on you to propose the solution on GitHub, rather than Slack.
-
-Please follow these steps to propose a job or raise a bug:
-
-1. Check to ensure a GH issue does not already exist for this job in the [New Expensify Issue list](https://github.com/Expensify/App/issues).
-2. If your bug or new feature matches with an existing issue, please comment on that Slack thread or GitHub issue with your findings if you think it will help solve the issue.
-3. If there is no existing GitHub issue or Upwork job, check if the issue is happening on prod (as opposed to only happening on dev)
-4. If the issue is just in dev then it means it's a new issue and has not been deployed to production. In this case, you should try to find the offending PR and comment in the issue tied to the PR and ask the assigned users to add the `DeployBlockerCash` label. If you can't find it, follow the reporting instructions in the next item, but note that the issue is a regression only found in dev and not in prod.
-5. If the issue happens in main, staging, or production then report the issue(s) in the GitHub issue/PR you are working on, and notify a C+ or Expensify team member. We will decide whether or not a new issue needs to be created.
-    - **Important note/reminder**: never share any information pertaining to a customer of Expensify when describing the bug. This includes, and is not limited to, a customer's name, email, and contact information. 
-6. If an external contributor other than yourself is hired to work on the issue, you will also be hired for the same job in Upwork to receive your payout. No additional work is required. If the issue is fixed internally, a dedicated job will be created to hire and pay you after the issue is fixed. 
-7. Payment will be made 7 days after code is deployed to production if there are no regressions. If a regression is discovered, payment will be issued 7 days after all regressions are fixed. 
-
 >**Note:** Our problem solving approach at Expensify is to focus on high value problems and avoid small optimizations with results that are difficult to measure. We also prefer to identify and solve problems at their root. Given that, please ensure all proposed jobs fix a specific problem in a measurable way with evidence so they are easy to evaluate. Here's an example of a good problem/solution:
 >
 >**Problem:** The app start up time has regressed because we introduced "New Feature" in PR #12345 and is now 1042ms slower because `SomeComponent` is re-rendering 42 times.
