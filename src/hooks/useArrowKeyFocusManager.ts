@@ -2,19 +2,28 @@ import {useCallback, useEffect, useMemo, useState} from 'react';
 import CONST from '@src/CONST';
 import useKeyboardShortcut from './useKeyboardShortcut';
 
+type Config = {
+    maxIndex: number;
+    onFocusedIndexChange?: (index: number) => void;
+    initialFocusedIndex?: number;
+    disabledIndexes?: readonly number[];
+    shouldExcludeTextAreaNodes?: boolean;
+    isActive?: boolean;
+};
+
+type UseArrowKeyFocusManager = [number, (index: number) => void];
+
 /**
  * A hook that makes it easy to use the arrow keys to manage focus of items in a list
  *
  * Recommendation: To ensure stability, wrap the `onFocusedIndexChange` function with the useCallback hook before using it with this hook.
  *
- * @param {Object} config
- * @param {Number} config.maxIndex – typically the number of items in your list
- * @param {Function} [config.onFocusedIndexChange] – optional callback to execute when focusedIndex changes
- * @param {Number} [config.initialFocusedIndex] – where to start in the list
- * @param {Array} [config.disabledIndexes] – An array of indexes to disable + skip over
- * @param {Boolean} [config.shouldExcludeTextAreaNodes] – Whether arrow keys should have any effect when a TextArea node is focused
- * @param {Boolean} [config.isActive] – Whether the component is ready and should subscribe to KeyboardShortcut
- * @returns {Array}
+ * @param config.maxIndex – typically the number of items in your list
+ * @param [config.onFocusedIndexChange] – optional callback to execute when focusedIndex changes
+ * @param [config.initialFocusedIndex] – where to start in the list
+ * @param [config.disabledIndexes] – An array of indexes to disable + skip over
+ * @param [config.shouldExcludeTextAreaNodes] – Whether arrow keys should have any effect when a TextArea node is focused
+ * @param [config.isActive] – Whether the component is ready and should subscribe to KeyboardShortcut
  */
 export default function useArrowKeyFocusManager({
     maxIndex,
@@ -26,7 +35,7 @@ export default function useArrowKeyFocusManager({
     disabledIndexes = CONST.EMPTY_ARRAY,
     shouldExcludeTextAreaNodes = true,
     isActive,
-}) {
+}: Config): UseArrowKeyFocusManager {
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
     const arrowConfig = useMemo(
         () => ({
