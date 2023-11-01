@@ -1,23 +1,22 @@
-import React, {useState, useMemo, useRef} from 'react';
+import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useMemo, useRef, useState} from 'react';
+import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
-import ONYXKEYS from '@src/ONYXKEYS';
-import OptionsSelector from '@components/OptionsSelector';
-import Navigation from '@libs/Navigation/Navigation';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import ROUTES from '@src/ROUTES';
-import themeColors from '@styles/themes/default';
 import * as Expensicons from '@components/Icon/Expensicons';
+import OptionsSelector from '@components/OptionsSelector';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import themeColors from '@styles/themes/default';
 import * as IOU from '@userActions/IOU';
-import StepScreenWrapper from './StepScreenWrapper';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
+import StepScreenWrapper from './StepScreenWrapper';
 
 /**
  * IOU Currency selection for selecting currency
@@ -70,6 +69,7 @@ function IOURequestStepCurrency({
      * @param {String} options.currencyCode
      */
     const confirmCurrencySelection = (option) => {
+        Keyboard.dismiss();
         IOU.setMoneeRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode);
         navigateBack();
     };
@@ -82,8 +82,7 @@ function IOURequestStepCurrency({
                 text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
                 currencyCode,
                 keyForList: currencyCode,
-                customIcon: isSelectedCurrency ? greenCheckmark : undefined,
-                boldStyle: isSelectedCurrency,
+                isSelected: isSelectedCurrency,
             };
         });
 
@@ -101,7 +100,6 @@ function IOURequestStepCurrency({
                 : [
                       {
                           data: filteredCurrencies,
-                          shouldShow: true,
                           indexOffset: 0,
                       },
                   ],
@@ -119,15 +117,13 @@ function IOURequestStepCurrency({
         >
             <OptionsSelector
                 sections={sections}
-                onSelectRow={confirmCurrencySelection}
+                textInputLabel={translate('common.search')}
                 value={searchValue}
                 onChangeText={setSearchValue}
-                textInputLabel={translate('common.search')}
+                onSelectRow={confirmCurrencySelection}
                 headerMessage={headerMessage}
                 initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                shouldHaveOptionSeparator
-                autoFocus={false}
-                ref={optionsSelectorRef}
+                showScrollIndicator
             />
         </StepScreenWrapper>
     );
