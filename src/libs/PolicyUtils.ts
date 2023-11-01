@@ -209,7 +209,7 @@ function hasSharedPolicies(policies: OnyxCollection<Policy> | null, allPolicyMem
                 return;
             }
             const policyId = policy?.id ?? null;
-            const policyMembers = allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyId}`] || {};
+            const policyMembers = allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyId}`] ?? {};
             if (Object.keys(policyMembers).length > 1) {
                 found = true;
             }
