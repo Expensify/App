@@ -1,14 +1,14 @@
+import lodashGet from 'lodash/get';
 import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../ONYXKEYS';
-import {propTypes, defaultProps} from './categoryPickerPropTypes';
-import styles from '../../styles/styles';
-import CONST from '../../CONST';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import OptionsSelector from '../OptionsSelector';
-import useLocalize from '../../hooks/useLocalize';
+import OptionsSelector from '@components/OptionsSelector';
+import useLocalize from '@hooks/useLocalize';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps, propTypes} from './categoryPickerPropTypes';
 
 function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}) {
     const {translate} = useLocalize();
@@ -69,6 +69,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
     return (
         <OptionsSelector
             optionHoveredStyle={styles.hoveredComponentBG}
+            sectionHeaderStyle={styles.mt5}
             sections={sections}
             selectedOptions={selectedOptions}
             value={searchValue}

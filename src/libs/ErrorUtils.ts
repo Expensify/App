@@ -1,9 +1,9 @@
-import CONST from '../CONST';
+import CONST from '@src/CONST';
+import {TranslationFlatObject} from '@src/languages/types';
+import {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import Response from '@src/types/onyx/Response';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
-import Response from '../types/onyx/Response';
-import {ErrorFields, Errors} from '../types/onyx/OnyxCommon';
-import {TranslationFlatObject} from '../languages/types';
 
 function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatObject {
     switch (response.jsonCode) {

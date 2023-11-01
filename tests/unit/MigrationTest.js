@@ -1,11 +1,11 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import Log from '../../src/libs/Log';
-import PersonalDetailsByAccountID from '../../src/libs/migrations/PersonalDetailsByAccountID';
 import CheckForPreviousReportActionID from '../../src/libs/migrations/CheckForPreviousReportActionID';
 import KeyReportActionsDraftByReportActionID from '../../src/libs/migrations/KeyReportActionsDraftByReportActionID';
+import PersonalDetailsByAccountID from '../../src/libs/migrations/PersonalDetailsByAccountID';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('../../src/libs/getPlatform');
 
