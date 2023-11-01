@@ -27,7 +27,7 @@ Once the FBT workflow is enabled, it will require anything with the code “TAG�
 Once these steps are completed, users who create expenses coded with any category that has the payroll code “TAG” (e.g. Entertainment Expenses) but don’t add the internal and external attendee counts, will not be able to submit their expenses.
 # For Admins
 You are now able to create and run a report, which shows all expenses under these categories and also shows the number of internal and external attendees. Because we don’t presume to know all of the data points you wish to capture, you’ll need to create a Custom CSV export. 
-Here’s an example of the Excel formulas to use to report on attendees:
+Here is a couple of examples of Excel formulas to use to report on attendees:
 - `{expense:tag:ntag-1}` outputs the first tag the user chooses.
 - `{expense:tag:ntag-3}` outputs the third tag the user chooses.
 
