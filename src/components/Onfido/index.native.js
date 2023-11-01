@@ -6,8 +6,8 @@ import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import _ from 'underscore';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
-import Log from '@libs/Log';
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import onfidoPropTypes from './onfidoPropTypes';
 
@@ -41,14 +41,11 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
                     return;
                 }
 
-                if (!_.isEmpty(errorMessage)) {
-                    const os = getPlatform();
-                    const micPermission = os === CONST.PLATFORM.IOS ? PERMISSIONS.IOS.MICROPHONE : PERMISSIONS.ANDROID.RECORD_AUDIO;
-                    const cameraPermission = os === CONST.PLATFORM.IOS ? PERMISSIONS.IOS.CAMERA : PERMISSIONS.ANDROID.CAMERA;
-
-                    checkMultiple([micPermission, cameraPermission]).then((statuses) => {
-                        const isMicAllowed = statuses[micPermission] === RESULTS.GRANTED;
-                        const isCameraAllowed = statuses[cameraPermission] === RESULTS.GRANTED;
+                const os = getPlatform();
+                if (!_.isEmpty(errorMessage) && os === CONST.PLATFORM.IOS) {
+                    checkMultiple([PERMISSIONS.IOS.MICROPHONE, PERMISSIONS.IOS.CAMERA]).then((statuses) => {
+                        const isMicAllowed = statuses[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED;
+                        const isCameraAllowed = statuses[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED;
                         let alertTitle = '';
                         let alertMessage = '';
                         if (!isMicAllowed) {
@@ -83,6 +80,8 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
                         }
                         onError(errorMessage);
                     });
+                } else {
+                    onError(errorMessage);
                 }
             });
         // Onfido should be initialized only once on mount
