@@ -25,6 +25,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
+import nextStepPropTypes from '@pages/nextStepPropTypes';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
 import * as IOU from '@userActions/IOU';
@@ -104,12 +105,7 @@ const propTypes = {
     isWhisper: PropTypes.bool,
 
     /** Next steps buttons to take action for an expense report */
-    nextStepButtons: PropTypes.objectOf(
-        PropTypes.shape({
-            /** Text of the next step button */
-            text: PropTypes.string,
-        }),
-    ),
+    nextStep: nextStepPropTypes,
 
     ...withLocalizePropTypes,
 };
@@ -124,7 +120,7 @@ const defaultProps = {
         accountID: null,
     },
     isWhisper: false,
-    nextStepButtons: {},
+    nextStep: {},
 };
 
 function ReportPreview(props) {
@@ -201,9 +197,12 @@ function ReportPreview(props) {
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
+    const shouldShowApproveButton = !!lodashGet(props.nextStep, 'buttons.approve', null);
+    const shouldShowPayButtonForGroupPolicies = !!lodashGet(props.nextStep, 'buttons.reimburse', null);
     const shouldShowPayButtonForFreePlan =
         !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && policyType === CONST.POLICY.TYPE.PERSONAL;
-    const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || props.nextStepButtons.approve || props.nextStepButtons.reimburse;
+    const shouldShowSettlementButton = shouldShowPayButtonForFreePlan || shouldShowApproveButton || shouldShowPayButtonForGroupPolicies;
+    const shouldShowPaymentOptions = shouldShowPayButtonForFreePlan || shouldShowPayButtonForGroupPolicies;
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
@@ -267,8 +266,8 @@ function ReportPreview(props) {
                                 onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
-                                nextStepButtons={props.nextStepButtons}
-                                shouldShowPaymentOptions
+                                nextStep={props.nextStep}
+                                shouldShowPaymentOptions={shouldShowPaymentOptions}
                                 style={[styles.mt3]}
                                 kycWallAnchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -315,9 +314,8 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-        nextStepButtons: {
-            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_NEXT_STEP}${iouReportID}`,
-            selector: (nextStep) => lodashGet(nextStep, 'buttons', {}),
+        nextStep: {
+            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID.reportID}`,
         },
     }),
 )(ReportPreview);
