@@ -1598,7 +1598,7 @@ function startCollectBottomUpFlow(iouReport, firstName, lastName) {
     ];
 
     API.write(
-        'BottomUpCollectFlow',
+        'CreateWorkspaceFromIOUPayment',
         {
             policyID,
             announceChatReportID,
