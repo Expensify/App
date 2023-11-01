@@ -9,7 +9,7 @@ info "Adding any new redirects from communityDot to helpDot"
 
 declare -r LIST_ID="20eb13215038446a98fd69ccf6d1026d"
 declare -r ZONE_ID="$CLOUDFLARE_ACCOUNT_ID"
-declare -r REDIRECTS_FILE="../../docs/redirects.csv"
+declare -r REDIRECTS_FILE="docs/redirects.csv"
 
 function checkCloudflareResult {
     RESULTS=$1
