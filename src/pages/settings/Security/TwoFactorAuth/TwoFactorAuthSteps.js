@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
@@ -11,8 +12,14 @@ import SuccessStep from './Steps/SuccessStep';
 import VerifyStep from './Steps/VerifyStep';
 import TwoFactorAuthContext from './TwoFactorAuthContext';
 import {defaultAccount, TwoFactorAuthPropTypes} from './TwoFactorAuthPropTypes';
+import {useRoute} from "@react-navigation/native";
+import lodashGet from "lodash/get";
 
 function TwoFactorAuthSteps({account = defaultAccount}) {
+    const route = useRoute();
+    const backTo = lodashGet(route.params, 'backTo', '');
+    console.debug(`~~Monil logs backTo ${backTo}`);
+
     const [currentStep, setCurrentStep] = useState(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
 
     const {setAnimationDirection} = useAnimatedStepContext();
@@ -49,7 +56,7 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
                 return <VerifyStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
-                return <SuccessStep />;
+                return <SuccessStep backTo={backTo} />;
             case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
                 return <EnabledStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:

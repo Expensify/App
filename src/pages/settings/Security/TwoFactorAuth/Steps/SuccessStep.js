@@ -6,8 +6,9 @@ import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/Step
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
+import Navigation from "@navigation/Navigation";
 
-function SuccessStep() {
+function SuccessStep({backTo}) {
     const {setStep} = useTwoFactorAuthContext();
 
     const {translate} = useLocalize();
@@ -29,6 +30,9 @@ function SuccessStep() {
                 onButtonPress={() => {
                     TwoFactorAuthActions.clearTwoFactorAuthData();
                     setStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED);
+                    if (backTo) {
+                        Navigation.navigate(backTo);
+                    }
                 }}
             />
         </StepWrapper>

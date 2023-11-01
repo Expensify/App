@@ -4,22 +4,19 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import styles from '@styles/styles';
-import * as Link from '@userActions/Link';
 import ROUTES from '@src/ROUTES';
 import Navigation from "@navigation/Navigation";
 import PropTypes from "prop-types";
+import withLocalize, {withLocalizePropTypes} from "@components/withLocalize";
+import useLocalize from "@hooks/useLocalize";
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     policyID: PropTypes.string.isRequired,
 };
-function Enable2FAPrompt({translate, policyID}) {
-    const secureYourAccountUrl = encodeURI(
-        `settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute()}","isFromNewDot":"true"}`,
-    );
+
+function Enable2FAPrompt({policyID}) {
+    const {translate} = useLocalize();
 
     return (
         <Section
