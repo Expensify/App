@@ -438,7 +438,6 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
     const optimisticReport = {
         reportName,
         managerID: assigneeAccountID || report.managerID,
-        managerEmail: assigneeEmail || report.managerEmail,
         pendingFields: {
             ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         },
