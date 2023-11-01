@@ -214,12 +214,12 @@ function hasActiveFreePolicy(policies) {
 }
 
 /**
- * Build optimistic data for adding users from announce room
+ * Build optimistic data to the announce room
  * @param {String} policyID
- * @param {Object} invitedEmailsToAccountIDs
+ * @param {Array} accountIDs
  * @returns {Object}
  */
-function createOptimisticAnnounceRoomMembers(policyID, invitedEmailsToAccountIDs) {
+function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
     const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     const announceRoomMembers = {
         onyxOptimisticData: [],
@@ -230,7 +230,7 @@ function createOptimisticAnnounceRoomMembers(policyID, invitedEmailsToAccountIDs
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
-            participantAccountIDs: [...announceReport.participantAccountIDs, ..._.values(invitedEmailsToAccountIDs)],
+            participantAccountIDs: [...announceReport.participantAccountIDs, ...accountIDs],
         },
     });
 
@@ -245,7 +245,7 @@ function createOptimisticAnnounceRoomMembers(policyID, invitedEmailsToAccountIDs
 }
 
 /**
- * Build optimistic data for removing users from announce room
+ * Build optimistic data for removing users to the announce room
  * @param {String} policyID
  * @param {Array} accountIDs
  * @returns {Object}
@@ -487,7 +487,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID)
     const accountIDs = _.values(invitedEmailsToAccountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
-    const announceRoomMembers = createOptimisticAnnounceRoomMembers(policyID, invitedEmailsToAccountIDs);
+    const announceRoomMembers = buildAnnounceRoomMembersOnyxData(policyID, accountIDs);
+
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
