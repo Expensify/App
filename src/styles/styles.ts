@@ -3574,7 +3574,8 @@ const styles = (theme: ThemeDefault) =>
         googlePillButtonContainer: {
             colorScheme: 'light',
             height: 40,
-            width: 219,
+            width: 300,
+            overflow: 'hidden',
         },
 
         thirdPartyLoadingContainer: {
