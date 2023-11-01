@@ -1428,7 +1428,7 @@ function requiresAttentionFromCurrentUser(option, parentReportAction = {}) {
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
     if (option.hasOutstandingChildRequest) {
-    return true;
+        return true;
     }
 
     return false;
