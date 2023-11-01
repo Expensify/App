@@ -41,7 +41,7 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
             errorText={errorText}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
-            onBlur={() => isFocused && onBlur()}
+            onBlur={(event) => isFocused && onBlur(event)}
             autoFocus={isFocused && autoFocus}
             autoCapitalize="none"
             shouldDelayFocus={shouldDelayFocus}

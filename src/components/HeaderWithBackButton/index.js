@@ -78,6 +78,7 @@ function HeaderWithBackButton({
                             style={[styles.touchableButtonImage]}
                             accessibilityRole="button"
                             accessibilityLabel={translate('common.back')}
+                            nativeID={CONST.BACK_BUTTON_NATIVE_ID}
                         >
                             <Icon
                                 src={Expensicons.BackArrow}

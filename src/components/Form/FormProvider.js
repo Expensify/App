@@ -281,6 +281,11 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                         // the user is focusing a TextInput and proceeds to toggle a CheckBox in
                         // web and mobile web platforms.
                         setTimeout(() => {
+                            const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
+                            console.warn('duke native event', event);
+                            if (relatedTargetId && _.includes([CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID, CONST.OVERLAY.TOP_BUTTON_NATIVE_ID, CONST.BACK_BUTTON_NATIVE_ID], relatedTargetId)) {
+                                return;
+                            }
                             setTouchedInput(inputID);
                             if (shouldValidateOnBlur) {
                                 onValidate(inputValues, !hasServerError);

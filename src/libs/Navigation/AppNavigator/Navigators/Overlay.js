@@ -28,6 +28,7 @@ function Overlay(props) {
                     onPress={props.onPress}
                     accessibilityLabel={translate('common.close')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    nativeID={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
                 />
                 <PressableWithoutFeedback
                     style={[styles.flex1]}
@@ -35,6 +36,7 @@ function Overlay(props) {
                     accessibilityLabel={translate('common.close')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     noDragArea
+                    nativeID={CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID}
                 />
             </View>
         </Animated.View>
