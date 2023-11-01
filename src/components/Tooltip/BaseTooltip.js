@@ -1,16 +1,16 @@
-import _ from 'underscore';
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
-import {Animated} from 'react-native';
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import Str from 'expensify-common/lib/str';
-import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
-import Hoverable from '../Hoverable';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import {Animated} from 'react-native';
+import _ from 'underscore';
+import Hoverable from '@components/Hoverable';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as tooltipPropTypes from './tooltipPropTypes';
+import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import TooltipSense from './TooltipSense';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import usePrevious from '../../hooks/usePrevious';
-import useLocalize from '../../hooks/useLocalize';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
@@ -52,7 +52,7 @@ function chooseBoundingBox(target, clientX, clientY) {
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal, shiftVertical}) {
+function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal, shiftVertical, tooltipRef}) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -197,6 +197,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
             <BoundsObserver
                 enabled={isVisible}
                 onBoundsChange={updateBounds}
+                ref={tooltipRef}
             >
                 <Hoverable
                     onMouseEnter={updateTargetAndMousePosition}

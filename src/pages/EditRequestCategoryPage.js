@@ -1,12 +1,12 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Navigation from '../libs/Navigation/Navigation';
-import useLocalize from '../hooks/useLocalize';
-import styles from '../styles/styles';
-import Text from '../components/Text';
-import CategoryPicker from '../components/CategoryPicker';
+import React from 'react';
+import CategoryPicker from '@components/CategoryPicker';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
 
 const propTypes = {
     /** Transaction default category value */
