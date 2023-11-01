@@ -89,7 +89,6 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
     const haveValidatedWaypointsChanged = !_.isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
     const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
-    const numberOfNoneEmptyWaypoints = _.filter(_.values(waypoints), (value) => !_.isEmpty(value) && TransactionUtils.waypointHasValidAddress(value)).length;
 
     useEffect(() => {
         MapboxToken.init();
@@ -151,9 +150,8 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             return ErrorUtils.getLatestErrorField(transaction, 'route');
         }
 
-        const isDuplicatedWaypoints = numberOfNoneEmptyWaypoints > _.size(validatedWaypoints) && _.size(validatedWaypoints) === 1;
-        if (_.size(validatedWaypoints) < 2 || isDuplicatedWaypoints) {
-            return {0: translate('iou.error.emptyWaypointsErrorMessage')};
+        if (_.size(validatedWaypoints) < 2) {
+            return {0: translate('iou.error.atLeastTwoDifferentWaypoints')};
         }
     };
 

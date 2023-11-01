@@ -593,7 +593,7 @@ export default {
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
-            emptyWaypointsErrorMessage: 'Please enter at least two waypoints',
+            atLeastTwoDifferentWaypoints: 'Please enter at least two waypoints',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
         enableWallet: 'Enable Wallet',
