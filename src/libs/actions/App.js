@@ -185,11 +185,6 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false) {
         ],
     };
     if (!isOpenApp) {
-        defaultData.optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
-            value: false,
-        });
         return defaultData;
     }
     return {

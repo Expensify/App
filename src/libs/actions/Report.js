@@ -28,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
+import * as PriorityMode from './PriorityMode';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -99,18 +100,6 @@ Onyx.connect({
         const reportID = key.replace(ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT, '');
         draftNoteMap[reportID] = value;
     },
-});
-
-let isInFocusMode = false;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: (priorityMode) => (isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD),
-});
-
-let hasTriedFocusMode;
-Onyx.connect({
-    key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
-    callback: (val) => (hasTriedFocusMode = val),
 });
 
 const allReports = {};
@@ -1026,11 +1015,7 @@ function broadcastUserIsLeavingRoom(reportID) {
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
 
-/**
- * Debounce the prompt to promote focus mode as many reports updates could happen in a short burst
- */
-// eslint-disable-next-line no-use-before-define
-const autoSwitchToFocusMode = _.debounce(tryFocusModeUpdate, 300, true);
+
 
 /**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
@@ -1071,7 +1056,7 @@ function handleReportChanged(report) {
     }
 
     // Try to switch the user to focus mode
-    autoSwitchToFocusMode();
+    PriorityMode.autoSwitchToFocusMode();
 }
 
 Onyx.connect({
@@ -1547,35 +1532,6 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
     } else {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
     }
-}
-
-function tryFocusModeUpdate() {
-    Welcome.serverDataIsReadyPromise().then(() => {
-        // User is signed out so do not try to switch them
-        if (!currentUserAccountID) {
-            return;
-        }
-
-        // Check to see if the user is using #focus mode, has tried it before, or we have already switched them over automatically.
-        if (isInFocusMode || hasTriedFocusMode) {
-            Log.info('Not switching user to optimized focus mode.', false, {isInFocusMode, hasTriedFocusMode});
-            return;
-        }
-
-        const reportCount = _.keys(allReports).length;
-        if (reportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_UPDATE) {
-            Log.info('Not switching user to optimized focus mode as they do not have enough reports', false, {reportCount});
-            return;
-        }
-
-        Log.info('Switching user to optimized focus mode', false, {reportCount, hasTriedFocusMode, isInFocusMode});
-
-        // Record that we automatically switched them so we don't ask again.
-        hasTriedFocusMode = true;
-
-        // Setting this triggers a modal to open and notify the user.
-        Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, true);
-    });
 }
 
 /**
@@ -2590,7 +2546,6 @@ export {
     getCurrentUserAccountID,
     setLastOpenedPublicRoom,
     flagComment,
-    autoSwitchToFocusMode,
     openLastOpenedPublicRoom,
     updatePrivateNotes,
     getReportPrivateNote,

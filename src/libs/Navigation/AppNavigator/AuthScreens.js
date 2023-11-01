@@ -22,6 +22,7 @@ import * as Modal from '@userActions/Modal';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
+import * as PriorityMode from '@userActions/PriorityMode';
 import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
@@ -193,7 +194,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
             App.reconnectApp(lastUpdateIDAppliedToClient);
         }
 
-        Report.autoSwitchToFocusMode();
+        PriorityMode.autoSwitchToFocusMode();
 
         App.setUpPoliciesAndNavigate(session);
 
