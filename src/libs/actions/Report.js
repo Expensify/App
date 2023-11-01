@@ -110,7 +110,7 @@ Onyx.connect({
 // In order to tell if the user has been asked to upgrade for their current device we will set an Onyx key with the current device login
 let hasTriedFocusMode = '';
 Onyx.connect({
-    key: ONYXKEYS.NVP_HAS_TRIED_FOCUS_MODE,
+    key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     callback: (val) => (hasTriedFocusMode = val),
 });
 
