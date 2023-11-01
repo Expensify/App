@@ -6,6 +6,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Report} from '@src/types/onyx';
 
+/**
+ * This actions file is used to automatically switch a user into #focus mode when they exceed a certain number of reports. We do this primarily for performance reasons.
+ * Similar to the "Welcome action" we must wait for a number of things to happen when the user signs in or refreshes the page:
+ *
+ *     - NVP that tracks whether they have already been switched over. We only do this once.
+ *     - Priority mode NVP (that dictates the ordering/filtering logic of the LHN)
+ *     - We are not waiting for reports to load. We check the count of the reports to determine whether the user is eligible to be automatically switched.
+ */
+
 let resolveIsReadyPromise: (args?: unknown[]) => void;
 let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
@@ -18,6 +27,12 @@ Onyx.connect({
         currentUserAccountID = val?.accountID;
     },
 });
+
+/**
+ * Debounce the prompt to promote focus mode as many reports updates could happen in a short burst
+ */
+// eslint-disable-next-line @typescript-eslint/no-use-before-define
+const autoSwitchToFocusMode = debounce(tryFocusModeUpdate, 300, {leading: true});
 
 let allReports: OnyxCollection<Report> | undefined;
 Onyx.connect({
@@ -32,7 +47,11 @@ Onyx.connect({
         }
 
         const reportID = CollectionUtils.extractCollectionItemID(key);
+
         allReports[reportID] = report;
+
+        // Each time a new report is added we will check to see if the user should be switched
+        autoSwitchToFocusMode();
     },
 });
 
@@ -115,10 +134,5 @@ function tryFocusModeUpdate() {
         Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, true);
     });
 }
-
-/**
- * Debounce the prompt to promote focus mode as many reports updates could happen in a short burst
- */
-const autoSwitchToFocusMode = debounce(tryFocusModeUpdate, 300, {leading: true});
 
 export {resetHasReadRequiredDataFromStorage, autoSwitchToFocusMode};

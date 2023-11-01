@@ -26,7 +26,6 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as PriorityMode from './PriorityMode';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -1052,9 +1051,6 @@ function handleReportChanged(report) {
     if (report.reportID && report.reportName === undefined) {
         reconnect(report.reportID);
     }
-
-    // Try to switch the user to focus mode
-    PriorityMode.autoSwitchToFocusMode();
 }
 
 Onyx.connect({
