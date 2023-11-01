@@ -1,11 +1,11 @@
-import React, {forwardRef, createContext, useState, useEffect} from 'react';
-import PropTypes from 'prop-types';
 import lodashDebounce from 'lodash/debounce';
+import PropTypes from 'prop-types';
+import React, {createContext, forwardRef, useEffect, useMemo, useState} from 'react';
 import {Dimensions} from 'react-native';
-import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import getComponentDisplayName from '../../libs/getComponentDisplayName';
-import variables from '../../styles/variables';
-import getWindowHeightAdjustment from '../../libs/getWindowHeightAdjustment';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import getWindowHeightAdjustment from '@libs/getWindowHeightAdjustment';
+import variables from '@styles/variables';
 
 const WindowDimensionsContext = createContext(null);
 const windowDimensionsPropTypes = {
@@ -62,31 +62,23 @@ function WindowDimensionsProvider(props) {
             dimensionsEventListener.remove();
         };
     }, []);
-
-    return (
-        <SafeAreaInsetsContext.Consumer>
-            {(insets) => {
-                const isExtraSmallScreenWidth = windowDimension.windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
-                const isSmallScreenWidth = windowDimension.windowWidth <= variables.mobileResponsiveWidthBreakpoint;
-                const isMediumScreenWidth = !isSmallScreenWidth && windowDimension.windowWidth <= variables.tabletResponsiveWidthBreakpoint;
-                const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
-                return (
-                    <WindowDimensionsContext.Provider
-                        value={{
-                            windowHeight: windowDimension.windowHeight + getWindowHeightAdjustment(insets),
-                            windowWidth: windowDimension.windowWidth,
-                            isExtraSmallScreenWidth,
-                            isSmallScreenWidth,
-                            isMediumScreenWidth,
-                            isLargeScreenWidth,
-                        }}
-                    >
-                        {props.children}
-                    </WindowDimensionsContext.Provider>
-                );
-            }}
-        </SafeAreaInsetsContext.Consumer>
-    );
+    const insets = useSafeAreaInsets();
+    const adjustment = getWindowHeightAdjustment(insets);
+    const contextValue = useMemo(() => {
+        const isExtraSmallScreenWidth = windowDimension.windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
+        const isSmallScreenWidth = windowDimension.windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+        const isMediumScreenWidth = !isSmallScreenWidth && windowDimension.windowWidth <= variables.tabletResponsiveWidthBreakpoint;
+        const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
+        return {
+            windowHeight: windowDimension.windowHeight + adjustment,
+            windowWidth: windowDimension.windowWidth,
+            isExtraSmallScreenWidth,
+            isSmallScreenWidth,
+            isMediumScreenWidth,
+            isLargeScreenWidth,
+        };
+    }, [windowDimension.windowHeight, windowDimension.windowWidth, adjustment]);
+    return <WindowDimensionsContext.Provider value={contextValue}>{props.children}</WindowDimensionsContext.Provider>;
 }
 
 WindowDimensionsProvider.propTypes = windowDimensionsProviderPropTypes;

@@ -1,28 +1,29 @@
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import {Linking, AppState} from 'react-native';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
+import {utcToZonedTime} from 'date-fns-tz';
 import lodashGet from 'lodash/get';
-import moment from 'moment';
+import React from 'react';
+import {AppState, Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
 import App from '../../src/App';
+import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import * as TestHelper from '../utils/TestHelper';
-import appSetup from '../../src/setup';
-import fontWeightBold from '../../src/styles/fontWeight/bold';
 import * as AppActions from '../../src/libs/actions/App';
-import * as NumberUtils from '../../src/libs/NumberUtils';
-import LocalNotification from '../../src/libs/Notification/LocalNotification';
 import * as Report from '../../src/libs/actions/Report';
+import * as User from '../../src/libs/actions/User';
 import * as CollectionUtils from '../../src/libs/CollectionUtils';
 import DateUtils from '../../src/libs/DateUtils';
-import * as User from '../../src/libs/actions/User';
+import * as Localize from '../../src/libs/Localize';
+import LocalNotification from '../../src/libs/Notification/LocalNotification';
+import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
-import CONFIG from '../../src/CONFIG';
-import * as Localize from '../../src/libs/Localize';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import appSetup from '../../src/setup';
+import fontWeightBold from '../../src/styles/fontWeight/bold';
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(30000);
@@ -117,7 +118,6 @@ const USER_B_ACCOUNT_ID = 2;
 const USER_B_EMAIL = 'user_b@test.com';
 const USER_C_ACCOUNT_ID = 3;
 const USER_C_EMAIL = 'user_c@test.com';
-const MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss.SSS';
 let reportAction3CreatedDate;
 let reportAction9CreatedDate;
 
@@ -142,9 +142,9 @@ function signInAndGetAppWithUnreadChat() {
             return waitForBatchedUpdates();
         })
         .then(() => {
-            const MOMENT_TEN_MINUTES_AGO = moment().subtract(10, 'minutes');
-            reportAction3CreatedDate = MOMENT_TEN_MINUTES_AGO.clone().add(30, 'seconds').format(MOMENT_FORMAT);
-            reportAction9CreatedDate = MOMENT_TEN_MINUTES_AGO.clone().add(90, 'seconds').format(MOMENT_FORMAT);
+            const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+            reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
+            reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
 
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
@@ -161,7 +161,7 @@ function signInAndGetAppWithUnreadChat() {
                 [createdReportActionID]: {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     automatic: false,
-                    created: MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT),
+                    created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
                     reportActionID: createdReportActionID,
                     message: [
                         {
@@ -176,14 +176,14 @@ function signInAndGetAppWithUnreadChat() {
                         },
                     ],
                 },
-                1: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '1'),
-                2: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '2'),
+                1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1'),
+                2: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2'),
                 3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
-                4: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '4'),
-                5: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '5'),
-                6: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '6'),
-                7: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '7'),
-                8: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '8'),
+                4: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 40), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '4'),
+                5: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 50), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '5'),
+                6: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 60), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '6'),
+                7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7'),
+                8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8'),
                 9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
             });
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -221,7 +221,7 @@ describe('Unread Indicators', () => {
                 // And that the text is bold
                 const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
-                expect(lodashGet(displayNameText, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(displayNameText, ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
 
                 return navigateToSidebarOption(0);
             })
@@ -233,7 +233,6 @@ describe('Unread Indicators', () => {
                 const reportCommentsHintText = Localize.translateLocal('accessibilityHints.chatMessage');
                 const reportComments = screen.queryAllByLabelText(reportCommentsHintText);
                 expect(reportComments).toHaveLength(9);
-
                 // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
                 // have actionID of 4
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
@@ -241,12 +240,10 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
                 expect(reportActionID).toBe('4');
-
                 // Scroll up and verify that the "New messages" badge appears
                 scrollUpToRevealNewMessagesBadge();
                 return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(true));
             }));
-
     it('Clear the new line indicator and bold when we navigate away from a chat that is now read', () =>
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread chat from the sidebar
@@ -255,14 +252,12 @@ describe('Unread Indicators', () => {
             .then(() => navigateToSidebarOption(0))
             .then(() => {
                 expect(areYouOnChatListScreen()).toBe(false);
-
                 // Then navigate back to the sidebar
                 return navigateToSidebar();
             })
             .then(() => {
                 // Verify the LHN is now open
                 expect(areYouOnChatListScreen()).toBe(true);
-
                 // Tap on the chat again
                 return navigateToSidebarOption(0);
             })
@@ -271,7 +266,6 @@ describe('Unread Indicators', () => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
-
                 // Tap on the chat again
                 return navigateToSidebarOption(0);
             })
@@ -282,16 +276,14 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
                 expect(areYouOnChatListScreen()).toBe(false);
             }));
-
     it('Shows a browser notification and bold text when a new message arrives for a chat that is read', () =>
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
-                // We set the created moment 5 seconds in the past to ensure that time has passed when we open the report
+                // We set the created date 5 seconds in the past to ensure that time has passed when we open the report
                 const NEW_REPORT_ID = '2';
-                const NEW_REPORT_CREATED_MOMENT = moment().subtract(5, 'seconds');
-                const NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT = NEW_REPORT_CREATED_MOMENT.add(1, 'seconds');
-
+                const NEW_REPORT_CREATED_DATE = subSeconds(new Date(), 5);
+                const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
                 const createdReportActionID = NumberUtils.rand64();
                 const commentReportActionID = NumberUtils.rand64();
                 const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${USER_A_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
@@ -306,9 +298,10 @@ describe('Unread Indicators', () => {
                                     reportID: NEW_REPORT_ID,
                                     reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                                     lastReadTime: '',
-                                    lastVisibleActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
+                                    lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
                                     lastMessageText: 'Comment 1',
                                     participantAccountIDs: [USER_C_ACCOUNT_ID],
+                                    type: CONST.REPORT.TYPE.CHAT,
                                 },
                             },
                             {
@@ -318,14 +311,14 @@ describe('Unread Indicators', () => {
                                     [createdReportActionID]: {
                                         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                                         automatic: false,
-                                        created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
+                                        created: format(NEW_REPORT_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
                                         reportActionID: createdReportActionID,
                                     },
                                     [commentReportActionID]: {
                                         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                                         actorAccountID: USER_C_ACCOUNT_ID,
                                         person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
-                                        created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
+                                        created: format(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
                                         message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
                                         reportActionID: commentReportActionID,
                                     },
@@ -353,17 +346,16 @@ describe('Unread Indicators', () => {
                 const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                 const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
                 expect(optionRows).toHaveLength(2);
-
                 // Verify the text for both chats are bold indicating that nothing has not yet been read
                 const displayNameHintTexts = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts[0];
-                expect(lodashGet(firstReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(firstReportOption, ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
                 expect(lodashGet(firstReportOption, ['props', 'children'])).toBe('C User');
 
                 const secondReportOption = displayNameTexts[1];
-                expect(lodashGet(secondReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(secondReportOption, ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
                 expect(lodashGet(secondReportOption, ['props', 'children'])).toBe('B User');
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
@@ -375,9 +367,9 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
+                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(undefined);
                 expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('C User');
-                expect(lodashGet(displayNameTexts[1], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(displayNameTexts[1], ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
                 expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
             }));
 
@@ -398,12 +390,10 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
                 expect(reportActionID).toBe('3');
-
                 // Scroll up and verify the new messages badge appears
                 scrollUpToRevealNewMessagesBadge();
                 return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(true));
             })
-
             // Navigate to the sidebar
             .then(navigateToSidebar)
             .then(() => {
@@ -411,7 +401,7 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
+                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(fontWeightBold);
                 expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
 
                 // Navigate to the report again and back to the sidebar
@@ -423,7 +413,7 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
+                expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(undefined);
                 expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
 
                 // Navigate to the report again and verify the new line indicator is missing

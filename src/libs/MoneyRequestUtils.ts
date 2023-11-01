@@ -1,5 +1,5 @@
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 
 /**
  * Strip comma from the amount
@@ -28,7 +28,7 @@ function stripDecimalsFromAmount(amount: string): string {
  * @param amount - Changed amount from user input
  */
 function addLeadingZero(amount: string): string {
-    return amount === '.' ? '0.' : amount;
+    return amount.startsWith('.') ? `0${amount}` : amount;
 }
 
 /**
@@ -78,8 +78,8 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
 /**
  * Check if distance request or not
  */
-function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, selectedTab: ValueOf<typeof CONST.TAB>): boolean {
-    return iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && selectedTab === CONST.TAB.DISTANCE;
+function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, selectedTab: ValueOf<typeof CONST.TAB>): boolean {
+    return iouType === CONST.IOU.TYPE.REQUEST && selectedTab === CONST.TAB.DISTANCE;
 }
 
 /**

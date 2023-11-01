@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import stylePropType from '../../../styles/stylePropTypes';
-import CONST from '../../../CONST';
+import stylePropType from '@styles/stylePropTypes';
+import CONST from '@src/CONST';
 
 const stylePropTypeWithFunction = PropTypes.oneOfType([stylePropType, PropTypes.func]);
 
@@ -44,9 +44,6 @@ const pressablePropTypes = {
      * @default false
      */
     shouldUseHapticsOnLongPress: PropTypes.bool,
-
-    /** Whether the button is executing */
-    isExecuting: PropTypes.bool,
 
     /**
      * style for when the component is disabled. Can be a function that receives the component's state (active, disabled, hover, focus, pressed, isScreenReaderActive)
@@ -128,7 +125,6 @@ const defaultProps = {
     keyboardShortcut: undefined,
     shouldUseHapticsOnPress: false,
     shouldUseHapticsOnLongPress: false,
-    isExecuting: false,
     disabledStyle: {},
     hoverStyle: {},
     focusStyle: {},

@@ -1,10 +1,10 @@
 import React from 'react';
-import BaseWalletPage from './BaseWalletPage';
+import WalletPage from './WalletPage';
 
-function WalletPage() {
-    return <BaseWalletPage shouldListenForResize />;
+function WalletPageComponent() {
+    return <WalletPage shouldListenForResize />;
 }
 
-WalletPage.displayName = 'WalletPage';
+WalletPageComponent.displayName = 'WalletPage';
 
-export default WalletPage;
+export default WalletPageComponent;

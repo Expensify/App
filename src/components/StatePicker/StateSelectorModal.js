@@ -1,16 +1,16 @@
-import _ from 'underscore';
-import React, {useMemo, useEffect} from 'react';
-import PropTypes from 'prop-types';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import CONST from '../../CONST';
-import Modal from '../Modal';
-import HeaderWithBackButton from '../HeaderWithBackButton';
-import SelectionList from '../SelectionList';
-import useLocalize from '../../hooks/useLocalize';
-import ScreenWrapper from '../ScreenWrapper';
-import styles from '../../styles/styles';
-import searchCountryOptions from '../../libs/searchCountryOptions';
-import StringUtils from '../../libs/StringUtils';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo} from 'react';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Modal from '@components/Modal';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import useLocalize from '@hooks/useLocalize';
+import searchCountryOptions from '@libs/searchCountryOptions';
+import StringUtils from '@libs/StringUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -99,6 +99,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                     onSelectRow={onStateSelected}
                     onChangeText={setSearchValue}
                     initiallyFocusedOptionKey={currentState}
+                    shouldStopPropagation
                 />
             </ScreenWrapper>
         </Modal>

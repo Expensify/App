@@ -1,24 +1,29 @@
-import React, {useEffect, useMemo} from 'react';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
+import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import compose from '../libs/compose';
-import Permissions from '../libs/Permissions';
-import useNetwork from '../hooks/useNetwork';
-import useLocalize from '../hooks/useLocalize';
-import * as ReportUtils from '../libs/ReportUtils';
-import iouReportPropTypes from '../pages/iouReportPropTypes';
-import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import compose from '@libs/compose';
+import Permissions from '@libs/Permissions';
+import * as ReportUtils from '@libs/ReportUtils';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
-import * as Expensicons from './Icon/Expensicons';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
     onPress: PropTypes.func.isRequired,
+
+    /** Call the onPress function on main button when Enter key is pressed */
+    pressOnEnter: PropTypes.bool,
 
     /** Settlement currency type */
     currency: PropTypes.string,
@@ -65,8 +70,14 @@ const propTypes = {
     /** Whether we should show a loading state for the main button */
     isLoading: PropTypes.bool,
 
-    /** The anchor alignment of the popover menu */
-    anchorAlignment: PropTypes.shape({
+    /** The anchor alignment of the popover menu for payment method dropdown */
+    paymentMethodDropdownAnchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
+
+    /** The anchor alignment of the popover menu for KYC wall popover */
+    kycWallAnchorAlignment: PropTypes.shape({
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
@@ -75,6 +86,7 @@ const propTypes = {
 const defaultProps = {
     isLoading: false,
     isDisabled: false,
+    pressOnEnter: false,
     addBankAccountRoute: '',
     addDebitCardRoute: '',
     currency: CONST.CURRENCY.USD,
@@ -90,8 +102,12 @@ const defaultProps = {
     policyID: '',
     formattedAmount: '',
     buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-    anchorAlignment: {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    kycWallAnchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
+    },
+    paymentMethodDropdownAnchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, // caret for dropdown is at right, so horizontal anchor is at RIGHT
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
 };
@@ -99,7 +115,8 @@ const defaultProps = {
 function SettlementButton({
     addDebitCardRoute,
     addBankAccountRoute,
-    anchorAlignment,
+    kycWallAnchorAlignment,
+    paymentMethodDropdownAnchorAlignment,
     betas,
     buttonSize,
     chatReportID,
@@ -111,6 +128,7 @@ function SettlementButton({
     formattedAmount,
     nvp_lastPaymentMethod,
     onPress,
+    pressOnEnter,
     policyID,
     shouldShowPaymentOptions,
     style,
@@ -186,6 +204,7 @@ function SettlementButton({
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
+            BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             return;
         }
 
@@ -199,8 +218,10 @@ function SettlementButton({
             addBankAccountRoute={addBankAccountRoute}
             addDebitCardRoute={addDebitCardRoute}
             isDisabled={isOffline}
+            source={CONST.KYC_WALL_SOURCE.REPORT}
             chatReportID={chatReportID}
             iouReport={iouReport}
+            anchorAlignment={kycWallAnchorAlignment}
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
@@ -208,10 +229,11 @@ function SettlementButton({
                     isDisabled={isDisabled}
                     isLoading={isLoading}
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
+                    pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
                     style={style}
                     buttonSize={buttonSize}
-                    anchorAlignment={anchorAlignment}
+                    anchorAlignment={paymentMethodDropdownAnchorAlignment}
                 />
             )}
         </KYCWall>

@@ -1,9 +1,9 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
 import Text from './Text';
-import styles from '../styles/styles';
-import stylePropTypes from '../styles/stylePropTypes';
-import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     text: PropTypes.string.isRequired,

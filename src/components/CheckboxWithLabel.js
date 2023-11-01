@@ -1,13 +1,14 @@
-import React, {useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
 import Checkbox from './Checkbox';
-import Text from './Text';
 import FormHelpMessage from './FormHelpMessage';
-import variables from '../styles/variables';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import refPropTypes from './refPropTypes';
+import Text from './Text';
 
 /**
  * Returns an error if the required props are not provided
@@ -54,7 +55,7 @@ const propTypes = {
     defaultValue: PropTypes.bool,
 
     /** React ref being forwarded to the Checkbox input */
-    forwardedRef: PropTypes.func,
+    forwardedRef: refPropTypes,
 
     /** The ID used to uniquely identify the input in a Form */
     /* eslint-disable-next-line react/no-unused-prop-types */
@@ -85,7 +86,7 @@ const defaultProps = {
 function CheckboxWithLabel(props) {
     // We need to pick the first value that is strictly a boolean
     // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
-    const [isChecked, setIsChecked] = useState(_.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value)));
+    const [isChecked, setIsChecked] = useState(() => _.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value)));
 
     const toggleCheckbox = () => {
         const newState = !isChecked;
@@ -102,6 +103,7 @@ function CheckboxWithLabel(props) {
                     isChecked={isChecked}
                     onPress={toggleCheckbox}
                     label={props.label}
+                    style={[styles.checkboxWithLabelCheckboxStyle]}
                     hasError={Boolean(props.errorText)}
                     forwardedRef={props.forwardedRef}
                     accessibilityLabel={props.accessibilityLabel || props.label}
@@ -129,10 +131,14 @@ CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;
 CheckboxWithLabel.displayName = 'CheckboxWithLabel';
 
-export default React.forwardRef((props, ref) => (
+const CheckboxWithLabelWithRef = React.forwardRef((props, ref) => (
     <CheckboxWithLabel
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+CheckboxWithLabelWithRef.displayName = 'CheckboxWithLabelWithRef';
+
+export default CheckboxWithLabelWithRef;

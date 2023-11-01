@@ -1,30 +1,30 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import compose from '../../libs/compose';
-import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../withCurrentUserPersonalDetails';
-import Icon from '../Icon';
-import CONST from '../../CONST';
-import * as Expensicons from '../Icon/Expensicons';
-import Checkbox from '../Checkbox';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getButtonState from '../../libs/getButtonState';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import * as Task from '../../libs/actions/Task';
-import * as ReportUtils from '../../libs/ReportUtils';
-import RenderHTML from '../RenderHTML';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import personalDetailsPropType from '../../pages/personalDetailsPropType';
-import * as Session from '../../libs/actions/Session';
-import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
+import Checkbox from '@components/Checkbox';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RenderHTML from '@components/RenderHTML';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import getButtonState from '@libs/getButtonState';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -77,7 +77,9 @@ function TaskPreview(props) {
     const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
     const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
     const htmlForTaskPreview =
-        taskAssignee && taskAssigneeAccountID !== 0 ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
+        taskAssignee && taskAssigneeAccountID !== 0
+            ? `<comment><mention-user accountid="${taskAssigneeAccountID}">@${taskAssignee}</mention-user> ${taskTitle}</comment>`
+            : `<comment>${taskTitle}</comment>`;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(props.taskReport, props.action);
 
     if (isDeletedParentAction) {
