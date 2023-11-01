@@ -281,7 +281,7 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
         isLoading: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            key: ONYXKEYS.IS_LOADING_APP,
         },
         demoInfo: {
             key: ONYXKEYS.DEMO_INFO,
