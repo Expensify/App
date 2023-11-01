@@ -163,19 +163,28 @@ function WorkspaceInitialPage(props) {
         },
     ];
 
-    const availableRooms = _.filter(props.reports, (report) => (report && report.reportID != undefined && report.policyID === policy.id && (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS || report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE)));
+    const availableRooms = _.filter(
+        props.reports,
+        (report) =>
+            report &&
+            report.reportID !== undefined &&
+            report.policyID === policy.id &&
+            (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS || report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
+    );
 
-    let threeDotsMenuItems = [
+    const threeDotsMenuItems = [
         {
             icon: Expensicons.Trashcan,
-            text: props.translate('workspace.common.delete'),            
+            text: props.translate('workspace.common.delete'),
             onSelected: () => setIsDeleteModalOpen(true),
         },
     ];
-    availableRooms.forEach(room => {
+    availableRooms.forEach((room) => {
         threeDotsMenuItems.push({
             icon: Expensicons.Hashtag,
-            text: props.translate('workspace.common.goToRoom', {roomName: room.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS ? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS : CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
+            text: props.translate('workspace.common.goToRoom', {
+                roomName: room.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS ? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS : CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
+            }),
             onSelected: () => goToRoom(room.chatType),
         });
     });
