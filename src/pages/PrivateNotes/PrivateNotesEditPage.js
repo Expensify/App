@@ -105,8 +105,15 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
 
     const savePrivateNote = () => {
         const originalNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
-        const editedNote = Report.handleUserDeletedLinksInHtml(privateNote.trim(), parser.htmlToMarkdown(originalNote).trim());
-        Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
+
+        if (privateNote.trim() !== originalNote.trim()) {
+            const editedNote = Report.handleUserDeletedLinksInHtml(privateNote.trim(), parser.htmlToMarkdown(originalNote).trim());
+            Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
+        }
+
+        // We want to delete saved private note draft after saving the note
+        debouncedSavePrivateNote('');
+
         Keyboard.dismiss();
 
         // Take user back to the PrivateNotesView page
