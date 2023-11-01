@@ -2,15 +2,15 @@ import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import ReportAction, {ReportActions} from '../types/onyx/ReportAction';
-import Report from '../types/onyx/Report';
-import {ActionName} from '../types/onyx/OriginalMessage';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {ActionName} from '@src/types/onyx/OriginalMessage';
+import Report from '@src/types/onyx/Report';
+import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
 import * as CollectionUtils from './CollectionUtils';
-import Log from './Log';
-import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Environment from './Environment/Environment';
+import isReportMessageAttachment from './isReportMessageAttachment';
+import Log from './Log';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
@@ -271,7 +271,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
 /**
  * Checks if a reportAction is deprecated.
  */
-function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: string): boolean {
+function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: string | number): boolean {
     if (!reportAction) {
         return true;
     }
@@ -293,7 +293,7 @@ const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), 
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number): boolean {
     if (!reportAction) {
         return false;
     }
