@@ -94,7 +94,7 @@ function tryFocusModeUpdate() {
         }
 
         // Check to see if the user is using #focus mode, has tried it before, or we have already switched them over automatically.
-        if (isInFocusMode ?? hasTriedFocusMode) {
+        if ((isInFocusMode ?? false) || hasTriedFocusMode) {
             Log.info('Not switching user to optimized focus mode.', false, {isInFocusMode, hasTriedFocusMode});
             return;
         }
