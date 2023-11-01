@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import * as UserUtils from '@libs/UserUtils';
 import styles from '@styles/styles';
 import Avatar from './Avatar';
+import AvatarSkeleton from './AvatarSkeleton';
 import * as Expensicons from './Icon/Expensicons';
 import Indicator from './Indicator';
 import Tooltip from './Tooltip';
@@ -31,8 +32,8 @@ const defaultProps = {
 function AvatarWithIndicator(props) {
     return (
         <Tooltip text={props.tooltipText}>
-            <View style={[styles.sidebarAvatar, props.isLoading && styles.skeletonAvatar]}>
-                {!props.isLoading && (
+            <View style={[styles.sidebarAvatar]}>
+                {!props.isLoading ? (
                     <>
                         <Avatar
                             source={UserUtils.getSmallSizeAvatar(props.source)}
@@ -40,6 +41,8 @@ function AvatarWithIndicator(props) {
                         />
                         <Indicator />
                     </>
+                ) : (
+                    <AvatarSkeleton shouldAnimate />
                 )}
             </View>
         </Tooltip>
