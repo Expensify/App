@@ -10,12 +10,6 @@ let resolveIsReadyPromise: (args?: unknown[]) => void;
 let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
 });
-function resetHasReadRequiredDataFromStorage() {
-    // Create a new promise and a new resolve function
-    isReadyPromise = new Promise((resolve) => {
-        resolveIsReadyPromise = resolve;
-    });
-}
 
 let currentUserAccountID: number | undefined | null;
 Onyx.connect({
@@ -69,6 +63,14 @@ Onyx.connect({
         checkRequiredData();
     },
 });
+
+function resetHasReadRequiredDataFromStorage() {
+    // Create a new promise and a new resolve function
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
+    isLoadingReportData = true;
+}
 
 function checkRequiredData() {
     if (allReports === undefined || hasTriedFocusMode === undefined || isInFocusMode === undefined || isLoadingReportData) {
