@@ -1,15 +1,13 @@
 import {deepEqual} from 'fast-equals';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import withCurrentReportID from '@components/withCurrentReportID';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
-import * as Report from '@libs/actions/Report';
 import compose from '@libs/compose';
 import * as SessionUtils from '@libs/SessionUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -70,7 +68,6 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
 
     const reportIDsRef = useRef(null);
     const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
-    const previousPriorityMode = usePrevious(priorityMode);
     const optionListItems = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
@@ -83,14 +80,6 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         }
         return reportIDsRef.current || [];
     }, [allReportActions, betas, chatReports, policies, priorityMode, isLoading]);
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        // If we are switching from "Most recent" to "#focus" then let's try to free up some unused reports to improve the app performance
-        if (previousPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
-            Report.deleteUnusedReports(optionListItems);
-        }
-    }, [priorityMode, optionListItems, previousPriorityMode]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that

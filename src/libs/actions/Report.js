@@ -1718,36 +1718,6 @@ function deleteReport(reportID) {
 }
 
 /**
- * @param {string[]} lhnReportIDs
- */
-function deleteUnusedReports(lhnReportIDs) {
-    let reportIDsToDelete = _.map(allReports, (report) => report.reportID);
-
-    // We won't ever delete anything currently in the LHN list of reports
-    reportIDsToDelete = _.difference(reportIDsToDelete, lhnReportIDs);
-
-    // We also should avoid deleting anything in the navigation stack if we can
-    reportIDsToDelete = _.difference(reportIDsToDelete, Navigation.getAllReportIDsInNavigationStack());
-
-    // And we don't want to mess with the workspace chats related to a user's primary policy
-    const ownWorkspaceChatOnPrimaryPolicy = _.find(allReports, (report) => report.isOwnPolicyExpenseChat && report.policyID === activePolicyID);
-    if (ownWorkspaceChatOnPrimaryPolicy && ownWorkspaceChatOnPrimaryPolicy.reportID) {
-        reportIDsToDelete = _.difference(reportIDsToDelete, [ownWorkspaceChatOnPrimaryPolicy.reportID]);
-    }
-
-    Log.info(`Deleting ${reportIDsToDelete.length} cached reports because we switched to focus mode.`);
-
-    // We do this at some set delay because it will kill the UI if we try to delete many things at once.
-    const interval = setInterval(() => {
-        const reportID = reportIDsToDelete.pop();
-        deleteReport(reportID);
-        if (reportIDsToDelete.length === 0) {
-            clearInterval(interval);
-        }
-    }, 500);
-}
-
-/**
  * @param {String} reportID The reportID of the policy report (workspace room)
  */
 function navigateToConciergeChatAndDeleteReport(reportID) {
@@ -2641,5 +2611,4 @@ export {
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
-    deleteUnusedReports,
 };
