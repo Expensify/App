@@ -1,8 +1,8 @@
-import isEmpty from 'lodash/isEmpty';
 import omit from 'lodash/omit';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
@@ -28,7 +28,7 @@ export default function (WrappedComponent) {
     };
 
     function WithPolicyAndFullscreenLoading(props) {
-        if (props.isLoadingReportData && isEmpty(props.policy) && isEmpty(props.policyDraft)) {
+        if (props.isLoadingReportData && _.isEmpty(props.policy) && _.isEmpty(props.policyDraft)) {
             return <FullscreenLoadingIndicator />;
         }
 

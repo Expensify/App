@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import lodashGet from 'lodash/get';
-import lodashIsEmpty from 'lodash/isEmpty';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'react';
 import {View} from 'react-native';
@@ -558,7 +557,7 @@ function MoneyRequestConfirmationList(props) {
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-            footerContent={(!lodashIsEmpty(props.iou.id) || props.isEditingSplitBill) && footerContent}
+            footerContent={(!_.isEmpty(props.iou.id) || props.isEditingSplitBill) && footerContent}
             listStyles={props.listStyles}
             shouldAllowScrollingChildren
         >

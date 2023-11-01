@@ -1,30 +1,29 @@
-import React, {useCallback, useEffect, useMemo, useState, useRef} from 'react';
-import {View} from 'react-native';
 import lodashGet from 'lodash/get';
-import lodashIsEmpty from 'lodash/isEmpty';
-import _ from 'underscore';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import styles from '@styles/styles';
-import variables from '@styles/variables';
-import * as MapboxToken from '@userActions/MapboxToken';
-import useNetwork from '@hooks/useNetwork';
-import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
-import usePrevious from '@hooks/usePrevious';
-import * as Transaction from '@userActions/Transaction';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import _ from 'underscore';
 import Button from '@components/Button';
-import DraggableList from '@components/DraggableList';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
+import DraggableList from '@components/DraggableList';
 import transactionPropTypes from '@components/transactionPropTypes';
-import CONST from '@src/CONST';
-import * as IOU from '@userActions/IOU';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
+import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import ROUTES from '@src/ROUTES';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as IOU from '@userActions/IOU';
+import * as MapboxToken from '@userActions/MapboxToken';
+import * as Transaction from '@userActions/Transaction';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import StepScreenWrapper from './StepScreenWrapper';
+import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import StepScreenWrapper from './StepScreenWrapper';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -148,7 +147,7 @@ function IOURequestStepDistance({
             const newWaypoints = {};
             _.each(data, (waypoint, index) => {
                 const newWaypoint = lodashGet(waypoints, waypoint, {});
-                newWaypoints[`waypoint${index}`] = lodashIsEmpty(newWaypoint) ? null : newWaypoint;
+                newWaypoints[`waypoint${index}`] = _.isEmpty(newWaypoint) ? null : newWaypoint;
             });
 
             setOptimisticWaypoints(newWaypoints);

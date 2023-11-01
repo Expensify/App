@@ -1,30 +1,34 @@
-import React, {useState, useRef, useEffect} from 'react';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import styles from '@styles/styles';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import transactionPropTypes from '@components/transactionPropTypes';
-import * as IOU from '@userActions/IOU';
+import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as IOUUtils from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import ONYXKEYS from '../../../ONYXKEYS';
-import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import useLocalize from '../../../hooks/useLocalize';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
-import IOURequestStepScan from './step/IOURequestStepScan';
 import IOURequestStepRoutePropTypes from './step/IOURequestStepRoutePropTypes';
-import * as ReportUtils from '@libs/ReportUtils';
+import IOURequestStepScan from './step/IOURequestStepScan';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -39,12 +43,16 @@ const propTypes = {
 
     /** The transaction being modified */
     transaction: transactionPropTypes,
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     report: {},
-    selectedTab: CONST.TAB_REQUEST.MANUAL,
+    selectedTab: CONST.TAB_REQUEST.SCAN,
     transaction: {},
+    betas: [],
 };
 
 function IOURequestStartPage({
@@ -55,6 +63,7 @@ function IOURequestStartPage({
     },
     selectedTab,
     transaction,
+    betas,
 }) {
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -74,9 +83,10 @@ function IOURequestStartPage({
         [],
     );
 
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+    // Allow the user to create the request if we are creating the request in global menu or the report can create the request
+    const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, betas, iouType);
     const iouTypeParamIsInvalid = !_.contains(_.values(CONST.IOU.TYPE), iouType);
-    if (iouTypeParamIsInvalid || !canUserPerformWriteAction) {
+    if (iouTypeParamIsInvalid || !isAllowedToCreateRequest) {
         return <FullPageNotFoundView shouldShow />;
     }
 
@@ -100,35 +110,38 @@ function IOURequestStartPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
+            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
             testID={IOURequestStartPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={tabTitles[iouType]}
-                            onBackButtonPress={navigateBack}
-                        />
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType) || !isAllowedToCreateRequest}>
+                    <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
+                        <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                            <HeaderWithBackButton
+                                title={tabTitles[iouType]}
+                                onBackButtonPress={navigateBack}
+                            />
 
-                        <OnyxTabNavigator
-                            id={CONST.TAB.IOU_REQUEST_TYPE}
-                            selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
-                            onTabSelected={resetIouTypeIfChanged}
-                            tabBar={({state, navigation, position}) => (
-                                <TabSelector
-                                    state={state}
-                                    navigation={navigation}
-                                    position={position}
-                                />
-                            )}
-                        >
-                            <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
-                            <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
-                            {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>}
-                        </OnyxTabNavigator>
-                    </View>
-                </DragAndDropProvider>
+                            <OnyxTabNavigator
+                                id={CONST.TAB.IOU_REQUEST_TYPE}
+                                selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
+                                onTabSelected={resetIouTypeIfChanged}
+                                tabBar={({state, navigation, position}) => (
+                                    <TabSelector
+                                        state={state}
+                                        navigation={navigation}
+                                        position={position}
+                                    />
+                                )}
+                            >
+                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
+                                <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
+                                {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>}
+                            </OnyxTabNavigator>
+                        </View>
+                    </DragAndDropProvider>
+                </FullPageNotFoundView>
             )}
         </ScreenWrapper>
     );
@@ -138,14 +151,14 @@ IOURequestStartPage.displayName = 'IOURequestStartPage';
 IOURequestStartPage.propTypes = propTypes;
 IOURequestStartPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '0')}`,
-    },
-    selectedTab: {
-        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
-    },
-    transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
-    },
-})(IOURequestStartPage);
+export default compose(
+    withReportOrNotFound(false),
+    withOnyx({
+        selectedTab: {
+            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
+        },
+        transaction: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
+        },
+    }),
+)(IOURequestStartPage);
