@@ -21,7 +21,6 @@ import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import * as User from '@libs/actions/User';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -86,20 +85,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         allPersonalDetails = val || {};
-    },
-});
-
-let activePolicyID = '';
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        const activePolicy = _.find(val, (policy) => policy.active);
-        if (!activePolicy) {
-            return;
-        }
-
-        activePolicyID = activePolicy.id;
     },
 });
 
@@ -1583,7 +1568,6 @@ function tryFocusModeUpdate() {
 
         // Record that we asked them to upgrade so we don't ask them again later.
         hasTriedFocusMode = true;
-        User.updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, false);
         Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, true);
     });
 }

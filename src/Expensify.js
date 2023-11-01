@@ -212,14 +212,7 @@ function Expensify(props) {
                         />
                     ) : null}
                     {props.focusModeNotification ? (
-                        <ConfirmModal
-                            title={props.translate('focusModeUpdateModal.title')}
-                            prompt={props.translate('focusModeUpdateModal.prompt')}
-                            confirmText={props.translate('common.buttonConfirm')}
-                            onConfirm={User.clearFocusModeNotification}
-                            shouldShowCancelButton={false}
-                            isVisible
-                        />
+                        <FocusModeNotification />
                     ) : null}
                 </>
             )}
