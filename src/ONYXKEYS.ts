@@ -305,7 +305,7 @@ const ONYXKEYS = {
         INTRO_SCHOOL_PRINCIPAL_FORM: 'introSchoolPrincipalForm',
         REPORT_PHYSICAL_CARD_FORM: 'requestPhysicalCardForm',
         REPORT_VIRTUAL_CARD_FRAUD: 'reportVirtualCardFraudForm',
-        WORKSPACE_EDIT_NAME: "workspaceEditName"
+        WORKSPACE_EDIT_NAME: 'workspaceEditName',
     },
 } as const;
 
