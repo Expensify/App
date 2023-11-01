@@ -476,6 +476,16 @@ function isChatThread(report) {
 }
 
 /**
+ * Returns true if report is a DM/Group DM chat.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isDM(report) {
+    return !getChatType(report);
+}
+
+/**
  * Only returns true if this is our main 1:1 DM report with Concierge
  *
  * @param {Object} report
@@ -512,6 +522,23 @@ function shouldDisableDetailPage(report) {
 function isExpensifyOnlyParticipantInReport(report) {
     const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
     return reportParticipants.length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
+}
+
+/**
+ * Returns whether a given report can have tasks created in it.
+ * We only prevent the task option if it's a DM/group-DM and the other users are all special Expensify accounts
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function canCreateTaskInReport(report) {
+    const otherReportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
+    const areExpensifyAccountsOnlyOtherParticipants = _.every(otherReportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
+    if (areExpensifyAccountsOnlyOtherParticipants && isDM(report)) {
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -644,16 +671,6 @@ function isPolicyAdmin(policyID, policies) {
     const policyRole = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'role']);
 
     return policyRole === CONST.POLICY.ROLE.ADMIN;
-}
-
-/**
- * Returns true if report is a DM/Group DM chat.
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-function isDM(report) {
-    return !getChatType(report);
 }
 
 /**
@@ -3638,14 +3655,15 @@ function getMoneyRequestOptions(report, reportParticipants) {
 
     const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
 
-    // Verify if there is any of the expensify accounts amongst the participants in which case user cannot take IOU actions on such report
-    const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
-    const hasSingleParticipantInReport = participants.length === 1;
-    const hasMultipleParticipants = participants.length > 1;
-
-    if (hasExcludedIOUAccountIDs) {
+    // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
+    const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
+    const isPolicyOwnedByExpensifyAccounts = report.policyID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(getPolicy(report.policyID).ownerAccountID || 0) : false;
+    if (doParticipantsIncludeExpensifyAccounts && !isPolicyOwnedByExpensifyAccounts) {
         return [];
     }
+
+    const hasSingleParticipantInReport = participants.length === 1;
+    const hasMultipleParticipants = participants.length > 1;
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
@@ -4062,10 +4080,17 @@ function getIOUReportActionDisplayMessage(reportAction) {
         const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
         const {amount, currency, comment} = getTransactionDetails(transaction);
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
-        displayMessage = Localize.translateLocal('iou.requestedAmount', {
-            formattedAmount,
-            comment,
-        });
+        const isRequestSettled = isSettled(originalMessage.IOUReportID);
+        if (isRequestSettled) {
+            displayMessage = Localize.translateLocal('iou.payerSettled', {
+                amount: formattedAmount,
+            });
+        } else {
+            displayMessage = Localize.translateLocal('iou.requestedAmount', {
+                formattedAmount,
+                comment,
+            });
+        }
     }
     return displayMessage;
 }
@@ -4135,6 +4160,7 @@ export {
     getPolicyType,
     isArchivedRoom,
     isExpensifyOnlyParticipantInReport,
+    canCreateTaskInReport,
     isPolicyExpenseChatAdmin,
     isPolicyAdmin,
     isPublicRoom,
