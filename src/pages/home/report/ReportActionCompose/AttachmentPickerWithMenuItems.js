@@ -3,24 +3,24 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import * as Browser from '@libs/Browser';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Report from '@userActions/Report';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as Task from '@userActions/Task';
 import AttachmentPicker from '@components/AttachmentPicker';
-import CONST from '@src/CONST';
 import Icon from '@components/Icon';
-import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
-import Permissions from '@libs/Permissions';
+import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import ROUTES from '@src/ROUTES';
-import styles from '@styles/styles';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import * as ReportUtils from '@libs/ReportUtils';
+import styles from '@styles/styles';
+import * as Report from '@userActions/Report';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Beta features list */

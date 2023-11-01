@@ -1,5 +1,5 @@
-import _ from 'underscore';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import CONST from '@src/CONST';
 
 export default PropTypes.shape({

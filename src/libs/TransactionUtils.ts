@@ -1,12 +1,12 @@
+import lodashHas from 'lodash/has';
 import Onyx, {OnyxCollection} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
-import lodashHas from 'lodash/has';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
 import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
-import DateUtils from './DateUtils';
 import {isExpensifyCard} from './CardUtils';
+import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};

@@ -1,13 +1,12 @@
-import React from 'react';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-
-import * as ReportUtils from '@libs/ReportUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
+import React from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import CONST from '@src/CONST';
+import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepCategory from './step/IOURequestStepCategory';
 import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';

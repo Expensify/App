@@ -1,21 +1,21 @@
+import {useFocusEffect} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {useFocusEffect} from '@react-navigation/native';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import styles from '@styles/styles';
+import Form from '@components/Form';
+import TextInput from '@components/TextInput';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import useLocalize from '@hooks/useLocalize';
-import transactionPropTypes from '@components/transactionPropTypes';
-import TextInput from '@components/TextInput';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Form from '@components/Form';
-import StepScreenWrapper from './StepScreenWrapper';
+import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import StepScreenWrapper from './StepScreenWrapper';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */

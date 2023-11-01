@@ -1,17 +1,17 @@
-import React from 'react';
 import lodashGet from 'lodash/get';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import ROUTES from '@src/ROUTES';
-import Navigation from '@libs/Navigation/Navigation';
-import useLocalize from '@hooks/useLocalize';
 import CategoryPicker from '@components/CategoryPicker';
-import ONYXKEYS from '@src/ONYXKEYS';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import transactionPropTypes from '@components/transactionPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
-import StepScreenWrapper from './StepScreenWrapper';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import StepScreenWrapper from './StepScreenWrapper';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */

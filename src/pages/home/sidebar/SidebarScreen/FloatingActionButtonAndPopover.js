@@ -3,30 +3,30 @@ import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import * as App from '@userActions/App';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as IOU from '@userActions/IOU';
-import * as NumberUtils from '@libs/NumberUtils';
-import * as Policy from '@userActions/Policy';
-import * as Session from '@userActions/Session';
-import * as Task from '@userActions/Task';
-import * as Welcome from '@userActions/Welcome';
-import compose from '@libs/compose';
-import CONST from '@src/CONST';
 import FloatingActionButton from '@components/FloatingActionButton';
-import Navigation from '@libs/Navigation/Navigation';
-import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
-import Permissions from '@libs/Permissions';
+import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import styles from '@styles/styles';
-import usePrevious from '@hooks/usePrevious';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigation from '@components/withNavigation';
 import withNavigationFocus from '@components/withNavigationFocus';
 import withWindowDimensions from '@components/withWindowDimensions';
+import usePrevious from '@hooks/usePrevious';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as NumberUtils from '@libs/NumberUtils';
+import Permissions from '@libs/Permissions';
+import styles from '@styles/styles';
+import * as App from '@userActions/App';
+import * as IOU from '@userActions/IOU';
+import * as Policy from '@userActions/Policy';
+import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
+import * as Welcome from '@userActions/Welcome';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 /**
  * @param {Object} [policy]
@@ -200,7 +200,10 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.MoneyCircle,
                         text: props.translate('iou.requestMoney'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, NumberUtils.rand64()))),
+                        onSelected: () =>
+                            interceptAnonymousUser(() =>
+                                Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, NumberUtils.rand64())),
+                            ),
                     },
                     {
                         icon: Expensicons.Send,
