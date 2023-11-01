@@ -1,4 +1,4 @@
-import {EmitterSubscription, Keyboard, Platform} from 'react-native';
+import {EmitterSubscription, Keyboard} from 'react-native';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as Composer from '@userActions/Composer';
 import CONST from '@src/CONST';
