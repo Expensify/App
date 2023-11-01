@@ -584,9 +584,10 @@ function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
 /**
  * Sync user chat priority mode with Onyx and Server
  * @param {String} mode
- * @param {boolean} [shouldNavigate]
+ * @param {boolean} [automatic] if we changed the mode automatically
  */
-function updateChatPriorityMode(mode, shouldNavigate = true) {
+function updateChatPriorityMode(mode, automatic = false) {
+    const autoSwitchedToFocusMode = mode === CONST.PRIORITY_MODE.GSD && automatic;
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -595,7 +596,7 @@ function updateChatPriorityMode(mode, shouldNavigate = true) {
         },
     ];
 
-    if (mode === CONST.PRIORITY_MODE.GSD) {
+    if (autoSwitchedToFocusMode) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
@@ -611,7 +612,7 @@ function updateChatPriorityMode(mode, shouldNavigate = true) {
         {optimisticData},
     );
 
-    if (shouldNavigate) {
+    if (!autoSwitchedToFocusMode) {
         Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
     }
 }

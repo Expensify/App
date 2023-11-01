@@ -7,7 +7,7 @@ import ConfirmModal from './ConfirmModal';
 function FocusModeNotification() {
     const {translate} = useLocalize();
     useEffect(() => {
-        User.updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, false);
+        User.updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
     }, []);
     return (
         <ConfirmModal
