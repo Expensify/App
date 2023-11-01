@@ -608,6 +608,7 @@ function updateChatPriorityMode(mode, automatic = false) {
         'UpdateChatPriorityMode',
         {
             value: mode,
+            automatic,
         },
         {optimisticData},
     );

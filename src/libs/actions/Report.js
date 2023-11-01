@@ -107,18 +107,10 @@ Onyx.connect({
     callback: (priorityMode) => (isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD),
 });
 
-// We use this NVP to track whether the user has already tested out #focus mode. If so, we won't switch them automatically.
-let hasTriedFocusMode = true;
+let hasTriedFocusMode;
 Onyx.connect({
     key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
-    callback: (val) => {
-        // If there's no value e.g. user signed out we assume they don't need the notification
-        if (!_.isBoolean(val)) {
-            return;
-        }
-
-        hasTriedFocusMode = val;
-    },
+    callback: val => hasTriedFocusMode = val,
 });
 
 const allReports = {};
@@ -1559,6 +1551,11 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
 
 function tryFocusModeUpdate() {
     Welcome.serverDataIsReadyPromise().then(() => {
+        // User is signed out so do not try to switch them
+        if (!currentUserAccountID) {
+            return;
+        }
+
         // Check to see if the user is using #focus mode, has tried it before, or we have already switched them over automatically.
         if (isInFocusMode || hasTriedFocusMode) {
             Log.info('Not switching user to optimized focus mode.', false, {isInFocusMode, hasTriedFocusMode});
