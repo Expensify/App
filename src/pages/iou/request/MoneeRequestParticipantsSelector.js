@@ -1,20 +1,20 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import styles from '@styles/styles';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import OptionsSelector from '@components/OptionsSelector';
+import refPropTypes from '@components/refPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
-import CONST from '@src/CONST';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import refPropTypes from '@components/refPropTypes';
-import OptionsSelector from '@components/OptionsSelector';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
@@ -291,6 +291,16 @@ MoneeRequestParticipantsSelector.propTypes = propTypes;
 MoneeRequestParticipantsSelector.defaultProps = defaultProps;
 MoneeRequestParticipantsSelector.displayName = 'MoneeRequestParticipantsSelector';
 
+const MoneeRequestParticipantsSelectorWithRef = React.forwardRef((props, ref) => {
+    <MoneeRequestParticipantsSelector
+        /* eslint-disable-next-line react/jsx-props-no-spreading */
+        {...props}
+        forwardedRef={ref}
+    />;
+});
+
+MoneeRequestParticipantsSelectorWithRef.displayName = 'MoneeRequestParticipantsSelectorWithRef';
+
 export default compose(
     withLocalize,
     withOnyx({
@@ -304,12 +314,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(
-    React.forwardRef((props, ref) => (
-        <MoneeRequestParticipantsSelector
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(MoneeRequestParticipantsSelectorWithRef);

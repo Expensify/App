@@ -1,17 +1,17 @@
-import React, {useRef, useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import React, {useCallback, useRef} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneeRequestParticipantsSelector';
+import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneeRequestParticipantsSelector';
-import Navigation from '@libs/Navigation/Navigation';
-import * as IOU from '@userActions/IOU';
-import useLocalize from '@hooks/useLocalize';
-import transactionPropTypes from '@components/transactionPropTypes';
-import * as TransactionUtils from '@libs/TransactionUtils';
-import StepScreenWrapper from './StepScreenWrapper';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import StepScreenWrapper from './StepScreenWrapper';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -75,7 +75,7 @@ function IOURequestStepParticipants({
         >
             <MoneyRequestParticipantsSelector
                 ref={(el) => (optionsSelectorRef.current = el)}
-                participants={participants}
+                participants={iouType === CONST.IOU.TYPE.SPLIT ? participants : []}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
                 iouType={iouType}
