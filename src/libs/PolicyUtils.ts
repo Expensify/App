@@ -1,8 +1,8 @@
-import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import {PersonalDetails, Policy, PolicyMembers, PolicyMember, PolicyTags} from '../types/onyx';
+import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {PersonalDetails, Policy, PolicyMember, PolicyMembers, PolicyTags} from '@src/types/onyx';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 type PersonalDetailsList = Record<string, PersonalDetails>;

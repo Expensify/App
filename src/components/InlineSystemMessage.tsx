@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
-import styles from '../styles/styles';
-import theme from '../styles/themes/default';
-import Text from './Text';
-import * as Expensicons from './Icon/Expensicons';
+import styles from '@styles/styles';
+import theme from '@styles/themes/default';
 import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import Text from './Text';
 
 type InlineSystemMessageProps = {
     /** Error to display */
