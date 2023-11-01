@@ -262,34 +262,6 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
-/**
- *
- * @param {Array} routes
- * @param {Set} reportIDs
- * @returns {String[]}
- */
-function findReportIDsInRoutes(routes, reportIDs = new Set()) {
-    routes.forEach((route) => {
-        if (route.params && route.params.reportID) {
-            reportIDs.add(route.params.reportID);
-        }
-
-        if (route.state) {
-            findReportIDsInRoutes(route.state.routes, reportIDs);
-        }
-    });
-
-    return [...reportIDs.values()];
-}
-
-/**
- * @returns {String[]}
- */
-function getAllReportIDsInNavigationStack() {
-    const rootState = navigationRef.getRootState();
-    return findReportIDsInRoutes(rootState.routes);
-}
-
 export default {
     setShouldPopAllStateOnUP,
     canNavigate,
@@ -305,7 +277,6 @@ export default {
     getRouteNameFromStateEvent,
     getTopMostCentralPaneRouteName,
     getTopmostReportActionId,
-    getAllReportIDsInNavigationStack,
 };
 
 export {navigationRef};

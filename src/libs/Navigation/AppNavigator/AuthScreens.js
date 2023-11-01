@@ -193,7 +193,7 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
             App.reconnectApp(lastUpdateIDAppliedToClient);
         }
 
-        Report.tryFocusMode();
+        Report.autoSwitchToFocusMode();
 
         App.setUpPoliciesAndNavigate(session);
 

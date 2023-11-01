@@ -1031,7 +1031,7 @@ function broadcastUserIsLeavingRoom(reportID) {
  * Debounce the prompt to promote focus mode as many reports updates could happen in a short burst
  */
 // eslint-disable-next-line no-use-before-define
-const tryFocusMode = _.debounce(tryFocusModeUpdate, 300, true);
+const autoSwitchToFocusMode = _.debounce(tryFocusModeUpdate, 300, true);
 
 /**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
@@ -1072,7 +1072,7 @@ function handleReportChanged(report) {
     }
 
     // Try to switch the user to focus mode
-    tryFocusMode();
+    autoSwitchToFocusMode();
 }
 
 Onyx.connect({
@@ -2584,7 +2584,7 @@ export {
     getCurrentUserAccountID,
     setLastOpenedPublicRoom,
     flagComment,
-    tryFocusMode,
+    autoSwitchToFocusMode,
     openLastOpenedPublicRoom,
     updatePrivateNotes,
     getReportPrivateNote,
