@@ -85,10 +85,6 @@ function IOURequestStartPage({
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
     const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, betas, iouType);
-    const iouTypeParamIsInvalid = !_.contains(_.values(CONST.IOU.TYPE), iouType);
-    if (iouTypeParamIsInvalid || !isAllowedToCreateRequest) {
-        return <FullPageNotFoundView shouldShow />;
-    }
 
     const isFromGlobalCreate = _.isEmpty(report.reportID);
     const isExpenseRequest = ReportUtils.isPolicyExpenseChat(report);
