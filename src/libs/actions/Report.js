@@ -108,10 +108,17 @@ Onyx.connect({
 });
 
 // We use this NVP to track whether the user has already tested out #focus mode. If so, we won't switch them automatically.
-let hasTriedFocusMode = '';
+let hasTriedFocusMode = true;
 Onyx.connect({
     key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
-    callback: (val) => (hasTriedFocusMode = val),
+    callback: (val) => {
+        // If there's no value e.g. user signed out we assume they don't need the notification
+        if (!_.isBoolean(val)) {
+            return;
+        }
+
+        hasTriedFocusMode = val;
+    },
 });
 
 const allReports = {};
@@ -1564,7 +1571,7 @@ function tryFocusModeUpdate() {
             return;
         }
 
-        Log.info('Switching user to optimized focus mode', false, {reportCount});
+        Log.info('Switching user to optimized focus mode', false, {reportCount, hasTriedFocusMode, isInFocusMode});
 
         // Record that we automatically switched them so we don't ask again.
         hasTriedFocusMode = true;
