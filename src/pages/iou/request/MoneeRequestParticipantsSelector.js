@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -7,6 +6,8 @@ import _ from 'underscore';
 import OptionsSelector from '@components/OptionsSelector';
 import refPropTypes from '@components/refPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as Report from '@libs/actions/Report';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -56,6 +57,9 @@ const propTypes = {
     /** The request type, ie. manual, scan, distance */
     iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
 
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -66,6 +70,7 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     betas: [],
+    isSearchingForReports: false,
 };
 
 function MoneeRequestParticipantsSelector({
@@ -80,6 +85,7 @@ function MoneeRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     iouRequestType,
+    isSearchingForReports,
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
@@ -87,6 +93,7 @@ function MoneeRequestParticipantsSelector({
         personalDetails: [],
         userToInvite: null,
     });
+    const {isOffline} = useNetwork();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
@@ -99,16 +106,17 @@ function MoneeRequestParticipantsSelector({
         const newSections = [];
         let indexOffset = 0;
 
-        newSections.push({
-            title: undefined,
-            data: _.map(participants, (participant) => {
-                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
-            }),
-            shouldShow: true,
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
+            searchTerm,
+            participants,
+            newChatOptions.recentReports,
+            newChatOptions.personalDetails,
+            personalDetails,
+            true,
             indexOffset,
-        });
-        indexOffset += participants.length;
+        );
+        newSections.push(formatResults.section);
+        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return newSections;
@@ -140,7 +148,7 @@ function MoneeRequestParticipantsSelector({
         }
 
         return newSections;
-    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate]);
+    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate, searchTerm]);
 
     /**
      * Adds a single participant to the request
@@ -244,6 +252,14 @@ function MoneeRequestParticipantsSelector({
 
             // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
             iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            true,
         );
         setNewChatOptions({
             recentReports: chatOptions.recentReports,
@@ -251,6 +267,14 @@ function MoneeRequestParticipantsSelector({
             userToInvite: chatOptions.userToInvite,
         });
     }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, iouRequestType]);
+
+    // When search term updates we will fetch any reports
+    const setSearchTermAndSearchInServer = useCallback((text = '') => {
+        if (text.length) {
+            Report.searchInServer(text);
+        }
+        setSearchTerm(text);
+    }, []);
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
@@ -270,7 +294,7 @@ function MoneeRequestParticipantsSelector({
                 selectedOptions={participants}
                 value={searchTerm}
                 onSelectRow={addSingleParticipant}
-                onChangeText={setSearchTerm}
+                onChangeText={setSearchTermAndSearchInServer}
                 ref={forwardedRef}
                 headerMessage={headerMessage}
                 boldStyle
@@ -278,10 +302,12 @@ function MoneeRequestParticipantsSelector({
                 confirmButtonText={translate('iou.addToSplit')}
                 onConfirmSelection={onFinish}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 shouldDelayFocus
+                isLoadingNewOptions={isSearchingForReports}
             />
         </View>
     );
@@ -312,6 +338,10 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isSearchingForReports: {
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            initWithStoredValues: false,
         },
     }),
 )(MoneeRequestParticipantsSelectorWithRef);
