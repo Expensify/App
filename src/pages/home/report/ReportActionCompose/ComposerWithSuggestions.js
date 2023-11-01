@@ -198,7 +198,14 @@ function ComposerWithSuggestions({
     }, [textInputRef]);
 
     /**
-     * Find diff between text changes in composer
+     * Find the newly added characters between the previous text and the new text based on the selection.
+     *
+     * @param {string} prevText - The previous text.
+     * @param {string} newText - The new text.
+     * @returns {object} An object containing information about the newly added characters.
+     * @property {number} startIndex - The start index of the newly added characters in the new text.
+     * @property {number} endIndex - The end index of the newly added characters in the new text.
+     * @property {string} diff - The newly added characters.
      */
     const findNewlyAddedChars = useCallback(
         (prevText, newText) => {
