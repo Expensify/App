@@ -110,7 +110,7 @@ Onyx.connect({
 let hasTriedFocusMode;
 Onyx.connect({
     key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
-    callback: val => hasTriedFocusMode = val,
+    callback: (val) => (hasTriedFocusMode = val),
 });
 
 const allReports = {};
