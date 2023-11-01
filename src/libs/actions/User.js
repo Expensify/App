@@ -597,7 +597,7 @@ function updateChatPriorityMode(mode, shouldNavigate = true) {
 
     if (mode === CONST.PRIORITY_MODE.GSD) {
         optimisticData.push({
-            onyxMethod: Onyx.METHOD_MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_HAS_TRIED_FOCUS_MODE,
             value: true,
         });

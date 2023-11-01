@@ -84,12 +84,13 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         return reportIDsRef.current || [];
     }, [allReportActions, betas, chatReports, policies, priorityMode, isLoading]);
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         // If we are switching from "Most recent" to "#focus" then let's try to free up some unused reports to improve the app performance
         if (previousPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
             Report.deleteUnusedReports(optionListItems);
         }
-    }, [priorityMode, optionListItems]);
+    }, [priorityMode, optionListItems, previousPriorityMode]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that

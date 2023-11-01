@@ -1721,7 +1721,7 @@ function deleteReport(reportID) {
  * @param {string[]} lhnReportIDs
  */
 function deleteUnusedReports(lhnReportIDs) {
-    let reportIDsToDelete = _.chain(allReports).filter(allReports, (report) => report.reportID).map((report) => report.reportID).value();
+    let reportIDsToDelete = _.map(allReports, (report) => report.reportID);
 
     // We won't ever delete anything currently in the LHN list of reports
     reportIDsToDelete = _.difference(reportIDsToDelete, lhnReportIDs);
@@ -1736,7 +1736,15 @@ function deleteUnusedReports(lhnReportIDs) {
     }
 
     Log.info(`Deleting ${reportIDsToDelete.length} cached reports because we switched to focus mode.`);
-    reportIDsToDelete.forEach(reportID => deleteReport(reportID));
+
+    // We do this at some set delay because it will kill the UI if we try to delete many things at once.
+    const interval = setInterval(() => {
+        const reportID = reportIDsToDelete.pop();
+        deleteReport(reportID);
+        if (reportIDsToDelete.length === 0) {
+            clearInterval(interval);
+        }
+    }, 500);
 }
 
 /**
