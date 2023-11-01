@@ -587,7 +587,7 @@ export default {
             genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
             duplicateWaypointsErrorMessage: 'Por favor elimina los puntos de ruta duplicados',
-            atLeastTwoDifferentWaypoints: 'Por favor introduce al menos dos puntos de ruta',
+            atLeastTwoDifferentWaypoints: 'Por favor introduce al menos dos puntos de ruta diferentes',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
         enableWallet: 'Habilitar Billetera',
