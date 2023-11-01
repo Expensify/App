@@ -1,30 +1,30 @@
+import _ from 'underscore';
 import {useNavigation} from '@react-navigation/native';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 
-import styles from '@styles/styles';
-import AddressSearch from '@components/AddressSearch';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
-import Form from '@components/Form';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
-import ScreenWrapper from '@components/ScreenWrapper';
-import transactionPropTypes from '@components/transactionPropTypes';
+import * as Transaction from '@userActions/Transaction';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import AddressSearch from '@components/AddressSearch';
+import ConfirmModal from '@components/ConfirmModal';
 import CONST from '@src/CONST';
+import Form from '@components/Form';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Navigation from '@libs/Navigation/Navigation';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import ScreenWrapper from '@components/ScreenWrapper';
+import styles from '@styles/styles';
+import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Transaction from '@userActions/Transaction';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
 const propTypes = {
@@ -38,6 +38,9 @@ const propTypes = {
     /** Recent waypoints that the user has selected */
     recentWaypoints: PropTypes.arrayOf(
         PropTypes.shape({
+            /** The name of the location */
+            name: PropTypes.string,
+
             /** A description of the location (usually the address) */
             description: PropTypes.string,
 
@@ -137,6 +140,7 @@ function IOURequestStepWaypoint({
                 lat: null,
                 lng: null,
                 address: waypointValue,
+                name: values.name,
             };
             saveWaypoint(waypoint);
         }
@@ -213,6 +217,7 @@ function IOURequestStepWaypoint({
                 >
                     <View>
                         <AddressSearch
+                            canUseCurrentLocation
                             inputID={`waypoint${pageIndex}`}
                             ref={(e) => (textInput.current = e)}
                             hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
