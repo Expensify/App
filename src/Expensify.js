@@ -4,7 +4,7 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import FocusModeNotification from '@components/FocusModeNotification';
+import FocusModeNotification from './components/FocusModeNotification';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -77,6 +77,9 @@ const propTypes = {
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: PropTypes.bool,
 
+    /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
+    focusModeNotification: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -89,6 +92,7 @@ const defaultProps = {
     isSidebarLoaded: false,
     screenShareRequest: null,
     isCheckingPublicRoom: true,
+    focusModeNotification: false,
 };
 
 function Expensify(props) {
