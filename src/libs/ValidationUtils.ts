@@ -29,7 +29,7 @@ function validateCardNumber(value: string): boolean {
     return sum % 10 === 0;
 }
 
-function isValidName(value) {
+function isValidName(value: string) {
     return /^[^\d\s!@#$%^&*(),.?":{}|<>]+$/.test(value);
 }
 
