@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import personalDetailsPropType from '../../pages/personalDetailsPropType';
-import avatarPropTypes from '../avatarPropTypes';
+import avatarPropTypes from '@components/avatarPropTypes';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
 
 const propTypes = {
     /** User's Account ID */

@@ -1,27 +1,27 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
-import _ from 'underscore';
 import {format} from 'date-fns';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
+import _ from 'underscore';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import * as CurrencyUtils from './CurrencyUtils';
+import DateUtils from './DateUtils';
+import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
-import * as Expensicons from '../components/Icon/Expensicons';
+import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
+import Permissions from './Permissions';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
-import Permissions from './Permissions';
-import DateUtils from './DateUtils';
-import linkingConfig from './Navigation/linkingConfig';
-import isReportMessageAttachment from './isReportMessageAttachment';
-import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
-import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
 
 let currentUserEmail;
@@ -773,6 +773,27 @@ function isMoneyRequestReport(reportOrID) {
 }
 
 /**
+ * Should return true only for personal 1:1 report
+ *
+ * @param {Object} report (chatReport or iouReport)
+ * @returns {boolean}
+ */
+function isOneOnOneChat(report) {
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+    return (
+        !isThread(report) &&
+        !isChatRoom(report) &&
+        !isExpenseRequest(report) &&
+        !isMoneyRequestReport(report) &&
+        !isPolicyExpenseChat(report) &&
+        !isTaskReport(report) &&
+        isDM(report) &&
+        !isIOUReport(report) &&
+        participantAccountIDs.length === 1
+    );
+}
+
+/**
  * Get the report given a reportID
  *
  * @param {String} reportID
@@ -781,6 +802,16 @@ function isMoneyRequestReport(reportOrID) {
 function getReport(reportID) {
     // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
     return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
+}
+
+/**
+ * Returns whether or not the author of the action is this user
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isActionCreator(reportAction) {
+    return reportAction.actorAccountID === currentUserAccountID;
 }
 
 /**
@@ -1314,59 +1345,64 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
 }
 
 /**
- * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
+ * Checks if a report is an open task report assigned to current user.
  *
- * @param {Object} report (chatReport or iouReport)
- * @returns {boolean}
+ * @param {Object} report
+ * @param {Object} [parentReportAction] - The parent report action of the report (Used to check if the task has been canceled)
+ * @returns {Boolean}
  */
-function isWaitingForIOUActionFromCurrentUser(report) {
+function isWaitingForAssigneeToCompleteTask(report, parentReportAction = {}) {
+    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
+}
+
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isUnreadWithMention(report) {
     if (!report) {
         return false;
     }
 
-    if (isArchivedRoom(getReport(report.parentReportID))) {
+    // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
+    const lastMentionedTime = report.lastMentionedTime || '';
+    const lastReadTime = report.lastReadTime || '';
+    return lastReadTime < lastMentionedTime;
+}
+
+/**
+ * Determines if the option requires action from the current user. This can happen when it:
+    - is unread and the user was mentioned in one of the unread comments
+    - is for an outstanding task waiting on the user
+    - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
+ *
+ * @param {Object} option (report or optionItem)
+ * @param {Object} parentReportAction (the report action the current report is a thread of)
+ * @returns {boolean}
+ */
+function requiresAttentionFromCurrentUser(option, parentReportAction = {}) {
+    if (!option) {
         return false;
     }
 
-    const policy = getPolicy(report.policyID);
-    if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
-        // If the report is already settled, there's no action required from any user.
-        if (isSettled(report.reportID)) {
-            return false;
-        }
-
-        // Report is pending approval and the current user is the manager
-        if (isReportManager(report) && !isReportApproved(report)) {
-            return true;
-        }
-
-        // Current user is an admin and the report has been approved but not settled yet
-        return policy.role === CONST.POLICY.ROLE.ADMIN && isReportApproved(report);
+    if (isArchivedRoom(getReport(option.parentReportID))) {
+        return false;
     }
 
-    // Money request waiting for current user to add their credit bank account
-    // hasOutstandingIOU will be false if the user paid, but isWaitingOnBankAccount will be true if user don't have a wallet or bank account setup
-    if (!report.hasOutstandingIOU && report.isWaitingOnBankAccount && report.ownerAccountID === currentUserAccountID) {
+    if (option.isUnreadWithMention || isUnreadWithMention(option)) {
         return true;
     }
 
-    // Money request waiting for current user to Pay (from expense or iou report)
-    if (report.hasOutstandingIOU && report.ownerAccountID && (report.ownerAccountID !== currentUserAccountID || currentUserAccountID === report.managerID)) {
+    if (isWaitingForAssigneeToCompleteTask(option, parentReportAction)) {
+        return true;
+    }
+
+    // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
+    if (option.hasOutstandingChildRequest) {
         return true;
     }
 
     return false;
-}
-
-/**
- * Checks if a report is an open task report assigned to current user.
- *
- * @param {Object} report
- * @param {Object} parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
- * @returns {Boolean}
- */
-function isWaitingForTaskCompleteFromAssignee(report, parentReportAction = {}) {
-    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
 }
 
 /**
@@ -2125,7 +2161,7 @@ function getParentNavigationSubtitle(report) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isDM(report) && participantAccountIDs.length === 1) {
+    if (isOneOnOneChat(report)) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
         return;
     }
@@ -2529,7 +2565,7 @@ function buildOptimisticIOUReportAction(
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
@@ -2567,7 +2603,7 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
@@ -2680,7 +2716,7 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         isAttachment: false,
         message: [
@@ -2760,7 +2796,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
         actionName,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: [
@@ -2880,7 +2916,7 @@ function buildOptimisticCreatedReportAction(emailCreatingAction, created = DateU
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         created,
         shouldShow: true,
     };
@@ -2919,7 +2955,7 @@ function buildOptimisticEditedTaskReportAction(emailEditingTask) {
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -2938,7 +2974,7 @@ function buildOptimisticClosedReportAction(emailClosingReport, policyName, reaso
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -3107,21 +3143,6 @@ function isUnread(report) {
 
 /**
  * @param {Object} report
- * @returns {Boolean}
- */
-function isUnreadWithMention(report) {
-    if (!report) {
-        return false;
-    }
-
-    // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
-    const lastMentionedTime = report.lastMentionedTime || '';
-    const lastReadTime = report.lastReadTime || '';
-    return lastReadTime < lastMentionedTime;
-}
-
-/**
- * @param {Object} report
  * @param {Object} allReportsDict
  * @returns {Boolean}
  */
@@ -3140,29 +3161,6 @@ function isIOUOwnedByCurrentUser(report, allReportsDict = null) {
     }
 
     return reportToLook.ownerAccountID === currentUserAccountID;
-}
-
-/**
- * Should return true only for personal 1:1 report
- *
- * @param {Object} report (chatReport or iouReport)
- * @returns {boolean}
- */
-function isOneOnOneChat(report) {
-    const isChatRoomValue = lodashGet(report, 'isChatRoom', false);
-    const participantsListValue = lodashGet(report, 'participantsList', []);
-    return (
-        !isThread(report) &&
-        !isChatRoom(report) &&
-        !isChatRoomValue &&
-        !isExpenseRequest(report) &&
-        !isMoneyRequestReport(report) &&
-        !isPolicyExpenseChat(report) &&
-        !isTaskReport(report) &&
-        isDM(report) &&
-        !isIOUReport(report) &&
-        participantsListValue.length === 1
-    );
 }
 
 /**
@@ -3286,8 +3284,8 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return true;
     }
 
-    // Include reports that are relevant to the user in any view mode. Criteria include having a draft, having an outstanding IOU, or being assigned to an open task.
-    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
+    // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
+    if (report.hasDraft || requiresAttentionFromCurrentUser(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
@@ -3516,7 +3514,7 @@ function parseReportRouteParams(route) {
         parsingRoute = parsingRoute.slice(1);
     }
 
-    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash('r'))) {
+    if (!parsingRoute.startsWith(Url.addTrailingForwardSlash(ROUTES.REPORT))) {
         return {reportID: '', isSubReportPageRoute: false};
     }
 
@@ -3800,9 +3798,9 @@ function getAddWorkspaceRoomOrChatReportErrors(report) {
  * @param {Object} report
  * @returns {Boolean}
  */
-function shouldDisableWriteActions(report) {
+function canUserPerformWriteAction(report) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
-    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
+    return !isArchivedRoom(report) && _.isEmpty(reportErrors) && isAllowedToComment(report) && !isAnonymousUser;
 }
 
 /**
@@ -3856,7 +3854,7 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
  */
 function canCreateRequest(report, betas, iouType) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
-    if (shouldDisableWriteActions(report)) {
+    if (!canUserPerformWriteAction(report)) {
         return false;
     }
     return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
@@ -4128,6 +4126,7 @@ export {
     canEditReportAction,
     canFlagReportAction,
     shouldShowFlagComment,
+    isActionCreator,
     canDeleteReportAction,
     canLeaveRoom,
     sortReportsByLastRead,
@@ -4151,7 +4150,7 @@ export {
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
-    isWaitingForIOUActionFromCurrentUser,
+    requiresAttentionFromCurrentUser,
     isIOUOwnedByCurrentUser,
     getMoneyRequestReimbursableTotal,
     getMoneyRequestSpendBreakdown,
@@ -4245,7 +4244,7 @@ export {
     getRootParentReport,
     getReportPreviewMessage,
     getModifiedExpenseMessage,
-    shouldDisableWriteActions,
+    canUserPerformWriteAction,
     getOriginalReportID,
     canAccessReport,
     getAddWorkspaceRoomOrChatReportErrors,
@@ -4271,7 +4270,7 @@ export {
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
-    isWaitingForTaskCompleteFromAssignee,
+    isWaitingForAssigneeToCompleteTask,
     isGroupChat,
     isReportDraft,
     shouldUseFullTitleToDisplay,

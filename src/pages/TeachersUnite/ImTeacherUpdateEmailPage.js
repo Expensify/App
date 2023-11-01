@@ -1,15 +1,15 @@
 import React from 'react';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
-import FixedFooter from '../../components/FixedFooter';
-import styles from '../../styles/styles';
-import Button from '../../components/Button';
-import * as Illustrations from '../../components/Icon/Illustrations';
-import variables from '../../styles/variables';
-import useLocalize from '../../hooks/useLocalize';
-import BlockingView from '../../components/BlockingViews/BlockingView';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {};
 
