@@ -635,7 +635,9 @@ function setParentReportID(parentReportID) {
  */
 function clearOutTaskInfoAndNavigate(reportID) {
     clearOutTaskInfo();
-    setParentReportID(reportID);
+    if (reportID && reportID !== '0') {
+        setParentReportID(reportID);
+    }
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
 
