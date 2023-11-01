@@ -18,7 +18,7 @@ These tags must be named exactly as written above, ensuring there are no extra s
 Go to **Settings > Workspaces > Group > _Workspace Name_ > Categories** and within the categories you wish to track FBT against, select **Edit Category** and add the code “TAG”:
 
 ## Enable Workflow
-Once you’ve added the two tags (Internal Attendees and External Attendees) and added the payroll code “TAG” to FBT categories, you can now contact Expensify at concierge@expensify.com and send through a request to enable the FBT workflow. Please send through the following request: 
+Once you’ve added both tags (Internal Attendees and External Attendees) and added the payroll code “TAG” to FBT categories, you can send a request to Expensify at concierge@expensify.com to enable the FBT workflow. Please send the following request:
 >“Can you please add the custom workflow/DEW named FRINGE_BENEFIT_TAX to my company workspace named <insert your company workspace name> ?”
 Once the FBT workflow is enabled, it will require anything with the code “TAG” to include the two attendee count tags in order to be submitted.
 
