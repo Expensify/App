@@ -8,7 +8,7 @@ If you’re looking to track and report expense data to calculate Fringe Benefit
 # How to set up Fringe Benefit Tax
 
 ## Add Attendee Count Tags 
-First, you’ll need to add these exact two tags to your Workspace: 
+First, you’ll need to add these two tags to your Workspace: 
 1) Number of Internal Attendees
 2) Number of External Attendees 
 
