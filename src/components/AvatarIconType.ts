@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 
 type AvatarFunction = () => void;
 
-type Avatar = {
+type AvatarIcon = {
     source?: string | AvatarFunction;
     type?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
     name?: string;
@@ -11,4 +11,4 @@ type Avatar = {
     fallbackIcon?: string | AvatarFunction;
 };
 
-export default Avatar;
+export default AvatarIcon;

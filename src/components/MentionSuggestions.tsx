@@ -7,7 +7,7 @@ import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Avatar from './Avatar';
-import AvatarType from './AvatarType';
+import AvatarIcon from './AvatarIconType';
 import Text from './Text';
 
 type Mention = {
@@ -18,7 +18,7 @@ type Mention = {
     alternateText: string;
 
     /** Array of icons of the user. We use the first element of this array */
-    icons: AvatarType[];
+    icons: AvatarIcon[];
 };
 
 type MentionSuggestionsProps = {
