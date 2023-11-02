@@ -3,9 +3,6 @@ import React, {useMemo} from 'react';
 import useTheme from './themes/useTheme';
 import ThemeStylesContext from './ThemeStylesContext';
 import {stylesGenerator} from './styles';
-import {stylesGenerator as stylesUntyped} from './styles';
-
-const styles = stylesUntyped;
 
 type ThemeStylesProviderProps = {
     children: React.ReactNode;

@@ -1,6 +1,6 @@
-import {ThemeColors} from './types';
 import colors from '@styles/colors';
 import SCREENS from '@src/SCREENS';
+import {ThemeColors} from './types';
 
 const darkTheme = {
     // Figma keys
