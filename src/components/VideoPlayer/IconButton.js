@@ -3,6 +3,8 @@ import React from 'react';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import colors from '@styles/colors';
+import styles from '@styles/styles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -33,11 +35,12 @@ function IconButton({src, fill, onPress, style, accessibilityLabel}) {
                     accessibilityLabel={accessibilityLabel}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     onPress={onPress}
-                    style={[{padding: 5, borderRadius: 4, backgroundColor: isHovered ? '#085239' : 'transparent'}, style]}
+                    style={[styles.videoIconButton, {backgroundColor: isHovered ? colors.green700 : colors.transparent}, style]}
                 >
                     <Icon
                         src={src}
                         fill={fill}
+                        small
                     />
                 </PressableWithoutFeedback>
             )}

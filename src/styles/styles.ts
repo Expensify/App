@@ -4027,6 +4027,86 @@ const styles = (theme: ThemeDefault) =>
         singleOptionSelectorCircle: {
             borderColor: theme.icon,
         },
+
+        videoPlayerControlsContainer: {
+            position: 'absolute',
+            bottom: 8,
+            left: 8,
+            right: 8,
+            backgroundColor: '#061B09CC',
+            height: 48,
+            borderRadius: 8,
+            flexDirection: 'column',
+            overflow: 'visible',
+            padding: 4,
+            paddingBottom: 8,
+        },
+
+        videoPlayerControlsButtonContainer: {
+            height: 24,
+            marginBottom: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+
+        progressBarOutline: {
+            width: '100%',
+            height: 5,
+            backgroundColor: 'gray',
+            borderRadius: 10,
+        },
+
+        progressBarFill: {
+            height: '100%',
+            backgroundColor: 'white',
+            borderRadius: 10,
+        },
+
+        videoPlayerControlsRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
+        videoPlayerText: {
+            textAlign: 'center',
+            fontSize: 13,
+            fontWeight: '700',
+            lineHeight: 16,
+        },
+
+        volumeSliderContainer: {
+            position: 'absolute',
+            left: 0,
+            bottom: 0,
+            width: '100%',
+            height: 100,
+            alignItems: 'center',
+            borderRadius: 4,
+            backgroundColor: '#085239',
+        },
+
+        volumeSliderOverlay: {
+            width: 4,
+            height: 60,
+            backgroundColor: 'gray',
+            borderRadius: 10,
+            marginTop: 10,
+            alignItems: 'end',
+            justifyContent: 'flex-end',
+        },
+
+        volumeSliderFill: {
+            width: 4,
+            height: 20,
+            backgroundColor: 'white',
+            borderRadius: 10,
+        },
+
+        videoIconButton: {
+            padding: 4,
+            borderRadius: 4,
+        },
     } satisfies Styles);
 
 // For now we need to export the styles function that takes the theme as an argument

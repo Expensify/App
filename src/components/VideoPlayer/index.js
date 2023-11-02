@@ -122,7 +122,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                             return;
                         }
                         videoPlayerElementParentRef.current = el;
-                        if (el.childNodes[0]) {
+                        if (el.childNodes && el.childNodes[0]) {
                             videoPlayerElementRef.current = el.childNodes[0];
                         }
                     }}

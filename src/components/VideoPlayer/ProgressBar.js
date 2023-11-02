@@ -3,6 +3,7 @@ import React, {useEffect, useState} from 'react';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import styles from '@styles/styles';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
@@ -47,10 +48,10 @@ function ProgressBar({togglePlayCurrentVideo, duration, position, seekPosition})
     return (
         <GestureDetector gesture={pan}>
             <Animated.View
-                style={{width: '100%', height: 5, backgroundColor: 'gray', borderRadius: 10, marginVertical: 10}}
+                style={[styles.progressBarOutline]}
                 onLayout={onSliderLayout}
             >
-                <Animated.View style={[{height: '100%', backgroundColor: 'white', borderRadius: 10}, progressBarStyle]} />
+                <Animated.View style={[styles.progressBarFill, progressBarStyle]} />
             </Animated.View>
         </GestureDetector>
     );

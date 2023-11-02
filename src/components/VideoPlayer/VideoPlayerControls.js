@@ -1,11 +1,13 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
-import {Text, View} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import VolumeButton from '@components/VolumeButton';
+import styles from '@styles/styles';
 import IconButton from './IconButton';
 import ProgressBar from './ProgressBar';
 import convertMillisecondsToTime from './utils';
@@ -28,6 +30,7 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
     const {togglePlay, isPlaying, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {showPopover} = useVideoPopoverMenuContext();
     const [durationFormatted, setDurationFormatted] = useState('0:00');
+    const [shouldShowTime, setShouldShowTime] = useState(false);
 
     const isCurrentlySet = currentlyPlayingURL === url;
     const isCurrentlyPlaying = isCurrentlySet && isPlaying;
@@ -39,6 +42,10 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
             togglePlay();
         }
     }, [isCurrentlySet, togglePlay, updateCurrentlyPlayingURL, url]);
+
+    const onLayout = (e) => {
+        setShouldShowTime(e.nativeEvent.layout.width > 250);
+    };
 
     const enterFullScreenMode = useCallback(() => {
         updateCurrentlyPlayingURL(url);
@@ -58,51 +65,42 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef}) {
 
     return (
         <Animated.View
-            style={{
-                position: 'absolute',
-                bottom: 10,
-                left: 10,
-                right: 10,
-                backgroundColor: '#061B09CC',
-                height: 60,
-                borderRadius: 10,
-                flexDirection: 'column',
-                overflow: 'visible',
-                padding: 10,
-            }}
-            entering={FadeIn.duration(3000)}
-            exiting={FadeOut.duration(3000)}
+            style={[styles.videoPlayerControlsContainer]}
+            onLayout={onLayout}
         >
-            <View style={{flex: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
-                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <View style={[styles.videoPlayerControlsButtonContainer]}>
+                <View style={[styles.videoPlayerControlsRow]}>
                     <IconButton
                         src={isCurrentlyPlaying ? Expensicons.Pause : Expensicons.Play}
                         fill="white"
                         accessibilityLabel="play/pause"
                         onPress={togglePlayCurrentVideo}
+                        style={{marginRight: 8}}
                     />
-                    <Text style={{color: 'white', width: 35, textAlign: 'center'}}>{convertMillisecondsToTime(position)}</Text>
-                    <Text style={{color: 'white'}}>/</Text>
-                    <Text style={{color: 'white', width: 35, textAlign: 'center'}}>{durationFormatted}</Text>
+                    {shouldShowTime && (
+                        <View style={[styles.videoPlayerControlsRow]}>
+                            <Text style={[styles.videoPlayerText, {width: 30}]}>{convertMillisecondsToTime(position)}</Text>
+                            <Text style={[styles.videoPlayerText]}>/</Text>
+                            <Text style={[styles.videoPlayerText, {width: 30}]}>{durationFormatted}</Text>
+                        </View>
+                    )}
                 </View>
-                <View style={{flexDirection: 'row'}}>
-                    <VolumeButton style={{marginRight: 10}} />
+                <View style={[styles.videoPlayerControlsRow]}>
+                    <VolumeButton style={{marginRight: 12}} />
                     <IconButton
                         src={Expensicons.Fullscreen}
-                        fill="white"
                         accessibilityLabel="fullsreen"
                         onPress={enterFullScreenMode}
-                        style={{marginRight: 10}}
+                        style={{marginRight: 12}}
                     />
                     <IconButton
                         src={Expensicons.ThreeDots}
-                        fill="white"
                         accessibilityLabel="More options"
                         onPress={(e) => showPopover(e.nativeEvent.pageY - 30, e.nativeEvent.pageX)}
                     />
                 </View>
             </View>
-            <View style={{flex: 2, flexDirection: 'row'}}>
+            <View style={[styles.videoPlayerControlsRow, {marginHorizontal: 4}]}>
                 <ProgressBar
                     duration={duration}
                     position={position}

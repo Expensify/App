@@ -7,6 +7,7 @@ import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
+import styles from '@styles/styles';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
@@ -44,15 +45,15 @@ function ProgressBar({style}) {
     return (
         <Hoverable>
             {(isHovered) => (
-                <Animated.View style={[{padding: 5, position: 'relative'}, style]}>
+                <Animated.View style={[styles.videoIconButton, style]}>
                     {isHovered && (
-                        <View style={{position: 'absolute', left: 0, bottom: 0, width: '100%', height: 100, alignItems: 'center', borderRadius: 4, backgroundColor: '#085239'}}>
+                        <View style={[styles.volumeSliderContainer]}>
                             <GestureDetector gesture={pan}>
                                 <Animated.View
-                                    style={{width: 5, height: 60, backgroundColor: 'gray', borderRadius: 10, marginTop: 10, alignItems: 'end', justifyContent: 'flex-end'}}
+                                    style={[styles.volumeSliderOverlay]}
                                     onLayout={onSliderLayout}
                                 >
-                                    <Animated.View style={[{width: 5, height: 20, backgroundColor: 'white', borderRadius: 10}, progressBarStyle]} />
+                                    <Animated.View style={[styles.volumeSliderFill, progressBarStyle]} />
                                 </Animated.View>
                             </GestureDetector>
                         </View>
@@ -61,6 +62,7 @@ function ProgressBar({style}) {
                     <Icon
                         src={getVolumeIcon()}
                         fill="white"
+                        small
                     />
                 </Animated.View>
             )}

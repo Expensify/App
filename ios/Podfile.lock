@@ -766,7 +766,7 @@ PODS:
     - Firebase/Performance (= 8.8.0)
     - React-Core
     - RNFBApp
-  - RNFlashList (1.6.1):
+  - RNFlashList (1.6.2):
     - React-Core
   - RNFS (2.20.0):
     - React-Core
@@ -1307,7 +1307,7 @@ SPEC CHECKSUMS:
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
-  RNFlashList: 236646d48f224a034f35baa0242e1b77db063b1e
+  RNFlashList: 1983f915ae34e9253e413f31387959590d102f5e
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: dec4645026e7401a0899f2846d864403478ff6a5
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0

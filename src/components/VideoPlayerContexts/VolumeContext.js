@@ -1,5 +1,5 @@
-import React, {useMemo, useCallback} from 'react';
 import PropTypes from 'prop-types';
+import React, {useCallback, useMemo} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 import {usePlaybackContext} from './PlaybackContext';
 
