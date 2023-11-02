@@ -78,7 +78,7 @@ type ReportActionBase = {
     isLoading?: boolean;
 
     /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
-    whisperedToAccountIDs?: Array<number | undefined>;
+    whisperedToAccountIDs?: number[];
 
     avatar?: string | React.FC<SvgProps>;
     automatic?: boolean;
