@@ -214,7 +214,7 @@ function hasActiveFreePolicy(policies) {
 }
 
 /**
- * Build optimistic data to the announce room
+ * Build optimistic data for adding users from announce room
  * @param {String} policyID
  * @param {Array} accountIDs
  * @returns {Object}
@@ -245,7 +245,7 @@ function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
 }
 
 /**
- * Build optimistic data for removing users to the announce room
+ * Build optimistic data for removing users from the announce room
  * @param {String} policyID
  * @param {Array} accountIDs
  * @returns {Object}
