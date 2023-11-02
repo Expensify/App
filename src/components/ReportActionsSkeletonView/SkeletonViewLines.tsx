@@ -6,6 +6,7 @@ import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 
 type SkeletonViewLinesProps = {
+    /** Number of rows to show in Skeleton UI block */
     numberOfRows: 1 | 2 | 3;
     shouldAnimate?: boolean;
 };

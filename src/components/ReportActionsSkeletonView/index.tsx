@@ -4,7 +4,10 @@ import CONST from '@src/CONST';
 import SkeletonViewLines from './SkeletonViewLines';
 
 type ReportActionsSkeletonViewProps = {
+    /** Whether to animate the skeleton view */
     shouldAnimate?: boolean;
+
+    /** Number of possible visible content items */
     possibleVisibleContentItems?: number;
 };
 
