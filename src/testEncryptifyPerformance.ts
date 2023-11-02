@@ -1,3 +1,6 @@
+/* eslint-disable no-console */
+
+/* eslint-disable @lwc/lwc/no-async-await */
 import Encryptify from 'react-native-encryptify';
 import performance, {PerformanceMeasure} from 'react-native-performance';
 
@@ -7,17 +10,17 @@ const ENCRYPTION_DATA =
 const ENCRYPTION_IV = 'Lorem ipsum dolor sit amet';
 const PERFORMANCE_METRICS_DECIMAL_PLACES = 4;
 
-const testEncryptionFlow = (shouldLog = true): string => {
+const testEncryptionFlow = async (shouldLog = true): Promise<string> => {
     performance.mark('KEMGenKeys');
-    const kemKeys = Encryptify.KEMGenKeys();
+    const kemKeys = await Encryptify.KEMGenKeys();
     performance.measure('KEMGenKeys', 'KEMGenKeys');
 
     performance.mark('KEMEncrypt');
-    const {sharedSecret, cipherText} = Encryptify.KEMEncrypt(kemKeys.public);
+    const {sharedSecret, cipherText} = await Encryptify.KEMEncrypt(kemKeys.public);
     performance.measure('KEMEncrypt', 'KEMEncrypt');
 
     performance.mark('AESEncrypt');
-    const encryptedData = Encryptify.AESEncrypt(ENCRYPTION_IV, sharedSecret, ENCRYPTION_DATA);
+    const encryptedData = await Encryptify.AESEncrypt(ENCRYPTION_IV, sharedSecret, ENCRYPTION_DATA);
     performance.measure('AESEncrypt', 'AESEncrypt');
 
     // After encryption on the sender side, the message is sent to the receiver:
@@ -25,11 +28,11 @@ const testEncryptionFlow = (shouldLog = true): string => {
     // The receiver can then decrypt the cipherText with his private keys
 
     performance.mark('KEMDecrypt');
-    const decryptedSharedSecret = Encryptify.KEMDecrypt(kemKeys.private, cipherText);
+    const decryptedSharedSecret = await Encryptify.KEMDecrypt(kemKeys.private, cipherText);
     performance.measure('KEMDecrypt', 'KEMDecrypt');
 
     performance.mark('AESDecrypt');
-    const decryptedData = Encryptify.AESDecrypt(ENCRYPTION_IV, decryptedSharedSecret, encryptedData);
+    const decryptedData = await Encryptify.AESDecrypt(ENCRYPTION_IV, decryptedSharedSecret, encryptedData);
     performance.measure('AESDecrypt', 'AESDecrypt');
 
     if (shouldLog) {
@@ -62,18 +65,20 @@ Performance:
     return sharedSecret;
 };
 
-const testAesUnderLoad = (sharedSecret: string, iterations: number, shouldLog = true) => {
+const testAesUnderLoad = async (sharedSecret: string, iterations: number, shouldLog = true) => {
     const shiftString = (str: string, numOfChars: number) => str.substring(numOfChars) + str.substring(0, numOfChars);
 
     for (let i = 0; i < iterations; i++) {
         const inputData = shiftString(ENCRYPTION_DATA, i);
 
         performance.mark('AESEncrypt under load');
-        const encryptedDataIter = Encryptify.AESEncrypt(ENCRYPTION_IV, sharedSecret, inputData);
+        // eslint-disable-next-line no-await-in-loop
+        const encryptedDataIter = await Encryptify.AESEncrypt(ENCRYPTION_IV, sharedSecret, inputData);
         performance.measure(`Encryption Iteration ${i}`, 'AESEncrypt under load');
 
         performance.mark('AESDecrypt under load');
-        Encryptify.AESDecrypt(ENCRYPTION_IV, sharedSecret, encryptedDataIter);
+        // eslint-disable-next-line no-await-in-loop
+        await Encryptify.AESDecrypt(ENCRYPTION_IV, sharedSecret, encryptedDataIter);
         performance.measure(`Decryption teration ${i}`, 'AESDecrypt under load');
     }
 

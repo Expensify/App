@@ -1,13 +1,11 @@
 import {AppRegistry} from 'react-native';
-
 // This is a polyfill for InternetExplorer to support the modern KeyboardEvent.key and KeyboardEvent.code instead of KeyboardEvent.keyCode
 import 'shim-keyboard-event-key';
-
-import checkForUpdates from '../../libs/checkForUpdates';
-import Config from '../../CONFIG';
-import DateUtils from '../../libs/DateUtils';
+import checkForUpdates from '@libs/checkForUpdates';
+import DateUtils from '@libs/DateUtils';
+import Visibility from '@libs/Visibility';
+import Config from '@src/CONFIG';
 import pkg from '../../../package.json';
-import Visibility from '../../libs/Visibility';
 
 /**
  * Download the latest app version from the server, and if it is different than the current one,

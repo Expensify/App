@@ -1,17 +1,17 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import {render} from '@testing-library/react-native';
+import PropTypes from 'prop-types';
+import React from 'react';
 import ComposeProviders from '../../src/components/ComposeProviders';
-import OnyxProvider from '../../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
-import SidebarLinksData from '../../src/pages/home/sidebar/SidebarLinksData';
-import ReportActionItemSingle from '../../src/pages/home/report/ReportActionItemSingle';
-import {EnvironmentProvider} from '../../src/components/withEnvironment';
+import OnyxProvider from '../../src/components/OnyxProvider';
 import {CurrentReportIDContextProvider} from '../../src/components/withCurrentReportID';
+import {EnvironmentProvider} from '../../src/components/withEnvironment';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
-import reportPropTypes from '../../src/pages/reportPropTypes';
+import ReportActionItemSingle from '../../src/pages/home/report/ReportActionItemSingle';
 import reportActionPropTypes from '../../src/pages/home/report/reportActionPropTypes';
+import SidebarLinksData from '../../src/pages/home/sidebar/SidebarLinksData';
+import reportPropTypes from '../../src/pages/reportPropTypes';
 
 // we have to mock `useIsFocused` because it's used in the SidebarLinks component
 const mockedNavigate = jest.fn();
@@ -130,6 +130,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
         actor,
         actorAccountID: 1,
         reportActionID: `${++lastFakeReportActionID}`,
+        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         shouldShow: true,
         timestamp,
         reportActionTimestamp: timestamp,
@@ -142,6 +143,55 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
         ],
         whisperedToAccountIDs: [],
         automatic: false,
+        message: [
+            {
+                type: 'COMMENT',
+                html: 'hey',
+                text: 'hey',
+                isEdited: false,
+                whisperedTo: [],
+                isDeletedParentAction: false,
+                reactions: [
+                    {
+                        emoji: 'heart',
+                        users: [
+                            {
+                                accountID: 1,
+                                skinTone: -1,
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        originalMessage: {
+            childReportID: `${++lastFakeReportActionID}`,
+            emojiReactions: {
+                heart: {
+                    createdAt: '2023-08-28 15:27:52',
+                    users: {
+                        1: {
+                            skinTones: {
+                                '-1': '2023-08-28 15:27:52',
+                            },
+                        },
+                    },
+                },
+            },
+            html: 'hey',
+            lastModified: '2023-08-28 15:28:12.432',
+            reactions: [
+                {
+                    emoji: 'heart',
+                    users: [
+                        {
+                            accountID: 1,
+                            skinTone: -1,
+                        },
+                    ],
+                },
+            ],
+        },
     };
 }
 

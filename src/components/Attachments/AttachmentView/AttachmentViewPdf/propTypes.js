@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import * as AttachmentsPropTypes from '../../propTypes';
-import stylePropTypes from '../../../../styles/stylePropTypes';
+import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
+import stylePropTypes from '@styles/stylePropTypes';
 
 const attachmentViewPdfPropTypes = {
     /** File object maybe be instance of File or Object */
