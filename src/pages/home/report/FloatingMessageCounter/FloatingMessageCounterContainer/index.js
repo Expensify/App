@@ -1,6 +1,6 @@
 import React from 'react';
 import {Animated} from 'react-native';
-import styles from '../../../../../styles/styles';
+import styles from '@styles/styles';
 import floatingMessageCounterContainerPropTypes from './floatingMessageCounterContainerPropTypes';
 
 function FloatingMessageCounterContainer(props) {

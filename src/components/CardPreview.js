@@ -1,13 +1,13 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import styles from '../styles/styles';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Text from './Text';
-import usePrivatePersonalDetails from '../hooks/usePrivatePersonalDetails';
-import ONYXKEYS from '../ONYXKEYS';
-import ExpensifyCardImage from '../../assets/images/expensify-card.svg';
-import variables from '../styles/variables';
 
 const propTypes = {
     /** User's private personal details */

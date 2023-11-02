@@ -1,12 +1,12 @@
 /* eslint-disable es/no-optional-chaining */
+import PropTypes from 'prop-types';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
-import PropTypes from 'prop-types';
-import Image from '../../../Image';
+import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
+import Image from '@components/Image';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageTransformer from './ImageTransformer';
 import ImageWrapper from './ImageWrapper';
-import * as AttachmentsPropTypes from '../../propTypes';
 
 function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
     const imageScaleX = canvasWidth / imageWidth;
@@ -21,7 +21,7 @@ const pagePropTypes = {
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
-    /** URL to full-sized attachment or SVG function */
+    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
     source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
 
     isActive: PropTypes.bool.isRequired,

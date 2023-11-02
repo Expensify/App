@@ -1,28 +1,28 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import CONST from '../CONST';
-import reportPropTypes from '../pages/reportPropTypes';
-import participantPropTypes from './participantPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import SubscriptAvatar from './SubscriptAvatar';
-import * as ReportUtils from '../libs/ReportUtils';
-import MultipleAvatars from './MultipleAvatars';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import DisplayNames from './DisplayNames';
-import compose from '../libs/compose';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import Text from './Text';
-import * as StyleUtils from '../styles/StyleUtils';
+import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
+import participantPropTypes from './participantPropTypes';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import SubscriptAvatar from './SubscriptAvatar';
+import Text from './Text';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -43,6 +43,8 @@ const propTypes = {
     /** Whether if it's an unauthenticated user */
     isAnonymous: PropTypes.bool,
 
+    shouldEnableDetailPageNavigation: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -53,9 +55,15 @@ const defaultProps = {
     report: {},
     isAnonymous: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
+    shouldEnableDetailPageNavigation: false,
 };
 
-const showActorDetails = (report) => {
+const showActorDetails = (report, shouldEnableDetailPageNavigation = false) => {
+    // We should navigate to the details page if the report is a IOU/expense report
+    if (shouldEnableDetailPageNavigation) {
+        return ReportUtils.navigateToDetailsPage(report);
+    }
+
     if (ReportUtils.isExpenseReport(report)) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(report.ownerAccountID));
         return;
@@ -93,12 +101,12 @@ function AvatarWithDisplayName(props) {
     const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : props.size;
     const avatarBorderColor = props.isAnonymous ? themeColors.highlightBG : themeColors.componentBG;
 
-    return (
+    const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <PressableWithoutFeedback
-                        onPress={() => showActorDetails(props.report)}
+                        onPress={() => showActorDetails(props.report, props.shouldEnableDetailPageNavigation)}
                         accessibilityLabel={title}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
@@ -144,6 +152,21 @@ function AvatarWithDisplayName(props) {
                 </View>
             )}
         </View>
+    );
+
+    if (!props.shouldEnableDetailPageNavigation) {
+        return headerView;
+    }
+
+    return (
+        <PressableWithoutFeedback
+            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+            accessibilityLabel={title}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+        >
+            {headerView}
+        </PressableWithoutFeedback>
     );
 }
 AvatarWithDisplayName.propTypes = propTypes;

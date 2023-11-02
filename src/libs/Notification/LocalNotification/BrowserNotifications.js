@@ -1,9 +1,9 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
 import _ from 'underscore';
+import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as AppUpdate from '@userActions/AppUpdate';
 import focusApp from './focusApp';
-import * as AppUpdate from '../../actions/AppUpdate';
-import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
-import * as ReportUtils from '../../ReportUtils';
 
 const DEFAULT_DELAY = 4000;
 
@@ -111,7 +111,7 @@ export default {
         const plainTextMessage = (_.find(message, (f) => f.type === 'COMMENT') || {}).text;
 
         if (isChatRoom) {
-            const roomName = _.get(report, 'displayName', '');
+            const roomName = ReportUtils.getReportName(report);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {

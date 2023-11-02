@@ -1,29 +1,29 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import SectionList from '../SectionList';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import TextInput from '../TextInput';
-import CONST from '../../CONST';
-import variables from '../../styles/variables';
-import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
-import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
-import SafeAreaConsumer from '../SafeAreaConsumer';
-import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
-import Checkbox from '../Checkbox';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import FixedFooter from '../FixedFooter';
-import Button from '../Button';
-import useLocalize from '../../hooks/useLocalize';
-import Log from '../../libs/Log';
-import OptionsListSkeletonView from '../OptionsListSkeletonView';
-import useActiveElement from '../../hooks/useActiveElement';
+import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
+import Button from '@components/Button';
+import Checkbox from '@components/Checkbox';
+import FixedFooter from '@components/FixedFooter';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import SectionList from '@components/SectionList';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
+import useActiveElement from '@hooks/useActiveElement';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useLocalize from '@hooks/useLocalize';
+import Log from '@libs/Log';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import themeColors from '../../styles/themes/default';
-import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
+import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -48,15 +48,17 @@ function BaseSelectionList({
     headerMessage = '',
     confirmButtonText = '',
     onConfirm,
+    headerContent,
     footerContent,
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
     showConfirmButton = false,
-    shouldFocusOnSelectRow = false,
+    shouldPreventDefaultFocusOnSelectRow = false,
     isKeyboardShown = false,
     inputRef = null,
     disableKeyboardShortcuts = false,
     children,
+    shouldStopPropagation = false,
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -152,31 +154,33 @@ function BaseSelectionList({
      * @param {Number} index - the index of the item to scroll to
      * @param {Boolean} animated - whether to animate the scroll
      */
-    const scrollToIndex = useCallback((index, animated = true) => {
-        const item = flattenedSections.allOptions[index];
+    const scrollToIndex = useCallback(
+        (index, animated = true) => {
+            const item = flattenedSections.allOptions[index];
 
-        if (!listRef.current || !item) {
-            return;
-        }
-
-        const itemIndex = item.index;
-        const sectionIndex = item.sectionIndex;
-
-        // Note: react-native's SectionList automatically strips out any empty sections.
-        // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
-        // Otherwise, it will cause an index-out-of-bounds error and crash the app.
-        let adjustedSectionIndex = sectionIndex;
-        for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
-                adjustedSectionIndex--;
+            if (!listRef.current || !item) {
+                return;
             }
-        }
 
-        listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
+            const itemIndex = item.index;
+            const sectionIndex = item.sectionIndex;
 
-        // If we don't disable dependencies here, we would need to make sure that the `sections` prop is stable in every usage of this component.
+            // Note: react-native's SectionList automatically strips out any empty sections.
+            // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
+            // Otherwise, it will cause an index-out-of-bounds error and crash the app.
+            let adjustedSectionIndex = sectionIndex;
+            for (let i = 0; i < sectionIndex; i++) {
+                if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
+                    adjustedSectionIndex--;
+                }
+            }
+
+            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
+        },
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        [flattenedSections.allOptions],
+    );
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
@@ -211,14 +215,14 @@ function BaseSelectionList({
 
         onSelectRow(item);
 
-        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };
 
     const selectAllRow = () => {
         onSelectAll();
-        if (shouldShowTextInput && shouldFocusOnSelectRow && textInputRef.current) {
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };
@@ -299,6 +303,7 @@ function BaseSelectionList({
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
                 onDismissError={onDismissError}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             />
         );
     };
@@ -334,10 +339,24 @@ function BaseSelectionList({
         }, [shouldShowTextInput]),
     );
 
+    useEffect(() => {
+        // do not change focus on the first render, as it should focus on the selected item
+        if (firstLayoutRef.current) {
+            return;
+        }
+
+        // set the focus on the first item when the sections list is changed
+        if (sections.length > 0) {
+            updateAndScrollToFocusedIndex(0);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sections]);
+
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+        shouldStopPropagation,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
     });
 
@@ -379,6 +398,7 @@ function BaseSelectionList({
                                     selectTextOnFocus
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
+                                    blurOnSubmit={Boolean(flattenedSections.allOptions.length)}
                                 />
                             </View>
                         )}
@@ -387,6 +407,7 @@ function BaseSelectionList({
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}
+                        {Boolean(headerContent) && headerContent}
                         {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
                             <OptionsListSkeletonView shouldAnimate />
                         ) : (
@@ -400,6 +421,7 @@ function BaseSelectionList({
                                         accessibilityState={{checked: flattenedSections.allSelected}}
                                         disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                                     >
                                         <Checkbox
                                             accessibilityLabel={translate('workspace.people.selectAll')}
@@ -423,7 +445,7 @@ function BaseSelectionList({
                                     onScrollBeginDrag={onScrollBeginDrag}
                                     keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
-                                    indicatorStyle={themeColors.selectionListIndicatorColor}
+                                    indicatorStyle={themeColors.white}
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={showScrollIndicator}
                                     initialNumToRender={12}

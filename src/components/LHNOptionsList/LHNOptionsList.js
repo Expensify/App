@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {FlatList, View} from 'react-native';
 import _ from 'underscore';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import OptionRowLHNData from './OptionRowLHNData';
-import variables from '../../styles/variables';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import OptionRowLHNDataWithFocus from './OptionRowLHNDataWithFocus';
 
 const propTypes = {
     /** Wrapper style for the section list */
@@ -63,7 +63,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      * @return {Component}
      */
     const renderItem = ({item}) => (
-        <OptionRowLHNData
+        <OptionRowLHNDataWithFocus
             reportID={item}
             viewMode={optionMode}
             shouldDisableFocusOptions={shouldDisableFocusOptions}
@@ -79,6 +79,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 contentContainerStyle={contentContainerStyles}
                 showsVerticalScrollIndicator={false}
                 data={data}
+                testID="lhn-options-list"
                 keyExtractor={(item) => item}
                 stickySectionHeadersEnabled={false}
                 renderItem={renderItem}

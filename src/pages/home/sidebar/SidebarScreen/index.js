@@ -1,12 +1,12 @@
 import React, {useCallback, useRef} from 'react';
-import sidebarPropTypes from './sidebarPropTypes';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
-import FreezeWrapper from '../../../../libs/Navigation/FreezeWrapper';
-import withWindowDimensions from '../../../../components/withWindowDimensions';
 
 function SidebarScreen(props) {
     const popoverModal = useRef(null);
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     /**
      * Method to hide popover when dragover.
@@ -33,7 +33,7 @@ function SidebarScreen(props) {
     };
 
     return (
-        <FreezeWrapper keepVisible={!props.isSmallScreenWidth}>
+        <FreezeWrapper keepVisible={!isSmallScreenWidth}>
             <BaseSidebarScreen
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
@@ -48,7 +48,6 @@ function SidebarScreen(props) {
     );
 }
 
-SidebarScreen.propTypes = sidebarPropTypes;
 SidebarScreen.displayName = 'SidebarScreen';
 
-export default withWindowDimensions(SidebarScreen);
+export default SidebarScreen;
