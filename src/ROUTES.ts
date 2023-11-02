@@ -279,7 +279,7 @@ export default {
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
 
-    MONEE_REQUEST_CREATE: {
+    MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE: {
         route: 'create/:iouType/start/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}`,
     },
@@ -288,15 +288,15 @@ export default {
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, step: ValueOf<typeof CONST.IOU.REQUEST_STEPS>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/${step}/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
-    MONEE_REQUEST_CREATE_TAB_DISTANCE: {
+    MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_DISTANCE: {
         route: 'create/:iouType/start/:transactionID/:reportID/distance',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/distance`,
     },
-    MONEE_REQUEST_CREATE_TAB_MANUAL: {
+    MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_MANUAL: {
         route: 'create/:iouType/start/:transactionID/:reportID/manual',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/manual`,
     },
-    MONEE_REQUEST_CREATE_TAB_SCAN: {
+    MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_SCAN: {
         route: 'create/:iouType/start/:transactionID/:reportID/scan',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/scan`,
     },

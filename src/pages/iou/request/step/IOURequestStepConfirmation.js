@@ -126,13 +126,13 @@ function IOURequestStepConfirmation({
         // If the participants were automatically added to the transaction, then the user needs taken back to the starting step
         switch (requestType) {
             case CONST.IOU.REQUEST_TYPE.DISTANCE:
-                Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID), true);
+                Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID), true);
                 break;
             case CONST.IOU.REQUEST_TYPE.SCAN:
-                Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transactionID, reportID), true);
+                Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transactionID, reportID), true);
                 break;
             default:
-                Navigation.goBack(ROUTES.MONEE_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID), true);
+                Navigation.goBack(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID), true);
                 break;
         }
     };

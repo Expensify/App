@@ -341,25 +341,25 @@ export default {
                     },
                     MoneyRequest: {
                         screens: {
-                            Monee_Request_Create: {
-                                path: ROUTES.MONEE_REQUEST_CREATE.route,
+                            MoneyTemporaryForRefactor_Request_Create: {
+                                path: ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE.route,
                                 exact: true,
                                 screens: {
                                     distance: {
-                                        path: ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.route,
+                                        path: ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_DISTANCE.route,
                                         exact: true,
                                     },
                                     manual: {
-                                        path: ROUTES.MONEE_REQUEST_CREATE_TAB_MANUAL.route,
+                                        path: ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_MANUAL.route,
                                         exact: true,
                                     },
                                     scan: {
-                                        path: ROUTES.MONEE_REQUEST_CREATE_TAB_SCAN.route,
+                                        path: ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_SCAN.route,
                                         exact: true,
                                     },
                                 },
                             },
-                            Monee_Request_Step: {
+                            MoneyTemporaryForRefactor_Request_Step: {
                                 path: ROUTES.MONEE_REQUEST_STEP.route,
                                 exact: true,
                             },

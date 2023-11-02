@@ -65,6 +65,7 @@ function IOURequestStartPage({
     transaction,
     betas,
 }) {
+    console.log('[tim 0');
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
@@ -85,6 +86,7 @@ function IOURequestStartPage({
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
     const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, betas, iouType);
+    console.log('[tim isAllowedToCreateRequest', isAllowedToCreateRequest);
 
     const isFromGlobalCreate = _.isEmpty(report.reportID);
     const isExpenseRequest = ReportUtils.isPolicyExpenseChat(report);

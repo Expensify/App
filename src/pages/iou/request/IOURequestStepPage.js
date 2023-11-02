@@ -39,6 +39,7 @@ function IOURequestStepPage({
         params: {iouType, step},
     },
 }) {
+    console.log('[tim 1');
     const iouTypeParamIsInvalid = !_.contains(_.values(CONST.IOU.TYPE), iouType);
     const stepParamIsInvalid = !_.contains(_.values(CONST.IOU.REQUEST_STEPS), step);
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);

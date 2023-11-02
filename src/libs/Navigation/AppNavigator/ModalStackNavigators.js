@@ -39,8 +39,8 @@ function createModalStackNavigator(screens) {
 }
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator({
-    Monee_Request_Step: () => require('../../../pages/iou/request/IOURequestStepPage').default,
-    Monee_Request_Create: () => require('../../../pages/iou/request/IOURequestStartPage').default,
+    MoneyTemporaryForRefactor_Request_Step: () => require('../../../pages/iou/request/IOURequestStepPage').default,
+    MoneyTemporaryForRefactor_Request_Create: () => require('../../../pages/iou/request/IOURequestStartPage').default,
     IOU_Send_Add_Bank_Account: () => require('../../../pages/AddPersonalBankAccountPage').default,
     IOU_Send_Add_Debit_Card: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default,
     IOU_Send_Enable_Payments: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default,

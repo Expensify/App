@@ -661,7 +661,7 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE_TAB_DISTANCE.getRoute(props.iouType, props.transactionID, props.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE_TAB_DISTANCE.getRoute(props.iouType, props.transactionID, props.reportID))}
                             disabled={didConfirm || !isTypeRequest}
                             interactive={!props.isReadOnly}
                         />
