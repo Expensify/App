@@ -62,15 +62,15 @@ function SAMLSignInPage({credentials}) {
             includeSafeAreaPaddingBottom={false}
             testID={SAMLSignInPage.displayName}
         >
-        {showNavigation && (
-            <HeaderWithBackButton
-                title=""
-                onBackButtonPress={() => {
-                    Session.clearSignInData();
-                    Navigation.navigate(ROUTES.HOME);
-                }}
-            />
-        )}
+            {showNavigation && (
+                <HeaderWithBackButton
+                    title=""
+                    onBackButtonPress={() => {
+                        Session.clearSignInData();
+                        Navigation.navigate(ROUTES.HOME);
+                    }}
+                />
+            )}
             <FullPageOfflineBlockingView>
                 <WebView
                     originWhitelist={['https://*']}
