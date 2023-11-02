@@ -77,23 +77,10 @@ const createListenerState = () => {
  *
  *  It returns an instance to which you can add listeners for the test results, and test done events.
  */
-
-const doneListeners = [];
-
-function addTestDoneListener(listener) {
-    doneListeners.push(listener);
-
-    return () => {
-        const index = doneListeners.indexOf(listener);
-        if (index !== -1) {
-            doneListeners.splice(index, 1);
-        }
-    };
-}
-
 const createServerInstance = () => {
     const [testStartedListeners, addTestStartedListener] = createListenerState();
     const [testResultListeners, addTestResultListener] = createListenerState();
+    const [testDoneListeners, addTestDoneListener] = createListenerState();
 
     let activeTestConfig;
 
@@ -132,7 +119,7 @@ const createServerInstance = () => {
             }
 
             case Routes.testDone: {
-                doneListeners.forEach((listener) => {
+                testDoneListeners.forEach((listener) => {
                     listener();
                 });
                 return res.end('ok');
