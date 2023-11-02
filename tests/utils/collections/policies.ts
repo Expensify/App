@@ -1,6 +1,6 @@
 import {rand, randAvatar, randBoolean, randCurrencyCode, randEmail, randPastDate, randWord} from '@ngneat/falso';
-import CONST from '../../../src/CONST';
-import type {Policy} from '../../../src/types/onyx';
+import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 
 export default function createRandomPolicy(index: number): Policy {
     return {
