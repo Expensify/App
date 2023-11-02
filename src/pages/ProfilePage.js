@@ -188,7 +188,7 @@ function ProfilePage(props) {
                             </AttachmentModal>
                             {Boolean(displayName) && (
                                 <Text
-                                    style={[styles.textHeadline, styles.mb6, styles.pre]}
+                                    style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                                     numberOfLines={1}
                                 >
                                     {displayName}
