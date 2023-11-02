@@ -2,6 +2,7 @@ import * as Request from '@libs/Request';
 import OnyxRequest from '@src/types/onyx/Request';
 import * as NetworkStore from './NetworkStore';
 import * as SequentialQueue from './SequentialQueue';
+import CONST from '@src/CONST';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue: OnyxRequest[] = [];
@@ -46,14 +47,9 @@ function process() {
     const requestsToProcessOnNextRun: OnyxRequest[] = [];
 
     networkRequestQueue.forEach((queuedRequest) => {
-        // Check if we can make this request at all and if we can't see if we should save it for the next run or chuck it into the ether
+        // Check if we can make this request at all and if we can't see if we should save it for the next run
         if (!canMakeRequest(queuedRequest)) {
-            const shouldRetry = queuedRequest?.data?.shouldRetry;
-            if (shouldRetry) {
-                requestsToProcessOnNextRun.push(queuedRequest);
-            } else {
-                console.debug('Skipping request that should not be re-tried: ', {command: queuedRequest.command});
-            }
+            requestsToProcessOnNextRun.push(queuedRequest);
             return;
         }
 
@@ -70,7 +66,7 @@ function process() {
  * Non-cancellable requests like Log would not be cleared
  */
 function clear() {
-    networkRequestQueue = networkRequestQueue.filter((request) => !request.data?.canCancel);
+    networkRequestQueue = networkRequestQueue.filter((request) => request.command !== CONST.NETWORK.COMMAND.LOG);
 }
 
 function getAll(): OnyxRequest[] {
