@@ -135,6 +135,12 @@ const runTests = async () => {
     if (buildMode === 'full') {
         Logger.log(`Test setup - building main branch`);
 
+        if (!skipCheckout) {
+            // Switch branch
+            Logger.log(`Test setup - checkout main`);
+            await execAsync(`git checkout main`);
+        }
+
         if (!skipInstallDeps) {
             Logger.log(`Test setup - npm install`);
             await execAsync('npm i');

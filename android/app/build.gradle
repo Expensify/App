@@ -157,6 +157,7 @@ android {
             }
             // ... except for the e2e flavor, which we maybe want to build locally:
             productFlavors.e2e.signingConfig signingConfigs.debug
+            productFlavors.e2edelta.signingConfig signingConfigs.debug
         }
     }
 
