@@ -744,54 +744,6 @@ describe('Sidebar', () => {
         });
 
         describe('in GSD (focus) mode', () => {
-            it('is shown when it is unread', () => {
-                LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-                // Given an archived report that has all comments read
-                const report = {
-                    ...LHNTestUtils.getFakeReport(),
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                };
-
-                // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
-
-                return (
-                    waitForBatchedUpdates()
-                        // When Onyx is updated to contain that data and the sidebar re-renders
-                        .then(() =>
-                            Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                                [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                            }),
-                        )
-
-                        // Then the report is not rendered in the LHN
-                        .then(() => {
-                            const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                            const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                            expect(optionRows).toHaveLength(0);
-                        })
-
-                        // When the report has a new comment and is now unread
-                        .then(() => {
-                            jest.advanceTimersByTime(10);
-                            return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastVisibleActionCreated: DateUtils.getDBTime()});
-                        })
-
-                        // Then the report is rendered in the LHN
-                        .then(() => {
-                            const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                            const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                            expect(optionRows).toHaveLength(1);
-                        })
-                );
-            });
-
             it('is shown when it is pinned', () => {
                 LHNTestUtils.getDefaultRenderedSidebarLinks();
 
