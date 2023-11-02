@@ -269,6 +269,14 @@ function MoneyRequestParticipantsSelector({
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
     const isAllowedToSplit = !isDistanceRequest && iouType !== CONST.IOU.TYPE.SEND;
 
+    const handleConfirmSelection = useCallback(() => {
+        if (shouldShowSplitBillErrorMessage) {
+            return;
+        }
+
+        navigateToSplit();
+    }, [shouldShowSplitBillErrorMessage, navigateToSplit])
+
     const footerContent = (
         <View>
             {shouldShowSplitBillErrorMessage && (
@@ -281,7 +289,7 @@ function MoneyRequestParticipantsSelector({
             <Button
                 success
                 text={translate('iou.addToSplit')}
-                onPress={navigateToSplit}
+                onPress={handleConfirmSelection}
                 pressOnEnter
                 isDisabled={shouldShowSplitBillErrorMessage}
             />
@@ -304,7 +312,7 @@ function MoneyRequestParticipantsSelector({
                 headerMessage={headerMessage}
                 boldStyle
                 shouldShowConfirmButton={isAllowedToSplit}
-                onConfirmSelection={navigateToSplit}
+                onConfirmSelection={handleConfirmSelection}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
