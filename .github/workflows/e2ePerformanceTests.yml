@@ -192,7 +192,7 @@ jobs:
           test_type: APPIUM_NODE
           test_package_file: App.zip
           test_package_type: APPIUM_NODE_TEST_PACKAGE
-          test_spec_file: tests/e2e/TestSpecMain.yml
+          test_spec_file: tests/e2e/TestSpec.yml
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
           file_artifacts: Customer Artifacts.zip
