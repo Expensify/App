@@ -1,18 +1,19 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import Navigation from '@navigation/Navigation';
 import styles from '@styles/styles';
 import ROUTES from '@src/ROUTES';
-import Navigation from "@navigation/Navigation";
-import PropTypes from "prop-types";
-import withLocalize, {withLocalizePropTypes} from "@components/withLocalize";
 
 const propTypes = {
     ...withLocalizePropTypes,
 
+    /** policyID of the workspace where user is setting up bank account */
     policyID: PropTypes.string.isRequired,
 };
 
@@ -31,7 +32,6 @@ function Enable2FAPrompt({translate, policyID}) {
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
                     wrapperStyle: [styles.cardMenuItem],
-                    link: () => Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID))),
                 },
             ]}
         >

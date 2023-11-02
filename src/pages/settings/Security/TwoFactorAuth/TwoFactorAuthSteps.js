@@ -1,11 +1,11 @@
+import {useRoute} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import lodashGet from "lodash/get";
-import {useRoute} from "@react-navigation/native";
 import CodesStep from './Steps/CodesStep';
 import DisabledStep from './Steps/DisabledStep';
 import EnabledStep from './Steps/EnabledStep';
@@ -17,7 +17,6 @@ import {defaultAccount, TwoFactorAuthPropTypes} from './TwoFactorAuthPropTypes';
 function TwoFactorAuthSteps({account = defaultAccount}) {
     const route = useRoute();
     const backTo = lodashGet(route.params, 'backTo', '');
-    console.debug(`~~Monil logs backTo ${backTo}`);
 
     const [currentStep, setCurrentStep] = useState(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
 

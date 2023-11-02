@@ -44,6 +44,7 @@ const propTypes = {
         requiresTwoFactorAuth: PropTypes.bool,
     }),
 
+    /** policyID of the workspace where user is setting up bank account */
     policyID: PropTypes.string.isRequired,
 };
 
@@ -76,8 +77,6 @@ const filterInput = (amount) => {
 };
 
 function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account, policyID}) {
-    console.debug(`~~Monil policyID ${policyID}`);
-
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}

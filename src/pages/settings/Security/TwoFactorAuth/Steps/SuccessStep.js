@@ -1,21 +1,22 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import * as LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
+import Navigation from '@navigation/Navigation';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
-import Navigation from "@navigation/Navigation";
-import PropTypes from "prop-types";
 
 const propTypes = {
+    /** The route where user needs to be redirected after setting up 2FA */
     backTo: PropTypes.string,
-}
+};
 
 const defaultProps = {
     backTo: '',
-}
+};
 
 function SuccessStep({backTo}) {
     const {setStep} = useTwoFactorAuthContext();
