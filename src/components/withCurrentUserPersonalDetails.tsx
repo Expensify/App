@@ -33,7 +33,7 @@ export default function <TProps extends ComponentProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): ComponentType<Omit<Omit<TProps, keyof HOCProps> & RefAttributes<TRef>, keyof OnyxProps>> {
     function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof HOCProps>, ref: ForwardedRef<TRef>) {
-        const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+        const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
         const accountID = props.session?.accountID ?? 0;
         const accountPersonalDetails = personalDetails?.[accountID];
         const currentUserPersonalDetails: CurrentUserPersonalDetails = useMemo(
