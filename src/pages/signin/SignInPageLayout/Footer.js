@@ -67,10 +67,6 @@ const columns = ({scrollPageToTop}) => [
                 translationPath: 'footer.invoicing',
             },
             {
-                link: CONST.FOOTER.CPA_CARD_URL,
-                translationPath: 'footer.CPACard',
-            },
-            {
                 link: CONST.FOOTER.PAYROLL_URL,
                 translationPath: 'footer.payroll',
             },

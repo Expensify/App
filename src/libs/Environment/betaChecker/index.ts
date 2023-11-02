@@ -1,9 +1,9 @@
+import IsBetaBuild from './types';
+
 /**
  * There's no beta build in non native
- *
- * @returns {Promise}
  */
-function isBetaBuild() {
+function isBetaBuild(): IsBetaBuild {
     return Promise.resolve(false);
 }
 
