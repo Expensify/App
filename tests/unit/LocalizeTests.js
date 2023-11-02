@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import CONST from '../../src/CONST';
-import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Localize from '../../src/libs/Localize';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('localize', () => {
     beforeAll(() => {

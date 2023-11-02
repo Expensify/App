@@ -1,6 +1,6 @@
 import {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
-import CONST from '../../CONST';
 import RecentWaypoint from './RecentWaypoint';
 
 type Waypoint = {

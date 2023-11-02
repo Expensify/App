@@ -1,11 +1,11 @@
 import React from 'react';
-import ConfirmationPage from '../../../../../components/ConfirmationPage';
-import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
-import * as LottieAnimations from '../../../../../components/LottieAnimations';
-import CONST from '../../../../../CONST';
-import StepWrapper from '../StepWrapper/StepWrapper';
-import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
-import useLocalize from '../../../../../hooks/useLocalize';
+import ConfirmationPage from '@components/ConfirmationPage';
+import * as LottieAnimations from '@components/LottieAnimations';
+import useLocalize from '@hooks/useLocalize';
+import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
+import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
+import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import CONST from '@src/CONST';
 
 function SuccessStep() {
     const {setStep} = useTwoFactorAuthContext();
