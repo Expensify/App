@@ -1,6 +1,6 @@
 import {useContext, useMemo} from 'react';
-import Permissions from '../libs/Permissions';
-import {BetasContext} from '../components/OnyxProvider';
+import {BetasContext} from '@components/OnyxProvider';
+import Permissions from '@libs/Permissions';
 
 type PermissionKey = keyof typeof Permissions;
 type UsePermissions = Partial<Record<PermissionKey, boolean>>;

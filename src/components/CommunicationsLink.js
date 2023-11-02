@@ -1,10 +1,10 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import * as Expensicons from './Icon/Expensicons';
-import Clipboard from '../libs/Clipboard';
+import Clipboard from '@libs/Clipboard';
+import styles from '@styles/styles';
 import ContextMenuItem from './ContextMenuItem';
+import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {

@@ -1,8 +1,8 @@
 import crashlytics from '@react-native-firebase/crashlytics';
-import CONFIG from '../../CONFIG';
-import PushNotification from '../../libs/Notification/PushNotification';
-import Performance from '../../libs/Performance';
-import subscribeToReportCommentPushNotifications from '../../libs/Notification/PushNotification/subscribeToReportCommentPushNotifications';
+import PushNotification from '@libs/Notification/PushNotification';
+import subscribeToReportCommentPushNotifications from '@libs/Notification/PushNotification/subscribeToReportCommentPushNotifications';
+import Performance from '@libs/Performance';
+import CONFIG from '@src/CONFIG';
 
 function beforeAppLoad() {
     return Promise.resolve();
