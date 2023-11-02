@@ -1,10 +1,10 @@
 /*
  * The FocusTrap is only used on web and desktop
  */
-import React, {useEffect, useRef} from 'react';
 import FocusTrap from 'focus-trap-react';
-import {View} from 'react-native';
 import {PropTypes} from 'prop-types';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 const propTypes = {
     /** Children to wrap with FocusTrap */

@@ -5,6 +5,7 @@ import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import _ from 'underscore';
 import CustomDevMenu from '@components/CustomDevMenu';
+import FocusTrapView from '@components/FocusTrapView';
 import HeaderGap from '@components/HeaderGap';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
@@ -19,7 +20,6 @@ import * as Browser from '@libs/Browser';
 import styles from '@styles/styles';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
-import FocusTrapView from '../FocusTrapView';
 import {defaultProps, propTypes} from './propTypes';
 
 function ScreenWrapper({
