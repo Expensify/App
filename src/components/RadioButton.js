@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
+import themeColors from '@styles/themes/default';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -39,13 +40,13 @@ function RadioButton(props) {
             accessibilityLabel={props.accessibilityLabel}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.RADIO}
         >
-            <View style={[styles.radioButtonContainer, props.isChecked && styles.checkedContainer, props.hasError && styles.borderColorDanger, props.disabled && styles.cursorDisabled]}>
-                <Icon
+            <View style={[styles.radioButtonContainer, props.hasError && styles.borderColorDanger, props.disabled && styles.cursorDisabled]}>
+                {props.isChecked && <Icon
                     src={Expensicons.Checkmark}
-                    fill="white"
+                    fill={themeColors.checkBox}
                     height={14}
                     width={14}
-                />
+                />}
             </View>
         </PressableWithFeedback>
     );

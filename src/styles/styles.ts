@@ -2567,7 +2567,7 @@ const styles = (theme: ThemeDefault) =>
             borderRadius: 10,
             height: 20,
             width: 20,
-            borderColor: theme.icon,
+            borderColor: theme.border,
             borderWidth: 1,
             justifyContent: 'center',
             alignItems: 'center',
