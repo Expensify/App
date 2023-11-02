@@ -23,11 +23,10 @@ const killApp = require('./utils/killApp');
 const launchApp = require('./utils/launchApp');
 const createServerInstance = require('./server');
 const installApp = require('./utils/installApp');
-const math = require('./measure/math');
-const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
 const reversePort = require('./utils/androidReversePort');
 const sleep = require('./utils/sleep');
+const compare = require('./compare/compare');
 
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
@@ -272,6 +271,9 @@ const runTests = async () => {
             progressText,
         );
 
+        Logger.log('Killing delta app');
+        await killApp('android', config.DELTA_APP_PACKAGE);
+
         warmupLogs.done();
 
         // We run each test multiple time to average out the results
@@ -337,19 +339,8 @@ const runTests = async () => {
     // Calculate statistics and write them to our work file
     progressLog = Logger.progressInfo('Calculating statics and writing results');
 
-    console.log('🟢 TEST RESULSTS');
-    console.log(results);
+    compare(results.main, results.delta, `${config.OUTPUT_DIR}/output.md`);
 
-    // for (const testName of _.keys(durationsByTestName)) {
-    //     const stats = math.getStats(durationsByTestName[testName]);
-    //     await writeTestStats(
-    //         {
-    //             name: testName,
-    //             ...stats,
-    //         },
-    //         OUTPUT_FILE,
-    //     );
-    // }
     progressLog.done();
 
     await server.stop();
