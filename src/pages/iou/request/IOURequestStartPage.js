@@ -12,14 +12,12 @@ import TabSelector from '@components/TabSelector/TabSelector';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
 import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
@@ -65,7 +63,6 @@ function IOURequestStartPage({
     transaction,
     betas,
 }) {
-    console.log('[tim 0');
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
@@ -84,13 +81,12 @@ function IOURequestStartPage({
         [],
     );
 
-    // Allow the user to create the request if we are creating the request in global menu or the report can create the request
-    const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, betas, iouType);
-    console.log('[tim isAllowedToCreateRequest', isAllowedToCreateRequest);
-
     const isFromGlobalCreate = _.isEmpty(report.reportID);
     const isExpenseRequest = ReportUtils.isPolicyExpenseChat(report);
     const shouldDisplayDistanceRequest = isExpenseRequest || isFromGlobalCreate;
+
+    // Allow the user to create the request if we are creating the request in global menu or the report can create the request
+    const isAllowedToCreateRequest = isFromGlobalCreate || ReportUtils.canCreateRequest(report, betas, iouType);
 
     const navigateBack = () => {
         Navigation.dismissModal();
@@ -149,14 +145,14 @@ IOURequestStartPage.displayName = 'IOURequestStartPage';
 IOURequestStartPage.propTypes = propTypes;
 IOURequestStartPage.defaultProps = defaultProps;
 
-export default compose(
-    withReportOrNotFound(false),
-    withOnyx({
-        selectedTab: {
-            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
-        },
-        transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
-        },
-    }),
-)(IOURequestStartPage);
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
+    },
+    transaction: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID', '0')}`,
+    },
+})(IOURequestStartPage);
