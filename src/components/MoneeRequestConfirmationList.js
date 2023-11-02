@@ -590,7 +590,7 @@ function MoneyRequestConfirmationList(props) {
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
-                        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.AMOUNT, props.transactionID, props.reportID));
+                        Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.AMOUNT, props.transactionID, props.reportID));
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -609,7 +609,7 @@ function MoneyRequestConfirmationList(props) {
                         Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
                         return;
                     }
-                    Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.DESCRIPTION, props.transactionID, props.reportID));
+                    Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.DESCRIPTION, props.transactionID, props.reportID));
                 }}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
@@ -646,7 +646,7 @@ function MoneyRequestConfirmationList(props) {
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.DATE, props.transactionID, props.reportID));
+                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.DATE, props.transactionID, props.reportID));
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
@@ -678,7 +678,9 @@ function MoneyRequestConfirmationList(props) {
                                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.MERCHANT, props.transactionID, props.reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.MERCHANT, props.transactionID, props.reportID),
+                                );
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
@@ -692,7 +694,11 @@ function MoneyRequestConfirmationList(props) {
                             title={props.iouCategory}
                             description={translate('common.category')}
                             numberOfLinesTitle={2}
-                            onPress={() => Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.CATEGORY, props.transactionID, props.reportID))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.CATEGORY, props.transactionID, props.reportID),
+                                )
+                            }
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
@@ -705,7 +711,9 @@ function MoneyRequestConfirmationList(props) {
                             title={props.iouTag}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
-                            onPress={() => Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.TAG, props.transactionID, props.reportID))}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(props.iouType, CONST.IOU.REQUEST_STEPS.TAG, props.transactionID, props.reportID))
+                            }
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}

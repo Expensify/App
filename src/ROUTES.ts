@@ -283,7 +283,7 @@ export default {
         route: 'create/:iouType/start/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}`,
     },
-    MONEE_REQUEST_STEP: {
+    MONEYTEMPORARYFORREFACTOR_REQUEST_STEP: {
         route: 'create/:iouType/:step/:transactionID/:reportID/:pageIndex?',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, step: ValueOf<typeof CONST.IOU.REQUEST_STEPS>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/${step}/${transactionID}/${reportID}/${pageIndex}`, backTo),

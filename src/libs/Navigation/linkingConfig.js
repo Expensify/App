@@ -360,7 +360,7 @@ export default {
                                 },
                             },
                             MoneyTemporaryForRefactor_Request_Step: {
-                                path: ROUTES.MONEE_REQUEST_STEP.route,
+                                path: ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.route,
                                 exact: true,
                             },
                             Money_Request: {

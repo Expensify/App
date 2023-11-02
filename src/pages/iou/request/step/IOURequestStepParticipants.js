@@ -5,7 +5,7 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneeRequestParticipantsSelector';
+import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,7 +58,10 @@ function IOURequestStepParticipants({
 
     const goToNextStep = () => {
         const nextStepIOUType = numberOfParticipants.current === 1 ? iouType : CONST.IOU.TYPE.SPLIT;
-        Navigation.navigate(ROUTES.MONEE_REQUEST_STEP.getRoute(nextStepIOUType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current || reportID), true);
+        Navigation.navigate(
+            ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_STEP.getRoute(nextStepIOUType, CONST.IOU.REQUEST_STEPS.CONFIRMATION, transactionID, selectedReportID.current || reportID),
+            true,
+        );
     };
 
     const navigateBack = () => {

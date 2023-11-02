@@ -73,7 +73,7 @@ const defaultProps = {
     isSearchingForReports: false,
 };
 
-function MoneeRequestParticipantsSelector({
+function MoneyTemporaryForRefactorRequestParticipantsSelector({
     forwardedRef,
     betas,
     participants,
@@ -313,19 +313,19 @@ function MoneeRequestParticipantsSelector({
     );
 }
 
-MoneeRequestParticipantsSelector.propTypes = propTypes;
-MoneeRequestParticipantsSelector.defaultProps = defaultProps;
-MoneeRequestParticipantsSelector.displayName = 'MoneeRequestParticipantsSelector';
+MoneyTemporaryForRefactorRequestParticipantsSelector.propTypes = propTypes;
+MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps;
+MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-const MoneeRequestParticipantsSelectorWithRef = React.forwardRef((props, ref) => {
-    <MoneeRequestParticipantsSelector
+const MoneyTemporaryForRefactorRequestParticipantsSelectorWithRef = React.forwardRef((props, ref) => (
+    <MoneyTemporaryForRefactorRequestParticipantsSelector
         /* eslint-disable-next-line react/jsx-props-no-spreading */
         {...props}
         forwardedRef={ref}
-    />;
-});
+    />
+));
 
-MoneeRequestParticipantsSelectorWithRef.displayName = 'MoneeRequestParticipantsSelectorWithRef';
+MoneyTemporaryForRefactorRequestParticipantsSelectorWithRef.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelectorWithRef';
 
 export default compose(
     withLocalize,
@@ -344,4 +344,4 @@ export default compose(
             initWithStoredValues: false,
         },
     }),
-)(MoneeRequestParticipantsSelectorWithRef);
+)(MoneyTemporaryForRefactorRequestParticipantsSelectorWithRef);
