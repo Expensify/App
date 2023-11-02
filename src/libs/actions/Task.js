@@ -71,7 +71,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
 
     // Parent ReportAction indicating that a task has been created
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `task for ${title}`, parentReportID);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `task for ${title}`, parentReportID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTime();
@@ -148,7 +148,6 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
     if (assigneeChatReport) {
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,
-            assigneeEmail,
             assigneeAccountID,
             taskReportID,
             assigneeChatReportID,
@@ -439,7 +438,6 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
     const optimisticReport = {
         reportName,
         managerID: assigneeAccountID || report.managerID,
-        managerEmail: assigneeEmail || report.managerEmail,
         pendingFields: {
             ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         },
@@ -473,7 +471,7 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {assignee: report.managerEmail, assigneeAccountID: report.managerID},
+            value: {managerID: report.managerID},
         },
     ];
 
@@ -487,7 +485,6 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
 
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,
-            assigneeEmail,
             assigneeAccountID,
             report.reportID,
             assigneeChatReportID,
@@ -504,8 +501,7 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
         'EditTaskAssignee',
         {
             taskReportID: report.reportID,
-            assignee: assigneeEmail || report.managerEmail,
-            assigneeAccountID: assigneeAccountID || report.managerID,
+            assignee: assigneeEmail,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportID,
             assigneeChatReportActionID:
