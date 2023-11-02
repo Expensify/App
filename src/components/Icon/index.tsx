@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {View, ViewStyle} from 'react-native';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
@@ -40,7 +40,7 @@ type IconProps = {
     pressed?: boolean;
 
     /** Additional styles to add to the Icon */
-    additionalStyles?: ViewStyle[];
+    additionalStyles?: StyleProp<ViewStyle>;
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -61,7 +61,7 @@ class Icon extends PureComponent<IconProps> {
     render() {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
-        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, ...(this.props.additionalStyles ?? [])];
+        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, this.props.additionalStyles];
 
         if (this.props.inline) {
             return (
