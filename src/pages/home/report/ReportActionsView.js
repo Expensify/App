@@ -143,7 +143,6 @@ function ReportActionsView(props) {
                 Report.reconnect(reportID);
             }
         }
-        // update ref with current network state
         prevAuthTokenType.current = props.session.authTokenType;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.session, props.report, isReportFullyVisible]);
@@ -288,6 +287,10 @@ function arePropsEqual(oldProps, newProps) {
     }
 
     if (lodashGet(oldProps.network, 'isOffline') !== lodashGet(newProps.network, 'isOffline')) {
+        return false;
+    }
+
+    if (lodashGet(oldProps.session, 'authTokenType') !== lodashGet(newProps.session, 'authTokenType')) {
         return false;
     }
 
