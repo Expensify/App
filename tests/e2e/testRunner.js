@@ -185,7 +185,7 @@ const runTests = async () => {
     await server.start();
 
     // Create a dict in which we will store the run durations for all tests
-    const durationsByTestName = {};
+    const results = {};
 
     // Collect results while tests are being executed
     server.addTestResultListener((testResult) => {
@@ -197,7 +197,12 @@ const runTests = async () => {
         }
 
         Logger.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
-        durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
+
+        if (!results[testResult.branch]) {
+            results[testResult.branch] = {};
+        }
+
+        results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] || []).concat(testResult.duration);
     });
 
     // Run the tests
@@ -275,14 +280,11 @@ const runTests = async () => {
             progressText = `Suite '${suite.name}' [${suiteIndex + 1}/${suites.length}], iteration [${i + 1}/${config.RUNS}]\n`;
             testLog.updateText(progressText);
 
-            // Logger.log('Killing app...');
-            // await killApp('android', config.MAIN_APP_PACKAGE);
+            Logger.log('Killing delta app');
+            await killApp('android', config.DELTA_APP_PACKAGE);
 
-            // testLog.updateText(`Coolin down phone 🧊 ${config.SUITE_COOL_DOWN / 1000}s\n`);
-
-            // Adding the cool down between booting the app again, had the side-effect of actually causing a cold boot,
-            // which increased TTI/bundle load JS times significantly but also stabilized standard deviation.
-            // await sleep(config.SUITE_COOL_DOWN);
+            Logger.log('Killing main app');
+            await killApp('android', config.MAIN_APP_PACKAGE);
 
             Logger.log('Starting main app');
             await launchApp('android', config.MAIN_APP_PACKAGE);
@@ -328,9 +330,6 @@ const runTests = async () => {
                 testLog.done();
                 throw e; // Rethrow to abort execution
             }
-
-            Logger.log('Killing delta app');
-            await killApp('android', config.DELTA_APP_PACKAGE);
         }
         testLog.done();
     }
@@ -338,16 +337,19 @@ const runTests = async () => {
     // Calculate statistics and write them to our work file
     progressLog = Logger.progressInfo('Calculating statics and writing results');
 
-    for (const testName of _.keys(durationsByTestName)) {
-        const stats = math.getStats(durationsByTestName[testName]);
-        await writeTestStats(
-            {
-                name: testName,
-                ...stats,
-            },
-            OUTPUT_FILE,
-        );
-    }
+    console.log('🟢 TEST RESULSTS');
+    console.log(results);
+
+    // for (const testName of _.keys(durationsByTestName)) {
+    //     const stats = math.getStats(durationsByTestName[testName]);
+    //     await writeTestStats(
+    //         {
+    //             name: testName,
+    //             ...stats,
+    //         },
+    //         OUTPUT_FILE,
+    //     );
+    // }
     progressLog.done();
 
     await server.stop();
