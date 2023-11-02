@@ -11,7 +11,11 @@ Onyx.connect({
     callback: (reportsFromOnyx) => {
         const unreadReports = _.filter(
             reportsFromOnyx,
-            (report) => ReportUtils.isUnread(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && ReportUtils.isArchivedRoom(report),
+            (report) =>
+                ReportUtils.isUnread(report) &&
+                // Reports that are archived or have a hidden preference are technically "unread", but should not be counted by the global indicator
+                report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
+                !ReportUtils.isArchivedRoom(report),
         );
         updateUnread(_.size(unreadReports));
     },
