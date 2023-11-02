@@ -24,8 +24,8 @@ module.exports = {
     MAIN_APP_PACKAGE: 'com.expensify.chat.e2e',
     DELTA_APP_PACKAGE: 'com.expensify.chat.e2edelta',
 
-    MAIN_APP_PATH: './app-e2eRelease-main.apk',
-    DELTA_APP_PATH: './app-e2eRelease-delta.apk',
+    MAIN_APP_PATH: './app-e2eRelease.apk',
+    DELTA_APP_PATH: './app-e2edeltaRelease.apk',
 
     ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.js',
 
