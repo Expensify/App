@@ -1498,7 +1498,6 @@ function requiresAttentionFromCurrentUser(option: OnyxEntry<Report> | OptionData
     if (('isUnreadWithMention' in option && option.isUnreadWithMention) || isUnreadWithMention(option)) {
         return true;
     }
-    console.log('hej');
 
     if (isWaitingForAssigneeToCompleteTask(option, parentReportAction)) {
         return true;
