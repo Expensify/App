@@ -18,7 +18,7 @@ const propTypes = {
  * @typedef {Object} ReturnType
  * @property {React.ReactElement} componentToRender the component to be used in the body of substep scren
  * @property {boolean} isEditing a boolean for the substep to know if we moved back to it and it's being edited
- * @property {boolean} screenIndex a boolean for the substep to know if we moved back to it and it's being edited
+ * @property {number} screenIndex current screen's index
  * @property {Function} nextScreen a function to be called in order to navigate to the next substep screen
  * @property {Function} prevScreen a function to be called in order to navigate to the previous substep screen if possible
  * @property {Function} moveTo a function to be called in order to navigate to a particular substep screen
