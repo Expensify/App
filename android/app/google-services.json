@@ -139,17 +139,61 @@
         }
       },
 
-      
       {
         "client_info": {
-          "mobilesdk_app_id": "1:921154746561:android:333e293a7fef83a8027c40",
+          "mobilesdk_app_id": "1:921154746561:android:3b19fdbaedb5b586027c40",
+          "android_client_info": {
+            "package_name": "com.expensify.chat.e2e"
+          }
+        },
+        "oauth_client": [
+          {
+            "client_id": "921154746561-svjnccrcn6vet45kn9o7sibb3jemipa6.apps.googleusercontent.com",
+            "client_type": 1,
+            "android_info": {
+              "package_name": "com.expensify.chat.e2e",
+              "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+            }
+          },
+          {
+            "client_id": "921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com",
+            "client_type": 3
+          }
+        ],
+        "api_key": [
+          {
+            "current_key": "AIzaSyCVwQb9lBI06bDIwHOw10AkdJyquXoMngk"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": [
+              {
+                "client_id": "921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com",
+                "client_type": 3
+              },
+              {
+                "client_id": "921154746561-080fav7kvk6s70k6nd70mt50isubgff4.apps.googleusercontent.com",
+                "client_type": 2,
+                "ios_info": {
+                  "bundle_id": "com.expensify.chat.e2e"
+                }
+              }
+            ]
+          }
+        }
+      },
+
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:921154746561:android:3b19fdbaedb5b586027c40",
           "android_client_info": {
             "package_name": "com.expensify.chat.e2edelta"
           }
         },
         "oauth_client": [
           {
-            "client_id": "921154746561-cbegir0tnc2gan6k1gre5vtn75p60hom.apps.googleusercontent.com",
+            "client_id": "921154746561-svjnccrcn6vet45kn9o7sibb3jemipa6.apps.googleusercontent.com",
             "client_type": 1,
             "android_info": {
               "package_name": "com.expensify.chat.e2edelta",
@@ -184,6 +228,7 @@
           }
         }
       }
+
     ],
     "configuration_version": "1"
   }
