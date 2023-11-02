@@ -9,10 +9,10 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
 import avatarPropTypes from './avatarPropTypes';
+import sourcePropTypes from './Image/sourcePropTypes';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import UserDetailsTooltip from './UserDetailsTooltip';
-import sourcePropTypes from './Image/sourcePropTypes';
 
 const propTypes = {
     /** Array of avatar URLs or icons */

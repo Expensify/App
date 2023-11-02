@@ -43,6 +43,9 @@ const propTypes = {
      */
     fallbackIcon: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
+    /** Used to locate fallback icon in end-to-end tests. */
+    fallbackIconTestID: PropTypes.string,
+
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
 
@@ -58,6 +61,7 @@ const defaultProps = {
     size: CONST.AVATAR_SIZE.DEFAULT,
     fill: null,
     fallbackIcon: Expensicons.FallbackAvatar,
+    fallbackIconTestID: '',
     type: CONST.ICON_TYPE_AVATAR,
     name: '',
 };
@@ -86,6 +90,8 @@ function Avatar(props) {
 
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(props.name).fill : props.fill;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(props.name) : props.fallbackIcon || Expensicons.FallbackAvatar;
+    const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(props.name) : props.fallbackIconTestID || 'SvgFallbackAvatar Icon';
+    const avatarTestId = imageError ? 'AvatarIcon' : fallbackAvatarTestID;
 
     return (
         <View
@@ -95,6 +101,7 @@ function Avatar(props) {
             {_.isFunction(props.source) || _.isNumber(props.source) || (imageError && (_.isFunction(fallbackAvatar) || _.isNumber(fallbackAvatar))) ? (
                 <View style={iconStyle}>
                     <Icon
+                        testID={avatarTestId}
                         src={imageError ? fallbackAvatar : props.source}
                         height={iconSize}
                         width={iconSize}

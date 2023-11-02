@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import sourcePropTypes from '../Image/sourcePropTypes';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 
 const menuItemProps = PropTypes.arrayOf(
     PropTypes.shape({

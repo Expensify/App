@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {Animated, StyleSheet} from 'react-native';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import styles from '@styles/styles';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
-import sourcePropTypes from '../Image/sourcePropTypes';
 
 const propTypes = {
     /** Function to call when onPress */

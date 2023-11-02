@@ -1,13 +1,13 @@
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
+import ImageSVG from '@components/ImageSVG';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import IconWrapperStyles from './IconWrapperStyles';
-import ImageSVG from '../ImageSVG';
-import sourcePropTypes from '../Image/sourcePropTypes';
 
 const propTypes = {
     /** The asset to render. */

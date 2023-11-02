@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import styles from '@styles/styles';
 import CategoryShortcutButton from './CategoryShortcutButton';
-import sourcePropTypes from '../Image/sourcePropTypes';
 
 const propTypes = {
     /** The function to call when an emoji is selected */

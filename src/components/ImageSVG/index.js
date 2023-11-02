@@ -1,5 +1,5 @@
 import React from 'react';
-import {propTypes, defaultProps} from './imageSVGPropTypes';
+import {defaultProps, propTypes} from './imageSVGPropTypes';
 
 function ImageSVG({src, width, height, fill, hovered, pressed, style, pointerEvents, preserveAspectRatio}) {
     const ImageSvgComponent = src;

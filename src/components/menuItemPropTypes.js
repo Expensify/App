@@ -3,8 +3,8 @@ import _ from 'underscore';
 import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import avatarPropTypes from './avatarPropTypes';
-import refPropTypes from './refPropTypes';
 import sourcePropTypes from './Image/sourcePropTypes';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Text to be shown as badge near the right end. */

@@ -28,6 +28,8 @@ let currentUserEmail;
 let currentUserAccountID;
 let isAnonymousUser;
 
+const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -1013,6 +1015,25 @@ function getDefaultWorkspaceAvatar(workspaceName) {
         .toUpperCase();
 
     return !alphaNumeric ? defaultWorkspaceAvatars.WorkspaceBuilding : defaultWorkspaceAvatars[`Workspace${alphaNumeric[0]}`];
+}
+
+/**
+ * Helper method to return the default avatar testID associated with the given login
+ * @param {String} [workspaceName]
+ * @returns {String}
+ */
+function getDefaultWorkspaceAvatarTestID(workspaceName) {
+    if (!workspaceName) {
+        return defaultAvatarBuildingIconTestID;
+    }
+
+    // Remove all chars not A-Z or 0-9 including underscore
+    const alphaNumeric = workspaceName
+        .normalize('NFD')
+        .replace(/[^0-9a-z]/gi, '')
+        .toLowerCase();
+
+    return !alphaNumeric ? defaultAvatarBuildingIconTestID : `SvgDefaultAvatar_${alphaNumeric[0]} Icon`;
 }
 
 function getWorkspaceAvatar(report) {
@@ -4233,6 +4254,7 @@ export {
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
     getDefaultWorkspaceAvatar,
+    getDefaultWorkspaceAvatarTestID,
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,

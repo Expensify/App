@@ -1,8 +1,8 @@
-import {Image} from 'expo-image';
 import {useCallback, useRef} from 'react';
 import {StyleSheet, ViewStyle} from 'react-native';
 import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Logo from '@assets/images/new-expensify-dark.svg';
+import ImageSVG from '@components/ImageSVG';
 import BootSplash from '@libs/BootSplash';
 import styles from '@styles/styles';
 import type SplashScreenHiderProps from './types';
@@ -62,10 +62,10 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps) {
             ]}
         >
             <Reanimated.View style={scaleStyle}>
-                <Image
+                <ImageSVG
                     contentFit="fill"
                     style={{width: 100 * logoSizeRatio, height: 100 * logoSizeRatio}}
-                    source={Logo}
+                    src={Logo}
                 />
             </Reanimated.View>
         </Reanimated.View>

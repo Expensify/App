@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import Icon from '@components/Icon';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -10,7 +11,6 @@ import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import sourcePropTypes from '@components/Image/sourcePropTypes';
 
 const propTypes = {
     /** The emoji code of the category header */

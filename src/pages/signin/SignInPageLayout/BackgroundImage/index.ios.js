@@ -1,9 +1,9 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import {Image} from 'expo-image';
-import MobileBackgroundImage from '../../../../../assets/images/home-background--mobile-new.svg';
-import DesktopBackgroundImage from '../../../../../assets/images/home-background--desktop.svg';
-import styles from '../../../../styles/styles';
+import PropTypes from 'prop-types';
+import React from 'react';
+import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
+import MobileBackgroundImage from '@assets/images/home-background--mobile-new.svg';
+import styles from '@styles/styles';
 import defaultPropTypes from './propTypes';
 
 const defaultProps = {

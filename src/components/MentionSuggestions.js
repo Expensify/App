@@ -5,7 +5,6 @@ import _ from 'underscore';
 import getStyledTextArray from '@libs/GetStyledTextArray';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Avatar from './Avatar';

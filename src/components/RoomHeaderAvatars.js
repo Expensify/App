@@ -5,7 +5,6 @@ import _ from 'underscore';
 import * as UserUtils from '@libs/UserUtils';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';
 import Avatar from './Avatar';

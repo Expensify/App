@@ -1,6 +1,6 @@
-import React from 'react';
 import {Image} from 'expo-image';
-import {propTypes, defaultProps} from './imageSVGPropTypes';
+import React from 'react';
+import {defaultProps, propTypes} from './imageSVGPropTypes';
 
 function ImageSVG({src, width, height, fill, contentFit, style}) {
     const tintColorProp = fill ? {tintColor: fill} : {};

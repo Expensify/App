@@ -35,7 +35,7 @@ PODS:
     - ExpoModulesCore
   - Expo (49.0.13):
     - ExpoModulesCore
-  - ExpoImage (1.6.0):
+  - ExpoImage (1.7.0):
     - ExpoModulesCore
     - SDWebImage (~> 5.17.0)
     - SDWebImageAVIFCoder (~> 0.10.1)
@@ -1217,7 +1217,7 @@ SPEC CHECKSUMS:
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   EXApplication: 042aa2e3f05258a16962ea1a9914bf288db9c9a1
   Expo: e7d2116b947e2e6fdeb09ee4f2754f819426d1b6
-  ExpoImage: 64cd716d10414edf59342de32043857a58e9a2a3
+  ExpoImage: d765c73f5373f52f2c96bdd4a664c80d827446c0
   ExpoModulesCore: 51cb2e7ab4c8da14be3f40b66d54c1781002e99d
   FBLazyVector: 5d4a3b7f411219a45a6d952f77d2c0a6c9989da5
   FBReactNativeSpec: 3fc2d478e1c4b08276f9dd9128f80ec6d5d85c1f

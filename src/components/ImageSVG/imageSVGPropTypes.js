@@ -1,8 +1,9 @@
 import PropTypes from 'prop-types';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 
 const propTypes = {
     /** The asset to render. */
-    src: PropTypes.oneOfType([PropTypes.func, PropTypes.number]).isRequired,
+    src: PropTypes.oneOfType([PropTypes.func, sourcePropTypes]).isRequired,
 
     /** The width of the image. */
     width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
