@@ -244,23 +244,15 @@ function getOptionData(
     }
 
     const result: ReportUtils.OptionData = {
-        // text: null,
         alternateText: null,
         pendingAction: null,
         allReportErrors: null,
         brickRoadIndicator: null,
-        // icons: null,
         tooltipText: null,
-        // ownerAccountID: null,
         subtitle: null,
-        // participantsList: null,
         login: null,
         accountID: null,
-        // managerID: null,
         reportID: '',
-        // policyID: null,
-        // statusNum: null,
-        // stateNum: null,
         phoneNumber: null,
         isUnread: null,
         isUnreadWithMention: null,
@@ -270,7 +262,6 @@ function getOptionData(
         isPinned: false,
         hasOutstandingIOU: false,
         hasOutstandingChildRequest: false,
-        // iouReportID: null,
         isIOUReportOwner: null,
         iouReportAmount: 0,
         isChatRoom: false,
@@ -281,7 +272,6 @@ function getOptionData(
         isExpenseRequest: false,
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
-        // chatType: null,
     };
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
