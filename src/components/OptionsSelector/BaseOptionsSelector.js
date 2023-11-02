@@ -519,12 +519,17 @@ class BaseOptionsSelector extends Component {
                         >
                             <Text>
                                 {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText1`)}
-                                <Text color={colors.green400}>{this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText2`)}</Text>
+                                <Text
+                                    color={colors.green400}
+                                    style={styles.textStrong}
+                                >
+                                    {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText2`)}
+                                </Text>
                             </Text>
                             <Icon
                                 src={Info}
-                                height={24}
-                                width={24}
+                                height={20}
+                                width={20}
                             />
                         </PressableWithoutFeedback>
                     </View>
