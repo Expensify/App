@@ -376,6 +376,7 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                         selection={selectionHour}
                         style={styles.timePickerInput}
                         containerStyles={[styles.timePickerHeight100]}
+                        showSoftInputOnFocus={false}
                     />
                     <Text style={styles.timePickerSemiDot}>{CONST.COLON}</Text>
                     <AmountTextInput
@@ -400,6 +401,7 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                         selection={selectionMinute}
                         style={styles.timePickerInput}
                         containerStyles={[styles.timePickerHeight100]}
+                        showSoftInputOnFocus={false}
                     />
                 </View>
                 {errorText ? (
