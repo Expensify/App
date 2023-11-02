@@ -1,95 +1,90 @@
-import propTypes from 'prop-types';
-import React, {forwardRef, useState} from 'react';
-import _ from 'underscore';
+import React, {ForwardedRef, forwardRef, useState} from 'react';
+import {StyleProp, View, ViewStyle} from 'react-native';
+import {AnimatedStyle} from 'react-native-reanimated';
 import OpacityView from '@components/OpacityView';
 import variables from '@styles/variables';
 import GenericPressable from './GenericPressable';
-import GenericPressablePropTypes from './GenericPressable/PropTypes';
+import PressableProps from './GenericPressable/types';
 
-const omittedProps = ['wrapperStyle', 'needsOffscreenAlphaCompositing'];
+type PressableWithFeedbackProps = PressableProps & {
+    /** Style for the wrapper view */
+    wrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
-const PressableWithFeedbackPropTypes = {
-    ...GenericPressablePropTypes.pressablePropTypes,
     /**
      * Determines what opacity value should be applied to the underlaying view when Pressable is pressed.
      * To disable dimming, pass 1 as pressDimmingValue
      * @default variables.pressDimValue
      */
-    pressDimmingValue: propTypes.number,
+    pressDimmingValue?: number;
+
     /**
      * Determines what opacity value should be applied to the underlaying view when pressable is hovered.
      * To disable dimming, pass 1 as hoverDimmingValue
      * @default variables.hoverDimValue
      */
-    hoverDimmingValue: propTypes.number,
-    /**
-     *  Used to locate this view from native classes.
-     */
-    nativeID: propTypes.string,
+    hoverDimmingValue?: number;
 
     /** Whether the view needs to be rendered offscreen (for Android only) */
-    needsOffscreenAlphaCompositing: propTypes.bool,
+    needsOffscreenAlphaCompositing?: boolean;
 };
 
-const PressableWithFeedbackDefaultProps = {
-    ...GenericPressablePropTypes.defaultProps,
-    pressDimmingValue: variables.pressDimValue,
-    hoverDimmingValue: variables.hoverDimValue,
-    nativeID: '',
-    wrapperStyle: [],
-    needsOffscreenAlphaCompositing: false,
-};
-
-const PressableWithFeedback = forwardRef((props, ref) => {
-    const propsWithoutWrapperProps = _.omit(props, omittedProps);
+function PressableWithFeedback(
+    {
+        children,
+        wrapperStyle = [],
+        needsOffscreenAlphaCompositing = false,
+        pressDimmingValue = variables.pressDimValue,
+        hoverDimmingValue = variables.hoverDimValue,
+        ...rest
+    }: PressableWithFeedbackProps,
+    ref: ForwardedRef<View>,
+) {
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
 
     return (
         <OpacityView
-            shouldDim={Boolean(!props.disabled && (isPressed || isHovered))}
-            dimmingValue={isPressed ? props.pressDimmingValue : props.hoverDimmingValue}
-            style={props.wrapperStyle}
-            needsOffscreenAlphaCompositing={props.needsOffscreenAlphaCompositing}
+            shouldDim={Boolean(!rest.disabled && (isPressed || isHovered))}
+            dimmingValue={isPressed ? pressDimmingValue : hoverDimmingValue}
+            style={wrapperStyle}
+            needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
         >
             <GenericPressable
                 ref={ref}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...propsWithoutWrapperProps}
-                disabled={props.disabled}
-                onHoverIn={() => {
+                {...rest}
+                disabled={rest.disabled}
+                onHoverIn={(event) => {
                     setIsHovered(true);
-                    if (props.onHoverIn) {
-                        props.onHoverIn();
+                    if (rest.onHoverIn) {
+                        rest.onHoverIn(event);
                     }
                 }}
-                onHoverOut={() => {
+                onHoverOut={(event) => {
                     setIsHovered(false);
-                    if (props.onHoverOut) {
-                        props.onHoverOut();
+                    if (rest.onHoverOut) {
+                        rest.onHoverOut(event);
                     }
                 }}
-                onPressIn={() => {
+                onPressIn={(event) => {
                     setIsPressed(true);
-                    if (props.onPressIn) {
-                        props.onPressIn();
+                    if (rest.onPressIn) {
+                        rest.onPressIn(event);
                     }
                 }}
-                onPressOut={() => {
+                onPressOut={(event) => {
                     setIsPressed(false);
-                    if (props.onPressOut) {
-                        props.onPressOut();
+                    if (rest.onPressOut) {
+                        rest.onPressOut(event);
                     }
                 }}
             >
-                {(state) => (_.isFunction(props.children) ? props.children(state) : props.children)}
+                {(state) => (typeof children === 'function' ? children(state) : children)}
             </GenericPressable>
         </OpacityView>
     );
-});
+}
 
 PressableWithFeedback.displayName = 'PressableWithFeedback';
-PressableWithFeedback.propTypes = PressableWithFeedbackPropTypes;
-PressableWithFeedback.defaultProps = PressableWithFeedbackDefaultProps;
 
-export default PressableWithFeedback;
+export default forwardRef(PressableWithFeedback);
