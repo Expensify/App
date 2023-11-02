@@ -1,9 +1,9 @@
-import _ from 'underscore';
-import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import {propTypes, defaultProps} from './hoverablePropTypes';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import CONST from '../../CONST';
+import _ from 'underscore';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import CONST from '@src/CONST';
+import {defaultProps, propTypes} from './hoverablePropTypes';
 
 /**
  * Maps the children of a Hoverable component to

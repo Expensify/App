@@ -1,42 +1,42 @@
-import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
-import {View, NativeModules, findNodeHandle} from 'react-native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {findNodeHandle, NativeModules, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import {useIsFocused, useNavigation} from '@react-navigation/native';
-import styles from '../../../../styles/styles';
-import themeColors from '../../../../styles/themes/default';
-import Composer from '../../../../components/Composer';
-import containerComposeStyles from '../../../../styles/containerComposeStyles';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import CONST from '../../../../CONST';
-import * as Browser from '../../../../libs/Browser';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import * as KeyDownListener from '../../../../libs/KeyboardShortcut/KeyDownPressListener';
-import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
-import willBlurTextInputOnTapOutsideFunc from '../../../../libs/willBlurTextInputOnTapOutside';
-import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
-import * as ComposerUtils from '../../../../libs/ComposerUtils';
-import * as Report from '../../../../libs/actions/Report';
-import usePrevious from '../../../../hooks/usePrevious';
-import * as EmojiUtils from '../../../../libs/EmojiUtils';
-import * as User from '../../../../libs/actions/User';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import * as SuggestionUtils from '../../../../libs/SuggestionUtils';
-import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
-import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
+import Composer from '@components/Composer';
+import withKeyboardState from '@components/withKeyboardState';
+import useDebounce from '@hooks/useDebounce';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import compose from '@libs/compose';
+import * as ComposerUtils from '@libs/ComposerUtils';
+import getDraftComment from '@libs/ComposerUtils/getDraftComment';
+import convertToLTRForComposer from '@libs/convertToLTRForComposer';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as SuggestionUtils from '@libs/SuggestionUtils';
+import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import containerComposeStyles from '@styles/containerComposeStyles';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
+import * as InputFocus from '@userActions/InputFocus';
+import * as Report from '@userActions/Report';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps, propTypes} from './composerWithSuggestionsProps';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
-import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
-import useLocalize from '../../../../hooks/useLocalize';
-import compose from '../../../../libs/compose';
-import withKeyboardState from '../../../../components/withKeyboardState';
-import {propTypes, defaultProps} from './composerWithSuggestionsProps';
-import focusWithDelay from '../../../../libs/focusWithDelay';
-import useDebounce from '../../../../hooks/useDebounce';
-import updateMultilineInputRange from '../../../../libs/UpdateMultilineInputRange';
-import * as InputFocus from '../../../../libs/actions/InputFocus';
-import convertToLTRForComposer from '../../../../libs/convertToLTRForComposer';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -394,7 +394,7 @@ function ComposerWithSuggestions({
      * @memberof ReportActionCompose
      */
     const focus = useCallback((shouldDelay = false) => {
-        focusWithDelay(textInputRef.current)(shouldDelay);
+        focusComposerWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
     const setUpComposeFocusManager = useCallback(() => {
@@ -551,6 +551,7 @@ function ComposerWithSuggestions({
                     setIsFullComposerAvailable={setIsFullComposerAvailable}
                     isComposerFullSize={isComposerFullSize}
                     value={value}
+                    testID="composer"
                     numberOfLines={numberOfLines}
                     onNumberOfLinesChange={updateNumberOfLines}
                     shouldCalculateCaretPosition

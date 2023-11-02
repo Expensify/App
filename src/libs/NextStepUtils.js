@@ -1,5 +1,5 @@
-import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 
 function parseMessage(messageToParse) {
     let nextStepHTML = '';

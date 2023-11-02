@@ -1,33 +1,22 @@
 import {useCallback, useRef} from 'react';
-import PropTypes from 'prop-types';
-import {StyleSheet} from 'react-native';
-import Reanimated, {useSharedValue, withTiming, Easing, useAnimatedStyle, runOnJS} from 'react-native-reanimated';
-import BootSplash from '../../libs/BootSplash';
-import Logo from '../../../assets/images/new-expensify-dark.svg';
-import styles from '../../styles/styles';
+import {StyleSheet, ViewStyle} from 'react-native';
+import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Logo from '@assets/images/new-expensify-dark.svg';
+import BootSplash from '@libs/BootSplash';
+import styles from '@styles/styles';
+import type SplashScreenHiderProps from './types';
 
-const propTypes = {
-    /** Splash screen has been hidden */
-    onHide: PropTypes.func,
-};
-
-const defaultProps = {
-    onHide: () => {},
-};
-
-function SplashScreenHider(props) {
-    const {onHide} = props;
-
+function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps) {
     const logoSizeRatio = BootSplash.logoSizeRatio || 1;
     const navigationBarHeight = BootSplash.navigationBarHeight || 0;
 
     const opacity = useSharedValue(1);
     const scale = useSharedValue(1);
 
-    const opacityStyle = useAnimatedStyle(() => ({
+    const opacityStyle = useAnimatedStyle<ViewStyle>(() => ({
         opacity: opacity.value,
     }));
-    const scaleStyle = useAnimatedStyle(() => ({
+    const scaleStyle = useAnimatedStyle<ViewStyle>(() => ({
         transform: [{scale: scale.value}],
     }));
 
@@ -83,7 +72,5 @@ function SplashScreenHider(props) {
 }
 
 SplashScreenHider.displayName = 'SplashScreenHider';
-SplashScreenHider.propTypes = propTypes;
-SplashScreenHider.defaultProps = defaultProps;
 
 export default SplashScreenHider;

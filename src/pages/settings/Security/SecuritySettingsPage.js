@@ -3,19 +3,19 @@ import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../../../ONYXKEYS';
-import ROUTES from '../../../ROUTES';
-import SCREENS from '../../../SCREENS';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '../../../components/LottieAnimations';
-import MenuItemList from '../../../components/MenuItemList';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import useWaitForNavigation from '../../../hooks/useWaitForNavigation';
-import Navigation from '../../../libs/Navigation/Navigation';
-import compose from '../../../libs/compose';
-import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
+import * as Expensicons from '@components/Icon/Expensicons';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import * as LottieAnimations from '@components/LottieAnimations';
+import MenuItemList from '@components/MenuItemList';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 const propTypes = {
     ...withLocalizePropTypes,

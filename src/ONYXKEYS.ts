@@ -1,8 +1,8 @@
-import {ValueOf} from 'type-fest';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
-import DeepValueOf from './types/utils/DeepValueOf';
-import * as OnyxTypes from './types/onyx';
+import {ValueOf} from 'type-fest';
 import CONST from './CONST';
+import * as OnyxTypes from './types/onyx';
+import DeepValueOf from './types/utils/DeepValueOf';
 
 /**
  * This is a file containing constants for all the top level keys in our store
@@ -386,9 +386,11 @@ type OnyxValues = {
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
+    [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategory;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTags;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMember;
+    [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
