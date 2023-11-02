@@ -187,7 +187,6 @@ function BasePicker({
                             disableHighlight();
                         }),
                     }}
-                    // TODO: for some reasons scrollViewRef and scrollViewContentOffsetY are not found in RNPickerSelect props, need to do updates on the lib side
                     scrollViewRef={context?.scrollViewRef}
                     scrollViewContentOffsetY={context?.contentOffsetY}
                 />
