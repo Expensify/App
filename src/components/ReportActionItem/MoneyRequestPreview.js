@@ -153,7 +153,7 @@ function MoneyRequestPreview(props) {
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
     if (isPolicyExpenseChat && props.isBillSplit) {
         participantAvatars.push(ReportUtils.getWorkspaceIcon(props.chatReport));
-    }
+    } 
 
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
