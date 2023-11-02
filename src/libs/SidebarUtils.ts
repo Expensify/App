@@ -119,7 +119,8 @@ function getOrderedReportIDs(
 ): string[] {
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
-        [currentReportId, allReports, betas, policies, priorityMode, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length ?? 1],
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        [currentReportId, allReports, betas, policies, priorityMode, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
         (key, value: unknown) => {
             /**
              *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,

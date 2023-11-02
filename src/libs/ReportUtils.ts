@@ -362,7 +362,6 @@ let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
-        currentUserPersonalDetails = idOrDefault(value, currentUserAccountID) ?? null;
         currentUserPersonalDetails = value?.[currentUserAccountID ?? -1] ?? null;
         allPersonalDetails = value ?? {};
     },
