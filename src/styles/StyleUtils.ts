@@ -749,7 +749,7 @@ function parseStyleAsArray<T extends AllStyles>(styleParam: T | T[]): T[] {
  * Parse style function and return Styles object
  */
 function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallbackType): StyleProp<ViewStyle> {
-    return typeof style === 'function' ? style(state) : style
+    return typeof style === 'function' ? style(state) : style;
 }
 
 /**
