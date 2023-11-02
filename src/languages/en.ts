@@ -1843,7 +1843,7 @@ export default {
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
     teachersUnitePage: {
-        teachersUnite: 'Teachers unite!',
+        teachersUnite: 'Teachers Unite',
         joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world and help teachers split their expenses for classrooms in need!',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',

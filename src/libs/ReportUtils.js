@@ -2352,13 +2352,12 @@ function getOptimisticDataForParentReportAction(reportID, lastVisibleActionCreat
  * Builds an optimistic reportAction for the parent report when a task is created
  * @param {String} taskReportID - Report ID of the task
  * @param {String} taskTitle - Title of the task
- * @param {String} taskAssignee - Email of the person assigned to the task
  * @param {Number} taskAssigneeAccountID - AccountID of the person assigned to the task
  * @param {String} text - Text of the comment
  * @param {String} parentReportID - Report ID of the parent report
  * @returns {Object}
  */
-function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssignee, taskAssigneeAccountID, text, parentReportID) {
+function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssigneeAccountID, text, parentReportID) {
     const reportAction = buildOptimisticAddCommentReportAction(text);
     reportAction.reportAction.message[0].taskReportID = taskReportID;
 
@@ -3923,7 +3922,6 @@ function shouldDisableRename(report, policy) {
 /**
  * Returns the onyx data needed for the task assignee chat
  * @param {Number} accountID
- * @param {String} assigneeEmail
  * @param {Number} assigneeAccountID
  * @param {String} taskReportID
  * @param {String} assigneeChatReportID
@@ -3932,7 +3930,7 @@ function shouldDisableRename(report, policy) {
  * @param {Object} assigneeChatReport
  * @returns {Object}
  */
-function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID, taskReportID, assigneeChatReportID, parentReportID, title, assigneeChatReport) {
+function getTaskAssigneeChatOnyxData(accountID, assigneeAccountID, taskReportID, assigneeChatReportID, parentReportID, title, assigneeChatReport) {
     // Set if we need to add a comment to the assignee chat notifying them that they have been assigned a task
     let optimisticAssigneeAddComment;
     // Set if this is a new chat that needs to be created for the assignee
@@ -4000,7 +3998,7 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
     // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
     if (assigneeChatReportID !== parentReportID) {
         const displayname = lodashGet(allPersonalDetails, [assigneeAccountID, 'displayName']) || lodashGet(allPersonalDetails, [assigneeAccountID, 'login'], '');
-        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `assigned to ${displayname}`, parentReportID);
+        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `assigned to ${displayname}`, parentReportID);
         const lastAssigneeCommentText = formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
@@ -4308,4 +4306,5 @@ export {
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
+    getPersonalDetailsForAccountID,
 };

@@ -8,10 +8,14 @@ import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import refPropTypes from '@components/refPropTypes';
 import RenderHTML from '@components/RenderHTML';
+import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
+import ControlSelection from '@libs/ControlSelection';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,6 +56,16 @@ const propTypes = {
         ownerAccountID: PropTypes.number,
     }),
 
+    /** The chat report associated with taskReport */
+    chatReportID: PropTypes.string.isRequired,
+
+    /** Popover context menu anchor, used for showing context menu */
+    contextMenuAnchor: refPropTypes,
+
+    /** Callback for updating context menu active state, used for showing context menu */
+    checkIfContextMenuActive: PropTypes.func,
+
+    /* Onyx Props */
     ...withLocalizePropTypes,
 
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -90,6 +104,9 @@ function TaskPreview(props) {
         <View style={[styles.chatItemMessage]}>
             <PressableWithoutFeedback
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.taskReportID))}
+                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
+                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={props.translate('task.task')}
