@@ -45,8 +45,15 @@ function DebitCardPage(props) {
     const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
     const nameOnCardRef = useRef(null);
 
+    /**
+     * Reset the form values on the mount and unmount so that old errors don't show when this form is displayed again.
+     */
     useEffect(() => {
         PaymentMethods.clearDebitCardFormErrorAndSubmit();
+
+        return () => {
+            PaymentMethods.clearDebitCardFormErrorAndSubmit();
+        };
     }, []);
 
     useEffect(() => {
@@ -55,10 +62,6 @@ function DebitCardPage(props) {
         }
 
         PaymentMethods.continueSetup();
-
-        return () => {
-            PaymentMethods.clearDebitCardFormErrorAndSubmit();
-        };
     }, [prevFormDataSetupComplete, props.formData.setupComplete]);
 
     /**

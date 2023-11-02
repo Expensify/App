@@ -3329,7 +3329,6 @@ const styles = (theme: ThemeDefault) =>
         eReceiptAmount: {
             ...headlineFont,
             fontSize: variables.fontSizeXXXLarge,
-            lineHeight: variables.lineHeightXXXLarge,
             color: colors.green400,
         },
 
@@ -3749,21 +3748,6 @@ const styles = (theme: ThemeDefault) =>
 
         reportActionItemImagesMoreCornerTriangle: {
             position: 'absolute',
-            bottom: 0,
-            right: 0,
-            width: 0,
-            height: 0,
-            borderStyle: 'solid',
-            borderWidth: 0,
-            borderBottomWidth: 40,
-            borderLeftWidth: 40,
-            borderColor: 'transparent',
-            borderBottomColor: theme.cardBG,
-        },
-
-        reportActionItemImagesMoreCornerTriangleHighlighted: {
-            borderColor: 'transparent',
-            borderBottomColor: theme.border,
         },
 
         assignedCardsIconContainer: {
