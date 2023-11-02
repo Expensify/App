@@ -162,7 +162,7 @@ function BasePicker({
                     useNativeAndroidPickerStyle={false}
                     placeholder={pickerPlaceholder}
                     value={value}
-                    // TODO: update the icon logic to escape ts error
+                    // TODO: update the icon type in the lib to escape ts error
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     Icon={() => icon(size)}
@@ -187,6 +187,7 @@ function BasePicker({
                             disableHighlight();
                         }),
                     }}
+                    // TODO: for some reasons scrollViewRef and scrollViewContentOffsetY are not found in RNPickerSelect props, need to do updates on the lib side
                     scrollViewRef={context?.scrollViewRef}
                     scrollViewContentOffsetY={context?.contentOffsetY}
                 />
