@@ -2,7 +2,6 @@
 title: The Expenses Page
 description: Details on Expenses Page filters
 ---
----
 # Overview
 
 The Expenses page allows you to see all of your personal expenses. If you are an admin, you can view all submitter’s expenses on the Expensify page. The Expenses page can be filtered in several ways to give you spending visibility, find expenses to submit and export to a spreadsheet (CSV).
