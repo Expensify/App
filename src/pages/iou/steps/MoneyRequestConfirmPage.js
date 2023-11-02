@@ -1,33 +1,33 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import MoneyRequestConfirmationList from '../../../components/MoneyRequestConfirmationList';
-import CONST from '../../../CONST';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import * as IOU from '../../../libs/actions/IOU';
-import compose from '../../../libs/compose';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
-import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
-import withLocalize from '../../../components/withLocalize';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
-import reportPropTypes from '../../reportPropTypes';
-import personalDetailsPropType from '../../personalDetailsPropType';
-import * as FileUtils from '../../../libs/fileDownload/FileUtils';
-import * as Policy from '../../../libs/actions/Policy';
-import useNetwork from '../../../hooks/useNetwork';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
-import {iouPropTypes, iouDefaultProps} from '../propTypes';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import useInitialValue from '../../../hooks/useInitialValue';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize from '@components/withLocalize';
+import useInitialValue from '@hooks/useInitialValue';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** React Navigation route */
@@ -71,10 +71,13 @@ function MoneyRequestConfirmPage(props) {
     const [receiptFile, setReceiptFile] = useState();
     const participants = useMemo(
         () =>
-            _.map(props.iou.participants, (participant) => {
-                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
-            }),
+            _.chain(props.iou.participants)
+                .map((participant) => {
+                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
+                })
+                .filter((participant) => !!participant.login || !!participant.text)
+                .value(),
         [props.iou.participants, props.personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
@@ -321,6 +324,10 @@ function MoneyRequestConfirmPage(props) {
 
         if (iouType === CONST.IOU.TYPE.SEND) {
             return props.translate('common.send');
+        }
+
+        if (isScanRequest) {
+            return props.translate('tabSelector.scan');
         }
 
         return props.translate('tabSelector.manual');

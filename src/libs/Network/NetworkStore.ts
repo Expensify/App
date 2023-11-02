@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import Credentials from '../../types/onyx/Credentials';
+import ONYXKEYS from '@src/ONYXKEYS';
+import Credentials from '@src/types/onyx/Credentials';
 
 let credentials: Credentials | null = null;
 let authToken: string | null = null;

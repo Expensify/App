@@ -1,5 +1,5 @@
-import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';

@@ -1,9 +1,9 @@
-import React, {ComponentType, ForwardRefExoticComponent, ForwardedRef, PropsWithoutRef, ReactNode, RefAttributes, createContext, forwardRef, useContext} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
-import {OnyxCollectionKey, OnyxKey, OnyxKeyValue, OnyxValues} from '../ONYXKEYS';
-import ChildrenProps from '../types/utils/ChildrenProps';
+import React, {ComponentType, createContext, ForwardedRef, forwardRef, ForwardRefExoticComponent, PropsWithoutRef, ReactNode, RefAttributes, useContext} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import {OnyxCollectionKey, OnyxKey, OnyxKeyValue, OnyxValues} from '@src/ONYXKEYS';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type OnyxKeys = (OnyxKey | OnyxCollectionKey) & keyof OnyxValues;
 

@@ -1,6 +1,6 @@
-import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import {NavigationProp, useNavigation} from '@react-navigation/native';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
+import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
 
 type WithNavigationProps = {
     navigation: NavigationProp<ReactNavigation.RootParamList>;

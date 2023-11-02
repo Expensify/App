@@ -1,7 +1,7 @@
 import React, {forwardRef, useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseSelectionList from './BaseSelectionList';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 const SelectionList = forwardRef((props, ref) => {
     const [isScreenTouched, setIsScreenTouched] = useState(false);

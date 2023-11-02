@@ -1,7 +1,7 @@
 import {useState, useEffect, useContext} from 'react';
 import {Appearance, ColorSchemeName} from 'react-native';
-import CONST from '../../CONST';
-import {PreferredThemeContext} from '../../components/OnyxProvider';
+import {PreferredThemeContext} from '@components/OnyxProvider';
+import CONST from '@src/CONST';
 
 type ThemePreference = typeof CONST.THEME.LIGHT | typeof CONST.THEME.DARK;
 

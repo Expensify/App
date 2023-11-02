@@ -1,8 +1,8 @@
 import React from 'react';
+import ControlSelection from '@libs/ControlSelection';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as anchorForCommentsOnlyPropTypes from './anchorForCommentsOnlyPropTypes';
 import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import ControlSelection from '../../libs/ControlSelection';
 
 function AnchorForCommentsOnly(props) {
     return (

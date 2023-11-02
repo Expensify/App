@@ -1,9 +1,9 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
+import React, {useMemo} from 'react';
+import CONST from '@src/CONST';
 import ThemeContext from './ThemeContext';
 import useThemePreference from './useThemePreference';
-import CONST from '../../CONST';
 import darkTheme from './default';
 import lightTheme from './light';
 
