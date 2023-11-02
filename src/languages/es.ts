@@ -479,7 +479,7 @@ export default {
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Iniciar chat',
-        fabNewChatExplained: 'Iniciar chat',
+        fabNewChatExplained: 'Iniciar chat (Acción flotante)',
         chatPinned: 'Chat fijado',
         draftedMessage: 'Mensaje borrador',
         listOfChatMessages: 'Lista de mensajes del chat',
@@ -634,12 +634,8 @@ export default {
     },
     loungeAccessPage: {
         loungeAccess: 'Acceso a la sala vip',
-        headline: 'Podrás acceder a nuestras salas vip exclusivas.',
-        description:
-            'La sala vip Expensify es el punto de encuentro entre una "sala vip de aeropuerto de alta gama" y un vibrante "espacio de co-working" optimizado para personas con ideas afines.',
-        coffeePromo: 'Buen café y buenos cócteles',
-        networkingPromo: 'Conecta con otros miembros',
-        viewsPromo: 'Increíbles vistas de San Francisco',
+        headline: 'La sala vip de Expensify está cerrada.',
+        description: 'La sala vip de Expensify está actualmente cerrada, pero actualizaremos esta página cuando vuelva a abrir.',
     },
     pronounsPage: {
         pronouns: 'Pronombres',
@@ -2330,7 +2326,7 @@ export default {
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
     },
     teachersUnitePage: {
-        teachersUnite: '¡Profesores unidos!',
+        teachersUnite: 'Profesores Unidos',
         joinExpensifyOrg: 'Únete a Expensify.org para eliminar la injusticia en todo el mundo y ayuda a los profesores a dividir sus gastos para las aulas más necesitadas.',
         iKnowATeacher: 'Yo conozco a un profesor',
         iAmATeacher: 'Soy profesor',
