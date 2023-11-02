@@ -11,6 +11,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import TestToolsModal from '@components/TestToolsModal';
 import useEnvironment from '@hooks/useEnvironment';
+import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -24,6 +25,7 @@ const ScreenWrapper = React.forwardRef(
     (
         {
             shouldEnableMaxHeight,
+            shouldEnableMinHeight,
             includePaddingTop,
             keyboardAvoidingViewBehavior,
             includeSafeAreaPaddingBottom,
@@ -41,12 +43,14 @@ const ScreenWrapper = React.forwardRef(
         ref,
     ) => {
         const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+        const {initialHeight} = useInitialDimensions();
         const keyboardState = useKeyboardState();
         const {isDevelopment} = useEnvironment();
         const {isOffline} = useNetwork();
         const navigation = useNavigation();
         const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
         const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
+        const minHeight = shouldEnableMinHeight ? initialHeight : undefined;
         const isKeyboardShown = lodashGet(keyboardState, 'isKeyboardShown', false);
 
         const panResponder = useRef(
@@ -112,7 +116,7 @@ const ScreenWrapper = React.forwardRef(
                     }
 
                     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                    if (includeSafeAreaPaddingBottom || isOffline) {
+                    if (includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator)) {
                         paddingStyle.paddingBottom = paddingBottom;
                     }
 
@@ -130,7 +134,7 @@ const ScreenWrapper = React.forwardRef(
                                 {...keyboardDissmissPanResponder.panHandlers}
                             >
                                 <KeyboardAvoidingView
-                                    style={[styles.w100, styles.h100, {maxHeight}]}
+                                    style={[styles.w100, styles.h100, {maxHeight, minHeight}]}
                                     behavior={keyboardAvoidingViewBehavior}
                                     enabled={shouldEnableKeyboardAvoidingView}
                                 >
