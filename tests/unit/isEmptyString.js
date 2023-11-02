@@ -1,6 +1,6 @@
 import _ from 'underscore';
-import isEmpty from '../../src/libs/isEmptyString';
 import enEmojis from '../../assets/emojis/en';
+import isEmpty from '../../src/libs/isEmptyString';
 
 describe('libs/isEmpty', () => {
     it('basic tests', () => {

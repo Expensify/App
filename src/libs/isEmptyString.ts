@@ -1,4 +1,4 @@
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 
 /**
  *  Check if the string would be empty if all invisible characters were removed.

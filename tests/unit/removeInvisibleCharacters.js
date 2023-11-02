@@ -1,6 +1,6 @@
 import _ from 'underscore';
-import removeInvisible from '../../src/libs/removeInvisibleCharacters';
 import enEmojis from '../../assets/emojis/en';
+import removeInvisible from '../../src/libs/removeInvisibleCharacters';
 
 describe('libs/removeInvisible', () => {
     it('basic tests', () => {

@@ -1,24 +1,24 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {View, Keyboard} from 'react-native';
-import CONST from '../../../CONST';
+import AnonymousReportFooter from '@components/AnonymousReportFooter';
+import ArchivedReportFooter from '@components/ArchivedReportFooter';
+import OfflineIndicator from '@components/OfflineIndicator';
+import participantPropTypes from '@components/participantPropTypes';
+import SwipeableView from '@components/SwipeableView';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useNetwork from '@hooks/useNetwork';
+import compose from '@libs/compose';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
-import AnonymousReportFooter from '../../../components/AnonymousReportFooter';
-import SwipeableView from '../../../components/SwipeableView';
-import OfflineIndicator from '../../../components/OfflineIndicator';
-import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
-import compose from '../../../libs/compose';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import useNetwork from '../../../hooks/useNetwork';
-import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
 import reportActionPropTypes from './reportActionPropTypes';
-import reportPropTypes from '../../reportPropTypes';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as Session from '../../../libs/actions/Session';
-import participantPropTypes from '../../../components/participantPropTypes';
 
 const propTypes = {
     /** Report object for the current report */
@@ -70,7 +70,7 @@ function ReportFooter(props) {
     const isAnonymousUser = Session.isAnonymousUser();
 
     const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
-    const hideComposer = ReportUtils.shouldDisableWriteActions(props.report);
+    const hideComposer = !ReportUtils.canUserPerformWriteAction(props.report);
 
     return (
         <>
