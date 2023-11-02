@@ -259,6 +259,7 @@ const CONST = {
         CUSTOM_STATUS: 'customStatus',
         NEW_DOT_TAGS: 'newDotTags',
         NEW_DOT_SAML: 'newDotSAML',
+        VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
