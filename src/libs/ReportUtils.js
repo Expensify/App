@@ -2612,6 +2612,7 @@ function buildOptimisticIOUReportAction(
         whisperedToAccountIDs: _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], receipt.state) ? [currentUserAccountID] : [],
     };
 }
+
 /**
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  *
@@ -2636,6 +2637,49 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic MOVED report action with a randomly generated reportActionID.
+ * This action is used when we move reports across workspaces.
+ *
+ * @param {String} fromPolicyID
+ * @param {String} toPolicyID
+ * @param {Number} newParentReportID
+ * @param {Number} movedReportID        An ID of the report we are moveing across workspaces
+ *
+ * @returns {Object}
+ */
+function buildOptimisticMovedReportAction(fromPolicyID, toPolicyID, newParentReportID, movedReportID) {
+    const originalMessage = {
+        fromPolicyID,
+        toPolicyID,
+        newParentReportID,
+        movedReportID,
+    };
+
+    const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${newParentReportID}`]);
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
+        isAttachment: false,
+        originalMessage,
+        message: "moved report",
         person: [
             {
                 style: 'strong',
@@ -4216,6 +4260,7 @@ export {
     buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
     buildOptimisticApprovedReportAction,
+    buildOptimisticMovedReportAction,
     buildOptimisticSubmittedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,

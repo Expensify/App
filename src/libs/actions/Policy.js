@@ -1360,7 +1360,7 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function startCollectBottomUpFlow(iouReport, firstName, lastName) {
+function createWorkspaceFromIOUPayment(iouReport) {
     // This flow only works for IOU reports
     if (!ReportUtils.isIOUReport(iouReport)) {
         return;
@@ -1544,6 +1544,7 @@ function startCollectBottomUpFlow(iouReport, firstName, lastName) {
         },
         ...employeeWorkspaceChat.onyxSuccessData,
     ];
+
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1585,17 +1586,29 @@ function startCollectBottomUpFlow(iouReport, firstName, lastName) {
     // Next we need to convert the IOU report to Expense report and clean up the DM chat
     // Get the 1on1 chat where the request was originally made
     const chatReportID = iouReport.chatReportID;
-    ReportUtils.getReport(iouReport.chatReportID);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+        value: {
+            ...iouReport,
+            type: CONST.REPORT.TYPE.EXPENSE
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+        value: iouReport,
+    });
+
+    const chatReport = ReportUtils.getReport(iouReport.chatReportID);
     const reportPreviewID = iouReport.parentReportActionID;
 
-    const membersData = [
-        {
-            accountID: employeeAccountID,
-            email: employeeEmail,
-            workspaceChatReportID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportID,
-            workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportActionID,
-        },
-    ];
+    const memberData = {
+        accountID: Number(employeeAccountID),
+        email: employeeEmail,
+        workspaceChatReportID: Number(employeeWorkspaceChat.reportCreationData[employeeEmail].reportID),
+        workspaceChatCreatedReportActionID: Number(employeeWorkspaceChat.reportCreationData[employeeEmail].reportActionID),
+    };
 
     API.write(
         'CreateWorkspaceFromIOUPayment',
@@ -1604,7 +1617,7 @@ function startCollectBottomUpFlow(iouReport, firstName, lastName) {
             announceChatReportID,
             adminsChatReportID,
             expenseChatReportID: workspaceChatReportID,
-            ownerEmail: sessionEmail,
+            ownerEmail: '',
             makeMeAdmin: false,
             policyName: workspaceName,
             type: CONST.POLICY.TYPE.TEAM,
@@ -1614,11 +1627,11 @@ function startCollectBottomUpFlow(iouReport, firstName, lastName) {
             customUnitID,
             customUnitRateID,
             iouReportID: iouReport.reportID,
-            membersData: JSON.stringify(membersData),
+            memberData: JSON.stringify(memberData),
+            reportActionID: 0,
         },
         {optimisticData, successData, failureData},
     );
-    // Navigation.dismissModal(CONST.TEACHERS_UNITE.PUBLIC_ROOM_ID);
 }
 
 export {
@@ -1647,11 +1660,11 @@ export {
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
     removeWorkspace,
+    createWorkspaceFromIOUPayment,
     setWorkspaceInviteMembersDraft,
     clearErrors,
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
     createDraftInitialWorkspace,
-    startCollectBottomUpFlow,
 };

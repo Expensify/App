@@ -99,7 +99,7 @@ class KYCWall extends React.Component {
         } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(this.props.addDebitCardRoute);
         } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            Policy.startCollectFlow(this.props.iouReport);
+            Policy.createWorkspaceFromIOUPayment(this.props.iouReport);
         }
     }
 
