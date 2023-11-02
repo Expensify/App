@@ -19,7 +19,7 @@ function GoogleSignIn() {
     return (
         <View style={styles.desktopSignInButtonContainer}>
             <IconButton
-                onPress={() => {
+                onPressIn={() => {
                     window.open(googleSignInWebRouteForDesktopFlow);
                 }}
                 provider={CONST.SIGN_IN_METHOD.GOOGLE}

@@ -14,9 +14,12 @@ const appleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}
  */
 function AppleSignIn() {
     return (
-        <View style={styles.desktopSignInButtonContainer}>
+        <View
+            style={styles.desktopSignInButtonContainer}
+            pointerEvents="box-none"
+        >
             <IconButton
-                onPress={() => {
+                onPressIn={() => {
                     window.open(appleSignInWebRouteForDesktopFlow);
                 }}
                 provider={CONST.SIGN_IN_METHOD.APPLE}
