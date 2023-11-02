@@ -7,7 +7,7 @@ import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Avatar from './Avatar';
-import AvatarTypes from './AvatarTypes';
+import AvatarType from './AvatarType';
 import Text from './Text';
 
 type Mention = {
@@ -18,7 +18,7 @@ type Mention = {
     alternateText: string;
 
     /** Array of icons of the user. We use the first element of this array */
-    icons: AvatarTypes[];
+    icons: AvatarType[];
 };
 
 type MentionSuggestionsProps = {
@@ -92,7 +92,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                     {styledHandle &&
                         styledHandle.map(
                             ({text, isColored}) =>
-                                text !== '' && (
+                                Boolean(text) && (
                                     <Text
                                         key={`${text}${isColored}`}
                                         style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
