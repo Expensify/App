@@ -1,31 +1,7 @@
-import PropTypes from 'prop-types';
-import React from 'react';
-import _ from 'underscore';
-import StylePropType from '@styles/stylePropTypes';
+import React, {useRef} from 'react';
+import {View} from 'react-native';
 import GenericPressable from './GenericPressable';
-import genericPressablePropTypes from './GenericPressable/PropTypes';
-
-const propTypes = {
-    /** Element that should be clickable  */
-    children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
-
-    /** Callback for onPress event */
-    onPress: PropTypes.func.isRequired,
-
-    /** Callback for onLongPress event */
-    onLongPress: PropTypes.func,
-
-    /** Styles that should be passed to touchable container */
-    style: StylePropType,
-
-    /** Proptypes of pressable component used for implementation */
-    ...genericPressablePropTypes.pressablePropTypes,
-};
-
-const defaultProps = {
-    style: [],
-    onLongPress: undefined,
-};
+import PressableProps from './GenericPressable/types';
 
 /**
  * This component prevents the tapped element from capturing focus.
@@ -34,35 +10,27 @@ const defaultProps = {
  * Therefore it shifts the element to bring it back to focus.
  * https://github.com/Expensify/App/issues/6806
  */
-class PressableWithoutFocus extends React.Component {
-    constructor(props) {
-        super(props);
-        this.pressAndBlur = this.pressAndBlur.bind(this);
-    }
+function PressableWithoutFocus({children, onPress, onLongPress, ...rest}: PressableProps) {
+    const ref = useRef<View>(null);
 
-    pressAndBlur() {
-        this.pressableRef.blur();
-        this.props.onPress();
-    }
+    const pressAndBlur = () => {
+        ref?.current?.blur();
+        onPress();
+    };
 
-    render() {
-        const restProps = _.omit(this.props, ['children', 'onPress', 'onLongPress', 'style']);
-        return (
-            <GenericPressable
-                onPress={this.pressAndBlur}
-                onLongPress={this.props.onLongPress}
-                ref={(el) => (this.pressableRef = el)}
-                style={this.props.style}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...restProps}
-            >
-                {this.props.children}
-            </GenericPressable>
-        );
-    }
+    return (
+        <GenericPressable
+            onPress={pressAndBlur}
+            onLongPress={onLongPress}
+            ref={ref}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
+        >
+            {children}
+        </GenericPressable>
+    );
 }
 
-PressableWithoutFocus.propTypes = propTypes;
-PressableWithoutFocus.defaultProps = defaultProps;
+PressableWithoutFocus.displayName = 'PressableWithoutFocus';
 
 export default PressableWithoutFocus;
