@@ -4,6 +4,8 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
 import OptionsSelector from '@components/OptionsSelector';
 import refPropTypes from '@components/refPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -262,10 +264,37 @@ function MoneyRequestParticipantsSelector({
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
-    // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
+    // the app from crashing on native when you try to do this, we'll going to show error message if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
-    const shouldShowConfirmButton = !(participants.length > 1 && hasPolicyExpenseChatParticipant);
+    const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
     const isAllowedToSplit = !isDistanceRequest && iouType !== CONST.IOU.TYPE.SEND;
+
+    const handleConfirmSelection = useCallback(() => {
+        if (shouldShowSplitBillErrorMessage) {
+            return;
+        }
+
+        navigateToSplit();
+    }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
+
+    const footerContent = (
+        <View>
+            {shouldShowSplitBillErrorMessage && (
+                <FormHelpMessage
+                    style={[styles.ph1, styles.mb2]}
+                    isError
+                    message="iou.error.splitBillMultipleParticipantsErrorMessage"
+                />
+            )}
+            <Button
+                success
+                text={translate('iou.addToSplit')}
+                onPress={handleConfirmSelection}
+                pressOnEnter
+                isDisabled={shouldShowSplitBillErrorMessage}
+            />
+        </View>
+    );
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
@@ -282,15 +311,15 @@ function MoneyRequestParticipantsSelector({
                 ref={forwardedRef}
                 headerMessage={headerMessage}
                 boldStyle
-                shouldShowConfirmButton={shouldShowConfirmButton && isAllowedToSplit}
-                confirmButtonText={translate('iou.addToSplit')}
-                onConfirmSelection={navigateToSplit}
+                shouldShowConfirmButton={isAllowedToSplit}
+                onConfirmSelection={handleConfirmSelection}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 shouldDelayFocus
+                footerContent={isAllowedToSplit && footerContent}
                 isLoadingNewOptions={isSearchingForReports}
             />
         </View>
