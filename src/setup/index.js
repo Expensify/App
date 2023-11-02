@@ -1,13 +1,13 @@
 import {I18nManager} from 'react-native';
+import {init as initEncryptify} from 'react-native-encryptify';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
-import {init as initEncryptify} from 'react-native-encryptify';
 import * as Metrics from '@libs/Metrics';
 import * as Device from '@userActions/Device';
 import exposeGlobalMemoryOnlyKeysMethods from '@userActions/MemoryOnlyKeys/exposeGlobalMemoryOnlyKeysMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import platformSetup from './platformSetup';
+import * as PlatformSetup from './platformSetup';
 
 function beforeAppLoad() {
     PlatformSetup.beforeAppLoad();

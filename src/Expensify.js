@@ -2,7 +2,6 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {AppState, Linking} from 'react-native';
-import Encryptify from 'react-native-encryptify';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ConfirmModal from './components/ConfirmModal';
@@ -37,7 +36,7 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
-import {testAesUnderLoad, testEncryptionFlow} from './testEncryptifyPerformance';
+import * as EncryptifyPerformanceTest from './testEncryptifyPerformance';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -189,11 +188,16 @@ function Expensify(props) {
     }, []);
 
     useEffect(() => {
-        const sharedSecret = testEncryptionFlow(true);
+        // eslint-disable-next-line @lwc/lwc/no-async-await
+        async function exec() {
+            const sharedSecret = await EncryptifyPerformanceTest.testEncryptionFlow(true);
 
-        testAesUnderLoad(sharedSecret, 100, true);
-        testAesUnderLoad(sharedSecret, 1000, true);
-        testAesUnderLoad(sharedSecret, 10000, true);
+            await EncryptifyPerformanceTest.testAesUnderLoad(sharedSecret, 100, true);
+            await EncryptifyPerformanceTest.testAesUnderLoad(sharedSecret, 1000, true);
+            await EncryptifyPerformanceTest.testAesUnderLoad(sharedSecret, 10000, true);
+        }
+
+        exec();
     }, []);
 
     // Display a blank page until the onyx migration completes
