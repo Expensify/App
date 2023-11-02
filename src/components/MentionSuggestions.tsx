@@ -78,6 +78,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                 >
                     {styledDisplayName.map(({text, isColored}, i) => (
                         <Text
+                            // eslint-disable-next-line react/no-array-index-key
                             key={`${text}${i}`}
                             style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsDisplayName]}
                         >
@@ -94,6 +95,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                             ({text, isColored}, i) =>
                                 Boolean(text) && (
                                     <Text
+                                        // eslint-disable-next-line react/no-array-index-key
                                         key={`${text}${i}`}
                                         style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
                                     >

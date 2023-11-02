@@ -1,6 +1,5 @@
 import CONST from '@src/CONST';
 
-
 type AvatarFunction = () => void;
 
 type AvatarIcon = {
