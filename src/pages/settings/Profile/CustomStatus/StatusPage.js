@@ -10,7 +10,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import withLocalize from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
