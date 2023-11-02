@@ -93,11 +93,12 @@ function MoneyRequestConfirmPage(props) {
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-        // Verification to reset billable with a default value, when value in IOU was changed
-        if (typeof props.iou.billable !== 'boolean') {
-            IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
-        }
     }, [isOffline, participants, props.iou.billable, props.policy]);
+
+    const defaultBillable = lodashGet(props.policy, 'defaultBillable', false);
+    useEffect(() => {
+        IOU.setMoneyRequestBillable(defaultBillable);
+    }, [defaultBillable, isOffline]);
 
     useEffect(() => {
         if (!props.iou.receiptPath || !props.iou.receiptFilename) {
