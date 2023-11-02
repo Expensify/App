@@ -43,7 +43,6 @@ function process() {
     // Some requests should be retried and will end up here if the following conditions are met:
     // - we are in the process of authenticating and the request is retryable (most are)
     // - the request does not have forceNetworkRequest === true (this will trigger it to process immediately)
-    // - the request does not have shouldRetry === false (specified when we do not want to retry, defaults to true)
     const requestsToProcessOnNextRun: OnyxRequest[] = [];
 
     networkRequestQueue.forEach((queuedRequest) => {

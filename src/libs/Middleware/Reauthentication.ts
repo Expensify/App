@@ -46,7 +46,6 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                 // There are some API requests that should not be retried when there is an auth failure like
                 // creating and deleting logins. In those cases, they should handle the original response instead
                 // of the new response created by handleExpiredAuthToken.
-                const shouldRetry = request?.data?.shouldRetry;
                 const apiRequestType = request?.data?.apiRequestType;
                 const isDeprecatedRequest = !apiRequestType;
                 const skipReauthentication = request?.data?.skipReauthentication;
