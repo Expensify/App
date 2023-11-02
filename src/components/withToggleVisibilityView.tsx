@@ -4,12 +4,12 @@ import {SetOptional} from 'type-fest';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import styles from '@styles/styles';
 
-type ToggleVisibilityViewProp = {
+type ToggleVisibilityViewProps = {
     /** Whether the content is visible. */
     isVisible: boolean;
 };
 
-export default function withToggleVisibilityView<TProps extends ToggleVisibilityViewProp, TRef>(
+export default function withToggleVisibilityView<TProps extends ToggleVisibilityViewProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): (props: TProps & RefAttributes<TRef>) => ReactElement | null {
     function WithToggleVisibilityView({isVisible = false, ...rest}: SetOptional<TProps, 'isVisible'>, ref: ForwardedRef<TRef>) {
