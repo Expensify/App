@@ -15,10 +15,10 @@ import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import personalDetailsPropType from './personalDetailsPropType';
-import reportPropTypes from './reportPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from "@hooks/useNetwork";
+import personalDetailsPropType from './personalDetailsPropType';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /* Onyx Props */
