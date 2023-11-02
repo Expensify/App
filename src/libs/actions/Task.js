@@ -436,6 +436,14 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
 
     let assigneeChatReportOnyxData;
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : 0;
+    const optimisticReport = {
+        reportName,
+        managerID: assigneeAccountID || report.managerID,
+        managerEmail: assigneeEmail || report.managerEmail,
+        pendingFields: {
+            ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        },
+    };
 
     const optimisticData = [
         {
@@ -446,14 +454,7 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {
-                reportName,
-                managerID: assigneeAccountID || report.managerID,
-                managerEmail: assigneeEmail || report.managerEmail,
-                pendingFields: {
-                    ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
-                },
-            },
+            value: optimisticReport,
         },
     ];
     const successData = [
@@ -479,6 +480,11 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     // Check if the assignee actually changed
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
+        const participants = lodashGet(report, 'participantAccountIDs', []);
+        if (!participants.includes(assigneeAccountID)) {
+            optimisticReport.participantAccountIDs = [...participants, assigneeAccountID];
+        }
+
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,
             assigneeEmail,

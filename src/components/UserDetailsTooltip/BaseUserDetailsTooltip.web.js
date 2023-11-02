@@ -8,6 +8,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
@@ -15,10 +16,10 @@ import {defaultProps, propTypes} from './userDetailsTooltipPropTypes';
 
 function BaseUserDetailsTooltip(props) {
     const {translate} = useLocalize();
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetails = usePersonalDetails();
 
     const userDetails = lodashGet(personalDetails, props.accountID, props.fallbackUserDetails);
-    let userDisplayName = userDetails.displayName ? userDetails.displayName.trim() : '';
+    let userDisplayName = ReportUtils.getDisplayNameForParticipant(props.accountID);
     let userLogin = (userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
     let userAvatar = userDetails.avatar;
     let userAccountID = props.accountID;
@@ -27,7 +28,7 @@ function BaseUserDetailsTooltip(props) {
     // the Copilot feature is implemented.
     if (props.delegateAccountID) {
         const delegateUserDetails = lodashGet(personalDetails, props.delegateAccountID, {});
-        const delegateUserDisplayName = delegateUserDetails.displayName ? delegateUserDetails.displayName.trim() : '';
+        const delegateUserDisplayName = ReportUtils.getDisplayNameForParticipant(props.delegateAccountID);
         userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
         userLogin = delegateUserDetails.login;
         userAvatar = delegateUserDetails.avatar;

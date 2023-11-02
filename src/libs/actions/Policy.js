@@ -982,8 +982,9 @@ function buildOptimisticCustomUnits() {
  * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {String} [policyID] Optional, custom policy id we will use for created workspace
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
-function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID()) {
+function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
     const {customUnits} = buildOptimisticCustomUnits();
 
@@ -1001,6 +1002,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
+                makeMeAdmin,
             },
         },
         {
@@ -1339,7 +1341,7 @@ function clearErrors(policyID) {
  *
  * @param {String} policyID
  */
-function dismissAddedWithPrimaryMessages(policyID) {
+function dismissAddedWithPrimaryLoginMessages(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
 }
 
@@ -1386,7 +1388,7 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     clearErrors,
-    dismissAddedWithPrimaryMessages,
+    dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
     createDraftInitialWorkspace,
