@@ -9,15 +9,14 @@ import ROUTES from '@src/ROUTES';
 import Navigation from "@navigation/Navigation";
 import PropTypes from "prop-types";
 import withLocalize, {withLocalizePropTypes} from "@components/withLocalize";
-import useLocalize from "@hooks/useLocalize";
 
 const propTypes = {
+    ...withLocalizePropTypes,
+
     policyID: PropTypes.string.isRequired,
 };
 
-function Enable2FAPrompt({policyID}) {
-    const {translate} = useLocalize();
-
+function Enable2FAPrompt({translate, policyID}) {
     return (
         <Section
             title={translate('validationStep.enable2FATitle')}

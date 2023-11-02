@@ -7,6 +7,15 @@ import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoF
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import Navigation from "@navigation/Navigation";
+import PropTypes from "prop-types";
+
+const propTypes = {
+    backTo: PropTypes.string,
+}
+
+const defaultProps = {
+    backTo: '',
+}
 
 function SuccessStep({backTo}) {
     const {setStep} = useTwoFactorAuthContext();
@@ -38,5 +47,8 @@ function SuccessStep({backTo}) {
         </StepWrapper>
     );
 }
+
+SuccessStep.propTypes = propTypes;
+SuccessStep.defaultProps = defaultProps;
 
 export default SuccessStep;
