@@ -1,19 +1,19 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
+import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {FlatList} from 'react-native';
-import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
-import styles from '../../../../styles/styles';
+import OptionRow from '@components/OptionRow';
+import participantPropTypes from '@components/participantPropTypes';
+import withWindowDimensions from '@components/withWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
+import * as UserUtils from '@libs/UserUtils';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import HeaderReactionList from './HeaderReactionList';
-import * as UserUtils from '../../../../libs/UserUtils';
-import CONST from '../../../../CONST';
-import participantPropTypes from '../../../../components/participantPropTypes';
 import reactionPropTypes from './reactionPropTypes';
-import OptionRow from '../../../../components/OptionRow';
-import variables from '../../../../styles/variables';
-import withWindowDimensions from '../../../../components/withWindowDimensions';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /**
