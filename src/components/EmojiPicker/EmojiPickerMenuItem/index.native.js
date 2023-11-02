@@ -1,11 +1,11 @@
-import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import getButtonState from '../../../libs/getButtonState';
-import Text from '../../Text';
-import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
-import CONST from '../../../CONST';
+import React, {PureComponent} from 'react';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import getButtonState from '@libs/getButtonState';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The unicode that is used to display the emoji */

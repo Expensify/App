@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
+import subscribeToReportCommentPushNotifications from '@libs/Notification/PushNotification/subscribeToReportCommentPushNotifications';
+import ONYXKEYS from '@src/ONYXKEYS';
 import PushNotification from '..';
-import subscribeToReportCommentPushNotifications from '../subscribeToReportCommentPushNotifications';
-import ONYXKEYS from '../../../../ONYXKEYS';
 
 /**
  * Manage push notification subscriptions on sign-in/sign-out.

@@ -1,13 +1,13 @@
 import React, {useState} from 'react';
-import withWindowDimensions from '../withWindowDimensions';
+import FocusTrapView from '@components/FocusTrapView';
+import withWindowDimensions from '@components/withWindowDimensions';
+import StatusBar from '@libs/StatusBar';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
-import {propTypes, defaultProps} from './modalPropTypes';
-import * as StyleUtils from '../../styles/StyleUtils';
-import themeColors from '../../styles/themes/default';
-import StatusBar from '../../libs/StatusBar';
-import CONST from '../../CONST';
-import FocusTrapView from '../FocusTrapView';
-import styles from '../../styles/styles';
+import {defaultProps, propTypes} from './modalPropTypes';
 
 function Modal(props) {
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState();
