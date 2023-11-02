@@ -303,6 +303,7 @@ type OptimisticIOUReport = Pick<
     | 'parentReportID'
     | 'statusNum'
 >;
+type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
 type OptionData = {
     alternateText?: string | null;
@@ -330,8 +331,9 @@ type OptionData = {
     isThread?: boolean | null;
     isTaskReport?: boolean | null;
     parentReportAction?: ReportAction;
-    displayNamesWithTooltips?: Array<Pick<PersonalDetails, 'displayName' | 'avatar' | 'login' | 'accountID' | 'pronouns'>> | null;
+    displayNamesWithTooltips?: DisplayNameWithTooltips | null;
 } & Report;
+
 // eslint-disable-next-line rulesdir/no-negated-variables
 function isNotEmptyObject<T>(arg: T | Record<string, never>): arg is T {
     return Object.keys(arg ?? {}).length > 0;
@@ -360,6 +362,7 @@ let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
+        currentUserPersonalDetails = idOrDefault(value, currentUserAccountID) ?? null;
         currentUserPersonalDetails = value?.[currentUserAccountID ?? -1] ?? null;
         allPersonalDetails = value ?? {};
     },
@@ -573,7 +576,7 @@ function isAdminRoom(report: OnyxEntry<Report>): boolean {
  * Whether the provided report is an Admin-only posting room
  */
 function isAdminsOnlyPostingRoom(report: OnyxEntry<Report>): boolean {
-    return (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL) === CONST.REPORT.WRITE_CAPABILITIES.ADMINS;
+    return report?.writeCapability === CONST.REPORT.WRITE_CAPABILITIES.ADMINS;
 }
 
 /**
@@ -1354,13 +1357,14 @@ function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | Record<string, PersonalDetails>,
     isMultipleParticipantReport: boolean,
     shouldFallbackToHidden = true,
-): Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>> {
+): DisplayNameWithTooltips {
     const personalDetailsListArray = Array.isArray(personalDetailsList) ? personalDetailsList : Object.values(personalDetailsList);
 
     return personalDetailsListArray
         ?.map((user) => {
             const accountID = Number(user.accountID);
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) ?? user.login ?? '';
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user.login || '';
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
             let pronouns = user.pronouns;
@@ -1393,7 +1397,7 @@ function getDisplayNamesWithTooltips(
  * Gets a joined string of display names from the list of display name with tooltip objects.
  *
  */
-function getDisplayNamesStringFromTooltips(displayNamesWithTooltips: Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>> | undefined) {
+function getDisplayNamesStringFromTooltips(displayNamesWithTooltips: DisplayNameWithTooltips | undefined) {
     return displayNamesWithTooltips
         ?.map(({displayName}) => displayName)
         .filter(Boolean)
@@ -1624,8 +1628,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (report?.hasOutstandingIOU || moneyRequestTotal === 0) {
+    if (!!report?.hasOutstandingIOU || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
@@ -1815,7 +1818,6 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
  * Get money request message for an IOU report
  *
  * @param  [reportAction] This can be either a report preview action or the IOU action
- * @param  [shouldConsiderReceiptBeingScanned=false]
  */
 function getReportPreviewMessage(
     report: OnyxEntry<Report>,
@@ -1871,8 +1873,7 @@ function getReportPreviewMessage(
         const originalMessage = reportAction?.originalMessage as IOUMessage;
         if (
             [CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY].some((paymentType) => paymentType === originalMessage?.paymentType) ||
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
+            !!reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
@@ -2194,8 +2195,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report?.reportName?.substring(1) ?? '';
     }
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if ((isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
+    if ((isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
         return Localize.translateLocal('workspace.common.workspace');
     }
     if (isArchivedRoom(report)) {
