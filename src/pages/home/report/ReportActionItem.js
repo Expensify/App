@@ -353,11 +353,16 @@ function ReportActionItem(props) {
             );
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
             children = (
-                <TaskPreview
-                    taskReportID={props.action.originalMessage.taskReportID.toString()}
-                    action={props.action}
-                    isHovered={hovered}
-                />
+                <ShowContextMenuContext.Provider value={contextValue}>
+                    <TaskPreview
+                        taskReportID={props.action.originalMessage.taskReportID.toString()}
+                        chatReportID={props.report.reportID}
+                        action={props.action}
+                        isHovered={hovered}
+                        contextMenuAnchor={popoverAnchorRef}
+                        checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    />
+                </ShowContextMenuContext.Provider>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
