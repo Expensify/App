@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {Beta, Login, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
-import {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
 import {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -29,21 +29,11 @@ import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import {LastVisibleMessage} from './ReportActionsUtils';
-import * as SidebarUtils from './SidebarUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import * as UserUtils from './UserUtils';
-import {AvatarSource} from './UserUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string};
-
-type Avatar = {
-    id?: number;
-    source: AvatarSource | undefined;
-    type: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
-    name: string;
-    fallbackIcon?: AvatarSource;
-};
 
 type ExpenseOriginalMessage = {
     oldComment?: string;
@@ -69,7 +59,7 @@ type Participant = {
     accountID: number;
     alternateText: string;
     firstName: string;
-    icons: Avatar[];
+    icons: Icon[];
     keyForList: string;
     lastName: string;
     login: string;
@@ -85,7 +75,7 @@ type SpendBreakdown = {
     totalDisplaySpend: number;
 };
 
-type ParticipantDetails = [number, string, AvatarSource, AvatarSource];
+type ParticipantDetails = [number, string, UserUtils.AvatarSource, UserUtils.AvatarSource];
 
 type ReportAndWorkspaceName = {
     rootReportName: string;
@@ -314,6 +304,34 @@ type OptimisticIOUReport = Pick<
     | 'statusNum'
 >;
 
+type OptionData = {
+    alternateText?: string | null;
+    pendingAction?: PendingAction | null;
+    allReportErrors?: Errors | null;
+    brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
+    tooltipText?: string | null;
+    subtitle?: string | null;
+    login?: string | null;
+    accountID?: number | null;
+    status?: string | null;
+    phoneNumber?: string | null;
+    isUnread?: boolean | null;
+    isUnreadWithMention?: boolean | null;
+    hasDraftComment?: boolean | null;
+    keyForList?: string | null;
+    searchText?: string | null;
+    isIOUReportOwner?: boolean | null;
+    isArchivedRoom?: boolean | null;
+    shouldShowSubscript?: boolean | null;
+    isPolicyExpenseChat?: boolean | null;
+    isMoneyRequestReport?: boolean | null;
+    isExpenseRequest?: boolean | null;
+    isAllowedToComment?: boolean | null;
+    isThread?: boolean | null;
+    isTaskReport?: boolean | null;
+    parentReportAction?: ReportAction;
+    displayNamesWithTooltips?: Array<Pick<PersonalDetails, 'displayName' | 'avatar' | 'login' | 'accountID' | 'pronouns'>> | null;
+} & Report;
 // eslint-disable-next-line rulesdir/no-negated-variables
 function isNotEmptyObject<T>(arg: T | Record<string, never>): arg is T {
     return Object.keys(arg ?? {}).length > 0;
@@ -1098,7 +1116,7 @@ function getDefaultWorkspaceAvatar(workspaceName?: string): React.FC<SvgProps> {
     return !alphaNumeric ? defaultWorkspaceAvatars.WorkspaceBuilding : defaultWorkspaceAvatar;
 }
 
-function getWorkspaceAvatar(report: OnyxEntry<Report>): AvatarSource {
+function getWorkspaceAvatar(report: OnyxEntry<Report>): UserUtils.AvatarSource {
     const workspaceName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
     return allPolicies?.[`policy${report?.policyID}`]?.avatar ?? getDefaultWorkspaceAvatar(workspaceName);
 }
@@ -1107,7 +1125,7 @@ function getWorkspaceAvatar(report: OnyxEntry<Report>): AvatarSource {
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
-function getIconsForParticipants(participants: number[], personalDetails: OnyxCollection<PersonalDetails>): Avatar[] {
+function getIconsForParticipants(participants: number[], personalDetails: OnyxCollection<PersonalDetails>): Icon[] {
     const participantDetails: ParticipantDetails[] = [];
     const participantsList = participants || [];
 
@@ -1131,7 +1149,7 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxCo
     });
 
     // Now that things are sorted, gather only the avatars (second element in the array) and return those
-    const avatars: Avatar[] = [];
+    const avatars: Icon[] = [];
 
     for (const sortedParticipantDetail of sortedParticipantDetails) {
         const userIcon = {
@@ -1150,14 +1168,14 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxCo
 /**
  * Given a report, return the associated workspace icon.
  */
-function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): Avatar {
+function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): Icon {
     const workspaceName = getPolicyName(report, false, policy);
     const policyExpenseChatAvatarSource = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar
         ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar
         : getDefaultWorkspaceAvatar(workspaceName);
 
-    const workspaceIcon = {
-        source: policyExpenseChatAvatarSource,
+    const workspaceIcon: Icon = {
+        source: policyExpenseChatAvatarSource ?? '',
         type: CONST.ICON_TYPE_WORKSPACE,
         name: workspaceName,
         id: -1,
@@ -1172,13 +1190,13 @@ function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> =
 function getIcons(
     report: OnyxEntry<Report>,
     personalDetails: OnyxCollection<PersonalDetails>,
-    defaultIcon: AvatarSource | null = null,
+    defaultIcon: UserUtils.AvatarSource | null = null,
     defaultName = '',
     defaultAccountID = -1,
     policy: OnyxEntry<Policy> = null,
-): Avatar[] {
+): Icon[] {
     if (Object.keys(report ?? {}).length === 0) {
-        const fallbackIcon: Avatar = {
+        const fallbackIcon: Icon = {
             source: defaultIcon ?? Expensicons.FallbackAvatar,
             type: CONST.ICON_TYPE_AVATAR,
             name: defaultName,
@@ -1238,7 +1256,7 @@ function getIcons(
         // Get domain name after the #. Domain Rooms use our default workspace avatar pattern.
         const domainName = report?.reportName?.substring(1);
         const policyExpenseChatAvatarSource = getDefaultWorkspaceAvatar(domainName);
-        const domainIcon: Avatar = {
+        const domainIcon: Icon = {
             source: policyExpenseChatAvatarSource,
             type: CONST.ICON_TYPE_WORKSPACE,
             name: domainName ?? '',
@@ -3609,7 +3627,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: n
     const participants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
     // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
     const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
-    const isPolicyOwnedByExpensifyAccounts = report?.policyID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(getPolicy(report?.policyID ?? '')?.ownerAccountID || 0) : false;
+    const isPolicyOwnedByExpensifyAccounts = report?.policyID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(getPolicy(report?.policyID ?? '')?.ownerAccountID ?? 0) : false;
     if (doParticipantsIncludeExpensifyAccounts && !isPolicyOwnedByExpensifyAccounts) {
         return [];
     }
@@ -4202,4 +4220,4 @@ export {
     getReimbursementQueuedActionMessage,
 };
 
-export type {Avatar};
+export type {OptionData};

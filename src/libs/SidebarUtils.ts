@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxCollection} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +16,6 @@ import * as Localize from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
-import type {Avatar} from './ReportUtils';
 import * as ReportUtils from './ReportUtils';
 import * as UserUtils from './UserUtils';
 
@@ -116,11 +115,11 @@ function getOrderedReportIDs(
     betas: Beta[],
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
-    allReportActions: Record<string, ReportAction[]>,
+    allReportActions: OnyxCollection<ReportActions>,
 ): string[] {
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
-        [currentReportId, allReports, betas, policies, priorityMode, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
+        [currentReportId, allReports, betas, policies, priorityMode, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length ?? 1],
         (key, value: unknown) => {
             /**
              *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,
@@ -148,7 +147,6 @@ function getOrderedReportIDs(
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = allReportsDictValues.filter((report) =>
-        // TODO: Talk with Fabio about that
         ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, allReportActions, true),
     );
 
@@ -222,56 +220,6 @@ function getOrderedReportIDs(
     return LHNReports;
 }
 
-type OptionData = {
-    alternateText?: string | null;
-    pendingAction?: OnyxCommon.PendingAction | null;
-    allReportErrors?: OnyxCommon.Errors | null;
-    brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
-    icons?: Avatar[] | null;
-    tooltipText?: string | null;
-    ownerAccountID?: number | null;
-    subtitle?: string | null;
-    participantsList?: PersonalDetails[] | null;
-    login?: string | null;
-    accountID?: number | null;
-    managerID?: number | null;
-    reportID?: string | null;
-    policyID?: string | null;
-    status?: string | null;
-    type?: string | null;
-    stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM> | null;
-    statusNum?: ValueOf<typeof CONST.REPORT.STATUS> | null;
-    phoneNumber?: string | null;
-    isUnread?: boolean | null;
-    isUnreadWithMention?: boolean | null;
-    hasDraftComment?: boolean | null;
-    keyForList?: string | null;
-    searchText?: string | null;
-    isPinned?: boolean | null;
-    hasOutstandingIOU?: boolean | null;
-    hasOutstandingChildRequest?: boolean | null;
-    iouReportID?: string | null;
-    isIOUReportOwner?: boolean | null;
-    iouReportAmount?: number | null;
-    isChatRoom?: boolean | null;
-    isArchivedRoom?: boolean | null;
-    shouldShowSubscript?: boolean | null;
-    isPolicyExpenseChat?: boolean | null;
-    isMoneyRequestReport?: boolean | null;
-    isExpenseRequest?: boolean | null;
-    isWaitingOnBankAccount?: boolean | null;
-    isAllowedToComment?: boolean | null;
-    isThread?: boolean | null;
-    isTaskReport?: boolean | null;
-    parentReportID?: string | null;
-    parentReportAction?: ReportAction;
-    notificationPreference?: string | number | null;
-    displayNamesWithTooltips?: Array<Pick<PersonalDetails, 'displayName' | 'avatar' | 'login' | 'accountID' | 'pronouns'>> | null;
-    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | null;
-    lastMentionedTime?: string;
-    lastReadTime?: string;
-} & Report;
-
 type ActorDetails = {
     displayName?: string;
     accountID?: number;
@@ -287,7 +235,7 @@ function getOptionData(
     preferredLocale: ValueOf<typeof CONST.LOCALES>,
     policy: Policy,
     parentReportAction: ReportAction,
-): OptionData | undefined {
+): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -295,24 +243,24 @@ function getOptionData(
         return;
     }
 
-    const result: OptionData = {
-        text: null,
+    const result: ReportUtils.OptionData = {
+        // text: null,
         alternateText: null,
         pendingAction: null,
         allReportErrors: null,
         brickRoadIndicator: null,
-        icons: null,
+        // icons: null,
         tooltipText: null,
-        ownerAccountID: null,
+        // ownerAccountID: null,
         subtitle: null,
-        participantsList: null,
+        // participantsList: null,
         login: null,
         accountID: null,
-        managerID: null,
-        reportID: null,
-        policyID: null,
-        statusNum: null,
-        stateNum: null,
+        // managerID: null,
+        reportID: '',
+        // policyID: null,
+        // statusNum: null,
+        // stateNum: null,
         phoneNumber: null,
         isUnread: null,
         isUnreadWithMention: null,
@@ -322,7 +270,7 @@ function getOptionData(
         isPinned: false,
         hasOutstandingIOU: false,
         hasOutstandingChildRequest: false,
-        iouReportID: null,
+        // iouReportID: null,
         isIOUReportOwner: null,
         iouReportAmount: 0,
         isChatRoom: false,
@@ -333,7 +281,7 @@ function getOptionData(
         isExpenseRequest: false,
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
-        chatType: null,
+        // chatType: null,
     };
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
@@ -365,9 +313,9 @@ function getOptionData(
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
-    result.parentReportID = report.parentReportID ?? null;
+    result.parentReportID = report.parentReportID ?? '';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
-    result.notificationPreference = report.notificationPreference ?? null;
+    result.notificationPreference = report.notificationPreference ?? '';
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
 
@@ -506,5 +454,3 @@ export default {
     isSidebarLoadedReady,
     resetIsSidebarLoadedReadyPromise,
 };
-
-export type {OptionData};
