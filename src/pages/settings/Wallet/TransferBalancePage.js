@@ -84,7 +84,7 @@ function TransferBalancePage(props) {
             title: props.translate('transferAmountPage.ach'),
             description: props.translate('transferAmountPage.achSummary'),
             icon: Expensicons.Bank,
-            type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
+            type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         },
     ];
 
@@ -145,7 +145,7 @@ function TransferBalancePage(props) {
                 <ConfirmationPage
                     heading={props.translate('transferAmountPage.transferSuccess')}
                     description={
-                        props.walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                        props.walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
                             ? props.translate('transferAmountPage.transferDetailBankAccount')
                             : props.translate('transferAmountPage.transferDetailDebitCard')
                     }
@@ -159,7 +159,7 @@ function TransferBalancePage(props) {
 
     const selectedAccount = getSelectedPaymentMethodAccount();
     const selectedPaymentType =
-        selectedAccount && selectedAccount.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
+        selectedAccount && selectedAccount.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
 
     const calculatedFee = PaymentUtils.calculateWalletTransferBalanceFee(props.userWallet.currentBalance, selectedPaymentType);
     const transferAmount = props.userWallet.currentBalance - calculatedFee;

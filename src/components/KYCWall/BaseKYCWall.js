@@ -94,7 +94,7 @@ class KYCWall extends React.Component {
      */
     selectPaymentMethod(paymentMethod) {
         this.props.onSelectPaymentMethod(paymentMethod);
-        if (paymentMethod === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+        if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             Navigation.navigate(this.props.addBankAccountRoute);
         } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(this.props.addDebitCardRoute);
@@ -138,7 +138,7 @@ class KYCWall extends React.Component {
         ) {
             Log.info('[KYC Wallet] User does not have valid payment method');
             if (!this.props.shouldIncludeDebitCard) {
-                this.selectPaymentMethod(CONST.PAYMENT_METHODS.BANK_ACCOUNT);
+                this.selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                 return;
             }
             const clickedElementLocation = getClickedTargetLocation(targetElement);

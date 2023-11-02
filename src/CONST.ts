@@ -1111,7 +1111,7 @@ const CONST = {
 
     PAYMENT_METHODS: {
         DEBIT_CARD: 'debitCard',
-        BANK_ACCOUNT: 'bankAccount',
+        PERSONAL_BANK_ACCOUNT: 'bankAccount',
         BUSINESS_BANK_ACCOUNT: 'businessBankAccount',
     },
 

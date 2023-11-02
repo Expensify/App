@@ -81,7 +81,7 @@ function AddPaymentMethodMenu(props) {
                     text: props.translate('common.personalBankAccount'),
                     icon: Expensicons.Bank,
                     onSelected: () => {
-                        props.onItemSelected(CONST.PAYMENT_METHODS.BANK_ACCOUNT);
+                        props.onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                     },
                 },
                 ...(ReportUtils.isIOUReport(props.iouReport) && !ReportActionsUtils.hasRequestFromPayer(lodashGet(props.iouReport, 'reportID', 0), props.session.accountID)
