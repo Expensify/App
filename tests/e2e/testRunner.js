@@ -111,13 +111,6 @@ if (isDevMode) {
 
 // START OF TEST CODE
 
-const restartApp = async () => {
-    Logger.log('Killing app …');
-    await killApp('android', config.APP_PACKAGE);
-    Logger.log('Launching app …');
-    await launchApp('android', config.APP_PACKAGE);
-};
-
 const runTests = async () => {
     // check if using buildMode "js-only" or "none" is possible
     if (buildMode !== 'full') {
@@ -182,8 +175,8 @@ const runTests = async () => {
 
     // Install app and reverse port
     let progressLog = Logger.progressInfo('Installing apps and reversing port');
-    await installApp('android', config.APP_PACKAGE, defaultConfig.MAIN_APP_PATH);
-    await installApp('android', config.APP_PACKAGE, defaultConfig.DELTA_APP_PATH);
+    await installApp('android', config.MAIN_APP_PACKAGE, defaultConfig.MAIN_APP_PATH);
+    await installApp('android', config.DELTA_APP_PACKAGE, defaultConfig.DELTA_APP_PATH);
     await reversePort();
     progressLog.done();
 
@@ -208,23 +201,23 @@ const runTests = async () => {
     });
 
     // Run the tests
-    const numOfTests = _.values(config.TESTS_CONFIG).length;
-    for (let testIndex = 0; testIndex < numOfTests; testIndex++) {
-        const testConfig = _.values(config.TESTS_CONFIG)[testIndex];
+    const suites = _.values(config.TESTS_CONFIG);
+    for (let suiteIndex = 0; suiteIndex < suites.length; suiteIndex++) {
+        const suite = _.values(config.TESTS_CONFIG)[suiteIndex];
 
         // check if we want to skip the test
         if (args.includes('--includes')) {
             const includes = args[args.indexOf('--includes') + 1];
 
             // assume that "includes" is a regexp
-            if (!testConfig.name.match(includes)) {
+            if (!suite.name.match(includes)) {
                 // eslint-disable-next-line no-continue
                 continue;
             }
         }
 
-        const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.COOL_DOWN / 1000}s`);
-        coolDownLogs.updateText(`Cooling down for ${config.COOL_DOWN / 1000}s`);
+        const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
+        coolDownLogs.updateText(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
 
         // Having the cooldown right at the beginning should hopefully lower the chances of heat
         // throttling from the previous run (which we have no control over and will be a
@@ -232,18 +225,41 @@ const runTests = async () => {
         await sleep(config.BOOT_COOL_DOWN);
         coolDownLogs.done();
 
-        server.setTestConfig(testConfig);
+        server.setTestConfig(suite);
 
-        const warmupLogs = Logger.progressInfo(`Running warmup '${testConfig.name}'`);
+        const warmupLogs = Logger.progressInfo(`Running warmup '${suite.name}'`);
 
-        let progressText = `Warmup for suite '${testConfig.name}' [${testIndex + 1}/${numOfTests}]\n`;
+        let progressText = `Warmup for suite '${suite.name}' [${suiteIndex + 1}/${suites.length}]\n`;
         warmupLogs.updateText(progressText);
 
-        await restartApp();
+        Logger.log('Killing main app');
+        await killApp('android', config.MAIN_APP_PACKAGE);
+        Logger.log('Launching main app');
+        await launchApp('android', config.MAIN_APP_PACKAGE);
 
         await withFailTimeout(
             new Promise((resolve) => {
                 const cleanup = server.addTestDoneListener(() => {
+                    Logger.log('Main warm up ready ✅');
+                    cleanup();
+                    resolve();
+                });
+            }),
+            progressText,
+        );
+
+        Logger.log('Killing main app');
+        await killApp('android', config.MAIN_APP_PACKAGE);
+
+        Logger.log('Killing delta app');
+        await killApp('android', config.DELTA_APP_PACKAGE);
+        Logger.log('Launching delta app');
+        await launchApp('android', config.DELTA_APP_PACKAGE);
+
+        await withFailTimeout(
+            new Promise((resolve) => {
+                const cleanup = server.addTestDoneListener(() => {
+                    Logger.log('Delta warm up ready ✅');
                     cleanup();
                     resolve();
                 });
@@ -256,20 +272,20 @@ const runTests = async () => {
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
         for (let i = 0; i < config.RUNS; i++) {
-            progressText = `Suite '${testConfig.name}' [${testIndex + 1}/${numOfTests}], iteration [${i + 1}/${config.RUNS}]\n`;
+            progressText = `Suite '${suite.name}' [${suiteIndex + 1}/${suites.length}], iteration [${i + 1}/${config.RUNS}]\n`;
             testLog.updateText(progressText);
 
-            Logger.log('Killing app...');
-            await killApp('android', config.APP_PACKAGE);
+            // Logger.log('Killing app...');
+            // await killApp('android', config.MAIN_APP_PACKAGE);
 
-            testLog.updateText(`Coolin down phone 🧊 ${config.SUITE_COOL_DOWN / 1000}s\n`);
+            // testLog.updateText(`Coolin down phone 🧊 ${config.SUITE_COOL_DOWN / 1000}s\n`);
 
             // Adding the cool down between booting the app again, had the side-effect of actually causing a cold boot,
             // which increased TTI/bundle load JS times significantly but also stabilized standard deviation.
-            await sleep(config.SUITE_COOL_DOWN);
+            // await sleep(config.SUITE_COOL_DOWN);
 
-            Logger.log('Starting app...');
-            await launchApp('android', config.APP_PACKAGE);
+            Logger.log('Starting main app');
+            await launchApp('android', config.MAIN_APP_PACKAGE);
 
             // Wait for a test to finish by waiting on its done call to the http server
             try {
@@ -288,6 +304,33 @@ const runTests = async () => {
                 testLog.done();
                 throw e; // Rethrow to abort execution
             }
+
+            Logger.log('Killing main app');
+            await killApp('android', config.MAIN_APP_PACKAGE);
+
+            Logger.log('Starting delta app');
+            await launchApp('android', config.DELTA_APP_PACKAGE);
+
+            // Wait for a test to finish by waiting on its done call to the http server
+            try {
+                await withFailTimeout(
+                    new Promise((resolve) => {
+                        const cleanup = server.addTestDoneListener(() => {
+                            Logger.log(`Test iteration ${i + 1} done!`);
+                            cleanup();
+                            resolve();
+                        });
+                    }),
+                    progressText,
+                );
+            } catch (e) {
+                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
+                testLog.done();
+                throw e; // Rethrow to abort execution
+            }
+
+            Logger.log('Killing delta app');
+            await killApp('android', config.DELTA_APP_PACKAGE);
         }
         testLog.done();
     }
