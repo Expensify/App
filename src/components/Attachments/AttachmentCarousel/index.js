@@ -192,7 +192,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             disableIntervalMomentum
                             pagingEnabled
                             snapToAlignment="start"
-                            contentInset={{ top: 0, left: 0, bottom: 0, right: 0 }}
+                            contentInset={{top: 0, left: 0, bottom: 0, right: 0}}
                             contentInsetAdjustmentBehavior="automatic"
                             snapToOffsets={_.map(attachments, (__, index) => index * containerWidth)}
                             // Enable scrolling by swiping on mobile (touch) devices only
