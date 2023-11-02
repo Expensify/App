@@ -66,7 +66,10 @@ function IOURequestStepConfirmation({
         params: {iouType, reportID, transactionID},
     },
     transaction,
-    transaction: {receipt = {}},
+    transaction: {
+        filename: receiptFilename,
+        receipt: {source: receiptPath},
+    },
 }) {
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -100,10 +103,10 @@ function IOURequestStepConfirmation({
     }, [participants, transaction.billable, policy, transactionID]);
 
     useEffect(() => {
-        if (!receipt) {
+        if (!receiptFilename || !receiptPath) {
             return;
         }
-        FileUtils.readFileAsync(receipt.path, receipt.source).then((file) => {
+        FileUtils.readFileAsync(receiptPath, receiptFilename).then((file) => {
             if (!file) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
             } else {
@@ -113,7 +116,7 @@ function IOURequestStepConfirmation({
                 });
             }
         });
-    }, [receipt, requestType, iouType, reportID]);
+    }, [receiptFilename, receiptPath, requestType, iouType, reportID]);
 
     const navigateBack = () => {
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
@@ -203,11 +206,9 @@ function IOURequestStepConfirmation({
             const trimmedComment = lodashGet(transaction, 'comment.comment', '').trim();
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
-            if (iouType === CONST.IOU.TYPE.SPLIT && receipt.path) {
+            if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
                 const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
-                FileUtils.readFileAsync(receipt.path, receipt.source).then((file) => {
-                    IOU.startSplitBill(selectedParticipants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, trimmedComment, file, existingSplitChatReportID);
-                });
+                IOU.startSplitBill(selectedParticipants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, trimmedComment, receiptFile, existingSplitChatReportID);
                 return;
             }
 
@@ -241,6 +242,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            console.log('[tim', receiptFile);
             if (receiptFile) {
                 requestMoney(selectedParticipants, trimmedComment, receiptFile);
                 return;
@@ -253,19 +255,7 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [
-            iouType,
-            transaction,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            receipt,
-            report,
-            reportID,
-            requestType,
-            createDistanceRequest,
-            requestMoney,
-            receiptFile,
-        ],
+        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, reportID, requestType, createDistanceRequest, requestMoney, receiptFile],
     );
 
     /**
@@ -344,7 +334,7 @@ function IOURequestStepConfirmation({
                         onSendMoney={sendMoney}
                         onSelectParticipant={addNewParticipant}
                         receiptPath={lodashGet(transaction, 'receipt.source')}
-                        receiptFilename={lodashGet(transaction, 'receipt.path')}
+                        receiptFilename={lodashGet(transaction, 'filename')}
                         iouType={iouType}
                         reportID={reportID}
                         isPolicyExpenseChat={isPolicyExpenseChat}
@@ -360,7 +350,7 @@ function IOURequestStepConfirmation({
                         iouCreated={transaction.created}
                         isScanRequest={requestType === CONST.IOU.REQUEST_TYPE.SCAN}
                         isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
-                        shouldShowSmartScanFields={!_.isEmpty(transaction.receipt)}
+                        shouldShowSmartScanFields={_.isEmpty(lodashGet(transaction, 'receipt.source', ''))}
                     />
                 </View>
             )}
