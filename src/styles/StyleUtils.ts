@@ -1317,14 +1317,6 @@ function getTransparentColor(color: string) {
 }
 
 /**
- * Get the styles of reports submitted or approved in Old Dot in order to style them like system messages
- */
-function getApprovedOrSubmittedReportTextStyles(): TextStyle {
-    // Font family is restored back to a regular font since text with "fontWeight: 'normal'" on Android still appears in bold
-    return {color: themeColors.textSupporting, fontFamily: fontFamily.EXP_NEUE, fontWeight: 'normal'};
-}
-
-/**
  * Get the styles of the text next to dot indicators
  */
 function getDotIndicatorTextStyles(isErrorText = true): TextStyle {
@@ -1336,7 +1328,6 @@ export {
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
     getAnimatedFABStyle,
-    getApprovedOrSubmittedReportTextStyles,
     getAutoCompleteSuggestionContainerStyle,
     getAutoCompleteSuggestionItemStyle,
     getAutoGrowHeightInputStyle,

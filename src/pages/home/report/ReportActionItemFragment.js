@@ -15,7 +15,6 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import editedLabelStyles from '@styles/editedLabelStyles';
 import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -67,6 +66,9 @@ const propTypes = {
     /** Whether the report action type is 'APPROVED' or 'SUBMITTED'. Used to style system messages from Old Dot */
     isApprovedOrSubmittedReportAction: PropTypes.bool,
 
+    /** Used to format RTL display names in Old Dot system messages e.g. Arabic */
+    shouldConvertToLTR: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -91,6 +93,7 @@ const defaultProps = {
     actorIcon: {},
     isThreadParentMessage: false,
     isApprovedOrSubmittedReportAction: false,
+    shouldConvertToLTR: false,
     displayAsGroup: false,
 };
 
@@ -158,28 +161,25 @@ function ReportActionItemFragment(props) {
             );
         }
         case 'TEXT': {
-            const textFragment = (
+            return props.isApprovedOrSubmittedReportAction ? (
                 <Text
                     numberOfLines={props.isSingleLine ? 1 : undefined}
-                    style={[
-                        styles.chatItemMessageHeaderSender,
-                        props.isSingleLine ? styles.pre : styles.preWrap,
-                        props.isApprovedOrSubmittedReportAction && StyleUtils.getApprovedOrSubmittedReportTextStyles(),
-                    ]}
+                    style={[styles.chatItemMessage, styles.colorMuted]}
                 >
-                    {props.fragment.text}
+                    {props.shouldConvertToLTR ? convertToLTR(props.fragment.text) : props.fragment.text}
                 </Text>
-            );
-
-            return props.isApprovedOrSubmittedReportAction ? (
-                textFragment
             ) : (
                 <UserDetailsTooltip
                     accountID={props.accountID}
                     delegateAccountID={props.delegateAccountID}
                     icon={props.actorIcon}
                 >
-                    {textFragment}
+                    <Text
+                        numberOfLines={props.isSingleLine ? 1 : undefined}
+                        style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}
+                    >
+                        {props.fragment.text}
+                    </Text>
                 </UserDetailsTooltip>
             );
         }

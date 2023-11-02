@@ -50,29 +50,43 @@ function ReportActionItemMessage(props) {
 
     const isApprovedOrSubmittedReportAction = _.contains([CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED], props.action.actionName);
 
+    /**
+     * Get the ReportActionItemFragments
+     * @param {Boolean} shouldWrapInText determines whether the fragments are wrapped in a Text component
+     * @returns {Object} report action item fragments
+     */
+    const renderReportActionItemFragments = (shouldWrapInText) => {
+        const reportActionItemFragments = _.map(messages, (fragment, index) => (
+            <ReportActionItemFragment
+                key={`actionFragment-${props.action.reportActionID}-${index}`}
+                fragment={fragment}
+                iouMessage={iouMessage}
+                isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
+                attachmentInfo={props.action.attachmentInfo}
+                pendingAction={props.action.pendingAction}
+                source={lodashGet(props.action, 'originalMessage.source')}
+                accountID={props.action.actorAccountID}
+                style={props.style}
+                displayAsGroup={props.displayAsGroup}
+                isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}
+                // Since system messages from Old Dot begin with the person who performed the action,
+                // the first fragment will contain the person's display name and their email. We'll use this
+                // to decide if the fragment should be from left to right for RTL display names e.g. Arabic for proper
+                // formatting.
+                shouldConvertToLTR={index === 0}
+            />
+        ));
+
+        // Approving or submitting reports in oldDot results in system messages made up of multiple fragments of `TEXT` type
+        // which we need to wrap in `<Text>` to prevent them rendering on separate lines.
+
+        return shouldWrapInText ? <Text style={styles.ltr}>{reportActionItemFragments}</Text> : reportActionItemFragments;
+    };
+
     return (
         <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
             {!props.isHidden ? (
-                // Approving or submitting reports in oldDot results in system messages made up of multiple fragments of `TEXT` type
-                // which we need to wrap in `<Text>` to prevent them rendering on separate lines.
-
-                <Text>
-                    {_.map(messages, (fragment, index) => (
-                        <ReportActionItemFragment
-                            key={`actionFragment-${props.action.reportActionID}-${index}`}
-                            fragment={fragment}
-                            iouMessage={iouMessage}
-                            isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
-                            attachmentInfo={props.action.attachmentInfo}
-                            pendingAction={props.action.pendingAction}
-                            source={lodashGet(props.action, 'originalMessage.source')}
-                            accountID={props.action.actorAccountID}
-                            style={props.style}
-                            displayAsGroup={props.displayAsGroup}
-                            isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}
-                        />
-                    ))}
-                </Text>
+                renderReportActionItemFragments(isApprovedOrSubmittedReportAction)
             ) : (
                 <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>
             )}
