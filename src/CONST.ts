@@ -877,10 +877,6 @@ const CONST = {
 
     YOUR_LOCATION_TEXT: 'Your Location',
 
-    // Value indicating the maximum age in milliseconds
-    // of a possible cached position that is acceptable to return
-    MAXIMUM_AGE_OF_CACHED_USER_LOCATION: 10 * 60 * 1000,
-
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     // This is a placeholder for attachment which is uploading
     ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
