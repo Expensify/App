@@ -1542,6 +1542,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
     const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);
+    const parsedWelcomeMessage = ReportUtils.getParsedComment(welcomeMessage);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
@@ -1557,7 +1558,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
         '',
         '',
-        welcomeMessage,
+        parsedWelcomeMessage,
     );
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
 
@@ -1622,7 +1623,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
             writeCapability,
-            welcomeMessage,
+            welcomeMessage: parsedWelcomeMessage,
         },
         {optimisticData, successData, failureData},
     );

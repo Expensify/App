@@ -12,6 +12,7 @@ import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
@@ -90,6 +91,7 @@ function MoneyRequestSelectorPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
+            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
             testID={MoneyRequestSelectorPage.displayName}
         >

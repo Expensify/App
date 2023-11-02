@@ -29,6 +29,7 @@ import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import {LastVisibleMessage} from './ReportActionsUtils';
+import * as SidebarUtils from './SidebarUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import * as UserUtils from './UserUtils';
@@ -697,6 +698,28 @@ function isExpensifyOnlyParticipantInReport(report: OnyxEntry<Report>): boolean 
 }
 
 /**
+ * Returns true if report is a DM/Group DM chat.
+ */
+function isDM(report: OnyxEntry<Report>): boolean {
+    return !getChatType(report);
+}
+
+/**
+ * Returns whether a given report can have tasks created in it.
+ * We only prevent the task option if it's a DM/group-DM and the other users are all special Expensify accounts
+ *
+ */
+function canCreateTaskInReport(report: OnyxEntry<Report>): boolean {
+    const otherReportParticipants = report?.participantAccountIDs?.filter((accountID) => accountID !== currentUserAccountID);
+    const areExpensifyAccountsOnlyOtherParticipants = otherReportParticipants?.every((accountID) => CONST.EXPENSIFY_ACCOUNT_IDS.includes(accountID));
+    if (areExpensifyAccountsOnlyOtherParticipants && isDM(report)) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of accountIDs
  * by cross-referencing the accountIDs with personalDetails.
  */
@@ -807,13 +830,6 @@ function isPolicyAdmin(policyID: string, policies: OnyxCollection<Policy>): bool
 }
 
 /**
- * Returns true if report is a DM/Group DM chat.
- */
-function isDM(report: OnyxEntry<Report>): boolean {
-    return !getChatType(report);
-}
-
-/**
  * Returns true if report has a single participant.
  */
 function hasSingleParticipant(report: OnyxEntry<Report>): boolean {
@@ -890,6 +906,25 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | string): boolean {
     const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
     return isIOUReport(report) || isExpenseReport(report);
+}
+
+/**
+ * Should return true only for personal 1:1 report
+ *
+ */
+function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
+    const participantAccountIDs = report?.participantAccountIDs ?? [];
+    return (
+        !isThread(report) &&
+        !isChatRoom(report) &&
+        !isExpenseRequest(report) &&
+        !isMoneyRequestReport(report) &&
+        !isPolicyExpenseChat(report) &&
+        !isTaskReport(report) &&
+        isDM(report) &&
+        !isIOUReport(report) &&
+        participantAccountIDs.length === 1
+    );
 }
 
 /**
@@ -1268,6 +1303,7 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
     return (
         allPersonalDetails?.[accountID] ?? {
             avatar: UserUtils.getDefaultAvatar(accountID),
+            isOptimisticPersonalDetail: true,
         }
     );
 }
@@ -1275,28 +1311,38 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
 /**
  * Get the displayName for a single report participant.
  */
-function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false): string | undefined {
+function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true): string | undefined {
     if (!accountID) {
         return '';
     }
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    if ('displayName' in personalDetails) {
-        const longName = personalDetails.displayName;
-        const shortName = personalDetails.firstName ? personalDetails?.firstName : longName;
-        return shouldUseShortForm ? shortName : longName;
+    // this is to check if account is an invite/optimistically created one
+    // and prevent from falling back to 'Hidden', so a correct value is shown
+    // when searching for a new user
+    if (personalDetails.isOptimisticPersonalDetail === true) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return personalDetails.login || '';
     }
+    const longName = personalDetails.displayName;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shortName = personalDetails.firstName || longName;
+    if (!longName && !personalDetails.login && shouldFallbackToHidden) {
+        return Localize.translateLocal('common.hidden');
+    }
+    return shouldUseShortForm ? shortName : longName;
 }
 
 function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | Record<string, PersonalDetails>,
     isMultipleParticipantReport: boolean,
+    shouldFallbackToHidden = true,
 ): Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>> {
     const personalDetailsListArray = Array.isArray(personalDetailsList) ? personalDetailsList : Object.values(personalDetailsList);
 
     return personalDetailsListArray
         ?.map((user) => {
             const accountID = Number(user.accountID);
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) ?? user.login ?? '';
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) ?? user.login ?? '';
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
             let pronouns = user.pronouns;
@@ -1394,54 +1440,57 @@ function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: Rep
 }
 
 /**
- * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
+ * Checks if a report is an open task report assigned to current user.
+ *
+ * @param [parentReportAction] - The parent report action of the report (Used to check if the task has been canceled)
  */
-function isWaitingForIOUActionFromCurrentUser(report: OnyxEntry<Report>): boolean {
+function isWaitingForAssigneeToCompleteTask(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction> | Record<string, never> = {}): boolean {
+    return isTaskReport(report) && isReportManager(report) && isNotEmptyObject(parentReportAction) && isOpenTaskReport(report, parentReportAction);
+}
+
+function isUnreadWithMention(report: OnyxEntry<Report> | OptionData): boolean {
     if (!report) {
         return false;
     }
-    const parentReport = getReport(report.parentReportID);
-    if (parentReport && isNotEmptyObject(parentReport) && isArchivedRoom(parentReport)) {
+    // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
+    const lastMentionedTime = report?.lastMentionedTime ?? '';
+    const lastReadTime = report?.lastReadTime ?? '';
+    return lastReadTime < lastMentionedTime;
+}
+
+/**
+ * Determines if the option requires action from the current user. This can happen when it:
+    - is unread and the user was mentioned in one of the unread comments
+    - is for an outstanding task waiting on the user
+    - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
+ *
+ * @param option (report or optionItem)
+ * @param parentReportAction (the report action the current report is a thread of)
+ */
+function requiresAttentionFromCurrentUser(option: OnyxEntry<Report> | OptionData, parentReportAction: Record<string, never> | OnyxEntry<ReportAction> = {}) {
+    if (!option) {
+        return false;
+    }
+    const report = getReport(option.parentReportID);
+    if (isNotEmptyObject(report) && isArchivedRoom(report)) {
         return false;
     }
 
-    const policy = getPolicy(report?.policyID ?? '');
-    if (policy?.type === CONST.POLICY.TYPE.CORPORATE) {
-        // If the report is already settled, there's no action required from any user.
-        if (isSettled(report.reportID)) {
-            return false;
-        }
-
-        // Report is pending approval and the current user is the manager
-        if (isReportManager(report) && !isReportApproved(report)) {
-            return true;
-        }
-
-        // Current user is an admin and the report has been approved but not settled yet
-        return policy.role === CONST.POLICY.ROLE.ADMIN && isReportApproved(report);
-    }
-
-    // Money request waiting for current user to add their credit bank account
-    // hasOutstandingIOU will be false if the user paid, but isWaitingOnBankAccount will be true if user don't have a wallet or bank account setup
-    if (!report.hasOutstandingIOU && report.isWaitingOnBankAccount && report.ownerAccountID === currentUserAccountID) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (('isUnreadWithMention' in option && option.isUnreadWithMention) || isUnreadWithMention(option)) {
         return true;
     }
 
-    // Money request waiting for current user to Pay (from expense or iou report)
-    if (report.hasOutstandingIOU && report.ownerAccountID && (report.ownerAccountID !== currentUserAccountID || currentUserAccountID === report.managerID)) {
+    if (isWaitingForAssigneeToCompleteTask(option, parentReportAction)) {
+        return true;
+    }
+
+    // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
+    if (option.hasOutstandingChildRequest) {
         return true;
     }
 
     return false;
-}
-
-/**
- * Checks if a report is an open task report assigned to current user.
- *
- * @param  parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
- */
-function isWaitingForTaskCompleteFromAssignee(report: OnyxEntry<Report>, parentReportAction?: OnyxEntry<ReportAction>): boolean {
-    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
 }
 
 /**
@@ -2176,7 +2225,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ReportAndWorksp
 function navigateToDetailsPage(report: OnyxEntry<Report>) {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
 
-    if (isDM(report) && participantAccountIDs.length === 1) {
+    if (isOneOnOneChat(report)) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
         return;
     }
@@ -3126,16 +3175,6 @@ function isUnread(report: OnyxEntry<Report>): boolean {
     return lastReadTime < lastVisibleActionCreated;
 }
 
-function isUnreadWithMention(report: OnyxEntry<Report>): boolean {
-    if (!report) {
-        return false;
-    }
-    // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
-    const lastMentionedTime = report?.lastMentionedTime ?? '';
-    const lastReadTime = report?.lastReadTime ?? '';
-    return lastReadTime < lastMentionedTime;
-}
-
 function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): boolean {
     const allAvailableReports = allReportsDict ?? allReports;
     if (!report || !allAvailableReports) {
@@ -3151,29 +3190,6 @@ function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict: Onyx
     }
 
     return reportToLook.ownerAccountID === currentUserAccountID;
-}
-
-/**
- * Should return true only for personal 1:1 report
- *
- * @param report (chatReport or iouReport)
- */
-
-function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
-    const isChatRoomValue = report?.isChatRoom ?? false;
-    const participantsListValue = report?.participantsList ?? [];
-    return (
-        !isThread(report) &&
-        !isChatRoom(report) &&
-        !isChatRoomValue &&
-        !isExpenseRequest(report) &&
-        !isMoneyRequestReport(report) &&
-        !isPolicyExpenseChat(report) &&
-        !isTaskReport(report) &&
-        isDM(report) &&
-        !isIOUReport(report) &&
-        participantsListValue.length === 1
-    );
 }
 
 /**
@@ -3280,9 +3296,9 @@ function shouldReportBeInOptionList(
         return true;
     }
 
-    // Include reports that are relevant to the user in any view mode. Criteria include having a draft, having an outstanding IOU, or being assigned to an open task.
+    // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
+    if (report.hasDraft || requiresAttentionFromCurrentUser(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
@@ -3591,15 +3607,15 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: n
     }
 
     const participants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
-
-    // Verify if there is any of the expensify accounts amongst the participants in which case user cannot take IOU actions on such report
-    const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
-    const hasSingleParticipantInReport = participants.length === 1;
-    const hasMultipleParticipants = participants.length > 1;
-
-    if (hasExcludedIOUAccountIDs) {
+    // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
+    const doParticipantsIncludeExpensifyAccounts = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
+    const isPolicyOwnedByExpensifyAccounts = report?.policyID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(getPolicy(report?.policyID ?? '')?.ownerAccountID || 0) : false;
+    if (doParticipantsIncludeExpensifyAccounts && !isPolicyOwnedByExpensifyAccounts) {
         return [];
     }
+
+    const hasSingleParticipantInReport = participants.length === 1;
+    const hasMultipleParticipants = participants.length > 1;
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
@@ -3951,10 +3967,11 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return '';
     }
+    const originalMessage = reportAction?.originalMessage ?? {};
     let displayMessage;
-    if (reportAction?.originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        const {amount, currency, IOUReportID} = reportAction?.originalMessage;
-        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+    if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        const {IOUReportID} = originalMessage;
+        const formattedAmount = CurrencyUtils.convertToDisplayString(originalMessage?.IOUDetails?.amount ?? 0, originalMessage.IOUDetails?.currency);
         const iouReport = getReport(String(IOUReportID) ?? '');
 
         const payerName = isExpenseReport(isNotEmptyObject(iouReport) ? iouReport : null)
@@ -3975,13 +3992,20 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         }
         displayMessage = Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
     } else {
-        const transaction = TransactionUtils.getTransaction(reportAction?.originalMessage.IOUTransactionID ?? '');
-        const transactionDetails = transaction && isNotEmptyObject(transaction) ? getTransactionDetails(transaction) : undefined;
-        const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
-        displayMessage = Localize.translateLocal('iou.requestedAmount', {
-            formattedAmount,
-            comment: transactionDetails?.comment,
-        });
+        const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID ?? '');
+        const transactionDetails = isNotEmptyObject(transaction) ? getTransactionDetails(transaction) : null;
+        const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
+        const isRequestSettled = isSettled(originalMessage.IOUReportID);
+        if (isRequestSettled) {
+            displayMessage = Localize.translateLocal('iou.payerSettled', {
+                amount: formattedAmount,
+            });
+        } else {
+            displayMessage = Localize.translateLocal('iou.requestedAmount', {
+                formattedAmount,
+                comment: transactionDetails?.comment,
+            });
+        }
     }
     return displayMessage;
 }
@@ -4042,6 +4066,7 @@ export {
     getPolicyType,
     isArchivedRoom,
     isExpensifyOnlyParticipantInReport,
+    canCreateTaskInReport,
     isPolicyExpenseChatAdmin,
     isPolicyAdmin,
     isPublicRoom,
@@ -4050,7 +4075,7 @@ export {
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
-    isWaitingForIOUActionFromCurrentUser,
+    requiresAttentionFromCurrentUser,
     isIOUOwnedByCurrentUser,
     getMoneyRequestReimbursableTotal,
     getMoneyRequestSpendBreakdown,
@@ -4169,7 +4194,7 @@ export {
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
-    isWaitingForTaskCompleteFromAssignee,
+    isWaitingForAssigneeToCompleteTask,
     isGroupChat,
     isReportDraft,
     shouldUseFullTitleToDisplay,
