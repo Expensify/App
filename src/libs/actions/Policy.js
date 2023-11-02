@@ -214,7 +214,7 @@ function hasActiveFreePolicy(policies) {
 }
 
 /**
- * Build optimistic data for adding users from announce room
+ * Build optimistic data for adding members to the announce room
  * @param {String} policyID
  * @param {Array} accountIDs
  * @returns {Object}
