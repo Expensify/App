@@ -18,7 +18,7 @@ type AnchorSelection = {
 
 type NullableObject<T> = {[K in keyof T]: T[K] | null};
 
-type OriginalSelection = ComposerSelection | Partial<NullableObject<AnchorSelection>>;
+type OriginalSelection = ComposerSelection | NullableObject<AnchorSelection>;
 
 const canSetHtml: CanSetHtml =
     () =>
@@ -46,7 +46,12 @@ function setHTMLSync(html: string, text: string) {
     document.body.appendChild(node);
 
     const selection = window?.getSelection();
-    const firstAnchorChild = selection?.anchorNode?.firstChild;
+
+    if (selection === null) {
+        return;
+    }
+
+    const firstAnchorChild = selection.anchorNode?.firstChild;
     const isComposer = firstAnchorChild instanceof HTMLTextAreaElement;
     let originalSelection: OriginalSelection | null = null;
     if (isComposer) {
@@ -57,17 +62,17 @@ function setHTMLSync(html: string, text: string) {
         };
     } else {
         originalSelection = {
-            anchorNode: selection?.anchorNode,
-            anchorOffset: selection?.anchorOffset,
-            focusNode: selection?.focusNode,
-            focusOffset: selection?.focusOffset,
+            anchorNode: selection.anchorNode,
+            anchorOffset: selection.anchorOffset,
+            focusNode: selection.focusNode,
+            focusOffset: selection.focusOffset,
         };
     }
 
-    selection?.removeAllRanges();
+    selection.removeAllRanges();
     const range = document.createRange();
     range.selectNodeContents(node);
-    selection?.addRange(range);
+    selection.addRange(range);
 
     try {
         document.execCommand('copy');
@@ -76,7 +81,7 @@ function setHTMLSync(html: string, text: string) {
         // See https://dvcs.w3.org/hg/editing/raw-file/tip/editing.html#the-copy-command for more details.
     }
 
-    selection?.removeAllRanges();
+    selection.removeAllRanges();
 
     const anchorSelection = originalSelection as AnchorSelection;
 
@@ -85,7 +90,7 @@ function setHTMLSync(html: string, text: string) {
     } else if (anchorSelection.anchorNode && anchorSelection.focusNode) {
         // When copying to the clipboard here, the original values of anchorNode and focusNode will be null since there will be no user selection.
         // We are adding a check to prevent null values from being passed to setBaseAndExtent, in accordance with the standards of the Selection API as outlined here: https://w3c.github.io/selection-api/#dom-selection-setbaseandextent.
-        selection?.setBaseAndExtent(anchorSelection.anchorNode, anchorSelection.anchorOffset, anchorSelection.focusNode, anchorSelection.focusOffset);
+        selection.setBaseAndExtent(anchorSelection.anchorNode, anchorSelection.anchorOffset, anchorSelection.focusNode, anchorSelection.focusOffset);
     }
 
     document.body.removeChild(node);
