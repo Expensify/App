@@ -110,10 +110,9 @@ function IOURequestStepConfirmation({
             if (!file) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
             } else {
-                setReceiptFile({
-                    ...file,
-                    state: file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY,
-                });
+                const receipt = file;
+                receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+                setReceiptFile(receipt);
             }
         });
     }, [receiptFilename, receiptPath, requestType, iouType, reportID]);
@@ -242,7 +241,6 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            console.log('[tim', receiptFile);
             if (receiptFile) {
                 requestMoney(selectedParticipants, trimmedComment, receiptFile);
                 return;
