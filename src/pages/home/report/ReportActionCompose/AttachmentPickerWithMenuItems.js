@@ -144,7 +144,7 @@ function AttachmentPickerWithMenuItems({
         return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs), (option) => ({
             ...options[option],
             onSelected: () => {
-                Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID));
+                Navigation.navigate(ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID));
             },
         }));
     }, [report, reportParticipantIDs, translate]);

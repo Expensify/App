@@ -125,12 +125,12 @@ function IOURequestStepScan({
             return;
         }
 
-        const filePath = URL.createObjectURL(file);
-        IOU.setMoneeRequestReceipt_temporaryForRefactor(transactionID, filePath, file.name);
+        const fileSource = URL.createObjectURL(file);
+        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, fileSource, file.name);
 
         // When an existing transaction is being edited (eg. not the create transaction flow)
         if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-            IOU.replaceReceipt(transactionID, file, filePath);
+            IOU.replaceReceipt(transactionID, file, fileSource);
             Navigation.dismissModal();
             return;
         }
@@ -154,12 +154,12 @@ function IOURequestStepScan({
         const imageBase64 = cameraRef.current.getScreenshot();
         const filename = `receipt_${Date.now()}.png`;
         const imageFile = FileUtils.base64ToFile(imageBase64, filename);
-        const filePath = URL.createObjectURL(imageFile);
-        IOU.setMoneeRequestReceipt_temporaryForRefactor(transactionID, filePath, imageFile.name);
+        const fileSource = URL.createObjectURL(imageFile);
+        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, fileSource, imageFile.name);
 
         // When an existing transaction is being edited (eg. not the create transaction flow)
         if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-            IOU.replaceReceipt(transactionID, imageFile, filePath);
+            IOU.replaceReceipt(transactionID, imageFile, fileSource);
             Navigation.dismissModal();
             return;
         }

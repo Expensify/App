@@ -201,7 +201,7 @@ const defaultProps = {
     isPolicyExpenseChat: false,
 };
 
-function MoneyRequestConfirmationList(props) {
+function MoneyTemporaryForRefactorRequestConfirmationList(props) {
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
@@ -404,7 +404,7 @@ function MoneyRequestConfirmationList(props) {
             return;
         }
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
-        IOU.setMoneeRequestMerchant_temporaryForRefactor(props.transactionID, distanceMerchant);
+        IOU.setMoneyRequestMerchant_temporaryForRefactor(props.transactionID, distanceMerchant);
     }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest, props.transactionID]);
 
     /**
@@ -557,7 +557,7 @@ function MoneyRequestConfirmationList(props) {
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-            footerContent={(!_.isEmpty(props.iou.id) || props.isEditingSplitBill) && footerContent}
+            footerContent={!props.isEditingSplitBill && footerContent}
             listStyles={props.listStyles}
             shouldAllowScrollingChildren
         >
@@ -735,8 +735,8 @@ function MoneyRequestConfirmationList(props) {
     );
 }
 
-MoneyRequestConfirmationList.propTypes = propTypes;
-MoneyRequestConfirmationList.defaultProps = defaultProps;
+MoneyTemporaryForRefactorRequestConfirmationList.propTypes = propTypes;
+MoneyTemporaryForRefactorRequestConfirmationList.defaultProps = defaultProps;
 
 export default compose(
     withCurrentUserPersonalDetails,
@@ -767,4 +767,4 @@ export default compose(
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         },
     }),
-)(MoneyRequestConfirmationList);
+)(MoneyTemporaryForRefactorRequestConfirmationList);

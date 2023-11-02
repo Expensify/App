@@ -202,7 +202,9 @@ function FloatingActionButtonAndPopover(props) {
                         text: props.translate('iou.requestMoney'),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
-                                Navigation.navigate(ROUTES.MONEE_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, NumberUtils.rand64())),
+                                Navigation.navigate(
+                                    ROUTES.MONEYTEMPORARYFORREFACTOR_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, NumberUtils.rand64()),
+                                ),
                             ),
                     },
                     {

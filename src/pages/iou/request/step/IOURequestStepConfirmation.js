@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MoneyRequestConfirmationList from '@components/MoneeRequestConfirmationList';
+import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
@@ -95,7 +95,7 @@ function IOURequestStepConfirmation({
         }
         // Verification to reset billable with a default value, when value in IOU was changed
         if (typeof transaction.billable !== 'boolean') {
-            IOU.setMoneeRequestBillable_temporaryForRefactor(transactionID, lodashGet(policy, 'defaultBillable', false));
+            IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, lodashGet(policy, 'defaultBillable', false));
         }
     }, [participants, transaction.billable, policy, transactionID]);
 
@@ -298,14 +298,14 @@ function IOURequestStepConfirmation({
             }
             return participant;
         });
-        IOU.setMoneeRequestParticipants_temporaryForRefactor(transactionID, newParticipants);
+        IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, newParticipants);
     };
 
     /**
      * @param {Boolean} billable
      */
     const setBillable = (billable) => {
-        IOU.setMoneeRequestBillable_temporaryForRefactor(transactionID, billable);
+        IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, billable);
     };
 
     return (
@@ -343,8 +343,8 @@ function IOURequestStepConfirmation({
                         onConfirm={createTransaction}
                         onSendMoney={sendMoney}
                         onSelectParticipant={addNewParticipant}
-                        receiptPath={lodashGet(transaction, 'receipt.path')}
-                        receiptSource={lodashGet(transaction, 'receipt.source')}
+                        receiptPath={lodashGet(transaction, 'receipt.source')}
+                        receiptFilename={lodashGet(transaction, 'receipt.path')}
                         iouType={iouType}
                         reportID={reportID}
                         isPolicyExpenseChat={isPolicyExpenseChat}
@@ -360,7 +360,7 @@ function IOURequestStepConfirmation({
                         iouCreated={transaction.created}
                         isScanRequest={requestType === CONST.IOU.REQUEST_TYPE.SCAN}
                         isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
-                        shouldShowSmartScanFields={_.isEmpty(transaction.receiptPath)}
+                        shouldShowSmartScanFields={!_.isEmpty(transaction.receipt)}
                     />
                 </View>
             )}

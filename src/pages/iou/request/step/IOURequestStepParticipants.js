@@ -42,7 +42,7 @@ function IOURequestStepParticipants({
 
     const addParticipant = useCallback(
         (val) => {
-            IOU.setMoneeRequestParticipants_temporaryForRefactor(transactionID, val);
+            IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
             numberOfParticipants.current = val.length;
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.

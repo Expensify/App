@@ -79,7 +79,7 @@ function IOURequestStepMerchant({
      * @param {String} value.moneyRequestMerchant
      */
     const updateMerchant = (value) => {
-        IOU.setMoneeRequestMerchant_temporaryForRefactor(transactionID, value.moneyRequestMerchant);
+        IOU.setMoneyRequestMerchant_temporaryForRefactor(transactionID, value.moneyRequestMerchant);
         navigateBack();
     };
 

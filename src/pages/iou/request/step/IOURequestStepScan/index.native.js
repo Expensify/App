@@ -120,7 +120,7 @@ function IOURequestStepScan({
             })
             .then((photo) => {
                 const filePath = `file://${photo.path}`;
-                IOU.setMoneeRequestReceipt_temporaryForRefactor(transactionID, filePath, photo.path);
+                IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, filePath, photo.path);
 
                 // When an existing transaction is being edited (eg. not the create transaction flow)
                 if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
@@ -207,7 +207,7 @@ function IOURequestStepScan({
                                 openPicker({
                                     onPicked: (file) => {
                                         const filePath = file.uri;
-                                        IOU.setMoneeRequestReceipt_temporaryForRefactor(transactionID, filePath, file.name);
+                                        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, filePath, file.name);
 
                                         // When a transaction is being edited (eg. not in the creation flow)
                                         if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
