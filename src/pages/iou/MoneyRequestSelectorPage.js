@@ -24,6 +24,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import NewDistanceRequestPage from './NewDistanceRequestPage';
+import {iouDefaultProps, iouPropTypes} from './propTypes';
 import ReceiptSelector from './ReceiptSelector';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 
@@ -43,6 +44,9 @@ const propTypes = {
     /** Report on which the money request is being created */
     report: reportPropTypes,
 
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: iouPropTypes,
+
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
 
@@ -51,6 +55,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    iou: iouDefaultProps,
     selectedTab: CONST.TAB.SCAN,
     report: {},
     betas: [],
@@ -80,6 +85,18 @@ function MoneyRequestSelectorPage(props) {
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
     const isAllowedToCreateRequest = _.isEmpty(props.report.reportID) || ReportUtils.canCreateRequest(props.report, props.betas, iouType);
     const prevSelectedTab = usePrevious(props.selectedTab);
+
+    // Reset money request info if there's a mismatch between Onyx's IOU and the url parameters
+    // This is only executed when the screen is first mounted
+    useEffect(() => {
+        if (props.iou.id === `${iouType}${reportID}`) {
+            return;
+        }
+
+        resetMoneyRequestInfo();
+        //
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (prevSelectedTab === props.selectedTab) {
@@ -158,6 +175,7 @@ MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 export default compose(
     withReportOrNotFound(false),
     withOnyx({
+        iou: {key: ONYXKEYS.IOU},
         selectedTab: {
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
         },
