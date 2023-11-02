@@ -303,12 +303,9 @@ function ReportActionsList({
             if (!currentUnreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
-                const isNextMessageRead = !isMessageUnread(nextMessage, report.lastReadTime);
-                const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
-                shouldDisplay = isCurrentMessageUnread && (!nextMessage || isNextMessageRead) && isWithinVisibleThreshold;
-
-                if (shouldDisplay && !messageManuallyMarkedUnread) {
-                    shouldDisplay = reportAction.actorAccountID !== Report.getCurrentUserAccountID();
+                shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, report.lastReadTime));
+                if (!messageManuallyMarkedUnread) {
+                    shouldDisplay = shouldDisplay && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
             } else {
                 shouldDisplay = reportAction.reportActionID === currentUnreadMarker;
@@ -415,6 +412,7 @@ function ReportActionsList({
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
+                    testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
                     data={sortedReportActions}
                     renderItem={renderItem}
@@ -432,7 +430,6 @@ function ReportActionsList({
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     extraData={extraData}
-                    testID="report-actions-list"
                 />
             </Animated.View>
         </>
