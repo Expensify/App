@@ -76,9 +76,9 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                     style={[styles.mentionSuggestionsText, styles.flexShrink1]}
                     numberOfLines={1}
                 >
-                    {styledDisplayName.map(({text, isColored}) => (
+                    {styledDisplayName.map(({text, isColored}, i) => (
                         <Text
-                            key={`${text}${isColored}`}
+                            key={`${text}${i}`}
                             style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsDisplayName]}
                         >
                             {text}
@@ -91,10 +91,10 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                 >
                     {styledHandle &&
                         styledHandle.map(
-                            ({text, isColored}) =>
+                            ({text, isColored}, i) =>
                                 Boolean(text) && (
                                     <Text
-                                        key={`${text}${isColored}`}
+                                        key={`${text}${i}`}
                                         style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
                                     >
                                         {text}
