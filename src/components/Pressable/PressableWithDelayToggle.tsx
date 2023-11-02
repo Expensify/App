@@ -1,3 +1,4 @@
+/* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
 import React, {ForwardedRef, forwardRef} from 'react';
 import {Text as RNText, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {SvgProps} from 'react-native-svg';
@@ -109,7 +110,6 @@ function PressableWithDelayToggle(
                     <PressableWithoutFeedback
                         focusable={false}
                         accessible={false}
-                        accessibilityLabel=""
                         onPress={updatePressState}
                         style={[styles.flexRow, pressableStyle, !isActive && styles.cursorDefault]}
                     >
