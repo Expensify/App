@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import SetShouldShowComposeInputKeyboardAware from './types';
 
 let keyboardEventListener: EmitterSubscription | null = null;
-// On iOS is visible delay with displaying input after keyboard has been closed with `keyboardDidHide` event
+// On iOS, there is a visible delay in displaying input after the keyboard has been closed with the `keyboardDidHide` event
 // Because of that - on iOS we can use `keyboardWillHide` that is not available on android
 const keyboardEvent = getOperatingSystem() === CONST.OS.IOS ? 'keyboardWillHide' : 'keyboardDidHide';
 
