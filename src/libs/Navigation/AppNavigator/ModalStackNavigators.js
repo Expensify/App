@@ -18,17 +18,24 @@ const defaultSubRouteOptions = {
  */
 function createModalStackNavigator(screens) {
     const ModalStackNavigator = createStackNavigator();
-    return () => (
-        <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
-            {_.map(screens, (getComponent, name) => (
-                <ModalStackNavigator.Screen
-                    key={name}
-                    name={name}
-                    getComponent={getComponent}
-                />
-            ))}
-        </ModalStackNavigator.Navigator>
-    );
+
+    function ModalStack() {
+        return (
+            <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
+                {_.map(screens, (getComponent, name) => (
+                    <ModalStackNavigator.Screen
+                        key={name}
+                        name={name}
+                        getComponent={getComponent}
+                    />
+                ))}
+            </ModalStackNavigator.Navigator>
+        );
+    }
+
+    ModalStack.displayName = 'ModalStack';
+
+    return ModalStack;
 }
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator({

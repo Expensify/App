@@ -1,7 +1,7 @@
 import React, {useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Tooltip from '../Tooltip';
+import Tooltip from '../Tooltip/PopoverAnchorTooltip';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import Icon from '../Icon';

@@ -68,10 +68,14 @@ CountrySelector.propTypes = propTypes;
 CountrySelector.defaultProps = defaultProps;
 CountrySelector.displayName = 'CountrySelector';
 
-export default React.forwardRef((props, ref) => (
+const CountrySelectorWithRef = React.forwardRef((props, ref) => (
     <CountrySelector
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+CountrySelectorWithRef.displayName = 'CountrySelectorWithRef';
+
+export default CountrySelectorWithRef;

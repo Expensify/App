@@ -36,6 +36,7 @@ import variables from './variables';
 import {ThemeColors} from './themes/types';
 import colors from './colors';
 import objectFit from './utilities/objectFit';
+import textDecorationLine from './utilities/textDecorationLine';
 
 type AnchorPosition = {
     horizontal: number;
@@ -227,6 +228,7 @@ const styles = (theme: ThemeColors) =>
         ...userSelect,
         ...textUnderline,
         ...objectFit,
+        ...textDecorationLine,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
@@ -244,6 +246,11 @@ const styles = (theme: ThemeColors) =>
         autoCompleteSuggestionContainer: {
             flexDirection: 'row',
             alignItems: 'center',
+        },
+
+        rtlTextRenderForSafari: {
+            textAlign: 'left',
+            ...writingDirection.ltr,
         },
 
         emojiSuggestionsEmoji: {
@@ -480,7 +487,9 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
             justifyContent: 'center',
+            alignItems: 'center',
             ...spacing.ph3,
+            ...spacing.pv0,
         },
 
         buttonContainer: {
@@ -507,18 +516,14 @@ const styles = (theme: ThemeColors) =>
         buttonSmall: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeSmall,
-            paddingTop: 4,
             paddingHorizontal: 14,
-            paddingBottom: 4,
             backgroundColor: theme.buttonDefaultBG,
         },
 
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
-            paddingTop: 12,
             paddingRight: 16,
-            paddingBottom: 12,
             paddingLeft: 16,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -526,9 +531,7 @@ const styles = (theme: ThemeColors) =>
         buttonLarge: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
-            paddingTop: 8,
             paddingRight: 10,
-            paddingBottom: 8,
             paddingLeft: 10,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -609,7 +612,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         buttonCTA: {
-            paddingVertical: 6,
             ...spacing.mh4,
         },
 
@@ -1643,6 +1645,10 @@ const styles = (theme: ThemeColors) =>
             width: 18,
         },
 
+        chatContentScrollViewWithHeaderLoader: {
+            paddingTop: CONST.CHAT_HEADER_LOADER_HEIGHT,
+        },
+
         chatContentScrollView: {
             flexGrow: 1,
             justifyContent: 'flex-start',
@@ -2161,7 +2167,6 @@ const styles = (theme: ThemeColors) =>
             // It's being used on Web/Desktop only to vertically center short PDFs,
             // while preventing the overflow of the top of long PDF files.
             ...display.dGrid,
-            backgroundColor: theme.modalBackground,
             width: '100%',
             height: '100%',
             justifyContent: 'center',
@@ -2895,16 +2900,6 @@ const styles = (theme: ThemeColors) =>
             width: variables.sideBarWidth - 68,
         },
 
-        cardOverlay: {
-            backgroundColor: theme.overlay,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            opacity: variables.overlayOpacity,
-        },
-
         shortTermsBorder: {
             borderWidth: 1,
             borderColor: theme.border,
@@ -3160,7 +3155,7 @@ const styles = (theme: ThemeColors) =>
 
         paymentMethod: {
             paddingHorizontal: 20,
-            height: 64,
+            height: variables.paymentMethodHeight,
         },
 
         archivedReportFooter: {
@@ -3904,6 +3899,15 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        chatBottomLoader: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: CONST.CHAT_HEADER_LOADER_HEIGHT,
+        },
+
         videoContainer: {
             ...flex.flex1,
             ...flex.alignItemsCenter,
@@ -3954,8 +3958,11 @@ const styles = (theme: ThemeColors) =>
         },
 
         walletCardMenuItem: {
+            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontWeight: fontWeightBold,
             color: theme.text,
             fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         walletCardHolder: {
@@ -3973,6 +3980,33 @@ const styles = (theme: ThemeColors) =>
             fontSize: 45,
             paddingTop: 0,
             paddingBottom: 0,
+        },
+
+        walletDangerSection: {
+            backgroundColor: theme.dangerSection,
+            color: theme.dangerSection,
+            borderRadius: variables.componentBorderRadiusCard,
+            width: 'auto',
+            marginHorizontal: 20,
+            marginBottom: 6,
+        },
+
+        walletDangerSectionTitle: {
+            fontSize: variables.fontSizeNormal,
+            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontWeight: fontWeightBold,
+            lineHeight: variables.lineHeightXLarge,
+        },
+
+        walletDangerSectionText: {
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
+
+        walletLockedMessage: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         aspectRatioLottie: (source) => {

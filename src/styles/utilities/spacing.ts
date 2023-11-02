@@ -207,6 +207,10 @@ export default {
         marginTop: 32,
     },
 
+    mt9: {
+        marginTop: 36,
+    },
+
     mt11: {
         marginTop: 44,
     },
@@ -253,6 +257,10 @@ export default {
 
     mb8: {
         marginBottom: 32,
+    },
+
+    mb9: {
+        marginBottom: 36,
     },
 
     mb10: {

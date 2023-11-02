@@ -10,7 +10,6 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ErrorUtils from '../../libs/ErrorUtils';
-import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
@@ -18,6 +17,8 @@ import * as Task from '../../libs/actions/Task';
 import CONST from '../../CONST';
 import * as Browser from '../../libs/Browser';
 import useAutoFocusInput from '../../hooks/useAutoFocusInput';
+import FormProvider from '../../components/Form/FormProvider';
+import InputWrapper from '../../components/Form/InputWrapper';
 
 const propTypes = {
     /** Beta features list */
@@ -86,7 +87,7 @@ function NewTaskDetailsPage(props) {
                 shouldShowBackButton
                 onBackButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
                 style={[styles.mh5, styles.flexGrow1]}
@@ -95,7 +96,8 @@ function NewTaskDetailsPage(props) {
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         ref={inputCallbackRef}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskTitle"
@@ -106,7 +108,8 @@ function NewTaskDetailsPage(props) {
                     />
                 </View>
                 <View style={styles.mb5}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
@@ -119,7 +122,7 @@ function NewTaskDetailsPage(props) {
                         onValueChange={(value) => setTaskDescription(value)}
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

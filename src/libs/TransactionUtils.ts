@@ -396,9 +396,6 @@ function getAllReportTransactions(reportID?: string): Transaction[] {
     return transactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
-/**
- * Checks if a waypoint has a valid address
- */
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }

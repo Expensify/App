@@ -301,6 +301,7 @@ class Button extends Component {
                     this.props.isDisabled && !this.props.danger && !this.props.success ? styles.buttonDisabled : undefined,
                     this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                    this.props.icon || this.props.shouldShowRightIcon ? styles.alignItemsStretch : undefined,
                     ...this.props.innerStyles,
                 ]}
                 hoverStyle={[

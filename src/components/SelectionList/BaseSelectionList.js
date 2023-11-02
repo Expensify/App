@@ -152,31 +152,33 @@ function BaseSelectionList({
      * @param {Number} index - the index of the item to scroll to
      * @param {Boolean} animated - whether to animate the scroll
      */
-    const scrollToIndex = useCallback((index, animated = true) => {
-        const item = flattenedSections.allOptions[index];
+    const scrollToIndex = useCallback(
+        (index, animated = true) => {
+            const item = flattenedSections.allOptions[index];
 
-        if (!listRef.current || !item) {
-            return;
-        }
-
-        const itemIndex = item.index;
-        const sectionIndex = item.sectionIndex;
-
-        // Note: react-native's SectionList automatically strips out any empty sections.
-        // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
-        // Otherwise, it will cause an index-out-of-bounds error and crash the app.
-        let adjustedSectionIndex = sectionIndex;
-        for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
-                adjustedSectionIndex--;
+            if (!listRef.current || !item) {
+                return;
             }
-        }
 
-        listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
+            const itemIndex = item.index;
+            const sectionIndex = item.sectionIndex;
 
-        // If we don't disable dependencies here, we would need to make sure that the `sections` prop is stable in every usage of this component.
+            // Note: react-native's SectionList automatically strips out any empty sections.
+            // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
+            // Otherwise, it will cause an index-out-of-bounds error and crash the app.
+            let adjustedSectionIndex = sectionIndex;
+            for (let i = 0; i < sectionIndex; i++) {
+                if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
+                    adjustedSectionIndex--;
+                }
+            }
+
+            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
+        },
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        [flattenedSections.allOptions],
+    );
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.

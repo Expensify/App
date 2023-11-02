@@ -264,6 +264,7 @@ export default {
         recent: 'Recent',
         all: 'All',
         tbd: 'TBD',
+        selectCurrency: 'Select a currency',
         card: 'Card',
     },
     location: {
@@ -337,10 +338,6 @@ export default {
         paidBy: 'Paid by',
         splitWith: 'Split with',
         whatsItFor: "What's it for?",
-    },
-    iOUCurrencySelection: {
-        selectCurrency: 'Select a currency',
-        allCurrencies: 'All currencies',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
@@ -550,7 +547,7 @@ export default {
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
-        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount} with Expensify`,
+        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         payElsewhere: 'Pay elsewhere',
         nextSteps: 'Next Steps',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
@@ -869,6 +866,8 @@ export default {
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a Workspace admin to manage company spend.',
         expensifyCard: 'Expensify Card',
+        walletActivationPending: "We're reviewing your information, please check back in a few minutes!",
+        walletActivationFailed: 'Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -876,6 +875,10 @@ export default {
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
         reportFraud: 'Report virtual card fraud',
+        reviewTransaction: 'Review transaction',
+        suspiciousBannerTitle: 'Suspicious transaction',
+        suspiciousBannerDescription: 'We noticed suspicious transaction on your card. Tap below to review.',
+        cardLocked: "Your card is temporarily locked while our team reviews your company's account.",
         cardDetails: {
             cardNumber: 'Virtual card number',
             expiration: 'Expiration',

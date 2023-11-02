@@ -46,13 +46,15 @@ export default function (WrappedComponent) {
     WithPolicyAndFullscreenLoading.defaultProps = defaultProps;
     WithPolicyAndFullscreenLoading.displayName = `WithPolicyAndFullscreenLoading(${getComponentDisplayName(WrappedComponent)})`;
 
-    const withPolicyAndFullscreenLoading = React.forwardRef((props, ref) => (
+    const WithPolicyAndFullscreenLoadingWithRef = React.forwardRef((props, ref) => (
         <WithPolicyAndFullscreenLoading
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithPolicyAndFullscreenLoadingWithRef.displayName = 'WithPolicyAndFullscreenLoadingWithRef';
 
     return compose(
         withPolicy,
@@ -61,5 +63,5 @@ export default function (WrappedComponent) {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
             },
         }),
-    )(withPolicyAndFullscreenLoading);
+    )(WithPolicyAndFullscreenLoadingWithRef);
 }

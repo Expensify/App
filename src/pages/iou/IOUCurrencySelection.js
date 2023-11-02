@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useCallback, useRef} from 'react';
+import React, {useState, useMemo, useCallback, useRef, useEffect} from 'react';
 import {Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -14,6 +14,8 @@ import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
 import {iouPropTypes, iouDefaultProps} from './propTypes';
 import SelectionList from '../../components/SelectionList';
@@ -71,6 +73,28 @@ function IOUCurrencySelection(props) {
     const selectedCurrencyCode = (lodashGet(props.route, 'params.currency', props.iou.currency) || CONST.CURRENCY.USD).toUpperCase();
     const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.TYPE.REQUEST);
     const reportID = lodashGet(props.route, 'params.reportID', '');
+    const threadReportID = lodashGet(props.route, 'params.threadReportID', '');
+
+    // Decides whether to allow or disallow editing a money request
+    useEffect(() => {
+        // Do not dismiss the modal, when it is not the edit flow.
+        if (!threadReportID) {
+            return;
+        }
+
+        const report = ReportUtils.getReport(threadReportID);
+        const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
+
+        // Do not dismiss the modal, when a current user can edit this currency of this money request.
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, report.parentReportID, CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
+            return;
+        }
+
+        // Dismiss the modal when a current user cannot edit a money request.
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal();
+        });
+    }, [threadReportID]);
 
     const confirmCurrencySelection = useCallback(
         (option) => {
@@ -130,7 +154,7 @@ function IOUCurrencySelection(props) {
             testID={IOUCurrencySelection.displayName}
         >
             <HeaderWithBackButton
-                title={translate('iOUCurrencySelection.selectCurrency')}
+                title={translate('common.selectCurrency')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
             />
             <SelectionList

@@ -118,23 +118,23 @@ function VerifyStep({account, session}) {
                     </View>
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                 </View>
-                <View style={[styles.mt3, styles.mh5]}>
+            </ScrollView>
+            <FixedFooter style={[styles.mt2, styles.pt2]}>
+                <View style={[styles.mh5, styles.mb4]}>
                     <TwoFactorAuthForm innerRef={formRef} />
                 </View>
-                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                    <Button
-                        success
-                        text={translate('common.next')}
-                        isLoading={account.isLoading}
-                        onPress={() => {
-                            if (!formRef.current) {
-                                return;
-                            }
-                            formRef.current.validateAndSubmitForm();
-                        }}
-                    />
-                </FixedFooter>
-            </ScrollView>
+                <Button
+                    success
+                    text={translate('common.next')}
+                    isLoading={account.isLoading}
+                    onPress={() => {
+                        if (!formRef.current) {
+                            return;
+                        }
+                        formRef.current.validateAndSubmitForm();
+                    }}
+                />
+            </FixedFooter>
         </StepWrapper>
     );
 }

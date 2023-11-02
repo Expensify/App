@@ -4,7 +4,7 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
 import * as Expensicons from '../Icon/Expensicons';
-import Tooltip from '../Tooltip';
+import Tooltip from '../Tooltip/PopoverAnchorTooltip';
 import Icon from '../Icon';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';

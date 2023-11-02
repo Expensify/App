@@ -10,13 +10,17 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
 import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
-import StepPropTypes from './StepPropTypes';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import useLocalize from '../../hooks/useLocalize';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 
 const propTypes = {
-    ...StepPropTypes,
+    /** The bank account currently in setup */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
 
     /** The token required to initialize the Onfido SDK */
     onfidoToken: PropTypes.string,
@@ -79,6 +83,7 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
 RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
 RequestorOnfidoStep.propTypes = propTypes;
 RequestorOnfidoStep.defaultProps = defaultProps;
+RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
 
 export default withOnyx({
     onfidoToken: {

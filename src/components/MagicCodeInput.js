@@ -356,12 +356,14 @@ function MagicCodeInput(props) {
 MagicCodeInput.propTypes = propTypes;
 MagicCodeInput.defaultProps = defaultProps;
 
-export default withNetwork()(
-    forwardRef((props, ref) => (
-        <MagicCodeInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+const MagicCodeInputWithRef = forwardRef((props, ref) => (
+    <MagicCodeInput
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+MagicCodeInputWithRef.displayName = 'MagicCodeInputWithRef';
+
+export default withNetwork()(MagicCodeInputWithRef);

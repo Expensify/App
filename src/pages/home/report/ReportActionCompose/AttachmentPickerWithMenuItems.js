@@ -10,7 +10,7 @@ import AttachmentPicker from '../../../../components/AttachmentPicker';
 import * as Report from '../../../../libs/actions/Report';
 import PopoverMenu from '../../../../components/PopoverMenu';
 import CONST from '../../../../CONST';
-import Tooltip from '../../../../components/Tooltip';
+import Tooltip from '../../../../components/Tooltip/PopoverAnchorTooltip';
 import * as Browser from '../../../../libs/Browser';
 import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
 import useLocalize from '../../../../hooks/useLocalize';

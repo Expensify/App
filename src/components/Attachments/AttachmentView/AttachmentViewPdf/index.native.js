@@ -1,10 +1,9 @@
 import React, {memo, useCallback, useContext, useEffect} from 'react';
-import styles from '../../../../styles/styles';
 import {attachmentViewPdfPropTypes, attachmentViewPdfDefaultProps} from './propTypes';
 import PDFView from '../../../PDFView';
 import AttachmentCarouselPagerContext from '../../AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 
-function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete}) {
+function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete, errorLabelStyles, style}) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     useEffect(() => {
@@ -41,10 +40,11 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}
             fileName={file.name}
-            style={styles.imageModalPDF}
+            style={style}
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}
             onLoadComplete={onLoadComplete}
+            errorLabelStyles={errorLabelStyles}
         />
     );
 }

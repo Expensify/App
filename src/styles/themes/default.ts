@@ -33,6 +33,7 @@ const darkTheme = {
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
     signInPage: colors.green800,
+    dangerSection: colors.tangerine800,
 
     // Additional keys
     overlay: colors.darkBorders,

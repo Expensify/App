@@ -45,6 +45,11 @@ function SilentCommentUpdater({comment, commentRef, report, value, updateComment
     const prevPreferredLocale = usePrevious(preferredLocale);
 
     useEffect(() => {
+        updateComment(comment);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
+    }, []);
+
+    useEffect(() => {
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
         // In this case, we should synchronize the value between tabs.
         const shouldSyncComment = prevCommentProp !== comment && value !== comment;

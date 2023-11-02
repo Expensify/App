@@ -105,13 +105,15 @@ export default function (WrappedComponent) {
     WithPolicy.propTypes = propTypes;
     WithPolicy.defaultProps = defaultProps;
     WithPolicy.displayName = `withPolicy(${getComponentDisplayName(WrappedComponent)})`;
-    const withPolicy = React.forwardRef((props, ref) => (
+    const WithPolicyWithRef = React.forwardRef((props, ref) => (
         <WithPolicy
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithPolicyWithRef.displayName = 'WithPolicyWithRef';
 
     return withOnyx({
         policy: {
@@ -126,7 +128,7 @@ export default function (WrappedComponent) {
         policyMembersDraft: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
         },
-    })(withPolicy);
+    })(WithPolicyWithRef);
 }
 
 export {policyPropTypes, policyDefaultProps};

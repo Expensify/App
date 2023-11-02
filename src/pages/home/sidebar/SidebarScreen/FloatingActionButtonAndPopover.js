@@ -257,6 +257,16 @@ FloatingActionButtonAndPopover.propTypes = propTypes;
 FloatingActionButtonAndPopover.defaultProps = defaultProps;
 FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
+const FloatingActionButtonAndPopoverWithRef = forwardRef((props, ref) => (
+    <FloatingActionButtonAndPopover
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+FloatingActionButtonAndPopoverWithRef.displayName = 'FloatingActionButtonAndPopoverWithRef';
+
 export default compose(
     withLocalize,
     withNavigation,
@@ -277,12 +287,4 @@ export default compose(
             key: ONYXKEYS.DEMO_INFO,
         },
     }),
-)(
-    forwardRef((props, ref) => (
-        <FloatingActionButtonAndPopover
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+)(FloatingActionButtonAndPopoverWithRef);

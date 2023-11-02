@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -16,6 +16,7 @@ import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
 import CONST from '../../CONST';
+import useAutoFocusInput from '../../hooks/useAutoFocusInput';
 
 const propTypes = {
     /** Beta features list */
@@ -38,7 +39,7 @@ const defaultProps = {
 };
 
 function NewTaskTitlePage(props) {
-    const inputRef = useRef(null);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -68,13 +69,6 @@ function NewTaskTitlePage(props) {
     }
     return (
         <ScreenWrapper
-            onEntryTransitionEnd={() => {
-                if (!inputRef.current) {
-                    return;
-                }
-
-                inputRef.current.focus();
-            }}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={NewTaskTitlePage.displayName}
@@ -97,7 +91,7 @@ function NewTaskTitlePage(props) {
                     <TextInput
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={props.task.title}
-                        ref={(el) => (inputRef.current = el)}
+                        ref={inputCallbackRef}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}

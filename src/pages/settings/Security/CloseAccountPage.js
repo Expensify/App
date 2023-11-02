@@ -16,10 +16,11 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import * as CloseAccount from '../../../libs/actions/CloseAccount';
 import ONYXKEYS from '../../../ONYXKEYS';
-import Form from '../../../components/Form';
 import CONST from '../../../CONST';
 import ConfirmModal from '../../../components/ConfirmModal';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
+import FormProvider from '../../../components/Form/FormProvider';
+import InputWrapper from '../../../components/Form/InputWrapper';
 
 const propTypes = {
     /** Session of currently logged in user */
@@ -91,7 +92,7 @@ function CloseAccountPage(props) {
                 title={props.translate('closeAccountPage.closeAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
                 validate={validate}
                 onSubmit={showConfirmModal}
@@ -101,7 +102,8 @@ function CloseAccountPage(props) {
             >
                 <View style={[styles.flexGrow1]}>
                     <Text>{props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="reasonForLeaving"
                         autoGrowHeight
                         textAlignVertical="top"
@@ -113,7 +115,8 @@ function CloseAccountPage(props) {
                     <Text style={[styles.mt5]}>
                         {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
                     </Text>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         label={props.translate('closeAccountPage.enterDefaultContact')}
@@ -136,7 +139,7 @@ function CloseAccountPage(props) {
                         shouldShowCancelButton
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

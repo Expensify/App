@@ -1,7 +1,6 @@
 const fs = require('fs/promises');
 const fsSync = require('fs');
 const _ = require('underscore');
-const {OUTPUT_DIR} = require('../config');
 const {computeProbability, computeZ} = require('./math');
 const printToConsole = require('./output/console');
 const writeToMarkdown = require('./output/markdown');
@@ -119,7 +118,7 @@ function compareResults(compareEntries, baselineEntries) {
     };
 }
 
-module.exports = (baselineFile = `${OUTPUT_DIR}/baseline.json`, compareFile = `${OUTPUT_DIR}/compare.json`, outputFormat = 'all') => {
+module.exports = (baselineFile, compareFile, outputFile, outputFormat = 'all') => {
     const hasBaselineFile = fsSync.existsSync(baselineFile);
     if (!hasBaselineFile) {
         throw new Error(`Baseline results files "${baselineFile}" does not exists.`);
@@ -136,7 +135,7 @@ module.exports = (baselineFile = `${OUTPUT_DIR}/baseline.json`, compareFile = `$
                 printToConsole(outputData);
             }
             if (outputFormat === 'markdown' || outputFormat === 'all') {
-                return writeToMarkdown(`${OUTPUT_DIR}/output.md`, outputData);
+                return writeToMarkdown(outputFile, outputData);
             }
         });
     });

@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Log from './Log';
 import PersonalDetailsByAccountID from './migrations/PersonalDetailsByAccountID';
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
+import KeyReportActionsDraftByReportActionID from './migrations/KeyReportActionsDraftByReportActionID';
 
 export default function () {
     const startTime = Date.now();
@@ -9,7 +10,7 @@ export default function () {
 
     return new Promise((resolve) => {
         // Add all migrations to an array so they are executed in order
-        const migrationPromises = [PersonalDetailsByAccountID, RenameReceiptFilename];
+        const migrationPromises = [PersonalDetailsByAccountID, RenameReceiptFilename, KeyReportActionsDraftByReportActionID];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
         // previous promise to finish before moving onto the next one.

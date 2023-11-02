@@ -219,6 +219,7 @@ class SearchPage extends Component {
 
 SearchPage.propTypes = propTypes;
 SearchPage.defaultProps = defaultProps;
+SearchPage.displayName = 'SearchPage';
 
 export default compose(
     withLocalize,

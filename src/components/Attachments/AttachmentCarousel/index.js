@@ -78,7 +78,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
      * @param {Object} item
      * @param {number} index
      */
-    const updatePage = useRef(
+    const updatePage = useCallback(
         ({viewableItems}) => {
             Keyboard.dismiss();
 
@@ -207,7 +207,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             getItemLayout={getItemLayout}
                             keyExtractor={(item) => item.source}
                             viewabilityConfig={viewabilityConfig}
-                            onViewableItemsChanged={updatePage.current}
+                            onViewableItemsChanged={updatePage}
                         />
                     )}
 
