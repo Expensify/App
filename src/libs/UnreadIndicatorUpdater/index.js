@@ -9,7 +9,10 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (reportsFromOnyx) => {
-        const unreadReports = _.filter(reportsFromOnyx, (report) => ReportUtils.isUnread(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+        const unreadReports = _.filter(
+            reportsFromOnyx,
+            (report) => ReportUtils.isUnread(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && ReportUtils.isArchivedRoom(report),
+        );
         updateUnread(_.size(unreadReports));
     },
 });
