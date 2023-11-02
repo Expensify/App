@@ -83,7 +83,7 @@ function GenericPressable(
                 HapticFeedback.longPress();
             }
             if (ref && 'current' in ref) {
-                ref?.current?.blur();
+                ref.current?.blur();
             }
             onLongPress(event);
 
@@ -104,7 +104,7 @@ function GenericPressable(
                 HapticFeedback.press();
             }
             if (ref && 'current' in ref) {
-                ref?.current?.blur();
+                ref.current?.blur();
             }
             onPress(event);
 
