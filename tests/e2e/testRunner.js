@@ -80,8 +80,8 @@ if (args.includes('--config')) {
 }
 
 // Important set app path after correct config file has been set
-const mainAppPath = config.MAIN_APP_PATH;
-const deltaAppPath = config.DELTA_APP_PATH;
+let mainAppPath = config.MAIN_APP_PATH;
+let deltaAppPath = config.DELTA_APP_PATH;
 
 // Create some variables after the correct config file has been loaded
 const OUTPUT_FILE = `${config.OUTPUT_DIR}/${label}.json`;
@@ -162,14 +162,45 @@ const runTests = async () => {
         }
 
         // Build a new JS bundle
-        // const tempDir = `${config.OUTPUT_DIR}/temp`;
-        // const tempBundlePath = `${tempDir}/index.android.bundle`;
-        // await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
-        // await execAsync(`npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`, {E2E_TESTING: 'true'});
-        // // Repackage the existing native app with the new bundle
-        // const tempApkPath = `${tempDir}/app-release.apk`;
-        // await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${appPath} ${tempBundlePath} ${tempApkPath}`);
-        // appPath = tempApkPath;
+        if (!skipCheckout) {
+            // Switch branch
+            Logger.log(`Test setup - checkout main`);
+            await execAsync(`git checkout main`);
+        }
+
+        if (!skipInstallDeps) {
+            Logger.log(`Test setup - npm install`);
+            await execAsync('npm i');
+        }
+
+        const tempDir = `${config.OUTPUT_DIR}/temp`;
+        let tempBundlePath = `${tempDir}/index.android.bundle`;
+        await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
+        await execAsync(`npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`, {E2E_TESTING: 'true'});
+        // Repackage the existing native app with the new bundle
+        let tempApkPath = `${tempDir}/app-release.apk`;
+        await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${mainAppPath} ${tempBundlePath} ${tempApkPath}`);
+        mainAppPath = tempApkPath;
+
+        // Build a new JS bundle
+        if (!skipCheckout) {
+            // Switch branch
+            Logger.log(`Test setup - checkout main`);
+            await execAsync(`git checkout ${branch}`);
+        }
+
+        if (!skipInstallDeps) {
+            Logger.log(`Test setup - npm install`);
+            await execAsync('npm i');
+        }
+
+        tempBundlePath = `${tempDir}/index.android.bundle`;
+        await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
+        await execAsync(`npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`, {E2E_TESTING: 'true'});
+        // Repackage the existing native app with the new bundle
+        tempApkPath = `${tempDir}/app-release.apk`;
+        await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${deltaAppPath} ${tempBundlePath} ${tempApkPath}`);
+        deltaAppPath = tempApkPath;
     }
 
     // Install app and reverse port
