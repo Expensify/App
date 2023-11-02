@@ -69,6 +69,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
     return (
         <OptionsSelector
             optionHoveredStyle={styles.hoveredComponentBG}
+            sectionHeaderStyle={styles.mt5}
             sections={sections}
             selectedOptions={selectedOptions}
             value={searchValue}
