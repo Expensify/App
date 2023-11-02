@@ -272,97 +272,6 @@ describe('Sidebar', () => {
                     })
             );
         });
-
-        // NOTE: This is also for #focus mode, should we move this test block?
-        describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
-            // Given a report that is the active report and doesn't change
-            const report1 = LHNTestUtils.getFakeReport([3, 4]);
-
-            // Given a free policy that doesn't change
-            const policy = {
-                name: 'Policy One',
-                policyID: '1',
-                type: CONST.POLICY.TYPE.FREE,
-            };
-
-            // Given the user is in all betas
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
-
-            // Given there are 6 boolean variables tested in the filtering logic:
-            // 1. isArchived
-            // 2. isUserCreatedPolicyRoom
-            // 3. hasAddWorkspaceError
-            // 4. isUnread
-            // 5. isPinned
-            // 6. hasDraft
-            // There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
-            // additional reports in Onyx, so it's being left out for now. It's identical to the logic for hasDraft and isPinned though.
-
-            // Given these combinations of booleans which result in the report being filtered out (not shown).
-            const booleansWhichRemovesActiveReport = [
-                JSON.stringify([false, false, false, false, false, false]),
-                JSON.stringify([false, true, false, false, false, false]),
-                JSON.stringify([true, false, false, false, false, false]),
-                JSON.stringify([true, true, false, false, false, false]),
-            ];
-
-            // When every single combination of those booleans is tested
-
-            // Taken from https://stackoverflow.com/a/39734979/9114791 to generate all possible boolean combinations
-            const AMOUNT_OF_VARIABLES = 6;
-            // eslint-disable-next-line no-bitwise
-            for (let i = 0; i < 1 << AMOUNT_OF_VARIABLES; i++) {
-                const boolArr = [];
-                for (let j = AMOUNT_OF_VARIABLES - 1; j >= 0; j--) {
-                    // eslint-disable-next-line no-bitwise
-                    boolArr.push(Boolean(i & (1 << j)));
-                }
-
-                // To test a failing set of conditions, comment out the for loop above and then use a hardcoded array
-                // for the specific case that's failing. You can then debug the code to see why the test is not passing.
-                // const boolArr = [false, false, false, false, false];
-
-                it(`the booleans ${boolArr}`, () => {
-                    const report2 = {
-                        ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
-                        policyID: policy.policyID,
-                    };
-                    LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
-
-                    return (
-                        waitForBatchedUpdates()
-                            // When Onyx is updated to contain that data and the sidebar re-renders
-                            .then(() =>
-                                Onyx.multiSet({
-                                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                                    [ONYXKEYS.BETAS]: betas,
-                                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                    [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
-                                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
-                                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
-                                }),
-                            )
-                            // Then depending on the outcome, either one or two reports are visible
-                            .then(() => {
-                                if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
-                                    // Only one report visible
-                                    const displayNamesHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
-                                    const displayNames = screen.queryAllByLabelText(displayNamesHintText);
-                                    const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
-                                    expect(displayNames).toHaveLength(1);
-                                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
-                                } else {
-                                    // Both reports visible
-                                    const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(2);
-                                }
-                            })
-                    );
-                });
-            }
-        });
     });
 
     describe('in #focus mode', () => {
@@ -469,7 +378,7 @@ describe('Sidebar', () => {
             );
         });
 
-        it('archived rooms are displayed only when they have unread messages', () => {
+        it('archived rooms are not displayed ever', () => {
             // Given an archived chat report, an archived default policy room, and an archived user created policy room
             const archivedReport = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
@@ -532,11 +441,11 @@ describe('Sidebar', () => {
                         }),
                     )
 
-                    // Then they are all visible
+                    // Then they are still not visible
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(3);
+                        expect(displayNames).toHaveLength(0);
                     })
             );
         });
@@ -629,6 +538,8 @@ describe('Sidebar', () => {
             JSON.stringify([false, true, false, false, false, false]),
             JSON.stringify([true, false, false, false, false, false]),
             JSON.stringify([true, true, false, false, false, false]),
+            JSON.stringify([true, false, false, true, false, false]),
+            JSON.stringify([true, true, false, true, false, false]),
         ];
 
         // When every single combination of those booleans is tested
