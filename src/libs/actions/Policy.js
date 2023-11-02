@@ -1,6 +1,7 @@
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
+import filter from 'lodash/filter';
 import lodashGet from 'lodash/get';
 import lodashUnion from 'lodash/union';
 import Onyx from 'react-native-onyx';
