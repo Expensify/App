@@ -3336,8 +3336,12 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return true;
     }
 
-    // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
+    // All unread chats in GSD mode will be shown except archived
     if (isInGSDMode) {
+        if (isArchivedRoom(report)) {
+            return false;
+        }
+
         return isUnread(report);
     }
 

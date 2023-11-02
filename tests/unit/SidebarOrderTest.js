@@ -654,7 +654,7 @@ describe('Sidebar', () => {
             );
         });
 
-        it('puts archived chats last', () => {
+        it('hides archived chats entirely', () => {
             // Given three unread reports, with the first report being archived
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3, true),
@@ -683,14 +683,13 @@ describe('Sidebar', () => {
                         }),
                     )
 
-                    // Then the first report is in last position
+                    // Then the first report is hidden
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(3);
+                        expect(displayNames).toHaveLength(2);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Report (archived)');
                     })
             );
         });
