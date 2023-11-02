@@ -93,6 +93,7 @@ function AppleSignInDiv({isDesktopFlow}) {
             data-width={CONST.SIGN_IN_FORM_WIDTH}
             data-height="52"
             style={{cursor: 'pointer'}}
+            onMouseDown={(event) => event.preventDefault()}
         />
     ) : (
         <div
@@ -104,6 +105,7 @@ function AppleSignInDiv({isDesktopFlow}) {
             data-border-radius="50"
             data-size="40"
             style={{cursor: 'pointer'}}
+            onMouseDown={(event) => event.preventDefault()}
         />
     );
 }

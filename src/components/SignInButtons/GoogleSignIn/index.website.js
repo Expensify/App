@@ -76,6 +76,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
                 id={desktopId}
                 role="button"
                 aria-label={translate('common.signInWithGoogle')}
+                onMouseDown={(event) => event.preventDefault()}
             />
         </View>
     ) : (
@@ -84,6 +85,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
                 id={mainId}
                 role="button"
                 aria-label={translate('common.signInWithGoogle')}
+                onMouseDown={(event) => event.preventDefault()}
             />
         </View>
     );
