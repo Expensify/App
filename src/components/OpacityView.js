@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
+import stylePropTypes from '@styles/stylePropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
 
@@ -20,8 +21,7 @@ const propTypes = {
      * Array of style objects
      * @default []
      */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.bool]),
+    style: stylePropTypes,
 
     /**
      * The value to use for the opacity when the view is dimmed
