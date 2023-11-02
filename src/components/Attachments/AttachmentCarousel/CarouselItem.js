@@ -116,5 +116,6 @@ function CarouselItem({item, isFocused, onPress}) {
 
 CarouselItem.propTypes = propTypes;
 CarouselItem.defaultProps = defaultProps;
+CarouselItem.displayName = 'displayName';
 
 export default CarouselItem;
