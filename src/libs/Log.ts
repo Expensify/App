@@ -8,7 +8,7 @@ import pkg from '../../package.json';
 import getPlatform from './getPlatform';
 import * as Network from './Network';
 import requireParameters from './requireParameters';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 
 let timeout: NodeJS.Timeout;
 
