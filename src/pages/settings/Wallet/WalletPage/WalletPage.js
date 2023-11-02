@@ -271,7 +271,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
             return;
         }
         PaymentMethods.openWalletPage();
-    }, [network.isOffline, bankAccountList, cardList]);
+    }, [network.isOffline, bankAccountList, cardList, fundList]);
 
     useEffect(() => {
         if (!shouldListenForResize) {
