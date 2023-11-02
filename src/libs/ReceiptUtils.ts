@@ -11,8 +11,9 @@ import * as FileUtils from './fileDownload/FileUtils';
 
 type ThumbnailAndImageURI = {
     image: ImageSourcePropType | string;
-    thumbnail: string | null;
+    thumbnail: ImageSourcePropType | string | null;
     transaction?: Transaction;
+    isLocalFile?: boolean;
 };
 
 type FileNameAndExtension = {
@@ -63,6 +64,10 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
 
     if (fileExtension === CONST.IOU.FILE_TYPES.SVG) {
         image = ReceiptSVG;
+    }
+
+    if (fileExtension === CONST.IOU.FILE_TYPES.PDF) {
+        return {thumbnail: image, image: path, isLocalFile: true};
     }
 
     return {thumbnail: null, image};
