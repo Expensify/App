@@ -84,11 +84,11 @@ function AddPaymentMethodMenu(props) {
                         props.onItemSelected(CONST.PAYMENT_METHODS.BANK_ACCOUNT);
                     },
                 },
-                ...(ReportUtils.isIOUReport(props.iouReport) && ReportActionsUtils.hasRequestFromPayer(lodashGet(props.iouReport, 'reportID', 0), props.session.accountID)
+                ...(ReportUtils.isIOUReport(props.iouReport) && !ReportActionsUtils.hasRequestFromPayer(lodashGet(props.iouReport, 'reportID', 0), props.session.accountID)
                     ? [
                           {
                               text: props.translate('common.businessBankAccount'),
-                              icon: Expensicons.Workspace,
+                              icon: Expensicons.Building,
                               onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT),
                           },
                       ]
