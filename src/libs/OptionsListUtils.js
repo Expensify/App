@@ -1,25 +1,25 @@
 /* eslint-disable no-continue */
-import _ from 'underscore';
-import Onyx from 'react-native-onyx';
-import lodashOrderBy from 'lodash/orderBy';
-import lodashGet from 'lodash/get';
-import lodashSet from 'lodash/set';
-import Str from 'expensify-common/lib/str';
 import {parsePhoneNumber} from 'awesome-phonenumber';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
-import * as ReportUtils from './ReportUtils';
-import * as Localize from './Localize';
-import Permissions from './Permissions';
+import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
+import lodashOrderBy from 'lodash/orderBy';
+import lodashSet from 'lodash/set';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as CollectionUtils from './CollectionUtils';
-import Navigation from './Navigation/Navigation';
-import * as LoginUtils from './LoginUtils';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
-import * as UserUtils from './UserUtils';
-import * as ReportActionUtils from './ReportActionsUtils';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ErrorUtils from './ErrorUtils';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
+import * as Localize from './Localize';
+import * as LoginUtils from './LoginUtils';
+import Navigation from './Navigation/Navigation';
+import Permissions from './Permissions';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as ReportActionUtils from './ReportActionsUtils';
+import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
+import * as UserUtils from './UserUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -833,7 +833,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         categorySections.push({
             // "Search" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getCategoryOptionTree(searchCategories, true),
         });
@@ -857,7 +857,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         categorySections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
@@ -962,7 +962,7 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
         tagSections.push({
             // "Search" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getTagsOptions(searchTags),
         });
@@ -1004,7 +1004,7 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
         tagSections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getTagsOptions(selectedTagOptions),
         });

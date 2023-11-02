@@ -1,21 +1,21 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
-import ROUTES from '../ROUTES';
-import ONYXKEYS from '../ONYXKEYS';
-import compose from '../libs/compose';
-import transactionPropTypes from '../components/transactionPropTypes';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as IOU from '../libs/actions/IOU';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import Navigation from '../libs/Navigation/Navigation';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import transactionPropTypes from '@components/transactionPropTypes';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import EditRequestAmountPage from './EditRequestAmountPage';
+import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
-import EditRequestCreatedPage from './EditRequestCreatedPage';
-import EditRequestAmountPage from './EditRequestAmountPage';
 
 const propTypes = {
     /** Route from navigation */

@@ -1,8 +1,8 @@
 import React, {Ref} from 'react';
-import QRCodeLibrary from 'react-native-qrcode-svg';
 import {ImageSourcePropType} from 'react-native';
-import defaultTheme from '../styles/themes/default';
-import CONST from '../CONST';
+import QRCodeLibrary from 'react-native-qrcode-svg';
+import defaultTheme from '@styles/themes/default';
+import CONST from '@src/CONST';
 
 type LogoRatio = typeof CONST.QR.DEFAULT_LOGO_SIZE_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO;
 
