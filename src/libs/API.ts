@@ -76,10 +76,6 @@ function write(command: string, apiCommandParameters: Record<string, unknown> = 
         command,
         data: {
             ...data,
-
-            // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
-            shouldRetry: true,
-            canCancel: true,
         },
         ...onyxDataWithoutOptimisticData,
     };

@@ -777,6 +777,9 @@ const CONST = {
         DUPLICATE_RECORD: '400 Unique Constraints Violation',
     },
     NETWORK: {
+        COMMAND: {
+            LOG: 'Log',
+        },
         METHOD: {
             POST: 'post',
         },

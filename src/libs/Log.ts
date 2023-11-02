@@ -8,6 +8,7 @@ import pkg from '../../package.json';
 import getPlatform from './getPlatform';
 import * as Network from './Network';
 import requireParameters from './requireParameters';
+import CONST from '../CONST';
 
 let timeout: NodeJS.Timeout;
 
@@ -17,17 +18,17 @@ type LogCommandParameters = {
 };
 
 function LogCommand(parameters: LogCommandParameters): Promise<{requestID: string}> {
-    const commandName = 'Log';
+    const commandName = CONST.NETWORK.COMMAND.LOG;
     requireParameters(['logPacket', 'expensifyCashAppVersion'], parameters, commandName);
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
     // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs
-    return Network.post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
+    return Network.post(commandName, {...parameters, forceNetworkRequest: true}) as Promise<{requestID: string}>;
 }
 
 // eslint-disable-next-line
 type ServerLoggingCallbackOptions = {api_setCookie: boolean; logPacket: string};
-type RequestParams = Merge<ServerLoggingCallbackOptions, {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters: string}>;
+type RequestParams = Merge<ServerLoggingCallbackOptions, {shouldProcessImmediately: boolean; expensifyCashAppVersion: string; parameters: string}>;
 
 /**
  * Network interface for logger.
@@ -35,7 +36,6 @@ type RequestParams = Merge<ServerLoggingCallbackOptions, {shouldProcessImmediate
 function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOptions): Promise<{requestID: string}> {
     const requestParams = params as RequestParams;
     requestParams.shouldProcessImmediately = false;
-    requestParams.shouldRetry = false;
     requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${pkg.version}`;
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(requestParams.parameters);

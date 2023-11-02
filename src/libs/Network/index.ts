@@ -26,12 +26,8 @@ function post(command: string, data: Record<string, unknown> = {}, type = CONST.
             shouldUseSecure,
         };
 
-        // By default, request are retry-able and cancellable
-        // (e.g. any requests currently happening when the user logs out are cancelled)
         request.data = {
             ...data,
-            shouldRetry: data?.shouldRetry ?? true,
-            canCancel: data?.canCancel ?? true,
             appversion: pkg.version,
         };
 

@@ -6,7 +6,7 @@ import Middleware from './types';
 
 function logRequestDetails(message: string, request: Request, response?: Response | void) {
     // Don't log about log or else we'd cause an infinite loop
-    if (request.command === 'Log') {
+    if (request.command === CONST.NETWORK.COMMAND.LOG) {
         return;
     }
 
@@ -54,7 +54,7 @@ const Logging: Middleware = (response, request) => {
             } else if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
                 // If the command that failed is Log it's possible that the next call to Log may also fail.
                 // This will lead to infinitely complex log params that can eventually crash the app.
-                if (request.command === 'Log') {
+                if (request.command === CONST.NETWORK.COMMAND.LOG) {
                     delete logParams.request;
                 }
 

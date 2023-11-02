@@ -36,7 +36,6 @@ function Authenticate(parameters: Parameters): Promise<Response> {
         partnerUserSecret: parameters.partnerUserSecret,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         authToken: parameters.authToken,
-        shouldRetry: false,
 
         // Force this request to be made because the network queue is paused when re-authentication is happening
         forceNetworkRequest: true,
