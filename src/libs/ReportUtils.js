@@ -1742,8 +1742,8 @@ function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
  * @returns {Boolean}
  */
 function hasRouteError(iouReportID) {
-    const distanceTransactions = getDistanceTransactions(iouReportID);
-    return _.some(distanceTransactions, (transaction) => TransactionUtils.hasRouteError(transaction));
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.some(allTransactions, (transaction) => TransactionUtils.hasRouteError(transaction));
 }
 
 /**
@@ -1753,8 +1753,8 @@ function hasRouteError(iouReportID) {
  * @returns {Boolean}
  */
 function hasMissingSmartscanFields(iouReportID) {
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    return _.some(transactionsWithReceipts, (transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.some(allTransactions, (transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
 }
 
 /**
