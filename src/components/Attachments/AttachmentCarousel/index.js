@@ -194,7 +194,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             snapToAlignment="start"
                             contentInset={{ top: 0, left: 0, bottom: 0, right: 0 }}
                             contentInsetAdjustmentBehavior="automatic"
-                            snapToOffsets={attachments.map((_, index) => index * containerWidth)}
+                            snapToOffsets={_.map(attachments, (__, index) => index * containerWidth)}
                             // Enable scrolling by swiping on mobile (touch) devices only
                             // disable scroll for desktop/browsers because they add their scrollbars
                             // Enable scrolling FlatList only when PDF is not in a zoomed state
