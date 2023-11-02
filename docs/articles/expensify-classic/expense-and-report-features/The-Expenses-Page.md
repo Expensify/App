@@ -2,7 +2,6 @@
 title: The Expenses Page
 description: Details on Expenses Page filters
 ---
-Expenses Page
 ---
 # Overview
 
