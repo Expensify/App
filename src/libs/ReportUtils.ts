@@ -2397,19 +2397,11 @@ function getOptimisticDataForParentReportAction(
  * Builds an optimistic reportAction for the parent report when a task is created
  * @param  taskReportID - Report ID of the task
  * @param  taskTitle - Title of the task
- * @param  taskAssignee - Email of the person assigned to the task
  * @param  taskAssigneeAccountID - AccountID of the person assigned to the task
  * @param  text - Text of the comment
  * @param  parentReportID - Report ID of the parent report
  */
-function buildOptimisticTaskCommentReportAction(
-    taskReportID: string,
-    taskTitle: string,
-    taskAssignee: string,
-    taskAssigneeAccountID: number,
-    text: string,
-    parentReportID: string,
-): OptimisticReportAction {
+function buildOptimisticTaskCommentReportAction(taskReportID: string, taskTitle: string, taskAssigneeAccountID: number, text: string, parentReportID: string): OptimisticReportAction {
     const reportAction = buildOptimisticAddCommentReportAction(text);
     if (reportAction.reportAction.message) {
         reportAction.reportAction.message[0].taskReportID = taskReportID;
@@ -3847,7 +3839,6 @@ type OnyxDataTaskAssigneeChat = {
  */
 function getTaskAssigneeChatOnyxData(
     accountID: number,
-    assigneeEmail: string,
     assigneeAccountID: number,
     taskReportID: string,
     assigneeChatReportID: string,
@@ -3922,7 +3913,7 @@ function getTaskAssigneeChatOnyxData(
     // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
     if (assigneeChatReportID !== parentReportID) {
         const displayname = allPersonalDetails?.[assigneeAccountID]?.displayName ?? allPersonalDetails?.[assigneeAccountID]?.login ?? '';
-        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `assigned to ${displayname}`, parentReportID);
+        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `assigned to ${displayname}`, parentReportID);
         const lastAssigneeCommentText = formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message?.[0].text ?? '');
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
@@ -4218,6 +4209,7 @@ export {
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
     getReimbursementQueuedActionMessage,
+    getPersonalDetailsForAccountID,
 };
 
 export type {OptionData};
