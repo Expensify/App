@@ -348,7 +348,10 @@ function getDateStringFromISOTimestamp(isoTimestamp: string): string {
  * Returns the current time plus skew in milliseconds in the format expected by the database
  */
 function getDBTimeWithSkew(): string {
-    return getDBTime(new Date().valueOf() + networkTimeSkew);
+    if (networkTimeSkew > 0) {
+        return getDBTime(new Date().valueOf() + networkTimeSkew);
+    }
+    return getDBTime();
 }
 
 /**
