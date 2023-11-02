@@ -3338,11 +3338,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
 
     // All unread chats in GSD mode will be shown except archived
     if (isInGSDMode) {
-        if (isArchivedRoom(report)) {
-            return false;
-        }
-
-        return isUnread(report);
+        return isUnread(report) && !isArchivedRoom(report);
     }
 
     // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
