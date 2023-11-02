@@ -81,10 +81,8 @@ if (args.includes('--config')) {
 }
 
 // Important set app path after correct config file has been set
-let appPath = config.APP_PATH;
-if (args.includes('--appPath')) {
-    appPath = args[args.indexOf('--appPath') + 1];
-}
+const mainAppPath = config.MAIN_APP_PATH;
+const deltaAppPath = config.DELTA_APP_PATH;
 
 // Create some variables after the correct config file has been loaded
 const OUTPUT_FILE = `${config.OUTPUT_DIR}/${label}.json`;
@@ -123,47 +121,63 @@ const restartApp = async () => {
 const runTests = async () => {
     // check if using buildMode "js-only" or "none" is possible
     if (buildMode !== 'full') {
-        const appExists = fs.existsSync(appPath);
-        if (!appExists) {
+        const mainAppExists = fs.existsSync(mainAppPath);
+        const deltaAppExists = fs.existsSync(deltaAppPath);
+        if (!mainAppExists || !deltaAppExists) {
             Logger.warn(`Build mode "${buildMode}" is not possible, because the app does not exist. Falling back to build mode "full".`);
-            Logger.note(`App path: ${appPath}`);
+            Logger.note(`App path: ${mainAppPath}`);
 
             buildMode = 'full';
         }
     }
 
-    if (branch != null && !skipCheckout) {
-        // Switch branch
-        Logger.log(`Preparing tests on branch '${branch}' - git checkout`);
-        await execAsync(`git checkout ${branch}`);
-    }
-
-    if (!skipInstallDeps) {
-        Logger.log(`Preparing tests on branch '${branch}' - npm install`);
-        await execAsync('npm i');
-    }
-
     // Build app
     if (buildMode === 'full') {
-        Logger.log(`Preparing tests on branch '${branch}' - building app`);
+        Logger.log(`Test setup - building main branch`);
+
+        if (!skipInstallDeps) {
+            Logger.log(`Test setup - npm install`);
+            await execAsync('npm i');
+        }
+
         await execAsync('npm run android-build-e2e');
+
+        if (branch != null && !skipCheckout) {
+            // Switch branch
+            Logger.log(`Test setup - checkout branch '${branch}'`);
+            await execAsync(`git checkout ${branch}`);
+        }
+
+        if (!skipInstallDeps) {
+            Logger.log(`Test setup - npm install`);
+            await execAsync('npm i');
+        }
+
+        Logger.log(`Test setup '${branch}' - building delta branch`);
+        await execAsync('npm run android-build-e2edelta');
     } else if (buildMode === 'js-only') {
-        Logger.log(`Preparing tests on branch '${branch}' - building js bundle`);
+        Logger.log(`Test setup '${branch}' - building js bundle`);
+
+        if (!skipInstallDeps) {
+            Logger.log(`Test setup '${branch}' - npm install`);
+            await execAsync('npm i');
+        }
 
         // Build a new JS bundle
-        const tempDir = `${config.OUTPUT_DIR}/temp`;
-        const tempBundlePath = `${tempDir}/index.android.bundle`;
-        await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
-        await execAsync(`npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`, {E2E_TESTING: 'true'});
-        // Repackage the existing native app with the new bundle
-        const tempApkPath = `${tempDir}/app-release.apk`;
-        await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${appPath} ${tempBundlePath} ${tempApkPath}`);
-        appPath = tempApkPath;
+        // const tempDir = `${config.OUTPUT_DIR}/temp`;
+        // const tempBundlePath = `${tempDir}/index.android.bundle`;
+        // await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
+        // await execAsync(`npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`, {E2E_TESTING: 'true'});
+        // // Repackage the existing native app with the new bundle
+        // const tempApkPath = `${tempDir}/app-release.apk`;
+        // await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${appPath} ${tempBundlePath} ${tempApkPath}`);
+        // appPath = tempApkPath;
     }
 
     // Install app and reverse port
-    let progressLog = Logger.progressInfo('Installing app and reversing port');
-    await installApp('android', config.APP_PACKAGE, appPath);
+    let progressLog = Logger.progressInfo('Installing apps and reversing port');
+    await installApp('android', config.APP_PACKAGE, defaultConfig.MAIN_APP_PATH);
+    await installApp('android', config.APP_PACKAGE, defaultConfig.DELTA_APP_PATH);
     await reversePort();
     progressLog.done();
 

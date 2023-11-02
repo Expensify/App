@@ -101,7 +101,14 @@ android {
         e2e {
             // If  are building a version that won't be uploaded to the play store, we don't have to use production keys
             // applies all non-production flavors
-            applicationIdSuffix ".adhoc"
+            applicationIdSuffix ".e2e"
+            signingConfig signingConfigs.debug
+            resValue "string", "build_config_package", "com.expensify.chat"
+        }
+        e2edelta {
+            // If  are building a version that won't be uploaded to the play store, we don't have to use production keys
+            // applies all non-production flavors
+            applicationIdSuffix ".e2edelta"
             signingConfig signingConfigs.debug
             resValue "string", "build_config_package", "com.expensify.chat"
         }
