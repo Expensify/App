@@ -5,14 +5,10 @@ import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import variables from '@styles/variables';
 
 type OpacityViewProps = {
-    /**
-     * Should we dim the view
-     */
+    /** Should we dim the view */
     shouldDim: boolean;
 
-    /**
-     * Content to render
-     */
+    /** Content to render */
     children: React.ReactNode;
 
     /**
