@@ -1801,7 +1801,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const payerName = shouldHidePayerName ? '' : getDisplayNameForParticipant(report.managerID, true);
+    const payerName = shouldHidePayerName || report.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
@@ -1841,7 +1841,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, formattedAmount});
     }
 
-    const requestor = getDisplayNameForParticipant(report.lastActorAccountID, true);
+    const requestor = shouldHidePayerName || report.lastActorAccountID === currentUserAccountID ? '' : getDisplayNameForParticipant(report.lastActorAccountID, true);
 
     return Localize.translateLocal('iou.requestedAmount', {requestor, formattedAmount});
 }
