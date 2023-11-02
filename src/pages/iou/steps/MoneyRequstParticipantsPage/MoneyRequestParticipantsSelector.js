@@ -275,7 +275,7 @@ function MoneyRequestParticipantsSelector({
         }
 
         navigateToSplit();
-    }, [shouldShowSplitBillErrorMessage, navigateToSplit])
+    }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
 
     const footerContent = (
         <View>
