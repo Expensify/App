@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import themeColors from '@styles/themes/default';
 import globalStyles from '@styles/styles';
+import themeColors from '@styles/themes/default';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 
