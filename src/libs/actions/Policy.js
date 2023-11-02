@@ -1,20 +1,19 @@
-import _ from 'underscore';
-import filter from 'lodash/filter';
-import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import lodashUnion from 'lodash/union';
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
-import * as API from '../API';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import * as NumberUtils from '../NumberUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
-import * as ErrorUtils from '../ErrorUtils';
-import * as ReportUtils from '../ReportUtils';
-import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import Log from '../Log';
+import lodashGet from 'lodash/get';
+import lodashUnion from 'lodash/union';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import * as API from '@libs/API';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+import * as NumberUtils from '@libs/NumberUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const allPolicies = {};
 Onyx.connect({
@@ -34,6 +33,7 @@ Onyx.connect({
             _.each(policyReports, ({reportID}) => {
                 cleanUpMergeQueries[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {hasDraft: false};
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
             Onyx.multiSet(cleanUpSetQueries);
@@ -43,6 +43,13 @@ Onyx.connect({
 
         allPolicies[key] = val;
     },
+});
+
+let allPolicyMembers;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyMembers = val),
 });
 
 let lastAccessedWorkspacePolicyID = null;
@@ -154,6 +161,12 @@ function deleteWorkspace(policyID, reports, policyName) {
             },
         })),
 
+        ..._.map(reports, ({reportID}) => ({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`,
+            value: null,
+        })),
+
         // Add closed actions to all chat reports linked to this policy
         ..._.map(reports, ({reportID, ownerAccountID}) => {
             // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
@@ -219,7 +232,7 @@ function deleteWorkspace(policyID, reports, policyName) {
 /**
  * Is the user an admin of a free policy (aka workspace)?
  *
- * @param {Array} policies
+ * @param {Record<string, Policy>} [policies]
  * @returns {Boolean}
  */
 function isAdminOfFreePolicy(policies) {
@@ -268,6 +281,27 @@ function removeMembers(accountIDs, policyID) {
             value: {[reportAction.reportActionID]: reportAction},
         })),
     ];
+
+    // If the policy has primaryLoginsInvited, then it displays informative messages on the members page about which primary logins were added by secondary logins.
+    // If we delete all these logins then we should clear the informative messages since they are no longer relevant.
+    if (!_.isEmpty(policy.primaryLoginsInvited)) {
+        // Take the current policy members and remove them optimistically
+        const policyMemberAccountIDs = _.map(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`], (value, key) => Number(key));
+        const remainingMemberAccountIDs = _.difference(policyMemberAccountIDs, accountIDs);
+        const remainingLogins = PersonalDetailsUtils.getLoginsByAccountIDs(remainingMemberAccountIDs);
+        const invitedPrimaryToSecondaryLogins = _.invert(policy.primaryLoginsInvited);
+
+        // Then, if no remaining members exist that were invited by a secondary login, clear the informative messages
+        if (!_.some(remainingLogins, (remainingLogin) => Boolean(invitedPrimaryToSecondaryLogins[remainingLogin]))) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    primaryLoginsInvited: null,
+                },
+            });
+        }
+    }
 
     const successData = [
         {
@@ -392,7 +426,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReport.reportID}`,
             value: {
-                isLoadingReportActions: false,
+                isLoadingInitialReportActions: false,
             },
         });
     });
@@ -610,6 +644,9 @@ function clearAvatarErrors(policyID) {
  * @param {String} currency
  */
 function updateGeneralSettings(policyID, name, currency) {
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const distanceUnit = _.find(_.values(policy.customUnits), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceRate = _.find(_.values(distanceUnit ? distanceUnit.rates : {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
     const optimisticData = [
         {
             // We use SET because it's faster than merge and avoids a race condition when setting the currency and navigating the user to the Bank account page in confirmCurrencyChangeAndHideModal
@@ -628,6 +665,21 @@ function updateGeneralSettings(policyID, name, currency) {
                 },
                 name,
                 outputCurrency: currency,
+                ...(distanceUnit
+                    ? {
+                          customUnits: {
+                              [distanceUnit.customUnitID]: {
+                                  ...distanceUnit,
+                                  rates: {
+                                      [distanceRate.customUnitRateID]: {
+                                          ...distanceRate,
+                                          currency,
+                                      },
+                                  },
+                              },
+                          },
+                      }
+                    : {}),
             },
         },
     ];
@@ -653,6 +705,13 @@ function updateGeneralSettings(policyID, name, currency) {
                 errorFields: {
                     generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
+                ...(distanceUnit
+                    ? {
+                          customUnits: {
+                              [distanceUnit.customUnitID]: distanceUnit,
+                          },
+                      }
+                    : {}),
             },
         },
     ];
@@ -949,8 +1008,9 @@ function buildOptimisticCustomUnits() {
  * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {String} [policyID] Optional, custom policy id we will use for created workspace
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
-function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID()) {
+function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
     const {customUnits} = buildOptimisticCustomUnits();
 
@@ -968,6 +1028,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
+                makeMeAdmin,
             },
         },
         {
@@ -1302,6 +1363,15 @@ function clearErrors(policyID) {
 }
 
 /**
+ * Dismiss the informative messages about which policy members were added with primary logins when invited with their secondary login.
+ *
+ * @param {String} policyID
+ */
+function dismissAddedWithPrimaryLoginMessages(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
+}
+
+/**
  * @param {String} policyID
  * @param {String} category
  * @returns {Object}
@@ -1344,6 +1414,7 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     clearErrors,
+    dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
     createDraftInitialWorkspace,

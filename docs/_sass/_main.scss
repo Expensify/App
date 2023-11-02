@@ -35,8 +35,31 @@ html {
 }
 
 table {
-    border-collapse: collapse;
+    margin-bottom: 20px;
     border-spacing: 0;
+    border-collapse: collapse;
+    border-radius: 8px;
+
+    // Box shadow is used here because border-radius and border-collapse don't work together. It leads to double borders.
+    // https://stackoverflow.com/questions/628301/the-border-radius-property-and-border-collapsecollapse-dont-mix-how-can-i-use
+    border-style: hidden;
+    box-shadow: 0 0 0 1px $color-green-borders;
+}
+
+th:first-child {
+    border-top-left-radius: 8px;
+}
+
+th:last-child {
+    border-top-right-radius: 8px;
+}
+
+tr:last-child > td:first-child {
+    border-bottom-left-radius: 8px;
+}
+
+tr:last-child > td:last-child {
+    border-bottom-right-radius: 8px;
 }
 
 caption,
@@ -45,6 +68,13 @@ td {
     text-align: left;
     font-weight: 400;
     vertical-align: middle;
+    padding: 6px 13px;
+    border: 1px solid $color-green-borders;
+}
+
+thead tr th {
+    font-weight: bold;
+    background-color: $color-green-highlightBG;
 }
 
 q,
@@ -350,7 +380,7 @@ button {
         img {
             display: block;
             margin: 20px auto;
-            border-radius: 10px;
+            border-radius: 16px;
 
             @include maxBreakpoint($breakpoint-tablet) {
                 width: 100%;
@@ -546,7 +576,7 @@ button {
         align-items: center;
 
         img {
-            border-radius: 12px;
+            border-radius: 16px;
             width: 100%;
         }
     }
