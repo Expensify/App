@@ -4068,6 +4068,7 @@ function getParticipantsIDs(report) {
  */
 function getIOUReportActionDisplayMessage(reportAction) {
     const originalMessage = _.get(reportAction, 'originalMessage', {});
+    const isSplitAction = ReportActionsUtils.isSplitBillAction(reportAction);
     let displayMessage;
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const {IOUReportID} = originalMessage;
@@ -4099,7 +4100,7 @@ function getIOUReportActionDisplayMessage(reportAction) {
                 amount: formattedAmount,
             });
         } else {
-            displayMessage = Localize.translateLocal('iou.requestedAmount', {
+            displayMessage = Localize.translateLocal(isSplitAction ? 'iou.didSplitAmount' : 'iou.requestedAmount', {
                 formattedAmount,
                 comment,
             });
