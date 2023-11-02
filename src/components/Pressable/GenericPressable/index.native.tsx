@@ -1,20 +1,20 @@
-import React, {forwardRef} from 'react';
+import React, {ForwardedRef, forwardRef} from 'react';
+import {View} from 'react-native';
 import GenericPressable from './BaseGenericPressable';
-import GenericPressablePropTypes from './PropTypes';
+import PressableProps from './types';
 
-const NativeGenericPressable = forwardRef((props, ref) => (
-    <GenericPressable
-        focusable
-        accessible
-        accessibilityHint={props.accessibilityHint || props.accessibilityLabel}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        ref={ref}
-    />
-));
+function NativeGenericPressable(props: PressableProps, ref: ForwardedRef<View>) {
+    return (
+        <GenericPressable
+            focusable
+            accessible
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            ref={ref}
+        />
+    );
+}
 
-NativeGenericPressable.propTypes = GenericPressablePropTypes.pressablePropTypes;
-NativeGenericPressable.defaultProps = GenericPressablePropTypes.defaultProps;
 NativeGenericPressable.displayName = 'NativeGenericPressable';
 
-export default NativeGenericPressable;
+export default forwardRef(NativeGenericPressable);

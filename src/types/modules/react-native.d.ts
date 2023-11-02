@@ -85,7 +85,7 @@ declare module 'react-native' {
         accessibilityInvalid?: boolean;
         accessibilityKeyShortcuts?: string[];
         accessibilityLabel?: string;
-        accessibilityLabelledBy?: idRefList;
+        accessibilityLabelledBy?: idRef;
         accessibilityLevel?: number;
         accessibilityLiveRegion?: 'assertive' | 'none' | 'polite';
         accessibilityModal?: boolean;
@@ -312,7 +312,10 @@ declare module 'react-native' {
         readonly hovered: boolean;
         readonly pressed: boolean;
     }
-    interface PressableStateCallbackType extends WebPressableStateCallbackType {}
+    interface PressableStateCallbackType extends WebPressableStateCallbackType {
+        readonly isScreenReaderActive: boolean;
+        readonly isDisabled: boolean;
+    }
 
     // Extracted from react-native-web, packages/react-native-web/src/exports/Pressable/index.js
     interface WebPressableProps extends WebSharedProps {
