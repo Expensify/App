@@ -65,7 +65,7 @@ If you connect Expensify to a direct integration such as QuickBooks Online, Quic
 
 When you first connect your accounting integration your categories will most likely be pulled from your chart of accounts, however this can vary depending on the account integration. 
 
-If you need to update your categories in Expensify, you will first need to update them in your accounting system, then sync the connection in Expensify by navigating to **Settings > Workspace > Group >** *[Workspace Name]* **> Connection > Sync Now**.
+If you need to update your categories in Expensify, you will first need to update them in your accounting system, then sync the connection in Expensify by navigating to **Settings > Workspace > Group >** _[Workspace Name]_ **> Connection > Sync Now**.
 
 Alternatively, if you update the category details in your accounting integration, be sure to sync the policy connection so that the updated information is available on the workspace. 
 
@@ -75,15 +75,15 @@ If you're an admin using a workspace on a Control plan, you have the ability to 
 
 These settings are valuable if you want to set a special limit for a certain category. e.g. Your default expense limit is $2500 but Entertainment has a limit of $150 per person, per day. You can also require or not require receipts, which is great for allowing things like Mileage or Per Diems to have no receipt.
 
-To set up Category Rules, go to **Settings > Workspace> Group > [Workspace Name] > Categories**.
+To set up Category Rules, go to **Settings > Workspace> Group > _[Workspace Name]_ > Categories**.
 
 Then, click **Edit Rules** next to the category name for which you'd like to define a rule.
 
 - **GL Code and Payroll Code**: These are optional fields if these categories need to be associated with either of these codes in your accounting or payroll systems. GL code will be automatically populated if connecting to an accounting integration
 - **Max Amount**: Allows you to set specific expense amount caps based on the expense category. Using **Limit type**, you can define this **per individual expense**, or **per day** (for expenses in a category on an expense report).
 - **Receipts**: Allows you to decide whether you want to require receipts based on the category of the expense. For instance, it's common for companies to disable the receipt requirement for Toll expenses
-- **Description**: Allows you to decide whether to require the description field to be filled out based on the category of the expense
-- **Description Hint**: This allows you to place a hint in the description field. This will appear in light gray font on the expense edit screen in this field to prompt the expense creator to fill in the field accordingly.
+- **Description**: Allows you to decide whether to require the `description` field to be filled out based on the category of the expense
+- **Description Hint**: This allows you to place a hint in the `description` field. This will appear in light gray font on the expense edit screen in this field to prompt the expense creator to fill in the field accordingly.
 - **Rule Enforcement**: If users are in violation of these rules, those violations will be shown in red on the report. Any category-specific violations will only be shown once a category has been selected for a given expense. 
 
 
