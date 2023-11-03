@@ -289,14 +289,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         fetchData();
     }
 
-    if (
-        prevReimbursementAccount &&
-        prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-        reimbursementAccount.pendingAction !== prevReimbursementAccount.pendingAction
-    ) {
-        setShouldShowContinueSetupButton(hasInProgressVBBA());
-    }
-
     useEffect(
         () => {
             if (!hasACHDataBeenLoaded) {
@@ -305,6 +297,14 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                     setHasACHDataBeenLoaded(true);
                 }
                 return;
+            }
+
+            if (
+                prevReimbursementAccount &&
+                prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                reimbursementAccount.pendingAction !== prevReimbursementAccount.pendingAction
+            ) {
+                setShouldShowContinueSetupButton(hasInProgressVBBA());
             }
 
             if (shouldShowContinueSetupButton) {
