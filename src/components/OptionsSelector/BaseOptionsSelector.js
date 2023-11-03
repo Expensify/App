@@ -42,12 +42,19 @@ const propTypes = {
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 
+    /** Whether referral CTA should be displayed */
+    shouldShowReferralCTA: PropTypes.bool,
+
+    /** Referral content type */
+    referralContentType: PropTypes.string,
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     shouldDelayFocus: false,
+    shouldShowReferralCTA: false,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
     listContainerStyles: [styles.flex1],
@@ -508,7 +515,7 @@ class BaseOptionsSelector extends Component {
                         </>
                     )}
                 </View>
-                {this.props.shouldShowCTA && (
+                {this.props.shouldShowReferralCTA && (
                     <View style={[styles.ph5, styles.pb5, styles.flexShrink0]}>
                         <PressableWithoutFeedback
                             onPress={() => {

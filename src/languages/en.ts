@@ -117,6 +117,7 @@ export default {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         profile: 'Profile',
+        referral: 'Referral',
         payments: 'Payments',
         wallet: 'Wallet',
         preferences: 'Preferences',

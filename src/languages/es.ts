@@ -107,6 +107,7 @@ export default {
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
+        referral: 'Remisión',
         payments: 'Pagos',
         wallet: 'Billetera',
         preferences: 'Preferencias',

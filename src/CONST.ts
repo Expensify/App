@@ -2818,7 +2818,7 @@ const CONST = {
             REFERRAL_FRIEND: 'referralFriend',
         },
         REVENUE: 250,
-        LINK: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program#gsc.tab=0',
+        LINK: 'https://help.expensify.com/articles/new-expensify/getting-started/Referral-Program',
     },
 } as const;
 

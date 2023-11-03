@@ -43,7 +43,7 @@ function ReferralDetailsPage({route}) {
             testID={ReferralDetailsPage.displayName}
         >
             <HeaderWithBackButton
-                title="Referral"
+                title={translate('common.referral')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.flex1]}>

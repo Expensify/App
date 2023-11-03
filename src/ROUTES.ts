@@ -377,7 +377,7 @@ export default {
     GROUPS_OLDDOT: 'group_workspaces',
     CARDS_AND_DOMAINS_OLDDOT: 'cards-and-domains',
 
-    // Referrals
+    // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',
         getRoute: (contentType: string) => `referral/${contentType}`,
