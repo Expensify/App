@@ -133,7 +133,7 @@ function MoneyRequestConfirmPage(props) {
 
         if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath && !isDistanceRequest) || shouldReset || ReportUtils.isArchivedRoom(props.report)) {
             Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
-        } 
+        }
 
         return () => {
             prevMoneyRequestId.current = props.iou.id;
