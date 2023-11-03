@@ -65,6 +65,7 @@ Onyx.connect({
 const currentReportData = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: (data, key) => {
         if (!key || !data) {
             return;
@@ -1998,6 +1999,12 @@ function openReportFromDeepLink(url, isAuthenticated) {
         Session.waitForUserSignIn().then(() => {
             if (route === ROUTES.CONCIERGE) {
                 navigateToConciergeChat(true);
+                return;
+            }
+            if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
+                Navigation.isNavigationReady().then(() => {
+                    Session.signOutAndRedirectToSignIn();
+                });
                 return;
             }
             Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);

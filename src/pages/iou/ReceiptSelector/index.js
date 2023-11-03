@@ -91,7 +91,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
      * The last deviceId is of regular len camera.
      */
     useEffect(() => {
-        navigator.mediaDevices.getUserMedia({audio: true, video: true}).then((stream) => {
+        navigator.mediaDevices.getUserMedia({video: true}).then((stream) => {
             _.forEach(stream.getTracks(), (videoStream) => videoStream.stop());
 
             if (!navigator.mediaDevices.enumerateDevices) {
