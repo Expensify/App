@@ -1779,9 +1779,10 @@ function getTransactionReportName(reportAction) {
  * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
  * @param {Boolean} isPreviewMessageForParentChatReport
+ * @param {Object} policy
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false) {
+function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, isPreviewMessageForParentChatReport = false, policy = undefined) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1805,7 +1806,7 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
+    const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
@@ -2683,7 +2684,13 @@ function buildOptimisticMovedReportAction(fromPolicyID, toPolicyID, newParentRep
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatarURL(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
-        message: "moved report",
+        message: [
+            {
+                html: `moved the report to the <a href='${CONST.NEW_EXPENSIFY_URL}/r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
+                text: `moved the report to the ${policyName} workspace`,
+                type: CONST.REPORT.ACTIONS.MESSAGE.TYPE.COMMENT,
+            },
+        ],
         person: [
             {
                 style: 'strong',

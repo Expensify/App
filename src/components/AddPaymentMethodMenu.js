@@ -1,18 +1,18 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import compose from '@libs/compose';
 import Permissions from '@libs/Permissions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import * as ReportUtils from '../libs/ReportUtils';
+import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as Expensicons from './Icon/Expensicons';
 import PopoverMenu from './PopoverMenu';
 import refPropTypes from './refPropTypes';
-import iouReportPropTypes from '../pages/iouReportPropTypes';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions from './withWindowDimensions';
 
@@ -78,16 +78,16 @@ function AddPaymentMethodMenu(props) {
             onItemSelected={props.onClose}
             menuItems={[
                 ...(ReportUtils.isIOUReport(props.iouReport)
-                ?[
-                    {
-                        text: props.translate('common.personalBankAccount'),
-                        icon: Expensicons.Bank,
-                        onSelected: () => {
-                            props.onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-                        },
-                    },
-                ]
-              : []),
+                    ? [
+                          {
+                              text: props.translate('common.personalBankAccount'),
+                              icon: Expensicons.Bank,
+                              onSelected: () => {
+                                  props.onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                              },
+                          },
+                      ]
+                    : []),
                 ...(!ReportActionsUtils.hasRequestFromPayer(lodashGet(props.iouReport, 'reportID', 0), props.session.accountID)
                     ? [
                           {

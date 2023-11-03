@@ -223,7 +223,8 @@ function clearDebitCardFormErrorAndSubmit() {
  *
  */
 function transferWalletBalance(paymentMethod: PaymentMethod) {
-    const paymentMethodIDKey = paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
+    const paymentMethodIDKey =
+        paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
 
     type TransferWalletBalanceParameters = Partial<Record<ValueOf<typeof CONST.PAYMENT_METHOD_ID_KEYS>, number | undefined>>;
 

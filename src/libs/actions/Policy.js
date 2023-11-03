@@ -12,11 +12,12 @@ import Log from '@libs/Log';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const allPolicies = {};
 Onyx.connect({
@@ -1369,12 +1370,14 @@ function createWorkspaceFromIOUPayment(iouReport) {
         return;
     }
 
-    // Generate new vairbales for the policy
+    // Generate new variables for the policy
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(sessionEmail);
     const employeeAccountID = iouReport.ownerAccountID;
     const employeeEmail = iouReport.ownerEmail;
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
+    const oldPersonalPolicyID = iouReport.policyID;
+    const iouReportID = iouReport.reportID;
 
     const {
         announceChatReportID,
@@ -1393,22 +1396,23 @@ function createWorkspaceFromIOUPayment(iouReport) {
 
     // Create the workspace chat for the employee
     const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID});
+    const newWorkspace = {
+        id: policyID,
+        type: CONST.POLICY.TYPE.TEAM, // We are creating a collect policy in this case
+        name: workspaceName,
+        role: CONST.POLICY.ROLE.ADMIN,
+        owner: sessionEmail,
+        isPolicyExpenseChatEnabled: true,
+        outputCurrency: CONST.CURRENCY.USD, // Setting the currency to USD as we can only add the VBBA for this policy currency right now
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        customUnits,
+    };
 
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                id: policyID,
-                type: CONST.POLICY.TYPE.TEAM, // We are creating a collect policy in this case
-                name: workspaceName,
-                role: CONST.POLICY.ROLE.ADMIN,
-                owner: sessionEmail,
-                isPolicyExpenseChatEnabled: true,
-                outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                customUnits,
-            },
+            value: newWorkspace,
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1586,25 +1590,40 @@ function createWorkspaceFromIOUPayment(iouReport) {
         },
     ];
 
-    // Next we need to convert the IOU report to Expense report and clean up the DM chat
-    // Get the 1on1 chat where the request was originally made
-    const chatReportID = iouReport.chatReportID;
+    // Compose the memberData object which is used to add the employee to the workspace and
+    // optimistically create the workspace chat for them.
+    const memberData = {
+        accountID: Number(employeeAccountID),
+        email: employeeEmail,
+        workspaceChatReportID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportID,
+        workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportActionID,
+    };
+
+    const oldChatReportID = iouReport.chatReportID;
+    const expenseReport = {
+        ...iouReport,
+        chatReportID: memberData.workspaceChatReportID,
+        policyID,
+        policyName: workspaceName,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        total: -iouReport.total,
+    };
+
+    // Next we need to convert the IOU report to Expense report by changing its type in onyx,
+    // changing the sign of the report total to negative and updating the policyID.
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-        value: {
-            ...iouReport,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            total: -iouReport.total,
-        },
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+        value: expenseReport,
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         value: iouReport,
     });
 
-    const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport.reportID);
+    // The expense report transactions need to have the amount inverted too
+    const reportTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     _.each(reportTransactions, (transaction) => {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1622,43 +1641,59 @@ function createWorkspaceFromIOUPayment(iouReport) {
         });
     });
 
-    const memberData = {
-        accountID: Number(employeeAccountID),
-        email: employeeEmail,
-        workspaceChatReportID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportID,
-        workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportActionID,
-    };
-
-    const chatReport = ReportUtils.getReport(iouReport.chatReportID);
+    // We need to move the report preview action from the DM to the workspace chat and update its created
+    // timestamp to ensure its after the workspace chat got created.
     const reportPreview = ReportActionsUtils.getParentReportAction(iouReport);
-
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-        value: {[reportPreview.reportActionID] : null},
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: {[reportPreview.reportActionID]: null},
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-        value: {[reportPreview.reportActionID] : reportPreview},
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: {[reportPreview.reportActionID]: reportPreview},
     });
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
         value: {
-            [reportPreview.reportActionID] : {
+            [reportPreview.reportActionID]: {
                 ...reportPreview,
+                message: ReportUtils.getReportPreviewMessage(expenseReport, {}, false, false, newWorkspace),
                 created: DateUtils.getDBTime(),
-            }
+            },
         },
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
-        value: {[reportPreview.reportActionID] : null},
+        value: {[reportPreview.reportActionID]: null},
     });
 
-    
+    // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
+    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, memberData.workspaceChatReportID, iouReportID);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: {[movedReportAction.reportActionID]: movedReportAction},
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: {
+            [movedReportAction.reportActionID]: {
+                ...movedReportAction,
+                pendingAction: null,
+            },
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: {[movedReportAction.reportActionID]: null},
+    });
+
     API.write(
         'CreateWorkspaceFromIOUPayment',
         {
@@ -1675,12 +1710,15 @@ function createWorkspaceFromIOUPayment(iouReport) {
             expenseCreatedReportActionID: workspaceChatCreatedReportActionID,
             customUnitID,
             customUnitRateID,
-            iouReportID: iouReport.reportID,
+            iouReportID,
             memberData: JSON.stringify(memberData),
-            reportActionID: 0,
+            reportActionID: movedReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
     );
+
+    // Navigate to the bank account set up flow for this specific policy
+    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID));
 }
 
 export {
