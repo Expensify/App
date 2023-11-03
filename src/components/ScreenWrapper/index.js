@@ -11,6 +11,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import TestToolsModal from '@components/TestToolsModal';
 import useEnvironment from '@hooks/useEnvironment';
+import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -22,6 +23,7 @@ import {defaultProps, propTypes} from './propTypes';
 
 function ScreenWrapper({
     shouldEnableMaxHeight,
+    shouldEnableMinHeight,
     includePaddingTop,
     keyboardAvoidingViewBehavior,
     includeSafeAreaPaddingBottom,
@@ -37,12 +39,14 @@ function ScreenWrapper({
     testID,
 }) {
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {initialHeight} = useInitialDimensions();
     const keyboardState = useKeyboardState();
     const {isDevelopment} = useEnvironment();
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
+    const minHeight = shouldEnableMinHeight ? initialHeight : undefined;
     const isKeyboardShown = lodashGet(keyboardState, 'isKeyboardShown', false);
 
     const panResponder = useRef(
@@ -125,7 +129,7 @@ function ScreenWrapper({
                             {...keyboardDissmissPanResponder.panHandlers}
                         >
                             <KeyboardAvoidingView
-                                style={[styles.w100, styles.h100, {maxHeight}]}
+                                style={[styles.w100, styles.h100, {maxHeight, minHeight}]}
                                 behavior={keyboardAvoidingViewBehavior}
                                 enabled={shouldEnableKeyboardAvoidingView}
                             >
