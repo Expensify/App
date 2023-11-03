@@ -75,7 +75,11 @@ function ReportWelcomeMessagePage(props) {
     );
 
     return (
-        <ScreenWrapper testID={ReportWelcomeMessagePage.displayName}>
+        <ScreenWrapper
+            shouldEnableMaxHeight
+            includeSafeAreaPaddingBottom={false}
+            testID={ReportWelcomeMessagePage.displayName}
+        >
             <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
                 <HeaderWithBackButton
                     title={props.translate('welcomeMessagePage.welcomeMessage')}

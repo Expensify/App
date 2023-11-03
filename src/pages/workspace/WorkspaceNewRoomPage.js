@@ -6,6 +6,7 @@ import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Form from '@components/Form';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import OfflineIndicator from '@components/OfflineIndicator';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -14,6 +15,8 @@ import ValuePicker from '@components/ValuePicker';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useDelayedInputFocus from '@hooks/useDelayedInputFocus';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Permissions from '@libs/Permissions';
@@ -73,6 +76,8 @@ const defaultProps = {
 
 function WorkspaceNewRoomPage(props) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
@@ -166,11 +171,12 @@ function WorkspaceNewRoomPage(props) {
             shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}
             shouldShowBackButton={false}
             linkKey="workspace.emptyWorkspace.title"
-            onLinkPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, false)}
+            onLinkPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom={isOffline}
+                shouldShowOfflineIndicator={false}
                 includePaddingTop={false}
                 shouldEnablePickerAvoiding={false}
                 testID={WorkspaceNewRoomPage.displayName}
@@ -243,6 +249,7 @@ function WorkspaceNewRoomPage(props) {
                             </View>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
                         </Form>
+                        {isSmallScreenWidth && <OfflineIndicator />}
                     </KeyboardAvoidingView>
                 )}
             </ScreenWrapper>

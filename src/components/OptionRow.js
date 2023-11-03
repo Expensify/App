@@ -109,9 +109,20 @@ function OptionRow(props) {
         setIsDisabled(props.isDisabled);
     }, [props.isDisabled]);
 
+    const text = lodashGet(props.option, 'text', '');
+    const fullTitle = props.isMultilineSupported ? text.trimStart() : text;
+    const indentsLength = text.length - fullTitle.length;
+    const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
     const textStyle = props.optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = props.boldStyle || props.option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, props.style, styles.pre, isDisabled ? styles.optionRowDisabled : {});
+    const displayNameStyle = StyleUtils.combineStyles(
+        styles.optionDisplayName,
+        textUnreadStyle,
+        props.style,
+        styles.pre,
+        isDisabled ? styles.optionRowDisabled : {},
+        props.isMultilineSupported ? {paddingLeft} : {},
+    );
     const alternateTextStyle = StyleUtils.combineStyles(
         textStyle,
         styles.optionAlternateText,
@@ -204,7 +215,7 @@ function OptionRow(props) {
                                 <View style={contentContainerStyles}>
                                     <DisplayNames
                                         accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
-                                        fullTitle={props.option.text}
+                                        fullTitle={fullTitle}
                                         displayNamesWithTooltips={displayNamesWithTooltips}
                                         tooltipEnabled={props.showTitleTooltip}
                                         numberOfLines={props.isMultilineSupported ? 2 : 1}

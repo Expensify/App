@@ -156,7 +156,20 @@ function getOrderedReportIDs(
         }
     }
 
-    // There are a few properties that need to be calculated for the report which are used when sorting reports.
+    // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
+    // 1. Pinned/GBR - Always sorted by reportDisplayName
+    // 2. Drafts - Always sorted by reportDisplayName
+    // 3. Non-archived reports and settled IOUs
+    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
+    //      - Sorted by reportDisplayName in GSD (focus) view mode
+    // 4. Archived reports
+    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
+    //      - Sorted by reportDisplayName in GSD (focus) view mode
+    const pinnedAndGBRReports: Report[] = [];
+    const draftReports: Report[] = [];
+    const nonArchivedReports: Report[] = [];
+    const archivedReports: Report[] = [];
+
     reportsToDisplay.forEach((report) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
@@ -166,28 +179,10 @@ function getOrderedReportIDs(
 
         // eslint-disable-next-line no-param-reassign
         report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
-    });
 
-    // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
-    // 1. Pinned - Always sorted by reportDisplayName
-    // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
-    // 3. Drafts - Always sorted by reportDisplayName
-    // 4. Non-archived reports and settled IOUs
-    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
-    //      - Sorted by reportDisplayName in GSD (focus) view mode
-    // 5. Archived reports
-    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
-    //      - Sorted by reportDisplayName in GSD (focus) view mode
-    const pinnedReports: Report[] = [];
-    const outstandingIOUReports: Report[] = [];
-    const draftReports: Report[] = [];
-    const nonArchivedReports: Report[] = [];
-    const archivedReports: Report[] = [];
-    reportsToDisplay.forEach((report) => {
-        if (report.isPinned) {
-            pinnedReports.push(report);
-        } else if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
-            outstandingIOUReports.push(report);
+        const isPinned = report.isPinned ?? false;
+        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report)) {
+            pinnedAndGBRReports.push(report);
         } else if (report.hasDraft) {
             draftReports.push(report);
         } else if (ReportUtils.isArchivedRoom(report)) {
@@ -198,12 +193,7 @@ function getOrderedReportIDs(
     });
 
     // Sort each group of reports accordingly
-    pinnedReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
-    outstandingIOUReports.sort((a, b) => {
-        const compareAmounts = a?.iouReportAmount && b?.iouReportAmount ? b.iouReportAmount - a.iouReportAmount : 0;
-        const compareDisplayNames = a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0;
-        return compareAmounts || compareDisplayNames;
-    });
+    pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
     draftReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
 
     if (isInDefaultMode) {
@@ -221,7 +211,7 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedReports, ...outstandingIOUReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
+    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
     setWithLimit(reportIDsCache, cachedReportsKey, LHNReports);
     return LHNReports;
 }
@@ -254,6 +244,7 @@ type OptionData = {
     searchText?: string | null;
     isPinned?: boolean | null;
     hasOutstandingIOU?: boolean | null;
+    hasOutstandingChildRequest?: boolean | null;
     iouReportID?: string | null;
     isIOUReportOwner?: boolean | null;
     iouReportAmount?: number | null;
@@ -267,8 +258,8 @@ type OptionData = {
     isAllowedToComment?: boolean | null;
     isThread?: boolean | null;
     isTaskReport?: boolean | null;
-    isWaitingForTaskCompleteFromAssignee?: boolean | null;
     parentReportID?: string | null;
+    parentReportAction?: ReportAction;
     notificationPreference?: string | number | null;
     displayNamesWithTooltips?: DisplayNamesWithTooltip[] | null;
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | null;
@@ -338,6 +329,7 @@ function getOptionData(
         searchText: null,
         isPinned: false,
         hasOutstandingIOU: false,
+        hasOutstandingChildRequest: false,
         iouReportID: null,
         isIOUReportOwner: null,
         iouReportAmount: 0,
@@ -357,9 +349,7 @@ function getOptionData(
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
-    if (result.isTaskReport) {
-        result.isWaitingForTaskCompleteFromAssignee = ReportUtils.isWaitingForTaskCompleteFromAssignee(report, parentReportAction);
-    }
+    result.parentReportAction = parentReportAction;
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
@@ -382,10 +372,11 @@ function getOptionData(
     result.keyForList = String(report.reportID);
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
+    result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID ?? null;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference ?? null;
-    result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
+    result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;

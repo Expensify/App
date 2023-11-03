@@ -5,7 +5,8 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -89,7 +90,7 @@ function IntroSchoolPrincipalPage(props) {
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
             />
-            <Form
+            <FormProvider
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM}
@@ -99,7 +100,8 @@ function IntroSchoolPrincipalPage(props) {
             >
                 <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
                 <View>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="firstName"
                         name="firstName"
                         label={translate('teachersUnitePage.principalFirstName')}
@@ -110,7 +112,8 @@ function IntroSchoolPrincipalPage(props) {
                     />
                 </View>
                 <View style={styles.mv4}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="lastName"
                         name="lastName"
                         label={translate('teachersUnitePage.principalLastName')}
@@ -121,7 +124,8 @@ function IntroSchoolPrincipalPage(props) {
                     />
                 </View>
                 <View>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="partnerUserID"
                         name="partnerUserID"
                         label={translate('teachersUnitePage.principalWorkEmail')}
@@ -131,7 +135,7 @@ function IntroSchoolPrincipalPage(props) {
                         autoCapitalize="none"
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
