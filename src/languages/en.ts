@@ -1380,6 +1380,7 @@ export default {
         enterYourCompanysWebsite: 'Enter your company’s website.',
         companyWebsite: 'Company website',
         enterYourCompanysPhoneNumber: 'Enter your company’s phone number.',
+        enterYourCompanysAddress: 'Enter your company’s address.',
     },
     validationStep: {
         headerTitle: 'Validate Bank Account',

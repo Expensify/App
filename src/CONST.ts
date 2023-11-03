@@ -184,6 +184,10 @@ const CONST = {
                 COMPANY_TAX_ID: 'companyTaxID',
                 COMPANY_WEBSITE: 'website',
                 COMPANY_PHONE: 'companyPhone',
+                STREET: 'addressStreet',
+                CITY: 'addressCity',
+                STATE: 'addressState',
+                ZIP_CODE: 'addressZipCode',
             },
         },
         PLAID: {

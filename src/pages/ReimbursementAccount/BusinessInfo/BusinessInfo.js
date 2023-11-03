@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'lodash';
 import lodashGet from 'lodash/get';
 import useSubStep from '../../../hooks/useSubStep';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -15,10 +14,12 @@ import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import getInitialSubstepForPersonalInfo from '../utils/getInitialSubstepForPersonalInfo';
+import getDefaultStateForField from '../utils/getDefaultStateForField';
 import NameBusiness from './substeps/NameBusiness';
 import TaxIdBusiness from './substeps/TaxIdBusiness';
 import WebsiteBusiness from './substeps/WebsiteBusiness';
 import PhoneNumberBusiness from './substeps/PhoneNumberBusiness';
+import AddressBusiness from './substeps/AddressBusiness';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -29,7 +30,7 @@ const STEPS_HEADER_HEIGHT = 40;
 // TODO Will most likely come from different place
 const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
-const bodyContent = [NameBusiness, TaxIdBusiness, WebsiteBusiness, PhoneNumberBusiness];
+const bodyContent = [NameBusiness, TaxIdBusiness, WebsiteBusiness, PhoneNumberBusiness, AddressBusiness];
 
 const businessInfoStep = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
@@ -38,18 +39,11 @@ function BusinessInfo({reimbursementAccount}) {
 
     const submit = useCallback(() => {
         const values = {
-            [businessInfoStep.COMPANY_NAME]: lodashGet(reimbursementAccount, ['achData', businessInfoStep.COMPANY_NAME], ''),
-            //     [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME], ''),
-            //     [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB], ''),
-            //     [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4], ''),
-            //     [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET], ''),
-            //     [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY], ''),
-            //     [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE], ''),
-            //     [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE]: lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE], ''),
+            [businessInfoStep.COMPANY_NAME]: getDefaultStateForField({reimbursementAccount, fieldName: businessInfoStep.COMPANY_NAME, defaultValue: ''}),
         };
 
         const payload = {
-            bankAccountID: _.get(reimbursementAccount, 'achData.bankAccountID', 0),
+            bankAccountID: getDefaultStateForField({reimbursementAccount, fieldName: 'bankAccountID', defaultValue: 0}),
             ...values,
         };
 
