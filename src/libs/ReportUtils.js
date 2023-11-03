@@ -4066,15 +4066,14 @@ function getParticipantsIDs(report) {
  */
 function getIOUReportActionDisplayMessage(reportAction) {
     const originalMessage = _.get(reportAction, 'originalMessage', {});
-    const isSplitAction = ReportActionsUtils.isSplitBillAction(reportAction);
-    let displayMessage;
+    let translationKey;
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const {IOUReportID} = originalMessage;
         const {amount, currency} = originalMessage.IOUDetails;
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
         const iouReport = getReport(IOUReportID);
         const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport.managerID, true);
-        let translationKey;
+
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
                 translationKey = 'iou.paidElsewhereWithAmount';
@@ -4087,24 +4086,23 @@ function getIOUReportActionDisplayMessage(reportAction) {
                 translationKey = '';
                 break;
         }
-        displayMessage = Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
-    } else {
-        const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
-        const {amount, currency, comment} = getTransactionDetails(transaction);
-        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
-        const isRequestSettled = isSettled(originalMessage.IOUReportID);
-        if (isRequestSettled) {
-            displayMessage = Localize.translateLocal('iou.payerSettled', {
-                amount: formattedAmount,
-            });
-        } else {
-            displayMessage = Localize.translateLocal(isSplitAction ? 'iou.didSplitAmount' : 'iou.requestedAmount', {
-                formattedAmount,
-                comment,
-            });
-        }
+        return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName});
     }
-    return displayMessage;
+
+    const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
+    const {amount, currency, comment} = getTransactionDetails(transaction);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+    const isRequestSettled = isSettled(originalMessage.IOUReportID);
+    if (isRequestSettled) {
+        return Localize.translateLocal('iou.payerSettled', {
+            amount: formattedAmount,
+        });
+    }
+    translationKey = ReportActionsUtils.isSplitBillAction(reportAction) ? 'iou.didSplitAmount' : 'iou.requestedAmount';
+    return Localize.translateLocal(translationKey, {
+        formattedAmount,
+        comment,
+    });
 }
 
 /**
