@@ -1,35 +1,37 @@
-import _ from 'underscore';
-import React, {useState, useRef, useEffect, useCallback} from 'react';
-import {Animated, View, AppState, Keyboard, StyleSheet} from 'react-native';
 import Str from 'expensify-common/lib/str';
-import RNTextInput from '../RNTextInput';
-import TextInputLabel from './TextInputLabel';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
+import _ from 'underscore';
+import Checkbox from '@components/Checkbox';
+import FormHelpMessage from '@components/FormHelpMessage';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RNTextInput from '@components/RNTextInput';
+import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
+import Text from '@components/Text';
+import withLocalize from '@components/withLocalize';
+import * as Browser from '@libs/Browser';
+import getSecureEntryKeyboardType from '@libs/getSecureEntryKeyboardType';
+import isInputAutoFilled from '@libs/isInputAutoFilled';
+import useNativeDriver from '@libs/useNativeDriver';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
-import themeColors from '../../styles/themes/default';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import Text from '../Text';
 import * as styleConst from './styleConst';
-import * as StyleUtils from '../../styles/StyleUtils';
-import variables from '../../styles/variables';
-import Checkbox from '../Checkbox';
-import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
-import CONST from '../../CONST';
-import FormHelpMessage from '../FormHelpMessage';
-import isInputAutoFilled from '../../libs/isInputAutoFilled';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import withLocalize from '../withLocalize';
+import TextInputLabel from './TextInputLabel';
 
 function BaseTextInput(props) {
-    const inputValue = props.value || props.defaultValue || '';
-    const initialActiveLabel = props.forceActiveLabel || inputValue.length > 0 || Boolean(props.prefixCharacter);
+    const initialValue = props.value || props.defaultValue || '';
+    const initialActiveLabel = props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
 
     const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(props.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
-    const [prefixWidth, setPrefixWidth] = useState(0);
     const [height, setHeight] = useState(variables.componentSizeLarge);
     const [width, setWidth] = useState();
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
@@ -38,24 +40,6 @@ function BaseTextInput(props) {
     const input = useRef(null);
     const isLabelActive = useRef(initialActiveLabel);
 
-    useEffect(() => {
-        if (!props.disableKeyboard) {
-            return;
-        }
-
-        const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
-            if (!nextAppState.match(/inactive|background/)) {
-                return;
-            }
-
-            Keyboard.dismiss();
-        });
-
-        return () => {
-            appStateSubscription.remove();
-        };
-    }, [props.disableKeyboard]);
-
     // AutoFocus which only works on mount:
     useEffect(() => {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
@@ -63,19 +47,11 @@ function BaseTextInput(props) {
             return;
         }
 
-        let focusTimeout;
         if (props.shouldDelayFocus) {
-            focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
-            return;
+            const focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
+            return () => clearTimeout(focusTimeout);
         }
         input.current.focus();
-
-        return () => {
-            if (!focusTimeout) {
-                return;
-            }
-            clearTimeout(focusTimeout);
-        };
         // We only want this to run on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -86,12 +62,12 @@ function BaseTextInput(props) {
                 Animated.spring(labelTranslateY, {
                     toValue: translateY,
                     duration: styleConst.LABEL_ANIMATION_DURATION,
-                    useNativeDriver: true,
+                    useNativeDriver,
                 }),
                 Animated.spring(labelScale, {
                     toValue: scale,
                     duration: styleConst.LABEL_ANIMATION_DURATION,
-                    useNativeDriver: true,
+                    useNativeDriver,
                 }),
             ]).start();
         },
@@ -162,30 +138,16 @@ function BaseTextInput(props) {
         [props.autoGrowHeight, props.multiline],
     );
 
+    // The ref is needed when the component is uncontrolled and we don't have a value prop
+    const hasValueRef = useRef(initialValue.length > 0);
+    const inputValue = props.value || '';
+    const hasValue = inputValue.length > 0 || hasValueRef.current;
+
+    // Activate or deactivate the label when either focus changes, or for controlled
+    // components when the value prop changes:
     useEffect(() => {
-        // Handle side effects when the value gets changed programatically from the outside
-
-        // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
-        if (inputValue === '') {
-            input.current.clear();
-        }
-
-        if (inputValue) {
-            activateLabel();
-        }
-    }, [activateLabel, inputValue]);
-
-    // We capture whether the input has a value or not in a ref.
-    // It gets updated when the text gets changed.
-    const hasValueRef = useRef(inputValue.length > 0);
-
-    // Activate or deactivate the label when the focus changes:
-    useEffect(() => {
-        // We can't use inputValue here directly, as it might contain
-        // the defaultValue, which doesn't get updated when the text changes.
-        // We can't use props.value either, as it might be undefined.
         if (
-            hasValueRef.current ||
+            hasValue ||
             isFocused ||
             // If the text has been supplied by Chrome autofill, the value state is not synced with the value
             // as Chrome doesn't trigger a change event. When there is autofill text, keep the label activated.
@@ -195,7 +157,16 @@ function BaseTextInput(props) {
         } else {
             deactivateLabel();
         }
-    }, [activateLabel, deactivateLabel, inputValue, isFocused]);
+    }, [activateLabel, deactivateLabel, hasValue, isFocused]);
+
+    // When the value prop gets cleared externally, we need to keep the ref in sync:
+    useEffect(() => {
+        // Return early when component uncontrolled, or we still have a value
+        if (props.value === undefined || !_.isEmpty(props.value)) {
+            return;
+        }
+        hasValueRef.current = false;
+    }, [props.value]);
 
     /**
      * Set Value & activateLabel
@@ -209,9 +180,13 @@ function BaseTextInput(props) {
         }
 
         Str.result(props.onChangeText, value);
+
         if (value && value.length > 0) {
             hasValueRef.current = true;
-            activateLabel();
+            // When the componment is uncontrolled, we need to manually activate the label:
+            if (props.value === undefined) {
+                activateLabel();
+            }
         } else {
             hasValueRef.current = false;
         }
@@ -221,9 +196,20 @@ function BaseTextInput(props) {
         setPasswordHidden((prevPasswordHidden) => !prevPasswordHidden);
     }, []);
 
-    const storePrefixLayoutDimensions = useCallback((event) => {
-        setPrefixWidth(Math.abs(event.nativeEvent.layout.width));
-    }, []);
+    // When adding a new prefix character, adjust this method to add expected character width.
+    // This is because character width isn't known before it's rendered to the screen, and once it's rendered,
+    // it's too late to calculate it's width because the change in padding would cause a visible jump.
+    // Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
+    // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
+    // this method will produce reliable results.
+    const getCharacterPadding = (prefix) => {
+        switch (prefix) {
+            case CONST.POLICY.ROOM_PREFIX:
+                return 10;
+            default:
+                throw new Error(`Prefix ${prefix} has no padding assigned.`);
+        }
+    };
 
     // eslint-disable-next-line react/forbid-foreign-prop-types
     const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));
@@ -242,9 +228,32 @@ function BaseTextInput(props) {
     ]);
     const isMultiline = props.multiline || props.autoGrowHeight;
 
+    /* To prevent text jumping caused by virtual DOM calculations on Safari and mobile Chrome,
+    make sure to include the `lineHeight`.
+    Reference: https://github.com/Expensify/App/issues/26735
+
+    For other platforms, explicitly remove `lineHeight` from single-line inputs
+    to prevent long text from disappearing once it exceeds the input space.
+    See https://github.com/Expensify/App/issues/13802 */
+
+    const lineHeight = useMemo(() => {
+        if ((Browser.isSafari() || Browser.isMobileChrome()) && _.isArray(props.inputStyle)) {
+            const lineHeightValue = _.find(props.inputStyle, (f) => f.lineHeight !== undefined);
+            if (lineHeightValue) {
+                return lineHeightValue.lineHeight;
+            }
+        }
+
+        return undefined;
+    }, [props.inputStyle]);
+
     return (
         <>
-            <View style={styles.pointerEventsNone}>
+            <View
+                style={styles.pointerEventsNone}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(props.shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
+            >
                 <PressableWithoutFeedback
                     onPress={onPress}
                     focusable={false}
@@ -295,7 +304,7 @@ function BaseTextInput(props) {
                                         pointerEvents="none"
                                         selectable={false}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0]}
-                                        onLayout={storePrefixLayoutDimensions}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {props.prefixCharacter}
                                     </Text>
@@ -322,15 +331,21 @@ function BaseTextInput(props) {
                                     styles.w100,
                                     props.inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
-                                    props.prefixCharacter && StyleUtils.getPaddingLeft(prefixWidth + styles.pl1.paddingLeft),
+                                    props.prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(props.prefixCharacter) + styles.pl1.paddingLeft),
                                     props.secureTextEntry && styles.secureInput,
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
                                     // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
-                                    !isMultiline && {height, lineHeight: undefined},
+                                    !isMultiline && {height, lineHeight},
+
+                                    // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
+                                    // for the issue mentioned here https://github.com/Expensify/App/issues/26735
+                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
+                                    // Add disabled color theme when field is not editable.
+                                    props.disabled && styles.textInputDisabled,
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={props.maxLength}
@@ -349,6 +364,13 @@ function BaseTextInput(props) {
                                 // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
                                 dataSet={{submitOnEnter: isMultiline && props.submitOnEnter}}
                             />
+                            {props.isLoading && (
+                                <ActivityIndicator
+                                    size="small"
+                                    color={themeColors.iconSuccessFill}
+                                    style={[styles.mt4, styles.ml1]}
+                                />
+                            )}
                             {Boolean(props.secureTextEntry) && (
                                 <Checkbox
                                     style={[styles.flex1, styles.textInputIconContainer]}
@@ -387,11 +409,17 @@ function BaseTextInput(props) {
                 This Text component is intentionally positioned out of the screen.
             */}
             {(props.autoGrow || props.autoGrowHeight) && (
-                // Add +2 to width so that the first digit of amount do not cut off on mWeb - https://github.com/Expensify/App/issues/8158.
+                // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
+                // https://github.com/Expensify/App/issues/8158
+                // https://github.com/Expensify/App/issues/26628
                 <Text
                     style={[...props.inputStyle, props.autoGrowHeight && styles.autoGrowHeightHiddenInput(width, maxHeight), styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
                     onLayout={(e) => {
-                        setTextInputWidth(e.nativeEvent.layout.width + 2);
+                        let additionalWidth = 0;
+                        if (Browser.isMobileSafari() || Browser.isSafari()) {
+                            additionalWidth = 2;
+                        }
+                        setTextInputWidth(e.nativeEvent.layout.width + additionalWidth);
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
                 >

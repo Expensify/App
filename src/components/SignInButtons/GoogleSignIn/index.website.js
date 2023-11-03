@@ -1,10 +1,10 @@
+import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import * as Session from '../../../libs/actions/Session';
-import CONFIG from '../../../CONFIG';
-import styles from '../../../styles/styles';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
 
 const propTypes = {
     /** Whether we're rendering in the Desktop Flow, if so show a different button. */
@@ -68,6 +68,8 @@ function GoogleSignIn({translate, isDesktopFlow}) {
         };
     }, [loadScript]);
 
+    // willChangeTransform is used to prevent the icon cut in safari when the overflow hidden and width given to the parent
+    // ref: https://stackoverflow.com/questions/75306089/safari-when-using-border-radius-and-overflow-hidden-to-parent-and-the-child-th
     return isDesktopFlow ? (
         <View style={styles.googlePillButtonContainer}>
             <div
@@ -77,7 +79,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
             />
         </View>
     ) : (
-        <View style={styles.googleButtonContainer}>
+        <View style={[styles.googleButtonContainer, styles.willChangeTransform]}>
             <div
                 id={mainId}
                 role="button"

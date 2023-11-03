@@ -1,15 +1,16 @@
-import _ from 'underscore';
-import React, {useMemo, useEffect} from 'react';
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import PropTypes from 'prop-types';
-import CONST from '../../CONST';
-import Modal from '../Modal';
-import HeaderWithBackButton from '../HeaderWithBackButton';
-import SelectionList from '../SelectionList';
-import useLocalize from '../../hooks/useLocalize';
-import ScreenWrapper from '../ScreenWrapper';
-import styles from '../../styles/styles';
-import searchCountryOptions from '../../libs/searchCountryOptions';
-import StringUtils from '../../libs/StringUtils';
+import React, {useEffect, useMemo} from 'react';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Modal from '@components/Modal';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import useLocalize from '@hooks/useLocalize';
+import searchCountryOptions from '@libs/searchCountryOptions';
+import StringUtils from '@libs/StringUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -53,13 +54,17 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
 
     const countryStates = useMemo(
         () =>
-            _.map(translate('allStates'), (state) => ({
-                value: state.stateISO,
-                keyForList: state.stateISO,
-                text: state.stateName,
-                isSelected: currentState === state.stateISO,
-                searchValue: StringUtils.sanitizeString(`${state.stateISO}${state.stateName}`),
-            })),
+            _.map(_.keys(COMMON_CONST.STATES), (state) => {
+                const stateName = translate(`allStates.${state}.stateName`);
+                const stateISO = translate(`allStates.${state}.stateISO`);
+                return {
+                    value: stateISO,
+                    keyForList: stateISO,
+                    text: stateName,
+                    isSelected: currentState === stateISO,
+                    searchValue: StringUtils.sanitizeString(`${stateISO}${stateName}`),
+                };
+            }),
         [translate, currentState],
     );
 
@@ -79,6 +84,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
+                testID={StateSelectorModal.displayName}
             >
                 <HeaderWithBackButton
                     title={label || translate('common.state')}
@@ -93,6 +99,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                     onSelectRow={onStateSelected}
                     onChangeText={setSearchValue}
                     initiallyFocusedOptionKey={currentState}
+                    shouldStopPropagation
                 />
             </ScreenWrapper>
         </Modal>

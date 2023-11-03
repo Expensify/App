@@ -1,15 +1,17 @@
 import React, {useEffect, useRef, useContext} from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getButtonState from '../../libs/getButtonState';
-import * as Expensicons from '../Icon/Expensicons';
-import Tooltip from '../Tooltip';
-import Icon from '../Icon';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
+
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import getButtonState from '@libs/getButtonState';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+
 import * as ActionSheetAwareScrollView from '../ActionSheetAwareScrollView';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */

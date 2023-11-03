@@ -1,8 +1,9 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
-import CONST from '../CONST';
-import styles from '../styles/styles';
+import useNativeDriver from '@libs/useNativeDriver';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
@@ -28,7 +29,7 @@ function Switch(props) {
         Animated.timing(offsetX.current, {
             toValue: props.isOn ? OFFSET_X.ON : OFFSET_X.OFF,
             duration: 300,
-            useNativeDriver: true,
+            useNativeDriver,
         }).start();
     }, [props.isOn]);
 

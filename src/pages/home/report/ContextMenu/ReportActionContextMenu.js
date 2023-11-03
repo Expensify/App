@@ -128,4 +128,11 @@ function isActiveReportAction(actionID) {
     return contextMenuRef.current.isActiveReportAction(actionID);
 }
 
-export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, showDeleteModal, hideDeleteModal};
+function clearActiveReportAction() {
+    if (!contextMenuRef.current) {
+        return;
+    }
+    return contextMenuRef.current.clearActiveReportAction();
+}
+
+export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};

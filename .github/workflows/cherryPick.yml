@@ -11,9 +11,10 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      IS_DEPLOYER: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' }}
+      IS_DEPLOYER: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' || github.actor == 'os-botify[bot]' }}
     steps:
-      - id: isDeployer
+      - name: Check if user is deployer
+        id: isDeployer
         run: |
           if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
             echo "IS_DEPLOYER=true" >> "$GITHUB_OUTPUT"
@@ -39,15 +40,18 @@ jobs:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+      - name: Set up git for OSBotify
+        uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
       - name: Get previous app version
         id: getPreviousVersion
         uses: Expensify/App/.github/actions/javascript/getPreviousVersion@main
         with:
-          SEMVER_LEVEL: 'PATCH'
+          SEMVER_LEVEL: "PATCH"
 
       - name: Fetch history of relevant refs
         run: |
@@ -117,7 +121,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: 'Announces a CP failure in the #announce Slack room'
+      - name: "Announces a CP failure in the #announce Slack room"
         uses: 8398a7/action-slack@v3
         if: ${{ failure() }}
         with:

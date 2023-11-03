@@ -1,42 +1,43 @@
 import lodashGet from 'lodash/get';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {ScrollView} from 'react-native-gesture-handler';
 import _ from 'underscore';
-import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import MenuItem from '../../../components/MenuItem';
-import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import CONST from '../../../CONST';
-import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import compose from '../../../libs/compose';
-import Navigation from '../../../libs/Navigation/Navigation';
-import * as UserUtils from '../../../libs/UserUtils';
-import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/styles';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import userPropTypes from '../userPropTypes';
-import * as App from '../../../libs/actions/App';
-import Permissions from '../../../libs/Permissions';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import * as UserUtils from '@libs/UserUtils';
+import userPropTypes from '@pages/settings/userPropTypes';
+import styles from '@styles/styles';
+import * as App from '@userActions/App';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.shape({
-        /** Date login was validated, used to show brickroad info status */
-        validatedDate: PropTypes.string,
+    loginList: PropTypes.objectOf(
+        PropTypes.shape({
+            /** Date login was validated, used to show brickroad info status */
+            validatedDate: PropTypes.string,
 
-        /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
-    }),
+            /** Field-specific server side errors keyed by microtime */
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        }),
+    ),
 
     user: userPropTypes,
 
@@ -57,10 +58,16 @@ function ProfilePage(props) {
         if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
             pronounsKey = pronounsKey.slice(CONST.PRONOUNS.PREFIX.length);
         }
-        return lodashGet(props.translate('pronouns'), pronounsKey, props.translate('profilePage.selectYourPronouns'));
+
+        if (!pronounsKey) {
+            return props.translate('profilePage.selectYourPronouns');
+        }
+        return props.translate(`pronouns.${pronounsKey}`);
     };
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
+    const avatarURL = lodashGet(currentUserDetails, 'avatar', '');
+    const accountID = lodashGet(currentUserDetails, 'accountID', '');
     const emojiCode = lodashGet(props, 'currentUserPersonalDetails.status.emojiCode', '');
 
     const profileSettingsOptions = [
@@ -101,7 +108,10 @@ function ProfilePage(props) {
     }, [props.currentUserPersonalDetails]);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ProfilePage.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
@@ -109,7 +119,7 @@ function ProfilePage(props) {
             <ScrollView>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
-                    source={UserUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'accountID', ''))}
+                    source={UserUtils.getAvatar(avatarURL, accountID)}
                     onImageSelected={PersonalDetails.updateAvatar}
                     onImageRemoved={PersonalDetails.deleteAvatar}
                     anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
@@ -119,7 +129,11 @@ function ProfilePage(props) {
                     errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
                     errorRowStyles={[styles.mt6]}
                     onErrorClose={PersonalDetails.clearAvatarErrors}
+                    previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
+                    originalFileName={currentUserDetails.originalFileName}
+                    headerTitle={props.translate('profilePage.profileAvatar')}
                     style={[styles.mh5]}
+                    fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
                 />
                 <View style={[styles.mt4]}>
                     {_.map(profileSettingsOptions, (detail, index) => (

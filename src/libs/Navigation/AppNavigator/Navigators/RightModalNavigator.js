@@ -1,19 +1,21 @@
+import {createStackNavigator} from '@react-navigation/stack';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {createStackNavigator} from '@react-navigation/stack';
-
-import * as ModalStackNavigators from '../ModalStackNavigators';
-import RHPScreenOptions from '../RHPScreenOptions';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import {withNavigationPropTypes} from '../../../../components/withNavigation';
-import styles from '../../../../styles/styles';
+import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
+import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
+import styles from '@styles/styles';
 import Overlay from './Overlay';
-import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
 
 const Stack = createStackNavigator();
 
 const propTypes = {
-    ...withNavigationPropTypes,
+    /* Navigation functions provided by React Navigation */
+    navigation: PropTypes.shape({
+        goBack: PropTypes.func.isRequired,
+    }).isRequired,
 };
 
 function RightModalNavigator(props) {
@@ -31,14 +33,6 @@ function RightModalNavigator(props) {
                     <Stack.Screen
                         name="NewChat"
                         component={ModalStackNavigators.NewChatModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name="NewGroup"
-                        component={ModalStackNavigators.NewGroupModalStackNavigator}
-                        options={{
-                            // Disable animation for this screen because it causes an animation glitch when using shortcuts
-                            animationEnabled: false,
-                        }}
                     />
                     <Stack.Screen
                         name="Search"
@@ -71,6 +65,14 @@ function RightModalNavigator(props) {
                     <Stack.Screen
                         name="Participants"
                         component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="RoomMembers"
+                        component={ModalStackNavigators.RoomMembersModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="RoomInvite"
+                        component={ModalStackNavigators.RoomInviteModalStackNavigator}
                     />
                     <Stack.Screen
                         name="MoneyRequest"
@@ -115,6 +117,10 @@ function RightModalNavigator(props) {
                     <Stack.Screen
                         name="SignIn"
                         component={ModalStackNavigators.SignInModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name="Private_Notes"
+                        component={ModalStackNavigators.PrivateNotesModalStackNavigator}
                     />
                 </Stack.Navigator>
             </View>

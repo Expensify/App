@@ -1,7 +1,7 @@
 import React, {useContext} from 'react';
 import PropTypes from 'prop-types';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import BaseQuickEmojiReactions, {baseQuickEmojiReactionsPropTypes} from './BaseQuickEmojiReactions';
-import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import * as ActionSheetAwareScrollView from '../../ActionSheetAwareScrollView';
 
 const propTypes = {

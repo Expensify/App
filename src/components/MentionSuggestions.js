@@ -1,15 +1,16 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import Text from './Text';
-import CONST from '../CONST';
-import Avatar from './Avatar';
+import getStyledTextArray from '@libs/GetStyledTextArray';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
-import getStyledTextArray from '../libs/GetStyledTextArray';
+import Avatar from './Avatar';
 import avatarPropTypes from './avatarPropTypes';
+import Text from './Text';
 
 const propTypes = {
     /** The index of the highlighted mention */
@@ -39,9 +40,6 @@ const propTypes = {
      * Depending on available space and whether the input is expanded, we can have a small or large mention suggester.
      * When this value is false, the suggester will have a height of 2.5 items. When this value is true, the height can be up to 5 items.  */
     isMentionPickerLarge: PropTypes.bool.isRequired,
-
-    /** Show that we should include ReportRecipientLocalTime view height */
-    shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
 
     /** Meaures the parent container's position and dimensions. */
     measureParentContainer: PropTypes.func,
@@ -79,7 +77,8 @@ function MentionSuggestions(props) {
                         size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
                         name={item.icons[0].name}
                         type={item.icons[0].type}
-                        fill={styles.success}
+                        fill={themeColors.success}
+                        fallbackIcon={item.icons[0].fallbackIcon}
                     />
                 </View>
                 <Text
@@ -124,7 +123,6 @@ function MentionSuggestions(props) {
             highlightedSuggestionIndex={props.highlightedMentionIndex}
             onSelect={props.onSelect}
             isSuggestionPickerLarge={props.isMentionPickerLarge}
-            shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
             accessibilityLabelExtractor={keyExtractor}
             measureParentContainer={props.measureParentContainer}
         />

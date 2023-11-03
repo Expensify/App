@@ -1,23 +1,23 @@
-import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import lodashGet from 'lodash/get';
-import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import compose from '../libs/compose';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import * as FormActions from '../libs/actions/FormActions';
-import * as ErrorUtils from '../libs/ErrorUtils';
-import styles from '../styles/styles';
-import CONST from '../CONST';
+import _ from 'underscore';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Visibility from '@libs/Visibility';
+import stylePropTypes from '@styles/stylePropTypes';
+import styles from '@styles/styles';
+import * as FormActions from '@userActions/FormActions';
+import CONST from '@src/CONST';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import FormSubmit from './FormSubmit';
+import networkPropTypes from './networkPropTypes';
+import {withNetwork} from './OnyxProvider';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollViewWithContext from './ScrollViewWithContext';
-import stylePropTypes from '../styles/stylePropTypes';
-import {withNetwork} from './OnyxProvider';
-import networkPropTypes from './networkPropTypes';
-import Visibility from '../libs/Visibility';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -76,6 +76,10 @@ const propTypes = {
     /** Container styles */
     style: stylePropTypes,
 
+    /** Submit button container styles */
+    // eslint-disable-next-line react/forbid-prop-types
+    submitButtonStyles: PropTypes.arrayOf(PropTypes.object),
+
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
@@ -98,12 +102,13 @@ const defaultProps = {
     shouldValidateOnBlur: true,
     footerContent: null,
     style: [],
+    submitButtonStyles: [],
     validate: () => ({}),
 };
 
 function Form(props) {
     const [errors, setErrors] = useState({});
-    const [inputValues, setInputValues] = useState({...props.draftValues});
+    const [inputValues, setInputValues] = useState(() => ({...props.draftValues}));
     const formRef = useRef(null);
     const formContentRef = useRef(null);
     const inputRefs = useRef({});
@@ -140,11 +145,15 @@ function Form(props) {
 
             // Validate the input for html tags. It should supercede any other error
             _.each(trimmedStringValues, (inputValue, inputID) => {
+                // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
+                if (!inputValue || !_.isString(inputValue)) {
+                    return;
+                }
                 const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
                 const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
 
-                // Return early if there is no value OR the value is not a string OR there are no HTML characters
-                if (!inputValue || !_.isString(inputValue) || (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1)) {
+                // Return early if there are no HTML characters
+                if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
                     return;
                 }
 
@@ -295,7 +304,7 @@ function Form(props) {
 
                 // We want to initialize the input value if it's undefined
                 if (_.isUndefined(inputValues[inputID])) {
-                    inputValues[inputID] = defaultValue || '';
+                    inputValues[inputID] = _.isBoolean(defaultValue) ? defaultValue : defaultValue || '';
                 }
 
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
@@ -443,7 +452,7 @@ function Form(props) {
                                 focusInput.focus();
                             }
                         }}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
+                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...props.submitButtonStyles]}
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
                         disablePressOnEnter
@@ -468,6 +477,7 @@ function Form(props) {
             props.isSubmitActionDangerous,
             props.isSubmitButtonVisible,
             props.submitButtonText,
+            props.submitButtonStyles,
         ],
     );
 

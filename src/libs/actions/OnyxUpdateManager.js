@@ -1,7 +1,9 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import Log from '../Log';
-import * as SequentialQueue from '../Network/SequentialQueue';
+import _ from 'underscore';
+import Log from '@libs/Log';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as App from './App';
 import * as OnyxUpdates from './OnyxUpdates';
 
@@ -32,6 +34,19 @@ export default () => {
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (val) => {
             if (!val) {
+                return;
+            }
+
+            // Since we used the same key that used to store another object, let's confirm that the current object is
+            // following the new format before we proceed. If it isn't, then let's clear the object in Onyx.
+            if (
+                !_.isObject(val) ||
+                !_.has(val, 'type') ||
+                (!(val.type === CONST.ONYX_UPDATE_TYPES.HTTPS && _.has(val, 'request') && _.has(val, 'response')) && !(val.type === CONST.ONYX_UPDATE_TYPES.PUSHER && _.has(val, 'updates')))
+            ) {
+                console.debug('[OnyxUpdateManager] Invalid format found for updates, cleaning and unpausing the queue');
+                Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
+                SequentialQueue.unpause();
                 return;
             }
 
@@ -73,6 +88,7 @@ export default () => {
             canUnpauseQueuePromise.finally(() => {
                 OnyxUpdates.apply(updateParams).finally(() => {
                     console.debug('[OnyxUpdateManager] Done applying all updates');
+                    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
                     SequentialQueue.unpause();
                 });
             });

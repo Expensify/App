@@ -11,6 +11,14 @@ export default {
     pAbsolute: {
         position: 'absolute',
     },
+    /**
+     * Web-only style.
+     */
+    pFixed: {
+        // NOTE: asserting "position" to a valid type, because it isn't possible to augment "position".
+        position: 'fixed' as ViewStyle['position'],
+    },
+
     t0: {
         top: 0,
     },
@@ -46,5 +54,8 @@ export default {
     },
     b0: {
         bottom: 0,
+    },
+    b2: {
+        bottom: 8,
     },
 } satisfies Record<string, ViewStyle>;

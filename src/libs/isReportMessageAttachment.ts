@@ -1,10 +1,5 @@
-import CONST from '../CONST';
-
-type IsReportMessageAttachmentParams = {
-    text: string;
-    html: string;
-    translationKey: string;
-};
+import CONST from '@src/CONST';
+import {Message} from '@src/types/onyx/ReportAction';
 
 /**
  * Check whether a report action is Attachment or not.
@@ -12,13 +7,13 @@ type IsReportMessageAttachmentParams = {
  *
  * @param reportActionMessage report action's message as text, html and translationKey
  */
-export default function isReportMessageAttachment({text, html, translationKey}: IsReportMessageAttachmentParams): boolean {
-    if (translationKey) {
-        return translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
-    }
-
+export default function isReportMessageAttachment({text, html, translationKey}: Message): boolean {
     if (!text || !html) {
         return false;
+    }
+
+    if (translationKey && text === CONST.ATTACHMENT_MESSAGE_TEXT) {
+        return translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
     }
 
     const regex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');

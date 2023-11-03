@@ -1,27 +1,24 @@
-import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import PropTypes from 'prop-types';
-import React, {useEffect, useRef, useMemo} from 'react';
 import {deepEqual} from 'fast-equals';
-import {withReportCommentDrafts} from '../OnyxProvider';
-import SidebarUtils from '../../libs/SidebarUtils';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../withCurrentReportID';
-import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
-import * as Report from '../../libs/actions/Report';
-import * as UserUtils from '../../libs/UserUtils';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as TransactionUtils from '../../libs/TransactionUtils';
-
-import participantPropTypes from '../participantPropTypes';
-import CONST from '../../CONST';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useRef} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import participantPropTypes from '@components/participantPropTypes';
+import compose from '@libs/compose';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import SidebarUtils from '@libs/SidebarUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import * as UserUtils from '@libs/UserUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './OptionRowLHN';
 
 const propTypes = {
-    /** If true will disable ever setting the OptionRowLHN to focused */
-    shouldDisableFocusOptions: PropTypes.bool,
+    /** Whether row should be focused */
+    isFocused: PropTypes.bool,
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -33,33 +30,35 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     fullReport: PropTypes.object,
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.objectOf(
-        PropTypes.shape({
-            /** The ID of the policy */
-            id: PropTypes.string,
-            /** Name of the policy */
-            name: PropTypes.string,
-            /** Avatar of the policy */
-            avatar: PropTypes.string,
-        }),
-    ),
+    /** The policy which the user has access to and which the report could be tied to */
+    policy: PropTypes.shape({
+        /** The ID of the policy */
+        id: PropTypes.string,
+        /** Name of the policy */
+        name: PropTypes.string,
+        /** Avatar of the policy */
+        avatar: PropTypes.string,
+    }),
 
     /** The actions from the parent report */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
-    ...withCurrentReportIDPropTypes,
+    /** The transaction from the parent report action */
+    transaction: PropTypes.shape({
+        /** The ID of the transaction */
+        transactionID: PropTypes.string,
+    }),
     ...basePropTypes,
 };
 
 const defaultProps = {
-    shouldDisableFocusOptions: false,
+    isFocused: false,
     personalDetails: {},
     fullReport: {},
-    policies: {},
+    policy: {},
     parentReportActions: {},
+    transaction: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
-    ...withCurrentReportIDDefaultProps,
     ...baseDefaultProps,
 };
 
@@ -70,24 +69,19 @@ const defaultProps = {
  * re-render if the data really changed.
  */
 function OptionRowLHNData({
-    shouldDisableFocusOptions,
-    currentReportID,
+    isFocused,
     fullReport,
     reportActions,
     personalDetails,
     preferredLocale,
     comment,
-    policies,
+    policy,
     receiptTransactions,
     parentReportActions,
+    transaction,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
-    // We only want to pass a boolean to the memoized component,
-    // instead of a changing number (so we prevent unnecessary re-renders).
-    const isFocused = !shouldDisableFocusOptions && currentReportID === reportID;
-
-    const policy = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`], '');
 
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
@@ -102,15 +96,16 @@ function OptionRowLHNData({
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy);
+        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
         optionItemRef.current = item;
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
+        // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction]);
+    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
@@ -151,6 +146,7 @@ const personalDetailsSelector = (personalDetails) =>
                 firstName: personalData.firstName,
                 status: personalData.status,
                 avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
+                fallbackIcon: personalData.fallbackIcon,
             };
             return finalPersonalDetails;
         },
@@ -166,43 +162,51 @@ const personalDetailsSelector = (personalDetails) =>
  */
 export default React.memo(
     compose(
-        withCurrentReportID,
-        withReportCommentDrafts({
-            propName: 'comment',
-            transformValue: (drafts, props) => {
-                const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
-                return lodashGet(drafts, draftKey, '');
-            },
-        }),
         withOnyx({
+            comment: {
+                key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+            },
             fullReport: {
-                key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
+                key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                initialValue: {},
             },
             reportActions: {
                 key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 canEvict: false,
+                initialValue: {},
             },
             personalDetails: {
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 selector: personalDetailsSelector,
+                initialValue: {},
             },
             preferredLocale: {
                 key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             },
-            policies: {
-                key: ONYXKEYS.COLLECTION.POLICY,
-            },
         }),
+        // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
         withOnyx({
             parentReportActions: {
                 key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
                 canEvict: false,
+                initialValue: {},
+            },
+            policy: {
+                key: ({fullReport}) => `${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`,
+                initialValue: {},
             },
             // Ideally, we aim to access only the last transaction for the current report by listening to changes in reportActions.
             // In some scenarios, a transaction might be created after reportActions have been modified.
             // This can lead to situations where `lastTransaction` doesn't update and retains the previous value.
             // However, performance overhead of this is minimized by using memos inside the component.
-            receiptTransactions: {key: ONYXKEYS.COLLECTION.TRANSACTION},
+            receiptTransactions: {key: ONYXKEYS.COLLECTION.TRANSACTION, initialValue: {}},
+        }),
+        // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+        withOnyx({
+            transaction: {
+                key: ({fullReport, parentReportActions}) =>
+                    `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportActions, [fullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '')}`,
+            },
         }),
     )(OptionRowLHNData),
 );
