@@ -1097,7 +1097,7 @@ export default {
     },
     focusModeUpdateModal: {
         title: '¡Bienvenido al modo #concentración!',
-        prompt: 'Los mensajes leídos se ocultarán, a menos que tengan un punto verde, lo que significa que está esperándote. Puedes cambiar esto en la configuración de tu cuenta ',
+        prompt: 'Los mensajes leídos se ocultarán, a menos que tengan un punto verde, lo que significa que tienes que tomar una acción en ellos. Puedes cambiar esto en la configuración de tu cuenta ',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',
