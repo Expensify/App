@@ -1,22 +1,22 @@
-import React, {useEffect, useState, useCallback, useRef} from 'react';
-import {ScrollView, View} from 'react-native';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
-import styles from '../../../styles/styles';
-import BigNumberPad from '../../../components/BigNumberPad';
-import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
-import Button from '../../../components/Button';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
-import useLocalize from '../../../hooks/useLocalize';
-import CONST from '../../../CONST';
-import FormHelpMessage from '../../../components/FormHelpMessage';
-import refPropTypes from '../../../components/refPropTypes';
-import getOperatingSystem from '../../../libs/getOperatingSystem';
-import * as Browser from '../../../libs/Browser';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import BigNumberPad from '@components/BigNumberPad';
+import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
+import refPropTypes from '@components/refPropTypes';
+import TextInputWithCurrencySymbol from '@components/TextInputWithCurrencySymbol';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** IOU amount saved in Onyx */

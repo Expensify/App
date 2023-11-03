@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
-import KeyboardShortcut from '../libs/KeyboardShortcut';
-import CONST from '../CONST';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import CONST from '@src/CONST';
 
 /**
  * Register a keyboard shortcut handler.
@@ -21,6 +21,7 @@ export default function useKeyboardShortcut(shortcut, callback, config = {}) {
         // Hence the use of CONST.EMPTY_ARRAY.
         excludedNodes = CONST.EMPTY_ARRAY,
         isActive = true,
+        shouldStopPropagation = false,
     } = config;
 
     useEffect(() => {
@@ -35,8 +36,21 @@ export default function useKeyboardShortcut(shortcut, callback, config = {}) {
                 priority,
                 shouldPreventDefault,
                 excludedNodes,
+                shouldStopPropagation,
             );
         }
         return () => {};
-    }, [isActive, callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers, shortcut.shortcutKey, shouldBubble, shouldPreventDefault]);
+    }, [
+        isActive,
+        callback,
+        captureOnInputs,
+        excludedNodes,
+        priority,
+        shortcut.descriptionKey,
+        shortcut.modifiers,
+        shortcut.shortcutKey,
+        shouldBubble,
+        shouldPreventDefault,
+        shouldStopPropagation,
+    ]);
 }

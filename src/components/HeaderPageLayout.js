@@ -1,17 +1,17 @@
-import _ from 'underscore';
-import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
+import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
-import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import ScreenWrapper from './ScreenWrapper';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import * as StyleUtils from '../styles/StyleUtils';
-import useWindowDimensions from '../hooks/useWindowDimensions';
+import _ from 'underscore';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
 import FixedFooter from './FixedFooter';
-import useNetwork from '../hooks/useNetwork';
-import * as Browser from '../libs/Browser';
+import HeaderWithBackButton from './HeaderWithBackButton';
+import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
+import ScreenWrapper from './ScreenWrapper';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,

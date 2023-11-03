@@ -1,29 +1,29 @@
-import Onyx from 'react-native-onyx';
-import _ from 'underscore';
+import {format} from 'date-fns';
+import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
-import Str from 'expensify-common/lib/str';
-import {format} from 'date-fns';
-import CONST from '../../CONST';
-import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
-import Navigation from '../Navigation/Navigation';
-import * as Localize from '../Localize';
-import * as API from '../API';
-import * as ReportUtils from '../ReportUtils';
-import * as CurrencyUtils from '../CurrencyUtils';
-import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as IOUUtils from '../IOUUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
-import DateUtils from '../DateUtils';
-import * as TransactionUtils from '../TransactionUtils';
-import * as ErrorUtils from '../ErrorUtils';
-import * as UserUtils from '../UserUtils';
-import * as Report from './Report';
-import * as NumberUtils from '../NumberUtils';
-import ReceiptGeneric from '../../../assets/images/receipt-generic.png';
-import * as LocalePhoneNumber from '../LocalePhoneNumber';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import ReceiptGeneric from '@assets/images/receipt-generic.png';
+import * as API from '@libs/API';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as IOUUtils from '@libs/IOUUtils';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import * as Localize from '@libs/Localize';
+import Navigation from '@libs/Navigation/Navigation';
+import * as NumberUtils from '@libs/NumberUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import * as Policy from './Policy';
+import * as Report from './Report';
 
 let allPersonalDetails;
 Onyx.connect({
@@ -346,6 +346,7 @@ function buildOnyxDataForMoneyRequest(
                     : {
                           [reportPreviewAction.reportActionID]: {
                               created: reportPreviewAction.created,
+                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
                       }),
             },
@@ -556,8 +557,9 @@ function getMoneyRequestInformation(
         iouReport.parentReportActionID = reportPreviewAction.reportActionID;
     }
 
+    const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[payerAccountID];
     // Add optimistic personal details for participant
-    const optimisticPersonalDetailListAction = isNewChatReport
+    const optimisticPersonalDetailListAction = shouldCreateOptimisticPersonalDetails
         ? {
               [payerAccountID]: {
                   accountID: payerAccountID,
@@ -1801,7 +1803,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         // Update the last message of the chat report
         const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
         const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-            payer: updatedMoneyRequestReport.managerEmail,
+            payer: ReportUtils.getPersonalDetailsForAccountID(updatedMoneyRequestReport.managerID).login || '',
             amount: CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedMoneyRequestReport.currency),
         });
         updatedChatReport.lastMessageText = messageText;
@@ -2046,7 +2048,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         updatedReportPreviewAction = {...reportPreviewAction};
         const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
         const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-            payer: updatedIOUReport.managerEmail,
+            payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
             amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
         });
         updatedReportPreviewAction.message[0].text = messageText;
@@ -2692,7 +2694,6 @@ function submitReport(expenseReport) {
         'SubmitReport',
         {
             reportID: expenseReport.reportID,
-            managerEmail: expenseReport.managerEmail,
             managerAccountID: expenseReport.managerID,
             reportActionID: optimisticSubmittedReportAction.reportActionID,
         },

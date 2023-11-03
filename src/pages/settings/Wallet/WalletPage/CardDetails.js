@@ -1,19 +1,19 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import Clipboard from '../../../../libs/Clipboard';
-import useLocalize from '../../../../hooks/useLocalize';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
-import PressableWithDelayToggle from '../../../../components/Pressable/PressableWithDelayToggle';
-import styles from '../../../../styles/styles';
-import TextLink from '../../../../components/TextLink';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
+import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import Clipboard from '@libs/Clipboard';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import styles from '@styles/styles';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Card number */

@@ -1,12 +1,12 @@
 import React, {useEffect, useRef} from 'react';
-import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 // We take FlatList from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {FlatList} from 'react-native-gesture-handler';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import CONST from '../../CONST';
+import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import {propTypes} from './autoCompleteSuggestionsPropTypes';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 /**
  * @param {Number} numRows

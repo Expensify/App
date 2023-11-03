@@ -1,6 +1,6 @@
-import CollapsibleRN from 'react-native-collapsible';
 import PropTypes from 'prop-types';
 import React from 'react';
+import CollapsibleRN from 'react-native-collapsible';
 
 const propTypes = {
     /** Whether the section should start expanded. False by default */
