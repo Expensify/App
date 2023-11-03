@@ -21477,7 +21477,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 4749:
+/***/ 8750:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -21508,7 +21508,7 @@ function detectReactComponent(code, filename) {
     }
     const ast = (0, parser_1.parse)(code, {
         sourceType: 'module',
-        plugins: ['jsx'], // enable jsx plugin
+        plugins: ['jsx', 'typescript'], // enable jsx plugin
     });
     let isReactComponent = false;
     (0, traverse_1.default)(ast, {
@@ -21573,10 +21573,11 @@ async function detect(changedFiles) {
     }
     return false;
 }
-exports["default"] = {
+const newComponentCategory = {
     detect,
     items,
 };
+exports["default"] = newComponentCategory;
 
 
 /***/ }),
@@ -64816,8 +64817,8 @@ const github_1 = __nccwpck_require__(5438);
 const escapeRegExp_1 = __nccwpck_require__(8415);
 const GithubUtils_1 = __nccwpck_require__(7999);
 const CONST_1 = __nccwpck_require__(4097);
-const newComponentCategory_1 = __nccwpck_require__(4749);
-const pathToAuthorChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md';
+const newComponentCategory_1 = __nccwpck_require__(8750);
+const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
 const checklistStartsWith = '### PR Author Checklist';
 const checklistEndsWith = '\r\n### Screenshots/Videos';
 const prNumber = github_1.default.context.payload.pull_request?.number;
@@ -64828,7 +64829,7 @@ const CHECKLIST_CATEGORIES = {
  * Look at the contents of the pull request, and determine which checklist categories apply.
  */
 async function getChecklistCategoriesForPullRequest() {
-    const categories = [];
+    const checks = new Set();
     const changedFiles = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listFiles, {
         owner: CONST_1.default.GITHUB_OWNER,
         repo: CONST_1.default.APP_REPO,
@@ -64837,14 +64838,18 @@ async function getChecklistCategoriesForPullRequest() {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         per_page: 100,
     });
-    for (const category of Object.values(CHECKLIST_CATEGORIES)) {
-        const doesCategoryApply = await category.detect(changedFiles);
-        if (doesCategoryApply) {
-            categories.push(category.items);
+    const possibleCategories = await Promise.all(Object.values(CHECKLIST_CATEGORIES).map(async (category) => ({
+        items: category.items,
+        doesCategoryApply: await category.detect(changedFiles),
+    })));
+    for (const category of possibleCategories) {
+        if (category.doesCategoryApply) {
+            for (const item of category.items) {
+                checks.add(item);
+            }
         }
-        return categories;
     }
-    return categories;
+    return checks;
 }
 function partitionWithChecklist(body) {
     const [contentBeforeChecklist, contentAfterStartOfChecklist] = body.split(checklistStartsWith);
@@ -64858,12 +64863,11 @@ async function getNumberOfItemsFromAuthorChecklist() {
     const numberOfChecklistItems = (checklist.match(/\[ \]/g) ?? []).length;
     return numberOfChecklistItems;
 }
-function checkPRForCompletedChecklist(numberOfChecklistItems, pullRequestBody) {
-    const checklist = partitionWithChecklist(pullRequestBody)[1];
+function checkPRForCompletedChecklist(expectedNumberOfChecklistItems, checklist) {
     const numberOfFinishedChecklistItems = (checklist.match(/- \[x\]/gi) ?? []).length;
     const numberOfUnfinishedChecklistItems = (checklist.match(/- \[ \]/g) ?? []).length;
-    const minCompletedItems = numberOfChecklistItems - 2;
-    console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
+    const minCompletedItems = expectedNumberOfChecklistItems - 2;
+    console.log(`You completed ${numberOfFinishedChecklistItems} out of ${expectedNumberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
     if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfUnfinishedChecklistItems === 0) {
         console.log('PR Author checklist is complete 🎉');
         return;
@@ -64873,19 +64877,13 @@ function checkPRForCompletedChecklist(numberOfChecklistItems, pullRequestBody) {
 }
 async function generateDynamicChecksAndCheckForCompletion() {
     // Generate dynamic checks
-    const checks = new Set();
-    const categories = await getChecklistCategoriesForPullRequest();
-    for (const checksForCategory of categories) {
-        for (const check of checksForCategory) {
-            checks.add(check);
-        }
-    }
+    const dynamicChecks = await getChecklistCategoriesForPullRequest();
+    let isPassing = true;
+    let didChecklistChange = false;
     const body = github_1.default.context.payload.pull_request?.body ?? '';
     // eslint-disable-next-line prefer-const
     let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
-    let isPassing = true;
-    let checklistChanged = false;
-    for (const check of checks) {
+    for (const check of dynamicChecks) {
         // Check if it's already in the PR body, capturing the whether or not it's already checked
         const regex = new RegExp(`- \\[([ x])] ${(0, escapeRegExp_1.default)(check)}`);
         const match = regex.exec(checklist);
@@ -64893,7 +64891,7 @@ async function generateDynamicChecksAndCheckForCompletion() {
             // Add it to the PR body
             isPassing = false;
             checklist += `- [ ] ${check}\r\n`;
-            checklistChanged = true;
+            didChecklistChange = true;
         }
         else {
             const isChecked = match[1] === 'x';
@@ -64902,23 +64900,23 @@ async function generateDynamicChecksAndCheckForCompletion() {
             }
         }
     }
+    // Check if some dynamic check was added with previous commit, but is not relevant anymore
     const allChecks = Object.values(CHECKLIST_CATEGORIES).reduce((acc, category) => acc.concat(category.items), []);
     for (const check of allChecks) {
-        if (!checks.has(check)) {
-            // Check if some dynamic check has been added with previous commit, but the check is not relevant anymore
+        if (!dynamicChecks.has(check)) {
             const regex = new RegExp(`- \\[([ x])] ${(0, escapeRegExp_1.default)(check)}\r\n`);
             const match = regex.exec(checklist);
             if (match) {
                 // Remove it from the PR body
                 checklist = checklist.replace(match[0], '');
-                checklistChanged = true;
+                didChecklistChange = true;
             }
         }
     }
     // Put the PR body back together, need to add the markers back in
     const newBody = contentBeforeChecklist + checklistStartsWith + checklist + checklistEndsWith + contentAfterChecklist;
     // Update the PR body
-    if (checklistChanged) {
+    if (didChecklistChange) {
         await GithubUtils_1.default.octokit.pulls.update({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
@@ -64935,8 +64933,8 @@ async function generateDynamicChecksAndCheckForCompletion() {
     }
     // check for completion
     try {
-        const numberofItems = await getNumberOfItemsFromAuthorChecklist();
-        checkPRForCompletedChecklist(numberofItems, newBody);
+        const numberOfItems = await getNumberOfItemsFromAuthorChecklist();
+        checkPRForCompletedChecklist(numberOfItems, newBody);
     }
     catch (error) {
         console.error(error);

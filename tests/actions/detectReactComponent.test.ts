@@ -1,4 +1,4 @@
-import {detectReactComponent} from '../../.github/actions/javascript/authorChecklist/newComponentCategory';
+import {detectReactComponent} from '../../.github/actions/javascript/authorChecklist/categories/newComponentCategory';
 
 describe('detectReactComponent test', () => {
     it('should return undefined if no code is provided', () => {
@@ -22,6 +22,17 @@ describe('detectReactComponent test', () => {
         const code = `
             const Component = () => {
                 return <div>Hello World</div>;
+            }
+        `;
+        const result = detectReactComponent(code, 'filename.js');
+
+        expect(result).toBe(true);
+    });
+
+    it('should detect if code is in typescript', () => {
+        const code = `
+            const Component = ({text}: {text: string}) => {
+                return <div>{text}</div>;
             }
         `;
         const result = detectReactComponent(code, 'filename.js');

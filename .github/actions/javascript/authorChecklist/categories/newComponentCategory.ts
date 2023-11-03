@@ -1,8 +1,9 @@
 import {parse} from '@babel/parser';
 import traverse from '@babel/traverse';
 import github from '@actions/github';
-import CONST from '../../../libs/CONST';
-import GithubUtils from '../../../libs/GithubUtils';
+import Category from './Category';
+import CONST from '../../../../libs/CONST';
+import GithubUtils from '../../../../libs/GithubUtils';
 
 type SuperClassType = {superClass: {name?: string; object: {name: string}; property: {name: string}} | null; name: string};
 
@@ -26,7 +27,7 @@ function detectReactComponent(code: string, filename: string): boolean | undefin
     }
     const ast = parse(code, {
         sourceType: 'module',
-        plugins: ['jsx'], // enable jsx plugin
+        plugins: ['jsx', 'typescript'], // enable jsx plugin
     });
 
     let isReactComponent = false;
@@ -97,8 +98,10 @@ async function detect(changedFiles: Array<{filename: string; status: string}>): 
     return false;
 }
 
-export default {
+const newComponentCategory: Category = {
     detect,
     items,
 };
+
+export default newComponentCategory;
 export {detectReactComponent};
