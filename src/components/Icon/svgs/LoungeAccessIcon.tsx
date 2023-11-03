@@ -11,6 +11,12 @@ type LoungeAccessIconProps = {
 
     /** Is icon pressed */
     pressed?: string;
+
+    /** Icon's width */
+    width?: number;
+
+    /** Icon's height */
+    height?: number;
 };
 
 const defaultProps: LoungeAccessIconProps = {
@@ -19,7 +25,7 @@ const defaultProps: LoungeAccessIconProps = {
     pressed: 'false',
 };
 
-function LoungeAccessIcon({fill = themeColors.icon, hovered = 'false', pressed = 'false'}: LoungeAccessIconProps) {
+function LoungeAccessIcon({fill = themeColors.icon, hovered = 'false', pressed = 'false', width, height}: LoungeAccessIconProps) {
     return (
         <Svg
             id="Layer_1"
@@ -35,6 +41,8 @@ function LoungeAccessIcon({fill = themeColors.icon, hovered = 'false', pressed =
             fill={fill}
             hovered={hovered}
             pressed={pressed}
+            width={width}
+            height={height}
         >
             <G>
                 <Path
