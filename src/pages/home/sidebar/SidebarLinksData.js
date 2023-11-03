@@ -143,7 +143,6 @@ const chatReportSelector = (report) =>
         total: report.total,
         nonReimbursableTotal: report.nonReimbursableTotal,
         hasOutstandingIOU: report.hasOutstandingIOU,
-        hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         statusNum: report.statusNum,
         stateNum: report.stateNum,

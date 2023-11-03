@@ -1375,68 +1375,67 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
 }
 
 /**
- * Checks if a report is an open task report assigned to current user.
+ * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
- * @param {Object} report
- * @param {Object} [parentReportAction] - The parent report action of the report (Used to check if the task has been canceled)
- * @returns {Boolean}
+ * @param {Object} report (chatReport or iouReport)
+ * @returns {boolean}
  */
-function isWaitingForAssigneeToCompleteTask(report, parentReportAction = {}) {
-    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
-}
-
-/**
- * @param {Object} report
- * @returns {Boolean}
- */
-function isUnreadWithMention(report) {
+function isWaitingForIOUActionFromCurrentUser(report) {
     if (!report) {
         return false;
     }
 
-    // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
-    const lastMentionedTime = report.lastMentionedTime || '';
-    const lastReadTime = report.lastReadTime || '';
-    return lastReadTime < lastMentionedTime;
-}
-
-/**
- * Determines if the option requires action from the current user. This can happen when it:
-    - is unread and the user was mentioned in one of the unread comments
-    - is for an outstanding task waiting on the user
-    - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
- *
- * @param {Object} option (report or optionItem)
- * @param {Object} parentReportAction (the report action the current report is a thread of)
- * @returns {boolean}
- */
-function requiresAttentionFromCurrentUser(option, parentReportAction = {}) {
-    if (!option) {
+    if (isArchivedRoom(getReport(report.parentReportID))) {
         return false;
     }
 
-    if (isArchivedRoom(option)) {
+    if (isArchivedRoom(report)) {
         return false;
     }
 
-    if (isArchivedRoom(getReport(option.parentReportID))) {
+    if (isArchivedRoom(getReport(report.parentReportID))) {
         return false;
     }
 
-    if (option.isUnreadWithMention || isUnreadWithMention(option)) {
+    const policy = getPolicy(report.policyID);
+    if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
+        // If the report is already settled, there's no action required from any user.
+        if (isSettled(report.reportID)) {
+            return false;
+        }
+
+        // Report is pending approval and the current user is the manager
+        if (isReportManager(report) && !isReportApproved(report)) {
+            return true;
+        }
+
+        // Current user is an admin and the report has been approved but not settled yet
+        return policy.role === CONST.POLICY.ROLE.ADMIN && isReportApproved(report);
+    }
+
+    // Money request waiting for current user to add their credit bank account
+    // hasOutstandingIOU will be false if the user paid, but isWaitingOnBankAccount will be true if user don't have a wallet or bank account setup
+    if (!report.hasOutstandingIOU && report.isWaitingOnBankAccount && report.ownerAccountID === currentUserAccountID) {
         return true;
     }
 
-    if (isWaitingForAssigneeToCompleteTask(option, parentReportAction)) {
-        return true;
-    }
-
-    // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
-    if (option.hasOutstandingChildRequest) {
+    // Money request waiting for current user to Pay (from expense or iou report)
+    if (report.hasOutstandingIOU && report.ownerAccountID && (report.ownerAccountID !== currentUserAccountID || currentUserAccountID === report.managerID)) {
         return true;
     }
 
     return false;
+}
+
+/**
+ * Checks if a report is an open task report assigned to current user.
+ *
+ * @param {Object} report
+ * @param {Object} parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
+ * @returns {Boolean}
+ */
+function isWaitingForTaskCompleteFromAssignee(report, parentReportAction = {}) {
+    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
 }
 
 /**
@@ -3179,6 +3178,21 @@ function isUnread(report) {
 
 /**
  * @param {Object} report
+ * @returns {Boolean}
+ */
+function isUnreadWithMention(report) {
+    if (!report) {
+        return false;
+    }
+
+    // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
+    const lastMentionedTime = report.lastMentionedTime || '';
+    const lastReadTime = report.lastReadTime || '';
+    return lastReadTime < lastMentionedTime;
+}
+
+/**
+ * @param {Object} report
  * @param {Object} allReportsDict
  * @returns {Boolean}
  */
@@ -3320,8 +3334,8 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return true;
     }
 
-    // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
-    if (report.hasDraft || requiresAttentionFromCurrentUser(report)) {
+    // Include reports that are relevant to the user in any view mode. Criteria include having a draft, having an outstanding IOU, or being assigned to an open task.
+    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
@@ -4188,7 +4202,7 @@ export {
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
-    requiresAttentionFromCurrentUser,
+    isWaitingForIOUActionFromCurrentUser,
     isIOUOwnedByCurrentUser,
     getMoneyRequestReimbursableTotal,
     getMoneyRequestSpendBreakdown,
@@ -4308,7 +4322,7 @@ export {
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
-    isWaitingForAssigneeToCompleteTask,
+    isWaitingForTaskCompleteFromAssignee,
     isGroupChat,
     isReportDraft,
     shouldUseFullTitleToDisplay,
