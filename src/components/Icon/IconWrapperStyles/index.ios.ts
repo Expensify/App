@@ -1,1 +1,7 @@
-export default {top: 1};
+import IconWrapperStyle from './types';
+
+const style: IconWrapperStyle = {
+    top: 1,
+};
+
+export default style;
