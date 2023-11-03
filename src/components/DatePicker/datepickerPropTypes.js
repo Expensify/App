@@ -1,18 +1,18 @@
 import PropTypes from 'prop-types';
-import {propTypes as fieldPropTypes, defaultProps as defaultFieldPropTypes} from '../TextInput/baseTextInputPropTypes';
-import CONST from '../../CONST';
+import {defaultProps as defaultFieldPropTypes, propTypes as fieldPropTypes} from '@components/TextInput/baseTextInputPropTypes';
+import CONST from '@src/CONST';
 
 const propTypes = {
     ...fieldPropTypes,
 
     /**
-     * The datepicker supports any value that `moment` can parse.
+     * The datepicker supports any value that `new Date()` can parse.
      * `onInputChange` would always be called with a Date (or null)
      */
     value: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
 
     /**
-     * The datepicker supports any defaultValue that `moment` can parse.
+     * The datepicker supports any defaultValue that `new Date()` can parse.
      * `onInputChange` would always be called with a Date (or null)
      */
     defaultValue: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),

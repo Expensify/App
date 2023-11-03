@@ -79,6 +79,10 @@ const CONST = {
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
     },
 
+    LEGAL_NAME: {
+        MAX_LENGTH: 40,
+    },
+
     PULL_REQUEST_NUMBER,
 
     MERCHANT_NAME_MAX_LENGTH: 255,
@@ -108,6 +112,7 @@ const CONST = {
 
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
+        ASPECT_RATIO: 3.72,
         SMALL_SCREEN: {
             IMAGE_HEIGHT: 300,
             CONTAINER_MINHEIGHT: 200,
@@ -119,7 +124,16 @@ const CONST = {
             VIEW_HEIGHT: 275,
         },
         MONEY_REPORT: {
-            MIN_HEIGHT: 280,
+            SMALL_SCREEN: {
+                IMAGE_HEIGHT: 300,
+                CONTAINER_MINHEIGHT: 280,
+                VIEW_HEIGHT: 220,
+            },
+            WIDE_SCREEN: {
+                IMAGE_HEIGHT: 450,
+                CONTAINER_MINHEIGHT: 280,
+                VIEW_HEIGHT: 275,
+            },
         },
     },
 
@@ -130,14 +144,16 @@ const CONST = {
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
     },
     DATE: {
-        MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         LOCAL_TIME_FORMAT: 'h:mm a',
+        YEAR_MONTH_FORMAT: 'yyyyMM',
+        MONTH_FORMAT: 'MMMM',
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
         MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
+        MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
@@ -153,6 +169,10 @@ const CONST = {
             ALLOWED_THROTTLED_COUNT: 2,
             ERROR: {
                 TOO_MANY_ATTEMPTS: 'Too many attempts',
+            },
+            EVENTS_NAME: {
+                OPEN: 'OPEN',
+                EXIT: 'EXIT',
             },
         },
         ERROR: {
@@ -232,14 +252,13 @@ const CONST = {
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         BETA_COMMENT_LINKING: 'commentLinking',
         INTERNATIONALIZATION: 'internationalization',
-        IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',
         CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_CATEGORIES: 'newDotCategories',
         NEW_DOT_TAGS: 'newDotTags',
+        NEW_DOT_SAML: 'newDotSAML',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -302,7 +321,7 @@ const CONST = {
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
-        SHORTCUT_MODAL: {
+        SHORTCUTS: {
             descriptionKey: 'openShortcutDialog',
             shortcutKey: 'J',
             modifiers: ['CTRL'],
@@ -448,7 +467,7 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
-    DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
+    DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -469,6 +488,7 @@ const CONST = {
         HAND_ICON_HEIGHT: 152,
         HAND_ICON_WIDTH: 200,
         SHUTTER_SIZE: 90,
+        MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
@@ -476,20 +496,21 @@ const CONST = {
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
-                APPROVED: 'APPROVED',
                 ADDCOMMENT: 'ADDCOMMENT',
+                APPROVED: 'APPROVED',
+                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
-                TASKEDITED: 'TASKEDITED',
-                TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
-                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
-                TASKCOMPLETED: 'TASKCOMPLETED',
-                TASKREOPENED: 'TASKREOPENED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
+                SUBMITTED: 'SUBMITTED',
+                TASKCANCELLED: 'TASKCANCELLED',
+                TASKCOMPLETED: 'TASKCOMPLETED',
+                TASKEDITED: 'TASKEDITED',
+                TASKREOPENED: 'TASKREOPENED',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -511,6 +532,8 @@ const CONST = {
                     DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
                     IMPORT_CUSTOM_UNIT_RATES: 'POLICYCHANGELOG_IMPORT_CUSTOM_UNIT_RATES',
                     IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
+                    INVITE_TO_ROOM: 'POLICYCHANGELOG_INVITETOROOM',
+                    REMOVE_FROM_ROOM: 'POLICYCHANGELOG_REMOVEFROMROOM',
                     SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
@@ -544,6 +567,11 @@ const CONST = {
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
+                },
+                ROOMCHANGELOG: {
+                    INVITE_TO_ROOM: 'INVITETOROOM',
+                    REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
+                    JOIN_ROOM: 'JOINROOM',
                 },
             },
         },
@@ -664,6 +692,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
+        SEARCH_FOR_REPORTS_DEBOUNCE_TIME: 300,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -688,6 +717,7 @@ const CONST = {
         },
     },
     MCC_GROUPS: {
+        AIRLINES: 'Airlines',
         COMMUTER: 'Commuter',
         GAS: 'Gas',
         GOODS: 'Goods',
@@ -899,6 +929,8 @@ const CONST = {
         HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,
+    CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
+    CHAT_FOOTER_SECONDARY_ROW_PADDING: 5,
     CHAT_FOOTER_MIN_HEIGHT: 65,
     CHAT_SKELETON_VIEW: {
         AVERAGE_ROW_HEIGHT: 80,
@@ -927,6 +959,7 @@ const CONST = {
         RECEIPTS: 'receipts@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
+        EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
 
     ACCOUNT_ID: {
@@ -1006,8 +1039,10 @@ const CONST = {
             ACTIVATE: 'ActivateStep',
         },
         TIER_NAME: {
+            PLATINUM: 'PLATINUM',
             GOLD: 'GOLD',
             SILVER: 'SILVER',
+            BRONZE: 'BRONZE',
         },
         WEB_MESSAGE_TYPE: {
             STATEMENT: 'STATEMENT_NAVIGATE',
@@ -1049,6 +1084,12 @@ const CONST = {
         },
     },
 
+    KYC_WALL_SOURCE: {
+        REPORT: 'REPORT', // The user attempted to pay a money request
+        ENABLE_WALLET: 'ENABLE_WALLET', // The user clicked on the `Enable wallet` button on the Wallet page
+        TRANSFER_BALANCE: 'TRANSFER_BALANCE', // The user attempted to transfer their wallet balance to their bank account or debit card
+    },
+
     OS: {
         WINDOWS: 'Windows',
         MAC_OS: PLATFORM_OS_MACOS,
@@ -1086,7 +1127,7 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
-        MONEY_REQUEST_TYPE: {
+        TYPE: {
             SEND: 'send',
             SPLIT: 'split',
             REQUEST: 'request',
@@ -1167,6 +1208,14 @@ const CONST = {
             AUDITOR: 'auditor',
             USER: 'user',
         },
+        AUTO_REPORTING_FREQUENCIES: {
+            IMMEDIATE: 'immediate',
+            WEEKLY: 'weekly',
+            SEMI_MONTHLY: 'semimonthly',
+            MONTHLY: 'monthly',
+            TRIP: 'trip',
+            MANUAL: 'manual',
+        },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
@@ -1216,9 +1265,18 @@ const CONST = {
         BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
-            INDIVIDUAL: 'individal',
+            INDIVIDUAL: 'individual',
             NONE: 'none',
         },
+        STATE: {
+            STATE_NOT_ISSUED: 2,
+            OPEN: 3,
+            NOT_ACTIVATED: 4,
+            STATE_DEACTIVATED: 5,
+            CLOSED: 6,
+            STATE_SUSPENDED: 7,
+        },
+        ACTIVE_STATES: [2, 3, 4, 7],
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -1244,8 +1302,10 @@ const CONST = {
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
-        ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
+        ROOM_NAME: /^#[\p{Ll}0-9-]{1,80}$/u,
 
+        // eslint-disable-next-line max-len, no-misleading-character-class
+        EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
 
@@ -1264,18 +1324,26 @@ const CONST = {
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
-        SPECIAL_CHAR_OR_EMOJI:
-            // eslint-disable-next-line no-misleading-character-class
-            /[\n\s,/?"{}[\]()&_~^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
 
-        SPACE_OR_EMOJI:
-            // eslint-disable-next-line no-misleading-character-class
-            /(\s+|(?:[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)+)/gu,
+        get SPECIAL_CHAR_OR_EMOJI() {
+            return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
+        },
+
+        get SPACE_OR_EMOJI() {
+            return new RegExp(`(\\s+|(?:${this.EMOJI.source})+)`, 'gu');
+        },
+
+        // Define the regular expression pattern to find a potential end of a mention suggestion:
+        // It might be a space, a newline character, an emoji, or a special character (excluding underscores & tildes, which might be used in usernames)
+        get MENTION_BREAKER() {
+            return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
+        },
 
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        MENTION_REPLACER:
-            // eslint-disable-next-line no-misleading-character-class
-            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
+        get MENTION_REPLACER() {
+            return new RegExp(`^@[^\\n\\r]*?(?=$|\\s|${this.SPECIAL_CHAR.source}|${this.EMOJI.source})`, 'u');
+        },
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
 
@@ -1385,6 +1453,7 @@ const CONST = {
     REPORT_DETAILS_MENU_ITEM: {
         SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
+        INVITE: 'invite',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         WELCOME_MESSAGE: 'welcomeMessage',
@@ -1409,7 +1478,6 @@ const CONST = {
         RECIEPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
         BILL_PAY_URL: `${USE_EXPENSIFY_URL}/bills`,
         INVOICES_URL: `${USE_EXPENSIFY_URL}/invoices`,
-        CPA_CARD_URL: `${USE_EXPENSIFY_URL}/cpa-card`,
         PAYROLL_URL: `${USE_EXPENSIFY_URL}/payroll`,
         TRAVEL_URL: `${USE_EXPENSIFY_URL}/travel`,
         EXPENSIFY_APPROVED_URL: `${USE_EXPENSIFY_URL}/accountants`,
@@ -1453,6 +1521,15 @@ const CONST = {
         READ: 'read',
         WRITE: 'write',
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
+    },
+
+    ERECEIPT_COLORS: {
+        YELLOW: 'Yellow',
+        ICE: 'Ice',
+        BLUE: 'Blue',
+        GREEN: 'Green',
+        TANGERINE: 'Tangerine',
+        PINK: 'Pink',
     },
 
     MAP_PADDING: 50,
@@ -2628,8 +2705,8 @@ const CONST = {
         ATTACHMENT: 'common.attachment',
     },
     TEACHERS_UNITE: {
-        PUBLIC_ROOM_ID: '207591744844000',
-        POLICY_ID: 'ABD1345ED7293535',
+        PUBLIC_ROOM_ID: '7470147100835202',
+        POLICY_ID: 'B795B6319125BDF2',
         POLICY_NAME: 'Expensify.org / Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
     },
@@ -2684,6 +2761,7 @@ const CONST = {
     DEMO_PAGES: {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',
+        MONEY2020: 'Money2020DemoSetup',
     },
 
     MAPBOX: {
@@ -2692,19 +2770,44 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
+
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
     },
+
     EVENTS: {
         SCROLLING: 'scrolling',
     },
+
+    CHAT_HEADER_LOADER_HEIGHT: 36,
+
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
         DEFAULT_MARGIN_VERTICAL: 8,
         HIDDEN_MARGIN_VERTICAL: 0,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
+
+    LIST_COMPONENTS: {
+        HEADER: 'header',
+        FOOTER: 'footer',
+    },
+
+    GLOBAL_NAVIGATION_OPTION: {
+        HOME: 'home',
+        CHATS: 'chats',
+        SPEND: 'spend',
+        WORKSPACES: 'workspaces',
+    },
+
+    MISSING_TRANSLATION: 'MISSING TRANSLATION',
+    SEARCH_MAX_LENGTH: 500,
+
+    /**
+     * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
+     */
+    ADDITIONAL_ALLOWED_CHARACTERS: 20,
 } as const;
 
 export default CONST;
