@@ -21489,6 +21489,7 @@ const traverse_1 = __nccwpck_require__(1380);
 const github_1 = __nccwpck_require__(5438);
 const CONST_1 = __nccwpck_require__(4097);
 const GithubUtils_1 = __nccwpck_require__(7999);
+const promiseRaceTo_1 = __nccwpck_require__(8235);
 const items = [
     "I verified that similar component doesn't exist in the codebase",
     'I verified that all props are defined accurately and each prop has a `/** comment above it */`',
@@ -21557,27 +21558,51 @@ async function detectReactComponentInFile(filename) {
         console.error('An unknown error occurred with the GitHub API: ', error, params);
     }
 }
-function filterFiles({ filename, status }) {
-    if (status !== 'added') {
+async function detect(changedFiles) {
+    const filteredFiles = changedFiles.filter(({ filename, status }) => status === 'added' && (filename.endsWith('.js') || filename.endsWith('.ts') || filename.endsWith('.tsx')));
+    try {
+        await (0, promiseRaceTo_1.default)(filteredFiles.map(({ filename }) => detectReactComponentInFile(filename)), true);
+        return true;
+    }
+    catch (err) {
         return false;
     }
-    return filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx');
-}
-async function detect(changedFiles) {
-    const filteredFiles = changedFiles.filter(filterFiles);
-    for (const file of filteredFiles) {
-        const result = await detectReactComponentInFile(file.filename);
-        if (result) {
-            return true; // If the check is true, exit directly
-        }
-    }
-    return false;
 }
 const newComponentCategory = {
     detect,
     items,
 };
 exports["default"] = newComponentCategory;
+
+
+/***/ }),
+
+/***/ 8235:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/**
+ * Like Promise.race, except it resolves with the first promise that resolves to the desired value.
+ * If no promise resolves to the desired value, it rejects.
+ */
+function promiseRaceTo(promises, desiredValue) {
+    return new Promise((resolve, reject) => {
+        for (const p of promises) {
+            Promise.resolve(p)
+                .then((res) => {
+                if (res !== desiredValue) {
+                    return;
+                }
+                resolve(res);
+            })
+                .catch(() => { });
+        }
+        Promise.allSettled(promises).then(() => reject());
+    });
+}
+exports["default"] = promiseRaceTo;
 
 
 /***/ }),

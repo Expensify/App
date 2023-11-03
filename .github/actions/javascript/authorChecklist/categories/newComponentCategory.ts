@@ -4,6 +4,7 @@ import github from '@actions/github';
 import Category from './Category';
 import CONST from '../../../../libs/CONST';
 import GithubUtils from '../../../../libs/GithubUtils';
+import promiseRaceTo from '../../../../libs/promiseRaceTo';
 
 type SuperClassType = {superClass: {name?: string; object: {name: string}; property: {name: string}} | null; name: string};
 
@@ -80,22 +81,17 @@ async function detectReactComponentInFile(filename: string): Promise<boolean | u
     }
 }
 
-function filterFiles({filename, status}: {filename: string; status: string}): boolean {
-    if (status !== 'added') {
+async function detect(changedFiles: Array<{filename: string; status: string}>): Promise<boolean> {
+    const filteredFiles = changedFiles.filter(({filename, status}) => status === 'added' && (filename.endsWith('.js') || filename.endsWith('.ts') || filename.endsWith('.tsx')));
+    try {
+        await promiseRaceTo(
+            filteredFiles.map(({filename}) => detectReactComponentInFile(filename)),
+            true,
+        );
+        return true;
+    } catch (err) {
         return false;
     }
-    return filename.endsWith('.js') || filename.endsWith('.jsx') || filename.endsWith('.ts') || filename.endsWith('.tsx');
-}
-
-async function detect(changedFiles: Array<{filename: string; status: string}>): Promise<boolean> {
-    const filteredFiles = changedFiles.filter(filterFiles);
-    for (const file of filteredFiles) {
-        const result = await detectReactComponentInFile(file.filename);
-        if (result) {
-            return true; // If the check is true, exit directly
-        }
-    }
-    return false;
 }
 
 const newComponentCategory: Category = {
