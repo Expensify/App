@@ -109,8 +109,6 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
 
     // On native layers we like to have the Text Input not focused so the
     // user can read new chats without the keyboard in the way of the view.
-    // On Android the selection prop is required on the TextInput but this prop has issues on IOS
-    const propsToPass = _.omit(props, 'selection');
     return (
         <RNTextInput
             autoComplete="off"
@@ -123,7 +121,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             maxNumberOfLines={maxNumberOfLines}
             style={styles}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
-            {...propsToPass}
+            {...props}
             editable={!isDisabled}
         />
     );
