@@ -1377,6 +1377,8 @@ export default {
         enterYourCompanysTaxIdNumber: 'Enter your company’s Tax ID number.',
         taxIDNumber: 'Tax ID number',
         taxIDNumberPlaceholder: '9 digits',
+        enterYourCompanysWebsite: 'Enter your company’s website.',
+        companyWebsite: 'Company website',
     },
     validationStep: {
         headerTitle: 'Validate Bank Account',

@@ -183,6 +183,7 @@ const CONST = {
                 COMPANY_NAME: 'companyName',
                 COMPANY_TAX_ID: 'companyTaxID',
                 COMPANY_PHONE: 'companyPhone',
+                COMPANY_WEBSITE: 'website',
             },
         },
         PLAID: {
