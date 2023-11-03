@@ -60,7 +60,7 @@ function ReferralDetailsPage({route}) {
                 <Button
                     success
                     style={[styles.w100]}
-                    text="Got it"
+                    text={translate('common.buttonConfirm')}
                     onPress={() => Navigation.goBack()}
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
