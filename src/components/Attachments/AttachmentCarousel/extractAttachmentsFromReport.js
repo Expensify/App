@@ -10,11 +10,13 @@ import CONST from '@src/CONST';
 /**
  * Constructs the initial component state from report actions
  * @param {Object} report
+ * @param {Object} parentReportAction
  * @param {Array} reportActions
+ * @param {Object} transaction
  * @returns {Array}
  */
-function extractAttachmentsFromReport(report, reportActions) {
-    const actions = [ReportActionsUtils.getParentReportAction(report), ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
+function extractAttachmentsFromReport(report, parentReportAction, reportActions, transaction) {
+    const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
     const attachments = [];
 
     const htmlParser = new HtmlParser({
@@ -51,7 +53,6 @@ function extractAttachmentsFromReport(report, reportActions) {
                 return;
             }
 
-            const transaction = TransactionUtils.getTransaction(transactionID);
             if (TransactionUtils.hasReceipt(transaction)) {
                 const {image} = ReceiptUtils.getThumbnailAndImageURIs(transaction);
                 const isLocalFile = typeof image === 'string' && (image.startsWith('blob:') || image.startsWith('file:'));
