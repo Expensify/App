@@ -1,6 +1,5 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import {subYears} from 'date-fns';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
@@ -14,6 +13,7 @@ import HelpLinks from '../HelpLinks';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import FormProvider from '../../../../components/Form/FormProvider';
 import * as BankAccounts from '../../../../libs/actions/BankAccounts';
+import getDefaultStateForField from '../../utils/getDefaultStateForField';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -22,10 +22,10 @@ const propTypes = {
     ...subStepPropTypes,
 };
 
-const REQUIRED_FIELDS = [CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB];
+const personalInfoStepKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
 const validate = (values) => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+    const errors = ValidationUtils.getFieldRequiredErrors(values, [personalInfoStepKey.DOB]);
 
     if (values.dob) {
         if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
@@ -41,7 +41,7 @@ const validate = (values) => {
 function DateOfBirth({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const dobDefaultValue = lodashGet(reimbursementAccount, ['achData', CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB], '');
+    const dobDefaultValue = getDefaultStateForField({reimbursementAccount, fieldName: personalInfoStepKey.DOB, defaultValue: ''});
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
@@ -61,7 +61,7 @@ function DateOfBirth({reimbursementAccount, onNext, isEditing}) {
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
             <NewDatePicker
-                inputID={CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB}
+                inputID={personalInfoStepKey.DOB}
                 label={translate('common.dob')}
                 containerStyles={[styles.mt6]}
                 placeholder={translate('common.dateFormat')}

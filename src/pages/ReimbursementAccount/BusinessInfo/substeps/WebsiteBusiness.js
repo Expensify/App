@@ -15,6 +15,7 @@ import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
 import * as BankAccounts from '../../../../libs/actions/BankAccounts';
+import getDefaultStateForField from '../../utils/getDefaultStateForField';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -51,7 +52,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
 
     const defaultWebsiteExample = useMemo(() => (lodashGet(user, 'isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(session.email, '')}`), [user, session]);
 
-    const defaultCompanyWebsite = lodashGet(reimbursementAccount, ['achData', companyWebsiteKey], defaultWebsiteExample);
+    const defaultCompanyWebsite = getDefaultStateForField({reimbursementAccount, fieldName: companyWebsiteKey, defaultValue: defaultWebsiteExample});
 
     const handleSubmit = (values) => {
         BankAccounts.updateOnyxVBBAData({

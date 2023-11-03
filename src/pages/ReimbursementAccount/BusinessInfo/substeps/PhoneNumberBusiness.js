@@ -1,7 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
@@ -13,6 +12,7 @@ import subStepPropTypes from '../../subStepPropTypes';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import {reimbursementAccountPropTypes} from '../../reimbursementAccountPropTypes';
 import * as BankAccounts from '../../../../libs/actions/BankAccounts';
+import getDefaultStateForField from '../../utils/getDefaultStateForField';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -28,7 +28,7 @@ const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [com
 function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const defaultCompanyPhoneNumber = lodashGet(reimbursementAccount, ['achData', companyPhoneNumberKey], '');
+    const defaultCompanyPhoneNumber = getDefaultStateForField({reimbursementAccount, fieldName: companyPhoneNumberKey, defaultValue: ''});
 
     const handleSubmit = (values) => {
         BankAccounts.updateOnyxVBBAData({
