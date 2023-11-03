@@ -1,10 +1,11 @@
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import styles from '@styles/styles';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
@@ -31,16 +32,8 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
     const {currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isThumbnail, setIsThumbnail] = useState(true);
-    const [measuredDimenstions, setMeasuredDimenstions] = useState(null);
-
-    const videoStyles = useMemo(() => {
-        const {width, height} = measuredDimenstions || videoDimensions;
-        const aspectRatio = width / height;
-        if (width > height) {
-            return {width: 350, aspectRatio};
-        }
-        return {height: 350, aspectRatio};
-    }, [videoDimensions, measuredDimenstions]);
+    const [measuredDimenstions, setMeasuredDimenstions] = useState(videoDimensions);
+    const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimenstions.width, measuredDimenstions.height);
 
     const onVideoLoaded = (e) => {
         setMeasuredDimenstions({width: e.srcElement.videoWidth, height: e.srcElement.videoHeight});
@@ -61,7 +54,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
     }, [currentlyPlayingURL, updateCurrentlyPlayingURL, videoUrl]);
 
     return (
-        <View style={[styles.overflowHidden, styles.webViewStyles.tagStyles.img, videoStyles]}>
+        <View style={[styles.overflowHidden, styles.webViewStyles.tagStyles.img, thumbnailDimensionsStyles]}>
             {isSmallScreenWidth || isThumbnail ? (
                 <VideoPlayerThumbnail
                     thumbnailUrl={thumbnailUrl}
