@@ -1,6 +1,7 @@
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
+import filter from 'lodash/filter';
 import lodashGet from 'lodash/get';
 import lodashUnion from 'lodash/union';
 import Onyx from 'react-native-onyx';
@@ -74,6 +75,12 @@ Onyx.connect({
     callback: (val) => (allPersonalDetails = val),
 });
 
+let reimbursementAccount;
+Onyx.connect({
+    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    callback: (val) => (reimbursementAccount = val),
+});
+
 let allRecentlyUsedCategories = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
@@ -97,6 +104,36 @@ function updateLastAccessedWorkspace(policyID) {
 }
 
 /**
+ * Check if the user has any active free policies (aka workspaces)
+ *
+ * @param {Array} policies
+ * @returns {Boolean}
+ */
+function hasActiveFreePolicy(policies) {
+    const adminFreePolicies = _.filter(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
+
+    if (adminFreePolicies.length === 0) {
+        return false;
+    }
+
+    if (_.some(adminFreePolicies, (policy) => !policy.pendingAction)) {
+        return true;
+    }
+
+    if (_.some(adminFreePolicies, (policy) => policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)) {
+        return true;
+    }
+
+    if (_.some(adminFreePolicies, (policy) => policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
+        return false;
+    }
+
+    // If there are no add or delete pending actions the only option left is an update
+    // pendingAction, in which case we should return true.
+    return true;
+}
+
+/**
  * Delete the workspace
  *
  * @param {String} policyID
@@ -104,6 +141,7 @@ function updateLastAccessedWorkspace(policyID) {
  * @param {String} policyName
  */
 function deleteWorkspace(policyID, reports, policyName) {
+    const filteredPolicies = filter(allPolicies, (policy) => policy.id !== policyID);
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -146,6 +184,18 @@ function deleteWorkspace(policyID, reports, policyName) {
                 value: optimisticReportActions,
             };
         }),
+
+        ...(!hasActiveFreePolicy(filteredPolicies)
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                      value: {
+                          errors: null,
+                      },
+                  },
+              ]
+            : []),
     ];
 
     // Restore the old report stateNum and statusNum
@@ -160,6 +210,13 @@ function deleteWorkspace(policyID, reports, policyName) {
                 oldPolicyName,
             },
         })),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                errors: lodashGet(reimbursementAccount, 'errors', null),
+            },
+        },
     ];
 
     // We don't need success data since the push notification will update
@@ -181,36 +238,6 @@ function deleteWorkspace(policyID, reports, policyName) {
  */
 function isAdminOfFreePolicy(policies) {
     return _.some(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
-}
-
-/**
- * Check if the user has any active free policies (aka workspaces)
- *
- * @param {Array} policies
- * @returns {Boolean}
- */
-function hasActiveFreePolicy(policies) {
-    const adminFreePolicies = _.filter(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
-
-    if (adminFreePolicies.length === 0) {
-        return false;
-    }
-
-    if (_.some(adminFreePolicies, (policy) => !policy.pendingAction)) {
-        return true;
-    }
-
-    if (_.some(adminFreePolicies, (policy) => policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)) {
-        return true;
-    }
-
-    if (_.some(adminFreePolicies, (policy) => policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
-        return false;
-    }
-
-    // If there are no add or delete pending actions the only option left is an update
-    // pendingAction, in which case we should return true.
-    return true;
 }
 
 /**
@@ -1341,7 +1368,7 @@ function clearErrors(policyID) {
  *
  * @param {String} policyID
  */
-function dismissAddedWithPrimaryMessages(policyID) {
+function dismissAddedWithPrimaryLoginMessages(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
 }
 
@@ -1388,7 +1415,7 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     clearErrors,
-    dismissAddedWithPrimaryMessages,
+    dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
     createDraftInitialWorkspace,

@@ -1,6 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
@@ -58,6 +58,7 @@ function BaseSelectionList({
     inputRef = null,
     disableKeyboardShortcuts = false,
     children,
+    shouldStopPropagation = false,
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -338,10 +339,24 @@ function BaseSelectionList({
         }, [shouldShowTextInput]),
     );
 
+    useEffect(() => {
+        // do not change focus on the first render, as it should focus on the selected item
+        if (firstLayoutRef.current) {
+            return;
+        }
+
+        // set the focus on the first item when the sections list is changed
+        if (sections.length > 0) {
+            updateAndScrollToFocusedIndex(0);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sections]);
+
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+        shouldStopPropagation,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
     });
 
