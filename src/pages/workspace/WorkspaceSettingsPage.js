@@ -102,8 +102,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                     submitButtonText={translate('workspace.editor.save')}
-                    style={styles.flexGrow1}
-                    submitButtonStyles={[styles.mh5]}
+                    style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
                     validate={validate}
                     onSubmit={submit}
@@ -141,7 +140,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                         originalFileName={policy.originalFileName}
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
-                        <View style={[styles.mt4, styles.mh5]}>
+                        <View style={[styles.mt4]}>
                             <InputWrapper
                                 InputComponent={TextInput}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -153,7 +152,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                                 spellCheck={false}
                             />
                         </View>
-                        <View style={[styles.mt4]}>
+                        <View style={[styles.mt4, styles.mhn5]}>
                             <MenuItemWithTopDescription
                                 title={formattedCurrency}
                                 description={translate('workspace.editor.currencyInputLabel')}

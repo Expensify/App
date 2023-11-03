@@ -412,6 +412,7 @@ function ReportActionsList({
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
+                    testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
                     data={sortedReportActions}
                     renderItem={renderItem}
@@ -429,7 +430,6 @@ function ReportActionsList({
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     extraData={extraData}
-                    testID="report-actions-list"
                 />
             </Animated.View>
         </>

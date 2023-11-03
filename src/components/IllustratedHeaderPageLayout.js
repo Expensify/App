@@ -41,6 +41,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                     <Lottie
                         source={illustration}
                         style={styles.w100}
+                        webStyle={styles.w100}
                         autoPlay
                         loop
                     />
