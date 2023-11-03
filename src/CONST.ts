@@ -144,7 +144,6 @@ const CONST = {
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
     },
     DATE: {
-        MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         LOCAL_TIME_FORMAT: 'h:mm a',
@@ -260,6 +259,7 @@ const CONST = {
         CUSTOM_STATUS: 'customStatus',
         NEW_DOT_TAGS: 'newDotTags',
         NEW_DOT_SAML: 'newDotSAML',
+        VIOLATIONS: 'violations',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1479,7 +1479,6 @@ const CONST = {
         RECIEPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
         BILL_PAY_URL: `${USE_EXPENSIFY_URL}/bills`,
         INVOICES_URL: `${USE_EXPENSIFY_URL}/invoices`,
-        CPA_CARD_URL: `${USE_EXPENSIFY_URL}/cpa-card`,
         PAYROLL_URL: `${USE_EXPENSIFY_URL}/payroll`,
         TRAVEL_URL: `${USE_EXPENSIFY_URL}/travel`,
         EXPENSIFY_APPROVED_URL: `${USE_EXPENSIFY_URL}/accountants`,
