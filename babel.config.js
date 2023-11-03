@@ -17,16 +17,8 @@ const defaultPlugins = [
 ];
 
 const webpack = {
-    env: {
-        production: {
-            presets: defaultPresets,
-            plugins: [...defaultPlugins, 'transform-remove-console'],
-        },
-        development: {
-            presets: defaultPresets,
-            plugins: defaultPlugins,
-        },
-    },
+    presets: defaultPresets,
+    plugins: defaultPlugins,
 };
 
 const metro = {
