@@ -5,7 +5,6 @@ type OnyxData = {
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
     optimisticData?: OnyxUpdate[];
-    idempotencyKey?: string;
 };
 
 type RequestData = {
@@ -16,6 +15,7 @@ type RequestData = {
     shouldUseSecure?: boolean;
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
+    idempotencyKey?: string;
 
     resolve?: (value: Response) => void;
     reject?: (value?: unknown) => void;

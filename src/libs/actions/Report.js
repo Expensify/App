@@ -463,6 +463,7 @@ function reportActionsExist(reportID) {
  * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
 function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
+    const commandName = 'OpenReport';
     const optimisticReportData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -521,7 +522,6 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         optimisticData: optimisticReportData,
         successData: reportSuccessData,
         failureData: reportFailureData,
-        idempotencyKey: `OpenReport_${reportID}`,
     };
 
     const params = {
@@ -529,6 +529,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
+        idempotencyKey: `${commandName}_${reportID}`,
     };
 
     if (isFromDeepLink) {
@@ -626,12 +627,12 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 
     if (isFromDeepLink) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('OpenReport', params, onyxData).finally(() => {
+        API.makeRequestWithSideEffects(commandName, params, onyxData).finally(() => {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write('OpenReport', params, onyxData);
+        API.write(commandName, params, onyxData);
     }
 }
 
