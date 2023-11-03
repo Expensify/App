@@ -1,27 +1,27 @@
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import React, {useState, useCallback, useEffect, useMemo} from 'react';
-import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import Form from '../../../../components/Form';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
-import TextInput from '../../../../components/TextInput';
-import styles from '../../../../styles/styles';
-import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import AddressSearch from '../../../../components/AddressSearch';
-import StatePicker from '../../../../components/StatePicker';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import useLocalize from '../../../../hooks/useLocalize';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
-import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import CountrySelector from '../../../../components/CountrySelector';
+import _ from 'underscore';
+import AddressSearch from '@components/AddressSearch';
+import CountrySelector from '@components/CountrySelector';
+import Form from '@components/Form';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import StatePicker from '@components/StatePicker';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import styles from '@styles/styles';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -154,11 +154,11 @@ function AddressPage({privatePersonalDetails, route}) {
     }, []);
 
     useEffect(() => {
-        if (!countryFromUrl || countryFromUrl === currentCountry) {
+        if (!countryFromUrl) {
             return;
         }
         handleAddressChange(countryFromUrl, 'country');
-    }, [countryFromUrl, handleAddressChange, currentCountry]);
+    }, [countryFromUrl, handleAddressChange]);
 
     return (
         <ScreenWrapper
@@ -166,7 +166,7 @@ function AddressPage({privatePersonalDetails, route}) {
             testID={AddressPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('privatePersonalDetails.homeAddress')}
+                title={translate('privatePersonalDetails.address')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
