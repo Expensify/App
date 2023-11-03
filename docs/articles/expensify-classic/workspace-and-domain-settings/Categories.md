@@ -11,6 +11,7 @@ When reviewing this resource, be sure to take a look at the section that applies
 - You can have different categories for different workspaces
 
 # How to import Categories (no accounting integration connected)
+
 ## Add Categories via spreadsheet
 If you need to import multiple categories at once, you can upload a spreadsheet of these parameters directly to Expensify. 
 
