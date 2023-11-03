@@ -39,9 +39,13 @@ function TaskDescriptionPage(props) {
 
     const submit = useCallback(
         (values) => {
-            // Set the description of the report in the store and then call Task.editTaskReport
-            // to update the description of the report on the server
-            Task.editTaskAndNavigate(props.report, {description: values.description});
+            if (values.description !== props.report.description) {
+                // Set the description of the report in the store and then call EditTask API
+                // to update the description of the report on the server
+                Task.editTask(props.report, {description: values.description});
+            }
+
+            Navigation.dismissModal(props.report.reportID);
         },
         [props],
     );

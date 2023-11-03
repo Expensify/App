@@ -50,9 +50,13 @@ function TaskTitlePage(props) {
 
     const submit = useCallback(
         (values) => {
-            // Set the title of the report in the store and then call Task.editTaskReport
-            // to update the title of the report on the server
-            Task.editTaskAndNavigate(props.report, {title: values.title});
+            if (values.title !== props.report.reportName) {
+                // Set the title of the report in the store and then call EditTask API
+                // to update the title of the report on the server
+                Task.editTask(props.report, {title: values.title});
+            }
+
+            Navigation.dismissModal(props.report.reportID);
         },
         [props],
     );

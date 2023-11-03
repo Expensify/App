@@ -357,7 +357,7 @@ function reopenTask(taskReport) {
  * @param {object} report
  * @param {Object} editedTask
  */
-function editTaskAndNavigate(report, {title, description}) {
+function editTask(report, {title, description}) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
 
@@ -917,7 +917,7 @@ function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
 
 export {
     createTaskAndNavigate,
-    editTaskAndNavigate,
+    editTask,
     editTaskAssigneeAndNavigate,
     setTitleValue,
     setDescriptionValue,
