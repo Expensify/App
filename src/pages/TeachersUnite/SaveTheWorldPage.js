@@ -1,20 +1,20 @@
+import _ from 'lodash';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import _ from 'lodash';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import SCREENS from '../../SCREENS';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import Text from '../../components/Text';
-import MenuItem from '../../components/MenuItem';
-import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '../../components/LottieAnimations';
-import useLocalize from '../../hooks/useLocalize';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import * as LottieAnimations from '@components/LottieAnimations';
+import MenuItem from '@components/MenuItem';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 const propTypes = {
     /** The list of this user's policies */

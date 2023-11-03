@@ -41,6 +41,42 @@ const metro = {
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
         // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
         'react-native-reanimated/plugin',
+        // Import alias for native devices
+        [
+            'module-resolver',
+            {
+                extensions: [
+                    '.native.js',
+                    '.native.jsx',
+                    '.native.ts',
+                    '.native.tsx',
+                    '.js',
+                    '.jsx',
+                    '.ts',
+                    '.tsx',
+                    '.ios.js',
+                    '.ios.jsx',
+                    '.ios.ts',
+                    '.ios.tsx',
+                    '.android.js',
+                    '.android.jsx',
+                    '.android.ts',
+                    '.android.tx',
+                ],
+                alias: {
+                    '@assets': './assets',
+                    '@components': './src/components',
+                    '@hooks': './src/hooks',
+                    '@libs': './src/libs',
+                    '@navigation': './src/libs/Navigation',
+                    '@pages': './src/pages',
+                    '@styles': './src/styles',
+                    // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+                    '@src': './src',
+                    '@userActions': './src/libs/actions',
+                },
+            },
+        ],
     ],
 };
 
@@ -62,6 +98,7 @@ if (process.env.CAPTURE_METRICS === 'true') {
                 'scheduler/tracing': 'scheduler/tracing-profiling',
             },
         },
+        'extra-alias',
     ]);
 }
 

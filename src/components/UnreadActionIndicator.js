@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import styles from '../styles/styles';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import Text from './Text';
-import CONST from '../CONST';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 function UnreadActionIndicator(props) {

@@ -1,14 +1,14 @@
+import _ from 'lodash';
+import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import _ from 'lodash';
-import styles from '../../styles/styles';
-import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import refPropTypes from '@components/refPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import variables from '@styles/variables';
 import ValueSelectorModal from './ValueSelectorModal';
-import FormHelpMessage from '../FormHelpMessage';
-import refPropTypes from '../refPropTypes';
-import * as StyleUtils from '../../styles/StyleUtils';
-import variables from '../../styles/variables';
 
 const propTypes = {
     /** Form Error description */

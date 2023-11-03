@@ -1,20 +1,20 @@
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import CONST from '../../CONST';
-import HapticFeedback from '../../libs/HapticFeedback';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import compose from '../../libs/compose';
-import * as StyleUtils from '../../styles/StyleUtils';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import Text from '../Text';
-import refPropTypes from '../refPropTypes';
-import withNavigationFallback from '../withNavigationFallback';
-import withNavigationFocus from '../withNavigationFocus';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import refPropTypes from '@components/refPropTypes';
+import Text from '@components/Text';
+import withNavigationFallback from '@components/withNavigationFallback';
+import withNavigationFocus from '@components/withNavigationFocus';
+import compose from '@libs/compose';
+import HapticFeedback from '@libs/HapticFeedback';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 const propTypes = {

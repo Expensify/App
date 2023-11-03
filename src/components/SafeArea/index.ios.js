@@ -1,7 +1,7 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
+import styles from '@styles/styles';
 
 function SafeArea(props) {
     return (
