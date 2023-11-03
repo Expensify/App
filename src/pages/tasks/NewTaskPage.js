@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
@@ -127,11 +128,11 @@ function NewTaskPage(props) {
             setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskDestination'));
             return;
         }
-
+        const parser = new ExpensiMark();
         Task.createTaskAndNavigate(
             parentReport.reportID,
             props.task.title,
-            props.task.description,
+            parser.replace(props.task.description),
             props.task.assignee,
             props.task.assigneeAccountID,
             props.task.assigneeChatReport,
