@@ -178,6 +178,13 @@ const CONST = {
                 ZIP_CODE: 'requestorAddressZipCode',
             },
         },
+        BUSINESS_INFO_STEP: {
+            INPUT_KEY: {
+                COMPANY_NAME: 'companyName',
+                COMPANY_TAX_ID: 'companyTaxID',
+                COMPANY_PHONE: 'companyPhone',
+            },
+        },
         PLAID: {
             ALLOWED_THROTTLED_COUNT: 2,
             ERROR: {

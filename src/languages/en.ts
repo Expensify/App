@@ -1370,6 +1370,11 @@ export default {
         letsDoubleCheck: "Let's double check everything looks right",
         byAddingThisBankAccount: 'By adding this bank account, you confirm that you have read, understand and accept',
     },
+    businessInfoStep: {
+        businessInfo: 'Business info',
+        enterTheNameOfYourBusiness: 'Enter the name of your business.',
+        businessName: 'Business name',
+    },
     validationStep: {
         headerTitle: 'Validate Bank Account',
         buttonText: 'Finish setup',

@@ -2,13 +2,13 @@ import {useState, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    /** an array of substep components */
+    /** An array of substep components */
     bodyContent: PropTypes.arrayOf(PropTypes.element).isRequired,
 
-    /** an index of the component from bodyContent array to start from */
+    /** An index of the component from bodyContent array to start from */
     onFinished: PropTypes.func.isRequired,
 
-    /** a callback to be fired when pressing Confirm on the last substep screen */
+    /** A callback to be fired when pressing Confirm on the last substep screen */
     startFrom: PropTypes.number,
 };
 
