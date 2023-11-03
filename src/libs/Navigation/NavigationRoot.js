@@ -1,16 +1,17 @@
-import React, {useRef, useEffect} from 'react';
+import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
-import {useFlipper} from '@react-navigation/devtools';
-import {useSharedValue, useAnimatedReaction, interpolateColor, withTiming, withDelay, Easing, runOnJS} from 'react-native-reanimated';
-import Navigation, {navigationRef} from './Navigation';
-import linkingConfig from './linkingConfig';
+import React, {useContext, useEffect, useRef} from 'react';
+import {Easing, interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import useCurrentReportID from '@hooks/useCurrentReportID';
+import useFlipper from '@hooks/useFlipper';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import Log from '@libs/Log';
+import StatusBar from '@libs/StatusBar';
+import {SidebarNavigationContext} from '@pages/home/sidebar/SidebarNavigationContext';
+import themeColors from '@styles/themes/default';
 import AppNavigator from './AppNavigator';
-import themeColors from '../../styles/themes/default';
-import Log from '../Log';
-import StatusBar from '../StatusBar';
-import useCurrentReportID from '../../hooks/useCurrentReportID';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
+import linkingConfig from './linkingConfig';
+import Navigation, {navigationRef} from './Navigation';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -53,6 +54,7 @@ function parseAndLogRoute(state) {
 function NavigationRoot(props) {
     useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
+    const globalNavigation = useContext(SidebarNavigationContext);
 
     const {updateCurrentReportID} = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -99,11 +101,12 @@ function NavigationRoot(props) {
 
     const animateStatusBarBackgroundColor = () => {
         const currentRoute = navigationRef.getCurrentRoute();
-        const currentScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
+        const currentScreenBackgroundColor = (currentRoute.params && currentRoute.params.backgroundColor) || themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
 
         prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
         statusBarBackgroundColor.current = currentScreenBackgroundColor;
-        if (prevStatusBarBackgroundColor.current === statusBarBackgroundColor.current) {
+
+        if (currentScreenBackgroundColor === themeColors.appBG && prevStatusBarBackgroundColor.current === themeColors.appBG) {
             return;
         }
 
@@ -121,9 +124,15 @@ function NavigationRoot(props) {
         if (!state) {
             return;
         }
-        updateCurrentReportID(state);
+        // Performance optimization to avoid context consumers to delay first render
+        setTimeout(() => {
+            updateCurrentReportID(state);
+        }, 0);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
+
+        // Update the global navigation to show the correct selected menu items.
+        globalNavigation.updateFromNavigationState(state);
     };
 
     return (

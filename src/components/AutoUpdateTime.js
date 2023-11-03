@@ -2,13 +2,13 @@
  * Displays the user's local time and updates it every minute.
  * The time auto-update logic is extracted to this component to avoid re-rendering a more complex component, e.g. DetailsPage.
  */
-import {View} from 'react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import DateUtils from '../libs/DateUtils';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import DateUtils from '@libs/DateUtils';
+import styles from '@styles/styles';
 import Text from './Text';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** Timezone of the user from their personal details */
@@ -24,7 +24,7 @@ const propTypes = {
 
 function AutoUpdateTime(props) {
     /**
-     * @returns {moment} Returns the locale moment object
+     * @returns {Date} Returns the locale Date object
      */
     const getCurrentUserLocalTime = useCallback(
         () => DateUtils.getLocalDateFromDatetime(props.preferredLocale, null, props.timezone.selected),

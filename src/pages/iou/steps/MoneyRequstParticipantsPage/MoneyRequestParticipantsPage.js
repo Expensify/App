@@ -1,23 +1,22 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import CONST from '../../../../CONST';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import ROUTES from '../../../../ROUTES';
-import MoneyRequestParticipantsSplitSelector from './MoneyRequestParticipantsSplitSelector';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useInitialValue from '@hooks/useInitialValue';
+import useLocalize from '@hooks/useLocalize';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
-import styles from '../../../../styles/styles';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import compose from '../../../../libs/compose';
-import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import * as IOU from '../../../../libs/actions/IOU';
-import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
-import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -36,100 +35,119 @@ const propTypes = {
     iou: iouPropTypes,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
-
-    ...withLocalizePropTypes,
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
     iou: iouDefaultProps,
+    selectedTab: undefined,
 };
 
-function MoneyRequestParticipantsPage(props) {
-    const prevMoneyRequestId = useRef(props.iou.id);
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
+    const {translate} = useLocalize();
+    const prevMoneyRequestId = useRef(iou.id);
     const optionsSelectorRef = useRef();
-    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
+    const iouType = useInitialValue(() => lodashGet(route, 'params.iouType', ''));
+    const reportID = useInitialValue(() => lodashGet(route, 'params.reportID', ''));
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
+    const isSendRequest = iouType === CONST.IOU.TYPE.SEND;
+    const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
+    const isSplitRequest = iou.id === CONST.IOU.TYPE.SPLIT;
+    const [headerTitle, setHeaderTitle] = useState();
 
-    const navigateToNextStep = () => {
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
+    useEffect(() => {
+        if (isDistanceRequest) {
+            setHeaderTitle(translate('common.distance'));
+            return;
+        }
+
+        if (isSendRequest) {
+            setHeaderTitle(translate('common.send'));
+            return;
+        }
+
+        if (isScanRequest) {
+            setHeaderTitle(translate('tabSelector.scan'));
+            return;
+        }
+
+        setHeaderTitle(iou.isSplitRequest ? translate('iou.split') : translate('tabSelector.manual'));
+    }, [iou.isSplitRequest, isDistanceRequest, translate, isScanRequest, isSendRequest]);
+
+    const navigateToConfirmationStep = (moneyRequestType) => {
+        IOU.setMoneyRequestId(moneyRequestType);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID));
     };
 
-    const navigateBack = (forceFallback = false) => {
-        Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), forceFallback);
-    };
+    const navigateBack = useCallback((forceFallback = false) => {
+        Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), forceFallback);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- no deps as we use only initial values
+    }, []);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (prevMoneyRequestId.current !== props.iou.id) {
+        if (prevMoneyRequestId.current !== iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing
-            if (!isDistanceRequest && props.iou.id) {
+            if (iou.id && !isDistanceRequest && !isSplitRequest) {
                 navigateBack(true);
             }
             return;
         }
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
-        const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestId;
+        const moneyRequestId = `${iouType}${reportID}`;
+        const shouldReset = iou.id !== moneyRequestId;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
-        if (!isDistanceRequest && ((props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset)) {
+        if (!isDistanceRequest && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
             navigateBack(true);
         }
 
         return () => {
-            prevMoneyRequestId.current = props.iou.id;
+            prevMoneyRequestId.current = iou.id;
         };
-    }, [props.iou.amount, props.iou.id, props.iou.receiptPath, isDistanceRequest]);
+    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, iouType, reportID, navigateBack]);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
+            testID={MoneyRequestParticipantsPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
-                        title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
+                        title={headerTitle}
                         onBackButtonPress={navigateBack}
                     />
-                    {iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
-                        <MoneyRequestParticipantsSplitSelector
-                            onStepComplete={navigateToNextStep}
-                            participants={props.iou.participants}
-                            onAddParticipants={IOU.setMoneyRequestParticipants}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                        />
-                    ) : (
-                        <MoneyRequestParticipantsSelector
-                            ref={(el) => (optionsSelectorRef.current = el)}
-                            onStepComplete={navigateToNextStep}
-                            onAddParticipants={IOU.setMoneyRequestParticipants}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            iouType={iouType.current}
-                            isDistanceRequest={isDistanceRequest}
-                        />
-                    )}
+                    <MoneyRequestParticipantsSelector
+                        ref={(el) => (optionsSelectorRef.current = el)}
+                        participants={iou.isSplitRequest ? iou.participants : []}
+                        onAddParticipants={IOU.setMoneyRequestParticipants}
+                        navigateToRequest={() => navigateToConfirmationStep(iouType)}
+                        navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.TYPE.SPLIT)}
+                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                        iouType={iouType}
+                        isDistanceRequest={isDistanceRequest}
+                        isScanRequest={isScanRequest}
+                    />
                 </View>
             )}
         </ScreenWrapper>
     );
 }
 
-MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
+MoneyRequestParticipantsPage.displayName = 'MoneyRequestParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-        selectedTab: {
-            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
-        },
-    }),
-)(MoneyRequestParticipantsPage);
+export default withOnyx({
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+    },
+})(MoneyRequestParticipantsPage);

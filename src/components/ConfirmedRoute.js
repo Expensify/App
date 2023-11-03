@@ -1,22 +1,20 @@
-import React, {useEffect} from 'react';
-import PropTypes from 'prop-types';
-import {View} from 'react-native';
-
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import lodashIsNil from 'lodash/isNil';
+import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
-import * as MapboxToken from '../libs/actions/MapboxToken';
-import * as TransactionUtils from '../libs/TransactionUtils';
+import useNetwork from '@hooks/useNetwork';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import styles from '@styles/styles';
+import theme from '@styles/themes/default';
+import * as MapboxToken from '@userActions/MapboxToken';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
-import theme from '../styles/themes/default';
-import styles from '../styles/styles';
+import PendingMapView from './MapView/PendingMapView';
 import transactionPropTypes from './transactionPropTypes';
-import BlockingView from './BlockingViews/BlockingView';
-import useNetwork from '../hooks/useNetwork';
-import useLocalize from '../hooks/useLocalize';
-import MapView from './MapView';
 
 const propTypes = {
     /** Transaction that stores the distance request data */
@@ -44,7 +42,7 @@ const getWaypointMarkers = (waypoints) => {
     const lastWaypointIndex = numberOfWaypoints - 1;
     return _.filter(
         _.map(waypoints, (waypoint, key) => {
-            if (!waypoint || waypoint.lng === undefined || waypoint.lat === undefined) {
+            if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
                 return;
             }
 
@@ -76,7 +74,6 @@ const getWaypointMarkers = (waypoints) => {
 
 function ConfirmedRoute({mapboxAccessToken, transaction}) {
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
     const {route0: route} = transaction.routes || {};
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const coordinates = lodashGet(route, 'geometry.coordinates', []);
@@ -90,7 +87,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
     return (
         <>
             {!isOffline && Boolean(mapboxAccessToken.token) ? (
-                <MapView
+                <DistanceMapView
                     accessToken={mapboxAccessToken.token}
                     mapPadding={CONST.MAP_PADDING}
                     pitchEnabled={false}
@@ -99,19 +96,12 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
                         location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
                     }}
                     directionCoordinates={coordinates}
-                    style={styles.mapView}
+                    style={[styles.mapView, styles.br4]}
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
                 />
             ) : (
-                <View style={[styles.mapPendingView]}>
-                    <BlockingView
-                        icon={Expensicons.EmptyStateRoutePending}
-                        title={translate('distance.mapPending.title')}
-                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                        shouldShowLink={false}
-                    />
-                </View>
+                <PendingMapView />
             )}
         </>
     );

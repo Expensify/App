@@ -1,9 +1,12 @@
 import React from 'react';
 import {TextInput} from 'react-native';
+import ROUTES from '@src/ROUTES';
+import Navigation from './Navigation/Navigation';
 
 type FocusCallback = () => void;
 
 const composerRef = React.createRef<TextInput>();
+const editComposerRef = React.createRef<TextInput>();
 // There are two types of composer: general composer (edit composer) and main composer.
 // The general composer callback will take priority if it exists.
 let focusCallback: FocusCallback | null = null;
@@ -27,6 +30,11 @@ function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
  * Request focus on the ReportActionComposer
  */
 function focus() {
+    /** Do not trigger the refocusing when the active route is not the report route, */
+    if (!Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(Navigation.getTopmostReportId() ?? ''))) {
+        return;
+    }
+
     if (typeof focusCallback !== 'function') {
         if (typeof mainComposerFocusCallback !== 'function') {
             return;
@@ -57,10 +65,19 @@ function isFocused(): boolean {
     return !!composerRef.current?.isFocused();
 }
 
+/**
+ * Exposes the current focus state of the edit message composer.
+ */
+function isEditFocused(): boolean {
+    return !!editComposerRef.current?.isFocused();
+}
+
 export default {
     composerRef,
     onComposerFocus,
     focus,
     clear,
     isFocused,
+    editComposerRef,
+    isEditFocused,
 };

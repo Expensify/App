@@ -1,33 +1,31 @@
-import React, {useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import styles from '../../../../styles/styles';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import * as Browser from '../../../../libs/Browser';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import NAVIGATORS from '../../../../NAVIGATORS';
-import SCREENS from '../../../../SCREENS';
-import Permissions from '../../../../libs/Permissions';
-import * as Policy from '../../../../libs/actions/Policy';
-import * as PolicyUtils from '../../../../libs/PolicyUtils';
-import PopoverMenu from '../../../../components/PopoverMenu';
-import CONST from '../../../../CONST';
-import FloatingActionButton from '../../../../components/FloatingActionButton';
-import compose from '../../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import withWindowDimensions from '../../../../components/withWindowDimensions';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import withNavigation from '../../../../components/withNavigation';
-import * as Welcome from '../../../../libs/actions/Welcome';
-import withNavigationFocus from '../../../../components/withNavigationFocus';
-import * as Task from '../../../../libs/actions/Task';
-import * as Session from '../../../../libs/actions/Session';
-import * as IOU from '../../../../libs/actions/IOU';
-import usePrevious from '../../../../hooks/usePrevious';
-import * as App from '../../../../libs/actions/App';
+import {withOnyx} from 'react-native-onyx';
+import FloatingActionButton from '@components/FloatingActionButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PopoverMenu from '@components/PopoverMenu';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigation from '@components/withNavigation';
+import withNavigationFocus from '@components/withNavigationFocus';
+import withWindowDimensions from '@components/withWindowDimensions';
+import usePrevious from '@hooks/usePrevious';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import styles from '@styles/styles';
+import * as App from '@userActions/App';
+import * as IOU from '@userActions/IOU';
+import * as Policy from '@userActions/Policy';
+import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
+import * as Welcome from '@userActions/Welcome';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 /**
  * @param {Object} [policy]
@@ -62,11 +60,15 @@ const propTypes = {
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
-    /** For first time users, whether the download app banner should show */
-    shouldShowDownloadAppBanner: PropTypes.bool,
-
     /** Forwarded ref to FloatingActionButtonAndPopover */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
+    /** Information about any currently running demos */
+    demoInfo: PropTypes.shape({
+        money2020: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+    }),
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -75,7 +77,7 @@ const defaultProps = {
     betas: [],
     isLoading: false,
     innerRef: null,
-    shouldShowDownloadAppBanner: true,
+    demoInfo: {},
 };
 
 /**
@@ -158,12 +160,12 @@ function FloatingActionButtonAndPopover(props) {
         if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
             return;
         }
-        // Avoid rendering the create menu for first-time users until they have dismissed the download app banner (mWeb only).
-        if (props.shouldShowDownloadAppBanner && Browser.isMobile()) {
+        if (lodashGet(props.demoInfo, 'money2020.isBeginningDemo', false)) {
             return;
         }
         Welcome.show({routes, showCreateMenu});
-    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu, props.demoInfo]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.isLoading]);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
@@ -180,8 +182,6 @@ function FloatingActionButtonAndPopover(props) {
         },
     }));
 
-    const workspaces = PolicyUtils.getActivePolicies(props.allPolicies);
-
     return (
         <View>
             <PopoverMenu
@@ -193,46 +193,18 @@ function FloatingActionButtonAndPopover(props) {
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,
-                        text: props.translate('sidebarScreen.newChat'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_CHAT)),
+                        text: props.translate('sidebarScreen.fabNewChat'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
-                    {
-                        icon: Expensicons.Users,
-                        text: props.translate('sidebarScreen.newGroup'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_GROUP)),
-                    },
-                    ...(Permissions.canUsePolicyRooms(props.betas) && workspaces.length
-                        ? [
-                              {
-                                  icon: Expensicons.Hashtag,
-                                  text: props.translate('sidebarScreen.newRoom'),
-                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM)),
-                              },
-                          ]
-                        : []),
-                    ...(Permissions.canUseIOUSend(props.betas)
-                        ? [
-                              {
-                                  icon: Expensicons.Send,
-                                  text: props.translate('iou.sendMoney'),
-                                  onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
-                              },
-                          ]
-                        : []),
                     {
                         icon: Expensicons.MoneyCircle,
                         text: props.translate('iou.requestMoney'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
+                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST)),
                     },
                     {
-                        icon: Expensicons.Heart,
-                        text: props.translate('sidebarScreen.saveTheWorld'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
-                    },
-                    {
-                        icon: Expensicons.Receipt,
-                        text: props.translate('iou.splitBill'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
+                        icon: Expensicons.Send,
+                        text: props.translate('iou.sendMoney'),
+                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                     },
                     ...(Permissions.canUseTasks(props.betas)
                         ? [
@@ -243,6 +215,11 @@ function FloatingActionButtonAndPopover(props) {
                               },
                           ]
                         : []),
+                    {
+                        icon: Expensicons.Heart,
+                        text: props.translate('sidebarScreen.saveTheWorld'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
+                    },
                     ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
                         ? [
                               {
@@ -251,7 +228,7 @@ function FloatingActionButtonAndPopover(props) {
                                   iconHeight: 40,
                                   text: props.translate('workspace.new.newWorkspace'),
                                   description: props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceAndNavigateToIt('', false, '', false, !props.isSmallScreenWidth)),
+                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()),
                               },
                           ]
                         : []),
@@ -260,7 +237,7 @@ function FloatingActionButtonAndPopover(props) {
                 anchorRef={anchorRef}
             />
             <FloatingActionButton
-                accessibilityLabel={props.translate('sidebarScreen.fabNewChat')}
+                accessibilityLabel={props.translate('sidebarScreen.fabNewChatExplained')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 isActive={isCreateMenuActive}
                 ref={anchorRef}
@@ -280,6 +257,16 @@ FloatingActionButtonAndPopover.propTypes = propTypes;
 FloatingActionButtonAndPopover.defaultProps = defaultProps;
 FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
+const FloatingActionButtonAndPopoverWithRef = forwardRef((props, ref) => (
+    <FloatingActionButtonAndPopover
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+FloatingActionButtonAndPopoverWithRef.displayName = 'FloatingActionButtonAndPopoverWithRef';
+
 export default compose(
     withLocalize,
     withNavigation,
@@ -294,18 +281,10 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
         isLoading: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            key: ONYXKEYS.IS_LOADING_APP,
         },
-        shouldShowDownloadAppBanner: {
-            key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
+        demoInfo: {
+            key: ONYXKEYS.DEMO_INFO,
         },
     }),
-)(
-    forwardRef((props, ref) => (
-        <FloatingActionButtonAndPopover
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+)(FloatingActionButtonAndPopoverWithRef);

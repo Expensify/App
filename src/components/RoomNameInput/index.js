@@ -1,12 +1,12 @@
 import React, {useState} from 'react';
 import _ from 'underscore';
-import CONST from '../../CONST';
-import TextInput from '../TextInput';
-import useLocalize from '../../hooks/useLocalize';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
+import CONST from '@src/CONST';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
-import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
 
-function RoomNameInput({autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange}) {
+function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
     const {translate} = useLocalize();
 
     const [selection, setSelection] = useState();
@@ -57,10 +57,12 @@ function RoomNameInput({autoFocus, disabled, errorText, forwardedRef, value, onB
             onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
             errorText={errorText}
             autoCapitalize="none"
-            onBlur={onBlur}
-            autoFocus={autoFocus}
+            onBlur={() => isFocused && onBlur()}
+            shouldDelayFocus={shouldDelayFocus}
+            autoFocus={isFocused && autoFocus}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             spellCheck={false}
+            shouldInterceptSwipe
         />
     );
 }
@@ -69,10 +71,14 @@ RoomNameInput.propTypes = roomNameInputPropTypes.propTypes;
 RoomNameInput.defaultProps = roomNameInputPropTypes.defaultProps;
 RoomNameInput.displayName = 'RoomNameInput';
 
-export default React.forwardRef((props, ref) => (
+const RoomNameInputWithRef = React.forwardRef((props, ref) => (
     <RoomNameInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+RoomNameInputWithRef.displayName = 'RoomNameInputWithRef';
+
+export default RoomNameInputWithRef;

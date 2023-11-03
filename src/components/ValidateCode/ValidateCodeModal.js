@@ -1,20 +1,20 @@
-import React, {useCallback} from 'react';
-import PropTypes from 'prop-types';
-import {compose} from 'underscore';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import colors from '../../styles/colors';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Text from '../Text';
-import * as Expensicons from '../Icon/Expensicons';
-import * as Illustrations from '../Icon/Illustrations';
-import variables from '../../styles/variables';
-import TextLink from '../TextLink';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Session from '../../libs/actions/Session';
+import {withOnyx} from 'react-native-onyx';
+import {compose} from 'underscore';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
+import * as Session from '@userActions/Session';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Code to display. */
@@ -39,7 +39,7 @@ const defaultProps = {
 };
 
 function ValidateCodeModal(props) {
-    const signInHere = useCallback(() => Session.signInWithValidateCode(props.accountID, props.code, props.preferredLocale), [props.accountID, props.code, props.preferredLocale]);
+    const signInHere = useCallback(() => Session.signInWithValidateCode(props.accountID, props.code), [props.accountID, props.code]);
 
     return (
         <View style={styles.deeplinkWrapperContainer}>
@@ -71,7 +71,7 @@ function ValidateCodeModal(props) {
                 <Icon
                     width={variables.modalWordmarkWidth}
                     height={variables.modalWordmarkHeight}
-                    fill={colors.green}
+                    fill={themeColors.success}
                     src={Expensicons.ExpensifyWordmark}
                 />
             </View>

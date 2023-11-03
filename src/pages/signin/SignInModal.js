@@ -1,10 +1,10 @@
 import React from 'react';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as Session from '@userActions/Session';
 import SignInPage from './SignInPage';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import styles from '../../styles/styles';
-import * as Session from '../../libs/actions/Session';
 
 const propTypes = {};
 
@@ -22,8 +22,9 @@ function SignInModal() {
             style={[styles.highlightBG]}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            testID={SignInModal.displayName}
         >
-            <HeaderWithBackButton onBackButtonPress={() => Navigation.goBack()} />
+            <HeaderWithBackButton onBackButtonPress={Navigation.dismissModal} />
             <SignInPage isInModal />
         </ScreenWrapper>
     );
