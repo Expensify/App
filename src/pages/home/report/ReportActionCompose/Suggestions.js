@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
 import * as SuggestionProps from './suggestionProps';
@@ -108,7 +109,7 @@ function Suggestions({
     };
 
     return (
-        <>
+        <View testID="suggestions">
             <SuggestionEmoji
                 ref={suggestionEmojiRef}
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -120,7 +121,7 @@ function Suggestions({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
             />
-        </>
+        </View>
     );
 }
 

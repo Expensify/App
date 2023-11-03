@@ -37,6 +37,9 @@ const propTypes = {
     /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
     shouldEnableMaxHeight: PropTypes.bool,
 
+    /** Whether to use the minHeight. Use true for screens where the window height are changing because of Virtual Keyboard */
+    shouldEnableMinHeight: PropTypes.bool,
+
     /** Array of additional styles for header gap */
     headerGapStyles: PropTypes.arrayOf(PropTypes.object),
 
