@@ -68,19 +68,25 @@ Performance:
 const testAesUnderLoad = async (sharedSecret: string, iterations: number, shouldLog = true) => {
     const shiftString = (str: string, numOfChars: number) => str.substring(numOfChars) + str.substring(0, numOfChars);
 
-    for (let i = 0; i < iterations; i++) {
+    const promises = [];
+
+    async function runAesEncryptionFlow(i: number) {
         const inputData = shiftString(ENCRYPTION_DATA, i);
 
         performance.mark('AESEncrypt under load');
-        // eslint-disable-next-line no-await-in-loop
         const encryptedDataIter = await Encryptify.AesEncrypt(ENCRYPTION_IV, sharedSecret, inputData);
         performance.measure(`Encryption Iteration ${i}`, 'AESEncrypt under load');
 
         performance.mark('AESDecrypt under load');
-        // eslint-disable-next-line no-await-in-loop
         await Encryptify.AesDecrypt(ENCRYPTION_IV, sharedSecret, encryptedDataIter);
         performance.measure(`Decryption teration ${i}`, 'AESDecrypt under load');
     }
+
+    for (let i = 0; i < iterations; i++) {
+        promises.push(runAesEncryptionFlow(i));
+    }
+
+    await Promise.all(promises);
 
     const allMeasures = performance.getEntriesByType('measure');
     const encryptionMeasures = allMeasures.filter((measure) => measure.name.includes('Encryption'));
@@ -96,7 +102,7 @@ const testAesUnderLoad = async (sharedSecret: string, iterations: number, should
                 measures,
             ).toFixed(PERFORMANCE_METRICS_DECIMAL_PLACES)}ms`;
 
-        console.log(`Under Load: (encrypting/decrypting ${iterations} times)`);
+        console.log(`Under Load: (encrypting/decrypting ${iterations} times simoultenously)`);
         console.log(`Encryption | ${printData(encryptionMeasures)}`);
         console.log(`Decryption | ${printData(decryptionMeasures)}`);
     }

@@ -197,7 +197,9 @@ function Expensify(props) {
             await EncryptifyPerformanceTest.testAesUnderLoad(sharedSecret, 10000, true);
         }
 
-        exec();
+        setTimeout(() => {
+            exec();
+        }, 30000);
     }, []);
 
     // Display a blank page until the onyx migration completes
