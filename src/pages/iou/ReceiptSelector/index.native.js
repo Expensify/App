@@ -1,5 +1,4 @@
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, Text, View} from 'react-native';
@@ -106,7 +105,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
 
     const validateReceipt = (file) => {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS, fileExtension.toLowerCase())) {
+        if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
             Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
             return false;
         }
