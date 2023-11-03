@@ -130,9 +130,9 @@ function TaskView(props) {
                 </Hoverable>
                 <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.description')}>
                     <MenuItemWithTopDescription
-                        shouldParseTitle
                         description={props.translate('task.description')}
                         title={props.report.description || ''}
+                        shouldRenderAsHTML
                         onPress={() => Navigation.navigate(ROUTES.TASK_DESCRIPTION.getRoute(props.report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
