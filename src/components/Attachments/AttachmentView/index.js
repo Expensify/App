@@ -79,7 +79,7 @@ function AttachmentView({
     isUsedInAttachmentModal,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
-    const [imageError, setImageError] = useState(false);
+    const [isValidImage, setIsValidImage] = useState(true);
 
     useNetwork({onReconnect: () => setImageError(false)});
 
@@ -147,11 +147,11 @@ function AttachmentView({
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-    const isImage = typeof source === 'number' || Str.isImage(source);
-    if (isImage || (file && Str.isImage(file.name))) {
+    const isImage = typeof source === 'number' || Str.isImage(source) || (file && Str.isImage(file.name));
+    if (isImage && isValidImage && !fallbackSource) {
         return (
             <AttachmentViewImage
-                source={imageError ? fallbackSource : source}
+                source={isValidImage ? source : fallbackSource}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 isUsedInCarousel={isUsedInCarousel}
@@ -161,7 +161,7 @@ function AttachmentView({
                 onPress={onPress}
                 onScaleChanged={onScaleChanged}
                 onError={() => {
-                    setImageError(true);
+                    setIsValidImage(false);
                 }}
             />
         );
