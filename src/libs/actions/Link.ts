@@ -34,6 +34,9 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
     });
 }
 
+/**
+ * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
+ */
 function openExternalLink(url: string, shouldSkipCustomSafariLogic = false) {
     asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic);
 }
