@@ -818,15 +818,8 @@ function isOneOnOneChat(report) {
  * @returns {Object}
  */
 function getReport(reportID) {
-    /**
-     * Using typical string concatenation here due to performance issues
-     * with template literals.
-     */
-    if (!allReports) {
-        return {};
-    }
-
-    return allReports[ONYXKEYS.COLLECTION.REPORT + reportID] || {};
+    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
 }
 
 /**
@@ -1499,15 +1492,18 @@ function getMoneyRequestSpendBreakdown(report, allReportsDict = null) {
     }
     if (moneyRequestReport) {
         let nonReimbursableSpend = lodashGet(moneyRequestReport, 'nonReimbursableTotal', 0);
-        let reimbursableSpend = lodashGet(moneyRequestReport, 'total', 0);
+        let totalSpend = lodashGet(moneyRequestReport, 'total', 0);
 
-        if (nonReimbursableSpend + reimbursableSpend !== 0) {
+        if (nonReimbursableSpend + totalSpend !== 0) {
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to “offset” future expenses
             nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
-            reimbursableSpend = isExpenseReport(moneyRequestReport) ? reimbursableSpend * -1 : Math.abs(reimbursableSpend);
-            const totalDisplaySpend = nonReimbursableSpend + reimbursableSpend;
+            totalSpend = isExpenseReport(moneyRequestReport) ? totalSpend * -1 : Math.abs(totalSpend);
+
+            const totalDisplaySpend = totalSpend;
+            const reimbursableSpend = totalDisplaySpend - nonReimbursableSpend;
+
             return {
                 nonReimbursableSpend,
                 reimbursableSpend,
@@ -1530,25 +1526,14 @@ function getMoneyRequestSpendBreakdown(report, allReportsDict = null) {
  * @returns {String}
  */
 function getPolicyExpenseChatName(report, policy = undefined) {
-    const ownerAccountID = report.ownerAccountID;
-    const personalDetails = allPersonalDetails[ownerAccountID];
-    const login = personalDetails ? personalDetails.login : null;
-    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || login || report.reportName;
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || lodashGet(allPersonalDetails, [report.ownerAccountID, 'login']) || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
         return getPolicyName(report, false, policy);
     }
 
-    let policyExpenseChatRole = 'user';
-    /**
-     * Using typical string concatenation here due to performance issues
-     * with template literals.
-     */
-    const policyItem = allPolicies[ONYXKEYS.COLLECTION.POLICY + report.policyID];
-    if (policyItem) {
-        policyExpenseChatRole = policyItem.role || 'user';
-    }
+    const policyExpenseChatRole = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']) || 'user';
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
