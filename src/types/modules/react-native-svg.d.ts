@@ -1,18 +1,11 @@
-import {StyleProp} from 'react-native';
 import {CommonPathProps as BaseCommonPathProps, SvgProps as BaseSvgProps} from 'react-native-svg';
 
 declare module 'react-native-svg' {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-    interface SvgStyle extends ViewStyle {
-        enableBackground?: string;
-    }
-
     // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     interface SvgProps extends BaseSvgProps {
         xmlns?: string;
         xmlnsXlink?: string;
         xmlSpace?: string;
-        style?: StyleProp<SvgStyle>;
         hovered?: string;
         pressed?: string;
     }

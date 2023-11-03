@@ -333,6 +333,7 @@ declare module 'react-native' {
         // Exclusive to react-native-web, "pointerEvents" already included on RN
         animationKeyframes?: string | Record<string, ViewStyle>;
         writingDirection?: 'auto' | 'ltr' | 'rtl';
+        enableBackground?: string;
     }
 
     interface ViewStyle extends WebStyle {}
