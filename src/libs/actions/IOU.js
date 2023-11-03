@@ -2771,14 +2771,6 @@ function markAsDone(chatReport, iouReport) {
     API.write('MarkAsDone', {iouReportID: iouReport.reportID, reportActionID: optimisticReportAction.reportActionID,}, {optimisticData, successData, failureData});
 }
 
-function settleMoneyRequest(paymentType, chatReport, iouReport) {
-    if (paymentType === CONST.IOU.PAYMENT_TYPE.MARK_AS_DONE) {
-        markAsDone(chatReport, iouReport);
-    } else {
-        payMoneyRequest(paymentType, chatReport, iouReport);
-    }
-}
-
 /**
  * @param {String} paymentType
  * @param {Object} chatReport
@@ -2798,6 +2790,14 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 
     API.write(apiCommand, params, {optimisticData, successData, failureData});
     Navigation.dismissModal(chatReport.reportID);
+}
+
+function settleMoneyRequest(paymentType, chatReport, iouReport) {
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.MARK_AS_DONE) {
+        markAsDone(chatReport, iouReport);
+    } else {
+        payMoneyRequest(paymentType, chatReport, iouReport);
+    }
 }
 
 function detachReceipt(transactionID) {

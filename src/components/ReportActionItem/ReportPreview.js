@@ -115,7 +115,7 @@ function ReportPreview(props) {
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
-    const iouDone = ReportUtils.isMarkedAsDone(props.iouReportID);
+    const iouDone = ReportUtils.isMarkedAsDone(props.iouReport);
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
@@ -181,7 +181,7 @@ function ReportPreview(props) {
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
         ? props.policy.role === CONST.POLICY.ROLE.ADMIN && ReportUtils.isReportApproved(props.iouReport) && !iouSettled && !iouCanceled
-        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !iouDone && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
+        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isReportDraft && !iouSettled && !iouCanceled && !iouDone && !props.iouReport.isWaitingOnBankAccount && totalDisplaySpend !== 0;
 
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
