@@ -67,7 +67,7 @@ const propTypes = {
     isApprovedOrSubmittedReportAction: PropTypes.bool,
 
     /** Used to format RTL display names in Old Dot system messages e.g. Arabic */
-    shouldConvertToLTR: PropTypes.bool,
+    isFragmentContainingDisplayName: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 
@@ -93,7 +93,7 @@ const defaultProps = {
     actorIcon: {},
     isThreadParentMessage: false,
     isApprovedOrSubmittedReportAction: false,
-    shouldConvertToLTR: false,
+    isFragmentContainingDisplayName: false,
     displayAsGroup: false,
 };
 
@@ -166,7 +166,7 @@ function ReportActionItemFragment(props) {
                     numberOfLines={props.isSingleLine ? 1 : undefined}
                     style={[styles.chatItemMessage, styles.colorMuted]}
                 >
-                    {props.shouldConvertToLTR ? convertToLTR(props.fragment.text) : props.fragment.text}
+                    {props.isFragmentContainingDisplayName ? convertToLTR(props.fragment.text) : props.fragment.text}
                 </Text>
             ) : (
                 <UserDetailsTooltip

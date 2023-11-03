@@ -73,7 +73,7 @@ function ReportActionItemMessage(props) {
                 // the first fragment will contain the person's display name and their email. We'll use this
                 // to decide if the fragment should be from left to right for RTL display names e.g. Arabic for proper
                 // formatting.
-                shouldConvertToLTR={index === 0}
+                isFragmentContainingDisplayName={index === 0}
             />
         ));
 
