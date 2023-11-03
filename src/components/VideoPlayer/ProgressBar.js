@@ -29,14 +29,14 @@ function ProgressBar({togglePlayCurrentVideo, duration, position, seekPosition})
 
     const pan = Gesture.Pan()
         .onBegin(() => {
-            pauseVideo();
+            runOnJS(pauseVideo)();
         })
         .onChange((event) => {
             progressWidth.value = (event.x / sliderWidth) * 100;
             runOnJS(seekPosition)((event.x / sliderWidth) * duration);
         })
         .onEnd(() => {
-            togglePlayCurrentVideo();
+            runOnJS(togglePlayCurrentVideo)();
         });
 
     useEffect(() => {

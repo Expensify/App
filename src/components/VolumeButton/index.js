@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import Animated, {runOnJS, useAnimatedStyle} from 'react-native-reanimated';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -38,7 +38,7 @@ function ProgressBar({style}) {
     const pan = Gesture.Pan().onChange((event) => {
         const val = Math.floor((1 - event.y / sliderHeight) * 100) / 100;
         volume.value = Math.min(Math.max(val, 0), 1);
-        updateVolume(volume.value);
+        runOnJS(updateVolume)(volume.value);
     });
 
     const progressBarStyle = useAnimatedStyle(() => ({height: `${volume.value * 100}%`}));
