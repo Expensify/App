@@ -140,18 +140,17 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                         originalFileName={policy.originalFileName}
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
-                        <View style={[styles.mt4]}>
-                            <InputWrapper
-                                InputComponent={TextInput}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                inputID="name"
-                                label={translate('workspace.editor.nameInputLabel')}
-                                accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                                defaultValue={policy.name}
-                                maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
-                                spellCheck={false}
-                            />
-                        </View>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            inputID="name"
+                            label={translate('workspace.editor.nameInputLabel')}
+                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                            defaultValue={policy.name}
+                            maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
+                            containerStyles={[styles.mt4]}
+                            spellCheck={false}
+                        />
                         <View style={[styles.mt4, styles.mhn5]}>
                             <MenuItemWithTopDescription
                                 title={formattedCurrency}
