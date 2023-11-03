@@ -65,6 +65,7 @@ When you first connect your accounting integration your categories will most lik
 If you need to update your categories in Expensify, you will first need to update them in your accounting system, then sync the connection in Expensify by navigating to **Settings > Workspace > Group > [Workspace Name] > Connection > Sync Now**.
 
 Alternatively, if you update the category details in your accounting integration, be sure to sync the policy connection so that the updated information is available on the workspace. 
+
 # Deep Dive
 ## Category-specific rules and description hints
 If you're an admin using a workspace on a Control plan, you have the ability to enable specific rules for each category.
