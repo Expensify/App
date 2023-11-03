@@ -51,6 +51,7 @@ On mobile:
 2. Tap on **Settings** in the menu on the left side
 3. Scroll to the Workspace subhead and click on Categories listed underneath the default policy
 4. Add new categories by tapping the **+** button in the upper right corner. To delete a category, on iOS swipe left, on Android press and hold. Tap a category name to edit it.
+
 ## Add sub-categories
 Sub-categories are useful when you want to be more specific, i.e. Travel could have a subcategory of airplane or lodging so the outcome would be Travel:airplane or Travel:lodging.
 
