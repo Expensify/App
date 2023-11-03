@@ -6,6 +6,7 @@ import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
 import stylePropTypes from '@styles/stylePropTypes';
 import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import Icon from './Icon';
@@ -40,27 +41,22 @@ const defaultProps = {
     textStyles: [],
 };
 
+/**
+ * Check if the error includes a receipt.
+ *
+ * @param {String} message
+ */
+const isReceiptError = (message) => {
+    if (_.isString(message)) {
+        return false;
+    }
+    return _.get(message, 'error', '') === CONST.IOU.RECEIPT_ERROR;
+};
+
 function DotIndicatorMessage(props) {
     if (_.isEmpty(props.messages)) {
         return null;
     }
-
-    const isReceiptError = (message) => {
-        if (_.isString(message)) {
-            return false;
-        }
-        return _.get(message, 'error', '') === CONST.IOU.RECEIPT_ERROR;
-    };
-
-    /**
-     * Download the failed receipt.
-     *
-     * @param {String} source
-     * @param {String} filename
-     */
-    const downloadReceipt = (source, filename) => {
-        fileDownload(source, filename);
-    };
 
     // To ensure messages are presented in order we are sort of destroying the data we are given
     // and rebuilding as an array so we can render the messages in order. We don't really care about
@@ -77,12 +73,14 @@ function DotIndicatorMessage(props) {
         .map((message) => Localize.translateIfPhraseKey(message))
         .value();
 
+    const isErrorMessage = props.type === 'error';
+
     return (
         <View style={[styles.dotIndicatorMessage, ...props.style]}>
             <View style={styles.offlineFeedback.errorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
-                    fill={props.type === 'error' ? themeColors.danger : themeColors.success}
+                    fill={isErrorMessage ? themeColors.danger : themeColors.success}
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
@@ -91,7 +89,7 @@ function DotIndicatorMessage(props) {
                         <PressableWithoutFeedback
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                             onPress={() => {
-                                downloadReceipt(message.source, message.filename);
+                                fileDownload(message.source, message.filename);
                             }}
                         >
                             <Text
@@ -106,7 +104,7 @@ function DotIndicatorMessage(props) {
                     ) : (
                         <Text
                             key={i}
-                            style={[styles.offlineFeedback.text, ...props.textStyles]}
+                            style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), ...props.textStyles]}
                         >
                             {message}
                         </Text>

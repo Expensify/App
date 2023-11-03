@@ -200,7 +200,8 @@ function getTransaction(transactionID: string): Transaction | Record<string, nev
  * The comment does not have its modifiedComment counterpart.
  */
 function getDescription(transaction: Transaction): string {
-    return transaction?.comment?.comment ?? '';
+    // Casting the description to string to avoid wrong data types (e.g. number) being returned from the API
+    return transaction?.comment?.comment?.toString() ?? '';
 }
 
 /**
