@@ -4000,12 +4000,10 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
     let displayMessage;
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const {IOUReportID} = originalMessage;
-        const formattedAmount = CurrencyUtils.convertToDisplayString(originalMessage?.IOUDetails?.amount ?? 0, originalMessage.IOUDetails?.currency);
-        const iouReport = getReport(String(IOUReportID) ?? '');
-
-        const payerName = isExpenseReport(isNotEmptyObject(iouReport) ? iouReport : null)
-            ? getPolicyName(isNotEmptyObject(iouReport) ? iouReport : null)
-            : getDisplayNameForParticipant(iouReport?.managerID, true);
+        const {amount, currency} = originalMessage.IOUDetails ?? originalMessage;
+        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+        const iouReport = getReport(IOUReportID);
+        const payerName = isNotEmptyObject(iouReport) && isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport?.managerID, true);
         let translationKey;
         switch (reportAction?.originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
