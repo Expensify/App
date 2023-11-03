@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
@@ -252,6 +253,31 @@ function AddressSearch(props) {
         // So we use a secondary field (administrative_area_level_2) as a fallback
         if (country === CONST.COUNTRY.GB) {
             values.state = stateFallback;
+        }
+
+        // Some edge-case addresses may lack both street_number and route in the API response, resulting in an empty "values.street"
+        // We are setting up a fallback to ensure "values.street" is populated with a relevant value
+        if(!values.street){ 
+            const { adr_address } = details;
+            const streetAddressRegex = /(<span\s+class\s*=\s*"street-address"[^>]*>[^<]*<\/span>)/;
+            const streetAddressHtml = adr_address.match(streetAddressRegex);
+            if (streetAddressHtml[1]) {
+                const parser = new ExpensiMark();
+                const streetFallback = parser.htmlToText(streetAddressHtml[1]);
+                values.street = streetFallback;
+            }
+            else {
+                let streetFallback = '';
+                const excludedTypes = ['country', 'administrative_area_level_1', 'administrative_area_level_2', 'postal_code'];
+                addressComponents.forEach((addressComponent) => {
+                    if (excludedTypes.some(excludedType => addressComponent.types.includes(excludedType))) {
+                        return;  
+                    }
+                    const value = addressComponent['long_name'] || '';
+                    streetFallback += value + ' ';
+                });
+                values.street = streetFallback.trim(); 
+            }    
         }
 
         // Not all pages define the Address Line 2 field, so in that case we append any additional address details
