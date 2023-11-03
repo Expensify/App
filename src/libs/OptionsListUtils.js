@@ -87,6 +87,7 @@ Onyx.connect({
 const policyExpenseReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
     callback: (report, key) => {
         if (!ReportUtils.isPolicyExpenseChat(report)) {
             return;
@@ -833,7 +834,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         categorySections.push({
             // "Search" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getCategoryOptionTree(searchCategories, true),
         });
@@ -857,7 +858,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         categorySections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
@@ -962,7 +963,7 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
         tagSections.push({
             // "Search" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getTagsOptions(searchTags),
         });
@@ -1004,7 +1005,7 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
         tagSections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getTagsOptions(selectedTagOptions),
         });

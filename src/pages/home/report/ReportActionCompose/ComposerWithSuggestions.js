@@ -17,7 +17,7 @@ import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import focusWithDelay from '@libs/focusWithDelay';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -226,8 +226,14 @@ function ComposerWithSuggestions({
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
+            const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
+            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
+
+            /** Only update isCommentEmpty state if it's different from previous one */
+            if (isNewCommentEmpty !== isPrevCommentEmpty) {
+                setIsCommentEmpty(isNewCommentEmpty);
+            }
             emojisPresentBefore.current = emojis;
-            setIsCommentEmpty(!!newCommentConverted.match(/^(\s)*$/));
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
                 const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
@@ -394,7 +400,7 @@ function ComposerWithSuggestions({
      * @memberof ReportActionCompose
      */
     const focus = useCallback((shouldDelay = false) => {
-        focusWithDelay(textInputRef.current)(shouldDelay);
+        focusComposerWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
     const setUpComposeFocusManager = useCallback(() => {
@@ -504,9 +510,7 @@ function ComposerWithSuggestions({
         if (value.length === 0) {
             return;
         }
-
         Report.setReportWithDraft(reportID, true);
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -551,6 +555,7 @@ function ComposerWithSuggestions({
                     setIsFullComposerAvailable={setIsFullComposerAvailable}
                     isComposerFullSize={isComposerFullSize}
                     value={value}
+                    testID="composer"
                     numberOfLines={numberOfLines}
                     onNumberOfLinesChange={updateNumberOfLines}
                     shouldCalculateCaretPosition
