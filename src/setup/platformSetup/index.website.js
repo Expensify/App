@@ -4,7 +4,7 @@ import 'shim-keyboard-event-key';
 import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
 import Visibility from '@libs/Visibility';
-import Config from '@src/CONFIG';
+import CONFIG from '@src/CONFIG';
 import pkg from '../../../package.json';
 
 /**
@@ -58,7 +58,7 @@ function beforeAppLoad() {
 }
 
 function afterAppLoad() {
-    AppRegistry.runApplication(Config.APP_NAME, {
+    AppRegistry.runApplication(CONFIG.APP_NAME, {
         rootTag: document.getElementById('root'),
     });
 
@@ -67,7 +67,7 @@ function afterAppLoad() {
 
 function additional() {
     // When app loads, get current version (production only)
-    if (Config.IS_IN_PRODUCTION) {
+    if (CONFIG.IS_IN_PRODUCTION) {
         checkForUpdates(webUpdater());
     }
 
