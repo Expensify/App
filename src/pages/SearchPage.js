@@ -65,15 +65,13 @@ class SearchPage extends Component {
         this.searchRendered = this.searchRendered.bind(this);
         this.selectReport = this.selectReport.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
+        this.updateOptions = this.updateOptions.bind(this);
         this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
-
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
-
         this.state = {
             searchValue: '',
-            recentReports,
-            personalDetails,
-            userToInvite,
+            recentReports: {},
+            personalDetails: {},
+            userToInvite: {},
         };
     }
 
@@ -186,6 +184,7 @@ class SearchPage extends Component {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 testID={SearchPage.displayName}
+                onEntryTransitionEnd={this.updateOptions}
             >
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
