@@ -92,6 +92,11 @@ function RoomMembersPage(props) {
     }, [props.report.reportID]);
 
     useEffect(() => {
+        // Kick the user out if they tried to navigate to this via the URL
+        if ((ReportUtils.isPublicRoom(props.report) && !PolicyUtils.isPolicyMember(props.report.policyID, props.policies))) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
+            return;
+        }
         getRoomMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
