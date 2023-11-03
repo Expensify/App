@@ -1,14 +1,17 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import {render} from '@testing-library/react-native';
+import PropTypes from 'prop-types';
+import React from 'react';
 import ComposeProviders from '../../src/components/ComposeProviders';
-import OnyxProvider from '../../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
-import SidebarLinksData from '../../src/pages/home/sidebar/SidebarLinksData';
-import {EnvironmentProvider} from '../../src/components/withEnvironment';
+import OnyxProvider from '../../src/components/OnyxProvider';
 import {CurrentReportIDContextProvider} from '../../src/components/withCurrentReportID';
+import {EnvironmentProvider} from '../../src/components/withEnvironment';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
+import ReportActionItemSingle from '../../src/pages/home/report/ReportActionItemSingle';
+import reportActionPropTypes from '../../src/pages/home/report/reportActionPropTypes';
+import SidebarLinksData from '../../src/pages/home/sidebar/SidebarLinksData';
+import reportPropTypes from '../../src/pages/reportPropTypes';
 
 // we have to mock `useIsFocused` because it's used in the SidebarLinks component
 const mockedNavigate = jest.fn();
@@ -127,6 +130,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
         actor,
         actorAccountID: 1,
         reportActionID: `${++lastFakeReportActionID}`,
+        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         shouldShow: true,
         timestamp,
         reportActionTimestamp: timestamp,
@@ -139,6 +143,55 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
         ],
         whisperedToAccountIDs: [],
         automatic: false,
+        message: [
+            {
+                type: 'COMMENT',
+                html: 'hey',
+                text: 'hey',
+                isEdited: false,
+                whisperedTo: [],
+                isDeletedParentAction: false,
+                reactions: [
+                    {
+                        emoji: 'heart',
+                        users: [
+                            {
+                                accountID: 1,
+                                skinTone: -1,
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        originalMessage: {
+            childReportID: `${++lastFakeReportActionID}`,
+            emojiReactions: {
+                heart: {
+                    createdAt: '2023-08-28 15:27:52',
+                    users: {
+                        1: {
+                            skinTones: {
+                                '-1': '2023-08-28 15:27:52',
+                            },
+                        },
+                    },
+                },
+            },
+            html: 'hey',
+            lastModified: '2023-08-28 15:28:12.432',
+            reactions: [
+                {
+                    emoji: 'heart',
+                    users: [
+                        {
+                            accountID: 1,
+                            skinTone: -1,
+                        },
+                    ],
+                },
+            ],
+        },
     };
 }
 
@@ -164,6 +217,63 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
         errorFields: hasAddWorkspaceError ? {addWorkspaceRoom: 'blah'} : null,
         isPinned,
         hasDraft,
+    };
+}
+
+/**
+ * @param {Number[]} [participantAccountIDs]
+ * @param {Number} [millisecondsInThePast] the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
+ * @param {boolean} [isUnread]
+ * @returns {Object}
+ */
+function getFakeReportWithPolicy(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false) {
+    return {
+        ...getFakeReport(participantAccountIDs, millisecondsInThePast, isUnread),
+        type: CONST.REPORT.TYPE.CHAT,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        policyID: '08CE60F05A5D86E1',
+        oldPolicyName: '',
+        isOwnPolicyExpenseChat: false,
+        ownerAccountID: participantAccountIDs[0],
+    };
+}
+
+/**
+ * @param {Number} [id]
+ * @param {String} [name]
+ * @returns {Object}
+ */
+function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
+    return {
+        id,
+        name,
+        isFromFullPolicy: false,
+        role: 'admin',
+        type: 'free',
+        owner: 'myuser@gmail.com',
+        outputCurrency: 'BRL',
+        avatar: '',
+        employeeList: [],
+        isPolicyExpenseChatEnabled: true,
+        areChatRoomsEnabled: true,
+        lastModified: 1697323926777105,
+        autoReporting: true,
+        autoReportingFrequency: 'immediate',
+        defaultBillable: false,
+        disabledFields: {defaultBillable: true, reimbursable: false},
+    };
+}
+
+/**
+ * @param {String} actionName
+ * @param {String} actor
+ * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
+ * @returns {Object}
+ */
+function getFakeAdvancedReportAction(actionName = 'IOU', actor = 'email1@test.com', millisecondsInThePast = 0) {
+    return {
+        ...getFakeReportAction(actor, millisecondsInThePast),
+        actionName,
     };
 }
 
@@ -218,4 +328,97 @@ MockedSidebarLinks.defaultProps = {
     currentReportID: '',
 };
 
-export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction, MockedSidebarLinks};
+/**
+ * @param {React.ReactElement} component
+ */
+function internalRender(component) {
+    // A try-catch block needs to be added to the rendering so that any errors that happen while the component
+    // renders are caught and logged to the console. Without the try-catch block, Jest might only report the error
+    // as "The above error occurred in your component", without providing specific details. By using a try-catch block,
+    // any errors are caught and logged, allowing you to identify the exact error that might be causing a rendering issue
+    // when developing tests.
+
+    try {
+        render(component);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+/**
+ * @param {Boolean} [shouldShowSubscriptAvatar]
+ * @param {Object} [report]
+ * @param {Object} [reportAction]
+ */
+function getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar = true, report = null, reportAction = null) {
+    const currentReport = report || getFakeReport();
+    const currentReportAction = reportAction || getFakeAdvancedReportAction();
+
+    internalRender(
+        <MockedReportActionItemSingle
+            shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
+            report={currentReport}
+            reportAction={currentReportAction}
+        />,
+    );
+}
+
+/**
+ * @param {Boolean} shouldShowSubscriptAvatar
+ * @param {Object} report
+ * @param {Object} reportAction
+ * @returns {JSX.Element}
+ */
+function MockedReportActionItemSingle({shouldShowSubscriptAvatar, report, reportAction}) {
+    const personalDetailsList = {
+        [reportAction.actorAccountID]: {
+            accountID: reportAction.actorAccountID,
+            login: 'email1@test.com',
+            displayName: 'Email One',
+            avatar: 'https://example.com/avatar.png',
+            firstName: 'One',
+        },
+    };
+
+    return (
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
+            <ReportActionItemSingle
+                action={reportAction}
+                report={report}
+                personalDetailsList={personalDetailsList}
+                wrapperStyles={[{display: 'inline'}]}
+                showHeader
+                shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
+                hasBeenFlagged={false}
+                iouReport={undefined}
+                isHovered={false}
+            />
+        </ComposeProviders>
+    );
+}
+
+MockedReportActionItemSingle.propTypes = {
+    shouldShowSubscriptAvatar: PropTypes.bool,
+    report: reportPropTypes,
+    reportAction: PropTypes.shape(reportActionPropTypes),
+};
+
+MockedReportActionItemSingle.defaultProps = {
+    shouldShowSubscriptAvatar: true,
+    report: null,
+    reportAction: null,
+};
+
+export {
+    fakePersonalDetails,
+    getDefaultRenderedSidebarLinks,
+    getAdvancedFakeReport,
+    getFakeReport,
+    getFakeReportAction,
+    MockedSidebarLinks,
+    getDefaultRenderedReportActionItemSingle,
+    MockedReportActionItemSingle,
+    getFakeReportWithPolicy,
+    getFakePolicy,
+    getFakeAdvancedReportAction,
+};

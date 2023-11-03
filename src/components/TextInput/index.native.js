@@ -1,6 +1,6 @@
 import React, {forwardRef, useEffect} from 'react';
 import {AppState, Keyboard} from 'react-native';
-import styles from '../../styles/styles';
+import styles from '@styles/styles';
 import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 

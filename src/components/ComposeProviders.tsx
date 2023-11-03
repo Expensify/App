@@ -1,5 +1,5 @@
 import React, {ComponentType, ReactNode} from 'react';
-import ChildrenProps from '../types/utils/ChildrenProps';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type ComposeProvidersProps = ChildrenProps & {
     /** Provider components go here */
