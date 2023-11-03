@@ -9,7 +9,6 @@ import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import useDelayedInputFocus from '@hooks/useDelayedInputFocus';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
@@ -22,9 +21,9 @@ import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 
 const propTypes = {
     /** Beta features list */
