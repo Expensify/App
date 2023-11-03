@@ -616,9 +616,9 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {assignee: assigneeEmail, assigneeAccountID});
 
-    // When we're editing the assignee, we immediately call EditTaskAndNavigate. Since setting the assignee is async,
-    // the chatReport is not yet set when EditTaskAndNavigate is called. So we return the chatReport here so that
-    // EditTaskAndNavigate can use it.
+    // When we're editing the assignee, we immediately call editTaskAssigneeAndNavigate. Since setting the assignee is async,
+    // the chatReport is not yet set when editTaskAssigneeAndNavigate is called. So we return the chatReport here so that
+    // editTaskAssigneeAndNavigate can use it.
     return chatReport;
 }
 
