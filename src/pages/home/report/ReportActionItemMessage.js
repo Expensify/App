@@ -46,7 +46,6 @@ function ReportActionItemMessage(props) {
             iouMessage = ReportUtils.getReportPreviewMessage(ReportUtils.getReport(iouReportID), props.action);
         }
     }
-
     return (
         <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
             {!props.isHidden ? (

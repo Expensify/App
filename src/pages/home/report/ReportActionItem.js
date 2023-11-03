@@ -425,14 +425,15 @@ function ReportActionItem(props) {
                                 action={props.action}
                                 displayAsGroup={props.displayAsGroup}
                                 isHidden={isHidden}
-                                style={[
-                                    _.contains(
-                                        [..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.MOVED],
-                                        props.action.actionName,
-                                    )
-                                        ? styles.colorMuted
-                                        : undefined,
-                                ]}
+                                // style={[
+                                //     _.contains(
+                                //         [..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.MOVED],
+                                //         props.action.actionName,
+                                //     )
+                                //         ? styles.colorMuted
+                                //         : undefined,
+                                // ]}
+                                style={[styles.colorMuted]}
                             />
                             {hasBeenFlagged && (
                                 <Button

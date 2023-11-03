@@ -77,14 +77,18 @@ function AddPaymentMethodMenu(props) {
             anchorRef={props.anchorRef}
             onItemSelected={props.onClose}
             menuItems={[
-                {
-                    text: props.translate('common.personalBankAccount'),
-                    icon: Expensicons.Bank,
-                    onSelected: () => {
-                        props.onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                ...(ReportUtils.isIOUReport(props.iouReport)
+                ?[
+                    {
+                        text: props.translate('common.personalBankAccount'),
+                        icon: Expensicons.Bank,
+                        onSelected: () => {
+                            props.onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                        },
                     },
-                },
-                ...(ReportUtils.isIOUReport(props.iouReport) && !ReportActionsUtils.hasRequestFromPayer(lodashGet(props.iouReport, 'reportID', 0), props.session.accountID)
+                ]
+              : []),
+                ...(!ReportActionsUtils.hasRequestFromPayer(lodashGet(props.iouReport, 'reportID', 0), props.session.accountID)
                     ? [
                           {
                               text: props.translate('common.businessBankAccount'),
