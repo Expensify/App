@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 import withNavigationFocus from '@components/withNavigationFocus';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -29,7 +30,6 @@ import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 
 const propTypes = {
     /** All reports shared with the user */
