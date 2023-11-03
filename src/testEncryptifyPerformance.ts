@@ -12,15 +12,15 @@ const PERFORMANCE_METRICS_DECIMAL_PLACES = 4;
 
 const testEncryptionFlow = async (shouldLog = true): Promise<string> => {
     performance.mark('KEMGenKeys');
-    const kemKeys = await Encryptify.KEMGenKeys();
+    const kemKeys = await Encryptify.KemGenKeys();
     performance.measure('KEMGenKeys', 'KEMGenKeys');
 
     performance.mark('KEMEncrypt');
-    const {sharedSecret, cipherText} = await Encryptify.KEMEncrypt(kemKeys.public);
+    const {sharedSecret, cipherText} = await Encryptify.KemEncrypt(kemKeys.public);
     performance.measure('KEMEncrypt', 'KEMEncrypt');
 
     performance.mark('AESEncrypt');
-    const encryptedData = await Encryptify.AESEncrypt(ENCRYPTION_IV, sharedSecret, ENCRYPTION_DATA);
+    const encryptedData = await Encryptify.AesEncrypt(ENCRYPTION_IV, sharedSecret, ENCRYPTION_DATA);
     performance.measure('AESEncrypt', 'AESEncrypt');
 
     // After encryption on the sender side, the message is sent to the receiver:
@@ -28,11 +28,11 @@ const testEncryptionFlow = async (shouldLog = true): Promise<string> => {
     // The receiver can then decrypt the cipherText with his private keys
 
     performance.mark('KEMDecrypt');
-    const decryptedSharedSecret = await Encryptify.KEMDecrypt(kemKeys.private, cipherText);
+    const decryptedSharedSecret = await Encryptify.KemDecrypt(kemKeys.private, cipherText);
     performance.measure('KEMDecrypt', 'KEMDecrypt');
 
     performance.mark('AESDecrypt');
-    const decryptedData = await Encryptify.AESDecrypt(ENCRYPTION_IV, decryptedSharedSecret, encryptedData);
+    const decryptedData = await Encryptify.AesDecrypt(ENCRYPTION_IV, decryptedSharedSecret, encryptedData);
     performance.measure('AESDecrypt', 'AESDecrypt');
 
     if (shouldLog) {
@@ -73,12 +73,12 @@ const testAesUnderLoad = async (sharedSecret: string, iterations: number, should
 
         performance.mark('AESEncrypt under load');
         // eslint-disable-next-line no-await-in-loop
-        const encryptedDataIter = await Encryptify.AESEncrypt(ENCRYPTION_IV, sharedSecret, inputData);
+        const encryptedDataIter = await Encryptify.AesEncrypt(ENCRYPTION_IV, sharedSecret, inputData);
         performance.measure(`Encryption Iteration ${i}`, 'AESEncrypt under load');
 
         performance.mark('AESDecrypt under load');
         // eslint-disable-next-line no-await-in-loop
-        await Encryptify.AESDecrypt(ENCRYPTION_IV, sharedSecret, encryptedDataIter);
+        await Encryptify.AesDecrypt(ENCRYPTION_IV, sharedSecret, encryptedDataIter);
         performance.measure(`Decryption teration ${i}`, 'AESDecrypt under load');
     }
 
