@@ -25,7 +25,7 @@ const propTypes = {
 
 const defaultProps = {
     videoDimensions: {width: 1900, height: 1400},
-    thumbnailUrl: 'https://d33v4339jhl8k0.cloudfront.net/docs/assets/591c8a010428634b4a33375c/images/5ab4866b2c7d3a56d8873f4c/file-MrylO8jADD.png',
+    thumbnailUrl: null,
 };
 
 function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, showModal}) {
@@ -54,7 +54,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
     }, [currentlyPlayingURL, updateCurrentlyPlayingURL, videoUrl]);
 
     return (
-        <View style={[styles.overflowHidden, styles.webViewStyles.tagStyles.img, thumbnailDimensionsStyles]}>
+        <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
             {isSmallScreenWidth || isThumbnail ? (
                 <VideoPlayerThumbnail
                     thumbnailUrl={thumbnailUrl}
@@ -74,7 +74,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                     <IconButton
                         src={Expensicons.Expand}
                         fill="white"
-                        style={{position: 'absolute', top: 10, right: 10, backgroundColor: '#061B09CC', borderRadius: 5}}
+                        style={[styles.videoExpandButton]}
                         accessibilityLabel="open in modal"
                         onPress={showModal}
                     />

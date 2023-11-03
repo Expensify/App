@@ -191,6 +191,15 @@ const webViewStyles = (theme: ThemeDefault) =>
                 ...touchCalloutNone,
             },
 
+            video: {
+                borderColor: theme.border,
+                borderRadius: variables.componentBorderRadiusNormal,
+                borderWidth: 1,
+                overflow: 'hidden',
+                backgroundColor: colors.green800,
+                ...touchCalloutNone,
+            },
+
             p: {
                 marginTop: 0,
                 marginBottom: 0,
@@ -4090,6 +4099,33 @@ const styles = (theme: ThemeDefault) =>
         videoIconButton: {
             padding: 4,
             borderRadius: 4,
+        },
+
+        videoThumbnailContainer: {
+            width: '100%',
+            height: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+        },
+
+        videoThumbnailPlayButton: {
+            backgroundColor: '#061B09CC',
+            borderRadius: '50%',
+            width: 72,
+            height: 72,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        videoExpandButton: {
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            backgroundColor: '#061B09CC',
+            borderRadius: 5,
         },
     } satisfies Styles);
 

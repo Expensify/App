@@ -146,7 +146,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                 </View>
             )}
 
-            {isLoading && <FullScreenLoadingIndicator />}
+            {isLoading && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
 
             {!isLoading && (
                 <VideoPlayerControls
