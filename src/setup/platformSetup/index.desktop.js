@@ -11,14 +11,14 @@ function beforeAppLoad() {
 }
 
 function afterAppLoad() {
-    return Promise.resolve();
-}
-
-function additional() {
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
     });
 
+    return Promise.resolve();
+}
+
+function additional() {
     // Send local notification when update is downloaded
     window.electron.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, () => {
         LocalNotification.showUpdateAvailableNotification();
