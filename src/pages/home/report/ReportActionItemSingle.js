@@ -108,7 +108,7 @@ function ReportActionItemSingle(props) {
 
     // If this is a report preview, display names and avatars of both people involved
     let secondaryAvatar = {};
-    const primaryDisplayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
+    const primaryDisplayName = isWorkspaceActor ? displayName : ReportUtils.getDisplayNameForParticipant(actorAccountID);
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
