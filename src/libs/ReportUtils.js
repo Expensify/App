@@ -1801,7 +1801,8 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const payerName = shouldHidePayerName || report.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant(report.managerID, true);
+    const displayName = isExpenseReport(report) && isPreviewMessageForParentChatReport ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
+    const payerName = shouldHidePayerName || report.managerID === currentUserAccountID ? '' : displayName;
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
