@@ -21,21 +21,18 @@ const propTypes = {
     ...subStepPropTypes,
 };
 
-const companyNameKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_NAME;
+const companyPhoneNumberKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_PHONE;
 
-const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyNameKey]);
+const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyPhoneNumberKey]);
 
-function NameBusiness({reimbursementAccount, onNext, isEditing}) {
+function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const defaultCompanyName = lodashGet(reimbursementAccount, ['achData', companyNameKey], '');
-
-    const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID', 0);
-    const shouldDisableCompanyName = Boolean(bankAccountID && defaultCompanyName);
+    const defaultCompanyPhoneNumber = lodashGet(reimbursementAccount, ['achData', companyPhoneNumberKey], '');
 
     const handleSubmit = (values) => {
         BankAccounts.updateOnyxVBBAData({
-            [companyNameKey]: values[companyNameKey],
+            [companyPhoneNumberKey]: values[companyPhoneNumberKey],
         });
 
         onNext();
@@ -51,28 +48,28 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}) {
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <View>
-                <Text style={styles.textHeadline}>{translate('businessInfoStep.enterTheNameOfYourBusiness')}</Text>
+                <Text style={styles.textHeadline}>{translate('businessInfoStep.enterYourCompanysPhoneNumber')}</Text>
                 <TextInput
-                    label={translate('businessInfoStep.businessName')}
-                    accessibilityLabel={translate('businessInfoStep.businessName')}
+                    inputID={companyPhoneNumberKey}
+                    label={translate('common.phoneNumber')}
+                    accessibilityLabel={translate('common.phoneNumber')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    inputID={companyNameKey}
                     containerStyles={[styles.mt4]}
-                    disabled={shouldDisableCompanyName}
-                    defaultValue={defaultCompanyName}
+                    keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                    placeholder={translate('common.phoneNumberPlaceholder')}
+                    defaultValue={defaultCompanyPhoneNumber}
                     shouldSaveDraft
-                    shouldUseDefaultValue={shouldDisableCompanyName}
                 />
             </View>
         </Form>
     );
 }
 
-NameBusiness.propTypes = propTypes;
-NameBusiness.displayName = 'NameBusiness';
+PhoneNumberBusiness.propTypes = propTypes;
+PhoneNumberBusiness.displayName = 'NameBusiness';
 
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
-})(NameBusiness);
+})(PhoneNumberBusiness);

@@ -182,8 +182,8 @@ const CONST = {
             INPUT_KEY: {
                 COMPANY_NAME: 'companyName',
                 COMPANY_TAX_ID: 'companyTaxID',
-                COMPANY_PHONE: 'companyPhone',
                 COMPANY_WEBSITE: 'website',
+                COMPANY_PHONE: 'companyPhone',
             },
         },
         PLAID: {

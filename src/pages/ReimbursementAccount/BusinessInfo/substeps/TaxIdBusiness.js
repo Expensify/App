@@ -52,7 +52,7 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}) {
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <View>
-                <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.enterYourCompanysTaxIdNumber')}</Text>
+                <Text style={styles.textHeadline}>{translate('businessInfoStep.enterYourCompanysTaxIdNumber')}</Text>
                 <TextInput
                     inputID={companyTaxIdKey}
                     label={translate('businessInfoStep.taxIDNumber')}

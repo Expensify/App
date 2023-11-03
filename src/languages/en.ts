@@ -1379,6 +1379,7 @@ export default {
         taxIDNumberPlaceholder: '9 digits',
         enterYourCompanysWebsite: 'Enter your company’s website.',
         companyWebsite: 'Company website',
+        enterYourCompanysPhoneNumber: 'Enter your company’s phone number.',
     },
     validationStep: {
         headerTitle: 'Validate Bank Account',

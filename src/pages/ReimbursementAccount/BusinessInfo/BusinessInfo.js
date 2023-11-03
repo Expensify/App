@@ -18,6 +18,7 @@ import getInitialSubstepForPersonalInfo from '../utils/getInitialSubstepForPerso
 import NameBusiness from './substeps/NameBusiness';
 import TaxIdBusiness from './substeps/TaxIdBusiness';
 import WebsiteBusiness from './substeps/WebsiteBusiness';
+import PhoneNumberBusiness from './substeps/PhoneNumberBusiness';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -28,7 +29,7 @@ const STEPS_HEADER_HEIGHT = 40;
 // TODO Will most likely come from different place
 const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
-const bodyContent = [NameBusiness, TaxIdBusiness, WebsiteBusiness];
+const bodyContent = [NameBusiness, TaxIdBusiness, WebsiteBusiness, PhoneNumberBusiness];
 
 const businessInfoStep = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
