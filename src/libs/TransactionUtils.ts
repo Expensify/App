@@ -1,4 +1,3 @@
-import {format, isValid} from 'date-fns';
 import Onyx, {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -201,7 +200,8 @@ function getTransaction(transactionID: string): Transaction | Record<string, nev
  * The comment does not have its modifiedComment counterpart.
  */
 function getDescription(transaction: Transaction): string {
-    return transaction?.comment?.comment ?? '';
+    // Casting the description to string to avoid wrong data types (e.g. number) being returned from the API
+    return transaction?.comment?.comment?.toString() ?? '';
 }
 
 /**
@@ -310,12 +310,8 @@ function getTag(transaction: Transaction): string {
  */
 function getCreated(transaction: Transaction, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
-    const createdDate = new Date(created);
-    if (isValid(createdDate)) {
-        return format(createdDate, dateFormat);
-    }
 
-    return '';
+    return DateUtils.formatWithUTCTimeZone(created, dateFormat);
 }
 
 function isDistanceRequest(transaction: Transaction): boolean {
