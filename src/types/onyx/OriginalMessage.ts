@@ -1,7 +1,19 @@
-// TODO: Remove this after CONST.ts is migrated to TS
-/* eslint-disable @typescript-eslint/no-duplicate-type-constituents */
 import {ValueOf} from 'type-fest';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
+import DeepValueOf from '@src/types/utils/DeepValueOf';
+
+type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
+
+type OriginalMessageApproved = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
+    originalMessage: unknown;
+};
+
+type IOUDetails = {
+    amount: number;
+    comment?: string;
+    currency: string;
+};
 
 type OriginalMessageIOU = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.IOU;
@@ -10,24 +22,38 @@ type OriginalMessageIOU = {
         IOUTransactionID?: string;
 
         IOUReportID?: number;
+
+        /** Only exists when we are sending money */
+        IOUDetails?: IOUDetails;
+
         amount: number;
         comment?: string;
         currency: string;
         lastModified?: string;
         participantAccountIDs?: number[];
-        participants?: string[];
-        type: string;
+        type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     };
 };
 
-type FlagSeverityName = 'spam' | 'inconsiderate' | 'bullying' | 'intimidation' | 'harassment' | 'assault';
+type FlagSeverityName = ValueOf<
+    Pick<
+        typeof CONST.MODERATION,
+        'FLAG_SEVERITY_SPAM' | 'FLAG_SEVERITY_INCONSIDERATE' | 'FLAG_SEVERITY_INTIMIDATION' | 'FLAG_SEVERITY_BULLYING' | 'FLAG_SEVERITY_HARASSMENT' | 'FLAG_SEVERITY_ASSAULT'
+    >
+>;
 type FlagSeverity = {
     accountID: number;
     timestamp: string;
 };
 
+type DecisionName = ValueOf<
+    Pick<
+        typeof CONST.MODERATION,
+        'MODERATOR_DECISION_PENDING' | 'MODERATOR_DECISION_PENDING_HIDE' | 'MODERATOR_DECISION_PENDING_REMOVE' | 'MODERATOR_DECISION_APPROVED' | 'MODERATOR_DECISION_HIDDEN'
+    >
+>;
 type Decision = {
-    decision: string;
+    decision: DecisionName;
     timestamp: string;
 };
 
@@ -56,12 +82,16 @@ type OriginalMessageAddComment = {
         reactions?: Reaction[];
     };
 };
+type OriginalMessageSubmitted = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+    originalMessage: unknown;
+};
 
 type OriginalMessageClosed = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CLOSED;
     originalMessage: {
         policyName: string;
-        reason: 'default' | 'accountClosed' | 'accountMerged' | 'removedPolicy' | 'policyDeleted';
+        reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
         lastModified?: string;
     };
 };
@@ -115,7 +145,18 @@ type OriginalMessageReportPreview = {
 
 type OriginalMessagePolicyChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
-    originalMessage: unknown;
+    originalMessage: {
+        targetAccountIDs?: number[];
+        roomName?: string;
+    };
+};
+
+type OriginalMessageRoomChangeLog = {
+    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
+    originalMessage: {
+        targetAccountIDs?: number[];
+        roomName?: string;
+    };
 };
 
 type OriginalMessagePolicyTask = {
@@ -127,16 +168,31 @@ type OriginalMessagePolicyTask = {
     originalMessage: unknown;
 };
 
+type OriginalMessageModifiedExpense = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+    originalMessage: unknown;
+};
+
+type OriginalMessageReimbursementQueued = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
+    originalMessage: unknown;
+};
+
 type OriginalMessage =
+    | OriginalMessageApproved
     | OriginalMessageIOU
     | OriginalMessageAddComment
+    | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
     | OriginalMessageRenamed
     | OriginalMessageChronosOOOList
     | OriginalMessageReportPreview
+    | OriginalMessageRoomChangeLog
     | OriginalMessagePolicyChangeLog
-    | OriginalMessagePolicyTask;
+    | OriginalMessagePolicyTask
+    | OriginalMessageModifiedExpense
+    | OriginalMessageReimbursementQueued;
 
 export default OriginalMessage;
-export type {Reaction};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName};

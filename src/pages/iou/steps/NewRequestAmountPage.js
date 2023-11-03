@@ -1,26 +1,26 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import CONST from '../../../CONST';
-import reportPropTypes from '../../reportPropTypes';
-import participantPropTypes from '../../../components/participantPropTypes';
-import * as IOU from '../../../libs/actions/IOU';
-import useLocalize from '../../../hooks/useLocalize';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as IOUUtils from '@libs/IOUUtils';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
-import * as IOUUtils from '../../../libs/IOUUtils';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import styles from '../../../styles/styles';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
 
 const propTypes = {
     /** React Navigation route */
@@ -42,36 +42,19 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
+    iou: iouPropTypes,
 
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Currency of the request */
-        currency: PropTypes.string,
-        merchant: PropTypes.string,
-        created: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-    }),
+    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
     report: {},
-    iou: {
-        id: '',
-        amount: 0,
-        created: '',
-        merchant: '',
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: iouDefaultProps,
+    selectedTab: CONST.TAB.MANUAL,
 };
 
-function NewRequestAmountPage({route, iou, report}) {
+function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);
@@ -81,35 +64,23 @@ function NewRequestAmountPage({route, iou, report}) {
     const reportID = lodashGet(route, 'params.reportID', '');
     const isEditing = lodashGet(route, 'path', '').includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
+    const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
-    const currency = currentCurrency || iou.currency;
+    const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : iou.currency;
 
-    const focusTextInput = () => {
-        // Component may not be initialized due to navigation transitions
-        // Wait until interactions are complete before trying to focus
-        InteractionManager.runAfterInteractions(() => {
-            // Focus text input
-            if (!textInput.current) {
-                return;
-            }
-
-            textInput.current.focus();
-        });
-    };
+    const focusTimeoutRef = useRef(null);
 
     useFocusEffect(
         useCallback(() => {
-            focusTextInput();
+            focusTimeoutRef.current = setTimeout(() => textInput.current && textInput.current.focus(), CONST.ANIMATED_TRANSITION);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
         }, []),
     );
-
-    // Check and dismiss modal
-    useEffect(() => {
-        if (!ReportUtils.shouldDisableWriteActions(report)) {
-            return;
-        }
-        Navigation.dismissModal(reportID);
-    }, [report, reportID]);
 
     // Because we use Onyx to store IOU info, when we try to make two different money requests from different tabs,
     // it can result in an IOU sent with improper values. In such cases we want to reset the flow and redirect the user to the first step of the IOU.
@@ -121,7 +92,7 @@ function NewRequestAmountPage({route, iou, report}) {
                 if (!iou.id) {
                     return;
                 }
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
                 return;
             }
             const moneyRequestID = `${iouType}${reportID}`;
@@ -130,24 +101,30 @@ function NewRequestAmountPage({route, iou, report}) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
-            if (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+            if (!isDistanceRequestTab && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
+                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
             }
         }
 
         return () => {
             prevMoneyRequestID.current = iou.id;
         };
-    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID]);
+    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
+        Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
     };
 
     const navigateToCurrencySelectionPage = () => {
+        // If the money request being created is a distance request, don't allow the user to choose the currency.
+        // Only USD is allowed for distance requests.
+        if (isDistanceRequestTab) {
+            return;
+        }
+
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
-        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType, reportID, currency, activeRoute));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
     };
 
     const navigateToNextPage = (currentAmount) => {
@@ -156,11 +133,11 @@ function NewRequestAmountPage({route, iou, report}) {
         IOU.setMoneyRequestCurrency(currency);
 
         if (isEditing) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, reportID, report);
+        IOU.navigateToNextPage(iou, iouType, report);
     };
 
     const content = (
@@ -184,14 +161,14 @@ function NewRequestAmountPage({route, iou, report}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            onEntryTransitionEnd={focusTextInput}
+            testID={NewRequestAmountPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('iou.amount')}
-                            onBackButonBackButtonPress={navigateBack}
+                            onBackButtonPress={navigateBack}
                         />
                         {content}
                     </View>
@@ -209,5 +186,8 @@ export default withOnyx({
     iou: {key: ONYXKEYS.IOU},
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(NewRequestAmountPage);

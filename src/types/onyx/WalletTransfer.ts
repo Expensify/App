@@ -1,5 +1,7 @@
-import CONST from '../../CONST';
+import {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
+import PaymentMethod from './PaymentMethod';
 
 type WalletTransfer = {
     /** Selected accountID for transfer */
@@ -9,9 +11,7 @@ type WalletTransfer = {
     selectedAccountType?: string;
 
     /** Type to filter the payment Method list */
-    // TODO: Remove this after CONST.ts is migrated to TS
-    // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
-    filterPaymentMethodType?: typeof CONST.PAYMENT_METHODS.DEBIT_CARD | typeof CONST.PAYMENT_METHODS.BANK_ACCOUNT;
+    filterPaymentMethodType?: FilterMethodPaymentType;
 
     /** Whether the success screen is shown to user. */
     shouldShowSuccess?: boolean;
@@ -21,6 +21,12 @@ type WalletTransfer = {
 
     /** Whether or not data is loading */
     loading?: boolean;
+
+    paymentMethodType?: ValueOf<Pick<PaymentMethod, 'accountType'>>;
 };
 
+type FilterMethodPaymentType = typeof CONST.PAYMENT_METHODS.DEBIT_CARD | typeof CONST.PAYMENT_METHODS.BANK_ACCOUNT | null;
+
 export default WalletTransfer;
+
+export type {FilterMethodPaymentType};

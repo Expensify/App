@@ -1,10 +1,10 @@
-import {ValueOf} from 'type-fest';
 import * as React from 'react';
-import CONST from '../../CONST';
+import {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 
 type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
 
-type ErrorFields = Record<string | number, Record<string, string>>;
+type ErrorFields = Record<string | number, Record<string, string> | null>;
 
 type Errors = Record<string, string>;
 

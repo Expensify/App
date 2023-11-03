@@ -1,20 +1,19 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
-import moment from 'moment-timezone';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ROUTES from '../../../ROUTES';
-import CONST from '../../../CONST';
-import Text from '../../../components/Text';
-import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
-import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import compose from '../../../libs/compose';
-import Switch from '../../../components/Switch';
-import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Switch from '@components/Switch';
+import Text from '@components/Text';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -37,12 +36,12 @@ function TimezoneInitialPage(props) {
     const updateAutomaticTimezone = (isAutomatic) => {
         PersonalDetails.updateAutomaticTimezone({
             automatic: isAutomatic,
-            selected: isAutomatic ? moment.tz.guess() : timezone.selected,
+            selected: isAutomatic ? Intl.DateTimeFormat().resolvedOptions().timeZone : timezone.selected,
         });
     };
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={TimezoneInitialPage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}

@@ -1,22 +1,25 @@
-import _ from 'underscore';
+import 'core-js/features/array/at';
+import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import 'core-js/features/array/at';
+import {withOnyx} from 'react-native-onyx';
 import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
-import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import {VariableSizeList as List} from 'react-window';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
-import CONST from '../../CONST';
+import _ from 'underscore';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
+import withLocalize from '@components/withLocalize';
+import withWindowDimensions from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import Log from '@libs/Log';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as CanvasSize from '@userActions/CanvasSize';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
-import withWindowDimensions from '../withWindowDimensions';
-import withLocalize from '../withLocalize';
-import Text from '../Text';
-import compose from '../../libs/compose';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import Log from '../../libs/Log';
 
 /**
  * Each page has a default border. The app should take this size into account
@@ -48,10 +51,12 @@ class PDFView extends Component {
         this.calculatePageHeight = this.calculatePageHeight.bind(this);
         this.calculatePageWidth = this.calculatePageWidth.bind(this);
         this.renderPage = this.renderPage.bind(this);
+        this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio);
         this.setListAttributes = this.setListAttributes.bind(this);
 
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
+        this.retrieveCanvasLimits();
     }
 
     componentDidUpdate(prevProps) {
@@ -112,6 +117,23 @@ class PDFView extends Component {
         // but need to have keyboard focus set to them.
         // eslint-disable-next-line no-param-reassign
         ref.tabIndex = -1;
+    }
+
+    /**
+     * Calculate the devicePixelRatio the page should be rendered with
+     * Each platform has a different default devicePixelRatio and different canvas limits, we need to verify that
+     * with the default devicePixelRatio it will be able to diplay the pdf correctly, if not we must change the devicePixelRatio.
+     * @param {Number} width of the page
+     * @param {Number} height of the page
+     * @returns {Number} devicePixelRatio for this page on this platform
+     */
+    getDevicePixelRatio(width, height) {
+        const nbPixels = width * height;
+        const ratioHeight = this.props.maxCanvasHeight / height;
+        const ratioWidth = this.props.maxCanvasWidth / width;
+        const ratioArea = Math.sqrt(this.props.maxCanvasArea / nbPixels);
+        const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
+        return ratio > window.devicePixelRatio ? undefined : ratio;
     }
 
     /**
@@ -195,6 +217,23 @@ class PDFView extends Component {
     }
 
     /**
+     * Verify that the canvas limits have been calculated already, if not calculate them and put them in Onyx
+     */
+    retrieveCanvasLimits() {
+        if (!this.props.maxCanvasArea) {
+            CanvasSize.retrieveMaxCanvasArea();
+        }
+
+        if (!this.props.maxCanvasHeight) {
+            CanvasSize.retrieveMaxCanvasHeight();
+        }
+
+        if (!this.props.maxCanvasWidth) {
+            CanvasSize.retrieveMaxCanvasWidth();
+        }
+    }
+
+    /**
      * Render a specific page based on its index.
      * The method includes a wrapper to apply virtualized styles.
      * @param {Object} page item object of the List
@@ -204,6 +243,8 @@ class PDFView extends Component {
      */
     renderPage({index, style}) {
         const pageWidth = this.calculatePageWidth();
+        const pageHeight = this.calculatePageHeight(index);
+        const devicePixelRatio = this.getDevicePixelRatio(pageWidth, pageHeight);
 
         return (
             <View style={style}>
@@ -214,6 +255,7 @@ class PDFView extends Component {
                     // This needs to be empty to avoid multiple loading texts which show per page and look ugly
                     // See https://github.com/Expensify/App/issues/14358 for more details
                     loading=""
+                    devicePixelRatio={devicePixelRatio}
                 />
             </View>
         );
@@ -241,7 +283,7 @@ class PDFView extends Component {
                     }) => this.setState({containerWidth: width, containerHeight: height})}
                 >
                     <Document
-                        error={<Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
+                        error={<Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
                         loading={<FullScreenLoadingIndicator />}
                         file={this.props.sourceURL}
                         options={{
@@ -299,4 +341,18 @@ class PDFView extends Component {
 PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
-export default compose(withLocalize, withWindowDimensions)(PDFView);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        maxCanvasArea: {
+            key: ONYXKEYS.MAX_CANVAS_AREA,
+        },
+        maxCanvasHeight: {
+            key: ONYXKEYS.MAX_CANVAS_HEIGHT,
+        },
+        maxCanvasWidth: {
+            key: ONYXKEYS.MAX_CANVAS_WIDTH,
+        },
+    }),
+)(PDFView);

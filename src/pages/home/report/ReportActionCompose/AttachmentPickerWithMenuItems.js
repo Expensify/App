@@ -1,25 +1,25 @@
+import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../../../../styles/styles';
-import Icon from '../../../../components/Icon';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import AttachmentPicker from '../../../../components/AttachmentPicker';
-import * as Report from '../../../../libs/actions/Report';
-import PopoverMenu from '../../../../components/PopoverMenu';
-import CONST from '../../../../CONST';
-import Tooltip from '../../../../components/Tooltip';
-import * as Browser from '../../../../libs/Browser';
-import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
-import useLocalize from '../../../../hooks/useLocalize';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import * as IOU from '../../../../libs/actions/IOU';
-import * as Task from '../../../../libs/actions/Task';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import Permissions from '../../../../libs/Permissions';
+import AttachmentPicker from '@components/AttachmentPicker';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PopoverMenu from '@components/PopoverMenu';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import Permissions from '@libs/Permissions';
+import * as ReportUtils from '@libs/ReportUtils';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import * as Report from '@userActions/Report';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Beta features list */
@@ -76,6 +76,9 @@ const propTypes = {
     /** Called when the add action button is pressed */
     onAddActionPressed: PropTypes.func.isRequired,
 
+    /** Called when the menu item is selected */
+    onItemSelected: PropTypes.func.isRequired,
+
     /** A ref for the add action button */
     actionButtonRef: PropTypes.shape({
         // eslint-disable-next-line react/forbid-prop-types
@@ -111,6 +114,7 @@ function AttachmentPickerWithMenuItems({
     onCanceledAttachmentPicker,
     onMenuClosed,
     onAddActionPressed,
+    onItemSelected,
     actionButtonRef,
 }) {
     const {translate} = useLocalize();
@@ -122,33 +126,32 @@ function AttachmentPickerWithMenuItems({
      */
     const moneyRequestOptions = useMemo(() => {
         const options = {
-            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
+            [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: translate('iou.splitBill'),
             },
-            [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
+            [CONST.IOU.TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: translate('iou.requestMoney'),
             },
-            [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
+            [CONST.IOU.TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: translate('iou.sendMoney'),
             },
         };
 
-        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs, betas), (option) => ({
+        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs), (option) => ({
             ...options[option],
             onSelected: () => IOU.startMoneyRequest(option, report.reportID),
         }));
-    }, [betas, report, reportParticipantIDs, translate]);
+    }, [report, reportParticipantIDs, translate]);
 
     /**
      * Determines if we can show the task option
      * @returns {Boolean}
      */
     const taskOption = useMemo(() => {
-        // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (!Permissions.canUseTasks(betas) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
+        if (!Permissions.canUseTasks(betas) || !ReportUtils.canCreateTaskInReport(report)) {
             return [];
         }
 
@@ -257,6 +260,7 @@ function AttachmentPickerWithMenuItems({
                             onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {
                                 setMenuVisibility(false);
+                                onItemSelected();
 
                                 // In order for the file picker to open dynamically, the click
                                 // function must be called from within a event handler that was initiated

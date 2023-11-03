@@ -1,41 +1,26 @@
-import React, {useEffect, useRef} from 'react';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import TextInput from '../../components/TextInput';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Form from '../../components/Form';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import * as IOU from '../../libs/actions/IOU';
-import optionPropTypes from '../../components/optionPropTypes';
-import CONST from '../../CONST';
-import useLocalize from '../../hooks/useLocalize';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Description of the request */
-        comment: PropTypes.string,
-        created: PropTypes.string,
-        merchant: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(optionPropTypes),
-        receiptPath: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     /** Route from navigation */
     route: PropTypes.shape({
@@ -57,14 +42,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        comment: '',
-        merchant: '',
-        participants: [],
-        receiptPath: '',
-    },
+    iou: iouDefaultProps,
 };
 
 function MoneyRequestMerchantPage({iou, route}) {
@@ -81,13 +59,23 @@ function MoneyRequestMerchantPage({iou, route}) {
         }
 
         if (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
         }
     }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID]);
 
     function navigateBack() {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     }
+
+    const validate = useCallback((value) => {
+        const errors = {};
+
+        if (_.isEmpty(value.moneyRequestMerchant)) {
+            errors.moneyRequestMerchant = 'common.error.fieldRequired';
+        }
+
+        return errors;
+    }, []);
 
     /**
      * Sets the money request comment by saving it to Onyx.
@@ -105,6 +93,7 @@ function MoneyRequestMerchantPage({iou, route}) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            testID={MoneyRequestMerchantPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.merchant')}
@@ -114,6 +103,7 @@ function MoneyRequestMerchantPage({iou, route}) {
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={(value) => updateMerchant(value)}
+                validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
@@ -136,6 +126,7 @@ function MoneyRequestMerchantPage({iou, route}) {
 
 MoneyRequestMerchantPage.propTypes = propTypes;
 MoneyRequestMerchantPage.defaultProps = defaultProps;
+MoneyRequestMerchantPage.displayName = 'MoneyRequestMerchantPage';
 
 export default withOnyx({
     iou: {

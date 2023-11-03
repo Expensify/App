@@ -1,9 +1,9 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import TextInput from './TextInput';
-import styles from '../styles/styles';
-import CONST from '../CONST';
+import React from 'react';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 import refPropTypes from './refPropTypes';
+import TextInput from './TextInput';
 
 const propTypes = {
     /** Formatted amount in local currency  */
@@ -26,12 +26,16 @@ const propTypes = {
 
     /** Function to call when selection in text input is changed */
     onSelectionChange: PropTypes.func,
+
+    /** Function to call to handle key presses in the text input */
+    onKeyPress: PropTypes.func,
 };
 
 const defaultProps = {
     forwardedRef: undefined,
     selection: undefined,
     onSelectionChange: () => {},
+    onKeyPress: () => {},
 };
 
 function AmountTextInput(props) {
@@ -51,6 +55,7 @@ function AmountTextInput(props) {
             selection={props.selection}
             onSelectionChange={props.onSelectionChange}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+            onKeyPress={props.onKeyPress}
         />
     );
 }
@@ -59,10 +64,14 @@ AmountTextInput.propTypes = propTypes;
 AmountTextInput.defaultProps = defaultProps;
 AmountTextInput.displayName = 'AmountTextInput';
 
-export default React.forwardRef((props, ref) => (
+const AmountTextInputWithRef = React.forwardRef((props, ref) => (
     <AmountTextInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+AmountTextInputWithRef.displayName = 'AmountTextInputWithRef';
+
+export default AmountTextInputWithRef;

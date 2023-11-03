@@ -1,10 +1,11 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import {useFocusEffect} from '@react-navigation/native';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
-import CONST from '../CONST';
-import * as DemoActions from '../libs/actions/DemoActions';
-import Navigation from '../libs/Navigation/Navigation';
+import PropTypes from 'prop-types';
+import React, {useCallback} from 'react';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Navigation from '@libs/Navigation/Navigation';
+import * as DemoActions from '@userActions/DemoActions';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -15,22 +16,20 @@ const propTypes = {
 };
 
 /*
- * This is a "utility page", that does this:
- *     - Looks at the current route
- *     - Determines if there's a demo command we need to call
- *     - If not, routes back to home
+ * This is a "utility page", that used to call specific actions depending on the
+ * route that led the user here. Now, it's just used to route the user home so we
+ * don't show them a "Hmm... It's not here" message (which looks broken).
  */
 function DemoSetupPage(props) {
-    useFocusEffect(() => {
-        // Depending on the route that the user hit to get here, run a specific demo flow
-        if (props.route.name === CONST.DEMO_PAGES.SAASTR) {
-            DemoActions.runSaastrDemo();
-        } else if (props.route.name === CONST.DEMO_PAGES.SBE) {
-            DemoActions.runSbeDemo();
-        } else {
-            Navigation.goBack();
-        }
-    });
+    useFocusEffect(
+        useCallback(() => {
+            if (props.route.name === CONST.DEMO_PAGES.MONEY2020) {
+                DemoActions.runMoney2020Demo();
+            } else {
+                Navigation.goBack(ROUTES.HOME);
+            }
+        }, [props.route.name]),
+    );
 
     return <FullScreenLoadingIndicator />;
 }

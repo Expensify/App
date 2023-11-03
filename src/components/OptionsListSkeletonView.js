@@ -1,11 +1,11 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {Rect, Circle} from 'react-native-svg';
-import SkeletonViewContentLoader from 'react-content-loader/native';
-import CONST from '../CONST';
-import themeColors from '../styles/themes/default';
-import styles from '../styles/styles';
+import {Circle, Rect} from 'react-native-svg';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import CONST from '@src/CONST';
+import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 const propTypes = {
     /** Whether to animate the skeleton view */
@@ -60,8 +60,8 @@ class OptionsListSkeletonView extends React.Component {
                     key={`skeletonViewItems${i}`}
                     animate={this.props.shouldAnimate}
                     height={CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT}
-                    backgroundColor={themeColors.borderLighter}
-                    foregroundColor={themeColors.border}
+                    backgroundColor={themeColors.skeletonLHNIn}
+                    foregroundColor={themeColors.skeletonLHNOut}
                     style={styles.mr5}
                 >
                     <Circle

@@ -1,25 +1,26 @@
-import React, {useRef, useCallback, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
-import SuggestionMention from './SuggestionMention';
+import React, {useCallback, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
 import SuggestionEmoji from './SuggestionEmoji';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
+import SuggestionMention from './SuggestionMention';
 import * as SuggestionProps from './suggestionProps';
 
 const propTypes = {
     /** A ref to this component */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 
-    /** Callback when a emoji was inserted */
-    onInsertedEmoji: PropTypes.func.isRequired,
-
     /** Function to clear the input */
     resetKeyboardInput: PropTypes.func.isRequired,
+
+    /** Is auto suggestion picker large */
+    isAutoSuggestionPickerLarge: PropTypes.bool,
 
     ...SuggestionProps.baseProps,
 };
 
 const defaultProps = {
     forwardedRef: null,
+    isAutoSuggestionPickerLarge: true,
 };
 
 /**
@@ -36,14 +37,16 @@ function Suggestions({
     setSelection,
     updateComment,
     composerHeight,
-    shouldShowReportRecipientLocalTime,
     forwardedRef,
-    onInsertedEmoji,
     resetKeyboardInput,
     measureParentContainer,
+    isAutoSuggestionPickerLarge,
+    isComposerFocused,
 }) {
     const suggestionEmojiRef = useRef(null);
     const suggestionMentionRef = useRef(null);
+
+    const getSuggestions = useCallback(() => suggestionEmojiRef.current.getSuggestions() || suggestionMentionRef.current.getSuggestions(), []);
 
     /**
      * Clean data related to EmojiSuggestions
@@ -66,8 +69,7 @@ function Suggestions({
 
     const onSelectionChange = useCallback((e) => {
         const emojiHandler = suggestionEmojiRef.current.onSelectionChange(e);
-        const mentionHandler = suggestionMentionRef.current.onSelectionChange(e);
-        return emojiHandler || mentionHandler;
+        return emojiHandler;
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -88,36 +90,30 @@ function Suggestions({
             triggerHotkeyActions,
             updateShouldShowSuggestionMenuToFalse,
             setShouldBlockSuggestionCalc,
+            getSuggestions,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
-
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
-
-    // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
-    const hasEnoughSpaceForLargeSuggestion = windowHeight / composerHeight >= 6.8;
-    const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
     const baseProps = {
         value,
         setValue,
         setSelection,
+        selection,
         isComposerFullSize,
         updateComment,
         composerHeight,
-        shouldShowReportRecipientLocalTime,
         isAutoSuggestionPickerLarge,
         measureParentContainer,
+        isComposerFocused,
     };
 
     return (
-        <>
+        <View testID="suggestions">
             <SuggestionEmoji
                 ref={suggestionEmojiRef}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
-                selection={selection}
-                onInsertedEmoji={onInsertedEmoji}
                 resetKeyboardInput={resetKeyboardInput}
             />
             <SuggestionMention
@@ -125,7 +121,7 @@ function Suggestions({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
             />
-        </>
+        </View>
     );
 }
 
@@ -133,10 +129,14 @@ Suggestions.propTypes = propTypes;
 Suggestions.defaultProps = defaultProps;
 Suggestions.displayName = 'Suggestions';
 
-export default React.forwardRef((props, ref) => (
+const SuggestionsWithRef = React.forwardRef((props, ref) => (
     <Suggestions
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+SuggestionsWithRef.displayName = 'SuggestionsWithRef';
+
+export default SuggestionsWithRef;

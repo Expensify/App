@@ -1,9 +1,9 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import RNFastImage from 'react-native-fast-image';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
 
@@ -18,7 +18,10 @@ function Image(props) {
     const {source, isAuthTokenRequired, session, ...rest} = props;
 
     let imageSource = source;
-    if (typeof source !== 'number' && isAuthTokenRequired) {
+    if (source && source.uri && typeof source.uri === 'number') {
+        imageSource = source.uri;
+    }
+    if (typeof imageSource !== 'number' && isAuthTokenRequired) {
         const authToken = lodashGet(props, 'session.encryptedAuthToken', null);
         imageSource = {
             ...source,

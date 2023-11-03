@@ -6,4 +6,7 @@ export default {
 
     /** Should this dropZone be disabled? */
     isDisabled: PropTypes.bool,
+
+    /** Indicate that users are dragging file or not */
+    setIsDraggingOver: PropTypes.func,
 };

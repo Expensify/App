@@ -1,18 +1,19 @@
+import _ from 'lodash';
 import lodashGet from 'lodash/get';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
+import compose from '@libs/compose';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Banner from './Banner';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import compose from '../libs/compose';
-import personalDetailsPropType from '../pages/personalDetailsPropType';
-import ONYXKEYS from '../ONYXKEYS';
-import * as ReportUtils from '../libs/ReportUtils';
-import reportPropTypes from '../pages/reportPropTypes';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import styles from '../styles/styles';
-import * as PersonalDetailsUtils from '../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** The reason this report was archived */
@@ -60,15 +61,25 @@ function ArchivedReportFooter(props) {
         oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [oldAccountID, 'displayName']);
     }
 
+    const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+
+    let policyName = ReportUtils.getPolicyName(props.report);
+
+    if (shouldRenderHTML) {
+        oldDisplayName = _.escape(oldDisplayName);
+        displayName = _.escape(displayName);
+        policyName = _.escape(policyName);
+    }
+
     return (
         <Banner
             containerStyles={[styles.archivedReportFooter]}
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
                 displayName: `<strong>${displayName}</strong>`,
                 oldDisplayName: `<strong>${oldDisplayName}</strong>`,
-                policyName: `<strong>${ReportUtils.getPolicyName(props.report)}</strong>`,
+                policyName: `<strong>${policyName}</strong>`,
             })}
-            shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
+            shouldRenderHTML={shouldRenderHTML}
             shouldShowIcon
         />
     );

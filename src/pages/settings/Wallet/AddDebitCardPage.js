@@ -1,27 +1,27 @@
+import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import TextLink from '../../../components/TextLink';
-import useLocalize from '../../../hooks/useLocalize';
-import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
-import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
-import StatePicker from '../../../components/StatePicker';
-import TextInput from '../../../components/TextInput';
-import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
-import AddressSearch from '../../../components/AddressSearch';
-import Form from '../../../components/Form';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import usePrevious from '../../../hooks/usePrevious';
-import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import Permissions from '../../../libs/Permissions';
+import AddressSearch from '@components/AddressSearch';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import Form from '@components/Form';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import StatePicker from '@components/StatePicker';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import styles from '@styles/styles';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -45,8 +45,15 @@ function DebitCardPage(props) {
     const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
     const nameOnCardRef = useRef(null);
 
+    /**
+     * Reset the form values on the mount and unmount so that old errors don't show when this form is displayed again.
+     */
     useEffect(() => {
         PaymentMethods.clearDebitCardFormErrorAndSubmit();
+
+        return () => {
+            PaymentMethods.clearDebitCardFormErrorAndSubmit();
+        };
     }, []);
 
     useEffect(() => {
@@ -55,10 +62,6 @@ function DebitCardPage(props) {
         }
 
         PaymentMethods.continueSetup();
-
-        return () => {
-            PaymentMethods.clearDebitCardFormErrorAndSubmit();
-        };
     }, [prevFormDataSetupComplete, props.formData.setupComplete]);
 
     /**
@@ -108,6 +111,7 @@ function DebitCardPage(props) {
         <ScreenWrapper
             onEntryTransitionEnd={() => nameOnCardRef.current && nameOnCardRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
+            testID={DebitCardPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('addDebitCardPage.addADebitCard')}
@@ -166,6 +170,8 @@ function DebitCardPage(props) {
                         label={translate('addDebitCardPage.billingAddress')}
                         containerStyles={[styles.mt4]}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                        // Limit the address search only to the USA until we fully can support international debit cards
+                        isLimitedToUSA
                     />
                 </View>
                 <TextInput
@@ -199,6 +205,7 @@ function DebitCardPage(props) {
 
 DebitCardPage.propTypes = propTypes;
 DebitCardPage.defaultProps = defaultProps;
+DebitCardPage.displayName = 'DebitCardPage';
 
 export default withOnyx({
     formData: {

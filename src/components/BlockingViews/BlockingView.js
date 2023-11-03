@@ -1,15 +1,15 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import variables from '../../styles/variables';
-import Icon from '../Icon';
-import Text from '../Text';
-import themeColors from '../../styles/themes/default';
-import TextLink from '../TextLink';
-import Navigation from '../../libs/Navigation/Navigation';
-import AutoEmailLink from '../AutoEmailLink';
-import useLocalize from '../../hooks/useLocalize';
+import AutoEmailLink from '@components/AutoEmailLink';
+import Icon from '@components/Icon';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -38,6 +38,9 @@ const propTypes = {
 
     /** Function to call when pressing the navigation link */
     onLinkPress: PropTypes.func,
+
+    /** Whether we should embed the link with subtitle */
+    shouldEmbedLinkWithSubtitle: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -48,10 +51,30 @@ const defaultProps = {
     iconWidth: variables.iconSizeSuperLarge,
     iconHeight: variables.iconSizeSuperLarge,
     onLinkPress: () => Navigation.dismissModal(),
+    shouldEmbedLinkWithSubtitle: false,
 };
 
 function BlockingView(props) {
     const {translate} = useLocalize();
+    function renderContent() {
+        return (
+            <>
+                <AutoEmailLink
+                    style={[styles.textAlignCenter]}
+                    text={props.subtitle}
+                />
+                {props.shouldShowLink ? (
+                    <TextLink
+                        onPress={props.onLinkPress}
+                        style={[styles.link, styles.mt2]}
+                    >
+                        {translate(props.linkKey)}
+                    </TextLink>
+                ) : null}
+            </>
+        );
+    }
+
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
             <Icon
@@ -61,18 +84,12 @@ function BlockingView(props) {
                 height={props.iconHeight}
             />
             <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
-            <AutoEmailLink
-                style={[styles.textAlignCenter]}
-                text={props.subtitle}
-            />
-            {props.shouldShowLink ? (
-                <TextLink
-                    onPress={props.onLinkPress}
-                    style={[styles.link, styles.mt2]}
-                >
-                    {translate(props.linkKey)}
-                </TextLink>
-            ) : null}
+
+            {props.shouldEmbedLinkWithSubtitle ? (
+                <Text style={[styles.textAlignCenter]}>{renderContent()}</Text>
+            ) : (
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{renderContent()}</View>
+            )}
         </View>
     );
 }

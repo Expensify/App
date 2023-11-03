@@ -1,5 +1,7 @@
 # Expensify PropTypes Conversion Table
 
+This is a reference to help you convert PropTypes to TypeScript types. 
+
 ## Table of Contents
 
 - [Important Considerations](#important-considerations)
@@ -24,7 +26,7 @@ const propTypes = {
 };
 
 // After
-type Props = {
+type ComponentProps = {
   isVisible: boolean;
   // Consider it as required unless you have proof that it is indeed an optional prop.
   confirmText: string; // vs. confirmText?: string;
@@ -115,7 +117,7 @@ type Input = {
 
 type Size = "small" | "medium" | "large";
 
-type Props = {
+type ComponentProps = {
   unknownData: string[];
 
   // It's not possible to infer the data as it can be anything because of reasons X, Y and Z.

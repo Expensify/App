@@ -1,9 +1,9 @@
+import lodashGet from 'lodash/get';
 import React, {useEffect, useMemo} from 'react';
 import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import ONYXKEYS from '../../ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
 
@@ -22,7 +22,9 @@ function Image(props) {
             return {uri: `${propsSource.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
         return propsSource;
-    }, [propsSource, isAuthTokenRequired, session]);
+        // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [propsSource, isAuthTokenRequired]);
 
     /**
      * The natural image dimensions are retrieved using the updated source

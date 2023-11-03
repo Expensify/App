@@ -1,20 +1,21 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import * as Report from '../../../libs/actions/Report';
-import reportPropTypes from '../../reportPropTypes';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import compose from '../../../libs/compose';
-import withLocalize from '../../../components/withLocalize';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import withLocalize from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import * as Report from '@userActions/Report';
+import ONYXKEYS from '@src/ONYXKEYS';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import ReportActionItem from './ReportActionItem';
 import reportActionPropTypes from './reportActionPropTypes';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** Flag to show, hide the thread divider line */
@@ -53,13 +54,14 @@ function ReportActionItemParentAction(props) {
     }
     return (
         <OfflineWithFeedback
-            shouldDisableOpacity={Boolean(parentReportAction.pendingAction)}
+            shouldDisableOpacity={Boolean(lodashGet(parentReportAction, 'pendingAction'))}
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
             errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
+                <AnimatedEmptyStateBackground />
                 <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
                 {parentReportAction && (
                     <ReportActionItem

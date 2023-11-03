@@ -1,16 +1,16 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import defaultTheme from '../../styles/themes/default';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import compose from '../../libs/compose';
-import variables from '../../styles/variables';
-import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
-import {qrSharePropTypes, qrShareDefaultProps} from './propTypes';
-import QRCode from '../QRCode';
+import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
+import QRCode from '@components/QRCode';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import styles from '@styles/styles';
+import defaultTheme from '@styles/themes/default';
+import variables from '@styles/variables';
+import {qrShareDefaultProps, qrSharePropTypes} from './propTypes';
 
 const propTypes = {
     ...qrSharePropTypes,
@@ -50,7 +50,7 @@ class QRShare extends Component {
             >
                 <View style={styles.expensifyQrLogo}>
                     <ExpensifyWordmark
-                        fill={defaultTheme.borderFocus}
+                        fill={defaultTheme.QRLogo}
                         width="100%"
                         height="100%"
                     />
@@ -76,7 +76,6 @@ class QRShare extends Component {
 
                 {!_.isEmpty(this.props.subtitle) && (
                     <Text
-                        family="EXP_NEUE_BOLD"
                         fontSize={variables.fontSizeLabel}
                         numberOfLines={2}
                         style={[styles.mt1, styles.textAlignCenter]}

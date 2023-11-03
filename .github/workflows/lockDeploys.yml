@@ -9,7 +9,8 @@ jobs:
     if: ${{ github.event.label.name == '🔐 LockCashDeploys 🔐' && contains(github.event.issue.labels.*.name, 'StagingDeployCash') && github.actor != 'OSBotify' }}
     runs-on: macos-12
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           ref: main
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -27,7 +28,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - if: ${{ failure() }}
+      - name: Announce failed workflow
+        if: ${{ failure() }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

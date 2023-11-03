@@ -1,13 +1,13 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import * as EmojiUtils from '../libs/EmojiUtils';
-import Text from './Text';
-import getStyledTextArray from '../libs/GetStyledTextArray';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import getStyledTextArray from '@libs/GetStyledTextArray';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
+import Text from './Text';
 
 const propTypes = {
     /** The index of the highlighted emoji */
@@ -39,9 +39,6 @@ const propTypes = {
      * suggester. When this value is false, the suggester will have a height of
      * 2.5 items. When this value is true, the height can be up to 5 items.  */
     isEmojiPickerLarge: PropTypes.bool.isRequired,
-
-    /** Show that we should include ReportRecipientLocalTime view height */
-    shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
 
     /** Stores user's preferred skin tone */
     preferredSkinToneIndex: PropTypes.number.isRequired,
@@ -102,7 +99,6 @@ function EmojiSuggestions(props) {
             highlightedSuggestionIndex={props.highlightedEmojiIndex}
             onSelect={props.onSelect}
             isSuggestionPickerLarge={props.isEmojiPickerLarge}
-            shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
             accessibilityLabelExtractor={keyExtractor}
             measureParentContainer={props.measureParentContainer}
         />

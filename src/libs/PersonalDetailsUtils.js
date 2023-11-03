@@ -1,7 +1,8 @@
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
 
@@ -16,8 +17,8 @@ Onyx.connect({
 });
 
 /**
- * @param {Object} passedPersonalDetails
- * @param {Array} pathToDisplayName
+ * @param {Object | Null} passedPersonalDetails
+ * @param {Array | String} pathToDisplayName
  * @param {String} [defaultValue] optional default display name value
  * @returns {String}
  */
@@ -35,21 +36,21 @@ function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defau
  * @returns {Array} - Array of personal detail objects
  */
 function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeUserDisplayName = false) {
-    const result = [];
-    _.each(
-        _.filter(personalDetails, (detail) => accountIDs.includes(detail.accountID)),
-        (detail) => {
+    return _.chain(accountIDs)
+        .filter((accountID) => !!allPersonalDetails[accountID])
+        .map((accountID) => {
+            const detail = allPersonalDetails[accountID];
+
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
-                result.push({
+                return {
                     ...detail,
                     displayName: Localize.translateLocal('common.you'),
-                });
-            } else {
-                result.push(detail);
+                };
             }
-        },
-    );
-    return result;
+
+            return detail;
+        })
+        .value();
 }
 
 /**
@@ -115,7 +116,7 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
-                displayName: login,
+                displayName: LocalePhoneNumber.formatPhoneNumber(login),
             };
 
             /**
@@ -151,4 +152,29 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
     };
 }
 
-export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData};
+/**
+ * Applies common formatting to each piece of an address
+ *
+ * @param {String} piece - address piece to format
+ * @returns {String} - formatted piece
+ */
+function formatPiece(piece) {
+    return piece ? `${piece}, ` : '';
+}
+
+/**
+ * Formats an address object into an easily readable string
+ *
+ * @param {OnyxTypes.PrivatePersonalDetails} privatePersonalDetails - details object
+ * @returns {String} - formatted address
+ */
+function getFormattedAddress(privatePersonalDetails) {
+    const {address} = privatePersonalDetails;
+    const [street1, street2] = (address.street || '').split('\n');
+    const formattedAddress = formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
+
+    // Remove the last comma of the address
+    return formattedAddress.trim().replace(/,$/, '');
+}
+
+export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData, getFormattedAddress};

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '../CONST';
-import stylePropTypes from '../styles/stylePropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
+import CONST from '@src/CONST';
 import avatarPropTypes from './avatarPropTypes';
 import refPropTypes from './refPropTypes';
 
@@ -95,7 +95,7 @@ const propTypes = {
     interactive: PropTypes.bool,
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.func,
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
 
     /** Avatars to show on the right of the menu item */
     floatRightAvatars: PropTypes.arrayOf(avatarPropTypes),
@@ -141,6 +141,24 @@ const propTypes = {
 
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled: PropTypes.bool,
+
+    /** Error to display below the title */
+    error: PropTypes.string,
+
+    /** Should render the content in HTML format */
+    shouldRenderAsHTML: PropTypes.bool,
+
+    /** Component to be displayed on the right */
+    rightComponent: PropTypes.node,
+
+    /** Should render component on the right */
+    shouldShowRightComponent: PropTypes.bool,
+
+    /** Array of objects that map display names to their corresponding tooltip */
+    titleWithTooltips: PropTypes.arrayOf(PropTypes.object),
+
+    /** Should check anonymous user in onPress function */
+    shouldCheckActionAllowedOnPress: PropTypes.bool,
 };
 
 export default propTypes;
