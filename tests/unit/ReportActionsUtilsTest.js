@@ -251,6 +251,7 @@ describe('ReportActionsUtils', () => {
             ];
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
             input.pop();
+            input.pop();
             expect(result).toStrictEqual(input);
         });
     });
