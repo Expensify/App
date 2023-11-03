@@ -44,4 +44,21 @@ function isInsideComment(tnode) {
     return false;
 }
 
-export {computeEmbeddedMaxWidth, isInsideComment, isCommentTag};
+/**
+ * Check if there is an ancestor node with the name 'h1'.
+ * Finding a node with the name 'h1' flags that we are rendering inside an h1 element.
+ * @param {TNode} tnode
+ * @returns {Boolean}
+ */
+function isInsideH1(tnode) {
+    let currentNode = tnode;
+    while (currentNode) {
+        if (currentNode.domNode.name === 'h1') {
+            return true;
+        }
+        currentNode = currentNode.parent;
+    }
+    return false;
+}
+
+export {computeEmbeddedMaxWidth, isInsideComment, isCommentTag, isInsideH1};
