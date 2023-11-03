@@ -24,7 +24,7 @@ function extractAttachmentsFromReport(report, reportActions) {
             if (isVideo) {
                 const splittedUrl = attribs['data-expensify-source'].split('/');
                 attachments.unshift({
-                    reportActionID: {name: null},
+                    reportActionID: null,
                     source: tryResolveUrlFromApiRoot(attribs['data-expensify-source']),
                     isAuthTokenRequired: Boolean(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     file: {name: splittedUrl[splittedUrl.length - 1]},
