@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import categoryPropTypes from '@components/categoryPropTypes';
@@ -92,7 +92,7 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
 
     // Take only the YYYY-MM-DD value
-    const transactionCreated = TransactionUtils.getCreated(transaction);
+    const originalCreated = TransactionUtils.getCreated(transaction);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
     // For now, it always defaults to the first tag of the policy
@@ -132,6 +132,19 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
         Navigation.dismissModal(report.reportID);
     }
 
+    const saveCreated = useCallback(
+        ({created: newValue}) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newValue === originalCreated) {
+                Navigation.dismissModal();
+                return;
+            }
+            IOU.updateMoneyRequestDate(transaction.transactionID, report.reportID, newValue);
+            Navigation.dismissModal();
+        },
+        [transaction, report, originalCreated],
+    );
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
@@ -151,15 +164,8 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
             <EditRequestCreatedPage
-                defaultCreated={transactionCreated}
-                onSubmit={(transactionChanges) => {
-                    // In case the date hasn't been changed, do not make the API request.
-                    if (transactionChanges.created === transactionCreated) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    editMoneyRequest(transactionChanges);
-                }}
+                defaultCreated={originalCreated}
+                onSubmit={saveCreated}
             />
         );
     }
