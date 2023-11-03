@@ -74,7 +74,7 @@ function ReportDetailsPage(props) {
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
     const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
-    const participants = useMemo(() => ReportUtils.getParticipantsIDs(props.report), [props.report]);
+    const participants = useMemo(() => ReportUtils.getVisibleMembersIDs(props.report), [props.report]);
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
 

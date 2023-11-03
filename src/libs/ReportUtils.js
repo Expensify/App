@@ -4049,6 +4049,29 @@ function getParticipantsIDs(report) {
 }
 
 /**
+ * Returns an array of the visible member Ids of a report
+ *
+ * @param {Object} report
+ * @returns {Array}
+ */
+function getVisibleMembersIDs(report) {
+    if (!report) {
+        return [];
+    }
+
+    const visibleChatMembers = report.visibleChatMemberList || [];
+
+    // Build visibleChatMembers list for IOU/expense reports
+    if (isMoneyRequestReport(report)) {
+        return _.chain([report.managerID, report.ownerAccountID, ...visibleChatMembers])
+            .compact()
+            .uniq()
+            .value();
+    }
+    return visibleChatMembers;
+}
+
+/**
  * Return iou report action display message
  *
  * @param {Object} reportAction report action
@@ -4280,6 +4303,7 @@ export {
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
     getParticipantsIDs,
+    getVisibleMembersIDs,
     canEditMoneyRequest,
     canEditFieldOfMoneyRequest,
     buildTransactionThread,

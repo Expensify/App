@@ -55,7 +55,7 @@ const defaultProps = {
  * @return {Array}
  */
 const getAllParticipants = (report, personalDetails, translate) =>
-    _.chain(ReportUtils.getParticipantsIDs(report))
+    _.chain(ReportUtils.getVisibleMembersIDs(report))
         .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
             const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
