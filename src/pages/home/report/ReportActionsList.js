@@ -144,9 +144,6 @@ function ReportActionsList({
     const reportActionSize = useRef(sortedReportActions.length);
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
-    // This state is used to force a re-render when the user manually marks a message as unread
-    // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
-    const [messageManuallyMarkedUnread, setMessageManuallyMarkedUnread] = useState(0);
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -189,21 +186,6 @@ function ReportActionsList({
         setCurrentUnreadMarker(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sortedReportActions.length, report.reportID]);
-
-    useEffect(() => {
-        const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
-        if (didManuallyMarkReportAsUnread) {
-            // Clearing the current unread marker so that it can be recalculated
-            setCurrentUnreadMarker(null);
-            setMessageManuallyMarkedUnread(new Date().getTime());
-            return;
-        }
-
-        setMessageManuallyMarkedUnread(0);
-
-        // We only care when a new lastReadTime is set in the report
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.lastReadTime]);
 
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
@@ -296,43 +278,33 @@ function ReportActionsList({
      * Evaluate new unread marker visibility for each of the report actions.
      * @returns boolean
      */
-
     const shouldDisplayNewMarker = useCallback(
-        (reportAction, index) => {
+        (unreadMarker, reportAction, index) => {
             let shouldDisplay = false;
-            if (!currentUnreadMarker) {
+            if (!unreadMarker) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, report.lastReadTime));
-                if (!messageManuallyMarkedUnread) {
-                    shouldDisplay = shouldDisplay && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
-                }
             } else {
-                shouldDisplay = reportAction.reportActionID === currentUnreadMarker;
+                shouldDisplay = reportAction.reportActionID === unreadMarker;
             }
             return shouldDisplay;
         },
-        [currentUnreadMarker, sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread],
+        [report.lastReadTime, sortedReportActions],
     );
 
     useEffect(() => {
         // Iterate through the report actions and set appropriate unread marker.
-        // This is to avoid a warning of:
-        // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
-        let markerFound = false;
+        let unreadMarker = null;
         _.each(sortedReportActions, (reportAction, index) => {
-            if (!shouldDisplayNewMarker(reportAction, index)) {
+            if (!shouldDisplayNewMarker(unreadMarker, reportAction, index)) {
                 return;
             }
-            markerFound = true;
-            if (!currentUnreadMarker && currentUnreadMarker !== reportAction.reportActionID) {
-                setCurrentUnreadMarker(reportAction.reportActionID);
-            }
+            unreadMarker = reportAction.reportActionID;
         });
-        if (!markerFound) {
-            setCurrentUnreadMarker(null);
-        }
-    }, [sortedReportActions, report.lastReadTime, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
+        setCurrentUnreadMarker(unreadMarker);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- no needs to other dependencies because shouldDisplayNewMarker already has
+    }, [shouldDisplayNewMarker]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (
@@ -345,10 +317,10 @@ function ReportActionsList({
                 sortedReportActions={sortedReportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
+                shouldDisplayNewMarker={shouldDisplayNewMarker(currentUnreadMarker, reportAction, index)}
             />
         ),
-        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
+        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker, currentUnreadMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
