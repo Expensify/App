@@ -1381,6 +1381,16 @@ export default {
         companyWebsite: 'Company website',
         enterYourCompanysPhoneNumber: 'Enter your company’s phone number.',
         enterYourCompanysAddress: 'Enter your company’s address.',
+        selectYourCompanysType: 'Select your company’s type.',
+        companyType: 'Company type',
+        incorporationType: {
+            LLC: 'LLC',
+            CORPORATION: 'Corp',
+            PARTNERSHIP: 'Partnership',
+            COOPERATIVE: 'Cooperative',
+            SOLE_PROPRIETORSHIP: 'Sole proprietorship',
+            OTHER: 'Other',
+        },
     },
     validationStep: {
         headerTitle: 'Validate Bank Account',

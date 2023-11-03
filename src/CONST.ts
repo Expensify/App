@@ -188,6 +188,7 @@ const CONST = {
                 CITY: 'addressCity',
                 STATE: 'addressState',
                 ZIP_CODE: 'addressZipCode',
+                INCORPORATION_TYPE: 'incorporationType',
             },
         },
         PLAID: {
