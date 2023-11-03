@@ -181,6 +181,7 @@ function ReportActionItemMessageEdit(props) {
                 });
                 return prevDraft;
             });
+            textInputRef.current.scrollTop = textInputRef.current.scrollHeight;
         }
 
         return () => {
