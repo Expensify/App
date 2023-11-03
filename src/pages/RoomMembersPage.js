@@ -17,7 +17,6 @@ import compose from '@libs/compose';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -33,9 +32,6 @@ import reportPropTypes from './reportPropTypes';
 const propTypes = {
     /** All personal details asssociated with user */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -73,7 +69,6 @@ const defaultProps = {
     },
     report: {},
     policies: {},
-    betas: [],
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -93,7 +88,7 @@ function RoomMembersPage(props) {
 
     useEffect(() => {
         // Kick the user out if they tried to navigate to this via the URL
-        if ((ReportUtils.isPublicRoom(props.report) && !PolicyUtils.isPolicyMember(props.report.policyID, props.policies))) {
+        if (ReportUtils.isPublicRoom(props.report) && !PolicyUtils.isPolicyMember(props.report.policyID, props.policies)) {
             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
             return;
         }
@@ -326,9 +321,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
     withCurrentUserPersonalDetails,
