@@ -7,8 +7,18 @@ import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Avatar from './Avatar';
-import AvatarIcon from './AvatarIconType';
 import Text from './Text';
+
+// TODO: remove when avatarPropTypes will be migrated to TS
+type AvatarFunction = () => void;
+
+type AvatarIcon = {
+    source: string | AvatarFunction;
+    type: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    name: string;
+    id: number | string;
+    fallbackIcon?: string | AvatarFunction;
+};
 
 type Mention = {
     /** Display name of the user */
@@ -45,20 +55,17 @@ type MentionSuggestionsProps = {
 
 /**
  * Create unique keys for each mention item
- * @param item
- * @param index
  */
 const keyExtractor = (item: Mention) => item.alternateText;
 
 function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainer = () => {}}: MentionSuggestionsProps) {
     /**
      * Render a suggestion menu item component.
-     * @param item
      */
     const renderSuggestionMenuItem = (item: Mention) => {
         const isIcon = item.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
         const styledDisplayName = getStyledTextArray(item.text, prefix);
-        const styledHandle = item.text === item.alternateText ? '' : getStyledTextArray(item.alternateText, prefix);
+        const styledHandle = item.text === item.alternateText ? undefined : getStyledTextArray(item.alternateText, prefix);
 
         return (
             <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
@@ -90,19 +97,18 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                     style={[styles.mentionSuggestionsText, styles.flex1]}
                     numberOfLines={1}
                 >
-                    {styledHandle &&
-                        styledHandle.map(
-                            ({text, isColored}, i) =>
-                                Boolean(text) && (
-                                    <Text
-                                        // eslint-disable-next-line react/no-array-index-key
-                                        key={`${text}${i}`}
-                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
-                                    >
-                                        {text}
-                                    </Text>
-                                ),
-                        )}
+                    {styledHandle?.map(
+                        ({text, isColored}, i) =>
+                            Boolean(text) && (
+                                <Text
+                                    // eslint-disable-next-line react/no-array-index-key
+                                    key={`${text}${i}`}
+                                    style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
+                                >
+                                    {text}
+                                </Text>
+                            ),
+                    )}
                 </Text>
             </View>
         );
