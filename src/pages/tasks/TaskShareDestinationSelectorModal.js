@@ -62,7 +62,7 @@ function TaskShareDestinationSelectorModal(props) {
         _.keys(props.reports).forEach((reportKey) => {
             if (
                 !ReportUtils.canUserPerformWriteAction(props.reports[reportKey]) ||
-                ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey]) ||
+                !ReportUtils.canCreateTaskInReport(props.reports[reportKey]) ||
                 ReportUtils.isCanceledTaskReport(props.reports[reportKey])
             ) {
                 return;
