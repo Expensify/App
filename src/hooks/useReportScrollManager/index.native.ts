@@ -2,8 +2,6 @@ import {useContext, useCallback} from 'react';
 import {ActionListContext} from '../../pages/home/ReportScreenContext';
 import ReportScrollManagerData from './types';
 
-let isAutomaticScrollToBottom = false;
-
 function useReportScrollManager(): ReportScrollManagerData {
     const flatListRef = useContext(ActionListContext);
 
@@ -26,11 +24,10 @@ function useReportScrollManager(): ReportScrollManagerData {
             return;
         }
 
-        isAutomaticScrollToBottom = true;
         flatListRef.current.scrollToOffset({animated: false, offset: 0});
     }, [flatListRef]);
 
-    return {ref: flatListRef, scrollToIndex, scrollToBottom, isAutomaticScrollToBottom};
+    return {ref: flatListRef, scrollToIndex, scrollToBottom};
 }
 
 export default useReportScrollManager;
