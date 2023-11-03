@@ -35,7 +35,7 @@ declare module 'react-native' {
         'aria-haspopup'?: 'dialog' | 'grid' | 'listbox' | 'menu' | 'tree' | false;
         'aria-hidden'?: boolean;
         'aria-invalid'?: boolean;
-        'aria-keyshortcuts'?: string[];
+        'aria-keyshortcuts'?: string;
         'aria-label'?: string;
         'aria-labelledby'?: idRef;
         'aria-level'?: number;

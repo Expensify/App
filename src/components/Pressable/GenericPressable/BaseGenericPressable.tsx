@@ -146,7 +146,7 @@ function GenericPressable(
                 ...rest.accessibilityState,
             }}
             aria-disabled={isDisabled}
-            aria-keyshortcuts={keyboardShortcut?.modifiers.map((modifier) => `${modifier}+${keyboardShortcut.shortcutKey}`) ?? []}
+            aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers.join('')}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs
             onMagicTap={!isDisabled ? onPressHandler : undefined}
             onAccessibilityTap={!isDisabled ? onPressHandler : undefined}
