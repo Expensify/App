@@ -6,12 +6,15 @@ import lodashUnion from 'lodash/union';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import * as API from '@libs/API';
+import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -1591,7 +1594,8 @@ function createWorkspaceFromIOUPayment(iouReport) {
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
         value: {
             ...iouReport,
-            type: CONST.REPORT.TYPE.EXPENSE
+            type: CONST.REPORT.TYPE.EXPENSE,
+            total: -iouReport.total,
         },
     });
     failureData.push({
@@ -1600,16 +1604,61 @@ function createWorkspaceFromIOUPayment(iouReport) {
         value: iouReport,
     });
 
-    const chatReport = ReportUtils.getReport(iouReport.chatReportID);
-    const reportPreviewID = iouReport.parentReportActionID;
+    const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport.reportID);
+    _.each(reportTransactions, (transaction) => {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                ...transaction,
+                amount: -transaction.amount,
+                modifiedAmount: transaction.modifiedAmount ? -transaction.modifiedAmount : 0,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: transaction,
+        });
+    });
 
     const memberData = {
         accountID: Number(employeeAccountID),
         email: employeeEmail,
-        workspaceChatReportID: Number(employeeWorkspaceChat.reportCreationData[employeeEmail].reportID),
-        workspaceChatCreatedReportActionID: Number(employeeWorkspaceChat.reportCreationData[employeeEmail].reportActionID),
+        workspaceChatReportID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportID,
+        workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportActionID,
     };
 
+    const chatReport = ReportUtils.getReport(iouReport.chatReportID);
+    const reportPreview = ReportActionsUtils.getParentReportAction(iouReport);
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        value: {[reportPreview.reportActionID] : null},
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        value: {[reportPreview.reportActionID] : reportPreview},
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
+        value: {
+            [reportPreview.reportActionID] : {
+                ...reportPreview,
+                created: DateUtils.getDBTime(),
+            }
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
+        value: {[reportPreview.reportActionID] : null},
+    });
+
+    
     API.write(
         'CreateWorkspaceFromIOUPayment',
         {
