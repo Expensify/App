@@ -75,7 +75,7 @@ If you're an admin using a workspace on a Control plan, you have the ability to 
 
 These settings are valuable if you want to set a special limit for a certain category. e.g. Your default expense limit is $2500 but Entertainment has a limit of $150 per person, per day. You can also require or not require receipts, which is great for allowing things like Mileage or Per Diems to have no receipt.
 
-To set up Category Rules, go to **Settings > Workspace> Group > _[Workspace Name]_ > Categories**.
+To set up Category Rules, go to **Settings > Workspace> Group >** _[Workspace Name]_ **> Categories**.
 
 Then, click **Edit Rules** next to the category name for which you'd like to define a rule.
 
@@ -99,7 +99,7 @@ Policy Admins can add additional approvers who must approve any expenses categor
 
 To configure category approvers:
 
-1. Go to Settings > Workspace > Group > [Select Workspace] > Categories
+1. Go to Settings > Workspace > Group > _[Select Workspace]_ > Categories
 2. Click Edit Rules next to the category name that requires a category approver and use the "Approver" field
    
 The expense will route to this Category approver, before following the approval workflow set up in the People table
