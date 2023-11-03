@@ -40,7 +40,7 @@ function BankAccountManualStep(props) {
             if (
                 values.accountNumber &&
                 !CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) &&
-                !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim())
+                !(shouldDisableInputs && CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER_MATCH_BE.test(values.accountNumber.trim()))
             ) {
                 errors.accountNumber = 'bankAccount.error.accountNumber';
             } else if (values.accountNumber && values.accountNumber === routingNumber) {
