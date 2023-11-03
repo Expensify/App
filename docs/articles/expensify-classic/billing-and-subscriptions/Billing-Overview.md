@@ -1,5 +1,5 @@
 ---
-title: Billing in Expensify
+title: Billing Overview
 description: An overview of how billing works in Expensify.
 ---
 # Overview

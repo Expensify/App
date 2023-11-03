@@ -71,8 +71,6 @@ const propTypes = {
     shouldValidateOnChange: PropTypes.bool,
 };
 
-const VALIDATE_DELAY = 200;
-
 const defaultProps = {
     isSubmitButtonVisible: true,
     formState: {
@@ -248,28 +246,19 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 // as this is already happening by the value prop.
                 defaultValue: undefined,
                 onTouched: (event) => {
-                    setTimeout(() => {
-                        setTouchedInput(inputID);
-                    }, VALIDATE_DELAY);
+                    setTouchedInput(inputID);
                     if (_.isFunction(propsToParse.onTouched)) {
                         propsToParse.onTouched(event);
                     }
                 },
                 onPress: (event) => {
-                    setTimeout(() => {
-                        setTouchedInput(inputID);
-                    }, VALIDATE_DELAY);
+                    setTouchedInput(inputID);
                     if (_.isFunction(propsToParse.onPress)) {
                         propsToParse.onPress(event);
                     }
                 },
-                onPressOut: (event) => {
-                    // To prevent validating just pressed inputs, we need to set the touched input right after
-                    // onValidate and to do so, we need to delays setTouchedInput of the same amount of time
-                    // as the onValidate is delayed
-                    setTimeout(() => {
-                        setTouchedInput(inputID);
-                    }, VALIDATE_DELAY);
+                onPressIn: (event) => {
+                    setTouchedInput(inputID);
                     if (_.isFunction(propsToParse.onPressIn)) {
                         propsToParse.onPressIn(event);
                     }
@@ -285,7 +274,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                             if (shouldValidateOnBlur) {
                                 onValidate(inputValues, !hasServerError);
                             }
-                        }, VALIDATE_DELAY);
+                        }, 200);
                     }
 
                     if (_.isFunction(propsToParse.onBlur)) {
