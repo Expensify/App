@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState, useContext} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
@@ -36,7 +36,6 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import * as ActionSheetAwareScrollView from '../../../../components/ActionSheetAwareScrollView';
 
 import SendButton from './SendButton';
