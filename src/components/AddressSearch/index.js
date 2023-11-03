@@ -257,25 +257,13 @@ function AddressSearch(props) {
 
         // Some edge-case addresses may lack both street_number and route in the API response, resulting in an empty "values.street"
         // We are setting up a fallback to ensure "values.street" is populated with a relevant value
-        if (!values.street) {
-            const {adr_address} = details;
+        if (!values.street && details.adr_address) {
             const streetAddressRegex = /(<span\s+class\s*=\s*"street-address"[^>]*>[^<]*<\/span>)/;
-            const streetAddressHtml = adr_address.match(streetAddressRegex);
-            if (streetAddressHtml[1]) {
+            const adr_address = details.adr_address.match(streetAddressRegex);
+            const streetAddressHtml = _.get(adr_address, [1], null);
+            if (streetAddressHtml) {
                 const parser = new ExpensiMark();
-                const streetFallback = parser.htmlToText(streetAddressHtml[1]);
-                values.street = streetFallback;
-            } else {
-                let streetFallback = '';
-                const excludedTypes = ['country', 'administrative_area_level_1', 'administrative_area_level_2', 'postal_code'];
-                addressComponents.forEach((addressComponent) => {
-                    if (_.some(excludedTypes, (excludedType) => _.includes(addressComponent.types, excludedType))) {
-                        return;
-                    }
-                    const value = addressComponent.long_name || '';
-                    streetFallback = `${streetFallback}${value} `;
-                });
-                values.street = streetFallback.trim();
+                values.street = parser.htmlToText(streetAddressHtml);
             }
         }
 
