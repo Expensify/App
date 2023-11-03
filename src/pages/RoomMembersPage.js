@@ -269,14 +269,16 @@ function RoomMembersPage(props) {
                             text={props.translate('common.invite')}
                             onPress={inviteUser}
                         />
-                        <Button
-                            medium
-                            danger
-                            style={[styles.ml2]}
-                            isDisabled={selectedMembers.length === 0}
-                            text={props.translate('common.remove')}
-                            onPress={askForConfirmationToRemove}
-                        />
+                        {isPolicyMember && (
+                            <Button
+                                medium
+                                danger
+                                style={[styles.ml2]}
+                                isDisabled={selectedMembers.length === 0}
+                                text={props.translate('common.remove')}
+                                onPress={askForConfirmationToRemove}
+                            />
+                        )}
                     </View>
                     <View style={[styles.w100, styles.mt4, styles.flex1]}>
                         <SelectionList
