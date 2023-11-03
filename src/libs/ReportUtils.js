@@ -1694,20 +1694,9 @@ function canEditReportAction(reportAction) {
 }
 
 /**
- * Gets all distance transactions on an IOU report
- *
- * @param {string|null} iouReportID
- * @returns {[Object]}
- */
-function getDistanceTransactions(iouReportID) {
-    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return _.filter(allTransactions, (transaction) => TransactionUtils.isDistanceRequest(transaction));
-}
-
-/**
  * Gets all transactions on an IOU report with a receipt
  *
- * @param {string|null} iouReportID
+ * @param {String} iouReportID
  * @returns {[Object]}
  */
 function getTransactionsWithReceipts(iouReportID) {
@@ -1727,7 +1716,7 @@ function getTransactionsWithReceipts(iouReportID) {
  * @returns {Boolean}
  */
 function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
-    const transactionsWithReceipts = getDistanceTransactions(iouReportID);
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     // If we have more requests than requests with receipts, we have some manual requests
     if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
@@ -1738,7 +1727,7 @@ function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
 /**
  * Check if any of the distance transactions in the report has invalid route
  *
- * @param {String} iouReportID
+ * @param {String|undefined} iouReportID
  * @returns {Boolean}
  */
 function hasRouteError(iouReportID) {
