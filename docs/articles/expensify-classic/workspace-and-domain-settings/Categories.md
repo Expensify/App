@@ -56,6 +56,7 @@ On mobile:
 Sub-categories are useful when you want to be more specific, i.e. Travel could have a subcategory of airplane or lodging so the outcome would be Travel:airplane or Travel:lodging.
 
 If you would like to create sub-categories under your category selection drop-down list, you can do so by adding a colon after the name of the desired category and then typing the sub-category (without spaces around the punctuation).
+
 # How to import Categories with an accounting integration connected
 If you connect Expensify to a direct integration such as QuickBooks Online, QuickBooks Desktop, Sage Intacct, Xero, or NetSuite, then Expensify automatically imports the general ledger parameters from your accounting system as Categories.
 
