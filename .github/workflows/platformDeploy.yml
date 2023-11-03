@@ -410,7 +410,7 @@ jobs:
   postGithubComment:
     name: Post a GitHub comment when platforms are done building and deploying
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: ${{ always() && !cancelled() }}
     needs: [android, desktop, iOS, web]
     steps:
       - name: Checkout
