@@ -78,6 +78,11 @@ const metro = {
             },
         ],
     ],
+    env: {
+        production: {
+            plugins: ['transform-remove-console', {exclude: ['error', 'warn']}],
+        },
+    },
 };
 
 /*
