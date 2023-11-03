@@ -1,11 +1,11 @@
-import _ from 'underscore';
-import React, {useRef, useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import {PortalHost} from '@gorhom/portal';
 import Str from 'expensify-common/lib/str';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import useDragAndDrop from '@hooks/useDragAndDrop';
+import styles from '@styles/styles';
 import dragAndDropProviderPropTypes from './dragAndDropProviderPropTypes';
-import styles from '../../../styles/styles';
-import useDragAndDrop from '../../../hooks/useDragAndDrop';
 
 const DragAndDropContext = React.createContext({});
 

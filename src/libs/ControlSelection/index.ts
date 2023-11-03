@@ -1,5 +1,5 @@
+import CustomRefObject from '@src/types/utils/CustomRefObject';
 import ControlSelectionModule from './types';
-import CustomRefObject from '../../types/utils/CustomRefObject';
 
 /**
  * Block selection on the whole app

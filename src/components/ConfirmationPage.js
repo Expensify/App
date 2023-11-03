@@ -1,12 +1,12 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
+import styles from '@styles/styles';
+import Button from './Button';
+import FixedFooter from './FixedFooter';
 import Lottie from './Lottie';
 import * as LottieAnimations from './LottieAnimations';
 import Text from './Text';
-import styles from '../styles/styles';
-import Button from './Button';
-import FixedFooter from './FixedFooter';
 
 const propTypes = {
     /** The asset to render */
@@ -47,6 +47,7 @@ function ConfirmationPage(props) {
                     autoPlay
                     loop
                     style={styles.confirmationAnimation}
+                    webStyle={styles.confirmationAnimationWeb}
                 />
                 <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{props.heading}</Text>
                 <Text style={styles.textAlignCenter}>{props.description}</Text>

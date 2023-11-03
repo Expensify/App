@@ -1,15 +1,15 @@
-import React, {useCallback, useEffect, useMemo, forwardRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
 import _ from 'underscore';
-import Accessibility from '../../../libs/Accessibility';
-import HapticFeedback from '../../../libs/HapticFeedback';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
-import styles from '../../../styles/styles';
+import useSingleExecution from '@hooks/useSingleExecution';
+import Accessibility from '@libs/Accessibility';
+import HapticFeedback from '@libs/HapticFeedback';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import styles from '@styles/styles';
+import * as StyleUtils from '@styles/StyleUtils';
+import CONST from '@src/CONST';
 import genericPressablePropTypes from './PropTypes';
-import CONST from '../../../CONST';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import useSingleExecution from '../../../hooks/useSingleExecution';
 
 /**
  * Returns the cursor style based on the state of Pressable

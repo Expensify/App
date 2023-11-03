@@ -1,12 +1,12 @@
+import lodashGet from 'lodash/get';
 import React, {Fragment, useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import Tooltip from '../Tooltip';
-import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import styles from '@styles/styles';
 import {defaultProps, propTypes} from './displayNamesPropTypes';
+import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 
 function DisplayNamesWithToolTip(props) {
     const containerRef = useRef(null);

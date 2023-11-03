@@ -1,7 +1,7 @@
+import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
+import styles from '@styles/styles';
 
 const propTypes = {
     /** Styles to apply to the HeaderGap */

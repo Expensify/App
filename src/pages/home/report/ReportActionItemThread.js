@@ -1,15 +1,15 @@
-import React from 'react';
-import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
-import * as Report from '../../../libs/actions/Report';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import CONST from '../../../CONST';
-import avatarPropTypes from '../../../components/avatarPropTypes';
-import MultipleAvatars from '../../../components/MultipleAvatars';
-import compose from '../../../libs/compose';
-import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
+import React from 'react';
+import {Text, View} from 'react-native';
+import avatarPropTypes from '@components/avatarPropTypes';
+import MultipleAvatars from '@components/MultipleAvatars';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import styles from '@styles/styles';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** List of participant icons for the thread */

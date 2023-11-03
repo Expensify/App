@@ -1,30 +1,30 @@
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
-import {Linking} from 'react-native';
-import {ValueOf} from 'type-fest';
 import throttle from 'lodash/throttle';
-import {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
+import {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
+import {Linking} from 'react-native';
+import Onyx, {OnyxUpdate} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
+import * as API from '@libs/API';
+import * as Authentication from '@libs/Authentication';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import * as NetworkStore from '@libs/Network/NetworkStore';
+import * as Pusher from '@libs/Pusher/pusher';
+import * as ReportUtils from '@libs/ReportUtils';
+import Timers from '@libs/Timers';
+import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as Device from '@userActions/Device';
+import redirectToSignIn from '@userActions/SignInRedirect';
+import Timing from '@userActions/Timing';
+import * as Welcome from '@userActions/Welcome';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import Credentials from '@src/types/onyx/Credentials';
+import {AutoAuthState} from '@src/types/onyx/Session';
 import clearCache from './clearCache';
-import ONYXKEYS from '../../../ONYXKEYS';
-import redirectToSignIn from '../SignInRedirect';
-import CONFIG from '../../../CONFIG';
-import Log from '../../Log';
-import Timing from '../Timing';
-import CONST from '../../../CONST';
-import Timers from '../../Timers';
-import * as Pusher from '../../Pusher/pusher';
-import * as Authentication from '../../Authentication';
-import * as Welcome from '../Welcome';
-import * as API from '../../API';
-import * as NetworkStore from '../../Network/NetworkStore';
-import Navigation from '../../Navigation/Navigation';
-import * as Device from '../Device';
-import ROUTES from '../../../ROUTES';
-import * as ErrorUtils from '../../ErrorUtils';
-import * as ReportUtils from '../../ReportUtils';
-import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
-import Credentials from '../../../types/onyx/Credentials';
-import {AutoAuthState} from '../../../types/onyx/Session';
 
 let sessionAuthTokenType: string | null = '';
 let sessionAuthToken: string | null = null;
@@ -871,6 +871,33 @@ function waitForUserSignIn(): Promise<boolean> {
     });
 }
 
+/**
+ * check if the route can be accessed by anonymous user
+ *
+ * @param {string} route
+ */
+
+const canAccessRouteByAnonymousUser = (route: string) => {
+    const reportID = ReportUtils.getReportIDFromLink(route);
+    if (reportID) {
+        return true;
+    }
+    const parsedReportRouteParams = ReportUtils.parseReportRouteParams(route);
+    let routeRemovedReportId = route;
+    if ((parsedReportRouteParams as {reportID: string})?.reportID) {
+        routeRemovedReportId = route.replace((parsedReportRouteParams as {reportID: string})?.reportID, ':reportID');
+    }
+    if (route.startsWith('/')) {
+        routeRemovedReportId = routeRemovedReportId.slice(1);
+    }
+    const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route];
+
+    if ((routesCanAccessByAnonymousUser as string[]).includes(routeRemovedReportId)) {
+        return true;
+    }
+    return false;
+};
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -900,4 +927,5 @@ export {
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
     waitForUserSignIn,
+    canAccessRouteByAnonymousUser,
 };
