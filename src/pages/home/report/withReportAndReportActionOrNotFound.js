@@ -1,19 +1,19 @@
 import PropTypes from 'prop-types';
-import React, {useEffect, useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import getComponentDisplayName from '../../../libs/getComponentDisplayName';
-import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import ONYXKEYS from '../../../ONYXKEYS';
-import reportPropTypes from '../../reportPropTypes';
-import reportMetadataPropTypes from '../../reportMetadataPropTypes';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import withWindowDimensions from '@components/withWindowDimensions';
+import compose from '@libs/compose';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as Report from '@userActions/Report';
+import ONYXKEYS from '@src/ONYXKEYS';
 import reportActionPropTypes from './reportActionPropTypes';
-import FullscreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import * as Report from '../../../libs/actions/Report';
-import compose from '../../../libs/compose';
-import withWindowDimensions from '../../../components/withWindowDimensions';
 
 export default function (WrappedComponent) {
     const propTypes = {

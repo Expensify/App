@@ -1,27 +1,29 @@
-import _ from 'underscore';
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import OptionsSelector from '../components/OptionsSelector';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import Permissions from '../libs/Permissions';
-import * as ReportUtils from '../libs/ReportUtils';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import * as Report from '../libs/actions/Report';
-import CONST from '../CONST';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import ScreenWrapper from '../components/ScreenWrapper';
-import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import * as Browser from '../libs/Browser';
-import compose from '../libs/compose';
+import _ from 'underscore';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import OfflineIndicator from '@components/OfflineIndicator';
+import OptionsSelector from '@components/OptionsSelector';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useDelayedInputFocus from '@hooks/useDelayedInputFocus';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
+import * as ReportUtils from '@libs/ReportUtils';
+import styles from '@styles/styles';
+import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
-import variables from '../styles/variables';
-import useNetwork from '../hooks/useNetwork';
-import useDelayedInputFocus from '../hooks/useDelayedInputFocus';
 
 const propTypes = {
     /** Beta features list */
@@ -58,6 +60,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     const [filteredUserToInvite, setFilteredUserToInvite] = useState();
     const [selectedOptions, setSelectedOptions] = useState([]);
     const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -218,7 +221,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom={isOffline}
+            shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnableMaxHeight
             testID={NewChatPage.displayName}
@@ -258,6 +262,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             isLoadingNewOptions={isSearchingForReports}
                         />
                     </View>
+                    {isSmallScreenWidth && <OfflineIndicator />}
                 </KeyboardAvoidingView>
             )}
         </ScreenWrapper>

@@ -1,25 +1,26 @@
 import React, {useRef, useEffect, useContext, useMemo, useState} from 'react';
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import * as Report from '../../../libs/actions/Report';
-import reportActionPropTypes from './reportActionPropTypes';
-import Timing from '../../../libs/actions/Timing';
-import CONST from '../../../CONST';
-import compose from '../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import useCopySelectionHelper from '../../../hooks/useCopySelectionHelper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Performance from '../../../libs/Performance';
-import {withNetwork} from '../../../components/OnyxProvider';
-import networkPropTypes from '../../../components/networkPropTypes';
-import ReportActionsList from './ReportActionsList';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import reportPropTypes from '../../reportPropTypes';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useInitialValue from '@hooks/useInitialValue';
+import compose from '@libs/compose';
+import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import Performance from '@libs/Performance';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
-import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
-import {ReactionListContext} from '../ReportScreenContext';
+import reportActionPropTypes from './reportActionPropTypes';
+import ReportActionsList from './ReportActionsList';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -85,6 +86,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const isFirstRender = useRef(true);
+
     const [isLinkingToCattedMessage, setLinkingToCattedMessage] = useState(false);
     const [isLinkingToExtendedMessage, setLinkingToExtendedMessage] = useState(false);
     const isLoadingLinkedMessage = !!reportActionID && props.isLoadingInitialReportActions;
@@ -156,9 +158,9 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         return false;
     }, [reportActions, allReportActions, reportActionID]);
 
-    const hasCachedActions = useRef(_.size(reportActions) > 0);
+    const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
+    const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
 
-    const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(reportActions));
     const prevNetworkRef = useRef(props.network);
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
@@ -288,7 +290,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         }
 
         didLayout.current = true;
-        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions.current ? CONST.TIMING.WARM : CONST.TIMING.COLD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions ? CONST.TIMING.WARM : CONST.TIMING.COLD);
 
         // Capture the init measurement only once not per each chat switch as the value gets overwritten
         if (!ReportActionsView.initMeasured) {
@@ -310,7 +312,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
                 report={props.report}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={reportActions}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}
+                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 isLinkingLoader={!!reportActionID && props.isLoadingInitialReportActions}
@@ -399,10 +401,6 @@ function arePropsEqual(oldProps, newProps) {
     }
 
     if (lodashGet(newProps, 'report.managerID') !== lodashGet(oldProps, 'report.managerID')) {
-        return false;
-    }
-
-    if (lodashGet(newProps, 'report.managerEmail') !== lodashGet(oldProps, 'report.managerEmail')) {
         return false;
     }
 

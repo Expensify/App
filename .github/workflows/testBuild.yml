@@ -218,7 +218,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-    runs-on: macos-13-xlarge
+    runs-on: macos-12-xl
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -246,7 +246,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Build desktop app for testing
-        run: npm run desktop-build-adhoc -- --publish always
+        run: npm run desktop-build-adhoc
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -339,7 +339,7 @@ jobs:
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          body-include: 'Use the links below to test this build in android and iOS. Happy testing!'
+          body-include: 'Use the links below to test this adhoc build in Android, iOS, Desktop, and Web. Happy testing!'
           number: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
           delete: true
 
