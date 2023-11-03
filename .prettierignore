@@ -15,3 +15,5 @@ package-lock.json
 *.css
 *.scss
 *.md
+# We need to modify the import here specifically, hence we disable prettier to get rid of the sorted imports
+src/libs/E2E/reactNativeLaunchingTest.js
