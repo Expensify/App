@@ -198,23 +198,28 @@ export default compose(
         chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
             selector: chatReportSelector,
+            initialValue: {},
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
+            initialValue: CONST.PRIORITY_MODE.DEFAULT,
         },
         betas: {
             key: ONYXKEYS.BETAS,
+            initialValue: [],
         },
         allReportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             selector: reportActionsSelector,
+            initialValue: {},
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
+            initialValue: {},
         },
     }),
 )(SidebarLinksData);
