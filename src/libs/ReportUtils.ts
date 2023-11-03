@@ -476,7 +476,7 @@ function isTaskReport(report: OnyxEntry<Report>): boolean {
  * There's another situation where you don't have access to the parentReportAction (because it was created in a chat you don't have access to)
  * In this case, we have added the key to the report itself
  */
-function isCanceledTaskReport(report: OnyxEntry<Report>, parentReportAction?: OnyxEntry<ReportAction>): boolean {
+function isCanceledTaskReport(report: OnyxEntry<Report>, parentReportAction?: OnyxEntry<ReportAction> | Record<string, never>): boolean {
     if (Object.keys(parentReportAction ?? {}).length > 0 && (parentReportAction?.message?.[0]?.isDeletedParentAction ?? false)) {
         return true;
     }
@@ -493,7 +493,7 @@ function isCanceledTaskReport(report: OnyxEntry<Report>, parentReportAction?: On
  *
  * @param parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  */
-function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction?: OnyxEntry<ReportAction>): boolean {
+function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction?: OnyxEntry<ReportAction> | Record<string, never>): boolean {
     return isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
@@ -1475,7 +1475,7 @@ function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: Rep
  * @param [parentReportAction] - The parent report action of the report (Used to check if the task has been canceled)
  */
 function isWaitingForAssigneeToCompleteTask(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction> | Record<string, never> = {}): boolean {
-    return isTaskReport(report) && isReportManager(report) && isNotEmptyObject(parentReportAction) && isOpenTaskReport(report, parentReportAction);
+    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
 }
 
 function isUnreadWithMention(report: OnyxEntry<Report> | OptionData): boolean {
