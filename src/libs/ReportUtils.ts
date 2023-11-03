@@ -731,7 +731,8 @@ function isDM(report: OnyxEntry<Report>): boolean {
  */
 function canCreateTaskInReport(report: OnyxEntry<Report>): boolean {
     const otherReportParticipants = report?.participantAccountIDs?.filter((accountID) => accountID !== currentUserAccountID);
-    const areExpensifyAccountsOnlyOtherParticipants = otherReportParticipants?.every((accountID) => CONST.EXPENSIFY_ACCOUNT_IDS.includes(accountID));
+    const areExpensifyAccountsOnlyOtherParticipants =
+        otherReportParticipants && otherReportParticipants?.length >= 1 && otherReportParticipants?.every((accountID) => CONST.EXPENSIFY_ACCOUNT_IDS.includes(accountID));
     if (areExpensifyAccountsOnlyOtherParticipants && isDM(report)) {
         return false;
     }
@@ -951,8 +952,16 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
  * Get the report given a reportID
  */
 function getReport(reportID: string | undefined): OnyxEntry<Report> | Record<string, never> {
-    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
-    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
+    /**
+     * Using typical string concatenation here due to performance issues
+     * with template literals.
+     */
+    if (!allReports) {
+        return {};
+    }
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return allReports[ONYXKEYS.COLLECTION.REPORT + reportID] || {};
 }
 
 /**
@@ -1583,14 +1592,26 @@ function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict
  * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
  */
 function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): string | undefined {
-    const reportOwnerDisplayName = getDisplayNameForParticipant(report?.ownerAccountID ?? -1) ?? allPersonalDetails?.[report?.ownerAccountID ?? -1]?.login ?? report?.reportName;
+    const ownerAccountID = report?.ownerAccountID;
+    const personalDetails = allPersonalDetails?.[ownerAccountID ?? -1];
+    const login = personalDetails ? personalDetails.login : null;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report?.ownerAccountID) || login || report?.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report?.isOwnPolicyExpenseChat) {
         return getPolicyName(report, false, policy);
     }
 
-    const policyExpenseChatRole = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.role ?? 'user';
+    let policyExpenseChatRole = 'user';
+    /**
+     * Using typical string concatenation here due to performance issues
+     * with template literals.
+     */
+    const policyItem = allPolicies?.[ONYXKEYS.COLLECTION.POLICY + report?.policyID];
+    if (policyItem) {
+        policyExpenseChatRole = policyItem.role || 'user';
+    }
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.

@@ -47,6 +47,10 @@ function canUseTags(betas: Beta[]): boolean {
     return betas?.includes(CONST.BETAS.NEW_DOT_TAGS) || canUseAllBetas(betas);
 }
 
+function canUseViolations(betas: Beta[]): boolean {
+    return betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -65,4 +69,5 @@ export default {
     canUseCustomStatus,
     canUseTags,
     canUseLinkPreviews,
+    canUseViolations,
 };
