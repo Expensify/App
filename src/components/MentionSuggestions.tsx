@@ -5,20 +5,10 @@ import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
+import {Icon} from '@src/types/onyx/OnyxCommon';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Avatar from './Avatar';
 import Text from './Text';
-
-// TODO: remove when avatarPropTypes will be migrated to TS
-type AvatarFunction = () => void;
-
-type AvatarIcon = {
-    source: string | AvatarFunction;
-    type: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
-    name: string;
-    id: number | string;
-    fallbackIcon?: string | AvatarFunction;
-};
 
 type Mention = {
     /** Display name of the user */
@@ -28,7 +18,7 @@ type Mention = {
     alternateText: string;
 
     /** Array of icons of the user. We use the first element of this array */
-    icons: AvatarIcon[];
+    icons: Icon[];
 };
 
 type MentionSuggestionsProps = {
