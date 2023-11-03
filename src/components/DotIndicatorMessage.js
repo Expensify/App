@@ -45,6 +45,7 @@ const defaultProps = {
  * Check if the error includes a receipt.
  *
  * @param {String} message
+ * @returns {Boolean}
  */
 const isReceiptError = (message) => {
     if (_.isString(message)) {
