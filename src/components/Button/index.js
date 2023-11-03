@@ -1,5 +1,6 @@
+import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -7,10 +8,8 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
-import withNavigationFocus from '@components/withNavigationFocus';
-import compose from '@libs/compose';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import HapticFeedback from '@libs/HapticFeedback';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
 import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
@@ -112,9 +111,6 @@ const propTypes = {
     /** Should enable the haptic feedback? */
     shouldEnableHapticFeedback: PropTypes.bool,
 
-    /** Whether Button is on active screen */
-    isFocused: PropTypes.bool.isRequired,
-
     /** Id to use for this button */
     nativeID: PropTypes.string,
 
@@ -201,38 +197,21 @@ function Button({
     shouldRemoveLeftBorderRadius,
     shouldEnableHapticFeedback,
 
-    isFocused,
     nativeID,
     accessibilityLabel,
     forwardedRef,
 }) {
-    useEffect(() => {
-        if (!pressOnEnter) {
-            return;
-        }
-
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-
-        // Setup and attach keypress handler for pressing the button with Enter key
-        return KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            (event) => {
-                if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, event)) {
-                    return;
-                }
-                onPress();
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            allowBubble,
-            enterKeyEventListenerPriority,
-            false,
-        );
-
-        // This effect should run only once during mounting
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const isFocused = useIsFocused();
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ENTER,
+        (event) => {
+            if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, event)) {
+                return;
+            }
+            onPress();
+        },
+        {isActive: pressOnEnter, shouldBubble: allowBubble, priority: enterKeyEventListenerPriority, shouldPreventDefault: false},
+    );
 
     const renderContent = () => {
         if (children) {
@@ -371,4 +350,4 @@ const ButtonWithRef = React.forwardRef((props, ref) => (
 
 ButtonWithRef.displayName = 'ButtonWithRef';
 
-export default compose(withNavigationFallback, withNavigationFocus)(ButtonWithRef);
+export default withNavigationFallback(ButtonWithRef);
