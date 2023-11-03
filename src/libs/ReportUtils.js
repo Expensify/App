@@ -533,7 +533,8 @@ function isExpensifyOnlyParticipantInReport(report) {
  */
 function canCreateTaskInReport(report) {
     const otherReportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
-    const areExpensifyAccountsOnlyOtherParticipants = _.every(otherReportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
+    const areExpensifyAccountsOnlyOtherParticipants =
+        otherReportParticipants.length >= 1 && _.every(otherReportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
     if (areExpensifyAccountsOnlyOtherParticipants && isDM(report)) {
         return false;
     }
@@ -1411,6 +1412,10 @@ function isUnreadWithMention(report) {
  */
 function requiresAttentionFromCurrentUser(option, parentReportAction = {}) {
     if (!option) {
+        return false;
+    }
+
+    if (isArchivedRoom(option)) {
         return false;
     }
 
@@ -4113,7 +4118,7 @@ function getIOUReportActionDisplayMessage(reportAction) {
     let displayMessage;
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const {IOUReportID} = originalMessage;
-        const {amount, currency} = originalMessage.IOUDetails;
+        const {amount, currency} = originalMessage.IOUDetails || originalMessage;
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
         const iouReport = getReport(IOUReportID);
         const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport.managerID, true);
