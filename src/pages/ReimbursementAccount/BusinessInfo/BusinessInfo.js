@@ -16,6 +16,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import getInitialSubstepForPersonalInfo from '../utils/getInitialSubstepForPersonalInfo';
 import NameBusiness from './substeps/NameBusiness';
+import TaxIdBusiness from './substeps/TaxIdBusiness';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -26,7 +27,7 @@ const STEPS_HEADER_HEIGHT = 40;
 // TODO Will most likely come from different place
 const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
-const bodyContent = [NameBusiness];
+const bodyContent = [NameBusiness, TaxIdBusiness];
 
 const businessInfoStep = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 

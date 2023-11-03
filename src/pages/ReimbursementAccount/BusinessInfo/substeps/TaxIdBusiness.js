@@ -21,21 +21,22 @@ const propTypes = {
     ...subStepPropTypes,
 };
 
-const companyNameKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_NAME;
+const companyTaxIdKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_TAX_ID;
 
-const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyNameKey]);
+const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyTaxIdKey]);
 
-function NameBusiness({reimbursementAccount, onNext, isEditing}) {
+function TaxIdBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
 
-    const defaultCompanyName = lodashGet(reimbursementAccount, ['achData', companyNameKey], '');
+    const defaultCompanyTaxId = lodashGet(reimbursementAccount, ['achData', companyTaxIdKey], '');
 
     const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID', 0);
-    const shouldDisableCompanyName = Boolean(bankAccountID && defaultCompanyName);
+
+    const shouldDisableCompanyTaxID = Boolean(bankAccountID && defaultCompanyTaxId);
 
     const handleSubmit = (values) => {
         BankAccounts.updateOnyxVBBAData({
-            [companyNameKey]: values[companyNameKey],
+            [companyTaxIdKey]: values[companyTaxIdKey],
         });
 
         onNext();
@@ -51,28 +52,30 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}) {
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <View>
-                <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.enterTheNameOfYourBusiness')}</Text>
+                <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.enterYourCompanysTaxIdNumber')}</Text>
                 <TextInput
-                    label={translate('businessInfoStep.businessName')}
-                    accessibilityLabel={translate('businessInfoStep.businessName')}
+                    inputID={companyTaxIdKey}
+                    label={translate('businessInfoStep.taxIDNumber')}
+                    accessibilityLabel={translate('businessInfoStep.taxIDNumber')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    inputID={companyNameKey}
                     containerStyles={[styles.mt4]}
-                    disabled={shouldDisableCompanyName}
-                    defaultValue={defaultCompanyName}
+                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    disabled={shouldDisableCompanyTaxID}
+                    placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
+                    defaultValue={defaultCompanyTaxId}
                     shouldSaveDraft
-                    shouldUseDefaultValue={shouldDisableCompanyName}
+                    shouldUseDefaultValue={shouldDisableCompanyTaxID}
                 />
             </View>
         </Form>
     );
 }
 
-NameBusiness.propTypes = propTypes;
-NameBusiness.displayName = 'NameBusiness';
+TaxIdBusiness.propTypes = propTypes;
+TaxIdBusiness.displayName = 'TaxIdBusiness';
 
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
-})(NameBusiness);
+})(TaxIdBusiness);

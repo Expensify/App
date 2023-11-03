@@ -1374,6 +1374,9 @@ export default {
         businessInfo: 'Business info',
         enterTheNameOfYourBusiness: 'Enter the name of your business.',
         businessName: 'Business name',
+        enterYourCompanysTaxIdNumber: 'Enter your company’s Tax ID number.',
+        taxIDNumber: 'Tax ID number',
+        taxIDNumberPlaceholder: '9 digits',
     },
     validationStep: {
         headerTitle: 'Validate Bank Account',
