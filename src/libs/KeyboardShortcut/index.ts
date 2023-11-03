@@ -1,8 +1,8 @@
 import Str from 'expensify-common/lib/str';
 import * as KeyCommand from 'react-native-key-command';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import CONST from '@src/CONST';
 import bindHandlerToKeydownEvent from './bindHandlerToKeydownEvent';
-import getOperatingSystem from '../getOperatingSystem';
-import CONST from '../../CONST';
 
 const operatingSystem = getOperatingSystem();
 
@@ -13,6 +13,7 @@ type EventHandler = {
     shouldPreventDefault: boolean;
     shouldBubble: boolean | (() => void);
     excludedNodes: string[];
+    shouldStopPropagation: boolean;
 };
 
 // Handlers for the various keyboard listeners we set up
@@ -135,6 +136,7 @@ function subscribe(
     priority = 0,
     shouldPreventDefault = true,
     excludedNodes = [],
+    shouldStopPropagation = false,
 ) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
@@ -150,6 +152,7 @@ function subscribe(
         shouldPreventDefault,
         shouldBubble,
         excludedNodes,
+        shouldStopPropagation,
     });
 
     if (descriptionKey) {

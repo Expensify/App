@@ -1,4 +1,4 @@
-import DeepRecord from '../../types/utils/DeepRecord';
+import DeepRecord from '@src/types/utils/DeepRecord';
 import defaultTheme from './default';
 
 type ThemeBase = DeepRecord<string, string>;
