@@ -7,6 +7,7 @@ import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
+import colors from '@styles/colors';
 import styles from '@styles/styles';
 
 const propTypes = {
@@ -61,7 +62,7 @@ function ProgressBar({style}) {
 
                     <Icon
                         src={getVolumeIcon()}
-                        fill="white"
+                        fill={colors.white}
                         small
                     />
                 </Animated.View>

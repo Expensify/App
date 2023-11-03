@@ -4053,13 +4053,13 @@ const styles = (theme: ThemeDefault) =>
         progressBarOutline: {
             width: '100%',
             height: 5,
-            backgroundColor: 'gray',
             borderRadius: 10,
+            backgroundColor: '#FFFFFF51',
         },
 
         progressBarFill: {
             height: '100%',
-            backgroundColor: 'white',
+            backgroundColor: colors.white,
             borderRadius: 10,
         },
 
@@ -4083,13 +4083,13 @@ const styles = (theme: ThemeDefault) =>
             height: 100,
             alignItems: 'center',
             borderRadius: 4,
-            backgroundColor: '#085239',
+            backgroundColor: colors.green700,
         },
 
         volumeSliderOverlay: {
             width: 4,
             height: 60,
-            backgroundColor: 'gray',
+            backgroundColor: '#FFFFFF51',
             borderRadius: 10,
             marginTop: 10,
             alignItems: 'end',
@@ -4099,7 +4099,7 @@ const styles = (theme: ThemeDefault) =>
         volumeSliderFill: {
             width: 4,
             height: 20,
-            backgroundColor: 'white',
+            backgroundColor: colors.white,
             borderRadius: 10,
         },
 
