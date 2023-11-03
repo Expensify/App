@@ -533,7 +533,8 @@ function isExpensifyOnlyParticipantInReport(report) {
  */
 function canCreateTaskInReport(report) {
     const otherReportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
-    const areExpensifyAccountsOnlyOtherParticipants = _.every(otherReportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
+    const areExpensifyAccountsOnlyOtherParticipants =
+        otherReportParticipants.length >= 1 && _.every(otherReportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
     if (areExpensifyAccountsOnlyOtherParticipants && isDM(report)) {
         return false;
     }
