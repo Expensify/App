@@ -87,11 +87,6 @@ function RoomMembersPage(props) {
     }, [props.report.reportID]);
 
     useEffect(() => {
-        // Kick the user out if they tried to navigate to this via the URL
-        if (ReportUtils.isPublicRoom(props.report) && !PolicyUtils.isPolicyMember(props.report.policyID, props.policies)) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
-            return;
-        }
         getRoomMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -244,7 +239,7 @@ function RoomMembersPage(props) {
             testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(props.report) || !isPolicyMember}
+                shouldShow={_.isEmpty(props.report) || (ReportUtils.isPublicRoom(props.report) && !isPolicyMember)}
                 subtitleKey={_.isEmpty(props.report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID))}
             >
