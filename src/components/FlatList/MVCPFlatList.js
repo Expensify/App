@@ -1,7 +1,7 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, react/prop-types */
+import PropTypes from 'prop-types';
 import React from 'react';
 import {FlatList} from 'react-native';
-import PropTypes from 'prop-types';
 
 function mergeRefs(...args) {
     return function forwardRef(node) {
