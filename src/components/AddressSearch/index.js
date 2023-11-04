@@ -1,4 +1,3 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
@@ -258,12 +257,11 @@ function AddressSearch(props) {
         // Some edge-case addresses may lack both street_number and route in the API response, resulting in an empty "values.street"
         // We are setting up a fallback to ensure "values.street" is populated with a relevant value
         if (!values.street && details.adr_address) {
-            const streetAddressRegex = /(<span\s+class\s*=\s*"street-address"[^>]*>[^<]*<\/span>)/;
+            const streetAddressRegex = /<span\s+class\s*=\s*"street-address"[^>]*>([^<]*)<\/span>/;
             const adr_address = details.adr_address.match(streetAddressRegex);
-            const streetAddressHtml = _.get(adr_address, [1], null);
-            if (streetAddressHtml) {
-                const parser = new ExpensiMark();
-                values.street = parser.htmlToText(streetAddressHtml);
+            const streetAddressFallback = _.get(adr_address, [1], null);
+            if (streetAddressFallback) {
+                values.street = streetAddressFallback;
             }
         }
 
