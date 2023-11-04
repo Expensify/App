@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import reportPropTypes from '../../../pages/reportPropTypes';
-import reportActionPropTypes from '../../../pages/home/report/reportActionPropTypes';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */

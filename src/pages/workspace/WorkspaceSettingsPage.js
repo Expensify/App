@@ -1,31 +1,31 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
-import * as Policy from '../../libs/actions/Policy';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
-import CONST from '../../CONST';
-import TextInput from '../../components/TextInput';
+import Avatar from '@components/Avatar';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import Form from '@components/Form';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {withNetwork} from '@components/OnyxProvider';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
+import styles from '@styles/styles';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
-import {withNetwork} from '../../components/OnyxProvider';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import Form from '../../components/Form';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as UserUtils from '../../libs/UserUtils';
-import Avatar from '../../components/Avatar';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
-import Text from '../../components/Text';
-import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** Constant, list of available currencies */
@@ -101,8 +101,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                 <Form
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                     submitButtonText={translate('workspace.editor.save')}
-                    style={styles.flexGrow1}
-                    submitButtonStyles={[styles.mh5]}
+                    style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
                     validate={validate}
                     onSubmit={submit}
@@ -145,12 +144,12 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                             inputID="name"
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                            containerStyles={[styles.mt4, styles.mh5]}
+                            containerStyles={[styles.mt4]}
                             defaultValue={policy.name}
                             maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                             spellCheck={false}
                         />
-                        <View style={[styles.mt4]}>
+                        <View style={[styles.mt4, styles.mhn5]}>
                             <MenuItemWithTopDescription
                                 title={formattedCurrency}
                                 description={translate('workspace.editor.currencyInputLabel')}
