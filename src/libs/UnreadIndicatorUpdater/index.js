@@ -8,7 +8,7 @@ import updateUnread from './updateUnread/index';
 let priorityMode = CONST.PRIORITY_MODE.DEFAULT;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: val => {
+    callback: (val) => {
         priorityMode = _.isString(val) ? val : 'default';
 
         // eslint-disable-next-line no-use-before-define
