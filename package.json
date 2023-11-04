@@ -91,7 +91,7 @@
     "@react-ng/bounds-observer": "^0.2.1",
     "@rnmapbox/maps": "^10.0.11",
     "@shopify/flash-list": "^1.6.1",
-    "@types/node": "^18.14.0",
+    "@types/node": "^18.18.5",
     "@ua/react-native-airship": "^15.2.6",
     "awesome-phonenumber": "^5.4.0",
     "babel-polyfill": "^6.26.0",
