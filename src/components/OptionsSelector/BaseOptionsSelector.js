@@ -1,23 +1,23 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import React, {Component} from 'react';
 import {ScrollView, View} from 'react-native';
-import Button from '../Button';
-import FixedFooter from '../FixedFooter';
-import OptionsList from '../OptionsList';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../withNavigationFocus';
-import TextInput from '../TextInput';
-import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
-import setSelection from '../../libs/setSelection';
-import compose from '../../libs/compose';
-import getPlatform from '../../libs/getPlatform';
-import FormHelpMessage from '../FormHelpMessage';
+import _ from 'underscore';
+import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+import FormHelpMessage from '@components/FormHelpMessage';
+import OptionsList from '@components/OptionsList';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigationFocus from '@components/withNavigationFocus';
+import compose from '@libs/compose';
+import getPlatform from '@libs/getPlatform';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import setSelection from '@libs/setSelection';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
+import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
     /** padding bottom style of safe area */
@@ -32,9 +32,11 @@ const propTypes = {
     /** List styles for OptionsList */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
-    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
@@ -425,6 +427,7 @@ class BaseOptionsSelector extends Component {
                     }
                 }}
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
+                sectionHeaderStyle={this.props.sectionHeaderStyle}
                 listContainerStyles={this.props.listContainerStyles}
                 listStyles={this.props.listStyles}
                 isLoading={!this.props.shouldShowOptions}

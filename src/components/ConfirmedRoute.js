@@ -1,21 +1,20 @@
-import React, {useEffect} from 'react';
-import PropTypes from 'prop-types';
-
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashIsNil from 'lodash/isNil';
+import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
-import * as MapboxToken from '../libs/actions/MapboxToken';
-import * as TransactionUtils from '../libs/TransactionUtils';
-import * as Expensicons from './Icon/Expensicons';
-import theme from '../styles/themes/default';
-import styles from '../styles/styles';
-import transactionPropTypes from './transactionPropTypes';
-import PendingMapView from './MapView/PendingMapView';
-import useNetwork from '../hooks/useNetwork';
+import useNetwork from '@hooks/useNetwork';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import styles from '@styles/styles';
+import theme from '@styles/themes/default';
+import * as MapboxToken from '@userActions/MapboxToken';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import DistanceMapView from './DistanceMapView';
+import * as Expensicons from './Icon/Expensicons';
+import PendingMapView from './MapView/PendingMapView';
+import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {
     /** Transaction that stores the distance request data */

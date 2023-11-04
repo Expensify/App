@@ -1,5 +1,5 @@
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 
 type GetButtonState = (isActive: boolean, isPressed: boolean, isComplete: boolean, isDisabled: boolean, isInteractive: boolean) => ValueOf<typeof CONST.BUTTON_STATES>;
 

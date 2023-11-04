@@ -1,32 +1,33 @@
-import React, {useState, useRef, useCallback, useMemo} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {useFocusEffect} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import _ from 'underscore';
-import withLocalize from '../../components/withLocalize';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import TextInput from '../../components/TextInput';
-import CONST from '../../CONST';
-import Text from '../../components/Text';
-import Form from '../../components/Form';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import reportPropTypes from '../reportPropTypes';
-import personalDetailsPropType from '../personalDetailsPropType';
-import * as Report from '../../libs/actions/Report';
-import useLocalize from '../../hooks/useLocalize';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import updateMultilineInputRange from '../../libs/UpdateMultilineInputRange';
-import ROUTES from '../../ROUTES';
-import * as ReportUtils from '../../libs/ReportUtils';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import withLocalize from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import styles from '@styles/styles';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -64,7 +65,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     // We need to edit the note in markdown format, but display it in HTML format
     const parser = new ExpensiMark();
     const [privateNote, setPrivateNote] = useState(
-        Report.getDraftPrivateNote(report.reportID) || parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim(),
+        () => Report.getDraftPrivateNote(report.reportID).trim() || parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim(),
     );
 
     /**
@@ -131,11 +132,11 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     subtitle={translate('privateNotes.myNote')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.repotID, route.params.accountID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.reportID, route.params.accountID))}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
                     onSubmit={savePrivateNote}
                     style={[styles.flexGrow1, styles.ph5]}
@@ -156,7 +157,8 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                         onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
                         style={[styles.mb3]}
                     >
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             inputID="privateNotes"
                             label={translate('privateNotes.composerLabel')}
@@ -182,7 +184,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                             }}
                         />
                     </OfflineWithFeedback>
-                </Form>
+                </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
