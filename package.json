@@ -89,7 +89,7 @@
     "@react-navigation/native": "6.1.6",
     "@react-navigation/stack": "6.3.16",
     "@react-ng/bounds-observer": "^0.2.1",
-    "@rnmapbox/maps": "^10.0.11",
+    "@rnmapbox/maps": "^10.0.15",
     "@shopify/flash-list": "^1.6.1",
     "@types/node": "^18.14.0",
     "@ua/react-native-airship": "^15.2.6",
