@@ -453,7 +453,6 @@ function BaseSelectionList({
                                     windowSize={5}
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
-                                    style={[styles.flexGrow0]}
                                     onLayout={scrollToFocusedIndexOnFirstRender}
                                 />
                                 {children}
