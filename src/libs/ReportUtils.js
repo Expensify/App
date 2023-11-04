@@ -2686,9 +2686,9 @@ function buildOptimisticMovedReportAction(fromPolicyID, toPolicyID, newParentRep
         originalMessage,
         message: [
             {
-                html: `moved the report to the <a href='${CONST.NEW_EXPENSIFY_URL}/r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
+                html: `moved the report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
                 text: `moved the report to the ${policyName} workspace`,
-                type: CONST.REPORT.ACTIONS.MESSAGE.TYPE.COMMENT,
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
         person: [
