@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import Button from '@components/Button';
-import ConfirmContent from '@components/ConfirmContent';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -37,6 +36,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {defaultProps, propTypes} from './walletPagePropTypes';
+import ConfirmModal from '@components/ConfirmModal';
 
 function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {
     const {translate} = useLocalize();
@@ -513,7 +513,8 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                 />
                             </View>
                         ) : (
-                            <ConfirmContent
+                            <ConfirmModal
+                                isVisible
                                 onConfirm={() => {
                                     deletePaymentMethod();
                                     hideDefaultDeleteMenu();
