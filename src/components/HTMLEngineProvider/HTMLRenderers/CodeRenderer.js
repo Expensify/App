@@ -17,12 +17,9 @@ function CodeRenderer(props) {
         fontWeight: textStyle.fontWeight,
     });
 
-    // Check if the current element is inside an h1 tag, and set a specific font size if true,
-    // otherwise, use the font size defined in `textStyle`.
     const fontSize = HTMLEngineUtils.isInsideH1(props.tnode) ? 15 : textStyle.fontSize;
 
     const textStyleOverride = {
-        // Override the font family and font size for the rendered HTML element.
         fontSize: fontSize,
         fontFamily: font,
 
