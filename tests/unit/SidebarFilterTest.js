@@ -374,6 +374,10 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([5, 6]);
             LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
+            const reportAction1 = LHNTestUtils.getFakeReportAction();
+            const reportAction2 = LHNTestUtils.getFakeReportAction();
+            const reportAction3 = LHNTestUtils.getFakeReportAction();
+
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated to contain that data and the sidebar re-renders
@@ -385,6 +389,9 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report1.reportID}`]: {[reportAction1.reportActionID]: reportAction1},
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report2.reportID}`]: {[reportAction2.reportActionID]: reportAction1},
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report3.reportID}`]: {[reportAction3.reportActionID]: reportAction1},
                         }),
                     )
 
@@ -490,6 +497,10 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
+            const archivedReportAction = LHNTestUtils.getFakeReportAction();
+            const archivedPolicyRoomReportAction = LHNTestUtils.getFakeReportAction();
+            const archivedUserCreatedPolicyRoomReportAction = LHNTestUtils.getFakeReportAction();
+
             const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
             return (
@@ -504,6 +515,9 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`]: archivedPolicyRoomReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`]: archivedUserCreatedPolicyRoomReport,
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${archivedReport.reportID}`]: {[archivedReportAction.reportActionID]: archivedReportAction},
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${archivedPolicyRoomReport.reportID}`]: {[archivedPolicyRoomReportAction.reportActionID]: archivedPolicyRoomReportAction},
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${archivedUserCreatedPolicyRoomReport.reportID}`]: {[archivedUserCreatedPolicyRoomReportAction.reportActionID]: archivedUserCreatedPolicyRoomReportAction},
                         }),
                     )
 
@@ -691,58 +705,6 @@ describe('Sidebar', () => {
     });
 
     describe('Archived chat', () => {
-        describe('in default (most recent) mode', () => {
-            it('is shown regardless if it has comments or not', () => {
-                LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-                // Given an archived report with no comments
-                const report = {
-                    ...LHNTestUtils.getFakeReport(),
-                    lastVisibleActionCreated: '2022-11-22 03:48:27.267',
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                };
-
-                // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
-
-                return (
-                    waitForBatchedUpdates()
-                        // When Onyx is updated to contain that data and the sidebar re-renders
-                        .then(() =>
-                            Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                                [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                            }),
-                        )
-
-                        // Then the report is rendered in the LHN
-                        .then(() => {
-                            const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                            const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                            expect(optionRows).toHaveLength(1);
-                        })
-
-                        // When the report has comments
-                        .then(() =>
-                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
-                                lastVisibleActionCreated: DateUtils.getDBTime(),
-                            }),
-                        )
-
-                        // Then the report is rendered in the LHN
-                        .then(() => {
-                            const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                            const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                            expect(optionRows).toHaveLength(1);
-                        })
-                );
-            });
-        });
-
         describe('in GSD (focus) mode', () => {
             it('is shown when it is unread', () => {
                 LHNTestUtils.getDefaultRenderedSidebarLinks();
@@ -753,6 +715,7 @@ describe('Sidebar', () => {
                     statusNum: CONST.REPORT.STATUS.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 };
+                const reportAction = LHNTestUtils.getFakeReportAction();
 
                 // Given the user is in all betas
                 const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
@@ -778,9 +741,13 @@ describe('Sidebar', () => {
                         })
 
                         // When the report has a new comment and is now unread
+                        .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {[reportAction.reportActionID]: reportAction}))
                         .then(() => {
                             jest.advanceTimersByTime(10);
-                            return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastVisibleActionCreated: DateUtils.getDBTime()});
+                            return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
+                                lastVisibleActionCreated: DateUtils.getDBTime(),
+                                lastMessageText: reportAction.message[0].text,
+                            });
                         })
 
                         // Then the report is rendered in the LHN

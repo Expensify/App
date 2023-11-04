@@ -613,6 +613,10 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1, true);
             const report4 = LHNTestUtils.getFakeReport([7, 8], 0, true);
 
+            const reportAction1 = LHNTestUtils.getFakeReportAction();
+            const reportAction2 = LHNTestUtils.getFakeReportAction();
+            const reportAction3 = LHNTestUtils.getFakeReportAction();
+            const reportAction4 = LHNTestUtils.getFakeReportAction();
             return (
                 waitForBatchedUpdates()
                     // Given the sidebar is rendered in #focus mode (hides read chats)
@@ -625,6 +629,10 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report1.reportID}`]: {[reportAction1.reportActionID]: reportAction1},
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report2.reportID}`]: {[reportAction2.reportActionID]: reportAction2},
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report3.reportID}`]: {[reportAction3.reportActionID]: reportAction3},
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report4.reportID}`]: {[reportAction4.reportActionID]: reportAction4},
                         }),
                     )
 
@@ -664,6 +672,9 @@ describe('Sidebar', () => {
             };
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2, true);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1, true);
+            const reportAction1 = LHNTestUtils.getFakeReportAction();
+            const reportAction2 = LHNTestUtils.getFakeReportAction();
+            const reportAction3 = LHNTestUtils.getFakeReportAction();
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
@@ -680,6 +691,9 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report1.reportID}`]: {[reportAction1.reportActionID]: reportAction1},
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report2.reportID}`]: {[reportAction2.reportActionID]: reportAction2},
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report3.reportID}`]: {[reportAction3.reportActionID]: reportAction3},
                         }),
                     )
 

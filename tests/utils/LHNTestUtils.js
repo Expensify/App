@@ -130,7 +130,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
         actor,
         actorAccountID: 1,
         reportActionID: `${++lastFakeReportActionID}`,
-        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
         shouldShow: true,
         timestamp,
         reportActionTimestamp: timestamp,
