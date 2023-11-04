@@ -81,7 +81,7 @@ function AttachmentView({
     const [loadComplete, setLoadComplete] = useState(false);
     const [isValidImage, setIsValidImage] = useState(true);
 
-    useNetwork({onReconnect: () => setImageError(false)});
+    useNetwork({onReconnect: () => setIsValidImage(true)});
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(source)) {
