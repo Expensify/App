@@ -44,7 +44,6 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMaxHeight
             shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={EditRequestAmountPage.displayName}
         >
