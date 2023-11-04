@@ -148,7 +148,8 @@ function AttachmentView({
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
     const isImage = typeof source === 'number' || Str.isImage(source) || (file && Str.isImage(file.name));
-    if (isImage && isValidImage && !fallbackSource) {
+
+    if (isImage && (isValidImage || fallbackSource)) {
         return (
             <AttachmentViewImage
                 source={isValidImage ? source : fallbackSource}
