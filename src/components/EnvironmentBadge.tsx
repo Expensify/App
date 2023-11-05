@@ -17,7 +17,7 @@ function EnvironmentBadge() {
     const {environment} = useEnvironment();
 
     // If we are on production, don't show any badge
-    if (environment === CONST.ENVIRONMENT.PRODUCTION) {
+    if (environment === CONST.ENVIRONMENT.PRODUCTION || environment === undefined) {
         return null;
     }
 
