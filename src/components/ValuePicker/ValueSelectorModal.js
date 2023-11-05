@@ -1,12 +1,12 @@
-import React, {useState, useEffect} from 'react';
-import PropTypes from 'prop-types';
 import _ from 'lodash';
-import CONST from '../../CONST';
-import HeaderWithBackButton from '../HeaderWithBackButton';
-import SelectionList from '../SelectionList';
-import Modal from '../Modal';
-import ScreenWrapper from '../ScreenWrapper';
-import styles from '../../styles/styles';
+import PropTypes from 'prop-types';
+import React, {useEffect, useState} from 'react';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Modal from '@components/Modal';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import styles from '@styles/styles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -71,6 +71,7 @@ function ValueSelectorModal({currentValue, items, selectedItem, label, isVisible
                     sections={[{data: sectionsData}]}
                     onSelectRow={onItemSelected}
                     initiallyFocusedOptionKey={currentValue}
+                    shouldStopPropagation
                 />
             </ScreenWrapper>
         </Modal>

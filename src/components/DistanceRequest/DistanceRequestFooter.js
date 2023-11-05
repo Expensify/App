@@ -1,22 +1,22 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashIsNil from 'lodash/isNil';
 import PropTypes from 'prop-types';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import useNetwork from '../../hooks/useNetwork';
-import useLocalize from '../../hooks/useLocalize';
-import theme from '../../styles/themes/default';
-import * as TransactionUtils from '../../libs/TransactionUtils';
-import Button from '../Button';
-import DistanceMapView from '../DistanceMapView';
-import * as Expensicons from '../Icon/Expensicons';
-import PendingMapView from '../MapView/PendingMapView';
-import transactionPropTypes from '../transactionPropTypes';
+import Button from '@components/Button';
+import DistanceMapView from '@components/DistanceMapView';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PendingMapView from '@components/MapView/PendingMapView';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import styles from '@styles/styles';
+import theme from '@styles/themes/default';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const MAX_WAYPOINTS = 25;
 
@@ -27,6 +27,7 @@ const propTypes = {
             lat: PropTypes.number,
             lng: PropTypes.number,
             address: PropTypes.string,
+            name: PropTypes.string,
         }),
     ),
 

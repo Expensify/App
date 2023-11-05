@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import HttpsError from './Errors/HttpsError';
+import alert from '@components/Alert';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as ApiUtils from './ApiUtils';
-import alert from '../components/Alert';
+import HttpsError from './Errors/HttpsError';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;

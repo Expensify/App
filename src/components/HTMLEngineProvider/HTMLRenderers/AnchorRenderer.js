@@ -1,20 +1,21 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
-import lodashGet from 'lodash/get';
+import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
+import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
+import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
+import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
+import Navigation from '@libs/Navigation/Navigation';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import * as Url from '@libs/Url';
+import styles from '@styles/styles';
+import * as Link from '@userActions/Link';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import * as HTMLEngineUtils from '../htmlEngineUtils';
-import * as Link from '../../../libs/actions/Link';
-import CONFIG from '../../../CONFIG';
-import Text from '../../Text';
-import CONST from '../../../CONST';
-import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
-import AnchorForCommentsOnly from '../../AnchorForCommentsOnly';
-import AnchorForAttachmentsOnly from '../../AnchorForAttachmentsOnly';
-import * as Url from '../../../libs/Url';
-import ROUTES from '../../../ROUTES';
-import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
-import useEnvironment from '../../../hooks/useEnvironment';
 
 function AnchorRenderer(props) {
     const htmlAttribs = props.tnode.attributes;
@@ -52,6 +53,10 @@ function AnchorRenderer(props) {
         // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
         // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
         if (internalNewExpensifyPath && hasSameOrigin) {
+            if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(internalNewExpensifyPath)) {
+                Session.signOutAndRedirectToSignIn();
+                return;
+            }
             Navigation.navigate(internalNewExpensifyPath);
             return;
         }
