@@ -88,7 +88,7 @@ const propTypes = {
         current: PropTypes.object,
     }).isRequired,
 
-    /** Whether or not the navigation is focused */
+    /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 };
 
