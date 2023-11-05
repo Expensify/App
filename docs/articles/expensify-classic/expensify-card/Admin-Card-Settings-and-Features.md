@@ -1,6 +1,6 @@
 ---
-title: Expensify Card Settings 
-description: Admin Card Settings and Features
+title: Admin Card Settings and Features 
+description: An in-depth look into the Expensify Card program's admin controls and settings.
 ---
 
 # Overview

@@ -15,7 +15,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
-import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '@components/withToggleVisibilityView';
+import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -70,14 +70,15 @@ const propTypes = {
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
+
+    isVisible: PropTypes.bool.isRequired,
+
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
-
-    ...toggleVisibilityViewPropTypes,
 };
 
 const defaultProps = {
