@@ -1,8 +1,8 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, {useMemo} from 'react';
+import {stylesGenerator} from './styles';
 import useTheme from './themes/useTheme';
 import ThemeStylesContext from './ThemeStylesContext';
-import {stylesGenerator} from './styles';
 
 type ThemeStylesProviderProps = {
     children: React.ReactNode;

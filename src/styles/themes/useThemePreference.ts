@@ -1,4 +1,4 @@
-import {useState, useEffect, useContext} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {Appearance, ColorSchemeName} from 'react-native';
 import {PreferredThemeContext} from '@components/OnyxProvider';
 import CONST from '@src/CONST';

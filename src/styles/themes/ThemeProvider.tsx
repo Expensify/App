@@ -2,10 +2,10 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import CONST from '@src/CONST';
-import ThemeContext from './ThemeContext';
-import useThemePreference from './useThemePreference';
 import darkTheme from './default';
 import lightTheme from './light';
+import ThemeContext from './ThemeContext';
+import useThemePreference from './useThemePreference';
 
 const propTypes = {
     /** Rendered child component */
