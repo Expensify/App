@@ -179,7 +179,7 @@ function AttachmentPickerWithMenuItems({
     const prevIsFocused = usePrevious(isFocused);
 
     /**
-     * Check IF current screen is inactive and previous screen is active.
+     * Check if current screen is inactive and previous screen is active.
      * Used to close already opened popover menu when any other page is opened over current page.
      *
      * @return {Boolean}
