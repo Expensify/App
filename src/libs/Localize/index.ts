@@ -99,8 +99,8 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
 /**
  * Return translated string for given error.
  */
-function translateIfPhraseKey(message: string | [string, Record<string, unknown> & {isTranslated?: true}]): string {
-    if (!message || (Array.isArray(message) && message.length > 0)) {
+function translateIfPhraseKey(message: string | [string, Record<string, unknown> & {isTranslated?: true}] | []): string {
+    if (!message || (Array.isArray(message) && message.length === 0)) {
         return '';
     }
 
