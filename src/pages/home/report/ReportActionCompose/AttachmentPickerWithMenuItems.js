@@ -191,7 +191,7 @@ function AttachmentPickerWithMenuItems({
         [isFocused, prevIsFocused],
     );
 
-    // When the navigation is focused, we want to close the popovermenu.
+    // When the navigation is focused, we want to close the popover menu.
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
             return;
