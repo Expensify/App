@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SelectionList from './SelectionList';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -56,8 +57,12 @@ function CurrencySelectionList(props) {
             };
         });
 
-        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
-        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text) || searchRegex.test(currencyOption.currencyName));
+        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim().replace(CONST.REGEX.ANY_SPACE, ' ')), 'i');
+        const filteredCurrencies = _.filter(
+            currencyOptions,
+            (currencyOption) =>
+                searchRegex.test(currencyOption.text.replace(CONST.REGEX.ANY_SPACE, ' ')) || searchRegex.test(currencyOption.currencyName.replace(CONST.REGEX.ANY_SPACE, ' ')),
+        );
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
         return {
