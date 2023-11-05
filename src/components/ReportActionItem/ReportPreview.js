@@ -323,7 +323,7 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         nextStep: {
-            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID.reportID}`,
+            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`,
         },
     }),
 )(ReportPreview);
